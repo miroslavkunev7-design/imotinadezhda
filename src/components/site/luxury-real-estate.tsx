@@ -409,7 +409,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
   const city = data?.city ?? { slug: "burgas", name: "Бургас", description: "Модерен морски град с богата история, динамична икономика, развита инфраструктура и отлични възможности за живот и инвестиции.", hero_image_url: null, region: "Югоизточен", population: 210000, area_km2: 253 };
   const quarters = data?.quarters ?? burgasDistricts.map((d, i) => ({ id: String(i), slug: d.name.toLowerCase(), name: d.name, image_url: d.image, properties_count: d.count }));
   const properties = data?.properties ?? [];
-  const heroImage = city.hero_image_url || burgasHero;
+  const heroImage = city.hero_image_url || (city.slug === "burgas" ? burgasPier : burgasHero);
 
   return (
     <main className="luxury-page min-h-screen bg-[radial-gradient(circle_at_top,rgba(77,8,20,0.35),transparent_42%),#17060b] text-primary-foreground">
