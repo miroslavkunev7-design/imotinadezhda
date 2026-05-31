@@ -20,7 +20,7 @@ import {
   Square,
   Trees,
   User,
-  View,
+  Box,
 } from "lucide-react";
 
 import burgasHero from "@/assets/burgas-hero.jpeg";
