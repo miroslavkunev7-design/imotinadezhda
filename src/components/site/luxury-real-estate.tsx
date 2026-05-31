@@ -91,6 +91,24 @@ const propertyFacts = [
 const amenityList = ["Панорамна гледка", "Тераса", "Климатик", "Обзаведен", "СОТ", "Контролиран достъп"];
 
 export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) {
+  const navigate = useNavigate();
+  const clickCountRef = useRef(0);
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    clickCountRef.current += 1;
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+    if (clickCountRef.current >= 3) {
+      e.preventDefault();
+      clickCountRef.current = 0;
+      navigate({ to: "/admin" });
+      return;
+    }
+    clickTimerRef.current = setTimeout(() => {
+      clickCountRef.current = 0;
+    }, 500);
+  };
+
   return (
     <header
       className="relative z-30 w-full"
@@ -102,13 +120,14 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
       }}
     >
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-6 pt-3 md:px-10 md:pb-8 md:pt-4">
-        <Link to="/" className="flex shrink-0 items-center">
+        <Link to="/" className="flex shrink-0 items-center" onClick={handleLogoClick}>
           <img
             src={logoNadezhda}
             alt="Недвижими имоти Надежда"
             className="h-16 w-auto object-contain md:h-20 lg:h-24"
           />
         </Link>
+
 
         <nav className="flex items-center gap-5 md:gap-10">
           {topNav.map((item) => (
