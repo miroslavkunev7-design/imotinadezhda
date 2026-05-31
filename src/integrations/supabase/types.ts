@@ -73,6 +73,54 @@ export type Database = {
           },
         ]
       }
+      brokers: {
+        Row: {
+          bio: string | null
+          clients_count: number | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          license_number: string | null
+          phone: string | null
+          photo_url: string | null
+          properties_count: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          bio?: string | null
+          clients_count?: number | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          license_number?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          properties_count?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          bio?: string | null
+          clients_count?: number | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          license_number?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          properties_count?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           active_properties_count: number | null
@@ -124,6 +172,153 @@ export type Database = {
           slug?: string
           stats?: Json | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      client_documents: {
+        Row: {
+          client_id: string
+          created_at: string
+          document_type: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+          notes: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          document_type: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          document_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          area_max: number | null
+          area_min: number | null
+          assigned_broker_id: string | null
+          budget_max: number | null
+          budget_min: number | null
+          client_type: string
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          email: string | null
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          rooms_max: number | null
+          rooms_min: number | null
+          search_city_id: string | null
+          search_property_type: string | null
+          search_quarter_id: string | null
+          search_status: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          area_max?: number | null
+          area_min?: number | null
+          assigned_broker_id?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          client_type?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          rooms_max?: number | null
+          rooms_min?: number | null
+          search_city_id?: string | null
+          search_property_type?: string | null
+          search_quarter_id?: string | null
+          search_status?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          area_max?: number | null
+          area_min?: number | null
+          assigned_broker_id?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          client_type?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          rooms_max?: number | null
+          rooms_min?: number | null
+          search_city_id?: string | null
+          search_property_type?: string | null
+          search_quarter_id?: string | null
+          search_status?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contract_templates: {
+        Row: {
+          contract_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          template_content: string
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          contract_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          template_content: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          contract_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          template_content?: string
+          updated_at?: string
+          variables?: Json | null
         }
         Relationships: []
       }
@@ -232,6 +427,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      generated_contracts: {
+        Row: {
+          client_id: string | null
+          content: string
+          contract_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          property_id: string | null
+          status: string
+          template_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          content: string
+          contract_type: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          property_id?: string | null
+          status?: string
+          template_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          content?: string
+          contract_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          property_id?: string | null
+          status?: string
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       inquiries: {
         Row: {
@@ -437,6 +674,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      property_matches: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          match_reasons: Json | null
+          notes: string | null
+          notified: boolean
+          property_id: string
+          score: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          match_reasons?: Json | null
+          notes?: string | null
+          notified?: boolean
+          property_id: string
+          score?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          match_reasons?: Json | null
+          notes?: string | null
+          notified?: boolean
+          property_id?: string
+          score?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       quarter_images: {
         Row: {
