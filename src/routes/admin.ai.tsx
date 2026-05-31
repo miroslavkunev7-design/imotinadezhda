@@ -3,7 +3,6 @@ import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Send, User as UserIcon } from "lucide-react";
 import { aiAssistantChat } from "@/lib/ai-assistant.functions";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/ai")({
   component: AIAssistant,
@@ -33,12 +32,7 @@ function AIAssistant() {
     setInput("");
     setBusy(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      const result = await aiAssistantChat({
-        data: { messages: next },
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      } as any);
+      const result = await aiAssistantChat({ data: { messages: next } });
       setMessages([...next, { role: "assistant", content: result.reply }]);
       setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     } catch (e: any) {
