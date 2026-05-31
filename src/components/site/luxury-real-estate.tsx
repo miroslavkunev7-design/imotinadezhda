@@ -42,7 +42,7 @@ const topNav = [
 const homeCities: Array<{ name: string; image: string; href: "/cities/$slug"; params: { slug: string } }> = [
   { name: "Шумен", image: homeHero, href: "/cities/$slug", params: { slug: "shumen" } },
   { name: "Варна", image: burgasHero, href: "/cities/$slug", params: { slug: "varna" } },
-  { name: "Бургас", image: burgasHero, href: "/cities/$slug", params: { slug: "burgas" } },
+  { name: "Бургас", image: burgasPier, href: "/cities/$slug", params: { slug: "burgas" } },
   { name: "Нов пазар", image: homeHero, href: "/cities/$slug", params: { slug: "novi-pazar" } },
 ];
 
