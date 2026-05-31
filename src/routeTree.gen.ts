@@ -10,33 +10,76 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PropertiesPropertyIdRouteImport } from './routes/properties.$propertyId'
+import { Route as CitiesSlugRouteImport } from './routes/cities.$slug'
+import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PropertiesPropertyIdRoute = PropertiesPropertyIdRouteImport.update({
+  id: '/properties/$propertyId',
+  path: '/properties/$propertyId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CitiesSlugRoute = CitiesSlugRouteImport.update({
+  id: '/cities/$slug',
+  path: '/cities/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CitiesSlugDistrictsDistrictRoute =
+  CitiesSlugDistrictsDistrictRouteImport.update({
+    id: '/districts/$district',
+    path: '/districts/$district',
+    getParentRoute: () => CitiesSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cities/$slug': typeof CitiesSlugRouteWithChildren
+  '/properties/$propertyId': typeof PropertiesPropertyIdRoute
+  '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cities/$slug': typeof CitiesSlugRouteWithChildren
+  '/properties/$propertyId': typeof PropertiesPropertyIdRoute
+  '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cities/$slug': typeof CitiesSlugRouteWithChildren
+  '/properties/$propertyId': typeof PropertiesPropertyIdRoute
+  '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cities/$slug'
+    | '/properties/$propertyId'
+    | '/cities/$slug/districts/$district'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cities/$slug'
+    | '/properties/$propertyId'
+    | '/cities/$slug/districts/$district'
+  id:
+    | '__root__'
+    | '/'
+    | '/cities/$slug'
+    | '/properties/$propertyId'
+    | '/cities/$slug/districts/$district'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CitiesSlugRoute: typeof CitiesSlugRouteWithChildren
+  PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,12 +91,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/properties/$propertyId': {
+      id: '/properties/$propertyId'
+      path: '/properties/$propertyId'
+      fullPath: '/properties/$propertyId'
+      preLoaderRoute: typeof PropertiesPropertyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cities/$slug': {
+      id: '/cities/$slug'
+      path: '/cities/$slug'
+      fullPath: '/cities/$slug'
+      preLoaderRoute: typeof CitiesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cities/$slug/districts/$district': {
+      id: '/cities/$slug/districts/$district'
+      path: '/districts/$district'
+      fullPath: '/cities/$slug/districts/$district'
+      preLoaderRoute: typeof CitiesSlugDistrictsDistrictRouteImport
+      parentRoute: typeof CitiesSlugRoute
+    }
   }
 }
 
+interface CitiesSlugRouteChildren {
+  CitiesSlugDistrictsDistrictRoute: typeof CitiesSlugDistrictsDistrictRoute
+}
+
+const CitiesSlugRouteChildren: CitiesSlugRouteChildren = {
+  CitiesSlugDistrictsDistrictRoute: CitiesSlugDistrictsDistrictRoute,
+}
+
+const CitiesSlugRouteWithChildren = CitiesSlugRoute._addFileChildren(
+  CitiesSlugRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CitiesSlugRoute: CitiesSlugRouteWithChildren,
+  PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
