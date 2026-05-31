@@ -42,9 +42,9 @@ import { cn } from "@/lib/utils";
 type NavKey = "sale" | "rent" | "about";
 
 const topNav = [
-  { key: "sale" as const, label: "За продажба" },
-  { key: "rent" as const, label: "Под наем" },
-  { key: "about" as const, label: "За нас" },
+  { key: "sale" as const, label: "За продажба", href: "/search?status=sale" },
+  { key: "rent" as const, label: "Под наем", href: "/search?status=rent" },
+  { key: "about" as const, label: "За нас", href: "/about" },
 ];
 
 export const citySlugImages: Record<string, string> = {
