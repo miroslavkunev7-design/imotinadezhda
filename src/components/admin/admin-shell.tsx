@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Building2,
@@ -22,9 +22,11 @@ import {
   ChevronRight,
   MapPin,
   Layers,
+  Heart,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { newMatchesCount } from "@/lib/crm.functions";
 import marbleBg from "@/assets/marble-bg.png";
 
 type NavItem = {
@@ -33,6 +35,7 @@ type NavItem = {
   icon: typeof LayoutDashboard;
   disabled?: boolean;
   badge?: string;
+  badgeKey?: "matches";
 };
 
 const NAV: NavItem[] = [
@@ -42,12 +45,13 @@ const NAV: NavItem[] = [
   { to: "/admin/cities", label: "Градове", icon: MapPin },
   { to: "/admin/quarters", label: "Квартали", icon: Layers },
   { to: "/admin/inquiries", label: "Запитвания", icon: MessageSquare },
-  { to: "/admin/brokers", label: "Брокери", icon: UserCog, disabled: true },
-  { to: "/admin/clients", label: "Клиенти", icon: Users, disabled: true },
+  { to: "/admin/clients", label: "Клиенти", icon: Users },
+  { to: "/admin/brokers", label: "Брокери", icon: UserCog },
+  { to: "/admin/matches", label: "Съвпадения", icon: Heart, badgeKey: "matches" },
+  { to: "/admin/contracts", label: "Договори", icon: FileText },
   { to: "/admin/owners", label: "Собственици", icon: Crown, disabled: true },
   { to: "/admin/chat", label: "Чат", icon: MessageCircle, disabled: true },
   { to: "/admin/calendar", label: "Календар", icon: Calendar, disabled: true },
-  { to: "/admin/contracts", label: "Договори", icon: FileText, disabled: true },
   { to: "/admin/finance", label: "Финанси", icon: Wallet, disabled: true },
   { to: "/admin/marketing", label: "Маркетинг", icon: Megaphone, disabled: true },
   { to: "/admin/tasks", label: "Задачи", icon: CheckSquare, disabled: true },
