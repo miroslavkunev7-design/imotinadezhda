@@ -90,7 +90,7 @@ const propertyFacts = [
 
 const amenityList = ["Панорамна гледка", "Тераса", "Климатик", "Обзаведен", "СОТ", "Контролиран достъп"];
 
-function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) {
+export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) {
   return (
     <header
       className="relative z-30 w-full"
