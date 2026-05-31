@@ -125,6 +125,11 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
                     {item.badge}
                   </span>
                 ) : null}
+                {item.badgeKey === "matches" && matchBadge > 0 ? (
+                  <span className="rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    {matchBadge}
+                  </span>
+                ) : null}
                 {item.disabled ? (
                   <span className="text-[9px] uppercase text-primary/40">скоро</span>
                 ) : null}
