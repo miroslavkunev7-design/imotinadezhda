@@ -603,7 +603,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               </div>
             </div>
             <div className="px-4 pb-4 md:px-8 md:pb-6">
-              <SearchBar compact />
+              <SearchBar />
             </div>
           </div>
         </div>
