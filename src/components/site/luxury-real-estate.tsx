@@ -307,27 +307,28 @@ function RangeCell({
 
 function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
   return (
-    <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[18px] bg-card text-card-foreground">
-      <div className="relative aspect-[1.5/1] overflow-hidden rounded-[18px] border border-primary/20 bg-card shadow-[0_18px_35px_rgba(77,25,31,0.18)] lg:aspect-[1.7/1]">
-        <img src={image} alt={name} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" loading="lazy" />
+    <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[18px]">
+      <div className="relative aspect-[1.45/1] overflow-hidden rounded-[18px] border border-primary/25 shadow-[0_18px_38px_rgba(77,25,31,0.28)] lg:aspect-[1.65/1]">
+        <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
         <div className="marble-wave-glow" />
-        <div className="absolute inset-x-0 bottom-0 h-[44%] bg-[linear-gradient(180deg,transparent_0%,rgba(255,247,236,0.9)_44%,rgba(255,247,236,0.98)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between px-5 pb-5">
-          <div>
-            <div className="mb-1 flex items-center gap-2 text-sm text-accent-foreground/70">
-              <MapPin className="h-4 w-4 text-primary" />
+        {/* Burgundy marble bottom panel */}
+        <div className="marble-burgundy-bottom absolute inset-x-0 bottom-0 flex items-center justify-between px-4 py-3 md:px-5 md:py-3.5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-amber-200/85">
+              <MapPin className="h-3.5 w-3.5 text-amber-300" />
               <span>Виж града</span>
             </div>
-            <div className="font-display text-[2rem] leading-none text-accent-foreground">{name}</div>
+            <div className="font-display text-2xl leading-tight text-amber-50 md:text-[1.75rem]">{name}</div>
           </div>
-          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-background/80 text-accent-foreground transition group-hover:bg-primary group-hover:text-primary-foreground">
-            <ChevronRight className="h-5 w-5" />
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-amber-300/55 bg-amber-400/12 text-amber-200 transition group-hover:bg-amber-300 group-hover:text-[#3d0812]">
+            <ChevronRight className="h-4 w-4 -rotate-45" />
           </div>
         </div>
       </div>
     </Link>
   );
 }
+
 
 function MarblePropertyCard({
   title,
