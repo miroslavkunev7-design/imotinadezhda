@@ -77,36 +77,48 @@ const propertyFacts = [
 
 const amenityList = ["Панорамна гледка", "Тераса", "Климатик", "Обзаведен", "СОТ", "Контролиран достъп"];
 
-function LuxuryHeader({ active = "sale", dark = false }: { active?: NavKey; dark?: boolean }) {
+function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) {
   return (
-    <header className={cn("relative z-20 mx-auto flex w-full max-w-[1440px] items-start justify-between gap-4 px-4 pt-4 md:px-8 md:pt-6", dark && "text-primary-foreground")}>
-      <div className="gold-wave-frame max-w-[320px] p-6 md:p-8">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 text-primary">
-            <House className="h-9 w-9" />
-            <div className="text-sm font-semibold uppercase tracking-[0.28em]">Недвижими имоти</div>
-          </div>
-          <div className="font-display text-[2rem] leading-none text-primary md:text-[2.7rem]">ИЛДЖ.ИА</div>
-        </div>
-      </div>
+    <header
+      className="relative z-30 w-full"
+      style={{
+        backgroundImage: `url(${headerPanel})`,
+        backgroundSize: "100% 100%",
+        backgroundRepeat: "no-repeat",
+        backgroundColor: "#f7f1e6",
+      }}
+    >
+      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-10 pt-3 md:px-10 md:pb-14 md:pt-4">
+        <Link to="/" className="flex shrink-0 items-center">
+          <img
+            src={logoNadezhda}
+            alt="Недвижими имоти Надежда"
+            className="h-16 w-auto object-contain md:h-20 lg:h-24"
+          />
+        </Link>
 
-      <nav className={cn("marble-dark-panel flex items-center gap-6 rounded-b-[28px] px-6 py-5 md:px-10", dark ? "border-white/15" : "") }>
-        {topNav.map((item) => (
-          <a
-            key={item.key}
-            href="#"
-            className={cn(
-              "relative font-display text-lg text-primary-foreground/90 transition hover:text-primary",
-              active === item.key && "text-primary after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:bg-primary",
-            )}
+        <nav className="flex items-center gap-5 md:gap-10">
+          {topNav.map((item) => (
+            <a
+              key={item.key}
+              href="#"
+              className={cn(
+                "relative font-display text-base text-primary transition hover:text-primary/80 md:text-lg",
+                active === item.key &&
+                  "after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:bg-primary",
+              )}
+            >
+              {item.label}
+            </a>
+          ))}
+          <button
+            className="text-primary transition hover:text-primary/70"
+            aria-label="Профил"
           >
-            {item.label}
-          </a>
-        ))}
-        <button className="text-primary-foreground transition hover:text-primary" aria-label="Профил">
-          <User className="h-6 w-6" />
-        </button>
-      </nav>
+            <User className="h-6 w-6" />
+          </button>
+        </nav>
+      </div>
     </header>
   );
 }
