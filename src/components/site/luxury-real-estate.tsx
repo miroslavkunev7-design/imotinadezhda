@@ -486,26 +486,14 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
       <section className="relative z-10 mx-auto mt-[-14px] max-w-[1450px] px-3 pb-10 md:mt-[-22px] md:px-6 md:pb-16">
         <div className="overflow-hidden rounded-[34px] bg-card p-5 shadow-[0_26px_65px_rgba(0,0,0,0.24)] md:p-8" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}>
-          <div className="grid gap-8 xl:grid-cols-[280px_1fr]">
-            <div className="flex flex-col justify-between gap-6 rounded-[24px] p-3 md:p-5">
-              <div>
-                <h2 className="font-display text-[2.8rem] leading-tight text-accent-foreground md:text-[3.7rem]">Избери квартал в гр. {city.name}</h2>
-              </div>
-              <Button className="marble-dark-panel h-20 justify-between rounded-[18px] px-8 text-left text-2xl text-primary-foreground md:h-24">
-                <span className="font-display">Виж всички квартали</span>
-                <ChevronRight className="h-7 w-7" />
-              </Button>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-              {quarters.map((q) => (
-                <Link key={q.id} to="/cities/$slug/districts/$district" params={{ slug: city.slug, district: q.slug }} className="block">
-                  <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={q.image_url || burgasHero} />
-                </Link>
-              ))}
-            </div>
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <h2 className="font-display text-[2.6rem] leading-tight text-accent-foreground md:text-[3.4rem]">Избери квартал в гр. {city.name}</h2>
+            <p className="text-base text-muted-foreground md:max-w-md">Разгледай всички {quarters.length} квартала с реални снимки и активни обяви.</p>
           </div>
+          <QuartersScroller quarters={quarters} citySlug={city.slug} fallbackImage={burgasHero} />
         </div>
       </section>
+
 
       {properties.length > 0 && (
         <section className="relative mx-auto max-w-[1450px] px-3 pb-16 md:px-6">
