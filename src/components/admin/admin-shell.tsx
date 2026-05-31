@@ -63,6 +63,15 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [matchBadge, setMatchBadge] = useState<number>(0);
+
+  useEffect(() => {
+    let cancel = false;
+    const tick = () => newMatchesCount().then((r) => { if (!cancel) setMatchBadge(r.count); }).catch(() => {});
+    tick();
+    const t = setInterval(tick, 30000);
+    return () => { cancel = true; clearInterval(t); };
+  }, []);
 
   const current = NAV.find((n) => (n.to === "/admin" ? path === "/admin" : path.startsWith(n.to)));
 
