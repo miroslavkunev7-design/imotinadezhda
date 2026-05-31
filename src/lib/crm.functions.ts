@@ -180,8 +180,8 @@ async function runMatchForClient(clientId: string) {
     .eq("is_published", true);
   if (client.search_city_id) q = q.eq("city_id", client.search_city_id);
   if (client.search_quarter_id) q = q.eq("quarter_id", client.search_quarter_id);
-  if (client.search_property_type) q = q.eq("property_type", client.search_property_type);
-  if (client.search_status) q = q.eq("status", client.search_status);
+  if (client.search_property_type) q = q.eq("property_type", client.search_property_type as any);
+  if (client.search_status) q = q.eq("status", client.search_status as any);
   const { data: props } = await q;
   if (!props) return [];
   const matches: any[] = [];
