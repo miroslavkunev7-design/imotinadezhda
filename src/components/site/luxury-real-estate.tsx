@@ -307,7 +307,29 @@ function MapCard({ district = false }: { district?: boolean }) {
   );
 }
 
-export function HomePage() {
+type HomeCity = { name: string; image?: string | null; slug: string };
+type FeaturedListing = {
+  id: string;
+  title: string;
+  price: number | string;
+  currency?: string | null;
+  area_sqm?: number | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  cover_image_url?: string | null;
+  city_slug?: string | null;
+  city_name?: string | null;
+};
+
+function formatPrice(p: number | string, currency = "EUR") {
+  const num = typeof p === "string" ? Number(p) : p;
+  if (!Number.isFinite(num)) return String(p);
+  const sym = currency === "EUR" ? "€" : currency === "BGN" ? "лв." : currency;
+  return `${sym} ${new Intl.NumberFormat("bg-BG").format(num)}`;
+}
+
+export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?: FeaturedListing[] } = {}) {
+  const cityList = (cities && cities.length ? cities : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug })));
   return (
     <main className="luxury-page min-h-screen bg-background text-foreground">
       <section className="relative overflow-hidden px-3 pb-8 pt-0 md:px-6 md:pb-16">
@@ -326,17 +348,66 @@ export function HomePage() {
 
         <section className="relative mx-auto mt-8 max-w-[1420px] px-4 md:mt-12 md:px-6">
           <div className="grid gap-4 md:grid-cols-4">
-            {homeCities.map((city) => (
-              <CityCard key={city.name} {...city} />
+            {cityList.map((city) => (
+              <CityCard
+                key={city.slug}
+                name={city.name}
+                image={city.image || burgasHero}
+                href="/cities/$slug"
+                params={{ slug: city.slug }}
+              />
             ))}
           </div>
         </section>
+
+        {featured && featured.length > 0 && (
+          <section className="relative mx-auto mt-12 max-w-[1420px] px-4 md:mt-16 md:px-6">
+            <div className="mb-6 flex items-end justify-between">
+              <h2 className="font-display text-[2.4rem] text-accent-foreground md:text-[3rem]">Подбрани имоти</h2>
+              <span className="text-sm text-muted-foreground">{featured.length} оферти</span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {featured.map((f) => (
+                <Link key={f.id} to="/properties/$propertyId" params={{ propertyId: f.id }} className="block">
+                  <ListingCard
+                    title={f.title}
+                    price={formatPrice(f.price, f.currency ?? "EUR")}
+                    size={`${f.area_sqm ?? "—"} m²`}
+                    beds={f.bedrooms ?? 0}
+                    baths={f.bathrooms ?? 0}
+                    image={f.cover_image_url || burgasHero}
+                    tag={f.city_name ?? ""}
+                  />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </section>
     </main>
   );
 }
 
-export function CityPage() {
+type CityData = {
+  city: {
+    slug: string;
+    name: string;
+    description?: string | null;
+    hero_image_url?: string | null;
+    region?: string | null;
+    population?: number | null;
+    area_km2?: number | null;
+  };
+  quarters: Array<{ id: string; slug: string; name: string; image_url?: string | null; properties_count?: number | null }>;
+  properties: Array<{ id: string; title: string; price: number | string; currency?: string | null; area_sqm?: number | null; bedrooms?: number | null; bathrooms?: number | null; cover_image_url?: string | null }>;
+};
+
+export function CityPage({ data }: { data?: CityData } = {}) {
+  const city = data?.city ?? { slug: "burgas", name: "Бургас", description: "Модерен морски град с богата история, динамична икономика, развита инфраструктура и отлични възможности за живот и инвестиции.", hero_image_url: null, region: "Югоизточен", population: 210000, area_km2: 253 };
+  const quarters = data?.quarters ?? burgasDistricts.map((d, i) => ({ id: String(i), slug: d.name.toLowerCase(), name: d.name, image_url: d.image, properties_count: d.count }));
+  const properties = data?.properties ?? [];
+  const heroImage = city.hero_image_url || burgasHero;
+
   return (
     <main className="luxury-page min-h-screen bg-[radial-gradient(circle_at_top,rgba(77,8,20,0.35),transparent_42%),#17060b] text-primary-foreground">
       <section className="relative overflow-hidden px-3 pb-8 md:px-6 md:pb-16">
@@ -345,21 +416,21 @@ export function CityPage() {
           <div className="overflow-hidden rounded-[30px] border border-primary/20 bg-[linear-gradient(135deg,rgba(52,4,14,0.96),rgba(24,4,8,0.97))] shadow-[0_28px_70px_rgba(0,0,0,0.35)]">
             <div className="grid md:grid-cols-[1.1fr_0.9fr]">
               <div className="relative min-h-[360px] md:min-h-[560px]">
-                <img src={burgasHero} alt="Бургас от високо" className="absolute inset-0 h-full w-full object-cover" />
+                <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.15)_0%,rgba(39,4,10,0.28)_70%,rgba(39,4,10,0.44)_100%)]" />
               </div>
               <div className="flex flex-col justify-center px-6 py-10 md:px-12">
                 <p className="font-display text-lg uppercase tracking-[0.18em] text-primary/85">За града</p>
-                <h1 className="mt-2 font-display text-[4.2rem] leading-none text-primary md:text-[5.4rem]">Бургас</h1>
-                <p className="mt-6 max-w-[560px] text-xl leading-[1.8] text-primary-foreground/90 md:text-[1.95rem]">
-                  Модерен морски град с богата история, динамична икономика, развита инфраструктура и отлични възможности за живот и инвестиции.
-                </p>
+                <h1 className="mt-2 font-display text-[4.2rem] leading-none text-primary md:text-[5.4rem]">{city.name}</h1>
+                {city.description && (
+                  <p className="mt-6 max-w-[560px] text-xl leading-[1.8] text-primary-foreground/90 md:text-[1.95rem]">{city.description}</p>
+                )}
                 <div className="mt-8 h-px w-full bg-primary/25" />
                 <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                  <StatItem icon={User} value="~210 000" label="жители" />
-                  <StatItem icon={Square} value="253 km²" label="площ" />
-                  <StatItem icon={MapPin} value="Югоизточен" label="регион" />
-                  <StatItem icon={Building2} value="850+" label="активни имота" />
+                  <StatItem icon={User} value={city.population ? `~${new Intl.NumberFormat("bg-BG").format(city.population)}` : "—"} label="жители" />
+                  <StatItem icon={Square} value={city.area_km2 ? `${city.area_km2} km²` : "—"} label="площ" />
+                  <StatItem icon={MapPin} value={city.region ?? "—"} label="регион" />
+                  <StatItem icon={Building2} value={`${properties.length}+`} label="активни имота" />
                 </div>
               </div>
             </div>
@@ -375,7 +446,7 @@ export function CityPage() {
           <div className="grid gap-8 xl:grid-cols-[280px_1fr]">
             <div className="flex flex-col justify-between gap-6 rounded-[24px] p-3 md:p-5">
               <div>
-                <h2 className="font-display text-[2.8rem] leading-tight text-accent-foreground md:text-[3.7rem]">Избери квартал в гр. Бургас</h2>
+                <h2 className="font-display text-[2.8rem] leading-tight text-accent-foreground md:text-[3.7rem]">Избери квартал в гр. {city.name}</h2>
               </div>
               <Button className="marble-dark-panel h-20 justify-between rounded-[18px] px-8 text-left text-2xl text-primary-foreground md:h-24">
                 <span className="font-display">Виж всички квартали</span>
@@ -383,13 +454,36 @@ export function CityPage() {
               </Button>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-              {burgasDistricts.map((district) => (
-                <MarblePropertyCard key={district.name} title={district.name} count={district.count} image={district.image} />
+              {quarters.map((q) => (
+                <Link key={q.id} to="/cities/$slug/districts/$district" params={{ slug: city.slug, district: q.slug }} className="block">
+                  <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={q.image_url || burgasHero} />
+                </Link>
               ))}
             </div>
           </div>
         </div>
       </section>
+
+      {properties.length > 0 && (
+        <section className="relative mx-auto max-w-[1450px] px-3 pb-16 md:px-6">
+          <h2 className="mb-6 font-display text-[2.4rem] text-primary-foreground md:text-[3rem]">Активни имоти в {city.name}</h2>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {properties.map((p) => (
+              <Link key={p.id} to="/properties/$propertyId" params={{ propertyId: p.id }} className="block">
+                <ListingCard
+                  title={p.title}
+                  price={formatPrice(p.price, p.currency ?? "EUR")}
+                  size={`${p.area_sqm ?? "—"} m²`}
+                  beds={p.bedrooms ?? 0}
+                  baths={p.bathrooms ?? 0}
+                  image={p.cover_image_url || burgasHero}
+                  tag=""
+                />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
