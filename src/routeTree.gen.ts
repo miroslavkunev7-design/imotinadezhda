@@ -17,9 +17,13 @@ import { Route as PropertiesPropertyIdRouteImport } from './routes/properties.$p
 import { Route as CitiesSlugRouteImport } from './routes/cities.$slug'
 import { Route as AdminQuartersRouteImport } from './routes/admin.quarters'
 import { Route as AdminPropertiesRouteImport } from './routes/admin.properties'
+import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
 import { Route as AdminInquiriesRouteImport } from './routes/admin.inquiries'
 import { Route as AdminExtractedRouteImport } from './routes/admin.extracted'
+import { Route as AdminContractsRouteImport } from './routes/admin.contracts'
+import { Route as AdminClientsRouteImport } from './routes/admin.clients'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
+import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
 
@@ -63,6 +67,11 @@ const AdminPropertiesRoute = AdminPropertiesRouteImport.update({
   path: '/properties',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMatchesRoute = AdminMatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInquiriesRoute = AdminInquiriesRouteImport.update({
   id: '/inquiries',
   path: '/inquiries',
@@ -73,9 +82,24 @@ const AdminExtractedRoute = AdminExtractedRouteImport.update({
   path: '/extracted',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminContractsRoute = AdminContractsRouteImport.update({
+  id: '/contracts',
+  path: '/contracts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminClientsRoute = AdminClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCitiesRoute = AdminCitiesRouteImport.update({
   id: '/cities',
   path: '/cities',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBrokersRoute = AdminBrokersRouteImport.update({
+  id: '/brokers',
+  path: '/brokers',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAiRoute = AdminAiRouteImport.update({
@@ -95,9 +119,13 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/admin/ai': typeof AdminAiRoute
+  '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
+  '/admin/clients': typeof AdminClientsRoute
+  '/admin/contracts': typeof AdminContractsRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
+  '/admin/matches': typeof AdminMatchesRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
   '/cities/$slug': typeof CitiesSlugRouteWithChildren
@@ -109,9 +137,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/admin/ai': typeof AdminAiRoute
+  '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
+  '/admin/clients': typeof AdminClientsRoute
+  '/admin/contracts': typeof AdminContractsRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
+  '/admin/matches': typeof AdminMatchesRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
   '/cities/$slug': typeof CitiesSlugRouteWithChildren
@@ -125,9 +157,13 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/admin/ai': typeof AdminAiRoute
+  '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
+  '/admin/clients': typeof AdminClientsRoute
+  '/admin/contracts': typeof AdminContractsRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
+  '/admin/matches': typeof AdminMatchesRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
   '/cities/$slug': typeof CitiesSlugRouteWithChildren
@@ -142,9 +178,13 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/admin/ai'
+    | '/admin/brokers'
     | '/admin/cities'
+    | '/admin/clients'
+    | '/admin/contracts'
     | '/admin/extracted'
     | '/admin/inquiries'
+    | '/admin/matches'
     | '/admin/properties'
     | '/admin/quarters'
     | '/cities/$slug'
@@ -156,9 +196,13 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/admin/ai'
+    | '/admin/brokers'
     | '/admin/cities'
+    | '/admin/clients'
+    | '/admin/contracts'
     | '/admin/extracted'
     | '/admin/inquiries'
+    | '/admin/matches'
     | '/admin/properties'
     | '/admin/quarters'
     | '/cities/$slug'
@@ -171,9 +215,13 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/admin/ai'
+    | '/admin/brokers'
     | '/admin/cities'
+    | '/admin/clients'
+    | '/admin/contracts'
     | '/admin/extracted'
     | '/admin/inquiries'
+    | '/admin/matches'
     | '/admin/properties'
     | '/admin/quarters'
     | '/cities/$slug'
@@ -248,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPropertiesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/matches': {
+      id: '/admin/matches'
+      path: '/matches'
+      fullPath: '/admin/matches'
+      preLoaderRoute: typeof AdminMatchesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inquiries': {
       id: '/admin/inquiries'
       path: '/inquiries'
@@ -262,11 +317,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminExtractedRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/contracts': {
+      id: '/admin/contracts'
+      path: '/contracts'
+      fullPath: '/admin/contracts'
+      preLoaderRoute: typeof AdminContractsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/clients': {
+      id: '/admin/clients'
+      path: '/clients'
+      fullPath: '/admin/clients'
+      preLoaderRoute: typeof AdminClientsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/cities': {
       id: '/admin/cities'
       path: '/cities'
       fullPath: '/admin/cities'
       preLoaderRoute: typeof AdminCitiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/brokers': {
+      id: '/admin/brokers'
+      path: '/brokers'
+      fullPath: '/admin/brokers'
+      preLoaderRoute: typeof AdminBrokersRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/ai': {
@@ -288,9 +364,13 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAiRoute: typeof AdminAiRoute
+  AdminBrokersRoute: typeof AdminBrokersRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
+  AdminClientsRoute: typeof AdminClientsRoute
+  AdminContractsRoute: typeof AdminContractsRoute
   AdminExtractedRoute: typeof AdminExtractedRoute
   AdminInquiriesRoute: typeof AdminInquiriesRoute
+  AdminMatchesRoute: typeof AdminMatchesRoute
   AdminPropertiesRoute: typeof AdminPropertiesRoute
   AdminQuartersRoute: typeof AdminQuartersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -298,9 +378,13 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAiRoute: AdminAiRoute,
+  AdminBrokersRoute: AdminBrokersRoute,
   AdminCitiesRoute: AdminCitiesRoute,
+  AdminClientsRoute: AdminClientsRoute,
+  AdminContractsRoute: AdminContractsRoute,
   AdminExtractedRoute: AdminExtractedRoute,
   AdminInquiriesRoute: AdminInquiriesRoute,
+  AdminMatchesRoute: AdminMatchesRoute,
   AdminPropertiesRoute: AdminPropertiesRoute,
   AdminQuartersRoute: AdminQuartersRoute,
   AdminIndexRoute: AdminIndexRoute,
