@@ -1,7 +1,7 @@
 import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+// (Google OAuth removed; only email/password auth)
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -51,19 +51,7 @@ function LoginPage() {
     }
   };
 
-  const handleGoogle = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/admin" });
-      if (result.error) throw new Error(result.error.message || "Google sign-in грешка");
-      if (result.redirected) return;
-      navigate({ to: "/admin" });
-    } catch (err: any) {
-      setError(err?.message ?? "Грешка при вход с Google");
-      setBusy(false);
-    }
-  };
+  // OAuth handler removed.
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -111,13 +99,8 @@ function LoginPage() {
           </Button>
         </form>
 
-        <div className="my-4 flex items-center gap-2 text-xs text-muted-foreground">
-          <div className="h-px flex-1 bg-border" /> или <div className="h-px flex-1 bg-border" />
-        </div>
 
-        <Button type="button" variant="outline" disabled={busy} onClick={handleGoogle} className="w-full">
-          Вход с Google
-        </Button>
+
 
         <button
           type="button"
