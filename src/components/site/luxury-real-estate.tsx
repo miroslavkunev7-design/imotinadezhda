@@ -28,6 +28,8 @@ import burgasPier from "@/assets/burgas-pier.jpeg";
 import burgundyTerrace from "@/assets/burgundy-terrace-hero.jpeg";
 import homeHero from "@/assets/home-hero-bkg.jpeg";
 import marbleBg from "@/assets/marble-bg.png";
+import logoNadezhda from "@/assets/logo-nadezhda.png";
+import headerPanel from "@/assets/site-header-panel.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
