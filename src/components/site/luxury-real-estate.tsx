@@ -199,25 +199,27 @@ function SearchBar({
       <button
         type="button"
         onClick={handleSearch}
-        className="gold-cta-button absolute -top-7 right-6 z-30 flex h-12 items-center gap-2 rounded-full px-7 text-base font-semibold lg:right-10"
+        className="gold-cta-button absolute -top-5 right-4 z-30 flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold md:-top-7 md:right-6 md:h-12 md:px-7 md:text-base lg:right-10"
       >
-        <Search className="h-5 w-5" /> Търси
+        <Search className="h-4 w-4 md:h-5 md:w-5" /> Търси
       </button>
 
-      <div className="marble-light-panel grid w-full gap-2 rounded-[22px] p-3 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:p-3">
+      <div className="marble-light-panel grid w-full grid-cols-2 gap-1 rounded-[18px] p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:rounded-[22px] md:p-3">
         <SelectCell icon={MapPin} label="Град" value={city} onChange={setCity}
           options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
         <SelectCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
           options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]} />
-        <SelectCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
-          options={propertyTypeOptions} />
+        <div className="col-span-2 md:col-span-1 md:contents">
+          <SelectCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
+            options={propertyTypeOptions} />
+        </div>
         <RangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
           onMin={setPriceMin} onMax={setPriceMax} suffix="€" />
         <RangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
           onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
         <button
           type="button"
-          className="marble-action-button flex h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-primary/35 bg-primary/5 px-5 text-primary transition hover:bg-primary/10"
+          className="marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-primary/35 bg-primary/5 px-5 text-primary transition hover:bg-primary/10 md:flex"
           onClick={handleSearch}
         >
           <SlidersHorizontal className="h-5 w-5" />
