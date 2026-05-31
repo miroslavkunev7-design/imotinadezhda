@@ -125,16 +125,16 @@ function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) 
 
 function SearchBar({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={cn("marble-dark-panel relative z-20 mx-auto grid w-full max-w-[1380px] gap-4 rounded-[24px] p-4 shadow-[0_18px_40px_rgba(56,10,20,0.35)] md:grid-cols-[1.1fr_1.1fr_1.2fr_1.2fr_1.2fr_auto_auto] md:items-center md:gap-0 md:px-6 md:py-5", compact && "max-w-[1340px]")}>
+    <div className={cn("marble-dark-panel relative z-20 mx-auto grid w-full max-w-[1380px] gap-3 rounded-[24px] p-4 shadow-[0_18px_40px_rgba(56,10,20,0.35)] lg:grid-cols-[1fr_1fr_1.1fr_1.1fr_1.1fr_auto_auto] lg:items-center lg:gap-0 lg:px-5 lg:py-4", compact && "max-w-[1340px]")}>
       <FilterCell icon={MapPin} label="Град" value="Бургас" />
       <FilterCell icon={House} label="Квартал" value="Лазур" />
       <FilterCell icon={Building2} label="Вид имот" value="Апартамент" />
       <FilterCell icon={LandPlot} label="Цена" value="от 200 000 €" sub="до 500 000 €" />
       <FilterCell icon={Ruler} label="Площ" value="от 100 m²" sub="до 200 m²" />
-      <Button variant="outline" className="marble-action-button h-14 justify-center rounded-[16px] border-primary/30 bg-transparent px-7 text-lg text-primary-foreground hover:bg-white/8">
+      <Button variant="outline" className="marble-action-button h-12 justify-center rounded-[14px] border-primary/30 bg-transparent px-5 text-base text-primary-foreground hover:bg-white/8 lg:h-14 lg:px-6">
         <SlidersHorizontal className="h-5 w-5" /> Филтри
       </Button>
-      <Button className="gold-cta-button h-14 justify-center rounded-[16px] px-8 text-lg">
+      <Button className="gold-cta-button h-12 justify-center rounded-[14px] px-6 text-base lg:h-14 lg:px-7">
         <Search className="h-5 w-5" /> Търси
       </Button>
     </div>
