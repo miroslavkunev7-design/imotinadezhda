@@ -18,6 +18,7 @@ import { Route as CitiesSlugRouteImport } from './routes/cities.$slug'
 import { Route as AdminQuartersRouteImport } from './routes/admin.quarters'
 import { Route as AdminPropertiesRouteImport } from './routes/admin.properties'
 import { Route as AdminInquiriesRouteImport } from './routes/admin.inquiries'
+import { Route as AdminExtractedRouteImport } from './routes/admin.extracted'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
@@ -67,6 +68,11 @@ const AdminInquiriesRoute = AdminInquiriesRouteImport.update({
   path: '/inquiries',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminExtractedRoute = AdminExtractedRouteImport.update({
+  id: '/extracted',
+  path: '/extracted',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCitiesRoute = AdminCitiesRouteImport.update({
   id: '/cities',
   path: '/cities',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/cities': typeof AdminCitiesRoute
+  '/admin/extracted': typeof AdminExtractedRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/cities': typeof AdminCitiesRoute
+  '/admin/extracted': typeof AdminExtractedRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/cities': typeof AdminCitiesRoute
+  '/admin/extracted': typeof AdminExtractedRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/ai'
     | '/admin/cities'
+    | '/admin/extracted'
     | '/admin/inquiries'
     | '/admin/properties'
     | '/admin/quarters'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/ai'
     | '/admin/cities'
+    | '/admin/extracted'
     | '/admin/inquiries'
     | '/admin/properties'
     | '/admin/quarters'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/ai'
     | '/admin/cities'
+    | '/admin/extracted'
     | '/admin/inquiries'
     | '/admin/properties'
     | '/admin/quarters'
@@ -243,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInquiriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/extracted': {
+      id: '/admin/extracted'
+      path: '/extracted'
+      fullPath: '/admin/extracted'
+      preLoaderRoute: typeof AdminExtractedRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/cities': {
       id: '/admin/cities'
       path: '/cities'
@@ -270,6 +289,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAiRoute: typeof AdminAiRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
+  AdminExtractedRoute: typeof AdminExtractedRoute
   AdminInquiriesRoute: typeof AdminInquiriesRoute
   AdminPropertiesRoute: typeof AdminPropertiesRoute
   AdminQuartersRoute: typeof AdminQuartersRoute
@@ -279,6 +299,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAiRoute: AdminAiRoute,
   AdminCitiesRoute: AdminCitiesRoute,
+  AdminExtractedRoute: AdminExtractedRoute,
   AdminInquiriesRoute: AdminInquiriesRoute,
   AdminPropertiesRoute: AdminPropertiesRoute,
   AdminQuartersRoute: AdminQuartersRoute,
