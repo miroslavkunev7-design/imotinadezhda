@@ -228,6 +228,15 @@ function ListingCard({
         <button className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow">
           <Heart className="h-4 w-4" />
         </button>
+        <button
+          type="button"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-[rgba(102,8,28,0.88)] px-3.5 py-1.5 text-xs font-semibold tracking-[0.08em] text-primary-foreground shadow-[0_8px_22px_rgba(60,10,20,0.45)] backdrop-blur-sm transition hover:bg-[rgba(122,18,38,0.95)]"
+          aria-label="3D виртуален оглед"
+        >
+          <Box className="h-3.5 w-3.5 text-primary" />
+          3D Виртуален оглед
+        </button>
         <div className="marble-wave-glow" />
       </div>
       <div className="space-y-3 px-4 pb-5 pt-4">
