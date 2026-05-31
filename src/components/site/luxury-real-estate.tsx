@@ -156,7 +156,7 @@ function SearchBar({
   quarters?: Array<{ slug: string; name: string }>;
   initial?: { city_slug?: string; quarter_slug?: string; property_type?: string; price_min?: string; price_max?: string; area_min?: string; area_max?: string };
 }) {
-  const navigate = (typeof window !== "undefined") ? require("@tanstack/react-router").useNavigate() : null;
+  // navigation handled via window.location.href in handleSearch
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [city, setCity] = useReactState(initial?.city_slug ?? (cities[0]?.slug ?? ""));
   // eslint-disable-next-line react-hooks/rules-of-hooks
