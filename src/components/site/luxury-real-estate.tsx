@@ -99,7 +99,7 @@ function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) 
         backgroundColor: "#f7f1e6",
       }}
     >
-      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-10 pt-3 md:px-10 md:pb-14 md:pt-4">
+      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-6 pt-3 md:px-10 md:pb-8 md:pt-4">
         <Link to="/" className="flex shrink-0 items-center">
           <img
             src={logoNadezhda}
