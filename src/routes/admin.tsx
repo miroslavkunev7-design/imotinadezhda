@@ -2,8 +2,9 @@ import { createFileRoute, Link, Outlet, redirect, useNavigate, useRouterState } 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Building2, LayoutDashboard, LogOut, MessageSquare, Sparkles } from "lucide-react";
+import { Building2, LayoutDashboard, LogOut, MapPin, MessageSquare, Sparkles, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
