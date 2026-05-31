@@ -116,7 +116,8 @@ function PropertiesAdmin() {
                 <td className="px-4 py-2">{r.is_published ? "✓" : "—"}</td>
                 <td className="px-4 py-2">{r.is_featured ? "★" : "—"}</td>
                 <td className="px-4 py-2 text-right">
-                  <button className="mr-2 text-primary" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></button>
+                  <button className="mr-2 text-primary" title="Снимки" onClick={() => setImagesFor(r)}><Images className="h-4 w-4" /></button>
+                  <button className="mr-2 text-primary" title="Редакция" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></button>
                   <button className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></button>
                 </td>
               </tr>
