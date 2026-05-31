@@ -136,46 +136,171 @@ function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) 
   );
 }
 
-function SearchBar({ compact = false }: { compact?: boolean }) {
+type SearchOption = { value: string; label: string };
+
+const propertyTypeOptions: SearchOption[] = [
+  { value: "", label: "Всички" },
+  { value: "apartment", label: "Апартамент" },
+  { value: "house", label: "Къща" },
+  { value: "office", label: "Офис" },
+  { value: "land", label: "Парцел" },
+  { value: "commercial", label: "Търговски" },
+];
+
+function SearchBar({
+  cities = [],
+  quarters = [],
+  initial,
+}: {
+  cities?: Array<{ slug: string; name: string }>;
+  quarters?: Array<{ slug: string; name: string }>;
+  initial?: { city_slug?: string; quarter_slug?: string; property_type?: string; price_min?: string; price_max?: string; area_min?: string; area_max?: string };
+}) {
+  const navigate = (typeof window !== "undefined") ? require("@tanstack/react-router").useNavigate() : null;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [city, setCity] = useReactState(initial?.city_slug ?? (cities[0]?.slug ?? ""));
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [quarter, setQuarter] = useReactState(initial?.quarter_slug ?? "");
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [ptype, setPtype] = useReactState(initial?.property_type ?? "apartment");
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [priceMin, setPriceMin] = useReactState(initial?.price_min ?? "200000");
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [priceMax, setPriceMax] = useReactState(initial?.price_max ?? "500000");
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [areaMin, setAreaMin] = useReactState(initial?.area_min ?? "100");
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [areaMax, setAreaMax] = useReactState(initial?.area_max ?? "200");
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (city) params.set("city_slug", city);
+    if (quarter) params.set("quarter_slug", quarter);
+    if (ptype) params.set("property_type", ptype);
+    if (priceMin) params.set("price_min", priceMin);
+    if (priceMax) params.set("price_max", priceMax);
+    if (areaMin) params.set("area_min", areaMin);
+    if (areaMax) params.set("area_max", areaMax);
+    if (typeof window !== "undefined") {
+      window.location.href = `/search?${params.toString()}`;
+    }
+  };
+
+  const cityOptions = cities.length ? cities : [
+    { slug: "burgas", name: "Бургас" },
+    { slug: "varna", name: "Варна" },
+    { slug: "shumen", name: "Шумен" },
+    { slug: "novi-pazar", name: "Нов пазар" },
+  ];
+
   return (
-    <div className={cn("marble-dark-panel relative z-20 mx-auto grid w-full max-w-[1380px] gap-3 rounded-[24px] p-4 shadow-[0_18px_40px_rgba(56,10,20,0.35)] lg:grid-cols-[1fr_1fr_1.1fr_1.1fr_1.1fr_auto_auto] lg:items-center lg:gap-0 lg:px-5 lg:py-4", compact && "max-w-[1340px]")}>
-      <FilterCell icon={MapPin} label="Град" value="Бургас" />
-      <FilterCell icon={House} label="Квартал" value="Лазур" />
-      <FilterCell icon={Building2} label="Вид имот" value="Апартамент" />
-      <FilterCell icon={LandPlot} label="Цена" value="от 200 000 €" sub="до 500 000 €" />
-      <FilterCell icon={Ruler} label="Площ" value="от 100 m²" sub="до 200 m²" />
-      <Button variant="outline" className="marble-action-button h-12 justify-center rounded-[14px] border-primary/30 bg-transparent px-5 text-base text-primary-foreground hover:bg-white/8 lg:h-14 lg:px-6">
-        <SlidersHorizontal className="h-5 w-5" /> Филтри
-      </Button>
-      <Button className="gold-cta-button h-12 justify-center rounded-[14px] px-6 text-base lg:h-14 lg:px-7">
+    <div className="relative mx-auto w-full max-w-[1180px]">
+      {/* Floating gold "Search" button */}
+      <button
+        type="button"
+        onClick={handleSearch}
+        className="gold-cta-button absolute -top-7 right-6 z-30 flex h-12 items-center gap-2 rounded-full px-7 text-base font-semibold lg:right-10"
+      >
         <Search className="h-5 w-5" /> Търси
-      </Button>
+      </button>
+
+      <div className="marble-light-panel grid w-full gap-2 rounded-[22px] p-3 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:p-3">
+        <SelectCell icon={MapPin} label="Град" value={city} onChange={setCity}
+          options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
+        <SelectCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
+          options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]} />
+        <SelectCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
+          options={propertyTypeOptions} />
+        <RangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
+          onMin={setPriceMin} onMax={setPriceMax} suffix="€" />
+        <RangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
+          onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
+        <button
+          type="button"
+          className="marble-action-button flex h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-primary/35 bg-primary/5 px-5 text-primary transition hover:bg-primary/10"
+          onClick={handleSearch}
+        >
+          <SlidersHorizontal className="h-5 w-5" />
+          <span className="font-display text-base">Филтри</span>
+        </button>
+      </div>
     </div>
   );
 }
 
-function FilterCell({
+function SelectCell({
   icon: Icon,
   label,
   value,
-  sub,
+  onChange,
+  options,
 }: {
   icon: typeof MapPin;
   label: string;
   value: string;
-  sub?: string;
+  onChange: (v: string) => void;
+  options: SearchOption[];
 }) {
   return (
-    <div className="flex min-h-14 items-center gap-3 border-primary/12 pr-4 md:border-r md:px-4">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/35 bg-primary/10 text-primary">
+    <label className="flex min-h-[60px] items-center gap-3 border-primary/15 px-3 md:border-r">
+      <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary">
         <Icon className="h-5 w-5" />
       </div>
-      <div className="min-w-0">
-        <div className="text-sm text-primary/80">{label}</div>
-        <div className="font-display text-xl leading-tight text-primary-foreground">{value}</div>
-        {sub ? <div className="text-sm text-primary-foreground/75">{sub}</div> : null}
+      <div className="min-w-0 flex-1">
+        <div className="text-[11px] font-medium uppercase tracking-wide text-primary/70">{label}</div>
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="-ml-1 mt-0.5 w-full appearance-none bg-transparent font-display text-lg text-primary outline-none"
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
       </div>
-      <ChevronDown className="ml-auto h-4 w-4 text-primary/80" />
+      <ChevronDown className="h-4 w-4 flex-none text-primary/70" />
+    </label>
+  );
+}
+
+function RangeCell({
+  icon: Icon,
+  label,
+  minVal,
+  maxVal,
+  onMin,
+  onMax,
+  suffix,
+}: {
+  icon: typeof MapPin;
+  label: string;
+  minVal: string;
+  maxVal: string;
+  onMin: (v: string) => void;
+  onMax: (v: string) => void;
+  suffix: string;
+}) {
+  return (
+    <div className="flex min-h-[60px] items-center gap-3 border-primary/15 px-3 md:border-r">
+      <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary">
+        <Icon className="h-5 w-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[11px] font-medium uppercase tracking-wide text-primary/70">{label}</div>
+        <div className="flex items-center gap-1 text-primary">
+          <span className="text-[11px] text-primary/60">от</span>
+          <input value={minVal} onChange={(e) => onMin(e.target.value.replace(/[^0-9]/g, ""))}
+            inputMode="numeric"
+            className="w-16 bg-transparent font-display text-base outline-none placeholder:text-primary/40" />
+          <span className="text-[11px] text-primary/60">{suffix}</span>
+          <span className="mx-0.5 text-primary/40">·</span>
+          <span className="text-[11px] text-primary/60">до</span>
+          <input value={maxVal} onChange={(e) => onMax(e.target.value.replace(/[^0-9]/g, ""))}
+            inputMode="numeric"
+            className="w-16 bg-transparent font-display text-base outline-none placeholder:text-primary/40" />
+          <span className="text-[11px] text-primary/60">{suffix}</span>
+        </div>
+      </div>
     </div>
   );
 }
