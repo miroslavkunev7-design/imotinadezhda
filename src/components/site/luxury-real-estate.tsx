@@ -20,9 +20,12 @@ import {
   Square,
   Trees,
   User,
+  Box,
 } from "lucide-react";
 
 import burgasHero from "@/assets/burgas-hero.jpeg";
+import burgasPier from "@/assets/burgas-pier.jpeg";
+import burgundyTerrace from "@/assets/burgundy-terrace-hero.jpeg";
 import homeHero from "@/assets/home-hero-bkg.jpeg";
 import marbleBg from "@/assets/marble-bg.png";
 import { Button } from "@/components/ui/button";
@@ -39,7 +42,7 @@ const topNav = [
 const homeCities: Array<{ name: string; image: string; href: "/cities/$slug"; params: { slug: string } }> = [
   { name: "Шумен", image: homeHero, href: "/cities/$slug", params: { slug: "shumen" } },
   { name: "Варна", image: burgasHero, href: "/cities/$slug", params: { slug: "varna" } },
-  { name: "Бургас", image: burgasHero, href: "/cities/$slug", params: { slug: "burgas" } },
+  { name: "Бургас", image: burgasPier, href: "/cities/$slug", params: { slug: "burgas" } },
   { name: "Нов пазар", image: homeHero, href: "/cities/$slug", params: { slug: "novi-pazar" } },
 ];
 
@@ -225,6 +228,15 @@ function ListingCard({
         <button className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow">
           <Heart className="h-4 w-4" />
         </button>
+        <button
+          type="button"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-[rgba(102,8,28,0.88)] px-3.5 py-1.5 text-xs font-semibold tracking-[0.08em] text-primary-foreground shadow-[0_8px_22px_rgba(60,10,20,0.45)] backdrop-blur-sm transition hover:bg-[rgba(122,18,38,0.95)]"
+          aria-label="3D виртуален оглед"
+        >
+          <Box className="h-3.5 w-3.5 text-primary" />
+          3D Виртуален оглед
+        </button>
         <div className="marble-wave-glow" />
       </div>
       <div className="space-y-3 px-4 pb-5 pt-4">
@@ -406,7 +418,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
   const city = data?.city ?? { slug: "burgas", name: "Бургас", description: "Модерен морски град с богата история, динамична икономика, развита инфраструктура и отлични възможности за живот и инвестиции.", hero_image_url: null, region: "Югоизточен", population: 210000, area_km2: 253 };
   const quarters = data?.quarters ?? burgasDistricts.map((d, i) => ({ id: String(i), slug: d.name.toLowerCase(), name: d.name, image_url: d.image, properties_count: d.count }));
   const properties = data?.properties ?? [];
-  const heroImage = city.hero_image_url || burgasHero;
+  const heroImage = city.hero_image_url || (city.slug === "burgas" ? burgasPier : burgasHero);
 
   return (
     <main className="luxury-page min-h-screen bg-[radial-gradient(circle_at_top,rgba(77,8,20,0.35),transparent_42%),#17060b] text-primary-foreground">
@@ -505,7 +517,7 @@ export function DistrictPage() {
         <LuxuryHeader active="sale" />
         <div className="relative mx-auto mt-[-18px] max-w-[1460px] px-2 md:px-6">
           <div className="overflow-hidden rounded-[30px] border border-primary/20 shadow-[0_24px_55px_rgba(88,40,18,0.16)]">
-            <img src={burgasHero} alt="Лазур Бургас панорама" className="h-[350px] w-full object-cover md:h-[520px]" />
+            <img src={burgundyTerrace} alt="Лазур Бургас панорама" className="h-[350px] w-full object-cover md:h-[520px]" />
           </div>
           <div className="relative z-30 mx-auto mt-[-42px] md:mt-[-54px]">
             <SearchBar />
@@ -597,7 +609,7 @@ export function PropertyPage() {
         <LuxuryHeader active="sale" />
         <div className="relative mx-auto mt-[-18px] max-w-[1460px] px-2 md:px-6">
           <div className="overflow-hidden rounded-[30px] border border-primary/20 shadow-[0_24px_55px_rgba(88,40,18,0.16)]">
-            <img src={burgasHero} alt="Апартамент с гледка към Бургас" className="h-[340px] w-full object-cover md:h-[500px]" />
+            <img src={burgundyTerrace} alt="Апартамент с гледка към Бургас" className="h-[340px] w-full object-cover md:h-[500px]" />
           </div>
           <div className="relative z-30 mx-auto mt-[-42px] md:mt-[-54px]">
             <SearchBar />
