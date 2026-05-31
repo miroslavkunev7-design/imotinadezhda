@@ -580,8 +580,9 @@ function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Arr
 
 type QuarterData = {
   city: { id: string; slug: string; name: string };
-  quarter: { id: string; slug: string; name: string; description?: string | null; image_url?: string | null; properties_count?: number | null };
+  quarter: { id: string; slug: string; name: string; description?: string | null; image_url?: string | null; properties_count?: number | null; avg_price_per_sqm?: number | null };
   properties: Array<{ id: string; title: string; price: number; currency?: string | null; area_sqm?: number | null; bedrooms?: number | null; bathrooms?: number | null; cover_image_url?: string | null; is_featured?: boolean }>;
+  gallery?: Array<{ id: string; url: string; is_cover?: boolean; display_order?: number | null }>;
 };
 
 export function DistrictPage({ data }: { data?: QuarterData } = {}) {
