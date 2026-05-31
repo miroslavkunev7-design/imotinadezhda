@@ -174,39 +174,81 @@ function ExtractedPage() {
             <div className="p-10 text-center text-primary/60">Няма обяви в този статус. Кликнете „Извлечи имоти" горе.</div>
           ) : (
             <div className="divide-y divide-primary/10">
-              {rows.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => setSelected(r)}
-                  className={`flex w-full items-start gap-3 p-3 text-left transition hover:bg-primary/5 ${selected?.id === r.id ? "bg-primary/10" : ""}`}
-                >
-                  <div className="flex h-14 w-14 flex-none items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-xs text-primary/60">
-                    {Array.isArray(r.images) && r.images[0] ? (
-                      <img src={r.images[0]} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      "—"
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary">
-                        {SOURCE_LABEL[r.source] ?? r.source}
-                      </span>
-                      <span className="rounded-md bg-amber-200/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-800">
-                        {r.seller_type === "private" ? "частен" : r.seller_type === "agency" ? "агенция" : "—"}
-                      </span>
-                      <span className="ml-auto text-[10px] uppercase text-primary/50">{STATUS_LABEL[r.status]}</span>
+              {rows.map((r) => {
+                const isOpen = selected?.id === r.id;
+                return (
+                  <div
+                    key={r.id}
+                    className={`flex items-start gap-3 p-3 transition ${isOpen ? "bg-primary/10" : "hover:bg-primary/5"}`}
+                  >
+                    <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-xs text-primary/60">
+                      {Array.isArray(r.images) && r.images[0] ? (
+                        <img src={r.images[0]} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        "няма"
+                      )}
                     </div>
-                    <div className="mt-1 line-clamp-1 text-sm font-semibold text-primary">{r.title ?? "Без заглавие"}</div>
-                    <div className="mt-1 flex items-center gap-3 text-xs text-primary/60">
-                      {r.price ? <span className="inline-flex items-center gap-1"><Euro className="h-3 w-3" />{Number(r.price).toLocaleString()} {r.currency}</span> : null}
-                      {r.area_sqm ? <span className="inline-flex items-center gap-1"><Square className="h-3 w-3" />{r.area_sqm} m²</span> : null}
-                      {r.cities?.name ? <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{r.cities.name}</span> : null}
-                      {r.phone ? <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{r.phone}</span> : null}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary">
+                          {SOURCE_LABEL[r.source] ?? r.source}
+                        </span>
+                        <span className="rounded-md bg-amber-200/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-800">
+                          {r.seller_type === "private" ? "частен" : r.seller_type === "agency" ? "агенция" : "—"}
+                        </span>
+                        <span className="rounded-md bg-primary/5 px-1.5 py-0.5 text-[10px] uppercase text-primary/70">
+                          {STATUS_LABEL[r.status]}
+                        </span>
+                        {Array.isArray(r.images) && r.images.length > 0 ? (
+                          <span className="text-[10px] text-primary/50">{r.images.length} снимки</span>
+                        ) : null}
+                      </div>
+                      <div className="mt-1 line-clamp-1 text-sm font-semibold text-primary">{r.title ?? "Без заглавие"}</div>
+                      <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-primary/60">
+                        {r.price ? <span className="inline-flex items-center gap-1"><Euro className="h-3 w-3" />{Number(r.price).toLocaleString()} {r.currency}</span> : null}
+                        {r.area_sqm ? <span className="inline-flex items-center gap-1"><Square className="h-3 w-3" />{r.area_sqm} m²</span> : null}
+                        {r.cities?.name ? <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{r.cities.name}</span> : null}
+                        {r.phone ? <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{r.phone}</span> : null}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setSelected(r)}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-white px-3 py-1.5 text-xs font-semibold text-primary shadow-sm hover:bg-primary/5"
+                        >
+                          <Eye className="h-3.5 w-3.5" /> Редакция
+                        </button>
+                        {r.status !== "published" ? (
+                          <button
+                            onClick={() => onPublish(r.id)}
+                            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow hover:bg-primary/90"
+                          >
+                            <Send className="h-3.5 w-3.5" /> Публикуване
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+                            <CheckCircle2 className="h-3.5 w-3.5" /> Публикувано
+                          </span>
+                        )}
+                        <a
+                          href={r.source_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 px-3 py-1.5 text-xs text-primary/80 hover:bg-primary/5"
+                        >
+                          Оригинал
+                        </a>
+                        <button
+                          onClick={() => onDelete(r.id)}
+                          className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-red-500/30 px-3 py-1.5 text-xs text-red-700 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </button>
-              ))}
+                );
+              })}
+
             </div>
           )}
         </div>

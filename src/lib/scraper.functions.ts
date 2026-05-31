@@ -33,6 +33,26 @@ function parseNumber(text?: string | null): number | null {
   return m ? Number(m) : null;
 }
 
+function extractImages(html: string, baseUrl: string): string[] {
+  if (!html) return [];
+  const urls = new Set<string>();
+  const re = /<img[^>]+src=["']([^"']+)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    let u = m[1];
+    if (u.startsWith("//")) u = "https:" + u;
+    else if (u.startsWith("/")) {
+      try { u = new URL(u, baseUrl).toString(); } catch { continue; }
+    }
+    if (!/^https?:\/\//.test(u)) continue;
+    if (/\.(svg|gif)$/i.test(u)) continue;
+    if (/(logo|icon|sprite|avatar|placeholder)/i.test(u)) continue;
+    urls.add(u);
+    if (urls.size >= 12) break;
+  }
+  return Array.from(urls);
+}
+
 type ScrapeResult = {
   source: typeof SOURCES[number];
   source_url: string;
@@ -48,114 +68,60 @@ type ScrapeResult = {
   seller_type: "private" | "agency" | "unknown";
 };
 
-async function scrapeRealistimo(client: Firecrawl, citySlug: string): Promise<ScrapeResult[]> {
-  const cityName = CITY_QUERY[citySlug];
-  if (!cityName) return [];
-  // Use search to find listings in the city, with content scraping
-  const results: ScrapeResult[] = [];
-  try {
-    const res: any = await client.search(`site:realistimo.com продажба апартамент ${cityName} собственик`, {
-      limit: 8,
-      scrapeOptions: { formats: ["markdown"] },
-    });
-    const items = res?.web ?? res?.data ?? [];
-    for (const item of items) {
-      const url = item.url ?? item.link;
-      if (!url || !/realistimo\.com/.test(url)) continue;
-      const md = item.markdown ?? item.description ?? "";
-      const sellerType = detectSellerType(md + " " + (item.title ?? ""));
-      results.push({
-        source: "realistimo",
-        source_url: url,
-        title: item.title ?? "Имот от Realistimo",
-        description: typeof md === "string" ? md.slice(0, 800) : undefined,
-        price: parseNumber(md.match(/(\d[\d\s]{3,})\s*(EUR|евро|лв|BGN)/i)?.[1]),
-        currency: /BGN|лв/i.test(md) ? "BGN" : "EUR",
-        area_sqm: parseNumber(md.match(/(\d{2,4})\s*(?:m2|m²|кв\.?м)/i)?.[1]),
-        phone: md.match(/(\+?359[\s\d-]{7,}|0[\s\d-]{8,})/)?.[1]?.replace(/\s+/g, "") ?? undefined,
-        images: [],
-        city_slug: citySlug,
-        seller_type: sellerType,
-      });
-    }
-  } catch (e) {
-    console.error("Realistimo scrape error:", e);
-  }
-  return results;
+function buildResult(
+  source: typeof SOURCES[number],
+  item: any,
+  citySlug: string,
+): ScrapeResult | null {
+  const url = item.url ?? item.link;
+  if (!url) return null;
+  const md: string = (item.markdown ?? item.description ?? "") as string;
+  const html: string = (item.html ?? item.rawHtml ?? "") as string;
+  const combined = md + "\n" + html;
+  const phone = combined.match(/(\+?359[\s\d-]{7,}|0[\s\d-]{8,})/)?.[1]?.replace(/\s+/g, "");
+  return {
+    source,
+    source_url: url,
+    title: item.title ?? `Имот от ${source}`,
+    description: typeof md === "string" ? md.slice(0, 1500) : undefined,
+    price: parseNumber(combined.match(/(\d[\d\s]{3,})\s*(EUR|евро|лв|BGN)/i)?.[1]),
+    currency: /BGN|лв/i.test(combined) ? "BGN" : "EUR",
+    area_sqm: parseNumber(combined.match(/(\d{2,4})\s*(?:m2|m²|кв\.?м)/i)?.[1]),
+    phone,
+    images: extractImages(html, url),
+    city_slug: citySlug,
+    seller_type: detectSellerType(combined + " " + (item.title ?? "")),
+  };
 }
 
-async function scrapeImotiBg(client: Firecrawl, citySlug: string): Promise<ScrapeResult[]> {
-  const cityName = CITY_QUERY[citySlug];
-  if (!cityName) return [];
-  const results: ScrapeResult[] = [];
-  try {
-    const res: any = await client.search(`site:imoti.bg продажба апартамент ${cityName} собственик`, {
-      limit: 8,
-      scrapeOptions: { formats: ["markdown"] },
-    });
-    const items = res?.web ?? res?.data ?? [];
-    for (const item of items) {
-      const url = item.url ?? item.link;
-      if (!url || !/imoti\.bg/.test(url)) continue;
-      const md = item.markdown ?? "";
-      results.push({
-        source: "imoti_bg",
-        source_url: url,
-        title: item.title ?? "Имот от Imoti.bg",
-        description: typeof md === "string" ? md.slice(0, 800) : undefined,
-        price: parseNumber(md.match(/(\d[\d\s]{3,})\s*(EUR|евро|лв|BGN)/i)?.[1]),
-        currency: /BGN|лв/i.test(md) ? "BGN" : "EUR",
-        area_sqm: parseNumber(md.match(/(\d{2,4})\s*(?:m2|m²|кв\.?м)/i)?.[1]),
-        phone: md.match(/(\+?359[\s\d-]{7,}|0[\s\d-]{8,})/)?.[1]?.replace(/\s+/g, "") ?? undefined,
-        images: [],
-        city_slug: citySlug,
-        seller_type: detectSellerType(md + " " + (item.title ?? "")),
-      });
-    }
-  } catch (e) {
-    console.error("Imoti.bg scrape error:", e);
-  }
-  return results;
-}
-
-async function scrapeGeneric(
+async function searchAndBuild(
   client: Firecrawl,
   source: typeof SOURCES[number],
-  domainQuery: string,
+  query: string,
+  domainFilter: RegExp | null,
   citySlug: string,
+  limit = 6,
 ): Promise<ScrapeResult[]> {
-  const cityName = CITY_QUERY[citySlug];
-  if (!cityName) return [];
   const results: ScrapeResult[] = [];
   try {
-    const res: any = await client.search(`site:${domainQuery} ${cityName} апартамент продажба`, {
-      limit: 5,
-      scrapeOptions: { formats: ["markdown"] },
+    const res: any = await client.search(query, {
+      limit,
+      scrapeOptions: { formats: ["markdown", "html"] },
     });
     const items = res?.web ?? res?.data ?? [];
     for (const item of items) {
       const url = item.url ?? item.link;
       if (!url) continue;
-      const md = item.markdown ?? "";
-      results.push({
-        source,
-        source_url: url,
-        title: item.title ?? `Имот от ${domainQuery}`,
-        description: typeof md === "string" ? md.slice(0, 800) : undefined,
-        price: parseNumber(md.match(/(\d[\d\s]{3,})\s*(EUR|евро|лв|BGN)/i)?.[1]),
-        currency: /BGN|лв/i.test(md) ? "BGN" : "EUR",
-        area_sqm: parseNumber(md.match(/(\d{2,4})\s*(?:m2|m²|кв\.?м)/i)?.[1]),
-        phone: md.match(/(\+?359[\s\d-]{7,}|0[\s\d-]{8,})/)?.[1]?.replace(/\s+/g, "") ?? undefined,
-        images: [],
-        city_slug: citySlug,
-        seller_type: detectSellerType(md + " " + (item.title ?? "")),
-      });
+      if (domainFilter && !domainFilter.test(url)) continue;
+      const r = buildResult(source, item, citySlug);
+      if (r) results.push(r);
     }
   } catch (e) {
     console.error(`${source} scrape error:`, e);
   }
   return results;
 }
+
 
 export const runScrape = createServerFn({ method: "POST" })
   .inputValidator((d) =>
@@ -171,22 +137,28 @@ export const runScrape = createServerFn({ method: "POST" })
     const client = fc();
     const allResults: ScrapeResult[] = [];
 
+    const SOURCE_MAP: Record<string, { domain: string; rx: RegExp }> = {
+      realistimo: { domain: "realistimo.com", rx: /realistimo\.com/i },
+      imoti_bg: { domain: "imoti.bg", rx: /imoti\.bg/i },
+      olx: { domain: "olx.bg", rx: /olx\.bg/i },
+      bazar_bg: { domain: "bazar.bg", rx: /bazar\.bg/i },
+      home_bg: { domain: "home.bg", rx: /home\.bg/i },
+      alo_bg: { domain: "alo.bg", rx: /alo\.bg/i },
+    };
+
     for (const citySlug of data.cities) {
+      const cityName = CITY_QUERY[citySlug];
+      if (!cityName) continue;
       for (const source of data.sources) {
-        let batch: ScrapeResult[] = [];
-        if (source === "realistimo") batch = await scrapeRealistimo(client, citySlug);
-        else if (source === "imoti_bg") batch = await scrapeImotiBg(client, citySlug);
-        else if (source === "olx") batch = await scrapeGeneric(client, "olx", "olx.bg", citySlug);
-        else if (source === "bazar_bg") batch = await scrapeGeneric(client, "bazar_bg", "bazar.bg", citySlug);
-        else if (source === "home_bg") batch = await scrapeGeneric(client, "home_bg", "home.bg", citySlug);
-        else if (source === "alo_bg") batch = await scrapeGeneric(client, "alo_bg", "alo.bg", citySlug);
-        else if (source === "facebook") {
-          // Facebook groups require login — skip for now, add as TODO
-          batch = [];
-        }
+        if (source === "facebook") continue; // requires login
+        const cfg = SOURCE_MAP[source];
+        if (!cfg) continue;
+        const query = `site:${cfg.domain} ${cityName} апартамент продажба собственик`;
+        const batch = await searchAndBuild(client, source, query, cfg.rx, citySlug, source === "realistimo" || source === "imoti_bg" ? 8 : 5);
         allResults.push(...batch);
       }
     }
+
 
     // Filter private-only if requested
     const filtered = data.privateOnly
