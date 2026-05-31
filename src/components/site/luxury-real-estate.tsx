@@ -675,6 +675,22 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
                 ))
               )}
             </div>
+
+            {data?.gallery && data.gallery.length > 0 ? (
+              <div className="rounded-[26px] bg-card p-5 shadow-[0_18px_45px_rgba(92,41,20,0.12)] md:p-8">
+                <div className="mb-5 flex items-center justify-between">
+                  <h2 className="font-display text-[2rem] text-accent-foreground md:text-[2.4rem]">Галерия — {quarter.name}</h2>
+                  <span className="text-sm text-muted-foreground">{data.gallery.length} снимки</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                  {data.gallery.map((img) => (
+                    <div key={img.id} className="overflow-hidden rounded-[16px] border border-primary/15 shadow-sm">
+                      <img src={img.url} alt={`${quarter.name}`} className="h-44 w-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <MapCard district />
