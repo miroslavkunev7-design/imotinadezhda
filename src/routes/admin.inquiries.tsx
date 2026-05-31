@@ -31,7 +31,7 @@ function InquiriesAdmin() {
   useEffect(load, []);
 
   const setStatus = async (id: string, status: string) => {
-    await supabase.from("inquiries").update({ status }).eq("id", id);
+    await supabase.from("inquiries").update({ status: status as "new" | "in_progress" | "closed" }).eq("id", id);
     load();
   };
 
