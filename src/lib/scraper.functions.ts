@@ -33,6 +33,26 @@ function parseNumber(text?: string | null): number | null {
   return m ? Number(m) : null;
 }
 
+function extractImages(html: string, baseUrl: string): string[] {
+  if (!html) return [];
+  const urls = new Set<string>();
+  const re = /<img[^>]+src=["']([^"']+)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    let u = m[1];
+    if (u.startsWith("//")) u = "https:" + u;
+    else if (u.startsWith("/")) {
+      try { u = new URL(u, baseUrl).toString(); } catch { continue; }
+    }
+    if (!/^https?:\/\//.test(u)) continue;
+    if (/\.(svg|gif)$/i.test(u)) continue;
+    if (/(logo|icon|sprite|avatar|placeholder)/i.test(u)) continue;
+    urls.add(u);
+    if (urls.size >= 12) break;
+  }
+  return Array.from(urls);
+}
+
 type ScrapeResult = {
   source: typeof SOURCES[number];
   source_url: string;
