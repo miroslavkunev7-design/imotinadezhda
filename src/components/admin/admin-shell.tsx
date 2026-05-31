@@ -23,6 +23,7 @@ import {
   MapPin,
   Layers,
   Heart,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
