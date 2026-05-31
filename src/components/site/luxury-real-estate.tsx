@@ -199,25 +199,27 @@ function SearchBar({
       <button
         type="button"
         onClick={handleSearch}
-        className="gold-cta-button absolute -top-7 right-6 z-30 flex h-12 items-center gap-2 rounded-full px-7 text-base font-semibold lg:right-10"
+        className="gold-cta-button absolute -top-5 right-4 z-30 flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold md:-top-7 md:right-6 md:h-12 md:px-7 md:text-base lg:right-10"
       >
-        <Search className="h-5 w-5" /> Търси
+        <Search className="h-4 w-4 md:h-5 md:w-5" /> Търси
       </button>
 
-      <div className="marble-light-panel grid w-full gap-2 rounded-[22px] p-3 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:p-3">
+      <div className="marble-light-panel grid w-full grid-cols-2 gap-1 rounded-[18px] p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:rounded-[22px] md:p-3">
         <SelectCell icon={MapPin} label="Град" value={city} onChange={setCity}
           options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
         <SelectCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
           options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]} />
-        <SelectCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
-          options={propertyTypeOptions} />
+        <div className="col-span-2 md:col-span-1 md:contents">
+          <SelectCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
+            options={propertyTypeOptions} />
+        </div>
         <RangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
           onMin={setPriceMin} onMax={setPriceMax} suffix="€" />
         <RangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
           onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
         <button
           type="button"
-          className="marble-action-button flex h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-primary/35 bg-primary/5 px-5 text-primary transition hover:bg-primary/10"
+          className="marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-primary/35 bg-primary/5 px-5 text-primary transition hover:bg-primary/10 md:flex"
           onClick={handleSearch}
         >
           <SlidersHorizontal className="h-5 w-5" />
@@ -242,23 +244,23 @@ function SelectCell({
   options: SearchOption[];
 }) {
   return (
-    <label className="flex min-h-[60px] items-center gap-3 border-primary/15 px-3 md:border-r">
-      <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary">
-        <Icon className="h-5 w-5" />
+    <label className="flex min-h-[54px] items-center gap-2 border-primary/15 px-2 md:min-h-[60px] md:gap-3 md:border-r md:px-3">
+      <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary md:h-11 md:w-11">
+        <Icon className="h-4 w-4 md:h-5 md:w-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-primary/70">{label}</div>
+        <div className="text-[10px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">{label}</div>
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="-ml-1 mt-0.5 w-full appearance-none bg-transparent font-display text-lg text-primary outline-none"
+          className="-ml-1 mt-0.5 w-full appearance-none bg-transparent font-display text-sm text-primary outline-none md:text-lg"
         >
           {options.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
       </div>
-      <ChevronDown className="h-4 w-4 flex-none text-primary/70" />
+      <ChevronDown className="h-3.5 w-3.5 flex-none text-primary/70 md:h-4 md:w-4" />
     </label>
   );
 }
@@ -281,24 +283,24 @@ function RangeCell({
   suffix: string;
 }) {
   return (
-    <div className="flex min-h-[60px] items-center gap-3 border-primary/15 px-3 md:border-r">
-      <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary">
-        <Icon className="h-5 w-5" />
+    <div className="flex min-h-[54px] items-center gap-2 border-primary/15 px-2 md:min-h-[60px] md:gap-3 md:border-r md:px-3">
+      <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary md:h-11 md:w-11">
+        <Icon className="h-4 w-4 md:h-5 md:w-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-primary/70">{label}</div>
+        <div className="text-[10px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">{label}</div>
         <div className="flex items-center gap-1 text-primary">
-          <span className="text-[11px] text-primary/60">от</span>
+          <span className="text-[10px] text-primary/60 md:text-[11px]">от</span>
           <input value={minVal} onChange={(e) => onMin(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-16 bg-transparent font-display text-base outline-none placeholder:text-primary/40" />
-          <span className="text-[11px] text-primary/60">{suffix}</span>
+            className="w-12 bg-transparent font-display text-sm outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
+          <span className="text-[10px] text-primary/60 md:text-[11px]">{suffix}</span>
           <span className="mx-0.5 text-primary/40">·</span>
-          <span className="text-[11px] text-primary/60">до</span>
+          <span className="text-[10px] text-primary/60 md:text-[11px]">до</span>
           <input value={maxVal} onChange={(e) => onMax(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-16 bg-transparent font-display text-base outline-none placeholder:text-primary/40" />
-          <span className="text-[11px] text-primary/60">{suffix}</span>
+            className="w-12 bg-transparent font-display text-sm outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
+          <span className="text-[10px] text-primary/60 md:text-[11px]">{suffix}</span>
         </div>
       </div>
     </div>
@@ -307,21 +309,21 @@ function RangeCell({
 
 function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
   return (
-    <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[18px]">
-      <div className="relative aspect-[1.45/1] overflow-hidden rounded-[18px] border border-primary/25 shadow-[0_18px_38px_rgba(77,25,31,0.28)] lg:aspect-[1.65/1]">
+    <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[16px] md:rounded-[18px]">
+      <div className="relative aspect-[1.1/1] overflow-hidden rounded-[16px] border border-primary/25 shadow-[0_18px_38px_rgba(77,25,31,0.28)] md:aspect-[1.45/1] md:rounded-[18px] lg:aspect-[1.65/1]">
         <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
         <div className="marble-wave-glow" />
         {/* Burgundy marble bottom panel */}
-        <div className="marble-burgundy-bottom absolute inset-x-0 bottom-0 flex items-center justify-between px-4 py-3 md:px-5 md:py-3.5">
+        <div className="marble-burgundy-bottom absolute inset-x-0 bottom-0 flex items-center justify-between px-3 py-2 md:px-5 md:py-3.5">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-amber-200/85">
-              <MapPin className="h-3.5 w-3.5 text-amber-300" />
+            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-amber-200/85 md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
+              <MapPin className="h-3 w-3 text-amber-300 md:h-3.5 md:w-3.5" />
               <span>Виж града</span>
             </div>
-            <div className="font-display text-2xl leading-tight text-amber-50 md:text-[1.75rem]">{name}</div>
+            <div className="font-display text-base leading-tight text-amber-50 md:text-2xl lg:text-[1.75rem]">{name}</div>
           </div>
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-amber-300/55 bg-amber-400/12 text-amber-200 transition group-hover:bg-amber-300 group-hover:text-[#3d0812]">
-            <ChevronRight className="h-4 w-4 -rotate-45" />
+          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-amber-300/55 bg-amber-400/12 text-amber-200 transition group-hover:bg-amber-300 group-hover:text-[#3d0812] md:h-10 md:w-10">
+            <ChevronRight className="h-3.5 w-3.5 -rotate-45 md:h-4 md:w-4" />
           </div>
         </div>
       </div>
@@ -518,7 +520,7 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
 
 
         <section className="relative z-10 mx-auto mt-5 w-full max-w-[1420px] px-2 md:px-6 lg:mt-6">
-          <div className="grid gap-3 md:grid-cols-4 lg:gap-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
             {cityList.map((city) => (
               <CityCard
                 key={city.slug}
