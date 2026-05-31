@@ -315,3 +315,9 @@
     border-radius: 0 0 24px 0;
   }
 }
+
+/* Prevent horizontal scroll on any viewport */
+html, body, #root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
