@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { AdminShell } from "@/components/admin/admin-shell";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -43,5 +44,9 @@ function AdminLayout() {
     );
   }
 
-  return <Outlet />;
+  return (
+    <AdminShell>
+      <Outlet />
+    </AdminShell>
+  );
 }
