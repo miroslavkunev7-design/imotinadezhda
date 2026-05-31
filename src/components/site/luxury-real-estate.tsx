@@ -508,7 +508,7 @@ export function DistrictPage() {
         <LuxuryHeader active="sale" />
         <div className="relative mx-auto mt-[-18px] max-w-[1460px] px-2 md:px-6">
           <div className="overflow-hidden rounded-[30px] border border-primary/20 shadow-[0_24px_55px_rgba(88,40,18,0.16)]">
-            <img src={burgasHero} alt="Лазур Бургас панорама" className="h-[350px] w-full object-cover md:h-[520px]" />
+            <img src={burgundyTerrace} alt="Лазур Бургас панорама" className="h-[350px] w-full object-cover md:h-[520px]" />
           </div>
           <div className="relative z-30 mx-auto mt-[-42px] md:mt-[-54px]">
             <SearchBar />
