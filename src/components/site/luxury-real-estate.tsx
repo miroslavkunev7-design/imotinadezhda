@@ -283,24 +283,24 @@ function RangeCell({
   suffix: string;
 }) {
   return (
-    <div className="flex min-h-[60px] items-center gap-3 border-primary/15 px-3 md:border-r">
-      <div className="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary">
-        <Icon className="h-5 w-5" />
+    <div className="flex min-h-[54px] items-center gap-2 border-primary/15 px-2 md:min-h-[60px] md:gap-3 md:border-r md:px-3">
+      <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary md:h-11 md:w-11">
+        <Icon className="h-4 w-4 md:h-5 md:w-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-primary/70">{label}</div>
+        <div className="text-[10px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">{label}</div>
         <div className="flex items-center gap-1 text-primary">
-          <span className="text-[11px] text-primary/60">от</span>
+          <span className="text-[10px] text-primary/60 md:text-[11px]">от</span>
           <input value={minVal} onChange={(e) => onMin(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-16 bg-transparent font-display text-base outline-none placeholder:text-primary/40" />
-          <span className="text-[11px] text-primary/60">{suffix}</span>
+            className="w-12 bg-transparent font-display text-sm outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
+          <span className="text-[10px] text-primary/60 md:text-[11px]">{suffix}</span>
           <span className="mx-0.5 text-primary/40">·</span>
-          <span className="text-[11px] text-primary/60">до</span>
+          <span className="text-[10px] text-primary/60 md:text-[11px]">до</span>
           <input value={maxVal} onChange={(e) => onMax(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-16 bg-transparent font-display text-base outline-none placeholder:text-primary/40" />
-          <span className="text-[11px] text-primary/60">{suffix}</span>
+            className="w-12 bg-transparent font-display text-sm outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
+          <span className="text-[10px] text-primary/60 md:text-[11px]">{suffix}</span>
         </div>
       </div>
     </div>
