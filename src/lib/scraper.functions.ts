@@ -137,22 +137,28 @@ export const runScrape = createServerFn({ method: "POST" })
     const client = fc();
     const allResults: ScrapeResult[] = [];
 
+    const SOURCE_MAP: Record<string, { domain: string; rx: RegExp }> = {
+      realistimo: { domain: "realistimo.com", rx: /realistimo\.com/i },
+      imoti_bg: { domain: "imoti.bg", rx: /imoti\.bg/i },
+      olx: { domain: "olx.bg", rx: /olx\.bg/i },
+      bazar_bg: { domain: "bazar.bg", rx: /bazar\.bg/i },
+      home_bg: { domain: "home.bg", rx: /home\.bg/i },
+      alo_bg: { domain: "alo.bg", rx: /alo\.bg/i },
+    };
+
     for (const citySlug of data.cities) {
+      const cityName = CITY_QUERY[citySlug];
+      if (!cityName) continue;
       for (const source of data.sources) {
-        let batch: ScrapeResult[] = [];
-        if (source === "realistimo") batch = await scrapeRealistimo(client, citySlug);
-        else if (source === "imoti_bg") batch = await scrapeImotiBg(client, citySlug);
-        else if (source === "olx") batch = await scrapeGeneric(client, "olx", "olx.bg", citySlug);
-        else if (source === "bazar_bg") batch = await scrapeGeneric(client, "bazar_bg", "bazar.bg", citySlug);
-        else if (source === "home_bg") batch = await scrapeGeneric(client, "home_bg", "home.bg", citySlug);
-        else if (source === "alo_bg") batch = await scrapeGeneric(client, "alo_bg", "alo.bg", citySlug);
-        else if (source === "facebook") {
-          // Facebook groups require login — skip for now, add as TODO
-          batch = [];
-        }
+        if (source === "facebook") continue; // requires login
+        const cfg = SOURCE_MAP[source];
+        if (!cfg) continue;
+        const query = `site:${cfg.domain} ${cityName} апартамент продажба собственик`;
+        const batch = await searchAndBuild(client, source, query, cfg.rx, citySlug, source === "realistimo" || source === "imoti_bg" ? 8 : 5);
         allResults.push(...batch);
       }
     }
+
 
     // Filter private-only if requested
     const filtered = data.privateOnly
