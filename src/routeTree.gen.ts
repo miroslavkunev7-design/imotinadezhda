@@ -25,6 +25,7 @@ import { Route as AdminContractsRouteImport } from './routes/admin.contracts'
 import { Route as AdminClientsRouteImport } from './routes/admin.clients'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
 import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
 
@@ -108,6 +109,11 @@ const AdminBrokersRoute = AdminBrokersRouteImport.update({
   path: '/brokers',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAiRoute = AdminAiRouteImport.update({
   id: '/ai',
   path: '/ai',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
   '/admin/ai': typeof AdminAiRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
   '/admin/ai': typeof AdminAiRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
   '/admin/ai': typeof AdminAiRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/search'
     | '/admin/ai'
+    | '/admin/audit'
     | '/admin/brokers'
     | '/admin/cities'
     | '/admin/clients'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/search'
     | '/admin/ai'
+    | '/admin/audit'
     | '/admin/brokers'
     | '/admin/cities'
     | '/admin/clients'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/search'
     | '/admin/ai'
+    | '/admin/audit'
     | '/admin/brokers'
     | '/admin/cities'
     | '/admin/clients'
@@ -365,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBrokersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/ai': {
       id: '/admin/ai'
       path: '/ai'
@@ -384,6 +403,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAiRoute: typeof AdminAiRoute
+  AdminAuditRoute: typeof AdminAuditRoute
   AdminBrokersRoute: typeof AdminBrokersRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminClientsRoute: typeof AdminClientsRoute
@@ -398,6 +418,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAiRoute: AdminAiRoute,
+  AdminAuditRoute: AdminAuditRoute,
   AdminBrokersRoute: AdminBrokersRoute,
   AdminCitiesRoute: AdminCitiesRoute,
   AdminClientsRoute: AdminClientsRoute,

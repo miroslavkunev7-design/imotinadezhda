@@ -1,9 +1,10 @@
 import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 // (Google OAuth removed; only email/password auth)
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { logAdminAccess } from "@/lib/audit.functions";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Вход | ИЛДЖ.ИА" }] }),
@@ -19,6 +20,14 @@ function LoginPage() {
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    logAdminAccess({
+      data: { path: "/login", userId: user?.id ?? null, email: user?.email ?? null },
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   if (!loading && user) {
     throw redirect({ to: "/admin" });

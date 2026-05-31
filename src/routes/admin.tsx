@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { logAdminAccess } from "@/lib/audit.functions";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -12,6 +13,13 @@ function AdminLayout() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    logAdminAccess({
+      data: { path: "/admin", userId: user?.id ?? null, email: user?.email ?? null },
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     if (loading) return;
@@ -27,6 +35,7 @@ function AdminLayout() {
       .maybeSingle()
       .then(({ data }) => setIsAdmin(!!data));
   }, [user, loading, navigate]);
+
 
   if (loading || isAdmin === null) {
     return <div className="flex min-h-screen items-center justify-center bg-[#1a0608] text-amber-100/70">Зареждане...</div>;

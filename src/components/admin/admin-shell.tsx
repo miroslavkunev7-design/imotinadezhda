@@ -23,6 +23,7 @@ import {
   MapPin,
   Layers,
   Heart,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,7 @@ const NAV: NavItem[] = [
   { to: "/admin/brokers", label: "Брокери", icon: UserCog },
   { to: "/admin/matches", label: "Съвпадения", icon: Heart, badgeKey: "matches" },
   { to: "/admin/contracts", label: "Договори", icon: FileText },
+  { to: "/admin/audit", label: "Одит лог", icon: ShieldCheck },
   { to: "/admin/owners", label: "Собственици", icon: Crown, disabled: true },
   { to: "/admin/chat", label: "Чат", icon: MessageCircle, disabled: true },
   { to: "/admin/calendar", label: "Календар", icon: Calendar, disabled: true },
