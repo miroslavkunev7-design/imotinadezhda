@@ -101,7 +101,7 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
     if (clickCountRef.current >= 3) {
       e.preventDefault();
       clickCountRef.current = 0;
-      navigate({ to: "/admin" });
+      navigate({ to: "/login", search: { redirect: "/admin" } as any });
       return;
     }
     clickTimerRef.current = setTimeout(() => {
