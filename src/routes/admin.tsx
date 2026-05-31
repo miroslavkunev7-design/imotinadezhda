@@ -2,8 +2,9 @@ import { createFileRoute, Link, Outlet, redirect, useNavigate, useRouterState } 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Building2, LayoutDashboard, LogOut, MessageSquare, Sparkles } from "lucide-react";
+import { Building2, LayoutDashboard, LogOut, MapPin, MessageSquare, Sparkles, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -49,6 +50,8 @@ function AdminLayout() {
   const nav = [
     { to: "/admin", label: "Табло", icon: LayoutDashboard, exact: true },
     { to: "/admin/properties", label: "Имоти", icon: Building2 },
+    { to: "/admin/cities", label: "Градове", icon: MapPin },
+    { to: "/admin/quarters", label: "Квартали", icon: Layers },
     { to: "/admin/inquiries", label: "Запитвания", icon: MessageSquare },
     { to: "/admin/ai", label: "AI Помощник", icon: Sparkles },
   ];

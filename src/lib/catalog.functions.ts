@@ -96,3 +96,21 @@ export const submitInquiry = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const getQuarterBySlug = createServerFn({ method: "GET" })
+  .inputValidator((d) => z.object({ citySlug: z.string().min(1).max(64), quarterSlug: z.string().min(1).max(64) }).parse(d))
+  .handler(async ({ data }) => {
+    const { data: city } = await supabaseAdmin
+      .from("cities").select("id, slug, name").eq("slug", data.citySlug).maybeSingle();
+    if (!city) return null;
+    const { data: quarter } = await supabaseAdmin
+      .from("quarters").select("*").eq("city_id", city.id).eq("slug", data.quarterSlug).maybeSingle();
+    if (!quarter) return null;
+    const { data: properties } = await supabaseAdmin
+      .from("properties")
+      .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, is_featured")
+      .eq("quarter_id", quarter.id)
+      .eq("is_published", true)
+      .order("created_at", { ascending: false });
+    return { city, quarter, properties: properties ?? [] };
+  });
