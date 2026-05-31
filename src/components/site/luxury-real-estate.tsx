@@ -114,7 +114,7 @@ function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) 
           {topNav.map((item) => (
             <a
               key={item.key}
-              href="#"
+              href={item.href}
               className={cn(
                 "relative font-display text-base text-primary transition hover:text-primary/80 md:text-lg",
                 active === item.key &&
