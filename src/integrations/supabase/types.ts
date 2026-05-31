@@ -127,6 +127,112 @@ export type Database = {
         }
         Relationships: []
       }
+      extracted_listings: {
+        Row: {
+          area_sqm: number | null
+          bedrooms: number | null
+          city_id: string | null
+          contact_name: string | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          external_id: string | null
+          id: string
+          images: Json
+          notes: string | null
+          phone: string | null
+          price: number | null
+          property_type: string | null
+          published_property_id: string | null
+          quarter_id: string | null
+          raw_data: Json | null
+          rooms: number | null
+          scraped_at: string
+          seller_type: Database["public"]["Enums"]["seller_type"]
+          source: Database["public"]["Enums"]["extracted_source"]
+          source_url: string
+          status: Database["public"]["Enums"]["extracted_status"]
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          area_sqm?: number | null
+          bedrooms?: number | null
+          city_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          images?: Json
+          notes?: string | null
+          phone?: string | null
+          price?: number | null
+          property_type?: string | null
+          published_property_id?: string | null
+          quarter_id?: string | null
+          raw_data?: Json | null
+          rooms?: number | null
+          scraped_at?: string
+          seller_type?: Database["public"]["Enums"]["seller_type"]
+          source: Database["public"]["Enums"]["extracted_source"]
+          source_url: string
+          status?: Database["public"]["Enums"]["extracted_status"]
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area_sqm?: number | null
+          bedrooms?: number | null
+          city_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          images?: Json
+          notes?: string | null
+          phone?: string | null
+          price?: number | null
+          property_type?: string | null
+          published_property_id?: string | null
+          quarter_id?: string | null
+          raw_data?: Json | null
+          rooms?: number | null
+          scraped_at?: string
+          seller_type?: Database["public"]["Enums"]["seller_type"]
+          source?: Database["public"]["Enums"]["extracted_source"]
+          source_url?: string
+          status?: Database["public"]["Enums"]["extracted_status"]
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "extracted_listings_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extracted_listings_published_property_id_fkey"
+            columns: ["published_property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extracted_listings_quarter_id_fkey"
+            columns: ["quarter_id"]
+            isOneToOne: false
+            referencedRelation: "quarters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inquiries: {
         Row: {
           created_at: string
@@ -332,6 +438,41 @@ export type Database = {
           },
         ]
       }
+      quarter_images: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_cover: boolean
+          quarter_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_cover?: boolean
+          quarter_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_cover?: boolean
+          quarter_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quarter_images_quarter_id_fkey"
+            columns: ["quarter_id"]
+            isOneToOne: false
+            referencedRelation: "quarters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quarters: {
         Row: {
           avg_price_per_sqm: number | null
@@ -421,9 +562,20 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "agent" | "user"
+      extracted_source:
+        | "realistimo"
+        | "imoti_bg"
+        | "olx"
+        | "bazar_bg"
+        | "home_bg"
+        | "alo_bg"
+        | "facebook"
+        | "other"
+      extracted_status: "pending" | "approved" | "rejected" | "published"
       inquiry_status: "new" | "in_progress" | "closed"
       property_status: "sale" | "rent"
       property_type: "apartment" | "house" | "office" | "land" | "commercial"
+      seller_type: "private" | "agency" | "unknown"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -552,9 +704,21 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "agent", "user"],
+      extracted_source: [
+        "realistimo",
+        "imoti_bg",
+        "olx",
+        "bazar_bg",
+        "home_bg",
+        "alo_bg",
+        "facebook",
+        "other",
+      ],
+      extracted_status: ["pending", "approved", "rejected", "published"],
       inquiry_status: ["new", "in_progress", "closed"],
       property_status: ["sale", "rent"],
       property_type: ["apartment", "house", "office", "land", "commercial"],
+      seller_type: ["private", "agency", "unknown"],
     },
   },
 } as const

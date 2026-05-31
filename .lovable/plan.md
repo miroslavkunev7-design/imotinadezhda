@@ -1,62 +1,101 @@
+## Скоуп на тази итерация
 
-# План за изпълнение
-
-## 1. Активиране на Lovable Cloud
-Включвам Cloud (Supabase под капака) — дава ни PostgreSQL, Auth, Storage и сървърни функции без външни акаунти.
-
-## 2. База данни (миграция)
-Създавам следните таблици в `public` схема с RLS + GRANT-и:
-
-- **cities** — id, slug (unique), name, name_en, description, hero_image_url, stats (jsonb: население, средна цена, ROI), display_order, is_published
-- **quarters** — id, city_id (FK), slug, name, description, image_url, avg_price_per_sqm, properties_count, display_order
-- **properties** — id, city_id, quarter_id, slug, title, description, price, currency, area_sqm, rooms, floor, type (apartment/house/office/land), status (sale/rent), is_featured, is_published, created_at
-- **property_images** — id, property_id, url, display_order, is_cover
-- **inquiries** — id, property_id, name, email, phone, message, created_at, status
-- **profiles** — id (FK auth.users), full_name, avatar_url, created_at
-- **user_roles** — id, user_id, role (enum: admin, agent, user) + security-definer `has_role()`
-- **ai_conversations** + **ai_messages** — за AI помощника в админа
-
-RLS:
-- Публично четене на `is_published = true` за cities/quarters/properties/property_images
-- INSERT в `inquiries` за всички (за форма "запитване")
-- Всичко останало (admin CRUD) — само `has_role(auth.uid(),'admin')`
-
-## 3. Свързване на Home & градски страници
-- `src/lib/catalog.functions.ts` — серверни функции: `getCities`, `getCityBySlug`, `getQuartersByCity`, `getFeaturedProperties`, `getPropertiesByCity`, `getPropertyById`
-- Home: топ градове + featured имоти от DB
-- `/cities/burgas`: hero + карти с квартали + списък с имоти
-- `/properties/:id`: детайли + галерия + форма за запитване
-- Loader pattern с TanStack Query (`ensureQueryData` + `useSuspenseQuery`)
-
-## 4. Auth + Admin
-- Email/парола + Google OAuth (през Lovable broker)
-- `/login`, `/register`, `_authenticated` layout guard
-- Auto-създаване на profile + trigger при signup
-- Първият регистриран потребител получава ролята `admin` (или ръчно през SQL seed)
-
-## 5. Админ панел `/admin/*`
-Защитен от `has_role(admin)`:
-- **Dashboard** — статистики (брой имоти, запитвания, посещения)
-- **Cities** — CRUD за градове и квартали
-- **Properties** — CRUD + качване на изображения в Storage bucket `property-images`
-- **Inquiries** — преглед и управление на запитвания
-- **AI Assistant** — чат с Lovable AI (Gemini 3 Flash) с tool-calling:
-  - `search_properties`, `create_property`, `update_property_price`, `mark_featured`, `get_inquiries_summary`, `generate_property_description` (AI копирайтинг на български)
-  - Streaming SSE отговори, markdown rendering, persistent история в `ai_conversations`
-
-## 6. Технически детайли
-
-- Сървърни функции: `createServerFn` + `requireSupabaseAuth` middleware
-- Admin операции през `supabaseAdmin` в `.server.ts` хелпери, извикани от тънки `.functions.ts`
-- AI: server route `/api/admin/ai-chat` с проверка на admin роля + streaming proxy към `https://ai.gateway.lovable.dev/v1/chat/completions`
-- Storage bucket `property-images` (public read, admin write)
-- Сийдване на Бургас + 2-3 квартала + 4-5 примерни имота, за да се вижда веднага съдържание
-
-## 7. Какво НЕ влиза в този етап
-- Плащания / резервации
-- Реален имейл при запитване (по-късно с Resend)
-- Карта (Google Maps) — оставям placeholder до получаване на API ключ
+Голяма работа е, ще я разделя на 3 паралелни тока. Това, което НЕ влиза в тази итерация (ще го направим в следваща): Брокери, Клиенти, Собственици, Запитвания CRM, Чат, Календар, Договори, Финанси, Маркетинг, Задачи, Документи, Настройки модули. Сега ще оставя само placeholder елементи в страничната лента за тях.
 
 ---
 
-**Въпрос преди старт:** За admin достъпа — да направя ли първия регистриран потребител автоматично admin, или предпочиташ да ми кажеш email-а ти и аз ще го seed-на ръчно в базата?
+### 1. Страница за всеки квартал (вече има файл, ще я обогатя)
+
+Файл: `src/routes/cities.$slug.districts.$district.tsx` (съществува).
+
+Какво ще се вижда:
+- Hero със снимка на квартала (от `quarters.image_url`)
+- Заглавие + описание + средна цена/м²
+- Галерия от снимки на квартала (нова таблица `quarter_images` — една главна + допълнителни)
+- Списък с обявите от този квартал (карти с цена, площ, спалня, баня) — от `properties` филтрирани по `quarter_id`
+- Празно състояние: „Все още няма обяви в този квартал. Бъдете първи – оставете запитване."
+
+### 2. Чисти снимки на квартали
+
+Текущите 33 снимки идват от обяви в Realistimo и носят воден знак „Realistimo". Ще ги заменя по следния начин:
+- Чрез Firecrawl ще извлека от Realistimo URL-ите на **района на квартала** (не обявите) — много обяви имат `breadcrumb` страница за квартала с общи кадри без воден знак.
+- Където няма годна снимка → fallback към AI-генерирана архитектурна снимка на български жилищен квартал (без хора, без текст, луксозен ракурс).
+
+### 3. CRM админ панел (Bitrix24 стил, тъмен бордо мрамор)
+
+Нова структура с TanStack route:
+
+```text
+/admin                       → редирект към /admin/dashboard
+/admin/dashboard             → KPI карти + графики
+/admin/properties            → CRUD на обяви (вече има, мигрира в новия layout)
+/admin/extracted             → Извлечени обяви (черновки от скрейп)
+/admin/[останалите]          → placeholder „Скоро"
+```
+
+Layout (`src/routes/admin.tsx` става оформление с `<Outlet/>`):
+
+```text
+┌───────────┬───────────────────────────────┐
+│  ЛЯВА     │  Breadcrumb · Тъмен/Светъл · │
+│  ЛЕНТА    │  Към сайта · Изход           │
+│           ├───────────────────────────────┤
+│ Профил    │                               │
+│ Дашборд   │       <Outlet />              │
+│ Имоти     │                               │
+│ Извлечени │                               │
+│ ...       │                               │
+│ AI Аcист. │                               │
+└───────────┴───────────────────────────────┘
+```
+
+- Странична лента: бордо мраморен фон, златни активни линкове, иконки от lucide-react
+- Хедър: брeadcrumb отляво, действия отдясно
+- Главна зона: бордо градиент с мраморни картички (`marble-card` клас, вече дефиниран)
+
+### 4. „Извлечени имоти" (скрейпер UI)
+
+Нова таблица `extracted_listings` (чернова, не публична):
+- `source` (realistimo/imoti.bg/olx/bazar/home/alo/facebook)
+- `source_url`, `external_id`, `city_id`, `quarter_id` (nullable, ще се мапва ръчно)
+- `title`, `description`, `price`, `currency`, `area_sqm`, `rooms`
+- `seller_type` (private/agency) — филтрираме само `private`
+- `phone`, `images` (jsonb масив от url-и)
+- `status` (pending/approved/rejected/published)
+- `published_property_id` (nullable, ако е публикуван – линк към `properties`)
+
+UI:
+- Бутон „Извлечи имоти (всички сайтове)" – server fn, която обхожда източниците чрез Firecrawl
+- Филтър по статус (pending/approved/published)
+- Таблица със списък
+- Странична панелна редакция: смяна на телефон, цена, квартал, снимки → бутон „Публикувай на сайта" (копира в `properties` + `property_images`, маркира `published`)
+- Important: НИЩО не отива автоматично на сайта
+
+В тази итерация ще имплементирам:
+- Таблицата
+- UI скелета
+- Скрейп от **Realistimo** (вече работи)
+- Останалите източници (imoti.bg, olx, bazar.bg, home.bg, alo.bg, Facebook групи): добавям source-плъгин архитектура, но в тази итерация ще доставя реално само Realistimo. Останалите ще ги пълня поетапно (всеки сайт има различна структура и Facebook групите искат отделна стратегия – Graph API или скрейп през лог-ин, което е тежко).
+
+### 5. Дашборд
+
+Карти: Общо обяви, Активни, Запитвания (нови), Извлечени чернови.
+Графики: запитвания по седмици (recharts), последни 5 запитвания, последни 5 чернови.
+
+---
+
+## Технически детайли
+
+- Миграции: нова таблица `quarter_images` (id, quarter_id, url, display_order, is_cover) + `extracted_listings`
+- Server fns в `src/lib/admin.functions.ts`, `src/lib/extracted.functions.ts`, `src/lib/scraper.functions.ts`
+- Скрейпът ще се изпълнява през `createServerFn` с Firecrawl SDK (вече инсталиран през конектора)
+- Layout: `src/components/admin/admin-shell.tsx`
+- За снимките на кварталите ще пусна скрипт offline (през `code--exec`), който напълни базата — не runtime feature
+
+---
+
+## Какво остава за СЛЕДВАЩА итерация
+
+Брокери, Клиенти, Собственици CRM, Запитвания (kanban), Чат (realtime), Календар (FullCalendar), Договори (PDF), Финанси (приходи/комисионни), Маркетинг (кампании/email), Задачи (kanban), Документи (storage), Настройки. Всеки от тях е минимум 1 отделна итерация.
+
+Готов ли си да започна тази итерация?
