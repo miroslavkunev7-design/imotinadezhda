@@ -50,6 +50,8 @@ function AdminLayout() {
   const nav = [
     { to: "/admin", label: "Табло", icon: LayoutDashboard, exact: true },
     { to: "/admin/properties", label: "Имоти", icon: Building2 },
+    { to: "/admin/cities", label: "Градове", icon: MapPin },
+    { to: "/admin/quarters", label: "Квартали", icon: Layers },
     { to: "/admin/inquiries", label: "Запитвания", icon: MessageSquare },
     { to: "/admin/ai", label: "AI Помощник", icon: Sparkles },
   ];
