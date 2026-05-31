@@ -152,7 +152,7 @@ export const searchProperties = createServerFn({ method: "GET" })
       .eq("is_published", true);
     if (cityId) q = q.eq("city_id", cityId);
     if (quarterId) q = q.eq("quarter_id", quarterId);
-    if (data.property_type) q = q.eq("property_type", data.property_type);
+    if (data.property_type) q = q.eq("property_type", data.property_type as any);
     if (data.status) q = q.eq("status", data.status);
     if (data.price_min != null) q = q.gte("price", data.price_min);
     if (data.price_max != null) q = q.lte("price", data.price_max);
