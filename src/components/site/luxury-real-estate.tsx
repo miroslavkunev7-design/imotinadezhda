@@ -26,7 +26,11 @@ import {
 import burgasHero from "@/assets/burgas-hero.jpeg";
 import burgasPier from "@/assets/burgas-pier.jpeg";
 import burgundyTerrace from "@/assets/burgundy-terrace-hero.jpeg";
-import homeHero from "@/assets/home-hero-bkg.jpeg";
+import homeHero from "@/assets/home-hero-living.jpeg";
+import cityShumen from "@/assets/city-shumen.jpeg";
+import cityBurgas from "@/assets/city-burgas.jpeg";
+import cityVarna from "@/assets/city-varna.jpeg";
+import cityNoviPazar from "@/assets/city-novi-pazar.jpeg";
 import marbleBg from "@/assets/marble-bg.png";
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import headerPanel from "@/assets/site-header-panel.png";
@@ -41,11 +45,18 @@ const topNav = [
   { key: "about" as const, label: "За нас" },
 ];
 
+export const citySlugImages: Record<string, string> = {
+  shumen: cityShumen,
+  burgas: cityBurgas,
+  varna: cityVarna,
+  "novi-pazar": cityNoviPazar,
+};
+
 const homeCities: Array<{ name: string; image: string; href: "/cities/$slug"; params: { slug: string } }> = [
-  { name: "Шумен", image: homeHero, href: "/cities/$slug", params: { slug: "shumen" } },
-  { name: "Варна", image: burgasHero, href: "/cities/$slug", params: { slug: "varna" } },
-  { name: "Бургас", image: burgasPier, href: "/cities/$slug", params: { slug: "burgas" } },
-  { name: "Нов пазар", image: homeHero, href: "/cities/$slug", params: { slug: "novi-pazar" } },
+  { name: "Шумен", image: cityShumen, href: "/cities/$slug", params: { slug: "shumen" } },
+  { name: "Варна", image: cityVarna, href: "/cities/$slug", params: { slug: "varna" } },
+  { name: "Бургас", image: cityBurgas, href: "/cities/$slug", params: { slug: "burgas" } },
+  { name: "Нов пазар", image: cityNoviPazar, href: "/cities/$slug", params: { slug: "novi-pazar" } },
 ];
 
 const burgasDistricts = [
