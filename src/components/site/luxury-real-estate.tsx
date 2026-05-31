@@ -309,21 +309,21 @@ function RangeCell({
 
 function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
   return (
-    <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[18px]">
-      <div className="relative aspect-[1.45/1] overflow-hidden rounded-[18px] border border-primary/25 shadow-[0_18px_38px_rgba(77,25,31,0.28)] lg:aspect-[1.65/1]">
+    <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[16px] md:rounded-[18px]">
+      <div className="relative aspect-[1.1/1] overflow-hidden rounded-[16px] border border-primary/25 shadow-[0_18px_38px_rgba(77,25,31,0.28)] md:aspect-[1.45/1] md:rounded-[18px] lg:aspect-[1.65/1]">
         <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
         <div className="marble-wave-glow" />
         {/* Burgundy marble bottom panel */}
-        <div className="marble-burgundy-bottom absolute inset-x-0 bottom-0 flex items-center justify-between px-4 py-3 md:px-5 md:py-3.5">
+        <div className="marble-burgundy-bottom absolute inset-x-0 bottom-0 flex items-center justify-between px-3 py-2 md:px-5 md:py-3.5">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-amber-200/85">
-              <MapPin className="h-3.5 w-3.5 text-amber-300" />
+            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-amber-200/85 md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
+              <MapPin className="h-3 w-3 text-amber-300 md:h-3.5 md:w-3.5" />
               <span>Виж града</span>
             </div>
-            <div className="font-display text-2xl leading-tight text-amber-50 md:text-[1.75rem]">{name}</div>
+            <div className="font-display text-base leading-tight text-amber-50 md:text-2xl lg:text-[1.75rem]">{name}</div>
           </div>
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-amber-300/55 bg-amber-400/12 text-amber-200 transition group-hover:bg-amber-300 group-hover:text-[#3d0812]">
-            <ChevronRight className="h-4 w-4 -rotate-45" />
+          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-amber-300/55 bg-amber-400/12 text-amber-200 transition group-hover:bg-amber-300 group-hover:text-[#3d0812] md:h-10 md:w-10">
+            <ChevronRight className="h-3.5 w-3.5 -rotate-45 md:h-4 md:w-4" />
           </div>
         </div>
       </div>
