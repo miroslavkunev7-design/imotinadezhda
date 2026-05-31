@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Building2,
@@ -22,9 +22,11 @@ import {
   ChevronRight,
   MapPin,
   Layers,
+  Heart,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { newMatchesCount } from "@/lib/crm.functions";
 import marbleBg from "@/assets/marble-bg.png";
 
 type NavItem = {
@@ -33,6 +35,7 @@ type NavItem = {
   icon: typeof LayoutDashboard;
   disabled?: boolean;
   badge?: string;
+  badgeKey?: "matches";
 };
 
 const NAV: NavItem[] = [
@@ -42,12 +45,13 @@ const NAV: NavItem[] = [
   { to: "/admin/cities", label: "Градове", icon: MapPin },
   { to: "/admin/quarters", label: "Квартали", icon: Layers },
   { to: "/admin/inquiries", label: "Запитвания", icon: MessageSquare },
-  { to: "/admin/brokers", label: "Брокери", icon: UserCog, disabled: true },
-  { to: "/admin/clients", label: "Клиенти", icon: Users, disabled: true },
+  { to: "/admin/clients", label: "Клиенти", icon: Users },
+  { to: "/admin/brokers", label: "Брокери", icon: UserCog },
+  { to: "/admin/matches", label: "Съвпадения", icon: Heart, badgeKey: "matches" },
+  { to: "/admin/contracts", label: "Договори", icon: FileText },
   { to: "/admin/owners", label: "Собственици", icon: Crown, disabled: true },
   { to: "/admin/chat", label: "Чат", icon: MessageCircle, disabled: true },
   { to: "/admin/calendar", label: "Календар", icon: Calendar, disabled: true },
-  { to: "/admin/contracts", label: "Договори", icon: FileText, disabled: true },
   { to: "/admin/finance", label: "Финанси", icon: Wallet, disabled: true },
   { to: "/admin/marketing", label: "Маркетинг", icon: Megaphone, disabled: true },
   { to: "/admin/tasks", label: "Задачи", icon: CheckSquare, disabled: true },
@@ -59,6 +63,15 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [matchBadge, setMatchBadge] = useState<number>(0);
+
+  useEffect(() => {
+    let cancel = false;
+    const tick = () => newMatchesCount().then((r) => { if (!cancel) setMatchBadge(r.count); }).catch(() => {});
+    tick();
+    const t = setInterval(tick, 30000);
+    return () => { cancel = true; clearInterval(t); };
+  }, []);
 
   const current = NAV.find((n) => (n.to === "/admin" ? path === "/admin" : path.startsWith(n.to)));
 
@@ -110,6 +123,11 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
                 {item.badge ? (
                   <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-950">
                     {item.badge}
+                  </span>
+                ) : null}
+                {item.badgeKey === "matches" && matchBadge > 0 ? (
+                  <span className="rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    {matchBadge}
                   </span>
                 ) : null}
                 {item.disabled ? (
