@@ -47,14 +47,14 @@ function SearchRoute() {
             {results.map((p: any) => (
               <ListingCard
                 key={p.id}
-                id={p.id}
-                title={p.title}
-                price={p.price}
-                currency={p.currency}
-                area={p.area_sqm}
-                rooms={p.rooms ?? p.bedrooms}
-                image={p.cover_image_url}
-                city={p.cities?.name}
+                title={p.title ?? "Имот"}
+                price={`${p.currency === "BGN" ? "лв." : "€"} ${new Intl.NumberFormat("bg-BG").format(Number(p.price ?? 0))}`}
+                size={`${p.area_sqm ?? "—"} m²`}
+                beds={Number(p.bedrooms ?? p.rooms ?? 0)}
+                baths={Number(p.bathrooms ?? 0)}
+                image={p.cover_image_url ?? ""}
+                tag={p.status === "rent" ? "ПОД НАЕМ" : "ПРОДАЖБА"}
+                location={p.cities?.name}
               />
             ))}
           </div>
