@@ -188,6 +188,8 @@ function PropertiesAdmin() {
           </form>
         </div>
       )}
+
+      {imagesFor && <ImagesModal property={imagesFor} onClose={() => { setImagesFor(null); load(); }} />}
     </div>
   );
 }
@@ -200,3 +202,91 @@ function Field({ label, children, className }: { label: string; children: React.
     </label>
   );
 }
+
+type ImgRow = { id: string; url: string; is_cover: boolean; display_order: number | null };
+
+function ImagesModal({ property, onClose }: { property: Row; onClose: () => void }) {
+  const [imgs, setImgs] = useState<ImgRow[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const load = async () => {
+    const { data } = await supabase.from("property_images").select("id, url, is_cover, display_order").eq("property_id", property.id).order("display_order");
+    setImgs((data as ImgRow[]) ?? []);
+  };
+  useEffect(() => { load(); }, [property.id]);
+
+  const onUpload = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const ext = file.name.split(".").pop() ?? "jpg";
+        const path = `${property.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("property-images").upload(path, file, { contentType: file.type });
+        if (upErr) { alert(upErr.message); continue; }
+        const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
+        const isFirst = imgs.length === 0;
+        await supabase.from("property_images").insert({
+          property_id: property.id,
+          url: pub.publicUrl,
+          is_cover: isFirst,
+          display_order: imgs.length,
+        });
+        if (isFirst) await supabase.from("properties").update({ cover_image_url: pub.publicUrl }).eq("id", property.id);
+      }
+      await load();
+    } finally { setUploading(false); }
+  };
+
+  const setCover = async (img: ImgRow) => {
+    await supabase.from("property_images").update({ is_cover: false }).eq("property_id", property.id);
+    await supabase.from("property_images").update({ is_cover: true }).eq("id", img.id);
+    await supabase.from("properties").update({ cover_image_url: img.url }).eq("id", property.id);
+    load();
+  };
+
+  const remove = async (img: ImgRow) => {
+    if (!confirm("Изтриване на снимката?")) return;
+    await supabase.from("property_images").delete().eq("id", img.id);
+    // Best-effort delete from storage
+    const path = img.url.split("/property-images/")[1];
+    if (path) await supabase.storage.from("property-images").remove([path]);
+    load();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-2xl text-accent-foreground">Снимки</h2>
+            <p className="text-sm text-muted-foreground">{property.title}</p>
+          </div>
+          <button onClick={onClose}><X className="h-5 w-5" /></button>
+        </div>
+
+        <label className="mb-5 flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/30 bg-muted/30 px-6 py-8 text-primary hover:bg-muted/50">
+          <Upload className="h-5 w-5" />
+          <span>{uploading ? "Качване…" : "Качи снимки (избери файлове)"}</span>
+          <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onUpload(e.target.files)} disabled={uploading} />
+        </label>
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          {imgs.map((img) => (
+            <div key={img.id} className="group relative overflow-hidden rounded-xl border border-border">
+              <img src={img.url} alt="" className="aspect-square w-full object-cover" />
+              <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-black/60 p-2">
+                <button onClick={() => setCover(img)} className={`flex items-center gap-1 rounded px-2 py-1 text-xs ${img.is_cover ? "bg-primary text-primary-foreground" : "bg-white/10 text-white"}`}>
+                  <Star className="h-3 w-3" /> {img.is_cover ? "Корица" : "Постави"}
+                </button>
+                <button onClick={() => remove(img)} className="rounded bg-destructive/80 px-2 py-1 text-xs text-destructive-foreground"><Trash2 className="h-3 w-3" /></button>
+              </div>
+            </div>
+          ))}
+          {!imgs.length && <div className="col-span-full py-10 text-center text-muted-foreground">Все още няма снимки.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
