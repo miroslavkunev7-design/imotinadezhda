@@ -20,9 +20,12 @@ import {
   Square,
   Trees,
   User,
+  View,
 } from "lucide-react";
 
 import burgasHero from "@/assets/burgas-hero.jpeg";
+import burgasPier from "@/assets/burgas-pier.jpeg";
+import burgundyTerrace from "@/assets/burgundy-terrace-hero.jpeg";
 import homeHero from "@/assets/home-hero-bkg.jpeg";
 import marbleBg from "@/assets/marble-bg.png";
 import { Button } from "@/components/ui/button";
