@@ -1,0 +1,1 @@
+DELETE FROM quarters WHERE image_url IS NULL;
