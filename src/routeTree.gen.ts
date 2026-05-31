@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -27,6 +28,11 @@ import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
 
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/login'
+    | '/search'
     | '/admin/ai'
     | '/admin/brokers'
     | '/admin/cities'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/search'
     | '/admin/ai'
     | '/admin/brokers'
     | '/admin/cities'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/login'
+    | '/search'
     | '/admin/ai'
     | '/admin/brokers'
     | '/admin/cities'
@@ -234,12 +246,20 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
+  SearchRoute: typeof SearchRoute
   CitiesSlugRoute: typeof CitiesSlugRouteWithChildren
   PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -408,6 +428,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
+  SearchRoute: SearchRoute,
   CitiesSlugRoute: CitiesSlugRouteWithChildren,
   PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
 }

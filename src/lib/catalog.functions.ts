@@ -121,3 +121,58 @@ export const getQuarterBySlug = createServerFn({ method: "GET" })
     ]);
     return { city, quarter, properties: properties ?? [], gallery: gallery ?? [] };
   });
+
+export const searchProperties = createServerFn({ method: "GET" })
+  .inputValidator((d) =>
+    z.object({
+      city_slug: z.string().max(64).optional().nullable(),
+      quarter_slug: z.string().max(64).optional().nullable(),
+      property_type: z.string().max(32).optional().nullable(),
+      status: z.enum(["sale", "rent"]).optional().nullable(),
+      price_min: z.coerce.number().nonnegative().optional().nullable(),
+      price_max: z.coerce.number().nonnegative().optional().nullable(),
+      area_min: z.coerce.number().nonnegative().optional().nullable(),
+      area_max: z.coerce.number().nonnegative().optional().nullable(),
+    }).parse(d ?? {}),
+  )
+  .handler(async ({ data }) => {
+    let cityId: string | null = null;
+    let quarterId: string | null = null;
+    if (data.city_slug) {
+      const { data: c } = await supabaseAdmin.from("cities").select("id").eq("slug", data.city_slug).maybeSingle();
+      cityId = c?.id ?? null;
+    }
+    if (data.quarter_slug && cityId) {
+      const { data: q } = await supabaseAdmin.from("quarters").select("id").eq("city_id", cityId).eq("slug", data.quarter_slug).maybeSingle();
+      quarterId = q?.id ?? null;
+    }
+    let q = supabaseAdmin
+      .from("properties")
+      .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, cities:city_id(name, slug)")
+      .eq("is_published", true);
+    if (cityId) q = q.eq("city_id", cityId);
+    if (quarterId) q = q.eq("quarter_id", quarterId);
+    if (data.property_type) q = q.eq("property_type", data.property_type as any);
+    if (data.status) q = q.eq("status", data.status);
+    if (data.price_min != null) q = q.gte("price", data.price_min);
+    if (data.price_max != null) q = q.lte("price", data.price_max);
+    if (data.area_min != null) q = q.gte("area_sqm", data.area_min);
+    if (data.area_max != null) q = q.lte("area_sqm", data.area_max);
+    const { data: rows, error } = await q.order("created_at", { ascending: false }).limit(60);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const getQuartersByCity = createServerFn({ method: "GET" })
+  .inputValidator((d) => z.object({ city_slug: z.string().max(64) }).parse(d))
+  .handler(async ({ data }) => {
+    const { data: c } = await supabaseAdmin.from("cities").select("id").eq("slug", data.city_slug).maybeSingle();
+    if (!c) return [];
+    const { data: rows } = await supabaseAdmin
+      .from("quarters")
+      .select("id, slug, name")
+      .eq("city_id", c.id)
+      .eq("is_published", true)
+      .order("display_order");
+    return rows ?? [];
+  });
