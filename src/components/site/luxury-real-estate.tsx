@@ -520,7 +520,7 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
 
 
         <section className="relative z-10 mx-auto mt-5 w-full max-w-[1420px] px-2 md:px-6 lg:mt-6">
-          <div className="grid gap-3 md:grid-cols-4 lg:gap-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
             {cityList.map((city) => (
               <CityCard
                 key={city.slug}
