@@ -498,6 +498,7 @@ function formatPrice(p: number | string, currency = "EUR") {
 export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?: FeaturedListing[] } = {}) {
   const cityList = (cities && cities.length ? cities : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug })))
     .map((c) => ({ ...c, image: citySlugImages[c.slug] || c.image || burgasHero }));
+  const cityOpts = cityList.map((c) => ({ slug: c.slug, name: c.name }));
   return (
     <main className="luxury-page flex min-h-screen flex-col bg-background text-foreground">
       <section
@@ -510,9 +511,10 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
       >
         <LuxuryHeader active="sale" />
 
-        <div className="relative z-20 mx-auto mt-auto w-full max-w-[1440px] px-2 pt-6 md:px-6">
-          <SearchBar />
+        <div className="relative z-20 mx-auto mt-auto w-full max-w-[1440px] px-2 pt-10 md:px-6">
+          <SearchBar cities={cityOpts} />
         </div>
+
 
         <section className="relative z-10 mx-auto mt-5 w-full max-w-[1420px] px-2 md:px-6 lg:mt-6">
           <div className="grid gap-3 md:grid-cols-4 lg:gap-4">
