@@ -155,6 +155,7 @@ function CityCard({ name, image, href, params }: { name: string; image: string; 
     <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[18px] bg-card text-card-foreground">
       <div className="relative aspect-[1.18/1] overflow-hidden rounded-[18px] border border-primary/20 bg-card shadow-[0_18px_35px_rgba(77,25,31,0.18)]">
         <img src={image} alt={name} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" loading="lazy" />
+        <div className="marble-wave-glow" />
         <div className="absolute inset-x-0 bottom-0 h-[44%] bg-[linear-gradient(180deg,transparent_0%,rgba(255,247,236,0.9)_44%,rgba(255,247,236,0.98)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between px-5 pb-5">
           <div>
