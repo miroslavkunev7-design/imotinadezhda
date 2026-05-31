@@ -356,7 +356,7 @@ function MarblePropertyCard({
   );
 }
 
-function ListingCard({
+export function ListingCard({
   title,
   price,
   size,
