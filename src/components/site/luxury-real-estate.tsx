@@ -236,6 +236,7 @@ function ListingCard({
   baths,
   image,
   tag,
+  location,
 }: {
   title: string;
   price: string;
@@ -244,6 +245,7 @@ function ListingCard({
   baths: number;
   image: string;
   tag: string;
+  location?: string;
 }) {
   return (
     <article className="marble-hover-card group overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_20px_45px_rgba(93,39,22,0.16)]">
@@ -267,7 +269,7 @@ function ListingCard({
       <div className="space-y-3 px-4 pb-5 pt-4">
         <div>
           <h3 className="font-display text-[1.35rem] leading-snug text-accent-foreground">{title}</h3>
-          <p className="mt-1 inline-flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 text-primary" />Лазур, гр. Бургас</p>
+          {location ? <p className="mt-1 inline-flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 text-primary" />{location}</p> : null}
         </div>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5"><Square className="h-4 w-4 text-primary" />{size}</span>
@@ -279,6 +281,7 @@ function ListingCard({
     </article>
   );
 }
+
 
 function AgentCard() {
   return (
