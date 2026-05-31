@@ -80,10 +80,10 @@ export const adminUpsertProperty = createServerFn({ method: "POST" })
   .inputValidator((d) => propertyInput.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const payload = { ...data, created_by: context.userId };
-    if (data.id) {
-      const { id, ...rest } = payload;
-      const { error } = await supabaseAdmin.from("properties").update(rest).eq("id", id);
+    const { id, ...rest } = data;
+    const payload = { ...rest, created_by: context.userId };
+    if (id) {
+      const { error } = await supabaseAdmin.from("properties").update(payload).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     }
