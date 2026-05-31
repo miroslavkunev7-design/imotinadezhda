@@ -580,8 +580,9 @@ function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Arr
 
 type QuarterData = {
   city: { id: string; slug: string; name: string };
-  quarter: { id: string; slug: string; name: string; description?: string | null; image_url?: string | null; properties_count?: number | null };
+  quarter: { id: string; slug: string; name: string; description?: string | null; image_url?: string | null; properties_count?: number | null; avg_price_per_sqm?: number | null };
   properties: Array<{ id: string; title: string; price: number; currency?: string | null; area_sqm?: number | null; bedrooms?: number | null; bathrooms?: number | null; cover_image_url?: string | null; is_featured?: boolean }>;
+  gallery?: Array<{ id: string; url: string; is_cover?: boolean; display_order?: number | null }>;
 };
 
 export function DistrictPage({ data }: { data?: QuarterData } = {}) {
@@ -674,6 +675,22 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
                 ))
               )}
             </div>
+
+            {data?.gallery && data.gallery.length > 0 ? (
+              <div className="rounded-[26px] bg-card p-5 shadow-[0_18px_45px_rgba(92,41,20,0.12)] md:p-8">
+                <div className="mb-5 flex items-center justify-between">
+                  <h2 className="font-display text-[2rem] text-accent-foreground md:text-[2.4rem]">Галерия — {quarter.name}</h2>
+                  <span className="text-sm text-muted-foreground">{data.gallery.length} снимки</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                  {data.gallery.map((img) => (
+                    <div key={img.id} className="overflow-hidden rounded-[16px] border border-primary/15 shadow-sm">
+                      <img src={img.url} alt={`${quarter.name}`} className="h-44 w-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <MapCard district />

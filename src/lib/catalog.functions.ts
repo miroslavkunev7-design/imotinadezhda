@@ -106,11 +106,18 @@ export const getQuarterBySlug = createServerFn({ method: "GET" })
     const { data: quarter } = await supabaseAdmin
       .from("quarters").select("*").eq("city_id", city.id).eq("slug", data.quarterSlug).maybeSingle();
     if (!quarter) return null;
-    const { data: properties } = await supabaseAdmin
-      .from("properties")
-      .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, is_featured")
-      .eq("quarter_id", quarter.id)
-      .eq("is_published", true)
-      .order("created_at", { ascending: false });
-    return { city, quarter, properties: properties ?? [] };
+    const [{ data: properties }, { data: gallery }] = await Promise.all([
+      supabaseAdmin
+        .from("properties")
+        .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, is_featured")
+        .eq("quarter_id", quarter.id)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("quarter_images")
+        .select("id, url, is_cover, display_order")
+        .eq("quarter_id", quarter.id)
+        .order("display_order"),
+    ]);
+    return { city, quarter, properties: properties ?? [], gallery: gallery ?? [] };
   });
