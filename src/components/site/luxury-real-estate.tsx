@@ -366,61 +366,62 @@ function formatPrice(p: number | string, currency = "EUR") {
 }
 
 export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?: FeaturedListing[] } = {}) {
-  const cityList = (cities && cities.length ? cities : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug })));
+  const cityList = (cities && cities.length ? cities : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug })))
+    .map((c) => ({ ...c, image: citySlugImages[c.slug] || c.image || burgasHero }));
   return (
-    <main className="luxury-page min-h-screen bg-background text-foreground">
-      <section className="relative overflow-hidden px-3 pb-8 pt-0 md:px-6 md:pb-16">
-        <div className="absolute inset-0 bg-cover bg-center opacity-100" style={{ backgroundImage: `url(${marbleBg})` }} />
+    <main className="luxury-page flex min-h-screen flex-col bg-background text-foreground">
+      <section
+        className="relative flex flex-1 flex-col overflow-hidden px-3 pb-6 pt-0 md:px-6 lg:h-screen lg:max-h-screen lg:pb-4"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(247,241,230,0) 0%, rgba(247,241,230,0) 30%, rgba(247,241,230,0.85) 92%, rgba(247,241,230,1) 100%), url(${homeHero})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <LuxuryHeader active="sale" />
 
-        <div className="relative mx-auto mt-[-18px] max-w-[1440px] px-2 md:px-6">
-          <div className="relative overflow-hidden rounded-[28px] border border-primary/20 shadow-[0_24px_55px_rgba(88,40,18,0.18)]">
-            <img src={homeHero} alt="Луксозен интериор с панорамна гледка" className="h-[360px] w-full object-cover md:h-[680px]" />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(46,17,16,0.08)_0%,rgba(46,17,16,0.18)_55%,rgba(46,17,16,0.28)_100%)]" />
-          </div>
-          <div className="relative z-30 mx-auto mt-[-38px] md:mt-[-52px]">
-            <SearchBar />
-          </div>
+        <div className="relative z-20 mx-auto mt-auto w-full max-w-[1440px] px-2 pt-6 md:px-6">
+          <SearchBar />
         </div>
 
-        <section className="relative mx-auto mt-8 max-w-[1420px] px-4 md:mt-12 md:px-6">
-          <div className="grid gap-4 md:grid-cols-4">
+        <section className="relative z-10 mx-auto mt-5 w-full max-w-[1420px] px-2 md:px-6 lg:mt-6">
+          <div className="grid gap-3 md:grid-cols-4 lg:gap-4">
             {cityList.map((city) => (
               <CityCard
                 key={city.slug}
                 name={city.name}
-                image={city.image || burgasHero}
+                image={city.image}
                 href="/cities/$slug"
                 params={{ slug: city.slug }}
               />
             ))}
           </div>
         </section>
-
-        {featured && featured.length > 0 && (
-          <section className="relative mx-auto mt-12 max-w-[1420px] px-4 md:mt-16 md:px-6">
-            <div className="mb-6 flex items-end justify-between">
-              <h2 className="font-display text-[2.4rem] text-accent-foreground md:text-[3rem]">Подбрани имоти</h2>
-              <span className="text-sm text-muted-foreground">{featured.length} оферти</span>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {featured.map((f) => (
-                <Link key={f.id} to="/properties/$propertyId" params={{ propertyId: f.id }} className="block">
-                  <ListingCard
-                    title={f.title}
-                    price={formatPrice(f.price, f.currency ?? "EUR")}
-                    size={`${f.area_sqm ?? "—"} m²`}
-                    beds={f.bedrooms ?? 0}
-                    baths={f.bathrooms ?? 0}
-                    image={f.cover_image_url || burgasHero}
-                    tag={f.city_name ?? ""}
-                  />
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
       </section>
+
+      {featured && featured.length > 0 && (
+        <section className="relative mx-auto mt-12 w-full max-w-[1420px] px-4 pb-16 md:mt-16 md:px-6">
+          <div className="mb-6 flex items-end justify-between">
+            <h2 className="font-display text-[2.4rem] text-accent-foreground md:text-[3rem]">Подбрани имоти</h2>
+            <span className="text-sm text-muted-foreground">{featured.length} оферти</span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {featured.map((f) => (
+              <Link key={f.id} to="/properties/$propertyId" params={{ propertyId: f.id }} className="block">
+                <ListingCard
+                  title={f.title}
+                  price={formatPrice(f.price, f.currency ?? "EUR")}
+                  size={`${f.area_sqm ?? "—"} m²`}
+                  beds={f.bedrooms ?? 0}
+                  baths={f.bathrooms ?? 0}
+                  image={f.cover_image_url || burgasHero}
+                  tag={f.city_name ?? ""}
+                />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
