@@ -27,6 +27,7 @@ import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
 import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
+import { Route as AdminAuditIdRouteImport } from './routes/admin.audit.$id'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
 
 const SearchRoute = SearchRouteImport.update({
@@ -119,6 +120,11 @@ const AdminAiRoute = AdminAiRouteImport.update({
   path: '/ai',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAuditIdRoute = AdminAuditIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminAuditRoute,
+} as any)
 const CitiesSlugDistrictsDistrictRoute =
   CitiesSlugDistrictsDistrictRouteImport.update({
     id: '/districts/$district',
@@ -132,7 +138,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
   '/admin/ai': typeof AdminAiRoute
-  '/admin/audit': typeof AdminAuditRoute
+  '/admin/audit': typeof AdminAuditRouteWithChildren
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/cities/$slug': typeof CitiesSlugRouteWithChildren
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/audit/$id': typeof AdminAuditIdRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
 export interface FileRoutesByTo {
@@ -152,7 +159,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
   '/admin/ai': typeof AdminAiRoute
-  '/admin/audit': typeof AdminAuditRoute
+  '/admin/audit': typeof AdminAuditRouteWithChildren
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/cities/$slug': typeof CitiesSlugRouteWithChildren
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/audit/$id': typeof AdminAuditIdRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
 export interface FileRoutesById {
@@ -174,7 +182,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
   '/admin/ai': typeof AdminAiRoute
-  '/admin/audit': typeof AdminAuditRoute
+  '/admin/audit': typeof AdminAuditRouteWithChildren
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/cities/$slug': typeof CitiesSlugRouteWithChildren
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/audit/$id': typeof AdminAuditIdRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
 export interface FileRouteTypes {
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/cities/$slug'
     | '/properties/$propertyId'
     | '/admin/'
+    | '/admin/audit/$id'
     | '/cities/$slug/districts/$district'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/cities/$slug'
     | '/properties/$propertyId'
     | '/admin'
+    | '/admin/audit/$id'
     | '/cities/$slug/districts/$district'
   id:
     | '__root__'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/cities/$slug'
     | '/properties/$propertyId'
     | '/admin/'
+    | '/admin/audit/$id'
     | '/cities/$slug/districts/$district'
   fileRoutesById: FileRoutesById
 }
@@ -391,6 +403,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAiRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/audit/$id': {
+      id: '/admin/audit/$id'
+      path: '/$id'
+      fullPath: '/admin/audit/$id'
+      preLoaderRoute: typeof AdminAuditIdRouteImport
+      parentRoute: typeof AdminAuditRoute
+    }
     '/cities/$slug/districts/$district': {
       id: '/cities/$slug/districts/$district'
       path: '/districts/$district'
@@ -401,9 +420,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminAuditRouteChildren {
+  AdminAuditIdRoute: typeof AdminAuditIdRoute
+}
+
+const AdminAuditRouteChildren: AdminAuditRouteChildren = {
+  AdminAuditIdRoute: AdminAuditIdRoute,
+}
+
+const AdminAuditRouteWithChildren = AdminAuditRoute._addFileChildren(
+  AdminAuditRouteChildren,
+)
+
 interface AdminRouteChildren {
   AdminAiRoute: typeof AdminAiRoute
-  AdminAuditRoute: typeof AdminAuditRoute
+  AdminAuditRoute: typeof AdminAuditRouteWithChildren
   AdminBrokersRoute: typeof AdminBrokersRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminClientsRoute: typeof AdminClientsRoute
@@ -418,7 +449,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAiRoute: AdminAiRoute,
-  AdminAuditRoute: AdminAuditRoute,
+  AdminAuditRoute: AdminAuditRouteWithChildren,
   AdminBrokersRoute: AdminBrokersRoute,
   AdminCitiesRoute: AdminCitiesRoute,
   AdminClientsRoute: AdminClientsRoute,
