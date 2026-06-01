@@ -65,8 +65,18 @@ function LoginPage() {
   // OAuth handler removed.
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-primary/15 bg-card p-8 shadow-xl">
+    <main
+      className="relative flex min-h-screen items-center justify-center px-4 py-12"
+      style={{
+        backgroundImage: `url(${loginHero})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+      <div className="relative w-full max-w-md rounded-2xl border border-white/30 bg-white/15 p-8 shadow-2xl backdrop-blur-xl ring-1 ring-amber-300/30">
+
         <div className="mb-6 text-center">
           <Link to="/" className="font-display text-2xl text-primary">ИЛДЖ.ИА</Link>
           <h1 className="mt-3 font-display text-3xl text-accent-foreground">
