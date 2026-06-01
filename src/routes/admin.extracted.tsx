@@ -250,6 +250,13 @@ function ExtractedPage() {
                           Оригинал
                         </a>
                         <button
+                          onClick={() => onArchive(r.id)}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-amber-600/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-500/20"
+                          title="Запази в наши имоти (архив, само админ)"
+                        >
+                          <Archive className="h-3.5 w-3.5" /> В архив
+                        </button>
+                        <button
                           onClick={() => onDelete(r.id)}
                           className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-red-500/30 px-3 py-1.5 text-xs text-red-700 hover:bg-red-500/10"
                         >
