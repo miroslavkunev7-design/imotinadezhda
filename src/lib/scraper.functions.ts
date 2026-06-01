@@ -295,8 +295,10 @@ export const updateExtracted = createServerFn({ method: "POST" })
   });
 
 export const publishExtracted = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { data: row, error: e1 } = await supabaseAdmin
       .from("extracted_listings")
       .select("*")
