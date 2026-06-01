@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { checkAdminAccess, logAdminAccess } from "@/lib/audit.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -15,7 +16,19 @@ function AdminLayout() {
 
   useEffect(() => {
     if (!user?.id) return;
-    logAdminAccess({ data: { path: "/admin" } }).catch(() => {});
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (cancelled || !data.session?.access_token) return;
+      try {
+        await logAdminAccess({ data: { path: "/admin" } });
+      } catch {
+        /* non-blocking */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   useEffect(() => {
@@ -24,12 +37,25 @@ function AdminLayout() {
       navigate({ to: "/login" });
       return;
     }
-    checkAdminAccess()
-      .then(({ isAdmin }) => setIsAdmin(isAdmin))
-      .catch((error) => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (!data.session?.access_token) {
+        navigate({ to: "/login" });
+        return;
+      }
+      try {
+        const { isAdmin } = await checkAdminAccess();
+        if (!cancelled) setIsAdmin(isAdmin);
+      } catch (error) {
         console.error("admin access check failed", error);
-        setIsAdmin(false);
-      });
+        if (!cancelled) setIsAdmin(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [user, loading, navigate]);
 
   if (loading || isAdmin === null) {
