@@ -122,18 +122,34 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
   };
 
   return (
-    <header className="relative z-30 w-full -mb-4 md:-mb-6 lg:-mb-8">
-      <img
-        src={headerPanel}
-        alt=""
+    <header
+      className="relative z-30 w-full border-b border-[hsl(45_55%_70%/0.5)] shadow-[0_2px_24px_-12px_rgba(120,30,40,0.35)]"
+      style={{
+        background:
+          "linear-gradient(180deg, #fbf6ec 0%, #f6ecd6 45%, #efe0bd 100%)",
+      }}
+    >
+      {/* Gold veining accents */}
+      <span
         aria-hidden
-        draggable={false}
-        className="pointer-events-none absolute inset-x-0 top-0 h-full w-full object-fill select-none"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, #d4a84a 20%, #f3d27a 50%, #d4a84a 80%, transparent 100%)",
+        }}
       />
-      <div className="relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 py-1 md:px-10 md:py-2">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, #b8893a 25%, #e7c46a 50%, #b8893a 75%, transparent 100%)",
+        }}
+      />
+      <div className="relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 py-2 md:px-10 md:py-3">
         <Link
           to="/"
-          className="flex shrink-0 items-center select-none -my-2"
+          className="flex shrink-0 items-center select-none"
           onClick={handleLogoClick}
           aria-label="Начало (троен клик за админ вход)"
         >
@@ -141,7 +157,7 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
             src={logoNadezhda}
             alt="Недвижими имоти Надежда"
             draggable={false}
-            className="h-12 w-auto object-contain md:h-14 lg:h-16"
+            className="h-12 w-auto object-contain md:h-14 lg:h-[68px]"
           />
         </Link>
 
@@ -154,7 +170,7 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
               className={cn(
                 "relative font-display text-sm text-primary transition hover:text-primary/80 md:text-base lg:text-lg",
                 active === item.key &&
-                  "after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:bg-primary",
+                  "after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:bg-[#c9a24a]",
               )}
             >
               {item.label}
