@@ -38,6 +38,7 @@ import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import headerPanel from "@/assets/site-header-panel.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { MortgageRangeBand } from "@/components/site/mortgage-range-band";
 
 type NavKey = "sale" | "rent" | "about";
 
@@ -983,6 +984,12 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
           </div>
 
           <div className="space-y-6">
+            <MortgageRangeBand
+              price={Number(property.price) || 0}
+              currency={property.currency ?? "EUR"}
+              propertyId={property.id}
+              propertyTitle={property.title}
+            />
             <InquiryForm propertyId={property.id} propertyTitle={property.title} />
             <MapCard />
           </div>

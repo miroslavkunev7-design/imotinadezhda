@@ -547,6 +547,51 @@ export type Database = {
           },
         ]
       }
+      mortgage_applications: {
+        Row: {
+          created_at: string
+          email: string | null
+          employer: string | null
+          files: Json
+          full_name: string
+          id: string
+          monthly_income: number | null
+          notes: string | null
+          phone: string
+          property_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          employer?: string | null
+          files?: Json
+          full_name: string
+          id?: string
+          monthly_income?: number | null
+          notes?: string | null
+          phone: string
+          property_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          employer?: string | null
+          files?: Json
+          full_name?: string
+          id?: string
+          monthly_income?: number | null
+          notes?: string | null
+          phone?: string
+          property_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       owners: {
         Row: {
           address: string | null
