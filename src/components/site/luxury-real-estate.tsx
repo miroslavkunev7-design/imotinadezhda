@@ -684,41 +684,43 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               {/* LEFT: hero image + marble logo corner */}
               <div className="relative min-h-[420px] md:min-h-[460px] lg:min-h-[clamp(380px,52vh,540px)]">
                 <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 35%" }} />
-                <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(42,5,11,0.55) 100%)" }} />
+                <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(20,3,7,0.85) 100%)" }} />
+                {/* Marble logo badge with S-curve flare swoosh */}
                 <div
-                  className="absolute left-0 top-0 z-10 h-[200px] w-[340px] md:h-[230px] md:w-[400px]"
+                  className="absolute left-0 top-0 z-10 h-[210px] w-[430px] md:h-[240px] md:w-[500px] lg:h-[260px] lg:w-[540px]"
                   style={{
                     background:
-                      "radial-gradient(ellipse at 15% 0%, #fffaf0 0%, transparent 55%), linear-gradient(155deg, #fbf6ea 0%, #f4e6c4 55%, #ecd9a8 100%)",
-                    clipPath: "path('M0,0 L100%,0 Q92%,38% 68%,62% Q38%,86% 0,100% Z')",
-                    WebkitClipPath: "path('M0,0 L100%,0 Q92%,38% 68%,62% Q38%,86% 0,100% Z')",
-                    boxShadow: "inset 0 -2px 12px rgba(184,137,58,0.25)",
+                      "radial-gradient(ellipse at 18% 8%, #fffaf0 0%, transparent 55%), linear-gradient(155deg, #fbf6ea 0%, #f4e6c4 55%, #ecd9a8 100%)",
+                    clipPath: "path('M0 0 L70% 0 C80% 0 86% 8% 84% 20% C82% 32% 92% 40% 100% 44% C90% 50% 76% 56% 68% 66% C58% 78% 54% 90% 42% 96% C30% 100% 14% 100% 0 100% Z')",
+                    WebkitClipPath: "path('M0 0 L70% 0 C80% 0 86% 8% 84% 20% C82% 32% 92% 40% 100% 44% C90% 50% 76% 56% 68% 66% C58% 78% 54% 90% 42% 96% C30% 100% 14% 100% 0 100% Z')",
+                    boxShadow: "inset 0 -2px 14px rgba(184,137,58,0.28)",
                   }}
                 >
-                  <Link to="/" className="absolute left-7 top-6 md:left-10 md:top-8">
-                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-[68px] w-auto object-contain md:h-[80px]" />
+                  <Link to="/" className="absolute left-8 top-7 md:left-12 md:top-9">
+                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-[74px] w-auto object-contain md:h-[90px] lg:h-[98px]" />
                   </Link>
                 </div>
-                <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 h-[240px] w-[420px]" viewBox="0 0 440 260" preserveAspectRatio="none">
+                {/* Gold edge tracing the S-curve flare */}
+                <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 h-[260px] w-[540px] md:h-[280px]" viewBox="0 0 540 270" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="goldEdgeCity" x1="0" x2="1">
                       <stop offset="0%" stopColor="#b8893a" stopOpacity="0" />
-                      <stop offset="35%" stopColor="#e8c477" />
-                      <stop offset="65%" stopColor="#f8e3a0" />
+                      <stop offset="40%" stopColor="#e8c477" />
+                      <stop offset="70%" stopColor="#f8e3a0" />
                       <stop offset="100%" stopColor="#b8893a" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path d="M440,98 Q310,158 170,212 Q90,238 0,256" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="3" />
-                  <path d="M440,114 Q305,174 165,228 Q85,254 0,272" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="1.2" opacity="0.65" />
+                  <path d="M0,0 L378,0 C432,0 464,22 454,54 C443,87 497,108 540,119 C496,131 410,148 367,178 C314,212 292,240 227,256 C164,270 82,270 0,270" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="2.5" />
+                  <path d="M395,8 C436,12 462,32 450,60 C440,90 497,114 540,124" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="1.2" opacity="0.7" />
                 </svg>
               </div>
 
-              {/* RIGHT: burgundy panel */}
+              {/* RIGHT: burgundy panel — deep dark wine to match mockup */}
               <div
                 className="relative flex flex-col px-8 py-6 md:px-12 md:py-7"
                 style={{
                   background:
-                    "radial-gradient(ellipse at 25% 15%, rgba(140,35,55,0.6), transparent 60%), linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
+                    "radial-gradient(ellipse at 30% 12%, rgba(95,18,32,0.45), transparent 55%), linear-gradient(135deg, #350810 0%, #180307 100%)",
                 }}
               >
                 <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover", mixBlendMode: "screen" }} />
@@ -752,8 +754,8 @@ export function CityPage({ data }: { data?: CityData } = {}) {
         </div>
       </section>
 
-      {/* Inline burgundy search bar */}
-      <section className="relative z-20 mx-auto -mt-7 w-full max-w-[1380px] px-4 md:-mt-9 md:px-8 lg:flex-[0_0_auto]">
+      {/* Inline burgundy search bar — tucked into the hero so they read as one piece */}
+      <section className="relative z-30 mx-auto -mt-12 w-full max-w-[1440px] px-4 md:-mt-14 md:px-8 lg:-mt-16 lg:flex-[0_0_auto]">
         <CitySearchBar citySlug={city.slug} cityName={city.name} />
       </section>
 
@@ -835,7 +837,7 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
     <div
       className="relative flex items-stretch overflow-hidden rounded-[22px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)]"
       style={{
-        background: "radial-gradient(ellipse at 20% 0%, rgba(140,35,55,0.55), transparent 60%), linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
+        background: "radial-gradient(ellipse at 20% 0%, rgba(95,18,32,0.45), transparent 60%), linear-gradient(135deg, #350810 0%, #180307 100%)",
         border: "1px solid rgba(232,196,119,0.45)",
         boxShadow: "0 30px 70px -15px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(232,196,119,0.18), inset 0 1px 0 rgba(255,220,150,0.12)",
       }}
