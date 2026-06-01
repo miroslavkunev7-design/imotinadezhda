@@ -1,9 +1,8 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { logAdminAccess } from "@/lib/audit.functions";
+import { checkAdminAccess, logAdminAccess } from "@/lib/audit.functions";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -27,13 +26,12 @@ function AdminLayout() {
       navigate({ to: "/login" });
       return;
     }
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle()
-      .then(({ data }) => setIsAdmin(!!data));
+    checkAdminAccess()
+      .then(({ isAdmin }) => setIsAdmin(isAdmin))
+      .catch((error) => {
+        console.error("admin access check failed", error);
+        setIsAdmin(false);
+      });
   }, [user, loading, navigate]);
 
 
