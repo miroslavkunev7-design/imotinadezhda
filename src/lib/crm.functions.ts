@@ -126,7 +126,7 @@ export const listBrokers = createServerFn({ method: "GET" })
 
 const brokerSchema = z.object({
   id: z.string().uuid().optional().nullable(),
-  user_id: z.string().uuid().optional().nullable(),
+  user_id: z.preprocess((v) => (v === "" ? null : v), z.string().uuid().optional().nullable()),
   full_name: z.string().min(2).max(200),
   email: z.string().email().max(200).optional().nullable().or(z.literal("")),
   phone: z.string().max(40).optional().nullable(),
