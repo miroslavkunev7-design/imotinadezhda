@@ -5,8 +5,9 @@
  *   2. Element overlap between scroller arrows and the "Виж всички квартали" CTA
  *   3. Pixel diff of full viewport + hero & quarters bands vs baseline
  *
- *   bun run visual:burgas                # diff vs baseline (creates if missing)
- *   bun run visual:burgas -- --update    # overwrite baseline
+ *   bun run visual:burgas                  # diff vs baseline (creates if missing)
+ *   bun run visual:burgas -- --update      # force overwrite baseline
+ *   bun run visual:burgas -- --update-safe # overwrite ONLY if overflow+overlap guards pass
  *   bun run visual:burgas -- --url=https://...lovable.app
  */
 import { spawnSync } from "node:child_process";
@@ -27,6 +28,7 @@ const PROJECT_ID = "96d88938-791e-487e-8256-6bfbd8c8aa0f";
 const DEFAULT_URL = `https://id-preview--${PROJECT_ID}.lovable.app/cities/burgas`;
 const url = flags.url ?? DEFAULT_URL;
 const update = flags.update === "true";
+const updateSafe = flags["update-safe"] === "true";
 const VW = 1920;
 const VH = 1080;
 
@@ -101,13 +103,21 @@ console.log(`✓ Captured snapshots to ${outDir}/`);
 const targets = ["burgas-viewport.png", "burgas-hero.png", "burgas-quarters.png"].filter((f) =>
   fs.existsSync(path.join(outDir, f)),
 );
+
+// --update-safe: only refresh baselines when layout guards passed.
+const guardsPassed = issues.length === 0;
+const doUpdate = update || (updateSafe && guardsPassed);
+if (updateSafe && !guardsPassed) {
+  console.error(`\n⛔ --update-safe: refusing to update baseline — layout guards failed.`);
+}
+
 let pixelFailed = 0;
 for (const name of targets) {
   const baseline = path.join(baselineDir, name);
   const current = path.join(outDir, name);
-  if (update || !fs.existsSync(baseline)) {
+  if (doUpdate || !fs.existsSync(baseline)) {
     fs.copyFileSync(current, baseline);
-    console.log(`📌 ${update ? "Updated" : "Seeded"} baseline: ${baseline}`);
+    console.log(`📌 ${fs.existsSync(baseline) && doUpdate ? "Updated" : "Seeded"} baseline: ${baseline}`);
     continue;
   }
   const diff = path.join(diffDir, name);
@@ -125,5 +135,5 @@ if (pixelFailed) {
   console.error(`\n❌ ${pixelFailed} pixel-diff target(s) exceeded threshold (see ${diffDir}/).`);
 }
 if (issues.length || pixelFailed) process.exit(1);
-console.log(`\n✅ Burgas visual regression passed.`);
+console.log(`\n✅ Burgas visual regression passed.${updateSafe && guardsPassed ? " Baselines refreshed." : ""}`);
 process.exit(0);
