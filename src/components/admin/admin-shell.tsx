@@ -133,16 +133,17 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
 
         {/* Profile */}
         <div className="border-b border-amber-600/25 px-4 py-3">
-          <div className="flex items-center gap-3 rounded-xl border border-amber-600/20 bg-white/55 px-3 py-2.5 backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-xl border border-amber-400/25 bg-white/5 px-3 py-2.5 backdrop-blur-sm">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
               {(user?.email ?? "U").slice(0, 1).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-primary">Профил</div>
-              <div className="text-[11px] text-amber-800/80">Админ</div>
+              <div className="truncate text-sm font-semibold text-amber-100">Профил</div>
+              <div className="text-[11px] text-amber-300/80">Админ</div>
             </div>
           </div>
         </div>
+
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-2 py-3">
