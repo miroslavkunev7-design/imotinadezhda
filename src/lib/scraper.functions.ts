@@ -130,6 +130,7 @@ async function searchAndBuild(
   try {
     const res: any = await client.search(query, {
       limit,
+      tbs: "qdr:d", // Google: само резултати от последните 24 часа
       scrapeOptions: { formats: ["markdown", "html"] },
     });
     const items = res?.web ?? res?.data ?? [];
