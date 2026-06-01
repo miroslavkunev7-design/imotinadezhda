@@ -1,31 +1,109 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ScanLine, Trash2, FileDown, Plus, Loader2 } from "lucide-react";
+import { ScanLine, Trash2, FileDown, Plus, Loader2, Camera, ImageIcon, X, Aperture, RotateCcw } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import jscanify from "jscanify";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 type Page = { id: string; src: string; w: number; h: number; name: string };
+
+// OpenCV.js loader (jscanify dependency)
+let cvLoadingPromise: Promise<any> | null = null;
+function loadOpenCv(): Promise<any> {
+  if (typeof window === "undefined") return Promise.reject(new Error("no window"));
+  const w = window as any;
+  if (w.cv && w.cv.Mat) return Promise.resolve(w.cv);
+  if (cvLoadingPromise) return cvLoadingPromise;
+  cvLoadingPromise = new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-opencv]') as HTMLScriptElement | null;
+    const ready = () => {
+      const tryReady = () => {
+        const cv = (window as any).cv;
+        if (cv && cv.Mat) resolve(cv);
+        else if (cv && typeof cv.then === "function") cv.then((c: any) => resolve(c));
+        else if (cv && cv["onRuntimeInitialized"] !== undefined) {
+          cv["onRuntimeInitialized"] = () => resolve(cv);
+        } else setTimeout(tryReady, 50);
+      };
+      tryReady();
+    };
+    if (existing) {
+      ready();
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = "https://docs.opencv.org/4.10.0/opencv.js";
+    s.async = true;
+    s.dataset.opencv = "1";
+    s.onload = ready;
+    s.onerror = () => reject(new Error("OpenCV.js не успя да се зареди"));
+    document.head.appendChild(s);
+  });
+  return cvLoadingPromise;
+}
 
 export function DocScanner() {
   const [pages, setPages] = useState<Page[]>([]);
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("Сканиран документ");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddClick = () => setPickerOpen(true);
+
+  const openFilePicker = () => {
+    setPickerOpen(false);
+    setTimeout(() => fileInputRef.current?.click(), 50);
+  };
+
+  const openCamera = () => {
+    setPickerOpen(false);
+    setCameraOpen(true);
+  };
+
+  const addProcessed = (src: string, w: number, h: number, label: string) => {
+    setPages((p) => [...p, { id: crypto.randomUUID(), src, w, h, name: label }]);
+  };
 
   const addFiles = async (files: FileList | null) => {
     if (!files?.length) return;
     setBusy(true);
     try {
-      const next: Page[] = [];
+      const cv = await loadOpenCv().catch(() => null);
+      const scanner = cv ? new (jscanify as any)() : null;
       for (const f of Array.from(files)) {
         if (!f.type.startsWith("image/")) {
           toast.error(`${f.name}: само снимки`);
           continue;
         }
         const dataUrl = await fileToDataUrl(f);
-        const dims = await imageDims(dataUrl);
-        next.push({ id: crypto.randomUUID(), src: dataUrl, w: dims.w, h: dims.h, name: f.name });
+        const img = await loadImage(dataUrl);
+        let outUrl = dataUrl;
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+        if (scanner) {
+          try {
+            const result = scanner.extractPaper(img, img.naturalWidth, img.naturalHeight) as HTMLCanvasElement;
+            outUrl = result.toDataURL("image/jpeg", 0.92);
+            w = result.width;
+            h = result.height;
+          } catch {
+            /* fallback to original */
+          }
+        }
+        addProcessed(outUrl, w, h, f.name);
       }
-      setPages((p) => [...p, ...next]);
+      toast.success("Документът е обработен");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при обработка");
     } finally {
       setBusy(false);
     }
@@ -60,7 +138,7 @@ export function DocScanner() {
           </div>
           <div>
             <div className="font-display text-lg">Скенер на документи</div>
-            <div className="text-[11px] text-amber-100/60">Качи снимки → генерирай PDF</div>
+            <div className="text-[11px] text-amber-100/60">Камера или файл → авто изправяне → PDF</div>
           </div>
         </div>
         <input
@@ -86,21 +164,25 @@ export function DocScanner() {
             </button>
           </div>
         ))}
-        <label className="flex h-40 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 text-amber-100/70 hover:bg-amber-500/10">
+        <button
+          type="button"
+          onClick={handleAddClick}
+          className="flex h-40 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 text-amber-100/70 hover:bg-amber-500/10"
+        >
           {busy ? <Loader2 className="h-6 w-6 animate-spin" /> : <Plus className="h-6 w-6" />}
-          <span className="text-xs">{busy ? "Зарежда…" : "Добави снимки"}</span>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              addFiles(e.target.files);
-              e.target.value = "";
-            }}
-          />
-        </label>
+          <span className="text-xs">{busy ? "Обработва…" : "Добави страница"}</span>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            addFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-100/60">
@@ -116,6 +198,207 @@ export function DocScanner() {
           </Button>
         </div>
       </div>
+
+      {/* Source picker */}
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent className="border-amber-500/30 bg-[rgba(15,3,6,0.97)] text-amber-100">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl">Как да добавим страница?</DialogTitle>
+            <DialogDescription className="text-amber-100/60">
+              Снимай в реално време с камерата или избери файл от устройството.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              onClick={openCamera}
+              className="group flex flex-col items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-6 transition hover:bg-amber-500/20"
+            >
+              <Camera className="h-10 w-10 text-amber-300 transition group-hover:scale-110" />
+              <span className="font-display text-lg">Камера</span>
+              <span className="text-[11px] text-amber-100/60 text-center">
+                Авто откриване на ръбове и изправяне на перспективата
+              </span>
+            </button>
+            <button
+              onClick={openFilePicker}
+              className="group flex flex-col items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-6 transition hover:bg-amber-500/20"
+            >
+              <ImageIcon className="h-10 w-10 text-amber-300 transition group-hover:scale-110" />
+              <span className="font-display text-lg">Файл / Снимка</span>
+              <span className="text-[11px] text-amber-100/60 text-center">
+                От галерия, лаптоп или телефон. Авто кадриране.
+              </span>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {cameraOpen && (
+        <CameraCapture
+          onClose={() => setCameraOpen(false)}
+          onCapture={(src, w, h) => {
+            addProcessed(src, w, h, `Снимка ${pages.length + 1}.jpg`);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function CameraCapture({
+  onClose,
+  onCapture,
+}: {
+  onClose: () => void;
+  onCapture: (src: string, w: number, h: number) => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const overlayRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const scannerRef = useRef<any>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [shooting, setShooting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false,
+        });
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play().catch(() => {});
+        }
+        await loadOpenCv();
+        scannerRef.current = new (jscanify as any)();
+        setStatus("ready");
+        startDetectionLoop();
+      } catch (e: any) {
+        setErrorMsg(e?.message ?? "Няма достъп до камера");
+        setStatus("error");
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const startDetectionLoop = () => {
+    const tick = () => {
+      const video = videoRef.current;
+      const canvas = overlayRef.current;
+      const scanner = scannerRef.current;
+      if (video && canvas && scanner && video.readyState >= 2) {
+        const vw = video.videoWidth;
+        const vh = video.videoHeight;
+        if (vw && vh) {
+          if (canvas.width !== vw || canvas.height !== vh) {
+            canvas.width = vw;
+            canvas.height = vh;
+          }
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.clearRect(0, 0, vw, vh);
+            ctx.drawImage(video, 0, 0, vw, vh);
+            try {
+              const highlighted = scanner.highlightPaper(canvas) as HTMLCanvasElement;
+              ctx.clearRect(0, 0, vw, vh);
+              ctx.drawImage(highlighted, 0, 0);
+            } catch {
+              /* ignore frame errors */
+            }
+          }
+        }
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+  };
+
+  const capture = async () => {
+    const video = videoRef.current;
+    const scanner = scannerRef.current;
+    if (!video || !scanner) return;
+    setShooting(true);
+    try {
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      const tmp = document.createElement("canvas");
+      tmp.width = vw;
+      tmp.height = vh;
+      tmp.getContext("2d")!.drawImage(video, 0, 0, vw, vh);
+      let outCanvas: HTMLCanvasElement;
+      try {
+        outCanvas = scanner.extractPaper(tmp, vw, vh) as HTMLCanvasElement;
+      } catch {
+        outCanvas = tmp;
+      }
+      const dataUrl = outCanvas.toDataURL("image/jpeg", 0.92);
+      onCapture(dataUrl, outCanvas.width, outCanvas.height);
+      toast.success("Страницата е добавена");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при заснемане");
+    } finally {
+      setShooting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black">
+      <div className="flex items-center justify-between p-3 text-amber-100">
+        <div className="text-sm font-semibold">Сканиране на документ</div>
+        <button onClick={onClose} className="rounded-full bg-white/10 p-2 hover:bg-white/20">
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+      <div className="relative flex-1 overflow-hidden">
+        <video ref={videoRef} playsInline muted className="absolute inset-0 h-full w-full object-contain opacity-0" />
+        <canvas ref={overlayRef} className="absolute inset-0 h-full w-full object-contain" />
+        {status === "loading" && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-amber-100">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="text-sm">Зарежда камера и AI разпознаване…</span>
+          </div>
+        )}
+        {status === "error" && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-amber-100">
+            <Camera className="h-10 w-10 text-rose-400" />
+            <div className="font-display text-lg">Няма достъп до камера</div>
+            <div className="text-xs text-amber-100/70 max-w-sm">{errorMsg}</div>
+            <Button onClick={onClose} variant="outline" className="border-amber-500/30 text-amber-100">
+              <RotateCcw className="h-4 w-4" /> Затвори
+            </Button>
+          </div>
+        )}
+        {status === "ready" && (
+          <div className="pointer-events-none absolute inset-x-0 top-4 mx-auto w-fit rounded-full bg-black/60 px-3 py-1 text-[11px] text-amber-100">
+            Центрирай документа — рамката се закача автоматично
+          </div>
+        )}
+      </div>
+      {status === "ready" && (
+        <div className="flex items-center justify-center gap-6 bg-black/80 p-5">
+          <button
+            onClick={capture}
+            disabled={shooting}
+            className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-amber-300 bg-amber-500/20 text-amber-100 transition hover:scale-105 disabled:opacity-50"
+          >
+            {shooting ? <Loader2 className="h-8 w-8 animate-spin" /> : <Aperture className="h-9 w-9" />}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -129,10 +412,11 @@ function fileToDataUrl(f: File): Promise<string> {
   });
 }
 
-function imageDims(src: string): Promise<{ w: number; h: number }> {
+function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((res, rej) => {
     const img = new Image();
-    img.onload = () => res({ w: img.naturalWidth, h: img.naturalHeight });
+    img.crossOrigin = "anonymous";
+    img.onload = () => res(img);
     img.onerror = rej;
     img.src = src;
   });
