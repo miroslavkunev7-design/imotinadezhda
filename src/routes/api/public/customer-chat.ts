@@ -30,7 +30,7 @@ const TOOLS = [
         type: "object",
         properties: {
           city: { type: "string", description: "Име на град (Бургас, София, Шумен, Варна, ...)" },
-          quarter: { type: "string", description: "Име на квартал (напр. „Боян Българанов", „Меден рудник")" },
+          quarter: { type: "string", description: "Име на квартал, напр. Боян Българанов, Меден рудник" },
           max_price: { type: "number", description: "Горна граница на цената в EUR" },
           min_price: { type: "number", description: "Долна граница на цената в EUR" },
           rooms: { type: "number", description: "Брой стаи" },
