@@ -252,11 +252,13 @@ export function DocScanner() {
 }
 
 function CameraCapture({
+  startCount,
   onClose,
   onCapture,
 }: {
+  startCount: number;
   onClose: () => void;
-  onCapture: (src: string, w: number, h: number) => void;
+  onCapture: (src: string, w: number, h: number, index: number) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -266,6 +268,8 @@ function CameraCapture({
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [shooting, setShooting] = useState(false);
+  const [shots, setShots] = useState(0);
+  const [lastShot, setLastShot] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
