@@ -800,10 +800,12 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
 function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: string; label: string }) {
   return (
-    <div className="border-l border-primary/25 pl-5 first:border-l-0 first:pl-0">
-      <Icon className="mb-4 h-10 w-10 text-primary" />
-      <div className="font-display text-[2rem] text-primary-foreground">{value}</div>
-      <div className="mt-2 text-lg text-primary-foreground/82">{label}</div>
+    <div className="flex flex-col items-start gap-1.5">
+      <div className="flex h-9 w-9 items-center justify-center rounded-md border border-[#c9a24a]/40 text-[#c9a24a]">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="mt-1 font-display text-[1.15rem] leading-tight text-[#e8c477]">{value}</div>
+      <div className="text-[12px] leading-tight text-primary-foreground/75">{label}</div>
     </div>
   );
 }
