@@ -132,7 +132,31 @@ function AuditPage() {
         <h1 className="font-display text-2xl text-amber-100">
           Одит лог — достъп до /login и /admin
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => {
+              setLive((v) => !v);
+              setNewCount(0);
+            }}
+            className={`flex items-center gap-2 rounded border px-3 py-1.5 text-xs transition ${
+              live
+                ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-200"
+                : "border-amber-100/20 bg-[#1a0608] text-amber-100/70"
+            }`}
+            title={live ? "Изключи live обновяване" : "Включи live обновяване"}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                live ? "animate-pulse bg-emerald-400" : "bg-amber-100/30"
+              }`}
+            />
+            {live ? "На живо" : "Пауза"}
+            {live && newCount > 0 && (
+              <span className="ml-1 rounded-full bg-emerald-400/30 px-1.5 text-[10px] font-semibold text-emerald-100">
+                +{newCount}
+              </span>
+            )}
+          </button>
           {hasFilters && (
             <button
               onClick={() => {
