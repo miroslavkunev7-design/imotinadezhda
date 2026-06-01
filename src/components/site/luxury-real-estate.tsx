@@ -848,7 +848,7 @@ function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Arr
             to="/cities/$slug/districts/$district"
             params={{ slug: citySlug, district: q.slug }}
             data-quarter-card
-            className="block w-[260px] flex-none snap-start md:w-[300px]"
+            className="block w-[170px] flex-none snap-start md:w-[185px]"
           >
             <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={q.image_url || fallbackImage} />
           </Link>
