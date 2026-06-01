@@ -106,6 +106,69 @@ export type Database = {
           },
         ]
       }
+      broker_tasks: {
+        Row: {
+          auto_action_log: Json | null
+          broker_id: string
+          client_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          is_completed: boolean
+          task_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          auto_action_log?: Json | null
+          broker_id: string
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          is_completed?: boolean
+          task_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          auto_action_log?: Json | null
+          broker_id?: string
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          is_completed?: boolean
+          task_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broker_tasks_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "broker_tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brokers: {
         Row: {
           bio: string | null
@@ -320,7 +383,29 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_assigned_broker_id_fkey"
+            columns: ["assigned_broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_search_city_id_fkey"
+            columns: ["search_city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_search_quarter_id_fkey"
+            columns: ["search_quarter_id"]
+            isOneToOne: false
+            referencedRelation: "quarters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contract_templates: {
         Row: {
@@ -357,6 +442,8 @@ export type Database = {
       }
       extracted_listings: {
         Row: {
+          agency_logo_detected: boolean
+          agency_logo_reason: string | null
           area_sqm: number | null
           bedrooms: number | null
           city_id: string | null
@@ -384,6 +471,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agency_logo_detected?: boolean
+          agency_logo_reason?: string | null
           area_sqm?: number | null
           bedrooms?: number | null
           city_id?: string | null
@@ -411,6 +500,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agency_logo_detected?: boolean
+          agency_logo_reason?: string | null
           area_sqm?: number | null
           bedrooms?: number | null
           city_id?: string | null
@@ -595,6 +686,7 @@ export type Database = {
       owners: {
         Row: {
           address: string | null
+          city_id: string | null
           created_at: string
           created_by: string | null
           email: string | null
@@ -607,6 +699,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          city_id?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -619,6 +712,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          city_id?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -629,7 +723,15 @@ export type Database = {
           phone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "owners_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
