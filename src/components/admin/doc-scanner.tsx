@@ -356,8 +356,11 @@ function CameraCapture({
         outCanvas = tmp;
       }
       const dataUrl = outCanvas.toDataURL("image/jpeg", 0.92);
-      onCapture(dataUrl, outCanvas.width, outCanvas.height);
-      toast.success("Страницата е добавена");
+      const nextIndex = startCount + shots + 1;
+      onCapture(dataUrl, outCanvas.width, outCanvas.height, nextIndex);
+      setShots((s) => s + 1);
+      setLastShot(dataUrl);
+      toast.success(`Страница ${nextIndex} добавена`);
     } catch (e: any) {
       toast.error(e?.message ?? "Грешка при заснемане");
     } finally {
