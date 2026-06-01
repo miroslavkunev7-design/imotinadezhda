@@ -492,6 +492,40 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
             );
           })}
         </ul>
+
+        <div className="mt-5 space-y-2 border-t border-border pt-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Действия</div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <button
+              onClick={() => mergeAndUpload()}
+              disabled={merging}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-background px-3 py-2.5 text-xs font-semibold hover:bg-muted disabled:opacity-50"
+            >
+              {merging ? <Loader2 className="h-4 w-4 animate-spin" /> : <Layers className="h-4 w-4" />}
+              Обедини PDF файлове
+            </button>
+            {MORTGAGE_PARTNERS.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => sendToPartner(p)}
+                disabled={merging || !p.email}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-[#7a0d22] px-3 py-2.5 text-xs font-semibold text-amber-100 hover:opacity-90 disabled:opacity-50"
+                title={p.email || "Имейлът ще бъде добавен"}
+              >
+                <Mail className="h-4 w-4" />
+                Изпрати на {p.name}
+              </button>
+            ))}
+          </div>
+          {mergedUrl && (
+            <a href={mergedUrl} target="_blank" rel="noreferrer" className="block truncate text-[11px] text-primary hover:underline">
+              ✓ Обединен PDF — отвори
+            </a>
+          )}
+          <p className="text-[11px] text-muted-foreground">
+            * „Обедини" слива всички PDF документи в един файл и го качва защитено. Бутоните за изпращане отварят имейл клиента с линк към обединения PDF.
+          </p>
+        </div>
       </div>
     </div>
   );
