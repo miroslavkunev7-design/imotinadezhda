@@ -64,6 +64,25 @@ export const upsertClient = createServerFn({ method: "POST" })
     return row;
   });
 
+export const updateClientDeal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z.object({
+      id: z.string().uuid(),
+      deal_stage: z.string().max(40).nullable().optional(),
+      deal_started_at: z.string().datetime().nullable().optional(),
+      mortgage_data: z.record(z.string(), z.any()).optional(),
+    }).parse(d)
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { id, ...payload } = data;
+    const { data: row, error } = await supabaseAdmin
+      .from("clients").update(payload).eq("id", id).select().single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
 export const deleteClient = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
