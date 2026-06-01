@@ -411,7 +411,7 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
       const out = await merged.save();
       const path = `${property.id}/merged-${Date.now()}.pdf`;
       const { error: upErr } = await supabase.storage.from("property-documents")
-        .upload(path, new Blob([out], { type: "application/pdf" }), { contentType: "application/pdf", upsert: true });
+        .upload(path, new Blob([out as BlobPart], { type: "application/pdf" }), { contentType: "application/pdf", upsert: true });
       if (upErr) throw new Error(upErr.message);
       const { data: signed } = await supabase.storage.from("property-documents").createSignedUrl(path, 60 * 60 * 24 * 30);
       const url = signed?.signedUrl ?? "";
