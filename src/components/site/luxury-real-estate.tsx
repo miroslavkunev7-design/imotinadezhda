@@ -786,15 +786,17 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               <Link
                 to="/cities/$slug"
                 params={{ slug: city.slug }}
-                className="inline-flex flex-none items-center justify-between gap-2 rounded-[12px] px-3 py-2 font-display text-[11.5px] text-primary-foreground shadow-[0_14px_30px_-8px_rgba(77,8,20,0.6)] transition hover:brightness-110 md:gap-3 md:rounded-[14px] md:px-5 md:py-3 md:text-[14px]"
+                className="group inline-flex w-full flex-none items-center justify-between gap-3 rounded-[12px] px-4 py-3 font-display text-[12px] text-primary-foreground transition hover:brightness-110 md:rounded-[14px] md:px-5 md:py-5 md:text-[15px]"
                 style={{
                   background: "linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
                   border: "1px solid rgba(232,196,119,0.55)",
                   boxShadow: "0 14px 30px -8px rgba(77,8,20,0.55), inset 0 0 0 1px rgba(232,196,119,0.18)",
                 }}
               >
-                <span className="leading-tight">Всички<br />квартали</span>
-                <ChevronRight className="h-4 w-4 text-[#e8c477] md:h-5 md:w-5" />
+                <span className="leading-tight">Виж всички<br />квартали</span>
+                <span className="inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border border-[#e8c477]/60 text-[#e8c477] transition group-hover:bg-[#e8c477]/15 md:h-8 md:w-8">
+                  <ChevronRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                </span>
               </Link>
             </div>
             <QuartersScroller quarters={quarters} citySlug={city.slug} fallbackImage={burgasHero} />
