@@ -611,6 +611,7 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
         }}
       >
         <LuxuryHeader active="sale" />
+        <h1 className="sr-only">Луксозни имоти и престижни квартали в България</h1>
 
         <div className="relative z-20 mx-auto mt-auto w-full max-w-[1440px] px-2 pt-10 md:px-6">
           <SearchBar cities={cityOpts} />
