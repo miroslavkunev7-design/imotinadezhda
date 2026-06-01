@@ -345,6 +345,7 @@ function MarblePropertyCard({
             }
           }}
         />
+        <GoldDustLayer />
       </div>
       <div className="relative px-3 pb-3 pt-1">
         <div className="font-display text-[1rem] leading-tight text-[#2a050b] md:text-[1.1rem]">{title}</div>
@@ -929,47 +930,9 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
 
   return (
     <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}>
-      {/* Compact split header: marble logo badge left + small burgundy nav strip top-right */}
-      <header className="relative">
-        <div className="relative h-[90px] md:h-[110px]">
-          {/* Marble logo badge with gold curve */}
-          <Link to="/" className="absolute left-6 top-3 z-20 md:left-10 md:top-4">
-            <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-14 w-auto object-contain md:h-[72px]" />
-          </Link>
-          <svg aria-hidden className="absolute left-0 top-0 z-10 h-full w-[55%]" viewBox="0 0 800 110" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="goldEdge2" x1="0" x2="1">
-                <stop offset="0%" stopColor="#b8893a" stopOpacity="0" />
-                <stop offset="35%" stopColor="#e8c477" />
-                <stop offset="65%" stopColor="#f6dc8e" />
-                <stop offset="100%" stopColor="#b8893a" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <path d="M800,50 Q500,80 250,98 Q120,108 0,110" fill="none" stroke="url(#goldEdge2)" strokeWidth="2.5" />
-            <path d="M800,62 Q500,92 250,108 Q120,118 0,120" fill="none" stroke="url(#goldEdge2)" strokeWidth="1" opacity="0.5" />
-          </svg>
-          {/* Burgundy nav strip on the right */}
-          <div
-            className="absolute right-0 top-0 z-10 flex h-full items-center gap-7 rounded-bl-[60px] px-8 text-[15px] text-primary-foreground md:gap-10 md:px-12"
-            style={{
-              background: "linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
-              clipPath: "polygon(8% 0, 100% 0, 100% 100%, 0 100%)",
-              width: "55%",
-            }}
-          >
-            <div className="ml-auto flex items-center gap-7 md:gap-10">
-              {topNav.map((item) => (
-                <Link key={item.key} to={item.to} search={item.search as any} className="font-medium text-white drop-shadow-sm hover:text-[#e8c477]">
-                  {item.label}
-                </Link>
-              ))}
-              <button aria-label="Профил" className="text-white drop-shadow-sm hover:text-[#e8c477]">
-                <User className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <LuxuryHeader active="sale" />
+
+
 
       <section className="relative px-3 pb-12 md:px-6 md:pb-16">
         <div className="mx-auto mt-4 grid max-w-[1460px] gap-6 px-2 md:px-4 xl:grid-cols-[270px_1fr_360px] xl:items-start">
