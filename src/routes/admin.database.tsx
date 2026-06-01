@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listArchive, deleteArchive } from "@/lib/archive.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminShell } from "@/components/admin/admin-shell";
+
 import { Database, Trash2, Search, ExternalLink, FolderTree, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadPropertyZip, downloadBulkZip } from "@/lib/download-archive";
@@ -99,8 +99,7 @@ function DatabasePage() {
   const filteredQuarters = quarters.filter((q) => !cityId || q.city_id === cityId);
 
   return (
-    <AdminShell breadcrumb="База данни">
-      <div className="space-y-6">
+    <div className="space-y-6">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-[10px] uppercase tracking-widest text-amber-200">
@@ -249,7 +248,7 @@ function DatabasePage() {
         <p className="text-xs text-amber-100/50">
           💡 Бутонът „Изтегли" пакетира имота (info.txt, property.json и всички снимки) в ZIP. На съвременни браузъри (Chrome/Edge) ще те попитаме къде да го запазиш; иначе отива в папка „Downloads".
         </p>
-      </div>
-    </AdminShell>
+    </div>
+
   );
 }
