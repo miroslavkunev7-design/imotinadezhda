@@ -67,7 +67,7 @@ function LoginPage() {
 
   return (
     <main
-      className="relative flex min-h-screen items-center justify-center px-4 py-12"
+      className="relative flex min-h-screen flex-col"
       style={{
         backgroundImage: `url(${loginHero})`,
         backgroundSize: "cover",
@@ -75,8 +75,11 @@ function LoginPage() {
         backgroundRepeat: "no-repeat",
       }}
     >
+      <SiteHeader />
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
+      <div className="relative z-10 flex flex-1 items-center justify-center px-4 py-12">
       <div className="relative w-full max-w-md rounded-2xl border border-amber-300/40 bg-[rgba(255,251,243,0.92)] p-8 shadow-2xl ring-1 ring-amber-300/30">
+
 
         <div className="mb-6 text-center">
           <Link to="/" className="font-display text-2xl text-primary">ИЛДЖ.ИА</Link>
