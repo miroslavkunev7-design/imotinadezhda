@@ -821,19 +821,16 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
     <button
       type="button"
       onClick={handleSearch}
-      className="group flex flex-1 items-center gap-3 px-4 py-2 text-left transition hover:bg-white/[0.03] md:px-5"
+      className="group flex flex-1 items-center gap-3 px-4 py-3.5 text-left transition hover:bg-white/[0.03] md:px-5"
     >
       <Icon className="h-[18px] w-[18px] flex-none text-[#c9a24a]" />
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#c9a24a]/90">{label}</div>
-        <div className="truncate text-[14px] text-primary-foreground/95">{value}</div>
+        <div className="truncate text-[13.5px] leading-snug text-primary-foreground/95">{value}</div>
       </div>
-      <ChevronDown className="ml-auto h-4 w-4 text-[#c9a24a]/70" />
+      <ChevronDown className="ml-auto h-4 w-4 flex-none text-[#c9a24a]/70" />
     </button>
   );
-  return (
-    <div
-      className="relative flex items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] md:rounded-[22px]"
       style={{
         background: "radial-gradient(ellipse at 20% 0%, rgba(95,18,32,0.45), transparent 60%), linear-gradient(135deg, #350810 0%, #180307 100%)",
         border: "1px solid rgba(232,196,119,0.45)",
