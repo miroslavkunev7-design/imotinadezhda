@@ -248,7 +248,7 @@ function DatabasePage() {
         <p className="text-xs text-amber-100/50">
           💡 Бутонът „Изтегли" пакетира имота (info.txt, property.json и всички снимки) в ZIP. На съвременни браузъри (Chrome/Edge) ще те попитаме къде да го запазиш; иначе отива в папка „Downloads".
         </p>
-      </div>
-    </AdminShell>
+    </div>
+
   );
 }
