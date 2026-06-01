@@ -220,6 +220,15 @@ function DatabasePage() {
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => onDownload(r)}
+                          disabled={downloadingId === r.id}
+                          className="inline-flex items-center gap-1 rounded bg-amber-500/15 px-2 py-1.5 text-[11px] font-semibold text-amber-900 hover:bg-amber-500/30 disabled:opacity-50"
+                          title="Изтегли ZIP (избери папка)"
+                        >
+                          {downloadingId === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                          Изтегли
+                        </button>
                         {r.source_url && (
                           <a href={r.source_url} target="_blank" rel="noreferrer" className="rounded p-1.5 text-primary/60 hover:bg-primary/10" title="Оригинал">
                             <ExternalLink className="h-3.5 w-3.5" />
