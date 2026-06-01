@@ -106,6 +106,111 @@ export type Database = {
           },
         ]
       }
+      archived_properties: {
+        Row: {
+          address: string | null
+          archived_at: string
+          archived_by: string | null
+          archived_year: number
+          area_sqm: number | null
+          bedrooms: number | null
+          city_id: string | null
+          contact_name: string | null
+          currency: string | null
+          description: string | null
+          drive_folder_id: string | null
+          drive_folder_path: string | null
+          drive_sync_status: string
+          floor: number | null
+          id: string
+          images: Json
+          notes: string | null
+          phone: string | null
+          price: number | null
+          property_type: string | null
+          quarter_id: string | null
+          raw_data: Json | null
+          rooms: number | null
+          seller_type: string | null
+          source: string | null
+          source_extracted_id: string | null
+          source_url: string | null
+          status: string | null
+          title: string
+          total_floors: number | null
+          updated_at: string
+          year_built: number | null
+        }
+        Insert: {
+          address?: string | null
+          archived_at?: string
+          archived_by?: string | null
+          archived_year?: number
+          area_sqm?: number | null
+          bedrooms?: number | null
+          city_id?: string | null
+          contact_name?: string | null
+          currency?: string | null
+          description?: string | null
+          drive_folder_id?: string | null
+          drive_folder_path?: string | null
+          drive_sync_status?: string
+          floor?: number | null
+          id?: string
+          images?: Json
+          notes?: string | null
+          phone?: string | null
+          price?: number | null
+          property_type?: string | null
+          quarter_id?: string | null
+          raw_data?: Json | null
+          rooms?: number | null
+          seller_type?: string | null
+          source?: string | null
+          source_extracted_id?: string | null
+          source_url?: string | null
+          status?: string | null
+          title: string
+          total_floors?: number | null
+          updated_at?: string
+          year_built?: number | null
+        }
+        Update: {
+          address?: string | null
+          archived_at?: string
+          archived_by?: string | null
+          archived_year?: number
+          area_sqm?: number | null
+          bedrooms?: number | null
+          city_id?: string | null
+          contact_name?: string | null
+          currency?: string | null
+          description?: string | null
+          drive_folder_id?: string | null
+          drive_folder_path?: string | null
+          drive_sync_status?: string
+          floor?: number | null
+          id?: string
+          images?: Json
+          notes?: string | null
+          phone?: string | null
+          price?: number | null
+          property_type?: string | null
+          quarter_id?: string | null
+          raw_data?: Json | null
+          rooms?: number | null
+          seller_type?: string | null
+          source?: string | null
+          source_extracted_id?: string | null
+          source_url?: string | null
+          status?: string | null
+          title?: string
+          total_floors?: number | null
+          updated_at?: string
+          year_built?: number | null
+        }
+        Relationships: []
+      }
       broker_tasks: {
         Row: {
           auto_action_log: Json | null
