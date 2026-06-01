@@ -345,6 +345,7 @@ function MarblePropertyCard({
             }
           }}
         />
+        <GoldDustLayer />
       </div>
       <div className="relative px-3 pb-3 pt-1">
         <div className="font-display text-[1rem] leading-tight text-[#2a050b] md:text-[1.1rem]">{title}</div>
