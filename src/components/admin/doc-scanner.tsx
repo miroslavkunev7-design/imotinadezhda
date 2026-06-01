@@ -407,14 +407,25 @@ function CameraCapture({
             )}
           </div>
         )}
+      </div>
       {status === "ready" && (
-        <div className="flex items-center justify-center gap-6 bg-black/80 p-5">
+        <div className="flex items-center justify-between gap-4 bg-black/85 px-4 py-4">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-amber-500/30 bg-black/40 text-[10px] text-amber-100/60">
+            {lastShot ? <img src={lastShot} alt="Последна" className="h-full w-full object-cover" /> : "—"}
+          </div>
           <button
             onClick={capture}
             disabled={shooting}
             className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-amber-300 bg-amber-500/20 text-amber-100 transition hover:scale-105 disabled:opacity-50"
           >
             {shooting ? <Loader2 className="h-8 w-8 animate-spin" /> : <Aperture className="h-9 w-9" />}
+          </button>
+          <button
+            onClick={onClose}
+            className="flex h-16 min-w-16 shrink-0 flex-col items-center justify-center rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 text-amber-100 hover:bg-amber-500/20"
+          >
+            <span className="text-xs font-semibold">Готово</span>
+            <span className="text-[10px] text-amber-200/70">{shots} стр.</span>
           </button>
         </div>
       )}
