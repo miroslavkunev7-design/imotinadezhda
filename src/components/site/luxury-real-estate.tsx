@@ -1,4 +1,4 @@
-import { useState as useReactState, useRef } from "react";
+import { useEffect, useState as useReactState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import {
@@ -27,7 +27,6 @@ import {
 
 import burgasHero from "@/assets/burgas-hero.jpeg";
 import burgasPier from "@/assets/burgas-pier.jpeg";
-import burgundyTerrace from "@/assets/burgundy-terrace-hero.jpeg";
 import homeHero from "@/assets/home-hero-living.jpeg";
 import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
@@ -35,10 +34,11 @@ import cityVarna from "@/assets/city-varna.jpeg";
 import cityNoviPazar from "@/assets/city-novi-pazar.jpeg";
 import marbleBg from "@/assets/marble-bg.png";
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
-import headerPanel from "@/assets/site-header-panel.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MortgageRangeBand } from "@/components/site/mortgage-range-band";
+import { SiteHeader, type SiteNavKey } from "@/components/site/site-header";
+import { GoldDustLayer } from "@/components/site/gold-dust-card";
 
 // Route external images through a CDN proxy to bypass cross-origin resource policy blocks.
 function proxyImage(url?: string | null): string {
