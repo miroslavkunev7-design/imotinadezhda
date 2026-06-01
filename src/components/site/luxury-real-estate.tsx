@@ -657,70 +657,86 @@ export function CityPage({ data }: { data?: CityData } = {}) {
   const heroImage = city.hero_image_url || (city.slug === "burgas" ? burgasPier : burgasHero);
 
   return (
-    <main className="luxury-page min-h-screen bg-[#1a0509] text-primary-foreground">
-      {/* Hero card: marble+image left, burgundy right with nav + city info */}
-      <section className="relative px-3 pt-3 md:px-6 md:pt-5">
-        <div className="relative mx-auto max-w-[1450px]">
-          <div className="relative overflow-hidden rounded-[28px] shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
-            <div className="grid md:grid-cols-[1.05fr_0.95fr]">
-              {/* LEFT: marble corner with logo + hero image */}
-              <div className="relative min-h-[420px] md:min-h-[560px]">
-                <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" />
-                {/* Marble corner badge with logo + gold curved trim */}
+    <main className="luxury-page min-h-screen bg-[#150409] text-primary-foreground">
+      {/* Hero card */}
+      <section className="relative px-4 pt-4 md:px-8 md:pt-6">
+        <div className="relative mx-auto max-w-[1480px]">
+          {/* Outer gold glow */}
+          <div
+            aria-hidden
+            className="absolute -inset-[2px] rounded-[30px] opacity-90"
+            style={{
+              background: "linear-gradient(135deg, rgba(232,196,119,0.55), rgba(184,137,58,0.15) 40%, rgba(232,196,119,0.55))",
+              filter: "blur(0.5px)",
+            }}
+          />
+          <div className="relative overflow-hidden rounded-[28px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(232,196,119,0.35)_inset]">
+            <div className="grid md:grid-cols-[1.02fr_0.98fr]">
+              {/* LEFT: hero image + marble logo corner */}
+              <div className="relative min-h-[460px] md:min-h-[600px]">
+                <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 35%" }} />
+                {/* Subtle warm overlay to blend with burgundy side */}
+                <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(42,5,11,0.55) 100%)" }} />
+                {/* Marble corner badge */}
                 <div
-                  className="absolute left-0 top-0 z-10 h-[180px] w-[330px] md:h-[230px] md:w-[400px]"
+                  className="absolute left-0 top-0 z-10 h-[210px] w-[360px] md:h-[260px] md:w-[440px]"
                   style={{
                     background:
-                      "radial-gradient(ellipse at 20% 0%, #fffaf0 0%, transparent 60%), linear-gradient(160deg, #fbf6ea 0%, #f4e6c4 60%, #ecd9a8 100%)",
-                    clipPath: "path('M0,0 L100%,0 Q100%,55% 65%,72% Q30%,90% 0,100% Z')",
-                    WebkitClipPath: "path('M0,0 L100%,0 Q100%,55% 65%,72% Q30%,90% 0,100% Z')",
+                      "radial-gradient(ellipse at 15% 0%, #fffaf0 0%, transparent 55%), linear-gradient(155deg, #fbf6ea 0%, #f4e6c4 55%, #ecd9a8 100%)",
+                    clipPath: "path('M0,0 L100%,0 Q92%,38% 68%,62% Q38%,86% 0,100% Z')",
+                    WebkitClipPath: "path('M0,0 L100%,0 Q92%,38% 68%,62% Q38%,86% 0,100% Z')",
+                    boxShadow: "inset 0 -2px 12px rgba(184,137,58,0.25)",
                   }}
                 >
-                  <Link to="/" className="absolute left-6 top-6 md:left-10 md:top-8">
-                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-16 w-auto object-contain md:h-20" />
+                  <Link to="/" className="absolute left-7 top-7 md:left-12 md:top-10">
+                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-[72px] w-auto object-contain md:h-[92px]" />
                   </Link>
                 </div>
-                {/* Gold curve trace */}
-                <svg aria-hidden className="absolute left-0 top-0 z-20 h-[230px] w-[400px]" viewBox="0 0 400 230" preserveAspectRatio="none">
+                {/* Gold curve trace — thicker, double line */}
+                <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 h-[260px] w-[440px]" viewBox="0 0 440 260" preserveAspectRatio="none">
                   <defs>
-                    <linearGradient id="goldEdge" x1="0" x2="1">
+                    <linearGradient id="goldEdgeCity" x1="0" x2="1">
                       <stop offset="0%" stopColor="#b8893a" stopOpacity="0" />
-                      <stop offset="40%" stopColor="#e8c477" />
-                      <stop offset="70%" stopColor="#f6dc8e" />
+                      <stop offset="35%" stopColor="#e8c477" />
+                      <stop offset="65%" stopColor="#f8e3a0" />
                       <stop offset="100%" stopColor="#b8893a" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path d="M400,126 Q260,166 120,207 Q60,222 0,230" fill="none" stroke="url(#goldEdge)" strokeWidth="2.5" />
-                  <path d="M400,140 Q255,180 115,219 Q55,232 0,238" fill="none" stroke="url(#goldEdge)" strokeWidth="1" opacity="0.6" />
+                  <path d="M440,98 Q310,158 170,212 Q90,238 0,256" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="3" />
+                  <path d="M440,114 Q305,174 165,228 Q85,254 0,272" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="1.2" opacity="0.65" />
                 </svg>
               </div>
 
-              {/* RIGHT: burgundy panel with nav + city info */}
+              {/* RIGHT: burgundy panel */}
               <div
-                className="relative flex flex-col px-7 py-6 md:px-12 md:py-9"
+                className="relative flex flex-col px-8 py-7 md:px-14 md:py-10"
                 style={{
                   background:
-                    "radial-gradient(circle at 30% 20%, rgba(120,30,45,0.55), transparent 60%), linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
+                    "radial-gradient(ellipse at 25% 15%, rgba(140,35,55,0.6), transparent 60%), linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
                 }}
               >
+                {/* faint marble veins on burgundy */}
+                <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover", mixBlendMode: "screen" }} />
                 {/* Nav row */}
-                <div className="mb-8 flex items-center justify-end gap-7 text-[15px] md:gap-10 md:text-base">
+                <div className="relative mb-10 flex items-center justify-end gap-8 text-[15px] md:gap-12 md:text-[15.5px]">
                   {topNav.map((item) => (
-                    <Link key={item.key} to={item.to} search={item.search as any} className="text-primary-foreground/90 hover:text-[#e8c477]">
+                    <Link key={item.key} to={item.to} search={item.search as any} className="text-primary-foreground/90 transition hover:text-[#e8c477]">
                       {item.label}
                     </Link>
                   ))}
-                  <button aria-label="Профил" className="text-primary-foreground/90 hover:text-[#e8c477]">
+                  <button aria-label="Профил" className="rounded-full border border-[#c9a24a]/30 p-1.5 text-primary-foreground/90 transition hover:border-[#e8c477] hover:text-[#e8c477]">
                     <User className="h-5 w-5" />
                   </button>
                 </div>
-                <p className="font-display text-[13px] uppercase tracking-[0.22em] text-[#c9a24a]">За града</p>
-                <h1 className="mt-2 font-display text-[3.6rem] leading-none text-[#e8c477] md:text-[5rem]">{city.name}</h1>
+                <p className="relative font-display text-[12.5px] uppercase tracking-[0.32em] text-[#c9a24a]">За града</p>
+                <h1 className="relative mt-3 font-display text-[3.8rem] leading-[0.95] text-[#e8c477] md:text-[5.4rem]" style={{ textShadow: "0 2px 24px rgba(232,196,119,0.18)" }}>
+                  {city.name}
+                </h1>
                 {city.description && (
-                  <p className="mt-5 max-w-[460px] text-[15px] leading-[1.7] text-primary-foreground/85 md:text-base">{city.description}</p>
+                  <p className="relative mt-6 max-w-[480px] text-[15px] leading-[1.75] text-primary-foreground/85 md:text-[15.5px]">{city.description}</p>
                 )}
-                <div className="mt-7 h-px w-full bg-gradient-to-r from-transparent via-[#c9a24a]/50 to-transparent" />
-                <div className="mt-6 grid grid-cols-4 gap-3">
+                <div className="relative mt-8 h-px w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(201,162,74,0.6) 50%, transparent)" }} />
+                <div className="relative mt-7 grid grid-cols-4 gap-4">
                   <StatItem icon={User} value={city.population ? `~${new Intl.NumberFormat("bg-BG").format(city.population)}` : "—"} label="жители" />
                   <StatItem icon={Square} value={city.area_km2 ? `${city.area_km2} km²` : "—"} label="площ" />
                   <StatItem icon={MapPin} value={city.region ?? "—"} label="регион" />
@@ -732,41 +748,34 @@ export function CityPage({ data }: { data?: CityData } = {}) {
         </div>
       </section>
 
-      {/* Burgundy search bar floating */}
-      <section className="relative z-20 mx-auto -mt-7 max-w-[1380px] px-3 md:-mt-9 md:px-6">
-        <div
-          className="rounded-[22px] px-3 py-3 shadow-[0_22px_50px_rgba(0,0,0,0.45)] md:px-5 md:py-4"
-          style={{
-            background: "radial-gradient(circle at 20% 0%, rgba(120,30,45,0.6), transparent 60%), linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
-            border: "1px solid rgba(201,162,74,0.25)",
-          }}
-        >
-          <SearchBar />
-        </div>
+      {/* Inline burgundy search bar — gold "Търси" вграден вдясно */}
+      <section className="relative z-20 mx-auto -mt-9 max-w-[1380px] px-4 md:-mt-12 md:px-8">
+        <CitySearchBar citySlug={city.slug} cityName={city.name} />
       </section>
 
-      {/* Marble quarters strip with CTA on left + horizontal scroll */}
-      <section className="relative mx-auto mt-6 max-w-[1450px] px-3 pb-12 md:mt-10 md:px-6 md:pb-16">
+      {/* Marble quarters strip */}
+      <section className="relative mx-auto mt-8 max-w-[1480px] px-4 pb-14 md:mt-12 md:px-8 md:pb-20">
         <div
-          className="overflow-hidden rounded-[28px] p-5 shadow-[0_26px_65px_rgba(0,0,0,0.3)] md:p-7"
+          className="relative overflow-hidden rounded-[28px] p-6 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:p-8"
           style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}
         >
-          <div className="grid gap-5 md:grid-cols-[260px_1fr] md:items-center md:gap-6">
-            <div className="flex flex-col gap-5">
-              <h2 className="font-display text-[1.7rem] leading-tight text-accent-foreground md:text-[2rem]">
+          <div className="grid gap-6 md:grid-cols-[280px_1fr] md:items-center md:gap-8">
+            <div className="flex flex-col gap-6">
+              <h2 className="font-display text-[1.85rem] leading-tight text-[#2a050b] md:text-[2.15rem]">
                 Избери квартал<br />в гр. {city.name}
               </h2>
               <Link
                 to="/cities/$slug"
                 params={{ slug: city.slug }}
-                className="inline-flex items-center justify-between gap-3 rounded-[14px] px-5 py-3.5 font-display text-[15px] text-primary-foreground shadow-[0_10px_24px_rgba(77,8,20,0.4)] transition hover:brightness-110"
+                className="inline-flex items-center justify-between gap-3 rounded-[16px] px-6 py-4 font-display text-[15px] text-primary-foreground shadow-[0_14px_30px_-8px_rgba(77,8,20,0.6)] transition hover:brightness-110"
                 style={{
                   background: "linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
-                  border: "1px solid rgba(201,162,74,0.4)",
+                  border: "1px solid rgba(232,196,119,0.55)",
+                  boxShadow: "0 14px 30px -8px rgba(77,8,20,0.55), inset 0 0 0 1px rgba(232,196,119,0.18)",
                 }}
               >
-                <span>Виж всички<br />квартали</span>
-                <ChevronRight className="h-5 w-5 text-[#c9a24a]" />
+                <span className="leading-tight">Виж всички<br />квартали</span>
+                <ChevronRight className="h-5 w-5 text-[#e8c477]" />
               </Link>
             </div>
             <QuartersScroller quarters={quarters} citySlug={city.slug} fallbackImage={burgasHero} />
@@ -775,9 +784,9 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       </section>
 
       {properties.length > 0 && (
-        <section className="relative mx-auto max-w-[1450px] px-3 pb-16 md:px-6">
+        <section className="relative mx-auto max-w-[1480px] px-4 pb-20 md:px-8">
           <h2 className="mb-6 font-display text-[2.4rem] text-primary-foreground md:text-[3rem]">Активни имоти в {city.name}</h2>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {properties.map((p) => (
               <Link key={p.id} to="/properties/$propertyId" params={{ propertyId: p.id }} className="block">
                 <ListingCard
@@ -798,13 +807,81 @@ export function CityPage({ data }: { data?: CityData } = {}) {
   );
 }
 
+function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: string }) {
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (citySlug) params.set("city_slug", citySlug);
+    if (typeof window !== "undefined") window.location.href = `/search?${params.toString()}`;
+  };
+  const Field = ({ icon: Icon, label, value }: { icon: typeof MapPin; label: string; value: string }) => (
+    <button
+      type="button"
+      onClick={handleSearch}
+      className="group flex flex-1 items-center gap-3 px-4 py-2 text-left transition hover:bg-white/[0.03] md:px-5"
+    >
+      <Icon className="h-[18px] w-[18px] flex-none text-[#c9a24a]" />
+      <div className="min-w-0">
+        <div className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#c9a24a]/90">{label}</div>
+        <div className="truncate text-[14px] text-primary-foreground/95">{value}</div>
+      </div>
+      <ChevronDown className="ml-auto h-4 w-4 text-[#c9a24a]/70" />
+    </button>
+  );
+  return (
+    <div
+      className="relative flex items-stretch overflow-hidden rounded-[22px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)]"
+      style={{
+        background: "radial-gradient(ellipse at 20% 0%, rgba(140,35,55,0.55), transparent 60%), linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
+        border: "1px solid rgba(232,196,119,0.45)",
+        boxShadow: "0 30px 70px -15px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(232,196,119,0.18), inset 0 1px 0 rgba(255,220,150,0.12)",
+      }}
+    >
+      <div className="flex flex-1 flex-wrap items-stretch md:flex-nowrap divide-x divide-[#c9a24a]/20">
+        <Field icon={MapPin} label="Град" value={cityName} />
+        <Field icon={House} label="Вид имот" value="Всички" />
+        <Field icon={LandPlot} label="Цена" value="Без значение" />
+        <Field icon={Ruler} label="Площ" value="Без значение" />
+      </div>
+      <div className="flex items-center gap-2 border-l border-[#c9a24a]/25 px-3 md:px-4">
+        <button
+          type="button"
+          onClick={handleSearch}
+          className="inline-flex items-center gap-2 rounded-[14px] border border-[#c9a24a]/40 px-4 py-2.5 text-[13px] text-primary-foreground/95 transition hover:bg-white/[0.05]"
+        >
+          <SlidersHorizontal className="h-4 w-4 text-[#c9a24a]" />
+          <span className="font-display">Филтри</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleSearch}
+          className="inline-flex items-center gap-2 rounded-[14px] px-5 py-2.5 text-[13.5px] font-semibold text-[#2a050b] transition hover:brightness-105"
+          style={{
+            background: "linear-gradient(135deg, #f8e3a0 0%, #e8c477 50%, #b8893a 100%)",
+            boxShadow: "0 8px 20px -6px rgba(184,137,58,0.6), inset 0 1px 0 rgba(255,255,255,0.35)",
+          }}
+        >
+          <Search className="h-4 w-4" />
+          <span className="font-display">Търси</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: string; label: string }) {
   return (
-    <div className="flex flex-col items-start gap-1.5">
-      <div className="flex h-9 w-9 items-center justify-center rounded-md border border-[#c9a24a]/40 text-[#c9a24a]">
-        <Icon className="h-4 w-4" />
+    <div className="flex flex-col items-start gap-2">
+      <div
+        className="flex h-11 w-11 items-center justify-center rounded-[10px] text-[#e8c477]"
+        style={{
+          background: "linear-gradient(135deg, rgba(232,196,119,0.12), rgba(184,137,58,0.04))",
+          border: "1px solid rgba(201,162,74,0.45)",
+          boxShadow: "inset 0 0 0 1px rgba(232,196,119,0.08), 0 4px 12px rgba(0,0,0,0.25)",
+        }}
+      >
+        <Icon className="h-[18px] w-[18px]" />
       </div>
-      <div className="mt-1 font-display text-[1.15rem] leading-tight text-[#e8c477]">{value}</div>
+      <div className="mt-1 font-display text-[1.25rem] leading-tight text-[#e8c477]">{value}</div>
       <div className="text-[12px] leading-tight text-primary-foreground/75">{label}</div>
     </div>
   );
