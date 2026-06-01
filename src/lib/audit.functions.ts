@@ -4,6 +4,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+const ALLOWED_ADMIN_PATHS = /^\/admin(\/[a-zA-Z0-9._\-\/]*)?$/;
+
 export const checkAdminAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -23,14 +25,13 @@ export const checkAdminAccess = createServerFn({ method: "GET" })
   });
 
 export const logAdminAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(
     z.object({
-      path: z.string().min(1).max(255),
-      userId: z.string().uuid().nullable().optional(),
-      email: z.string().max(255).nullable().optional(),
+      path: z.string().min(1).max(255).regex(ALLOWED_ADMIN_PATHS, "Invalid admin path"),
     }).parse,
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     let ip: string | null = null;
     try {
       ip = getRequestIP({ xForwardedFor: true }) ?? null;
@@ -45,10 +46,12 @@ export const logAdminAccess = createServerFn({ method: "POST" })
       }
     })();
 
+    const email = (context.claims as { email?: string } | undefined)?.email ?? null;
+
     const { error } = await supabaseAdmin.from("admin_access_log").insert({
       path: data.path,
-      user_id: data.userId ?? null,
-      email: data.email ?? null,
+      user_id: context.userId,
+      email,
       ip,
       user_agent: userAgent,
     });
