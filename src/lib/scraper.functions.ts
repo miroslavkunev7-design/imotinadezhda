@@ -84,6 +84,8 @@ type ScrapeResult = {
   images?: string[];
   city_slug?: string;
   seller_type: "private" | "agency" | "unknown";
+  agency_logo_detected?: boolean;
+  agency_logo_reason?: string | null;
 };
 
 function buildResult(
@@ -97,6 +99,7 @@ function buildResult(
   const html: string = (item.html ?? item.rawHtml ?? "") as string;
   const combined = md + "\n" + html;
   const phone = combined.match(/(\+?359[\s\d-]{7,}|0[\s\d-]{8,})/)?.[1]?.replace(/\s+/g, "");
+  const { urls: imgUrls, agencyLogo } = extractImages(html, url);
   return {
     source,
     source_url: url,
@@ -106,11 +109,14 @@ function buildResult(
     currency: /BGN|лв/i.test(combined) ? "BGN" : "EUR",
     area_sqm: parseNumber(combined.match(/(\d{2,4})\s*(?:m2|m²|кв\.?м)/i)?.[1]),
     phone,
-    images: extractImages(html, url),
+    images: imgUrls,
     city_slug: citySlug,
     seller_type: detectSellerType(combined + " " + (item.title ?? "")),
+    agency_logo_detected: agencyLogo.detected,
+    agency_logo_reason: agencyLogo.reason,
   };
 }
+
 
 async function searchAndBuild(
   client: Firecrawl,
