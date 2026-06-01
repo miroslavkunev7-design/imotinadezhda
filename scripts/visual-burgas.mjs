@@ -46,11 +46,14 @@ try {
 }
 
 console.log(`→ Capturing ${url} @ ${VW}x${VH}`);
-const browser = await chromium.launch();
+const launchOpts = {};
+if (process.env.PW_CHROMIUM_EXEC) launchOpts.executablePath = process.env.PW_CHROMIUM_EXEC;
+const browser = await chromium.launch(launchOpts);
 const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 1 });
 const page = await ctx.newPage();
-await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
-await page.waitForTimeout(1500);
+await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
+await page.waitForTimeout(2500);
 
 const issues = [];
 
@@ -89,13 +92,17 @@ if (!overlap.found) {
 const viewportShot = await page.screenshot({ clip: { x: 0, y: 0, width: VW, height: VH } });
 fs.writeFileSync(path.join(outDir, "burgas-viewport.png"), viewportShot);
 
-const heroLoc = page.locator("section").first();
-fs.writeFileSync(path.join(outDir, "burgas-hero.png"), await heroLoc.screenshot());
-
-const quartersLoc = page.locator("section").nth(2);
-if (await quartersLoc.count()) {
-  fs.writeFileSync(path.join(outDir, "burgas-quarters.png"), await quartersLoc.screenshot());
+async function safeShot(loc, file) {
+  try {
+    if (!(await loc.count())) return;
+    if (!(await loc.first().isVisible())) return;
+    fs.writeFileSync(path.join(outDir, file), await loc.first().screenshot({ timeout: 8000 }));
+  } catch (e) {
+    console.log(`  ⚠ Skipped ${file}: ${e.message?.split("\n")[0] ?? e}`);
+  }
 }
+await safeShot(page.locator("section").first(), "burgas-hero.png");
+await safeShot(page.locator("section").nth(2), "burgas-quarters.png");
 
 await browser.close();
 console.log(`✓ Captured snapshots to ${outDir}/`);
