@@ -808,20 +808,52 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
   );
   return (
     <div
-      className="relative flex items-stretch overflow-hidden rounded-[22px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)]"
+      className="relative flex items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] md:rounded-[22px]"
       style={{
         background: "radial-gradient(ellipse at 20% 0%, rgba(95,18,32,0.45), transparent 60%), linear-gradient(135deg, #350810 0%, #180307 100%)",
         border: "1px solid rgba(232,196,119,0.45)",
         boxShadow: "0 30px 70px -15px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(232,196,119,0.18), inset 0 1px 0 rgba(255,220,150,0.12)",
       }}
     >
-      <div className="flex flex-1 flex-wrap items-stretch md:flex-nowrap divide-x divide-[#c9a24a]/20">
+      {/* Mobile compact: city + price + search button */}
+      <div className="flex w-full items-stretch md:hidden divide-x divide-[#c9a24a]/20">
+        <button type="button" onClick={handleSearch} className="flex flex-1 items-center gap-2 px-3 py-2 text-left">
+          <MapPin className="h-4 w-4 flex-none text-[#c9a24a]" />
+          <div className="min-w-0">
+            <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#c9a24a]/90">Град</div>
+            <div className="truncate text-[12.5px] text-primary-foreground/95">{cityName}</div>
+          </div>
+        </button>
+        <button type="button" onClick={handleSearch} className="flex flex-1 items-center gap-2 px-3 py-2 text-left">
+          <LandPlot className="h-4 w-4 flex-none text-[#c9a24a]" />
+          <div className="min-w-0">
+            <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#c9a24a]/90">Цена</div>
+            <div className="truncate text-[12.5px] text-primary-foreground/95">Всички</div>
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={handleSearch}
+          aria-label="Търси"
+          className="flex flex-none items-center justify-center px-4"
+          style={{
+            background: "linear-gradient(135deg, #f8e3a0 0%, #e8c477 50%, #b8893a 100%)",
+            color: "#2a050b",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
+          }}
+        >
+          <Search className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Desktop full bar */}
+      <div className="hidden flex-1 items-stretch md:flex md:flex-nowrap divide-x divide-[#c9a24a]/20">
         <Field icon={MapPin} label="Град" value={cityName} />
         <Field icon={House} label="Вид имот" value="Всички" />
         <Field icon={LandPlot} label="Цена" value="Без значение" />
         <Field icon={Ruler} label="Площ" value="Без значение" />
       </div>
-      <div className="flex items-center gap-2 border-l border-[#c9a24a]/25 px-3 md:px-4">
+      <div className="hidden items-center gap-2 border-l border-[#c9a24a]/25 px-3 md:flex md:px-4">
         <button
           type="button"
           onClick={handleSearch}
