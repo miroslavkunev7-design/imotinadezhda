@@ -37,6 +37,7 @@ function ExtractedPage() {
   const update = useServerFn(updateExtracted);
   const publish = useServerFn(publishExtracted);
   const remove = useServerFn(deleteExtracted);
+  const archive = useServerFn(archiveExtracted);
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
