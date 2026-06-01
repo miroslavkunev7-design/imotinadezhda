@@ -123,70 +123,115 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
 
   return (
     <header
-      className="relative z-30 w-full border-b border-[hsl(45_55%_70%/0.5)] shadow-[0_2px_24px_-12px_rgba(120,30,40,0.35)]"
+      className="relative z-30 w-full"
       style={{
-        background:
-          "linear-gradient(180deg, #fbf6ec 0%, #f6ecd6 45%, #efe0bd 100%)",
+        filter: "drop-shadow(0 6px 18px rgba(120,30,40,0.28))",
       }}
     >
-      {/* Gold veining accents */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px"
+      {/* Marble panel with curved bottom (chupka) */}
+      <div
+        className="relative"
         style={{
           background:
-            "linear-gradient(90deg, transparent 0%, #d4a84a 20%, #f3d27a 50%, #d4a84a 80%, transparent 100%)",
+            "radial-gradient(ellipse at 20% 0%, #fffaf0 0%, transparent 55%), radial-gradient(ellipse at 85% 100%, #e8d098 0%, transparent 60%), linear-gradient(180deg, #fbf6ea 0%, #f4e6c4 50%, #ecd9a8 100%)",
+          clipPath:
+            "path('M0,0 L100%,0 L100%,calc(100% - 28px) Q50%,100% 0,calc(100% - 28px) Z')",
+          WebkitClipPath:
+            "path('M0,0 L100%,0 L100%,calc(100% - 28px) Q50%,100% 0,calc(100% - 28px) Z')",
         }}
-      />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent 0%, #b8893a 25%, #e7c46a 50%, #b8893a 75%, transparent 100%)",
-        }}
-      />
-      <div className="relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 py-2 md:px-10 md:py-3">
-        <Link
-          to="/"
-          className="flex shrink-0 items-center select-none"
-          onClick={handleLogoClick}
-          aria-label="Начало (троен клик за админ вход)"
+      >
+        {/* Subtle marble veining */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(115deg, transparent 0 80px, rgba(180,140,70,0.18) 80px 81px, transparent 81px 160px), repeating-linear-gradient(75deg, transparent 0 120px, rgba(120,80,30,0.12) 120px 121px, transparent 121px 240px)",
+          }}
+        />
+        {/* Top gold hairline */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-[2px]"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, #b8893a 15%, #f3d27a 50%, #b8893a 85%, transparent)",
+          }}
+        />
+        {/* Gold curve trace along the chupka */}
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-8 w-full"
+          viewBox="0 0 1440 32"
+          preserveAspectRatio="none"
         >
-          <img
-            src={logoNadezhda}
-            alt="Недвижими имоти Надежда"
-            draggable={false}
-            className="h-12 w-auto object-contain md:h-14 lg:h-[68px]"
+          <defs>
+            <linearGradient id="goldCurve" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0%" stopColor="#b8893a" stopOpacity="0" />
+              <stop offset="20%" stopColor="#d4a84a" />
+              <stop offset="50%" stopColor="#f6dc8e" />
+              <stop offset="80%" stopColor="#d4a84a" />
+              <stop offset="100%" stopColor="#b8893a" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0,4 L1440,4 L1440,4 Q720,32 0,4 Z"
+            fill="none"
+            stroke="url(#goldCurve)"
+            strokeWidth="1.5"
           />
-        </Link>
+          <path
+            d="M0,7 Q720,34 1440,7"
+            fill="none"
+            stroke="url(#goldCurve)"
+            strokeWidth="0.8"
+            opacity="0.55"
+          />
+        </svg>
 
-        <nav className="flex items-center gap-4 md:gap-8 lg:gap-10">
-          {topNav.map((item) => (
-            <Link
-              key={item.key}
-              to={item.to}
-              search={item.search as any}
-              className={cn(
-                "relative font-display text-sm text-primary transition hover:text-primary/80 md:text-base lg:text-lg",
-                active === item.key &&
-                  "after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:bg-[#c9a24a]",
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <button
-            className="text-primary transition hover:text-primary/70"
-            aria-label="Профил"
+        <div className="relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-6 pt-2 md:px-10 md:pb-8 md:pt-3">
+          <Link
+            to="/"
+            className="flex shrink-0 items-center select-none"
+            onClick={handleLogoClick}
+            aria-label="Начало (троен клик за админ вход)"
           >
-            <User className="h-5 w-5 md:h-6 md:w-6" />
-          </button>
-        </nav>
+            <img
+              src={logoNadezhda}
+              alt="Недвижими имоти Надежда"
+              draggable={false}
+              className="h-12 w-auto object-contain md:h-14 lg:h-[68px]"
+            />
+          </Link>
+
+          <nav className="flex items-center gap-4 md:gap-8 lg:gap-10">
+            {topNav.map((item) => (
+              <Link
+                key={item.key}
+                to={item.to}
+                search={item.search as any}
+                className={cn(
+                  "relative font-display text-sm text-primary transition hover:text-primary/80 md:text-base lg:text-lg",
+                  active === item.key &&
+                    "after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:bg-[#c9a24a]",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <button
+              className="text-primary transition hover:text-primary/70"
+              aria-label="Профил"
+            >
+              <User className="h-5 w-5 md:h-6 md:w-6" />
+            </button>
+          </nav>
+        </div>
       </div>
     </header>
   );
 }
+
 
 
 type SearchOption = { value: string; label: string };
