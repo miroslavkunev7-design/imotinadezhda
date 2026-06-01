@@ -137,7 +137,7 @@ function ExtractedPage() {
       toast.success("Запазено");
       // optimistic update on the open dialog
       setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-      setEditRow((er) => (er && er.id === id ? { ...er, ...patch } : er));
+      setEditRow((er: Row | null) => (er && er.id === id ? { ...er, ...patch } : er));
     } catch (e: any) {
       toast.error(e.message ?? "Грешка");
     }
