@@ -293,6 +293,7 @@ function CityCard({ name, image, href, params }: { name: string; image: string; 
       <div className="relative aspect-[1.1/1] overflow-hidden rounded-[16px] border border-primary/25 shadow-[0_18px_38px_rgba(77,25,31,0.28)] md:aspect-[1.45/1] md:rounded-[18px] lg:aspect-[1.65/1]">
         <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
         <div className="marble-wave-glow" />
+        <GoldDustLayer />
         {/* Burgundy marble bottom panel */}
         <div className="marble-burgundy-bottom absolute inset-x-0 bottom-0 flex items-center justify-between px-3 py-2 md:px-5 md:py-3.5">
           <div className="min-w-0">
@@ -398,6 +399,7 @@ export function ListingCard({
           3D Виртуален оглед
         </button>
         <div className="marble-wave-glow" />
+        <GoldDustLayer />
       </div>
       <div className="space-y-3 px-4 pb-5 pt-4">
         <div>
@@ -695,10 +697,9 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 }
 
 function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: string }) {
+  const navigate = useNavigate();
   const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (citySlug) params.set("city_slug", citySlug);
-    if (typeof window !== "undefined") window.location.href = `/search?${params.toString()}`;
+    navigate({ to: "/search", search: (citySlug ? { city_slug: citySlug } : {}) as never });
   };
   const Field = ({ icon: Icon, label, value }: { icon: typeof MapPin; label: string; value: string }) => (
     <button
@@ -889,6 +890,7 @@ function DistrictListingCard({ p, location, fallback }: { p: QuarterData["proper
             <Heart className="h-4 w-4" />
           </button>
           <div className="marble-wave-glow" />
+          <GoldDustLayer />
         </div>
         <div className="flex flex-1 flex-col gap-2.5 px-4 pb-4 pt-3">
           <h3 className="font-display text-[1.2rem] leading-tight text-accent-foreground">{p.title}</h3>
@@ -1251,7 +1253,10 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
 
 function useGalleryIndex(len: number): [number, (n: number) => void] {
   const [idx, setIdx] = useReactState(0);
-  if (idx >= len && len > 0) setIdx(0);
+  // Reset to 0 if the gallery shrinks below the current index (effect, not render).
+  useEffect(() => {
+    if (idx >= len && len > 0) setIdx(0);
+  }, [idx, len]);
   return [idx, setIdx];
 }
 
