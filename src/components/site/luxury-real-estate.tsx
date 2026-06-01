@@ -941,18 +941,26 @@ function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: stri
 
 function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Array<{ id: string; slug: string; name: string; image_url?: string | null; properties_count?: number | null }>; citySlug: string; fallbackImage: string }) {
   const visible = quarters.slice(0, 5);
+  const localCycle = [burgasHero, burgasPier, cityBurgas, homeHero, fallbackImage];
   return (
     <div className="relative grid grid-cols-2 gap-2.5 md:grid-cols-5 md:gap-3">
-      {visible.map((q) => (
-        <Link
-          key={q.id}
-          to="/cities/$slug/districts/$district"
-          params={{ slug: citySlug, district: q.slug }}
-          className="block"
-        >
-          <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={q.image_url || fallbackImage} />
-        </Link>
-      ))}
+      {visible.map((q, idx) => {
+        // External image_urls (e.g. realistimo) are blocked cross-origin, so prefer
+        // a local fallback image cycled by index for visual variety.
+        const remote = q.image_url || "";
+        const usesLocal = !remote || /^https?:\/\//i.test(remote);
+        const img = usesLocal ? localCycle[idx % localCycle.length] : remote;
+        return (
+          <Link
+            key={q.id}
+            to="/cities/$slug/districts/$district"
+            params={{ slug: citySlug, district: q.slug }}
+            className="block"
+          >
+            <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={img} />
+          </Link>
+        );
+      })}
     </div>
   );
 }
