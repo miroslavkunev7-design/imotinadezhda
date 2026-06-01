@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, MessageSquare, Star, MapPin, CheckCircle, Mail, Download, Layers } from "lucide-react";
+import { Building2, MessageSquare, Star, MapPin, CheckCircle, Mail, Download, Layers, Crown } from "lucide-react";
 
 export const Route = createFileRoute("/admin/")({
   component: Dashboard,
@@ -16,6 +16,7 @@ type Stats = {
   total_cities: number;
   total_quarters: number;
   pending_extracted: number;
+  total_owners: number;
 };
 
 function Dashboard() {
@@ -30,7 +31,8 @@ function Dashboard() {
       supabase.from("cities").select("id", { count: "exact", head: true }),
       supabase.from("quarters").select("id", { count: "exact", head: true }),
       supabase.from("extracted_listings").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    ]).then(([a, b, c, d, e, f, g, h]) => {
+      supabase.from("owners").select("id", { count: "exact", head: true }),
+    ]).then(([a, b, c, d, e, f, g, h, i]) => {
       setStats({
         total_properties: a.count ?? 0,
         published_properties: b.count ?? 0,
@@ -40,6 +42,7 @@ function Dashboard() {
         total_cities: f.count ?? 0,
         total_quarters: g.count ?? 0,
         pending_extracted: h.count ?? 0,
+        total_owners: i.count ?? 0,
       });
     });
   }, []);
@@ -48,6 +51,7 @@ function Dashboard() {
     { label: "Общо имоти", value: stats?.total_properties, icon: Building2, accent: "from-amber-500/30 to-amber-300/20" },
     { label: "Публикувани", value: stats?.published_properties, icon: CheckCircle, accent: "from-emerald-500/30 to-emerald-300/20" },
     { label: "Препоръчани", value: stats?.featured_properties, icon: Star, accent: "from-yellow-500/30 to-amber-300/20" },
+    { label: "Собственици", value: stats?.total_owners, icon: Crown, accent: "from-rose-500/30 to-amber-300/20" },
     { label: "Градове", value: stats?.total_cities, icon: MapPin, accent: "from-blue-500/30 to-cyan-300/20" },
     { label: "Квартали", value: stats?.total_quarters, icon: Layers, accent: "from-purple-500/30 to-fuchsia-300/20" },
     { label: "Извлечени (чакащи)", value: stats?.pending_extracted, icon: Download, accent: "from-orange-500/30 to-amber-300/20" },

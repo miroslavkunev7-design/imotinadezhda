@@ -53,7 +53,7 @@ const NAV: NavItem[] = [
   { to: "/admin/matches", label: "Съвпадения", icon: Heart, badgeKey: "matches" },
   { to: "/admin/contracts", label: "Договори", icon: FileText },
   { to: "/admin/audit", label: "Одит лог", icon: ShieldCheck },
-  { to: "/admin/owners", label: "Собственици", icon: Crown, disabled: true },
+  { to: "/admin/owners", label: "Собственици", icon: Crown },
   { to: "/admin/chat", label: "Чат", icon: MessageCircle, disabled: true },
   { to: "/admin/calendar", label: "Календар", icon: Calendar, disabled: true },
   { to: "/admin/finance", label: "Финанси", icon: Wallet, disabled: true },

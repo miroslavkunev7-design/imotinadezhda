@@ -547,6 +547,45 @@ export type Database = {
           },
         ]
       }
+      owners: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          full_name: string
+          id: string
+          id_number: string | null
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          id_number?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          id_number?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -591,6 +630,7 @@ export type Database = {
           id: string
           is_featured: boolean
           is_published: boolean
+          owner_id: string | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
           quarter_id: string | null
@@ -618,6 +658,7 @@ export type Database = {
           id?: string
           is_featured?: boolean
           is_published?: boolean
+          owner_id?: string | null
           price: number
           property_type?: Database["public"]["Enums"]["property_type"]
           quarter_id?: string | null
@@ -645,6 +686,7 @@ export type Database = {
           id?: string
           is_featured?: boolean
           is_published?: boolean
+          owner_id?: string | null
           price?: number
           property_type?: Database["public"]["Enums"]["property_type"]
           quarter_id?: string | null
@@ -662,6 +704,13 @@ export type Database = {
             columns: ["city_id"]
             isOneToOne: false
             referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
             referencedColumns: ["id"]
           },
           {
