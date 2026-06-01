@@ -752,7 +752,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                   {city.name}
                 </h1>
                 {city.description && (
-                  <p className="relative mt-2 line-clamp-2 max-w-[480px] text-[11.5px] leading-[1.45] text-primary-foreground/85 md:mt-4 md:line-clamp-none md:text-[14px] md:leading-[1.65]">{city.description}</p>
+                  <p className="relative mt-2 line-clamp-2 max-w-[480px] text-[11.5px] leading-[1.45] text-[#f0e3c8]/90 md:mt-4 md:line-clamp-none md:text-[14px] md:leading-[1.65]">{city.description}</p>
                 )}
                 <div className="relative mt-3 h-px w-full md:mt-5" style={{ background: "linear-gradient(90deg, transparent, rgba(201,162,74,0.6) 50%, transparent)" }} />
                 <div className="relative mt-3 grid grid-cols-4 gap-2 md:mt-5 md:gap-3">
