@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -35,6 +36,11 @@ import { Route as ApiPublicCustomerChatRouteImport } from './routes/api/public/c
 import { Route as AdminAuditIdRouteImport } from './routes/admin.audit.$id'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -168,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
   '/admin/brokers': typeof AdminBrokersRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
   '/admin/brokers': typeof AdminBrokersRoute
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
   '/admin/brokers': typeof AdminBrokersRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/search'
+    | '/sitemap.xml'
     | '/admin/ai'
     | '/admin/audit'
     | '/admin/brokers'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/search'
+    | '/sitemap.xml'
     | '/admin/ai'
     | '/admin/audit'
     | '/admin/brokers'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/login'
     | '/search'
+    | '/sitemap.xml'
     | '/admin/ai'
     | '/admin/audit'
     | '/admin/brokers'
@@ -332,6 +344,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
   SearchRoute: typeof SearchRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
   ApiPublicCustomerChatRoute: typeof ApiPublicCustomerChatRoute
   CitiesSlugIndexRoute: typeof CitiesSlugIndexRoute
@@ -340,6 +353,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -574,6 +594,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
   SearchRoute: SearchRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
   ApiPublicCustomerChatRoute: ApiPublicCustomerChatRoute,
   CitiesSlugIndexRoute: CitiesSlugIndexRoute,

@@ -27,6 +27,12 @@ export const Route = createFileRoute("/about")({
         content:
           "Доверен партньор за недвижими имоти в Бургас и региона. Професионализъм, сигурност и индивидуален подход при всяка сделка.",
       },
+      { property: "og:title", content: "За нас — ИЛДЖ.ИА" },
+      { property: "og:description", content: "Доверен партньор за недвижими имоти в Бургас и региона." },
+      { property: "og:url", content: "https://imotinadezhda.lovable.app/about" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://imotinadezhda.lovable.app/about" },
     ],
   }),
   component: AboutPage,

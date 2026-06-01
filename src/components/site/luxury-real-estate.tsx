@@ -480,7 +480,7 @@ export function ListingCard({
       <div className="relative aspect-[1.08/0.82] overflow-hidden">
         <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
         {tag ? <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-[0.08em] text-primary-foreground">{tag}</span> : null}
-        <button className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow">
+        <button type="button" aria-label="Добави в любими" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow">
           <Heart className="h-4 w-4" />
         </button>
         <button
@@ -611,6 +611,7 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
         }}
       >
         <LuxuryHeader active="sale" />
+        <h1 className="sr-only">Луксозни имоти и престижни квартали в България</h1>
 
         <div className="relative z-20 mx-auto mt-auto w-full max-w-[1440px] px-2 pt-10 md:px-6">
           <SearchBar cities={cityOpts} />
@@ -999,7 +1000,7 @@ function DistrictListingCard({ p, location, fallback }: { p: QuarterData["proper
         <div className="relative aspect-[1.05/0.82] overflow-hidden">
           <img src={p.cover_image_url || fallback} alt={p.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
           <span className="absolute left-3 top-3 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-primary-foreground shadow">{tag}</span>
-          <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 text-primary shadow">
+          <button type="button" aria-label="Добави в любими" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 text-primary shadow">
             <Heart className="h-4 w-4" />
           </button>
           <div className="marble-wave-glow" />
@@ -1344,8 +1345,8 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
         <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className="h-[320px] w-full object-cover md:h-[520px]" />
         {images.length > 1 ? (
           <>
-            <button onClick={() => setIdx((idx - 1 + images.length) % images.length)} className="absolute left-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-6 w-6" /></button>
-            <button onClick={() => setIdx((idx + 1) % images.length)} className="absolute right-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.88)] text-primary-foreground shadow-lg"><ChevronRight className="h-6 w-6" /></button>
+            <button type="button" aria-label="Предишна снимка" onClick={() => setIdx((idx - 1 + images.length) % images.length)} className="absolute left-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-6 w-6" /></button>
+            <button type="button" aria-label="Следваща снимка" onClick={() => setIdx((idx + 1) % images.length)} className="absolute right-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.88)] text-primary-foreground shadow-lg"><ChevronRight className="h-6 w-6" /></button>
           </>
         ) : null}
         <div className="absolute bottom-4 left-4 rounded-[12px] bg-[rgba(53,12,18,0.9)] px-4 py-2 text-primary-foreground">{idx + 1} / {images.length}</div>
@@ -1353,8 +1354,8 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
       {images.length > 1 ? (
         <div className="mt-4 grid grid-cols-6 gap-3">
           {images.slice(0, 6).map((thumb, i) => (
-            <button key={`${thumb}-${i}`} onClick={() => setIdx(i)} className={cn("overflow-hidden rounded-[12px] border", i === idx ? "border-primary" : "border-primary/12")}>
-              <img src={thumb} alt={`Снимка ${i + 1}`} className="h-18 w-full object-cover md:h-24" loading="lazy" />
+            <button key={`${thumb}-${i}`} type="button" aria-label={`Покажи снимка ${i + 1} от ${title}`} aria-current={i === idx} onClick={() => setIdx(i)} className={cn("overflow-hidden rounded-[12px] border", i === idx ? "border-primary" : "border-primary/12")}>
+              <img src={thumb} alt={`${title} – снимка ${i + 1}`} className="h-18 w-full object-cover md:h-24" loading="lazy" />
             </button>
           ))}
         </div>

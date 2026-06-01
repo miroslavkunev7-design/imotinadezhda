@@ -3,6 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HomePage } from "@/components/site/luxury-real-estate";
 import { getCities, getFeaturedProperties } from "@/lib/catalog.functions";
 
+const SITE_URL = "https://imotinadezhda.lovable.app";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -10,6 +12,36 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
       { property: "og:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
       { property: "og:description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
+      { property: "og:url", content: `${SITE_URL}/` },
+    ],
+    links: [
+      { rel: "canonical", href: `${SITE_URL}/` },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "ИЛДЖ.ИА",
+          url: SITE_URL,
+          description: "Луксозни недвижими имоти в България.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "ИЛДЖ.ИА",
+          url: SITE_URL,
+          potentialAction: {
+            "@type": "SearchAction",
+            target: `${SITE_URL}/search?city_slug={search_term}`,
+            "query-input": "required name=search_term",
+          },
+        }),
+      },
     ],
   }),
   loader: async () => {
