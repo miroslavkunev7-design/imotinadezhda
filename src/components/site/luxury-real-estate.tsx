@@ -582,10 +582,10 @@ export function CityPage({ data }: { data?: CityData } = {}) {
             }}
           />
           <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[28px]">
-            <div className="grid md:grid-cols-[1.02fr_0.98fr]">
+            <div className="grid h-[260px] md:h-[420px] lg:h-[clamp(380px,46vh,460px)] md:grid-cols-[1.02fr_0.98fr]">
               {/* LEFT: hero image + marble logo corner */}
-              <div className="relative h-[160px] md:min-h-[380px] lg:min-h-[clamp(340px,44vh,440px)]">
-                <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 35%" }} />
+              <div className="relative h-full overflow-hidden">
+                <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 40%" }} />
                 <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(20,3,7,0.85) 100%)" }} />
                 {/* Marble logo badge with clean S-curve swoosh */}
                 <div
