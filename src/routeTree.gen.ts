@@ -30,6 +30,7 @@ import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugIndexRouteImport } from './routes/cities.$slug.index'
+import { Route as ApiPublicCustomerChatRouteImport } from './routes/api/public/customer-chat'
 import { Route as AdminAuditIdRouteImport } from './routes/admin.audit.$id'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
 
@@ -138,6 +139,11 @@ const CitiesSlugIndexRoute = CitiesSlugIndexRouteImport.update({
   path: '/cities/$slug/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCustomerChatRoute = ApiPublicCustomerChatRouteImport.update({
+  id: '/api/public/customer-chat',
+  path: '/api/public/customer-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAuditIdRoute = AdminAuditIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -172,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
+  '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
+  '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
+  '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
+    | '/api/public/customer-chat'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
   fileRoutesByTo: FileRoutesByTo
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/properties/$propertyId'
     | '/admin'
     | '/admin/audit/$id'
+    | '/api/public/customer-chat'
     | '/cities/$slug'
     | '/cities/$slug/districts/$district'
   id:
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
+    | '/api/public/customer-chat'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
   fileRoutesById: FileRoutesById
@@ -309,6 +321,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SearchRoute: typeof SearchRoute
   PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
+  ApiPublicCustomerChatRoute: typeof ApiPublicCustomerChatRoute
   CitiesSlugIndexRoute: typeof CitiesSlugIndexRoute
   CitiesSlugDistrictsDistrictRoute: typeof CitiesSlugDistrictsDistrictRoute
 }
@@ -462,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CitiesSlugIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/customer-chat': {
+      id: '/api/public/customer-chat'
+      path: '/api/public/customer-chat'
+      fullPath: '/api/public/customer-chat'
+      preLoaderRoute: typeof ApiPublicCustomerChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/audit/$id': {
       id: '/admin/audit/$id'
       path: '/$id'
@@ -534,6 +554,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SearchRoute: SearchRoute,
   PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
+  ApiPublicCustomerChatRoute: ApiPublicCustomerChatRoute,
   CitiesSlugIndexRoute: CitiesSlugIndexRoute,
   CitiesSlugDistrictsDistrictRoute: CitiesSlugDistrictsDistrictRoute,
 }

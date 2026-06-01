@@ -101,7 +101,7 @@ async function searchProperties(args: any) {
   if (args.min_price) q = q.gte("price", Number(args.min_price));
   if (maxPrice) q = q.lte("price", maxPrice);
   if (args.rooms) q = q.eq("rooms", Number(args.rooms));
-  if (args.property_type) q = q.eq("property_type", String(args.property_type));
+  if (args.property_type) q = q.eq("property_type", String(args.property_type) as any);
 
   if (args.city) {
     const { data: city } = await supabaseAdmin
