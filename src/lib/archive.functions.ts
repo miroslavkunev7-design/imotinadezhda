@@ -75,6 +75,7 @@ export const listArchive = createServerFn({ method: "POST" })
     }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     let q = supabase
       .from("archived_properties")
