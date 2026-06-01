@@ -99,20 +99,17 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
       {/* Sidebar — бял мрамор със златни жилки */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-amber-600/30 shadow-[8px_0_30px_rgba(0,0,0,0.35)] transition-transform duration-300 lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-amber-500/25 shadow-[8px_0_30px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
         style={{
           backgroundImage: `
-            linear-gradient(180deg, rgba(255,255,255,0.78), rgba(248,242,228,0.85)),
-            repeating-linear-gradient(115deg, transparent 0 60px, rgba(201,160,76,0.18) 60px 61px, transparent 61px 140px),
-            repeating-linear-gradient(75deg, transparent 0 90px, rgba(201,160,76,0.12) 90px 91px, transparent 91px 200px),
-            url(${marbleBg})
+            linear-gradient(180deg, rgba(26,6,8,0.55), rgba(26,6,8,0.65)),
+            repeating-linear-gradient(115deg, transparent 0 80px, rgba(201,160,76,0.08) 80px 81px, transparent 81px 180px)
           `,
-          backgroundSize: "cover, auto, auto, 600px",
-          backgroundBlendMode: "normal, normal, normal, soft-light",
         }}
       >
+
         {/* Logo */}
         <div className="flex items-center justify-between gap-3 border-b border-amber-600/25 px-5 py-5">
           <Link to="/" className="flex items-center gap-2">
