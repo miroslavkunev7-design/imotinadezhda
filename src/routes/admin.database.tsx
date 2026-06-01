@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { listArchive, deleteArchive } from "@/lib/archive.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { Database, Trash2, Search, ExternalLink, FolderTree } from "lucide-react";
+import { Database, Trash2, Search, ExternalLink, FolderTree, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { downloadPropertyZip, downloadBulkZip } from "@/lib/download-archive";
 
 export const Route = createFileRoute("/admin/database")({
   component: DatabasePage,
@@ -25,6 +26,31 @@ function DatabasePage() {
   const [quarterId, setQuarterId] = useState("");
   const [year, setYear] = useState<string>("");
   const [search, setSearch] = useState("");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [bulkDownloading, setBulkDownloading] = useState(false);
+
+  const onDownload = async (row: Row) => {
+    setDownloadingId(row.id);
+    try {
+      await downloadPropertyZip(row);
+      toast.success("Готово — изтегли ZIP файла");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при изтегляне");
+    }
+    setDownloadingId(null);
+  };
+
+  const onBulkDownload = async () => {
+    if (!rows.length) return;
+    setBulkDownloading(true);
+    try {
+      await downloadBulkZip(rows);
+      toast.success(`Готово — ${rows.length} имота в ZIP`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при пакетиране");
+    }
+    setBulkDownloading(false);
+  };
 
   useEffect(() => {
     supabase.from("cities").select("id, name").order("name").then(({ data }) => setCities(data ?? []));
@@ -82,14 +108,25 @@ function DatabasePage() {
             </div>
             <h1 className="mt-2 font-display text-4xl text-amber-100">База данни — Наши имоти</h1>
             <p className="mt-1 text-sm text-amber-100/70">
-              Архивирани имоти от извлечените обяви. Подредени по град и квартал. Папки в Drive: <code className="rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-200">Година / Град / Квартал / Имот</code>
+              Архивирани имоти от извлечените обяви. Подредени по град и квартал. Изтегли като ZIP — браузърът ще те попита къде да го запазиш. Структура: <code className="rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-200">Година / Град / Квартал / Имот</code>
             </p>
           </div>
-          <div className="rounded-xl border border-amber-500/25 bg-[rgba(255,251,243,0.95)] px-4 py-3 text-center shadow-lg">
-            <div className="text-[10px] uppercase tracking-wider text-primary/60">Общо</div>
-            <div className="font-display text-3xl text-primary">{loading ? "…" : rows.length}</div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onBulkDownload}
+              disabled={bulkDownloading || !rows.length}
+              className="inline-flex items-center gap-2 rounded-xl border border-amber-400/50 bg-amber-500/90 px-4 py-3 text-xs font-bold uppercase tracking-wider text-primary shadow-lg hover:bg-amber-400 disabled:opacity-50"
+            >
+              {bulkDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Изтегли всички ({rows.length})
+            </button>
+            <div className="rounded-xl border border-amber-500/25 bg-[rgba(255,251,243,0.95)] px-4 py-3 text-center shadow-lg">
+              <div className="text-[10px] uppercase tracking-wider text-primary/60">Общо</div>
+              <div className="font-display text-3xl text-primary">{loading ? "…" : rows.length}</div>
+            </div>
           </div>
         </header>
+
 
         {/* Filters */}
         <div className="grid gap-3 rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.95)] p-4 shadow-lg md:grid-cols-[1fr_1fr_1fr_2fr]">
@@ -183,6 +220,15 @@ function DatabasePage() {
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => onDownload(r)}
+                          disabled={downloadingId === r.id}
+                          className="inline-flex items-center gap-1 rounded bg-amber-500/15 px-2 py-1.5 text-[11px] font-semibold text-amber-900 hover:bg-amber-500/30 disabled:opacity-50"
+                          title="Изтегли ZIP (избери папка)"
+                        >
+                          {downloadingId === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                          Изтегли
+                        </button>
                         {r.source_url && (
                           <a href={r.source_url} target="_blank" rel="noreferrer" className="rounded p-1.5 text-primary/60 hover:bg-primary/10" title="Оригинал">
                             <ExternalLink className="h-3.5 w-3.5" />
@@ -201,7 +247,7 @@ function DatabasePage() {
         </div>
 
         <p className="text-xs text-amber-100/50">
-          💡 Google Drive синхронизация ще се добави на следващ етап — папките вече се изчисляват автоматично.
+          💡 Бутонът „Изтегли" пакетира имота (info.txt, property.json и всички снимки) в ZIP. На съвременни браузъри (Chrome/Edge) ще те попитаме къде да го запазиш; иначе отива в папка „Downloads".
         </p>
       </div>
     </AdminShell>
