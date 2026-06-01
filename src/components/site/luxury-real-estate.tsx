@@ -831,6 +831,9 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
       <ChevronDown className="ml-auto h-4 w-4 flex-none text-[#c9a24a]/70" />
     </button>
   );
+  return (
+    <div
+      className="relative flex items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] md:rounded-[22px]"
       style={{
         background: "radial-gradient(ellipse at 20% 0%, rgba(95,18,32,0.45), transparent 60%), linear-gradient(135deg, #350810 0%, #180307 100%)",
         border: "1px solid rgba(232,196,119,0.45)",
