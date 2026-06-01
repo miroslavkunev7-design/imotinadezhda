@@ -128,13 +128,12 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
         backgroundImage: `url(${headerPanel})`,
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
-        backgroundColor: "#f7f1e6",
       }}
     >
-      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-6 pt-3 md:px-10 md:pb-8 md:pt-4">
+      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-1 pt-1 md:px-10 md:pb-2 md:pt-1">
         <Link
           to="/"
-          className="flex shrink-0 items-center select-none"
+          className="flex shrink-0 items-center select-none -my-2"
           onClick={handleLogoClick}
           aria-label="Начало (троен клик за админ вход)"
         >
@@ -142,7 +141,7 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
             src={logoNadezhda}
             alt="Недвижими имоти Надежда"
             draggable={false}
-            className="h-16 w-auto object-contain md:h-20 lg:h-24"
+            className="h-14 w-auto object-contain md:h-16 lg:h-20"
           />
         </Link>
 
@@ -572,29 +571,6 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
         </section>
       </section>
 
-      {featured && featured.length > 0 && (
-        <section className="relative mx-auto mt-12 w-full max-w-[1420px] px-4 pb-16 md:mt-16 md:px-6">
-          <div className="mb-6 flex items-end justify-between">
-            <h2 className="font-display text-[2.4rem] text-accent-foreground md:text-[3rem]">Подбрани имоти</h2>
-            <span className="text-sm text-muted-foreground">{featured.length} оферти</span>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {featured.map((f) => (
-              <Link key={f.id} to="/properties/$propertyId" params={{ propertyId: f.id }} className="block">
-                <ListingCard
-                  title={f.title}
-                  price={formatPrice(f.price, f.currency ?? "EUR")}
-                  size={`${f.area_sqm ?? "—"} m²`}
-                  beds={f.bedrooms ?? 0}
-                  baths={f.bathrooms ?? 0}
-                  image={f.cover_image_url || burgasHero}
-                  tag={f.city_name ?? ""}
-                />
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   );
 }
