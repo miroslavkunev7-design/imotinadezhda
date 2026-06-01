@@ -99,8 +99,7 @@ function DatabasePage() {
   const filteredQuarters = quarters.filter((q) => !cityId || q.city_id === cityId);
 
   return (
-    <AdminShell breadcrumb="База данни">
-      <div className="space-y-6">
+    <div className="space-y-6">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-[10px] uppercase tracking-widest text-amber-200">
