@@ -41,10 +41,10 @@ import { cn } from "@/lib/utils";
 
 type NavKey = "sale" | "rent" | "about";
 
-const topNav = [
-  { key: "sale" as const, label: "За продажба", href: "/search?status=sale" },
-  { key: "rent" as const, label: "Под наем", href: "/search?status=rent" },
-  { key: "about" as const, label: "За нас", href: "/about" },
+const topNav: Array<{ key: "sale" | "rent" | "about"; label: string; to: string; search?: Record<string, string> }> = [
+  { key: "sale", label: "За продажба", to: "/search", search: { status: "sale" } },
+  { key: "rent", label: "Под наем", to: "/search", search: { status: "rent" } },
+  { key: "about", label: "За нас", to: "/" },
 ];
 
 export const citySlugImages: Record<string, string> = {
@@ -131,9 +131,10 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
 
         <nav className="flex items-center gap-5 md:gap-10">
           {topNav.map((item) => (
-            <a
+            <Link
               key={item.key}
-              href={item.href}
+              to={item.to}
+              search={item.search as any}
               className={cn(
                 "relative font-display text-base text-primary transition hover:text-primary/80 md:text-lg",
                 active === item.key &&
@@ -141,7 +142,7 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
               )}
             >
               {item.label}
-            </a>
+            </Link>
           ))}
           <button
             className="text-primary transition hover:text-primary/70"
