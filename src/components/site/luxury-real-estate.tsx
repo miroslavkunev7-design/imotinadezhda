@@ -677,8 +677,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
   return (
     <main
-      className="luxury-page flex flex-col overflow-hidden bg-[#150409] text-primary-foreground"
-      style={{ height: "100dvh", maxHeight: "100dvh" }}
+      className="luxury-page flex min-h-screen flex-col bg-[#150409] text-primary-foreground"
     >
       {/* Hero card */}
       <section className="relative flex-[0_0_auto] px-2 pt-2 md:px-8 md:pt-4">
@@ -695,26 +694,26 @@ export function CityPage({ data }: { data?: CityData } = {}) {
           <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[28px]">
             <div className="grid md:grid-cols-[1.02fr_0.98fr]">
               {/* LEFT: hero image + marble logo corner */}
-              <div className="relative h-[140px] md:min-h-[460px] lg:min-h-[clamp(380px,52vh,540px)]">
+              <div className="relative h-[160px] md:min-h-[380px] lg:min-h-[clamp(340px,44vh,440px)]">
                 <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 35%" }} />
                 <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(20,3,7,0.85) 100%)" }} />
-                {/* Marble logo badge with S-curve flare swoosh */}
+                {/* Marble logo badge with clean S-curve swoosh */}
                 <div
-                  className="absolute left-0 top-0 z-10 h-[110px] w-[230px] md:h-[240px] md:w-[500px] lg:h-[260px] lg:w-[540px]"
+                  className="absolute left-0 top-0 z-10 h-[90px] w-[180px] md:h-[160px] md:w-[340px] lg:h-[170px] lg:w-[360px]"
                   style={{
                     background:
                       "radial-gradient(ellipse at 18% 8%, #fffaf0 0%, transparent 55%), linear-gradient(155deg, #fbf6ea 0%, #f4e6c4 55%, #ecd9a8 100%)",
-                    clipPath: "path('M0 0 L70% 0 C80% 0 86% 8% 84% 20% C82% 32% 92% 40% 100% 44% C90% 50% 76% 56% 68% 66% C58% 78% 54% 90% 42% 96% C30% 100% 14% 100% 0 100% Z')",
-                    WebkitClipPath: "path('M0 0 L70% 0 C80% 0 86% 8% 84% 20% C82% 32% 92% 40% 100% 44% C90% 50% 76% 56% 68% 66% C58% 78% 54% 90% 42% 96% C30% 100% 14% 100% 0 100% Z')",
+                    clipPath: "path('M0 0 L72% 0 C84% 0 92% 14% 86% 32% C80% 52% 92% 70% 100% 78% C82% 92% 58% 100% 36% 100% L0 100% Z')",
+                    WebkitClipPath: "path('M0 0 L72% 0 C84% 0 92% 14% 86% 32% C80% 52% 92% 70% 100% 78% C82% 92% 58% 100% 36% 100% L0 100% Z')",
                     boxShadow: "inset 0 -2px 14px rgba(184,137,58,0.28)",
                   }}
                 >
-                  <Link to="/" className="absolute left-4 top-3 md:left-12 md:top-9">
-                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-[40px] w-auto object-contain md:h-[90px] lg:h-[98px]" />
+                  <Link to="/" className="absolute left-3 top-2 md:left-8 md:top-5">
+                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-[60px] w-auto object-contain md:h-[110px] lg:h-[120px]" />
                   </Link>
                 </div>
                 {/* Gold edge tracing the S-curve flare */}
-                <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 hidden h-[260px] w-[540px] md:block md:h-[280px]" viewBox="0 0 540 270" preserveAspectRatio="none">
+                <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 hidden h-[170px] w-[360px] md:block" viewBox="0 0 360 170" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="goldEdgeCity" x1="0" x2="1">
                       <stop offset="0%" stopColor="#b8893a" stopOpacity="0" />
@@ -723,10 +722,11 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                       <stop offset="100%" stopColor="#b8893a" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path d="M0,0 L378,0 C432,0 464,22 454,54 C443,87 497,108 540,119 C496,131 410,148 367,178 C314,212 292,240 227,256 C164,270 82,270 0,270" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="2.5" />
-                  <path d="M395,8 C436,12 462,32 450,60 C440,90 497,114 540,124" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="1.2" opacity="0.7" />
+                  <path d="M0,0 L259,0 C302,0 331,24 310,54 C290,88 331,119 360,133 C295,156 209,170 130,170 L0,170" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="2.5" />
+                  <path d="M268,6 C306,10 327,30 312,58 C298,84 335,108 360,118" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="1.2" opacity="0.7" />
                 </svg>
               </div>
+
 
               {/* RIGHT: burgundy panel — deep dark wine to match mockup */}
               <div
