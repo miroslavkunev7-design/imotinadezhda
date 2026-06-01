@@ -24,9 +24,25 @@ function AuditPage() {
   const [ipFilter, setIpFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [live, setLive] = useState(true);
+  const [newCount, setNewCount] = useState(0);
+
+  const matchesFilters = (r: LogRow) => {
+    if (pathFilter !== "all" && r.path !== pathFilter) return false;
+    if (emailFilter.trim() && !(r.email ?? "").toLowerCase().includes(emailFilter.trim().toLowerCase())) return false;
+    if (ipFilter.trim() && !(r.ip ?? "").toLowerCase().includes(ipFilter.trim().toLowerCase())) return false;
+    if (dateFrom && new Date(r.created_at) < new Date(dateFrom)) return false;
+    if (dateTo) {
+      const end = new Date(dateTo);
+      end.setHours(23, 59, 59, 999);
+      if (new Date(r.created_at) > end) return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     setLoading(true);
+    setNewCount(0);
     let q = supabase
       .from("admin_access_log")
       .select("*")
@@ -46,6 +62,30 @@ function AuditPage() {
       setLoading(false);
     });
   }, [pathFilter, emailFilter, ipFilter, dateFrom, dateTo]);
+
+  useEffect(() => {
+    if (!live) return;
+    const channel = supabase
+      .channel("admin_access_log_live")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "admin_access_log" },
+        (payload) => {
+          const row = payload.new as LogRow;
+          if (!matchesFilters(row)) return;
+          setRows((prev) => {
+            if (prev.some((r) => r.id === row.id)) return prev;
+            return [row, ...prev].slice(0, 500);
+          });
+          setNewCount((c) => c + 1);
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, pathFilter, emailFilter, ipFilter, dateFrom, dateTo]);
 
   const inputCls =
     "rounded border border-amber-100/20 bg-[#1a0608] px-3 py-1.5 text-sm text-amber-100 placeholder:text-amber-100/30";
@@ -92,7 +132,31 @@ function AuditPage() {
         <h1 className="font-display text-2xl text-amber-100">
           Одит лог — достъп до /login и /admin
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => {
+              setLive((v) => !v);
+              setNewCount(0);
+            }}
+            className={`flex items-center gap-2 rounded border px-3 py-1.5 text-xs transition ${
+              live
+                ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-200"
+                : "border-amber-100/20 bg-[#1a0608] text-amber-100/70"
+            }`}
+            title={live ? "Изключи live обновяване" : "Включи live обновяване"}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                live ? "animate-pulse bg-emerald-400" : "bg-amber-100/30"
+              }`}
+            />
+            {live ? "На живо" : "Пауза"}
+            {live && newCount > 0 && (
+              <span className="ml-1 rounded-full bg-emerald-400/30 px-1.5 text-[10px] font-semibold text-emerald-100">
+                +{newCount}
+              </span>
+            )}
+          </button>
           {hasFilters && (
             <button
               onClick={() => {
