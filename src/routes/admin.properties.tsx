@@ -218,6 +218,7 @@ function PropertiesAdmin() {
       )}
 
       {imagesFor && <ImagesModal property={imagesFor} onClose={() => { setImagesFor(null); load(); }} />}
+      {docsFor && <DocumentsModal property={docsFor} onClose={() => setDocsFor(null)} />}
     </div>
   );
 }
