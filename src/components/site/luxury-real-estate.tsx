@@ -582,7 +582,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
             }}
           />
           <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[28px]">
-            <div className="grid h-[260px] md:h-[440px] lg:h-[clamp(420px,52vh,500px)] md:grid-cols-[1.02fr_0.98fr]">
+            <div className="grid h-[280px] md:h-[460px] lg:h-[clamp(460px,56vh,540px)] md:grid-cols-[1.02fr_0.98fr]">
               {/* LEFT: hero image + marble logo corner */}
               <div className="relative h-full overflow-hidden">
                 <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 40%" }} />
@@ -649,7 +649,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                   <StatItem icon={User} value={city.population ? `~${new Intl.NumberFormat("bg-BG").format(city.population)}` : "—"} label="жители" />
                   <StatItem icon={Square} value={city.area_km2 ? `${city.area_km2} km²` : "—"} label="площ" />
                   <StatItem icon={MapPin} value={city.region ?? "—"} label="регион" />
-                  <StatItem icon={Building2} value={`${properties.length || 850}+`} label="имоти" />
+                  <StatItem icon={Building2} value={`${properties.length || 850}+`} label="активни имота" />
                 </div>
               </div>
             </div>
@@ -803,7 +803,7 @@ function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: stri
         <Icon className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]" />
       </div>
       <div className="mt-0.5 font-display text-[0.85rem] leading-tight text-[#e8c477] md:mt-1 md:text-[1.25rem]">{value}</div>
-      <div className="text-[10px] leading-tight text-primary-foreground/75 md:text-[12px]">{label}</div>
+      <div className="text-[10px] leading-tight text-[#f0e3c8]/90 md:text-[12.5px]">{label}</div>
     </div>
   );
 }
