@@ -28,6 +28,7 @@ const PROJECT_ID = "96d88938-791e-487e-8256-6bfbd8c8aa0f";
 const DEFAULT_URL = `https://id-preview--${PROJECT_ID}.lovable.app/cities/burgas`;
 const url = flags.url ?? DEFAULT_URL;
 const update = flags.update === "true";
+const updateSafe = flags["update-safe"] === "true";
 const VW = 1920;
 const VH = 1080;
 
