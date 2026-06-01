@@ -117,8 +117,9 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-display text-base leading-none text-primary">Имоти</div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-700">Надежда</div>
+              <div className="font-display text-base leading-none text-amber-100">Имоти</div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">Надежда</div>
+
             </div>
           </Link>
           <button
