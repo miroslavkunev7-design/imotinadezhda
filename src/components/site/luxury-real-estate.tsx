@@ -906,7 +906,7 @@ function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Arr
         type="button"
         onClick={() => scroll(-1)}
         aria-label="Предишни"
-        className="absolute left-0 top-1/2 z-20 hidden h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.92)] text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:scale-105 md:flex"
+        className="absolute left-2 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.92)] text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:scale-105 md:flex"
       >
         <ChevronLeft className="h-6 w-6" />
       </button>
