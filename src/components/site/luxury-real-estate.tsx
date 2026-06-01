@@ -40,6 +40,21 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MortgageRangeBand } from "@/components/site/mortgage-range-band";
 
+// Route external images through a CDN proxy to bypass cross-origin resource policy blocks.
+function proxyImage(url?: string | null): string {
+  if (!url) return "";
+  if (url.startsWith("/") || url.startsWith("data:") || url.startsWith("blob:")) return url;
+  if (url.includes("images.weserv.nl")) return url;
+  try {
+    const u = new URL(url);
+    const stripped = u.host + u.pathname + (u.search || "");
+    return `https://images.weserv.nl/?url=${encodeURIComponent(stripped)}`;
+  } catch {
+    return url;
+  }
+}
+
+
 type NavKey = "sale" | "rent" | "about";
 
 const topNav: Array<{ key: "sale" | "rent" | "about"; label: string; to: string; search?: Record<string, string> }> = [
@@ -449,12 +464,17 @@ function MarblePropertyCard({
     >
       <div className="relative aspect-[1.3/1] overflow-hidden p-1.5">
         <img
-          src={image}
+          src={proxyImage(image) || burgasHero}
           alt={title}
           className="h-full w-full rounded-[10px] object-cover transition duration-500 group-hover:scale-[1.04]"
           loading="lazy"
+          referrerPolicy="no-referrer"
           onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = burgasHero;
+            const img = e.currentTarget as HTMLImageElement;
+            if (!img.dataset.fellBack) {
+              img.dataset.fellBack = "1";
+              img.src = burgasHero;
+            }
           }}
         />
       </div>
@@ -767,13 +787,13 @@ export function CityPage({ data }: { data?: CityData } = {}) {
         </div>
       </section>
 
-      {/* Inline burgundy search bar — tucked into the hero so they read as one piece */}
-      <section className="relative z-30 mx-auto -mt-3 w-full max-w-[1440px] flex-[0_0_auto] px-2 md:-mt-14 md:px-8 lg:-mt-16">
+      {/* Burgundy search bar — sits just above the marble quarters card */}
+      <section className="relative z-30 mx-auto -mt-2 w-full max-w-[1440px] flex-[0_0_auto] px-2 md:-mt-4 md:px-8">
         <CitySearchBar citySlug={city.slug} cityName={city.name} />
       </section>
 
       {/* Marble quarters strip */}
-      <section className="relative mx-auto mt-2 flex w-full max-w-[1480px] flex-1 items-stretch min-h-0 px-2 pb-2 md:mt-6 md:px-8 md:pb-6">
+      <section className="relative mx-auto -mt-3 flex w-full max-w-[1480px] flex-1 items-stretch min-h-0 px-2 pb-2 md:-mt-4 md:px-8 md:pb-6">
         <div
           className="relative w-full overflow-hidden rounded-[18px] p-3 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[24px] md:p-6"
           style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}
@@ -817,19 +837,19 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
     <button
       type="button"
       onClick={handleSearch}
-      className="group flex flex-1 items-center gap-3 px-4 py-2 text-left transition hover:bg-white/[0.03] md:px-5"
+      className="group flex flex-1 items-center gap-3 px-4 py-4 text-left transition hover:bg-white/[0.03] md:px-5 md:py-5"
     >
-      <Icon className="h-[18px] w-[18px] flex-none text-[#c9a24a]" />
-      <div className="min-w-0">
-        <div className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#c9a24a]/90">{label}</div>
-        <div className="truncate text-[14px] text-primary-foreground/95">{value}</div>
+      <Icon className="h-[18px] w-[18px] flex-none text-[#e8c477]" />
+      <div className="min-w-0 flex-1">
+        <div className="font-display text-[10.5px] uppercase tracking-[0.22em] text-[#e8c477]">{label}</div>
+        <div className="mt-0.5 truncate text-[14px] leading-tight text-[#f5ecd4]">{value}</div>
       </div>
-      <ChevronDown className="ml-auto h-4 w-4 text-[#c9a24a]/70" />
+      <ChevronDown className="ml-auto h-4 w-4 flex-none text-[#e8c477]/80" />
     </button>
   );
   return (
     <div
-      className="relative flex items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] md:rounded-[22px]"
+      className="relative flex min-h-[72px] items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] md:min-h-[88px] md:rounded-[22px]"
       style={{
         background: "radial-gradient(ellipse at 20% 0%, rgba(95,18,32,0.45), transparent 60%), linear-gradient(135deg, #350810 0%, #180307 100%)",
         border: "1px solid rgba(232,196,119,0.45)",
@@ -921,18 +941,26 @@ function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: stri
 
 function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Array<{ id: string; slug: string; name: string; image_url?: string | null; properties_count?: number | null }>; citySlug: string; fallbackImage: string }) {
   const visible = quarters.slice(0, 5);
+  const localCycle = [burgasHero, burgasPier, cityBurgas, homeHero, fallbackImage];
   return (
     <div className="relative grid grid-cols-2 gap-2.5 md:grid-cols-5 md:gap-3">
-      {visible.map((q) => (
-        <Link
-          key={q.id}
-          to="/cities/$slug/districts/$district"
-          params={{ slug: citySlug, district: q.slug }}
-          className="block"
-        >
-          <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={q.image_url || fallbackImage} />
-        </Link>
-      ))}
+      {visible.map((q, idx) => {
+        // External image_urls (e.g. realistimo) are blocked cross-origin, so prefer
+        // a local fallback image cycled by index for visual variety.
+        const remote = q.image_url || "";
+        const usesLocal = !remote || /^https?:\/\//i.test(remote);
+        const img = usesLocal ? localCycle[idx % localCycle.length] : remote;
+        return (
+          <Link
+            key={q.id}
+            to="/cities/$slug/districts/$district"
+            params={{ slug: citySlug, district: q.slug }}
+            className="block"
+          >
+            <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={img} />
+          </Link>
+        );
+      })}
     </div>
   );
 }
