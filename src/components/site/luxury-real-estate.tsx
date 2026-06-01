@@ -803,7 +803,7 @@ function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: stri
         <Icon className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]" />
       </div>
       <div className="mt-0.5 font-display text-[0.85rem] leading-tight text-[#e8c477] md:mt-1 md:text-[1.25rem]">{value}</div>
-      <div className="text-[10px] leading-tight text-primary-foreground/75 md:text-[12px]">{label}</div>
+      <div className="text-[10px] leading-tight text-[#f0e3c8]/90 md:text-[12.5px]">{label}</div>
     </div>
   );
 }
