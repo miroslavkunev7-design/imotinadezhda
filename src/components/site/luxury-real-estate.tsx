@@ -918,49 +918,19 @@ function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: stri
 }
 
 function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Array<{ id: string; slug: string; name: string; image_url?: string | null; properties_count?: number | null }>; citySlug: string; fallbackImage: string }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const scroll = (dir: 1 | -1) => {
-    const el = ref.current;
-    if (!el) return;
-    const card = el.querySelector<HTMLElement>("[data-quarter-card]");
-    const step = (card?.offsetWidth ?? 280) + 16;
-    el.scrollBy({ left: dir * step * 2, behavior: "smooth" });
-  };
+  const visible = quarters.slice(0, 5);
   return (
-    <div className="relative mt-2 md:mt-6">
-      <button
-        type="button"
-        onClick={() => scroll(-1)}
-        aria-label="Предишни"
-        className="absolute left-2 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.92)] text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:scale-105 md:flex"
-      >
-        <ChevronLeft className="h-6 w-6" />
-      </button>
-      <button
-        type="button"
-        onClick={() => scroll(1)}
-        aria-label="Следващи"
-        className="absolute right-2 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.92)] text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:scale-105 md:flex"
-      >
-        <ChevronRight className="h-6 w-6" />
-      </button>
-      <div
-        ref={ref}
-        className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3"
-        style={{ scrollbarWidth: "thin" }}
-      >
-        {quarters.map((q) => (
-          <Link
-            key={q.id}
-            to="/cities/$slug/districts/$district"
-            params={{ slug: citySlug, district: q.slug }}
-            data-quarter-card
-            className="block w-[170px] flex-none snap-start md:w-[185px]"
-          >
-            <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={q.image_url || fallbackImage} />
-          </Link>
-        ))}
-      </div>
+    <div className="relative grid grid-cols-2 gap-2.5 md:grid-cols-5 md:gap-3">
+      {visible.map((q) => (
+        <Link
+          key={q.id}
+          to="/cities/$slug/districts/$district"
+          params={{ slug: citySlug, district: q.slug }}
+          className="block"
+        >
+          <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={q.image_url || fallbackImage} />
+        </Link>
+      ))}
     </div>
   );
 }
