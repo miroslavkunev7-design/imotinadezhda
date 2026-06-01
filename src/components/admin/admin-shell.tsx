@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { newMatchesCount } from "@/lib/crm.functions";
 import { AdminAIBubble } from "@/components/admin/ai-bubble";
 import marbleBg from "@/assets/marble-bg.png";
+import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
 
 type NavItem = {
   to: string;
