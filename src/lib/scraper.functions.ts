@@ -33,10 +33,20 @@ function parseNumber(text?: string | null): number | null {
   return m ? Number(m) : null;
 }
 
-function extractImages(html: string, baseUrl: string): string[] {
-  if (!html) return [];
+// Domains / keywords commonly used by competing agencies — skip listings that show their watermark/logo.
+const AGENCY_KEYWORDS = [
+  "logo", "watermark", "brand", "stamp",
+  "address.bg", "luximmo", "bulgarianproperties", "imotiplus", "yavlena", "mirela",
+  "imoti.net", "stoyanov", "homeland", "imoplus", "novahome", "primahome", "remax",
+  "era-bulgaria", "imotibg", "domsi", "newestate", "arcobaleno", "imoti24",
+  "suprimmo", "imoteka", "agencia", "agenciq",
+];
+
+function extractImages(html: string, baseUrl: string): { urls: string[]; agencyLogo: { detected: boolean; reason: string | null } } {
+  if (!html) return { urls: [], agencyLogo: { detected: false, reason: null } };
   const urls = new Set<string>();
   const re = /<img[^>]+src=["']([^"']+)["']/gi;
+  let agencyHit: string | null = null;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) !== null) {
     let u = m[1];
@@ -46,12 +56,20 @@ function extractImages(html: string, baseUrl: string): string[] {
     }
     if (!/^https?:\/\//.test(u)) continue;
     if (/\.(svg|gif)$/i.test(u)) continue;
-    if (/(logo|icon|sprite|avatar|placeholder)/i.test(u)) continue;
+    const lower = u.toLowerCase();
+    const hit = AGENCY_KEYWORDS.find((kw) => lower.includes(kw));
+    if (hit) { if (!agencyHit) agencyHit = hit; continue; }
+    if (/(icon|sprite|avatar|placeholder)/i.test(u)) continue;
     urls.add(u);
     if (urls.size >= 12) break;
   }
-  return Array.from(urls);
+  // Also scan raw HTML for explicit "лого на агенция" mentions
+  if (!agencyHit && /(агенция|агенциа|brokerage|estate agency)/i.test(html) && /<img[^>]+(logo|watermark)/i.test(html)) {
+    agencyHit = "agency-html-mention";
+  }
+  return { urls: Array.from(urls), agencyLogo: { detected: !!agencyHit, reason: agencyHit } };
 }
+
 
 type ScrapeResult = {
   source: typeof SOURCES[number];
@@ -66,6 +84,8 @@ type ScrapeResult = {
   images?: string[];
   city_slug?: string;
   seller_type: "private" | "agency" | "unknown";
+  agency_logo_detected?: boolean;
+  agency_logo_reason?: string | null;
 };
 
 function buildResult(
@@ -79,6 +99,7 @@ function buildResult(
   const html: string = (item.html ?? item.rawHtml ?? "") as string;
   const combined = md + "\n" + html;
   const phone = combined.match(/(\+?359[\s\d-]{7,}|0[\s\d-]{8,})/)?.[1]?.replace(/\s+/g, "");
+  const { urls: imgUrls, agencyLogo } = extractImages(html, url);
   return {
     source,
     source_url: url,
@@ -88,11 +109,14 @@ function buildResult(
     currency: /BGN|лв/i.test(combined) ? "BGN" : "EUR",
     area_sqm: parseNumber(combined.match(/(\d{2,4})\s*(?:m2|m²|кв\.?м)/i)?.[1]),
     phone,
-    images: extractImages(html, url),
+    images: imgUrls,
     city_slug: citySlug,
     seller_type: detectSellerType(combined + " " + (item.title ?? "")),
+    agency_logo_detected: agencyLogo.detected,
+    agency_logo_reason: agencyLogo.reason,
   };
 }
+
 
 async function searchAndBuild(
   client: Firecrawl,
@@ -160,16 +184,18 @@ export const runScrape = createServerFn({ method: "POST" })
     }
 
 
-    // Filter private-only if requested
-    const filtered = data.privateOnly
-      ? allResults.filter((r) => r.seller_type === "private" || r.seller_type === "unknown")
-      : allResults;
+    // Filter private-only if requested + skip listings with agency logos in images
+    const filtered = allResults.filter((r) => {
+      if (r.agency_logo_detected) return false;
+      if (data.privateOnly) return r.seller_type === "private" || r.seller_type === "unknown";
+      return true;
+    });
+    const skippedAgencyLogo = allResults.filter((r) => r.agency_logo_detected).length;
 
     // Resolve city_id mapping
     const { data: cities } = await supabaseAdmin.from("cities").select("id, slug");
     const cityMap = new Map((cities ?? []).map((c) => [c.slug, c.id]));
 
-    // Upsert into extracted_listings
     let inserted = 0;
     let skipped = 0;
     for (const r of filtered) {
@@ -189,21 +215,20 @@ export const runScrape = createServerFn({ method: "POST" })
             phone: r.phone ?? null,
             images: r.images ?? [],
             seller_type: r.seller_type,
+            agency_logo_detected: false,
             status: "pending",
           },
           { onConflict: "source,source_url", ignoreDuplicates: true },
         );
-      if (error) {
-        skipped++;
-      } else {
-        inserted++;
-      }
+      if (error) skipped++; else inserted++;
     }
 
     return {
       ok: true,
       total_found: allResults.length,
       after_private_filter: filtered.length,
+      skipped_agency_logo: skippedAgencyLogo,
+
       inserted,
       skipped,
     };

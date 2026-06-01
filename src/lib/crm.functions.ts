@@ -312,3 +312,133 @@ export const deleteContract = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ============ BROKER DETAILS (admin) ============
+export const getBrokerDetails = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ broker_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const [{ data: broker }, { data: clients }, { data: tasks }] = await Promise.all([
+      supabaseAdmin.from("brokers").select("*").eq("id", data.broker_id).maybeSingle(),
+      supabaseAdmin
+        .from("clients")
+        .select("id, full_name, phone, email, client_type, status, cities:search_city_id(name)")
+        .eq("assigned_broker_id", data.broker_id)
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("broker_tasks")
+        .select("*, clients:client_id(full_name, phone, email)")
+        .eq("broker_id", data.broker_id)
+        .order("is_completed", { ascending: true })
+        .order("created_at", { ascending: false }),
+    ]);
+    if (!broker) throw new Error("Брокерът не е намерен");
+    return { broker, clients: clients ?? [], tasks: tasks ?? [] };
+  });
+
+const taskSchema = z.object({
+  id: z.string().uuid().optional().nullable(),
+  broker_id: z.string().uuid(),
+  client_id: z.string().uuid().optional().nullable(),
+  title: z.string().min(2).max(300),
+  description: z.string().max(2000).optional().nullable(),
+  task_type: z.enum(["general", "message_client", "call_client", "meeting"]).default("general"),
+  due_at: z.string().optional().nullable(),
+  is_completed: z.boolean().optional(),
+});
+
+export const upsertBrokerTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => taskSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { id, ...payload } = data;
+    const op = id
+      ? supabaseAdmin.from("broker_tasks").update(payload).eq("id", id).select().single()
+      : supabaseAdmin.from("broker_tasks").insert({ ...payload, created_by: context.userId }).select().single();
+    const { data: row, error } = await op;
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const toggleBrokerTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid(), is_completed: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const patch: any = {
+      is_completed: data.is_completed,
+      completed_at: data.is_completed ? new Date().toISOString() : null,
+    };
+    if (data.is_completed) {
+      const { data: task } = await supabaseAdmin
+        .from("broker_tasks")
+        .select("*, clients:client_id(full_name)")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (task && (task.task_type === "message_client" || task.task_type === "call_client")) {
+        patch.auto_action_log = {
+          performed_at: new Date().toISOString(),
+          type: task.task_type,
+          client: task.clients?.full_name ?? null,
+          note: task.task_type === "message_client"
+            ? `Автоматично отбелязано като изпратено съобщение до ${task.clients?.full_name ?? "клиента"}`
+            : `Автоматично отбелязано като проведено обаждане до ${task.clients?.full_name ?? "клиента"}`,
+        };
+      }
+    }
+    const { error } = await supabaseAdmin.from("broker_tasks").update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteBrokerTask = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { error } = await supabaseAdmin.from("broker_tasks").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const assignClientToBroker = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ broker_id: z.string().uuid(), client_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { error } = await supabaseAdmin
+      .from("clients")
+      .update({ assigned_broker_id: data.broker_id })
+      .eq("id", data.client_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const unassignClientFromBroker = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ client_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { error } = await supabaseAdmin
+      .from("clients")
+      .update({ assigned_broker_id: null })
+      .eq("id", data.client_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listUnassignedClients = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("clients")
+      .select("id, full_name, phone, email, client_type, cities:search_city_id(name)")
+      .is("assigned_broker_id", null)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+

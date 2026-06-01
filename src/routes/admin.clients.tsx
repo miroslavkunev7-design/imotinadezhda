@@ -138,7 +138,7 @@ function ClientsAdmin() {
                 </select></Field>
                 <Field label="Брокер"><select value={editing.assigned_broker_id ?? ""} onChange={(e) => setEditing({ ...editing, assigned_broker_id: e.target.value || null })} className={iC}>
                   <option value="">—</option>
-                  {brokers.map((b) => <option key={b.id} value={b.user_id ?? b.id}>{b.full_name}</option>)}
+                  {brokers.map((b) => <option key={b.id} value={b.id}>{b.full_name}</option>)}
                 </select></Field>
               </div>
             </Section>
