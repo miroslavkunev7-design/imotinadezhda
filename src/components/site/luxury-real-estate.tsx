@@ -40,6 +40,21 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MortgageRangeBand } from "@/components/site/mortgage-range-band";
 
+// Route external images through a CDN proxy to bypass cross-origin resource policy blocks.
+function proxyImage(url?: string | null): string {
+  if (!url) return "";
+  if (url.startsWith("/") || url.startsWith("data:") || url.startsWith("blob:")) return url;
+  if (url.includes("images.weserv.nl")) return url;
+  try {
+    const u = new URL(url);
+    const stripped = u.host + u.pathname + (u.search || "");
+    return `https://images.weserv.nl/?url=${encodeURIComponent(stripped)}`;
+  } catch {
+    return url;
+  }
+}
+
+
 type NavKey = "sale" | "rent" | "about";
 
 const topNav: Array<{ key: "sale" | "rent" | "about"; label: string; to: string; search?: Record<string, string> }> = [
