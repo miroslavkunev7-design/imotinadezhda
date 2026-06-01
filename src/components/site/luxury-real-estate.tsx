@@ -290,7 +290,7 @@ function RangeCell({
 function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
   return (
     <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[16px] md:rounded-[18px]">
-      <div className="relative aspect-[1.1/1] overflow-hidden rounded-[16px] border border-primary/25 shadow-[0_18px_38px_rgba(77,25,31,0.28)] md:aspect-[1.45/1] md:rounded-[18px] lg:aspect-[1.65/1]">
+      <div className="relative aspect-[1.1/1] overflow-hidden rounded-[16px] border border-primary/25 shadow-[0_18px_38px_rgba(20,20,20,0.28)] md:aspect-[1.45/1] md:rounded-[18px] lg:aspect-[1.65/1]">
         <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
         <div className="marble-wave-glow" />
         <GoldDustLayer />
@@ -300,19 +300,19 @@ function CityCard({ name, image, href, params }: { name: string; image: string; 
           className="pointer-events-none absolute inset-x-0 bottom-0 z-[8] h-[58%]"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(36,8,4,0.55) 55%, rgba(20,4,2,0.78) 100%)",
+              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(20,20,20,0.55) 55%, rgba(20,4,2,0.78) 100%)",
           }}
         />
         {/* Glassy gold label — overlay at the bottom of the image */}
         <div className="absolute inset-x-0 bottom-0 z-[9] flex items-end justify-between gap-2 px-3 pb-2.5 pt-6 md:px-5 md:pb-3.5 md:pt-8">
           <div className="min-w-0">
-            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-[#f5d98a] md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
-              <MapPin className="h-3 w-3 text-[#f0c560] md:h-3.5 md:w-3.5" />
+            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-[#fca5a5] md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
+              <MapPin className="h-3 w-3 text-[#ef4444] md:h-3.5 md:w-3.5" />
               <span>Виж града</span>
             </div>
-            <div className="font-display text-base leading-tight text-[#fff6df] drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] md:text-2xl lg:text-[1.75rem]">{name}</div>
+            <div className="font-display text-base leading-tight text-[#ffffff] drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] md:text-2xl lg:text-[1.75rem]">{name}</div>
           </div>
-          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[#f0c560]/70 bg-[#1a0508]/45 text-[#f5d98a] backdrop-blur-sm transition group-hover:bg-[#e8c069] group-hover:text-[#2a1208] md:h-10 md:w-10">
+          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[#ef4444]/70 bg-[#0a0a0a]/45 text-[#fca5a5] backdrop-blur-sm transition group-hover:bg-[#ef4444] group-hover:text-[#0a0a0a] md:h-10 md:w-10">
             <ChevronRight className="h-3.5 w-3.5 -rotate-45 md:h-4 md:w-4" />
           </div>
         </div>
@@ -333,7 +333,7 @@ function MarblePropertyCard({
 }) {
   return (
     <article
-      className="marble-hover-card group flex flex-col overflow-hidden rounded-[14px] border border-[#c9a24a]/40 shadow-[0_14px_30px_rgba(77,25,31,0.18)]"
+      className="marble-hover-card group flex flex-col overflow-hidden rounded-[14px] border border-[#dc2626]/40 shadow-[0_14px_30px_rgba(20,20,20,0.18)]"
       style={{
         background:
           "linear-gradient(180deg, rgba(252,246,232,0.98), rgba(245,234,210,0.97))",
@@ -357,13 +357,13 @@ function MarblePropertyCard({
         <GoldDustLayer />
       </div>
       <div className="relative px-3 pb-3 pt-1">
-        <div className="font-display text-[1rem] leading-tight text-[#2a050b] md:text-[1.1rem]">{title}</div>
+        <div className="font-display text-[1rem] leading-tight text-[#1a1a1a] md:text-[1.1rem]">{title}</div>
         <div className="mt-1 flex items-center justify-between">
-          <span className="inline-flex items-center gap-1 text-[10.5px] text-[#7a4a10] md:text-[11.5px]">
-            <MapPin className="h-3 w-3 text-[#a87622]" />
+          <span className="inline-flex items-center gap-1 text-[10.5px] text-[#525252] md:text-[11.5px]">
+            <MapPin className="h-3 w-3 text-[#b91c1c]" />
             {count} имота
           </span>
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#c9a24a]/60 text-[#7a4a10]">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#dc2626]/60 text-[#525252]">
             <ChevronRight className="h-3.5 w-3.5" />
           </span>
         </div>
@@ -392,7 +392,7 @@ export function ListingCard({
   location?: string;
 }) {
   return (
-    <article className="marble-hover-card group overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_20px_45px_rgba(93,39,22,0.16)]">
+    <article className="marble-hover-card group overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_20px_45px_rgba(20,20,20,0.16)]">
       <div className="relative aspect-[1.08/0.82] overflow-hidden">
         <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
         {tag ? <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-[0.08em] text-primary-foreground">{tag}</span> : null}
@@ -402,7 +402,7 @@ export function ListingCard({
         <button
           type="button"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-[rgba(102,8,28,0.88)] px-3.5 py-1.5 text-xs font-semibold tracking-[0.08em] text-primary-foreground shadow-[0_8px_22px_rgba(60,10,20,0.45)] backdrop-blur-sm transition hover:bg-[rgba(122,18,38,0.95)]"
+          className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-[rgba(225,29,72,0.88)] px-3.5 py-1.5 text-xs font-semibold tracking-[0.08em] text-primary-foreground shadow-[0_8px_22px_rgba(20,20,20,0.45)] backdrop-blur-sm transition hover:bg-[rgba(225,29,72,0.95)]"
           aria-label="3D виртуален оглед"
         >
           <Box className="h-3.5 w-3.5 text-primary" />
@@ -430,7 +430,7 @@ export function ListingCard({
 
 function AgentCard() {
   return (
-    <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(60,10,20,0.3)]">
+    <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(20,20,20,0.3)]">
       <div className="flex items-center gap-4">
         <div className="h-18 w-18 flex h-18 w-18 items-center justify-center rounded-full border-2 border-primary bg-background/20 text-primary">
           <User className="h-8 w-8" />
@@ -452,7 +452,7 @@ function AgentCard() {
 
 function DetailCard() {
   return (
-    <aside className="marble-dark-panel rounded-[20px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(60,10,20,0.28)]">
+    <aside className="marble-dark-panel rounded-[20px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(20,20,20,0.28)]">
       <h3 className="mb-4 font-display text-[2rem] text-primary-foreground">Детайли за имота</h3>
       <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-3 text-base md:text-lg">
         <dt className="text-primary/78">Тип имот:</dt><dd>Апартамент</dd>
@@ -471,7 +471,7 @@ function DetailCard() {
 
 function MapCard({ district = false }: { district?: boolean }) {
   return (
-    <aside className="overflow-hidden rounded-[22px] border border-primary/15 bg-card shadow-[0_20px_45px_rgba(91,41,18,0.16)]">
+    <aside className="overflow-hidden rounded-[22px] border border-primary/15 bg-card shadow-[0_20px_45px_rgba(20,20,20,0.16)]">
       <div className="p-4">
         <div className="font-display text-[1.8rem] text-accent-foreground">Локация</div>
         <p className="mt-1 text-base text-muted-foreground">кв. Лазур, гр. Бургас</p>
@@ -479,8 +479,8 @@ function MapCard({ district = false }: { district?: boolean }) {
       <div className="relative h-[300px] overflow-hidden border-y border-primary/10 bg-[linear-gradient(135deg,rgba(215,203,186,0.85),rgba(231,224,210,0.92))]">
         <div className="absolute inset-0 opacity-70" style={{ backgroundImage: "linear-gradient(90deg, rgba(120,106,94,0.18) 1px, transparent 1px), linear-gradient(rgba(120,106,94,0.18) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
         <div className={cn("absolute inset-y-0 right-[12%] w-[22%] bg-[linear-gradient(180deg,rgba(56,136,180,0.6),rgba(34,125,180,0.78))]", district ? "w-[28%]" : "")} />
-        {district ? <div className="absolute inset-y-[12%] right-[18%] w-[28%] rounded-[40%] bg-[rgba(120,15,38,0.5)] border border-[rgba(120,15,38,0.4)]" /> : null}
-        <div className={cn("absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-card text-primary shadow-[0_0_0_8px_rgba(122,17,37,0.18)]", district && "left-[58%] top-[58%]") }>
+        {district ? <div className="absolute inset-y-[12%] right-[18%] w-[28%] rounded-[40%] bg-[rgba(225,29,72,0.5)] border border-[rgba(225,29,72,0.4)]" /> : null}
+        <div className={cn("absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-card text-primary shadow-[0_0_0_8px_rgba(225,29,72,0.18)]", district && "left-[58%] top-[58%]") }>
           <MapPin className="h-6 w-6" />
         </div>
         {district ? <div className="absolute left-[48%] top-[58%] -translate-x-1/2 -translate-y-1/2 font-display text-[2.3rem] tracking-[0.12em] text-card-foreground/75">ЛАЗУР</div> : null}
@@ -522,7 +522,7 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
       <section
         className="relative flex flex-1 flex-col overflow-hidden px-3 pb-6 pt-0 md:px-6 lg:h-screen lg:max-h-screen lg:pb-4"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(247,241,230,0) 0%, rgba(247,241,230,0) 30%, rgba(247,241,230,0.85) 92%, rgba(247,241,230,1) 100%), url(${homeHero})`,
+          backgroundImage: `linear-gradient(180deg, rgba(236,236,236,0) 0%, rgba(236,236,236,0) 30%, rgba(236,236,236,0.85) 92%, rgba(236,236,236,1) 100%), url(${homeHero})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -576,7 +576,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
   return (
     <main
-      className="dark luxury-page flex min-h-screen flex-col bg-[#150409] text-primary-foreground"
+      className="dark luxury-page flex min-h-screen flex-col bg-[#ececec] text-primary-foreground"
     >
       {/* Hero card */}
       <section className="relative flex-[0_0_auto] px-2 pt-2 md:px-8 md:pt-4">
@@ -586,25 +586,25 @@ export function CityPage({ data }: { data?: CityData } = {}) {
             aria-hidden
             className="absolute -inset-[2px] rounded-[22px] opacity-90 md:rounded-[30px]"
             style={{
-              background: "linear-gradient(135deg, rgba(232,196,119,0.55), rgba(184,137,58,0.15) 40%, rgba(232,196,119,0.55))",
+              background: "linear-gradient(135deg, rgba(239,68,68,0.55), rgba(185,28,28,0.15) 40%, rgba(239,68,68,0.55))",
               filter: "blur(0.5px)",
             }}
           />
-          <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[28px]">
+          <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(239,68,68,0.35)_inset] md:rounded-[28px]">
             <div className="grid h-[280px] md:h-[460px] lg:h-[clamp(460px,56vh,540px)] md:grid-cols-[1.02fr_0.98fr]">
               {/* LEFT: hero image + marble logo corner */}
               <div className="relative h-full overflow-hidden">
                 <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 40%" }} />
-                <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(20,3,7,0.85) 100%)" }} />
+                <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(10,10,10,0.85) 100%)" }} />
                 {/* Marble logo badge with clean S-curve swoosh */}
                 <div
                   className="absolute left-0 top-0 z-10 h-[90px] w-[180px] md:h-[160px] md:w-[340px] lg:h-[170px] lg:w-[360px]"
                   style={{
                     background:
-                      "radial-gradient(ellipse at 18% 8%, #fffaf0 0%, transparent 55%), linear-gradient(155deg, #fbf6ea 0%, #f4e6c4 55%, #ecd9a8 100%)",
+                      "radial-gradient(ellipse at 18% 8%, #f5f5f5 0%, transparent 55%), linear-gradient(155deg, #f5f5f5 0%, #e5e5e5 55%, #d4d4d4 100%)",
                     clipPath: "path('M0 0 L72% 0 C84% 0 92% 14% 86% 32% C80% 52% 92% 70% 100% 78% C82% 92% 58% 100% 36% 100% L0 100% Z')",
                     WebkitClipPath: "path('M0 0 L72% 0 C84% 0 92% 14% 86% 32% C80% 52% 92% 70% 100% 78% C82% 92% 58% 100% 36% 100% L0 100% Z')",
-                    boxShadow: "inset 0 -2px 14px rgba(184,137,58,0.28)",
+                    boxShadow: "inset 0 -2px 14px rgba(185,28,28,0.28)",
                   }}
                 >
                   <Link to="/" className="absolute left-3 top-2 md:left-8 md:top-5">
@@ -615,10 +615,10 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                 <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 hidden h-[170px] w-[360px] md:block" viewBox="0 0 360 170" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="goldEdgeCity" x1="0" x2="1">
-                      <stop offset="0%" stopColor="#b8893a" stopOpacity="0" />
-                      <stop offset="40%" stopColor="#e8c477" />
-                      <stop offset="70%" stopColor="#f8e3a0" />
-                      <stop offset="100%" stopColor="#b8893a" stopOpacity="0" />
+                      <stop offset="0%" stopColor="#b91c1c" stopOpacity="0" />
+                      <stop offset="40%" stopColor="#ef4444" />
+                      <stop offset="70%" stopColor="#fca5a5" />
+                      <stop offset="100%" stopColor="#b91c1c" stopOpacity="0" />
                     </linearGradient>
                   </defs>
                   <path d="M0,0 L259,0 C302,0 331,24 310,54 C290,88 331,119 360,133 C295,156 209,170 130,170 L0,170" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="2.5" />
@@ -632,28 +632,28 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                 className="relative flex flex-col px-4 py-3 md:px-12 md:py-7"
                 style={{
                   background:
-                    "radial-gradient(ellipse at 30% 12%, rgba(95,18,32,0.45), transparent 55%), linear-gradient(135deg, #350810 0%, #180307 100%)",
+                    "radial-gradient(ellipse at 30% 12%, rgba(60,60,60,0.45), transparent 55%), linear-gradient(135deg, #2a2a2a 0%, #0a0a0a 100%)",
                 }}
               >
-                <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover", mixBlendMode: "screen" }} />
+                <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `none`, backgroundSize: "cover", mixBlendMode: "screen" }} />
                 <div className="relative mb-3 hidden items-center justify-end gap-7 text-[14px] md:mb-6 md:flex md:gap-10 md:text-[14.5px]">
                   {topNav.map((item) => (
-                    <Link key={item.key} to={item.to} search={item.search as any} className="text-[#f0e3c8]/95 transition hover:text-[#e8c477]">
+                    <Link key={item.key} to={item.to} search={item.search as any} className="text-[#e5e5e5]/95 transition hover:text-[#ef4444]">
                       {item.label}
                     </Link>
                   ))}
-                  <button aria-label="Профил" className="rounded-full border border-[#c9a24a]/40 p-1.5 text-[#e8c477] transition hover:border-[#e8c477] hover:bg-[#e8c477]/10">
+                  <button aria-label="Профил" className="rounded-full border border-[#dc2626]/40 p-1.5 text-[#ef4444] transition hover:border-[#ef4444] hover:bg-[#ef4444]/10">
                     <User className="h-5 w-5" />
                   </button>
                 </div>
-                <p className="relative font-display text-[10px] uppercase tracking-[0.32em] text-[#c9a24a] md:text-[11.5px]">За града</p>
-                <h1 className="relative mt-1 font-display text-[2rem] leading-[0.95] text-[#e8c477] md:mt-2 md:text-[4.2rem] xl:text-[4.6rem]" style={{ textShadow: "0 2px 24px rgba(232,196,119,0.18)" }}>
+                <p className="relative font-display text-[10px] uppercase tracking-[0.32em] text-[#dc2626] md:text-[11.5px]">За града</p>
+                <h1 className="relative mt-1 font-display text-[2rem] leading-[0.95] text-[#ef4444] md:mt-2 md:text-[4.2rem] xl:text-[4.6rem]" style={{ textShadow: "0 2px 24px rgba(239,68,68,0.18)" }}>
                   {city.name}
                 </h1>
                 {city.description && (
-                  <p className="relative mt-2 line-clamp-2 max-w-[480px] text-[11.5px] leading-[1.45] text-[#f0e3c8]/90 md:mt-4 md:line-clamp-none md:text-[14px] md:leading-[1.65]">{city.description}</p>
+                  <p className="relative mt-2 line-clamp-2 max-w-[480px] text-[11.5px] leading-[1.45] text-[#e5e5e5]/90 md:mt-4 md:line-clamp-none md:text-[14px] md:leading-[1.65]">{city.description}</p>
                 )}
-                <div className="relative mt-3 h-px w-full md:mt-5" style={{ background: "linear-gradient(90deg, transparent, rgba(201,162,74,0.6) 50%, transparent)" }} />
+                <div className="relative mt-3 h-px w-full md:mt-5" style={{ background: "linear-gradient(90deg, transparent, rgba(220,38,38,0.6) 50%, transparent)" }} />
                 <div className="relative mt-3 grid grid-cols-4 gap-2 md:mt-5 md:gap-3">
                   <StatItem icon={User} value={city.population ? `~${new Intl.NumberFormat("bg-BG").format(city.population)}` : "—"} label="жители" />
                   <StatItem icon={Square} value={city.area_km2 ? `${city.area_km2} km²` : "—"} label="площ" />
@@ -674,26 +674,26 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       {/* Marble quarters strip */}
       <section className="relative mx-auto -mt-3 flex w-full max-w-[1480px] flex-1 items-stretch min-h-0 px-2 pb-2 md:-mt-4 md:px-8 md:pb-6">
         <div
-          className="relative w-full overflow-hidden rounded-[18px] p-3 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[24px] md:p-6"
-          style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}
+          className="relative w-full overflow-hidden rounded-[18px] p-3 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(239,68,68,0.35)_inset] md:rounded-[24px] md:p-6"
+          style={{ backgroundImage: `none`, backgroundSize: "cover" }}
         >
           <div className="grid h-full gap-3 md:grid-cols-[260px_1fr] md:items-center md:gap-7">
             <div className="flex flex-row items-center justify-between gap-3 md:flex-col md:items-start md:gap-4">
-              <h2 className="font-display text-[1.05rem] leading-tight text-[#2a050b] md:text-[1.85rem]">
+              <h2 className="font-display text-[1.05rem] leading-tight text-[#1a1a1a] md:text-[1.85rem]">
                 Избери квартал<br />в гр. {city.name}
               </h2>
               <Link
                 to="/cities/$slug"
                 params={{ slug: city.slug }}
-                className="group inline-flex w-full flex-none items-center justify-between gap-3 rounded-[12px] px-4 py-3 font-display text-[12px] text-[#f5ecd4] transition hover:brightness-110 md:rounded-[14px] md:px-5 md:py-4 md:text-[14px]"
+                className="group inline-flex w-full flex-none items-center justify-between gap-3 rounded-[12px] px-4 py-3 font-display text-[12px] text-[#f5f5f5] transition hover:brightness-110 md:rounded-[14px] md:px-5 md:py-4 md:text-[14px]"
                 style={{
-                  background: "linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
-                  border: "1px solid rgba(232,196,119,0.55)",
-                  boxShadow: "0 14px 30px -8px rgba(77,8,20,0.55), inset 0 0 0 1px rgba(232,196,119,0.18)",
+                  background: "linear-gradient(135deg, #262626 0%, #1a1a1a 100%)",
+                  border: "1px solid rgba(239,68,68,0.55)",
+                  boxShadow: "0 14px 30px -8px rgba(20,20,20,0.55), inset 0 0 0 1px rgba(239,68,68,0.18)",
                 }}
               >
-                <span className="whitespace-nowrap leading-tight text-[#f5ecd4]">Виж всички<br />квартали</span>
-                <span className="inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border border-[#e8c477]/60 text-[#e8c477] transition group-hover:bg-[#e8c477]/15 md:h-8 md:w-8">
+                <span className="whitespace-nowrap leading-tight text-[#f5f5f5]">Виж всички<br />квартали</span>
+                <span className="inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border border-[#ef4444]/60 text-[#ef4444] transition group-hover:bg-[#ef4444]/15 md:h-8 md:w-8">
                   <ChevronRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </span>
               </Link>
@@ -717,36 +717,36 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
       onClick={handleSearch}
       className="group flex flex-1 items-center gap-3 px-4 py-4 text-left transition hover:bg-white/[0.03] md:px-5 md:py-5"
     >
-      <Icon className="h-[18px] w-[18px] flex-none text-[#e8c477]" />
+      <Icon className="h-[18px] w-[18px] flex-none text-[#ef4444]" />
       <div className="min-w-0 flex-1">
-        <div className="font-display text-[10.5px] uppercase tracking-[0.22em] text-[#e8c477]">{label}</div>
-        <div className="mt-0.5 truncate text-[14px] leading-tight text-[#f5ecd4]">{value}</div>
+        <div className="font-display text-[10.5px] uppercase tracking-[0.22em] text-[#ef4444]">{label}</div>
+        <div className="mt-0.5 truncate text-[14px] leading-tight text-[#f5f5f5]">{value}</div>
       </div>
-      <ChevronDown className="ml-auto h-4 w-4 flex-none text-[#e8c477]/80" />
+      <ChevronDown className="ml-auto h-4 w-4 flex-none text-[#ef4444]/80" />
     </button>
   );
   return (
     <div
       className="relative flex min-h-[72px] items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] md:min-h-[88px] md:rounded-[22px]"
       style={{
-        background: "radial-gradient(ellipse at 20% 0%, rgba(95,18,32,0.45), transparent 60%), linear-gradient(135deg, #350810 0%, #180307 100%)",
-        border: "1px solid rgba(232,196,119,0.45)",
-        boxShadow: "0 30px 70px -15px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(232,196,119,0.18), inset 0 1px 0 rgba(255,220,150,0.12)",
+        background: "radial-gradient(ellipse at 20% 0%, rgba(60,60,60,0.45), transparent 60%), linear-gradient(135deg, #2a2a2a 0%, #0a0a0a 100%)",
+        border: "1px solid rgba(239,68,68,0.45)",
+        boxShadow: "0 30px 70px -15px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(239,68,68,0.18), inset 0 1px 0 rgba(252,165,165,0.12)",
       }}
     >
       {/* Mobile compact: city + price + search button */}
-      <div className="flex w-full items-stretch md:hidden divide-x divide-[#c9a24a]/20">
+      <div className="flex w-full items-stretch md:hidden divide-x divide-[#dc2626]/20">
         <button type="button" onClick={handleSearch} className="flex flex-1 items-center gap-2 px-3 py-2 text-left">
-          <MapPin className="h-4 w-4 flex-none text-[#c9a24a]" />
+          <MapPin className="h-4 w-4 flex-none text-[#dc2626]" />
           <div className="min-w-0">
-            <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#c9a24a]/90">Град</div>
+            <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#dc2626]/90">Град</div>
             <div className="truncate text-[12.5px] text-primary-foreground/95">{cityName}</div>
           </div>
         </button>
         <button type="button" onClick={handleSearch} className="flex flex-1 items-center gap-2 px-3 py-2 text-left">
-          <LandPlot className="h-4 w-4 flex-none text-[#c9a24a]" />
+          <LandPlot className="h-4 w-4 flex-none text-[#dc2626]" />
           <div className="min-w-0">
-            <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#c9a24a]/90">Цена</div>
+            <div className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#dc2626]/90">Цена</div>
             <div className="truncate text-[12.5px] text-primary-foreground/95">Всички</div>
           </div>
         </button>
@@ -756,8 +756,8 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
           aria-label="Търси"
           className="flex flex-none items-center justify-center px-4"
           style={{
-            background: "linear-gradient(135deg, #f8e3a0 0%, #e8c477 50%, #b8893a 100%)",
-            color: "#2a050b",
+            background: "linear-gradient(135deg, #fca5a5 0%, #ef4444 50%, #b91c1c 100%)",
+            color: "#1a1a1a",
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
           }}
         >
@@ -766,28 +766,28 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
       </div>
 
       {/* Desktop full bar */}
-      <div className="hidden flex-1 items-stretch md:flex md:flex-nowrap divide-x divide-[#c9a24a]/20">
+      <div className="hidden flex-1 items-stretch md:flex md:flex-nowrap divide-x divide-[#dc2626]/20">
         <Field icon={MapPin} label="Град" value={cityName} />
         <Field icon={House} label="Вид имот" value="Всички" />
         <Field icon={LandPlot} label="Цена" value="Без значение" />
         <Field icon={Ruler} label="Площ" value="Без значение" />
       </div>
-      <div className="hidden flex-none items-center gap-2 border-l border-[#c9a24a]/25 px-3 md:flex md:px-4">
+      <div className="hidden flex-none items-center gap-2 border-l border-[#dc2626]/25 px-3 md:flex md:px-4">
         <button
           type="button"
           onClick={handleSearch}
-          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] border border-[#c9a24a]/40 px-4 py-2.5 text-[13px] text-[#f5ecd4] transition hover:bg-white/[0.05]"
+          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] border border-[#dc2626]/40 px-4 py-2.5 text-[13px] text-[#f5f5f5] transition hover:bg-white/[0.05]"
         >
-          <SlidersHorizontal className="h-4 w-4 text-[#c9a24a]" />
+          <SlidersHorizontal className="h-4 w-4 text-[#dc2626]" />
           <span className="font-display">Филтри</span>
         </button>
         <button
           type="button"
           onClick={handleSearch}
-          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] px-5 py-2.5 text-[13.5px] font-semibold text-[#2a050b] transition hover:brightness-105"
+          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] px-5 py-2.5 text-[13.5px] font-semibold text-[#1a1a1a] transition hover:brightness-105"
           style={{
-            background: "linear-gradient(135deg, #f8e3a0 0%, #e8c477 50%, #b8893a 100%)",
-            boxShadow: "0 8px 20px -6px rgba(184,137,58,0.6), inset 0 1px 0 rgba(255,255,255,0.35)",
+            background: "linear-gradient(135deg, #fca5a5 0%, #ef4444 50%, #b91c1c 100%)",
+            boxShadow: "0 8px 20px -6px rgba(185,28,28,0.6), inset 0 1px 0 rgba(255,255,255,0.35)",
           }}
         >
           <Search className="h-4 w-4" />
@@ -802,17 +802,17 @@ function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: stri
   return (
     <div className="flex flex-col items-start gap-1 md:gap-2">
       <div
-        className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[#e8c477] md:h-11 md:w-11 md:rounded-[10px]"
+        className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[#ef4444] md:h-11 md:w-11 md:rounded-[10px]"
         style={{
-          background: "linear-gradient(135deg, rgba(232,196,119,0.12), rgba(184,137,58,0.04))",
-          border: "1px solid rgba(201,162,74,0.45)",
-          boxShadow: "inset 0 0 0 1px rgba(232,196,119,0.08), 0 4px 12px rgba(0,0,0,0.25)",
+          background: "linear-gradient(135deg, rgba(239,68,68,0.12), rgba(185,28,28,0.04))",
+          border: "1px solid rgba(220,38,38,0.45)",
+          boxShadow: "inset 0 0 0 1px rgba(239,68,68,0.08), 0 4px 12px rgba(0,0,0,0.25)",
         }}
       >
         <Icon className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]" />
       </div>
-      <div className="mt-0.5 font-display text-[0.85rem] leading-tight text-[#e8c477] md:mt-1 md:text-[1.25rem]">{value}</div>
-      <div className="text-[10px] leading-tight text-[#f0e3c8]/90 md:text-[12.5px]">{label}</div>
+      <div className="mt-0.5 font-display text-[0.85rem] leading-tight text-[#ef4444] md:mt-1 md:text-[1.25rem]">{value}</div>
+      <div className="text-[10px] leading-tight text-[#e5e5e5]/90 md:text-[12.5px]">{label}</div>
     </div>
   );
 }
@@ -868,10 +868,10 @@ function DistrictMapCard({ name }: { name: string }) {
           className="absolute"
           style={{
             top: "18%", left: "32%", width: "44%", height: "62%",
-            background: "rgba(122,17,37,0.78)",
+            background: "rgba(225,29,72,0.78)",
             border: "1.5px solid rgba(196,140,72,0.65)",
             clipPath: "polygon(20% 0,80% 6%,100% 32%,92% 68%,72% 96%,38% 100%,8% 78%,0 40%)",
-            boxShadow: "0 0 30px rgba(122,17,37,0.45) inset",
+            boxShadow: "0 0 30px rgba(225,29,72,0.45) inset",
           }}
         />
         <div className="absolute font-display tracking-[0.18em] text-primary-foreground" style={{ top: "44%", left: "44%", fontSize: "2rem", textShadow: "0 2px 8px rgba(0,0,0,0.55)" }}>
@@ -892,7 +892,7 @@ function DistrictListingCard({ p, location, fallback }: { p: QuarterData["proper
   const tag = p.is_featured ? "ТОП ОФЕРТА" : "НОВО";
   return (
     <Link to="/properties/$propertyId" params={{ propertyId: p.id }} className="block">
-      <article className="marble-hover-card group flex h-full flex-col overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_18px_42px_rgba(93,39,22,0.16)]">
+      <article className="marble-hover-card group flex h-full flex-col overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_18px_42px_rgba(20,20,20,0.16)]">
         <div className="relative aspect-[1.05/0.82] overflow-hidden">
           <img src={p.cover_image_url || fallback} alt={p.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
           <span className="absolute left-3 top-3 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-primary-foreground shadow">{tag}</span>
@@ -938,14 +938,14 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
   const count = quarter.properties_count ?? properties.length;
 
   return (
-    <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}>
+    <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `none`, backgroundSize: "cover" }}>
       <LuxuryHeader active="sale" />
 
 
 
       <section className="relative px-3 pb-12 md:px-6 md:pb-16">
         <div className="mx-auto mt-4 grid max-w-[1460px] gap-6 px-2 md:px-4 xl:grid-cols-[270px_1fr_360px] xl:items-start">
-          <aside className="marble-dark-panel rounded-[22px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(60,10,20,0.32)]">
+          <aside className="marble-dark-panel rounded-[22px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(20,20,20,0.32)]">
             <div className="mb-5 text-center font-display text-[1.55rem] text-primary-foreground">Бързи филтри</div>
             <div className="space-y-6">
               <div>
@@ -1108,7 +1108,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   ].filter(Boolean) as Array<{ icon: typeof LandPlot; label: string; value: string; sub?: string }>;
 
   return (
-    <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}>
+    <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `none`, backgroundSize: "cover" }}>
       <section className="relative px-3 pb-10 md:px-6 md:pb-16">
         <LuxuryHeader active="sale" />
         <div className="relative mx-auto mt-[-18px] max-w-[1460px] px-2 md:px-6">
@@ -1124,7 +1124,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
       <section className="mx-auto max-w-[1460px] px-4 pb-12 md:px-6 md:pb-18">
         <div className="grid gap-8 xl:grid-cols-[1fr_340px] xl:items-start">
           <div className="space-y-6">
-            <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(91,41,18,0.14)] md:p-8">
+            <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(20,20,20,0.14)] md:p-8">
               <div className="mb-5 flex flex-wrap items-center gap-3 text-base text-muted-foreground">
                 <Link to="/" className="hover:text-primary">Начало</Link><ChevronRight className="h-4 w-4" />
                 {citySlug ? <Link to="/cities/$slug" params={{ slug: citySlug }} className="hover:text-primary">{cityName}</Link> : <span>{cityName}</span>}
@@ -1157,13 +1157,13 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
             </div>
 
             {gallery.length > 0 ? (
-              <div className="rounded-[28px] bg-card p-4 shadow-[0_20px_45px_rgba(91,41,18,0.14)] md:p-5">
+              <div className="rounded-[28px] bg-card p-4 shadow-[0_20px_45px_rgba(20,20,20,0.14)] md:p-5">
                 <PropertyGallery images={gallery} title={property.title} />
               </div>
             ) : null}
 
             {property.description ? (
-              <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(91,41,18,0.14)] md:p-8">
+              <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(20,20,20,0.14)] md:p-8">
                 <h2 className="font-display text-[2.4rem] text-accent-foreground md:text-[3rem]">Описание</h2>
                 <div className="mt-4 space-y-4 text-lg leading-8 text-muted-foreground md:text-[1.16rem] whitespace-pre-line">{property.description}</div>
                 {property.amenities && property.amenities.length > 0 ? (
@@ -1204,8 +1204,8 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
         <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className="h-[320px] w-full object-cover md:h-[520px]" />
         {images.length > 1 ? (
           <>
-            <button type="button" aria-label="Предишна снимка" onClick={() => setIdx((idx - 1 + images.length) % images.length)} className="absolute left-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-6 w-6" /></button>
-            <button type="button" aria-label="Следваща снимка" onClick={() => setIdx((idx + 1) % images.length)} className="absolute right-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.88)] text-primary-foreground shadow-lg"><ChevronRight className="h-6 w-6" /></button>
+            <button type="button" aria-label="Предишна снимка" onClick={() => setIdx((idx - 1 + images.length) % images.length)} className="absolute left-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-6 w-6" /></button>
+            <button type="button" aria-label="Следваща снимка" onClick={() => setIdx((idx + 1) % images.length)} className="absolute right-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronRight className="h-6 w-6" /></button>
           </>
         ) : null}
         <div className="absolute bottom-4 left-4 rounded-[12px] bg-[rgba(53,12,18,0.9)] px-4 py-2 text-primary-foreground">{idx + 1} / {images.length}</div>
@@ -1254,7 +1254,7 @@ function InquiryForm({ propertyId, propertyTitle }: { propertyId?: string; prope
   };
 
   return (
-    <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(60,10,20,0.3)]">
+    <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(20,20,20,0.3)]">
       <div>
         <div className="font-display text-[1.8rem] leading-none text-primary-foreground">Изпрати запитване</div>
         <div className="mt-1 text-base text-primary/85">Ще се свържем с вас възможно най-бързо.</div>
