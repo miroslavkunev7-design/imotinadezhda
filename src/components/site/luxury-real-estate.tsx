@@ -571,29 +571,6 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
         </section>
       </section>
 
-      {featured && featured.length > 0 && (
-        <section className="relative mx-auto mt-12 w-full max-w-[1420px] px-4 pb-16 md:mt-16 md:px-6">
-          <div className="mb-6 flex items-end justify-between">
-            <h2 className="font-display text-[2.4rem] text-accent-foreground md:text-[3rem]">Подбрани имоти</h2>
-            <span className="text-sm text-muted-foreground">{featured.length} оферти</span>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {featured.map((f) => (
-              <Link key={f.id} to="/properties/$propertyId" params={{ propertyId: f.id }} className="block">
-                <ListingCard
-                  title={f.title}
-                  price={formatPrice(f.price, f.currency ?? "EUR")}
-                  size={`${f.area_sqm ?? "—"} m²`}
-                  beds={f.bedrooms ?? 0}
-                  baths={f.bathrooms ?? 0}
-                  image={f.cover_image_url || burgasHero}
-                  tag={f.city_name ?? ""}
-                />
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   );
 }
