@@ -24,9 +24,25 @@ function AuditPage() {
   const [ipFilter, setIpFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [live, setLive] = useState(true);
+  const [newCount, setNewCount] = useState(0);
+
+  const matchesFilters = (r: LogRow) => {
+    if (pathFilter !== "all" && r.path !== pathFilter) return false;
+    if (emailFilter.trim() && !(r.email ?? "").toLowerCase().includes(emailFilter.trim().toLowerCase())) return false;
+    if (ipFilter.trim() && !(r.ip ?? "").toLowerCase().includes(ipFilter.trim().toLowerCase())) return false;
+    if (dateFrom && new Date(r.created_at) < new Date(dateFrom)) return false;
+    if (dateTo) {
+      const end = new Date(dateTo);
+      end.setHours(23, 59, 59, 999);
+      if (new Date(r.created_at) > end) return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     setLoading(true);
+    setNewCount(0);
     let q = supabase
       .from("admin_access_log")
       .select("*")
@@ -46,6 +62,30 @@ function AuditPage() {
       setLoading(false);
     });
   }, [pathFilter, emailFilter, ipFilter, dateFrom, dateTo]);
+
+  useEffect(() => {
+    if (!live) return;
+    const channel = supabase
+      .channel("admin_access_log_live")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "admin_access_log" },
+        (payload) => {
+          const row = payload.new as LogRow;
+          if (!matchesFilters(row)) return;
+          setRows((prev) => {
+            if (prev.some((r) => r.id === row.id)) return prev;
+            return [row, ...prev].slice(0, 500);
+          });
+          setNewCount((c) => c + 1);
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, pathFilter, emailFilter, ipFilter, dateFrom, dateTo]);
 
   const inputCls =
     "rounded border border-amber-100/20 bg-[#1a0608] px-3 py-1.5 text-sm text-amber-100 placeholder:text-amber-100/30";
