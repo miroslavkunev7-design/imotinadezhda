@@ -414,13 +414,13 @@ function CityCard({ name, image, href, params }: { name: string; image: string; 
         {/* Burgundy marble bottom panel */}
         <div className="marble-burgundy-bottom absolute inset-x-0 bottom-0 flex items-center justify-between px-3 py-2 md:px-5 md:py-3.5">
           <div className="min-w-0">
-            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-amber-200/85 md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
-              <MapPin className="h-3 w-3 text-amber-300 md:h-3.5 md:w-3.5" />
+            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-[#8a5a1c] md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
+              <MapPin className="h-3 w-3 text-[#a87622] md:h-3.5 md:w-3.5" />
               <span>Виж града</span>
             </div>
-            <div className="font-display text-base leading-tight text-amber-50 md:text-2xl lg:text-[1.75rem]">{name}</div>
+            <div className="font-display text-base leading-tight text-[#2a1208] md:text-2xl lg:text-[1.75rem]">{name}</div>
           </div>
-          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-amber-300/55 bg-amber-400/12 text-amber-200 transition group-hover:bg-amber-300 group-hover:text-[#3d0812] md:h-10 md:w-10">
+          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[#b3801f]/60 bg-[#f3e3b4]/40 text-[#7a4a10] transition group-hover:bg-[#e8c069] group-hover:text-[#2a1208] md:h-10 md:w-10">
             <ChevronRight className="h-3.5 w-3.5 -rotate-45 md:h-4 md:w-4" />
           </div>
         </div>
