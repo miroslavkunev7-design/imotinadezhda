@@ -159,11 +159,15 @@ function PropertiesAdmin() {
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditing(null)}>
-          <form onClick={(e) => e.stopPropagation()} onSubmit={save} className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-2xl text-accent-foreground">{editing.id ? "Редакция" : "Нов имот"}</h2>
-              <button type="button" onClick={() => setEditing(null)}><X className="h-5 w-5" /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={() => setEditing(null)}>
+          <form
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={save}
+            className="marble-modal relative max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl border border-amber-200/60 p-6 text-slate-800 shadow-[0_25px_60px_-15px_rgba(120,80,20,.45)]"
+          >
+            <div className="mb-4 flex items-center justify-between border-b border-amber-300/40 pb-3">
+              <h2 className="font-display text-2xl text-[#5a3a14]">{editing.id ? "Редакция" : "Нов имот"}</h2>
+              <button type="button" onClick={() => setEditing(null)} className="text-[#5a3a14]/70 hover:text-[#5a3a14]"><X className="h-5 w-5" /></button>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               <Field label="Заглавие" className="md:col-span-2">
