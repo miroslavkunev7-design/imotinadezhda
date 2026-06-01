@@ -92,13 +92,17 @@ if (!overlap.found) {
 const viewportShot = await page.screenshot({ clip: { x: 0, y: 0, width: VW, height: VH } });
 fs.writeFileSync(path.join(outDir, "burgas-viewport.png"), viewportShot);
 
-const heroLoc = page.locator("section").first();
-fs.writeFileSync(path.join(outDir, "burgas-hero.png"), await heroLoc.screenshot());
-
-const quartersLoc = page.locator("section").nth(2);
-if (await quartersLoc.count()) {
-  fs.writeFileSync(path.join(outDir, "burgas-quarters.png"), await quartersLoc.screenshot());
+async function safeShot(loc, file) {
+  try {
+    if (!(await loc.count())) return;
+    if (!(await loc.first().isVisible())) return;
+    fs.writeFileSync(path.join(outDir, file), await loc.first().screenshot({ timeout: 8000 }));
+  } catch (e) {
+    console.log(`  ⚠ Skipped ${file}: ${e.message?.split("\n")[0] ?? e}`);
+  }
 }
+await safeShot(page.locator("section").first(), "burgas-hero.png");
+await safeShot(page.locator("section").nth(2), "burgas-quarters.png");
 
 await browser.close();
 console.log(`✓ Captured snapshots to ${outDir}/`);
