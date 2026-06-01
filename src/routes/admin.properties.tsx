@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Pencil, X, Images, Upload, Star, Send } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Images, Upload, Star, Send, FileText, Check, Download } from "lucide-react";
 
 const CROSSPOST_SITES = [
   { key: "imot_bg", label: "Imot.bg" },
@@ -42,6 +42,7 @@ function PropertiesAdmin() {
   const [quarters, setQuarters] = useState<QuarterOpt[]>([]);
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [imagesFor, setImagesFor] = useState<Row | null>(null);
+  const [docsFor, setDocsFor] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
@@ -142,6 +143,7 @@ function PropertiesAdmin() {
                 <td className="px-4 py-2 text-right">
                   <button className="mr-2 text-amber-600" title="Публикувай във всички сайтове" onClick={() => publishAll(r)}><Send className="h-4 w-4" /></button>
                   <button className="mr-2 text-primary" title="Снимки" onClick={() => setImagesFor(r)}><Images className="h-4 w-4" /></button>
+                  <button className="mr-2 text-primary" title="Документи" onClick={() => setDocsFor(r)}><FileText className="h-4 w-4" /></button>
                   <button className="mr-2 text-primary" title="Редакция" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></button>
                   <button className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></button>
                 </td>
@@ -216,6 +218,7 @@ function PropertiesAdmin() {
       )}
 
       {imagesFor && <ImagesModal property={imagesFor} onClose={() => { setImagesFor(null); load(); }} />}
+      {docsFor && <DocumentsModal property={docsFor} onClose={() => setDocsFor(null)} />}
     </div>
   );
 }
@@ -311,6 +314,125 @@ function ImagesModal({ property, onClose }: { property: Row; onClose: () => void
           ))}
           {!imgs.length && <div className="col-span-full py-10 text-center text-muted-foreground">Все още няма снимки.</div>}
         </div>
+      </div>
+    </div>
+  );
+}
+
+type DocType = "skica" | "tax_assessment" | "encumbrance_check" | "other";
+type DocRow = { id: string; doc_type: DocType; file_name: string; file_url: string; file_path: string; created_at: string };
+
+const DOC_TYPES: { key: DocType; label: string }[] = [
+  { key: "skica", label: "Скица" },
+  { key: "tax_assessment", label: "Данъчна оценка" },
+  { key: "encumbrance_check", label: "Проверка за тежести" },
+  { key: "other", label: "Друг документ" },
+];
+
+function DocumentsModal({ property, onClose }: { property: Row; onClose: () => void }) {
+  const [docs, setDocs] = useState<DocRow[]>([]);
+  const [uploadingType, setUploadingType] = useState<DocType | null>(null);
+
+  const load = async () => {
+    const { data } = await supabase
+      .from("property_documents")
+      .select("id, doc_type, file_name, file_url, file_path, created_at")
+      .eq("property_id", property.id);
+    setDocs((data as DocRow[]) ?? []);
+  };
+  useEffect(() => { load(); }, [property.id]);
+
+  const byType = (t: DocType) => docs.find((d) => d.doc_type === t);
+
+  const onUpload = async (type: DocType, file: File | null) => {
+    if (!file) return;
+    setUploadingType(type);
+    try {
+      const ext = file.name.split(".").pop() ?? "pdf";
+      const path = `${property.id}/${type}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("property-documents")
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) { alert(upErr.message); return; }
+
+      const existing = byType(type);
+      if (existing) {
+        await supabase.storage.from("property-documents").remove([existing.file_path]).catch(() => {});
+        await supabase.from("property_documents").delete().eq("id", existing.id);
+      }
+
+      const { data: signed } = await supabase.storage.from("property-documents").createSignedUrl(path, 60 * 60 * 24 * 365);
+      const { error: insErr } = await supabase.from("property_documents").insert({
+        property_id: property.id,
+        doc_type: type,
+        file_name: file.name,
+        file_url: signed?.signedUrl ?? "",
+        file_path: path,
+        mime_type: file.type,
+        file_size: file.size,
+      });
+      if (insErr) { alert(insErr.message); return; }
+      await load();
+    } finally { setUploadingType(null); }
+  };
+
+  const openDoc = async (d: DocRow) => {
+    const { data, error } = await supabase.storage.from("property-documents").createSignedUrl(d.file_path, 60 * 10);
+    if (error || !data) { alert(error?.message ?? "Грешка"); return; }
+    window.open(data.signedUrl, "_blank");
+  };
+
+  const remove = async (d: DocRow) => {
+    if (!confirm(`Изтриване на "${d.file_name}"?`)) return;
+    await supabase.storage.from("property-documents").remove([d.file_path]).catch(() => {});
+    await supabase.from("property_documents").delete().eq("id", d.id);
+    load();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-2xl text-accent-foreground">Документи</h2>
+            <p className="text-sm text-muted-foreground">{property.title}</p>
+          </div>
+          <button onClick={onClose}><X className="h-5 w-5" /></button>
+        </div>
+
+        <ul className="space-y-3">
+          {DOC_TYPES.map(({ key, label }) => {
+            const doc = byType(key);
+            const isUploading = uploadingType === key;
+            return (
+              <li key={key} className="flex items-center gap-3 rounded-xl border border-border bg-background p-4">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${doc ? "bg-emerald-500/15 text-emerald-600" : "bg-muted text-muted-foreground"}`}>
+                  {doc ? <Check className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-foreground">{label}</div>
+                  {doc ? (
+                    <button onClick={() => openDoc(doc)} className="block max-w-full truncate text-left text-xs text-primary hover:underline">
+                      {doc.file_name}
+                    </button>
+                  ) : (
+                    <div className="text-xs text-muted-foreground">Няма прикачен файл</div>
+                  )}
+                </div>
+                {doc && (
+                  <button onClick={() => openDoc(doc)} title="Изтегли" className="text-primary"><Download className="h-4 w-4" /></button>
+                )}
+                <label className="cursor-pointer rounded-lg border border-input bg-background px-3 py-2 text-xs hover:bg-muted">
+                  {isUploading ? "Качване…" : doc ? "Замени" : "Прикачи"}
+                  <input type="file" className="hidden" disabled={isUploading} onChange={(e) => onUpload(key, e.target.files?.[0] ?? null)} />
+                </label>
+                {doc && (
+                  <button onClick={() => remove(doc)} className="text-destructive" title="Изтрий"><Trash2 className="h-4 w-4" /></button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );
