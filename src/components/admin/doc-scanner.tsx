@@ -91,19 +91,18 @@ export function DocScanner() {
         }
         const dataUrl = await fileToDataUrl(f);
         const img = await loadImage(dataUrl);
-        let outUrl = dataUrl;
-        let w = img.naturalWidth;
-        let h = img.naturalHeight;
+        let outCanvas: HTMLCanvasElement | null = null;
         if (scanner) {
           try {
-            const result = scanner.extractPaper(img, img.naturalWidth, img.naturalHeight) as HTMLCanvasElement;
-            outUrl = result.toDataURL("image/jpeg", 0.92);
-            w = result.width;
-            h = result.height;
+            outCanvas = scanner.extractPaper(img, img.naturalWidth, img.naturalHeight) as HTMLCanvasElement;
           } catch {
             /* fallback to original */
           }
         }
+        const enhanced = enhanceDocument(outCanvas ?? img);
+        const outUrl = enhanced.toDataURL("image/jpeg", 0.95);
+        const w = enhanced.width;
+        const h = enhanced.height;
         addProcessed(outUrl, w, h, f.name);
       }
       toast.success("Документът е обработен");
