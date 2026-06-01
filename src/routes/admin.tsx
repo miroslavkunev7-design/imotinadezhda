@@ -9,6 +9,38 @@ export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
+/**
+ * Връща валидна сесия с access_token. Ако токенът е изтекъл или близо до изтичане
+ * (по-малко от 60s), прави refresh. Ако няма сесия или refresh се провали - връща null.
+ */
+async function ensureFreshSession(): Promise<string | null> {
+  try {
+    // 1) getUser() ре-валидира JWT срещу Auth сървъра - надеждно за hydration
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData.user) return null;
+
+    const { data: sessData } = await supabase.auth.getSession();
+    const session = sessData.session;
+    if (!session?.access_token) return null;
+
+    const expiresAt = session.expires_at ?? 0; // секунди от epoch
+    const nowSec = Math.floor(Date.now() / 1000);
+    const remaining = expiresAt - nowSec;
+
+    // 2) Ако остават по-малко от 60s - refresh
+    if (remaining < 60) {
+      const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+      if (refreshErr || !refreshed.session?.access_token) return null;
+      return refreshed.session.access_token;
+    }
+
+    return session.access_token;
+  } catch (e) {
+    console.error("ensureFreshSession failed", e);
+    return null;
+  }
+}
+
 function AdminLayout() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -18,8 +50,8 @@ function AdminLayout() {
     if (!user?.id) return;
     let cancelled = false;
     (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (cancelled || !data.session?.access_token) return;
+      const token = await ensureFreshSession();
+      if (cancelled || !token) return;
       try {
         await logAdminAccess({ data: { path: "/admin" } });
       } catch {
@@ -39,9 +71,9 @@ function AdminLayout() {
     }
     let cancelled = false;
     (async () => {
-      const { data } = await supabase.auth.getSession();
+      const token = await ensureFreshSession();
       if (cancelled) return;
-      if (!data.session?.access_token) {
+      if (!token) {
         navigate({ to: "/login" });
         return;
       }
