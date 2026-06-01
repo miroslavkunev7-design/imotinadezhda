@@ -156,6 +156,7 @@ async function searchAndBuild(
 
 
 export const runScrape = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z
       .object({
@@ -165,7 +166,8 @@ export const runScrape = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const client = fc();
     const allResults: ScrapeResult[] = [];
 
