@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 // (Google OAuth removed; only email/password auth)
@@ -12,7 +12,6 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -28,10 +27,12 @@ function LoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!loading && user) {
+      window.location.replace("/admin");
+    }
+  }, [loading, user]);
 
-  if (!loading && user) {
-    throw redirect({ to: "/admin" });
-  }
 
   const handle = async (e: FormEvent) => {
     e.preventDefault();
@@ -52,7 +53,7 @@ function LoginPage() {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
       }
-      navigate({ to: "/admin" });
+      window.location.replace("/admin");
     } catch (err: any) {
       setError(err?.message ?? "Възникна грешка");
     } finally {
