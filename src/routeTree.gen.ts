@@ -34,6 +34,7 @@ import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugIndexRouteImport } from './routes/cities.$slug.index'
 import { Route as ApiPublicCustomerChatRouteImport } from './routes/api/public/customer-chat'
 import { Route as AdminAuditIdRouteImport } from './routes/admin.audit.$id'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -161,6 +162,12 @@ const AdminAuditIdRoute = AdminAuditIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminAuditRoute,
 } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CitiesSlugDistrictsDistrictRoute =
   CitiesSlugDistrictsDistrictRouteImport.update({
     id: '/cities/$slug/districts/$district',
@@ -195,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -222,6 +230,7 @@ export interface FileRoutesByTo {
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -251,6 +260,7 @@ export interface FileRoutesById {
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/api/public/customer-chat'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -308,6 +319,7 @@ export interface FileRouteTypes {
     | '/api/public/customer-chat'
     | '/cities/$slug'
     | '/cities/$slug/districts/$district'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -336,6 +348,7 @@ export interface FileRouteTypes {
     | '/api/public/customer-chat'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -349,6 +362,7 @@ export interface RootRouteChildren {
   ApiPublicCustomerChatRoute: typeof ApiPublicCustomerChatRoute
   CitiesSlugIndexRoute: typeof CitiesSlugIndexRoute
   CitiesSlugDistrictsDistrictRoute: typeof CitiesSlugDistrictsDistrictRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -528,6 +542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditIdRouteImport
       parentRoute: typeof AdminAuditRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cities/$slug/districts/$district': {
       id: '/cities/$slug/districts/$district'
       path: '/cities/$slug/districts/$district'
@@ -599,6 +620,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCustomerChatRoute: ApiPublicCustomerChatRoute,
   CitiesSlugIndexRoute: CitiesSlugIndexRoute,
   CitiesSlugDistrictsDistrictRoute: CitiesSlugDistrictsDistrictRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
