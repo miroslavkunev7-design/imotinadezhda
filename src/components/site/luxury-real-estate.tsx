@@ -96,17 +96,28 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleLogoClick = (e: React.MouseEvent) => {
+    // Always intercept the click so the Link doesn't navigate away
+    // and reset our counter mid-sequence.
+    e.preventDefault();
+    e.stopPropagation();
     clickCountRef.current += 1;
     if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+
     if (clickCountRef.current >= 3) {
-      e.preventDefault();
       clickCountRef.current = 0;
       navigate({ to: "/login", search: { redirect: "/admin" } as any });
       return;
     }
+
+    // Single click → go home after a short window for additional clicks.
     clickTimerRef.current = setTimeout(() => {
+      const count = clickCountRef.current;
       clickCountRef.current = 0;
-    }, 500);
+      if (count === 1) {
+        navigate({ to: "/" });
+      }
+      // count === 2: do nothing (user almost triple-clicked); they can retry
+    }, 450);
   };
 
   return (
@@ -120,10 +131,16 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
       }}
     >
       <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-6 pt-3 md:px-10 md:pb-8 md:pt-4">
-        <Link to="/" className="flex shrink-0 items-center" onClick={handleLogoClick}>
+        <Link
+          to="/"
+          className="flex shrink-0 items-center select-none"
+          onClick={handleLogoClick}
+          aria-label="Начало (троен клик за админ вход)"
+        >
           <img
             src={logoNadezhda}
             alt="Недвижими имоти Надежда"
+            draggable={false}
             className="h-16 w-auto object-contain md:h-20 lg:h-24"
           />
         </Link>
