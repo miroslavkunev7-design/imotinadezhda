@@ -19,6 +19,7 @@ export const archiveExtracted = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase, userId } = context;
 
     const { data: src, error: srcErr } = await supabase
