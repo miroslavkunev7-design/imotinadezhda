@@ -876,7 +876,7 @@ function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Arr
     el.scrollBy({ left: dir * step * 2, behavior: "smooth" });
   };
   return (
-    <div className="relative mt-6">
+    <div className="relative mt-2 md:mt-6">
       <button
         type="button"
         onClick={() => scroll(-1)}
