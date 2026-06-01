@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "visual:district": "node scripts/visual-district.mjs",
+    "visual:burgas": "node scripts/visual-burgas.mjs",
     "visual:diff": "node scripts/visual-diff.mjs"
   },
   "dependencies": {
