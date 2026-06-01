@@ -323,7 +323,7 @@ function ImagesModal({ property, onClose }: { property: Row; onClose: () => void
 }
 
 type DocType = "skica" | "tax_assessment" | "encumbrance_check" | "other";
-type DocRow = { id: string; doc_type: DocType; file_name: string; file_url: string; file_path: string; created_at: string };
+type DocRow = { id: string; doc_type: DocType; file_name: string; file_url: string; file_path: string; mime_type?: string | null; created_at: string };
 
 const DOC_TYPES: { key: DocType; label: string }[] = [
   { key: "skica", label: "Скица" },
