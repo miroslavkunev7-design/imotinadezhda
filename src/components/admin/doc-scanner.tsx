@@ -5,7 +5,7 @@ import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 // jscanify is dynamically imported in browser-only code paths (SSR-safe)
 async function getScanner() {
-  const mod: any = await import("jscanify");
+  const mod: any = await import("jscanify/client");
   const Ctor = mod.default ?? mod;
   return new Ctor();
 }
