@@ -50,42 +50,43 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Cinematic palette: light grey background, bright red accent, charcoal text. */
+/* Cinematic palette: dark near-black background, bright red accent, light text. */
 :root {
   --radius: 0.75rem;
-  --background: oklch(0.93 0.002 270);          /* light grey #ececec */
-  --foreground: oklch(0.22 0.005 270);          /* charcoal #1a1a1a */
-  --card: oklch(0.965 0.002 270 / 0.96);
-  --card-foreground: oklch(0.22 0.005 270);
-  --popover: oklch(0.97 0.002 270);
-  --popover-foreground: oklch(0.22 0.005 270);
-  --primary: oklch(0.62 0.235 26);              /* bright red */
+  --background: oklch(0.16 0.005 270);          /* near-black #0d0d0f */
+  --foreground: oklch(0.96 0.002 270);          /* light #f5f5f5 */
+  --card: oklch(0.21 0.005 270 / 0.96);         /* charcoal card */
+  --card-foreground: oklch(0.96 0.002 270);
+  --popover: oklch(0.2 0.005 270);
+  --popover-foreground: oklch(0.96 0.002 270);
+  --primary: oklch(0.64 0.235 26);              /* bright red */
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.22 0.005 270);           /* cinematic charcoal */
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.86 0.002 270);
-  --muted-foreground: oklch(0.42 0.005 270);
-  --accent: oklch(0.88 0.002 270);
-  --accent-foreground: oklch(0.22 0.005 270);
-  --destructive: oklch(0.6 0.24 25);
+  --secondary: oklch(0.28 0.005 270);
+  --secondary-foreground: oklch(0.96 0.002 270);
+  --muted: oklch(0.26 0.005 270);
+  --muted-foreground: oklch(0.72 0.003 270);
+  --accent: oklch(0.32 0.005 270);
+  --accent-foreground: oklch(0.96 0.002 270);
+  --destructive: oklch(0.64 0.24 26);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.78 0.003 270 / 0.55);
-  --input: oklch(0.82 0.003 270 / 0.8);
-  --ring: oklch(0.62 0.235 26 / 0.65);
-  --chart-1: oklch(0.62 0.235 26);
-  --chart-2: oklch(0.3 0.005 270);
+  --border: oklch(0.55 0.003 270 / 0.28);
+  --input: oklch(0.55 0.003 270 / 0.22);
+  --ring: oklch(0.64 0.235 26 / 0.7);
+  --chart-1: oklch(0.64 0.235 26);
+  --chart-2: oklch(0.7 0.005 270);
   --chart-3: oklch(0.55 0.18 22);
-  --chart-4: oklch(0.7 0.005 270);
-  --chart-5: oklch(0.45 0.005 270);
-  --sidebar: oklch(0.94 0.002 270);
-  --sidebar-foreground: oklch(0.22 0.005 270);
-  --sidebar-primary: oklch(0.62 0.235 26);
+  --chart-4: oklch(0.45 0.005 270);
+  --chart-5: oklch(0.85 0.005 270);
+  --sidebar: oklch(0.18 0.005 270);
+  --sidebar-foreground: oklch(0.96 0.002 270);
+  --sidebar-primary: oklch(0.64 0.235 26);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.88 0.002 270);
-  --sidebar-accent-foreground: oklch(0.22 0.005 270);
-  --sidebar-border: oklch(0.78 0.003 270 / 0.55);
-  --sidebar-ring: oklch(0.62 0.235 26 / 0.65);
+  --sidebar-accent: oklch(0.32 0.005 270);
+  --sidebar-accent-foreground: oklch(0.96 0.002 270);
+  --sidebar-border: oklch(0.55 0.003 270 / 0.28);
+  --sidebar-ring: oklch(0.64 0.235 26 / 0.7);
 }
+
 
 .dark {
   --background: oklch(0.18 0.005 270);          /* deep charcoal */
@@ -151,40 +152,44 @@
 
   .luxury-page {
     min-height: 100vh;
-    background-color: #ececec;
+    background-color: #0d0d0f;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(239, 68, 68, 0.08), transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(220, 38, 38, 0.06), transparent 55%);
     background-repeat: no-repeat;
     background-position: center top;
+    color: #f5f5f5;
   }
 
   /* ============================================================
      Legacy "marble/gold" utility classes — kept by NAME so existing
-     JSX renders without rewriting, but restyled to a cinematic
-     grey + red + charcoal aesthetic. No gold, no marble texture.
+     JSX renders without rewriting, but restyled to a dark cinematic
+     aesthetic. No gold, no marble, no light beige.
      ============================================================ */
 
   .gold-wave-frame {
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(20, 20, 20, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
     border-radius: 0 0 28px 0;
-    background: linear-gradient(180deg, #f5f5f5 0%, #e5e5e5 100%);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+    background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
   }
   .gold-wave-frame::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(115deg, transparent 38%, rgba(225, 29, 72, 0.18) 50%, transparent 62%);
+    background: linear-gradient(115deg, transparent 38%, rgba(239, 68, 68, 0.22) 50%, transparent 62%);
     pointer-events: none;
   }
 
-  /* Dark cinematic panel (was burgundy + gold) */
+  /* Dark cinematic panel */
   .marble-dark-panel {
     background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-    border: 1px solid rgba(239, 68, 68, 0.22);
+    border: 1px solid rgba(239, 68, 68, 0.25);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 18px 44px rgba(0, 0, 0, 0.32);
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 18px 44px rgba(0, 0, 0, 0.45);
     position: relative;
     overflow: hidden;
     color: #f5f5f5;
@@ -194,40 +199,37 @@
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse at 20% 0%, rgba(225, 29, 72, 0.22), transparent 55%),
-      linear-gradient(135deg, transparent 60%, rgba(225, 29, 72, 0.1) 100%);
+      radial-gradient(ellipse at 20% 0%, rgba(239, 68, 68, 0.22), transparent 55%),
+      linear-gradient(135deg, transparent 60%, rgba(220, 38, 38, 0.12) 100%);
     opacity: 0.9;
     pointer-events: none;
   }
 
-  /* Light cinematic panel (was cream marble) */
+  /* "Light" panel — now a slightly elevated dark panel */
   .marble-light-panel {
-    background: linear-gradient(180deg, rgba(245, 245, 245, 0.98), rgba(229, 229, 229, 0.96));
-    border: 1px solid rgba(20, 20, 20, 0.12);
+    background: linear-gradient(180deg, rgba(28, 28, 30, 0.98), rgba(18, 18, 20, 0.96));
+    border: 1px solid rgba(239, 68, 68, 0.22);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -1px 0 rgba(20, 20, 20, 0.08),
-      0 22px 50px rgba(0, 0, 0, 0.14);
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 22px 50px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
-    color: #1a1a1a;
+    color: #f5f5f5;
   }
   .marble-light-panel::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(115deg, transparent 40%, rgba(225, 29, 72, 0.06) 52%, transparent 64%);
+    background: linear-gradient(115deg, transparent 40%, rgba(239, 68, 68, 0.08) 52%, transparent 64%);
     pointer-events: none;
   }
 
-  /* Was the gold-veined cream strip under the search bar. Now flat light
-     grey with a subtle red hairline. */
   .marble-burgundy-bottom {
-    background: linear-gradient(180deg, #ececec 0%, #d4d4d4 100%);
-    border-top: 1px solid rgba(225, 29, 72, 0.35);
+    background: linear-gradient(180deg, #141416 0%, #0a0a0c 100%);
+    border-top: 1px solid rgba(239, 68, 68, 0.35);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.6),
-      inset 0 -1px 0 rgba(20, 20, 20, 0.08);
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.4);
     position: relative;
     isolation: isolate;
   }
@@ -239,23 +241,24 @@
   .gold-cta-button {
     background: linear-gradient(180deg, #ef4444, #dc2626);
     color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow:
-      0 10px 28px rgba(220, 38, 38, 0.32),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      0 10px 28px rgba(220, 38, 38, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
     transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
   }
   .gold-cta-button:hover {
     transform: translateY(-1px);
     box-shadow:
-      0 16px 36px rgba(220, 38, 38, 0.42),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      0 16px 36px rgba(220, 38, 38, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
     filter: saturate(1.05);
   }
 
   .marble-action-button {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
+
 
   /* Card with cinematic hover: scale + red glow (was gold marble wave). */
   .marble-city-card,
