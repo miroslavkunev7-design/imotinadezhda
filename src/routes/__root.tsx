@@ -123,6 +123,10 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const hideChat = pathname.startsWith("/admin") || pathname.startsWith("/login");
+  const propertyMatch = pathname.match(/^\/properties\/([0-9a-f-]{36})/i);
+  const propertyId = propertyMatch?.[1] ?? null;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -130,6 +134,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster />
+        {!hideChat && <CustomerChat propertyId={propertyId} />}
       </AuthProvider>
     </QueryClientProvider>
   );
