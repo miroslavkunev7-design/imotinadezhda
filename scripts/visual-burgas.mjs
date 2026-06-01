@@ -46,7 +46,9 @@ try {
 }
 
 console.log(`→ Capturing ${url} @ ${VW}x${VH}`);
-const browser = await chromium.launch();
+const launchOpts = {};
+if (process.env.PW_CHROMIUM_EXEC) launchOpts.executablePath = process.env.PW_CHROMIUM_EXEC;
+const browser = await chromium.launch(launchOpts);
 const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 1 });
 const page = await ctx.newPage();
 await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
