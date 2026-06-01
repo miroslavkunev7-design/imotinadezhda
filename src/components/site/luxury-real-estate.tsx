@@ -449,14 +449,15 @@ function MarblePropertyCard({
     >
       <div className="relative aspect-[1.3/1] overflow-hidden p-1.5">
         <img
-          src={image && image.length > 0 ? image : burgasHero}
+          src={proxyImage(image) || burgasHero}
           alt={title}
           className="h-full w-full rounded-[10px] object-cover transition duration-500 group-hover:scale-[1.04]"
           loading="lazy"
+          referrerPolicy="no-referrer"
           onError={(e) => {
             const img = e.currentTarget as HTMLImageElement;
-            if (img.src !== window.location.origin + burgasHero && !img.dataset.fallback) {
-              img.dataset.fallback = "1";
+            if (!img.dataset.fellBack) {
+              img.dataset.fellBack = "1";
               img.src = burgasHero;
             }
           }}
