@@ -394,6 +394,60 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
     load();
   };
 
+  const mergeAndUpload = async (): Promise<{ url: string; path: string } | null> => {
+    const pdfDocs = docs.filter((d) => (d.mime_type ?? "").includes("pdf") || d.file_name.toLowerCase().endsWith(".pdf"));
+    if (!pdfDocs.length) { toast.error("Няма PDF документи за обединяване"); return null; }
+    setMerging(true);
+    try {
+      const merged = await PDFDocument.create();
+      for (const d of pdfDocs) {
+        const { data, error } = await supabase.storage.from("property-documents").download(d.file_path);
+        if (error || !data) throw new Error(error?.message ?? `Грешка при ${d.file_name}`);
+        const bytes = new Uint8Array(await data.arrayBuffer());
+        const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
+        const pages = await merged.copyPages(src, src.getPageIndices());
+        pages.forEach((p) => merged.addPage(p));
+      }
+      const out = await merged.save();
+      const path = `${property.id}/merged-${Date.now()}.pdf`;
+      const { error: upErr } = await supabase.storage.from("property-documents")
+        .upload(path, new Blob([out], { type: "application/pdf" }), { contentType: "application/pdf", upsert: true });
+      if (upErr) throw new Error(upErr.message);
+      const { data: signed } = await supabase.storage.from("property-documents").createSignedUrl(path, 60 * 60 * 24 * 30);
+      const url = signed?.signedUrl ?? "";
+      setMergedUrl(url);
+      toast.success(`Обединени ${pdfDocs.length} файла`);
+      return { url, path };
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при обединяване");
+      return null;
+    } finally { setMerging(false); }
+  };
+
+  const sendToPartner = async (partner: (typeof MORTGAGE_PARTNERS)[number]) => {
+    if (!partner.email) { toast.error(`Имейлът на ${partner.name} още не е добавен`); return; }
+    let link = mergedUrl;
+    if (!link) {
+      const res = await mergeAndUpload();
+      if (!res) return;
+      link = res.url;
+    }
+    const subject = `Документи за имот — ${property.title ?? ""}`;
+    const body = [
+      `Здравей, ${partner.name},`,
+      "",
+      `Изпращам Ви документите за имот: ${property.title ?? ""}`,
+      "",
+      "Обединен PDF (валиден 30 дни):",
+      link,
+      "",
+      "Поздрави,",
+      "Имоти Надежда",
+    ].join("\n");
+    window.location.href = `mailto:${partner.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    toast.success(`Отворено е писмо до ${partner.name}`);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl">
