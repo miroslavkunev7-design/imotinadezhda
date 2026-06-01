@@ -837,14 +837,14 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
     <button
       type="button"
       onClick={handleSearch}
-      className="group flex flex-1 items-center gap-3 px-4 py-3.5 text-left transition hover:bg-white/[0.03] md:px-5"
+      className="group flex flex-1 items-center gap-3 px-4 py-4 text-left transition hover:bg-white/[0.03] md:px-5 md:py-5"
     >
-      <Icon className="h-[18px] w-[18px] flex-none text-[#c9a24a]" />
+      <Icon className="h-[18px] w-[18px] flex-none text-[#e8c477]" />
       <div className="min-w-0 flex-1">
-        <div className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[#c9a24a]/90">{label}</div>
-        <div className="truncate text-[13.5px] leading-snug text-primary-foreground/95">{value}</div>
+        <div className="font-display text-[10.5px] uppercase tracking-[0.22em] text-[#e8c477]">{label}</div>
+        <div className="mt-0.5 truncate text-[14px] leading-tight text-[#f5ecd4]">{value}</div>
       </div>
-      <ChevronDown className="ml-auto h-4 w-4 flex-none text-[#c9a24a]/70" />
+      <ChevronDown className="ml-auto h-4 w-4 flex-none text-[#e8c477]/80" />
     </button>
   );
   return (
