@@ -85,6 +85,19 @@ function PropertiesAdmin() {
     load();
   };
 
+  const publishAll = async (r: Row) => {
+    if (!confirm(`Публикуване на "${r.title}" във всички сайтове (${CROSSPOST_SITES.map((s) => s.label).join(", ")})?`)) return;
+    const rows = CROSSPOST_SITES.map((s) => ({ property_id: r.id, site: s.key, status: "queued" }));
+    const { error } = await supabase.from("cross_post_queue" as any).insert(rows);
+    if (error) { alert(error.message); return; }
+    if (!r.is_published) {
+      await supabase.from("properties").update({ is_published: true }).eq("id", r.id);
+    }
+    alert(`Заявени са ${rows.length} публикации. Опашката се обработва от автоматизацията.`);
+    load();
+  };
+
+
   const newProperty = () => setEditing({
     title: "", price: 0, currency: "EUR", property_type: "apartment", status: "sale",
     is_published: true, is_featured: false, city_id: cities[0]?.id ?? "",
