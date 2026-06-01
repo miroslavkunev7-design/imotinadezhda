@@ -38,6 +38,7 @@ import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import headerPanel from "@/assets/site-header-panel.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { MortgageRangeBand } from "@/components/site/mortgage-range-band";
 
 type NavKey = "sale" | "rent" | "about";
 
