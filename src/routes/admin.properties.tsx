@@ -335,6 +335,8 @@ const DOC_TYPES: { key: DocType; label: string }[] = [
 function DocumentsModal({ property, onClose }: { property: Row; onClose: () => void }) {
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [uploadingType, setUploadingType] = useState<DocType | null>(null);
+  const [merging, setMerging] = useState(false);
+  const [mergedUrl, setMergedUrl] = useState<string | null>(null);
 
   const load = async () => {
     const { data } = await supabase
