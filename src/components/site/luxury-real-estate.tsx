@@ -294,16 +294,25 @@ function CityCard({ name, image, href, params }: { name: string; image: string; 
         <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
         <div className="marble-wave-glow" />
         <GoldDustLayer />
-        {/* Burgundy marble bottom panel */}
-        <div className="marble-burgundy-bottom absolute inset-x-0 bottom-0 flex items-center justify-between px-3 py-2 md:px-5 md:py-3.5">
+        {/* Bottom gradient scrim so the label sits ON the image */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[8] h-[58%]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(36,8,4,0.55) 55%, rgba(20,4,2,0.78) 100%)",
+          }}
+        />
+        {/* Glassy gold label — overlay at the bottom of the image */}
+        <div className="absolute inset-x-0 bottom-0 z-[9] flex items-end justify-between gap-2 px-3 pb-2.5 pt-6 md:px-5 md:pb-3.5 md:pt-8">
           <div className="min-w-0">
-            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-[#8a5a1c] md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
-              <MapPin className="h-3 w-3 text-[#a87622] md:h-3.5 md:w-3.5" />
+            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-[#f5d98a] md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
+              <MapPin className="h-3 w-3 text-[#f0c560] md:h-3.5 md:w-3.5" />
               <span>Виж града</span>
             </div>
-            <div className="font-display text-base leading-tight text-[#2a1208] md:text-2xl lg:text-[1.75rem]">{name}</div>
+            <div className="font-display text-base leading-tight text-[#fff6df] drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] md:text-2xl lg:text-[1.75rem]">{name}</div>
           </div>
-          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[#b3801f]/60 bg-[#f3e3b4]/40 text-[#7a4a10] transition group-hover:bg-[#e8c069] group-hover:text-[#2a1208] md:h-10 md:w-10">
+          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[#f0c560]/70 bg-[#1a0508]/45 text-[#f5d98a] backdrop-blur-sm transition group-hover:bg-[#e8c069] group-hover:text-[#2a1208] md:h-10 md:w-10">
             <ChevronRight className="h-3.5 w-3.5 -rotate-45 md:h-4 md:w-4" />
           </div>
         </div>
