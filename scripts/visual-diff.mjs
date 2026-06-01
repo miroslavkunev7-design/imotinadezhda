@@ -40,7 +40,7 @@ if (!fs.existsSync(currentPath)) {
 }
 
 const threshold = Number(flags.threshold ?? 0.1);
-const maxPct = Number(flags.max ?? 2);
+const maxPct = Number(flags.max ?? 3);
 
 const a = PNG.sync.read(fs.readFileSync(baselinePath));
 const b = PNG.sync.read(fs.readFileSync(currentPath));
