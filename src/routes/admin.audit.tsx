@@ -55,26 +55,66 @@ function AuditPage() {
     [pathFilter, emailFilter, ipFilter, dateFrom, dateTo],
   );
 
+  const exportCsv = () => {
+    const headers = ["Кога", "Път", "Имейл", "Потребител", "IP", "Браузър"];
+    const escape = (v: string | null) => `"${(v ?? "").replace(/"/g, '""')}"`;
+    const lines = [
+      headers.join(","),
+      ...rows.map((r) =>
+        [
+          new Date(r.created_at).toLocaleString("bg-BG"),
+          r.path,
+          r.email,
+          r.user_id,
+          r.ip,
+          r.user_agent,
+        ]
+          .map(escape)
+          .join(","),
+      ),
+    ];
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <h1 className="font-display text-2xl text-amber-100">
           Одит лог — достъп до /login и /admin
         </h1>
-        {hasFilters && (
+        <div className="flex items-center gap-3">
+          {hasFilters && (
+            <button
+              onClick={() => {
+                setPathFilter("all");
+                setEmailFilter("");
+                setIpFilter("");
+                setDateFrom("");
+                setDateTo("");
+              }}
+              className="text-xs text-amber-300/70 underline hover:text-amber-200"
+            >
+              Изчисти филтрите
+            </button>
+          )}
           <button
-            onClick={() => {
-              setPathFilter("all");
-              setEmailFilter("");
-              setIpFilter("");
-              setDateFrom("");
-              setDateTo("");
-            }}
-            className="text-xs text-amber-300/70 underline hover:text-amber-200"
+            onClick={exportCsv}
+            disabled={rows.length === 0}
+            className="rounded border border-amber-300/40 bg-amber-300/10 px-3 py-1.5 text-xs text-amber-200 hover:bg-amber-300/20 disabled:opacity-40"
           >
-            Изчисти филтрите
+            Експорт CSV ({rows.length})
           </button>
-        )}
+        </div>
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-2 md:grid-cols-5">
