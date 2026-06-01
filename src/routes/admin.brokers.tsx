@@ -129,7 +129,24 @@ function BrokersAdmin() {
               <label className="block"><span className="text-xs uppercase text-muted-foreground">Лиценз №</span><input value={editing.license_number ?? ""} onChange={(e) => setEditing({ ...editing, license_number: e.target.value })} className={iC} /></label>
               <label className="block"><span className="text-xs uppercase text-muted-foreground">Телефон</span><input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} className={iC} /></label>
               <label className="block"><span className="text-xs uppercase text-muted-foreground">Имейл</span><input type="email" value={editing.email ?? ""} onChange={(e) => setEditing({ ...editing, email: e.target.value })} className={iC} /></label>
-              <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">User ID (за достъп)</span><input value={editing.user_id ?? ""} onChange={(e) => setEditing({ ...editing, user_id: e.target.value || null })} placeholder="UUID на регистриран потребител" className={iC} /></label>
+              {editing.id ? (
+                <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">User ID (за достъп)</span><input value={editing.user_id ?? ""} onChange={(e) => setEditing({ ...editing, user_id: e.target.value || null })} placeholder="UUID на регистриран потребител" className={iC} /></label>
+              ) : (
+                <div className="md:col-span-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-semibold">
+                    <input type="checkbox" checked={!!editing._createAccount} onChange={(e) => setEditing({ ...editing, _createAccount: e.target.checked })} />
+                    Създай акаунт за брокера (имейл + парола)
+                  </label>
+                  {editing._createAccount && (
+                    <>
+                      <label className="block"><span className="text-xs uppercase text-muted-foreground">Парола *</span>
+                        <input type="text" required minLength={8} value={editing._password ?? ""} onChange={(e) => setEditing({ ...editing, _password: e.target.value })} placeholder="Минимум 8 символа" className={iC} autoComplete="new-password" />
+                      </label>
+                      <p className="text-[11px] text-muted-foreground">Брокерът ще може да влезе с този имейл и парола. Сподели ги сигурно с него.</p>
+                    </>
+                  )}
+                </div>
+              )}
               <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">Био</span><textarea rows={3} value={editing.bio ?? ""} onChange={(e) => setEditing({ ...editing, bio: e.target.value })} className={iC} /></label>
               <label className="flex items-center gap-2"><input type="checkbox" checked={!!editing.is_active} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} /> Активен</label>
             </div>
