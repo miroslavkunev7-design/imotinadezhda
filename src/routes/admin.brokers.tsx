@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Pencil, X, Upload, UserCog, Phone, Mail, CheckSquare, Square, ListChecks, UserPlus, MessageSquare, PhoneCall, CalendarClock, ClipboardList } from "lucide-react";
 import {
-  listBrokers, upsertBroker, deleteBroker,
+  listBrokers, upsertBroker, deleteBroker, createBrokerAccount,
   getBrokerDetails, upsertBrokerTask, toggleBrokerTask, deleteBrokerTask,
   assignClientToBroker, unassignClientFromBroker, listUnassignedClients,
 } from "@/lib/crm.functions";
