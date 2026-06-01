@@ -122,15 +122,15 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
   };
 
   return (
-    <header
-      className="relative z-30 w-full"
-      style={{
-        backgroundImage: `url(${headerPanel})`,
-        backgroundSize: "100% 100%",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-1 pt-1 md:px-10 md:pb-2 md:pt-1">
+    <header className="relative z-30 w-full -mb-4 md:-mb-6 lg:-mb-8">
+      <img
+        src={headerPanel}
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="pointer-events-none absolute inset-x-0 top-0 h-full w-full object-fill select-none"
+      />
+      <div className="relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 py-1 md:px-10 md:py-2">
         <Link
           to="/"
           className="flex shrink-0 items-center select-none -my-2"
@@ -141,19 +141,18 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
             src={logoNadezhda}
             alt="Недвижими имоти Надежда"
             draggable={false}
-            className="h-14 w-auto object-contain md:h-16 lg:h-20"
+            className="h-12 w-auto object-contain md:h-14 lg:h-16"
           />
         </Link>
 
-
-        <nav className="flex items-center gap-5 md:gap-10">
+        <nav className="flex items-center gap-4 md:gap-8 lg:gap-10">
           {topNav.map((item) => (
             <Link
               key={item.key}
               to={item.to}
               search={item.search as any}
               className={cn(
-                "relative font-display text-base text-primary transition hover:text-primary/80 md:text-lg",
+                "relative font-display text-sm text-primary transition hover:text-primary/80 md:text-base lg:text-lg",
                 active === item.key &&
                   "after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:bg-primary",
               )}
@@ -165,13 +164,14 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
             className="text-primary transition hover:text-primary/70"
             aria-label="Профил"
           >
-            <User className="h-6 w-6" />
+            <User className="h-5 w-5 md:h-6 md:w-6" />
           </button>
         </nav>
       </div>
     </header>
   );
 }
+
 
 type SearchOption = { value: string; label: string };
 
