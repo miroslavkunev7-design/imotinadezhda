@@ -9,14 +9,48 @@ export const Route = createFileRoute("/properties/$propertyId")({
     if (!data) throw notFound();
     return data;
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.property.title ?? "Имот"} | ИЛДЖ.ИА` },
-      { name: "description", content: loaderData?.property.description?.slice(0, 160) ?? "Детайли за имот, галерия и запитване." },
-      { property: "og:title", content: loaderData?.property.title ?? "Имот" },
-      { property: "og:image", content: loaderData?.property.cover_image_url ?? "" },
-    ],
-  }),
+  head: ({ loaderData, params }) => {
+    const url = `https://imotinadezhda.lovable.app/properties/${params.propertyId}`;
+    const p: any = loaderData?.property;
+    const title = `${p?.title ?? "Имот"} | ИЛДЖ.ИА`;
+    const desc = (p?.description ?? "Детайли за имот, галерия и запитване.").slice(0, 160);
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "product" },
+        ...(p?.cover_image_url ? [{ property: "og:image", content: p.cover_image_url }, { name: "twitter:image", content: p.cover_image_url }] : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: p
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Product",
+                name: p.title,
+                description: p.description ?? undefined,
+                image: p.cover_image_url ?? undefined,
+                url,
+                offers: p.price
+                  ? {
+                      "@type": "Offer",
+                      price: String(p.price),
+                      priceCurrency: p.currency ?? "EUR",
+                      availability: "https://schema.org/InStock",
+                      url,
+                    }
+                  : undefined,
+              }),
+            },
+          ]
+        : [],
+    };
+  },
   component: PropertyRoute,
   errorComponent: ({ error }) => <div role="alert" className="p-10">Грешка: {error.message}</div>,
   notFoundComponent: () => <div className="p-10">Имотът не е намерен.</div>,
