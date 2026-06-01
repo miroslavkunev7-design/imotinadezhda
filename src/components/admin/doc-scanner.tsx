@@ -358,7 +358,7 @@ function CameraCapture({
       const enhanced = enhanceDocument(outCanvas);
       const dataUrl = enhanced.toDataURL("image/jpeg", 0.95);
       const nextIndex = startCount + shots + 1;
-      onCapture(dataUrl, outCanvas.width, outCanvas.height, nextIndex);
+      onCapture(dataUrl, enhanced.width, enhanced.height, nextIndex);
       setShots((s) => s + 1);
       setLastShot(dataUrl);
       toast.success(`Страница ${nextIndex} добавена`);
