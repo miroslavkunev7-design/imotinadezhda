@@ -480,7 +480,7 @@ export function ListingCard({
       <div className="relative aspect-[1.08/0.82] overflow-hidden">
         <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
         {tag ? <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-[0.08em] text-primary-foreground">{tag}</span> : null}
-        <button className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow">
+        <button type="button" aria-label="Добави в любими" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow">
           <Heart className="h-4 w-4" />
         </button>
         <button
