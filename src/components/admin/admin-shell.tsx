@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { newMatchesCount } from "@/lib/crm.functions";
 import { AdminAIBubble } from "@/components/admin/ai-bubble";
 import marbleBg from "@/assets/marble-bg.png";
+import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
 
 type NavItem = {
   to: string;
@@ -85,7 +86,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const current = NAV.find((n) => (n.to === "/admin" ? path === "/admin" : path.startsWith(n.to)));
 
   return (
-    <div className="flex min-h-screen bg-[#1a0608]" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "600px", backgroundBlendMode: "overlay" }}>
+    <div className="flex min-h-screen bg-[#1a0608]">
       {/* Mobile overlay */}
       {mobileOpen && (
         <button
@@ -95,22 +96,32 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — бял мрамор със златни жилки */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-primary-foreground/10 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[8px_0_30px_rgba(0,0,0,0.25)] transition-transform duration-300 lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-amber-600/30 shadow-[8px_0_30px_rgba(0,0,0,0.35)] transition-transform duration-300 lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
+        style={{
+          backgroundImage: `
+            linear-gradient(180deg, rgba(255,255,255,0.78), rgba(248,242,228,0.85)),
+            repeating-linear-gradient(115deg, transparent 0 60px, rgba(201,160,76,0.18) 60px 61px, transparent 61px 140px),
+            repeating-linear-gradient(75deg, transparent 0 90px, rgba(201,160,76,0.12) 90px 91px, transparent 91px 200px),
+            url(${marbleBg})
+          `,
+          backgroundSize: "cover, auto, auto, 600px",
+          backgroundBlendMode: "normal, normal, normal, soft-light",
+        }}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between gap-3 border-b border-primary/15 px-5 py-5">
+        <div className="flex items-center justify-between gap-3 border-b border-amber-600/25 px-5 py-5">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md">
               <Building2 className="h-5 w-5" />
             </div>
             <div>
               <div className="font-display text-base leading-none text-primary">Имоти</div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/70">Надежда</div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-700">Надежда</div>
             </div>
           </Link>
           <button
@@ -123,14 +134,14 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         </div>
 
         {/* Profile */}
-        <div className="border-b border-primary/15 px-4 py-3">
-          <div className="flex items-center gap-3 rounded-xl bg-primary/5 px-3 py-2.5">
+        <div className="border-b border-amber-600/25 px-4 py-3">
+          <div className="flex items-center gap-3 rounded-xl border border-amber-600/20 bg-white/55 px-3 py-2.5 backdrop-blur-sm">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
               {(user?.email ?? "U").slice(0, 1).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold text-primary">Профил</div>
-              <div className="text-[11px] text-primary/60">Админ</div>
+              <div className="text-[11px] text-amber-800/80">Админ</div>
             </div>
           </div>
         </div>
@@ -140,16 +151,19 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
           {NAV.map((item) => {
             const active = item.to === "/admin" ? path === "/admin" : path.startsWith(item.to);
             const baseClass = cn(
-              "group mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition",
+              "group relative mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition",
               active
-                ? "bg-gradient-to-r from-primary to-primary/85 text-primary-foreground shadow-[0_8px_18px_rgba(102,8,28,0.3)]"
-                : "text-primary/85 hover:bg-primary/8",
+                ? "bg-gradient-to-r from-primary via-[#7a0d22] to-primary text-primary-foreground shadow-[0_10px_22px_rgba(102,8,28,0.4)] ring-1 ring-amber-400/60"
+                : "text-primary/85 hover:bg-amber-500/10",
               item.disabled && !active && "opacity-50",
             );
             const content = (
               <>
-                <item.icon className="h-4 w-4 flex-none" />
-                <span className="flex-1 truncate">{item.label}</span>
+                {active && (
+                  <span className="pointer-events-none absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/80 to-transparent" />
+                )}
+                <item.icon className={cn("h-4 w-4 flex-none", active && "text-amber-200")} />
+                <span className={cn("flex-1 truncate", active && "text-white font-semibold")}>{item.label}</span>
                 {item.badge ? (
                   <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-950">
                     {item.badge}
@@ -161,7 +175,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
                   </span>
                 ) : null}
                 {item.disabled ? (
-                  <span className="text-[9px] uppercase text-primary/40">скоро</span>
+                  <span className={cn("text-[9px] uppercase", active ? "text-amber-200/80" : "text-primary/40")}>скоро</span>
                 ) : null}
               </>
             );
@@ -181,27 +195,35 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-primary/15 px-3 py-3">
-          <Link to="/admin/ai" onClick={() => setMobileOpen(false)} className="mb-2 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-gradient-to-r from-amber-500/10 to-amber-300/10 px-3 py-2.5 text-sm text-primary transition hover:from-amber-500/20 hover:to-amber-300/20">
+        <div className="border-t border-amber-600/25 px-3 py-3">
+          <Link to="/admin/ai" onClick={() => setMobileOpen(false)} className="mb-2 flex items-center gap-2 rounded-lg border border-amber-500/50 bg-gradient-to-r from-amber-500/15 to-amber-300/15 px-3 py-2.5 text-sm text-primary transition hover:from-amber-500/25 hover:to-amber-300/25">
             <Sparkles className="h-4 w-4 text-amber-600" />
             <span className="flex-1 font-medium">AI Асистент</span>
           </Link>
-          <div className="mb-2 flex items-center gap-2 rounded-md bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-700">
+          <div className="mb-2 flex items-center gap-2 rounded-md bg-emerald-500/15 px-3 py-1.5 text-xs text-emerald-800">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Системата работи
           </div>
           <button
             onClick={() => signOut().then(() => navigate({ to: "/login" }))}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-primary/60 transition hover:bg-primary/10 hover:text-primary"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-primary/70 transition hover:bg-primary/10 hover:text-primary"
           >
             <LogOut className="h-3.5 w-3.5" /> Изход
           </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* Main — херо фон */}
+      <div
+        className="relative flex min-w-0 flex-1 flex-col"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(20,4,8,0.82) 0%, rgba(20,4,8,0.92) 100%), url(${heroBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+        }}
+      >
         {/* Header */}
-        <header className="flex items-center justify-between gap-2 border-b border-amber-500/15 bg-[rgba(20,4,8,0.7)] px-4 py-3 backdrop-blur md:px-6">
+        <header className="flex items-center justify-between gap-2 border-b border-amber-500/20 bg-[rgba(20,4,8,0.55)] px-4 py-3 backdrop-blur-md md:px-6">
           <div className="flex min-w-0 items-center gap-2 text-sm text-amber-100/70">
             <button
               onClick={() => setMobileOpen(true)}
