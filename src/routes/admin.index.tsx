@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Building2, MessageSquare, Star, MapPin, CheckCircle, Mail, Download, Layers, Crown } from "lucide-react";
+import { DocScanner } from "@/components/admin/doc-scanner";
 
 export const Route = createFileRoute("/admin/")({
   component: Dashboard,
@@ -79,6 +80,8 @@ function Dashboard() {
           </div>
         ))}
       </div>
+
+      <DocScanner />
     </div>
   );
 }
