@@ -245,8 +245,10 @@ export const runScrape = createServerFn({ method: "POST" })
   });
 
 export const listExtracted = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ status: z.string().optional() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     let q = supabaseAdmin
       .from("extracted_listings")
       .select("*, cities:city_id(name, slug), quarters:quarter_id(name, slug)")
