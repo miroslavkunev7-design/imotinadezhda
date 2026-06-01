@@ -763,11 +763,11 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
         <Field icon={LandPlot} label="Цена" value="Без значение" />
         <Field icon={Ruler} label="Площ" value="Без значение" />
       </div>
-      <div className="hidden items-center gap-2 border-l border-[#c9a24a]/25 px-3 md:flex md:px-4">
+      <div className="hidden flex-none items-center gap-2 border-l border-[#c9a24a]/25 px-3 md:flex md:px-4">
         <button
           type="button"
           onClick={handleSearch}
-          className="inline-flex items-center gap-2 rounded-[14px] border border-[#c9a24a]/40 px-4 py-2.5 text-[13px] text-primary-foreground/95 transition hover:bg-white/[0.05]"
+          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] border border-[#c9a24a]/40 px-4 py-2.5 text-[13px] text-[#f5ecd4] transition hover:bg-white/[0.05]"
         >
           <SlidersHorizontal className="h-4 w-4 text-[#c9a24a]" />
           <span className="font-display">Филтри</span>
@@ -775,7 +775,7 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
         <button
           type="button"
           onClick={handleSearch}
-          className="inline-flex items-center gap-2 rounded-[14px] px-5 py-2.5 text-[13.5px] font-semibold text-[#2a050b] transition hover:brightness-105"
+          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] px-5 py-2.5 text-[13.5px] font-semibold text-[#2a050b] transition hover:brightness-105"
           style={{
             background: "linear-gradient(135deg, #f8e3a0 0%, #e8c477 50%, #b8893a 100%)",
             boxShadow: "0 8px 20px -6px rgba(184,137,58,0.6), inset 0 1px 0 rgba(255,255,255,0.35)",
