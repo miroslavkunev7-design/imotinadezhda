@@ -26,6 +26,31 @@ function DatabasePage() {
   const [quarterId, setQuarterId] = useState("");
   const [year, setYear] = useState<string>("");
   const [search, setSearch] = useState("");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [bulkDownloading, setBulkDownloading] = useState(false);
+
+  const onDownload = async (row: Row) => {
+    setDownloadingId(row.id);
+    try {
+      await downloadPropertyZip(row);
+      toast.success("Готово — изтегли ZIP файла");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при изтегляне");
+    }
+    setDownloadingId(null);
+  };
+
+  const onBulkDownload = async () => {
+    if (!rows.length) return;
+    setBulkDownloading(true);
+    try {
+      await downloadBulkZip(rows);
+      toast.success(`Готово — ${rows.length} имота в ZIP`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при пакетиране");
+    }
+    setBulkDownloading(false);
+  };
 
   useEffect(() => {
     supabase.from("cities").select("id, name").order("name").then(({ data }) => setCities(data ?? []));
