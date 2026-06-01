@@ -126,7 +126,16 @@ export const listBrokers = createServerFn({ method: "GET" })
 
 const brokerSchema = z.object({
   id: z.string().uuid().optional().nullable(),
-  user_id: z.preprocess((v) => (v === "" ? null : v), z.string().uuid().optional().nullable()),
+  user_id: z.preprocess(
+    (v) => {
+      if (v === "" || v === undefined || v === null) return null;
+      if (typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v.trim())) {
+        return v.trim();
+      }
+      return null;
+    },
+    z.string().uuid().nullable(),
+  ),
   full_name: z.string().min(2).max(200),
   email: z.string().email().max(200).optional().nullable().or(z.literal("")),
   phone: z.string().max(40).optional().nullable(),
