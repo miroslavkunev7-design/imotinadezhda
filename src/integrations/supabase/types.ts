@@ -589,6 +589,80 @@ export type Database = {
           },
         ]
       }
+      customer_chat_messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          metadata: Json
+          role: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          role: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_chat_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "customer_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_chats: {
+        Row: {
+          created_at: string
+          id: string
+          is_handed_off: boolean
+          last_message_at: string
+          page_url: string | null
+          property_id: string | null
+          visitor_email: string | null
+          visitor_name: string | null
+          visitor_phone: string | null
+          visitor_token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_handed_off?: boolean
+          last_message_at?: string
+          page_url?: string | null
+          property_id?: string | null
+          visitor_email?: string | null
+          visitor_name?: string | null
+          visitor_phone?: string | null
+          visitor_token: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_handed_off?: boolean
+          last_message_at?: string
+          page_url?: string | null
+          property_id?: string | null
+          visitor_email?: string | null
+          visitor_name?: string | null
+          visitor_phone?: string | null
+          visitor_token?: string
+        }
+        Relationships: []
+      }
       extracted_listings: {
         Row: {
           agency_logo_detected: boolean
