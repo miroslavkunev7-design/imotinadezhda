@@ -19,6 +19,10 @@ export function MortgageSendModal({ client, onClose }: { client: ClientLite; onC
   const [extra, setExtra] = useState("");
 
   const sendTo = (partner: (typeof MORTGAGE_PARTNERS)[number]) => {
+    if (!partner.email) {
+      toast.error(`Имейлът на ${partner.name} още не е добавен`);
+      return;
+    }
     const subject = `Кандидатура за ипотечен кредит — ${client.full_name}`;
     const lines = [
       `Здравей, ${partner.name},`,
@@ -69,7 +73,7 @@ export function MortgageSendModal({ client, onClose }: { client: ClientLite; onC
                 <Send className="h-4 w-4" />
                 <div className="flex flex-col items-start text-left">
                   <span className="text-sm font-semibold">Изпрати към {p.name}</span>
-                  <span className="text-[10px] opacity-80"><Mail className="mr-1 inline h-3 w-3" />{p.email}</span>
+                  <span className="text-[10px] opacity-80"><Mail className="mr-1 inline h-3 w-3" />{p.email || "имейл — предстои"}</span>
                 </div>
               </Button>
             ))}

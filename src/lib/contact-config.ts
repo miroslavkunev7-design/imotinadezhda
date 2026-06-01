@@ -25,8 +25,8 @@ export const AGENCY = {
 
 // Кредитни консултанти, на които да изпращаме кандидатури за ипотечен кредит
 export const MORTGAGE_PARTNERS = [
-  { id: "plamen", name: "Пламен", email: "plamen@imotinadezhda.bg" },
-  { id: "kalina", name: "Калина (Ай Банк)", email: "kalina@aibank.bg" },
+  { id: "kalina", name: "Калина (iBank)", email: "kmarinova@ibank.bg" },
+  { id: "plamen", name: "Пламен (ОББ)", email: "" },
 ] as const;
 
 export function buildWhatsAppUrl(message: string, whatsapp: string = AGENCY.whatsapp) {

@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Pencil, X, Images, Upload, Star, Send, FileText, Check, Download } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Images, Upload, Star, Send, FileText, Check, Download, Layers, Mail, Loader2 } from "lucide-react";
+import { PDFDocument } from "pdf-lib";
+import { MORTGAGE_PARTNERS } from "@/lib/contact-config";
+import { toast } from "sonner";
 
 const CROSSPOST_SITES = [
   { key: "imot_bg", label: "Imot.bg" },
@@ -320,7 +323,7 @@ function ImagesModal({ property, onClose }: { property: Row; onClose: () => void
 }
 
 type DocType = "skica" | "tax_assessment" | "encumbrance_check" | "other";
-type DocRow = { id: string; doc_type: DocType; file_name: string; file_url: string; file_path: string; created_at: string };
+type DocRow = { id: string; doc_type: DocType; file_name: string; file_url: string; file_path: string; mime_type?: string | null; created_at: string };
 
 const DOC_TYPES: { key: DocType; label: string }[] = [
   { key: "skica", label: "Скица" },
@@ -332,6 +335,8 @@ const DOC_TYPES: { key: DocType; label: string }[] = [
 function DocumentsModal({ property, onClose }: { property: Row; onClose: () => void }) {
   const [docs, setDocs] = useState<DocRow[]>([]);
   const [uploadingType, setUploadingType] = useState<DocType | null>(null);
+  const [merging, setMerging] = useState(false);
+  const [mergedUrl, setMergedUrl] = useState<string | null>(null);
 
   const load = async () => {
     const { data } = await supabase
@@ -389,6 +394,60 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
     load();
   };
 
+  const mergeAndUpload = async (): Promise<{ url: string; path: string } | null> => {
+    const pdfDocs = docs.filter((d) => (d.mime_type ?? "").includes("pdf") || d.file_name.toLowerCase().endsWith(".pdf"));
+    if (!pdfDocs.length) { toast.error("Няма PDF документи за обединяване"); return null; }
+    setMerging(true);
+    try {
+      const merged = await PDFDocument.create();
+      for (const d of pdfDocs) {
+        const { data, error } = await supabase.storage.from("property-documents").download(d.file_path);
+        if (error || !data) throw new Error(error?.message ?? `Грешка при ${d.file_name}`);
+        const bytes = new Uint8Array(await data.arrayBuffer());
+        const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
+        const pages = await merged.copyPages(src, src.getPageIndices());
+        pages.forEach((p) => merged.addPage(p));
+      }
+      const out = await merged.save();
+      const path = `${property.id}/merged-${Date.now()}.pdf`;
+      const { error: upErr } = await supabase.storage.from("property-documents")
+        .upload(path, new Blob([out as BlobPart], { type: "application/pdf" }), { contentType: "application/pdf", upsert: true });
+      if (upErr) throw new Error(upErr.message);
+      const { data: signed } = await supabase.storage.from("property-documents").createSignedUrl(path, 60 * 60 * 24 * 30);
+      const url = signed?.signedUrl ?? "";
+      setMergedUrl(url);
+      toast.success(`Обединени ${pdfDocs.length} файла`);
+      return { url, path };
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при обединяване");
+      return null;
+    } finally { setMerging(false); }
+  };
+
+  const sendToPartner = async (partner: (typeof MORTGAGE_PARTNERS)[number]) => {
+    if (!partner.email) { toast.error(`Имейлът на ${partner.name} още не е добавен`); return; }
+    let link = mergedUrl;
+    if (!link) {
+      const res = await mergeAndUpload();
+      if (!res) return;
+      link = res.url;
+    }
+    const subject = `Документи за имот — ${property.title ?? ""}`;
+    const body = [
+      `Здравей, ${partner.name},`,
+      "",
+      `Изпращам Ви документите за имот: ${property.title ?? ""}`,
+      "",
+      "Обединен PDF (валиден 30 дни):",
+      link,
+      "",
+      "Поздрави,",
+      "Имоти Надежда",
+    ].join("\n");
+    window.location.href = `mailto:${partner.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    toast.success(`Отворено е писмо до ${partner.name}`);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl">
@@ -433,6 +492,40 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
             );
           })}
         </ul>
+
+        <div className="mt-5 space-y-2 border-t border-border pt-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Действия</div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <button
+              onClick={() => mergeAndUpload()}
+              disabled={merging}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-background px-3 py-2.5 text-xs font-semibold hover:bg-muted disabled:opacity-50"
+            >
+              {merging ? <Loader2 className="h-4 w-4 animate-spin" /> : <Layers className="h-4 w-4" />}
+              Обедини PDF файлове
+            </button>
+            {MORTGAGE_PARTNERS.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => sendToPartner(p)}
+                disabled={merging || !p.email}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-[#7a0d22] px-3 py-2.5 text-xs font-semibold text-amber-100 hover:opacity-90 disabled:opacity-50"
+                title={p.email || "Имейлът ще бъде добавен"}
+              >
+                <Mail className="h-4 w-4" />
+                Изпрати на {p.name}
+              </button>
+            ))}
+          </div>
+          {mergedUrl && (
+            <a href={mergedUrl} target="_blank" rel="noreferrer" className="block truncate text-[11px] text-primary hover:underline">
+              ✓ Обединен PDF — отвори
+            </a>
+          )}
+          <p className="text-[11px] text-muted-foreground">
+            * „Обедини" слива всички PDF документи в един файл и го качва защитено. Бутоните за изпращане отварят имейл клиента с линк към обединения PDF.
+          </p>
+        </div>
       </div>
     </div>
   );
