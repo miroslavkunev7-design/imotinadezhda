@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, Mail, MapPin, AlertTriangle, Sparkles } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, Mail, MapPin, AlertTriangle, Sparkles, CreditCard } from "lucide-react";
 import { listClients, upsertClient, deleteClient, getClientDocuments, addClientDocument, deleteClientDocument } from "@/lib/crm.functions";
+import { MortgageSendModal } from "@/components/admin/mortgage-send-modal";
 
 export const Route = createFileRoute("/admin/clients")({
   component: ClientsAdmin,
@@ -18,6 +19,7 @@ function ClientsAdmin() {
   const [brokers, setBrokers] = useState<{ id: string; full_name: string; user_id: string | null }[]>([]);
   const [editing, setEditing] = useState<Partial<Client> | null>(null);
   const [docsFor, setDocsFor] = useState<Client | null>(null);
+  const [mortgageFor, setMortgageFor] = useState<Client | null>(null);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -106,6 +108,7 @@ function ClientsAdmin() {
                 </td>
                 <td className="px-4 py-2 text-xs">{r.brokers?.full_name ?? "—"}</td>
                 <td className="px-4 py-2 text-right">
+                  <button className="mr-2 text-amber-300" title="Кандидатура за ипотечен кредит" onClick={() => setMortgageFor(r)}><CreditCard className="h-4 w-4" /></button>
                   <button className="mr-2 text-amber-300" title="Документи" onClick={() => setDocsFor(r)}><FileText className="h-4 w-4" /></button>
                   <button className="mr-2 text-amber-300" title="Редакция" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></button>
                   <button className="text-rose-400" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></button>
@@ -188,6 +191,7 @@ function ClientsAdmin() {
       )}
 
       {docsFor && <DocumentsModal client={docsFor} onClose={() => setDocsFor(null)} />}
+      {mortgageFor && <MortgageSendModal client={mortgageFor} onClose={() => setMortgageFor(null)} />}
     </div>
   );
 }
