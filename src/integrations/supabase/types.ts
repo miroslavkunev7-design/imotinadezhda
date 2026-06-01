@@ -441,9 +441,12 @@ export type Database = {
           created_at: string
           created_by: string | null
           currency: string | null
+          deal_stage: string | null
+          deal_started_at: string | null
           email: string | null
           full_name: string
           id: string
+          mortgage_data: Json
           notes: string | null
           phone: string | null
           rooms_max: number | null
@@ -465,9 +468,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           currency?: string | null
+          deal_stage?: string | null
+          deal_started_at?: string | null
           email?: string | null
           full_name: string
           id?: string
+          mortgage_data?: Json
           notes?: string | null
           phone?: string | null
           rooms_max?: number | null
@@ -489,9 +495,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           currency?: string | null
+          deal_stage?: string | null
+          deal_started_at?: string | null
           email?: string | null
           full_name?: string
           id?: string
+          mortgage_data?: Json
           notes?: string | null
           phone?: string | null
           rooms_max?: number | null
