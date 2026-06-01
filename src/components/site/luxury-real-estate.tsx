@@ -739,11 +739,11 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                 <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover", mixBlendMode: "screen" }} />
                 <div className="relative mb-3 hidden items-center justify-end gap-7 text-[14px] md:mb-6 md:flex md:gap-10 md:text-[14.5px]">
                   {topNav.map((item) => (
-                    <Link key={item.key} to={item.to} search={item.search as any} className="text-primary-foreground/90 transition hover:text-[#e8c477]">
+                    <Link key={item.key} to={item.to} search={item.search as any} className="text-[#f0e3c8]/95 transition hover:text-[#e8c477]">
                       {item.label}
                     </Link>
                   ))}
-                  <button aria-label="Профил" className="rounded-full border border-[#c9a24a]/30 p-1.5 text-primary-foreground/90 transition hover:border-[#e8c477] hover:text-[#e8c477]">
+                  <button aria-label="Профил" className="rounded-full border border-[#c9a24a]/40 p-1.5 text-[#e8c477] transition hover:border-[#e8c477] hover:bg-[#e8c477]/10">
                     <User className="h-5 w-5" />
                   </button>
                 </div>
