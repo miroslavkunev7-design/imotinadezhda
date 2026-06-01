@@ -983,11 +983,11 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
           >
             <div className="ml-auto flex items-center gap-7 md:gap-10">
               {topNav.map((item) => (
-                <Link key={item.key} to={item.to} search={item.search as any} className="hover:text-[#e8c477]">
+                <Link key={item.key} to={item.to} search={item.search as any} className="font-medium text-white drop-shadow-sm hover:text-[#e8c477]">
                   {item.label}
                 </Link>
               ))}
-              <button aria-label="Профил" className="hover:text-[#e8c477]">
+              <button aria-label="Профил" className="text-white drop-shadow-sm hover:text-[#e8c477]">
                 <User className="h-5 w-5" />
               </button>
             </div>
