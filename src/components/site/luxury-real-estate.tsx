@@ -106,145 +106,14 @@ const propertyFacts = [
 
 const amenityList = ["Панорамна гледка", "Тераса", "Климатик", "Обзаведен", "СОТ", "Контролиран достъп"];
 
+type NavKey = SiteNavKey;
+
+/**
+ * Backwards-compatible alias for the old per-section LuxuryHeader. Every page
+ * now renders the unified <SiteHeader />, but existing imports keep working.
+ */
 export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) {
-  const navigate = useNavigate();
-  const clickCountRef = useRef(0);
-  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleLogoClick = (e: React.MouseEvent) => {
-    // Always intercept the click so the Link doesn't navigate away
-    // and reset our counter mid-sequence.
-    e.preventDefault();
-    e.stopPropagation();
-    clickCountRef.current += 1;
-    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
-
-    if (clickCountRef.current >= 3) {
-      clickCountRef.current = 0;
-      navigate({ to: "/login", search: { redirect: "/admin" } as any });
-      return;
-    }
-
-    // Single click → go home after a short window for additional clicks.
-    clickTimerRef.current = setTimeout(() => {
-      const count = clickCountRef.current;
-      clickCountRef.current = 0;
-      if (count === 1) {
-        navigate({ to: "/" });
-      }
-      // count === 2: do nothing (user almost triple-clicked); they can retry
-    }, 450);
-  };
-
-  return (
-    <header
-      className="relative z-30 w-full"
-      style={{
-        filter: "drop-shadow(0 6px 18px rgba(120,30,40,0.28))",
-      }}
-    >
-      {/* Marble panel with curved bottom (chupka) */}
-      <div
-        className="relative"
-        style={{
-          background:
-            "radial-gradient(ellipse at 20% 0%, #fffaf0 0%, transparent 55%), radial-gradient(ellipse at 85% 100%, #e8d098 0%, transparent 60%), linear-gradient(180deg, #fbf6ea 0%, #f4e6c4 50%, #ecd9a8 100%)",
-          clipPath:
-            "path('M0,0 L100%,0 L100%,calc(100% - 28px) Q50%,100% 0,calc(100% - 28px) Z')",
-          WebkitClipPath:
-            "path('M0,0 L100%,0 L100%,calc(100% - 28px) Q50%,100% 0,calc(100% - 28px) Z')",
-        }}
-      >
-        {/* Subtle marble veining */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(115deg, transparent 0 80px, rgba(180,140,70,0.18) 80px 81px, transparent 81px 160px), repeating-linear-gradient(75deg, transparent 0 120px, rgba(120,80,30,0.12) 120px 121px, transparent 121px 240px)",
-          }}
-        />
-        {/* Top gold hairline */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-[2px]"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, #b8893a 15%, #f3d27a 50%, #b8893a 85%, transparent)",
-          }}
-        />
-        {/* Gold curve trace along the chupka */}
-        <svg
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-8 w-full"
-          viewBox="0 0 1440 32"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="goldCurve" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0%" stopColor="#b8893a" stopOpacity="0" />
-              <stop offset="20%" stopColor="#d4a84a" />
-              <stop offset="50%" stopColor="#f6dc8e" />
-              <stop offset="80%" stopColor="#d4a84a" />
-              <stop offset="100%" stopColor="#b8893a" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M0,4 L1440,4 L1440,4 Q720,32 0,4 Z"
-            fill="none"
-            stroke="url(#goldCurve)"
-            strokeWidth="1.5"
-          />
-          <path
-            d="M0,7 Q720,34 1440,7"
-            fill="none"
-            stroke="url(#goldCurve)"
-            strokeWidth="0.8"
-            opacity="0.55"
-          />
-        </svg>
-
-        <div className="relative mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-6 pt-2 md:px-10 md:pb-8 md:pt-3">
-          <Link
-            to="/"
-            className="flex shrink-0 items-center select-none"
-            onClick={handleLogoClick}
-            aria-label="Начало (троен клик за админ вход)"
-          >
-            <img
-              src={logoNadezhda}
-              alt="Недвижими имоти Надежда"
-              draggable={false}
-              className="h-12 w-auto object-contain md:h-14 lg:h-[68px]"
-            />
-          </Link>
-
-          <nav className="flex items-center gap-4 md:gap-8 lg:gap-10">
-            {topNav.map((item) => (
-              <Link
-                key={item.key}
-                to={item.to}
-                search={item.search as any}
-                className={cn(
-                  "relative font-display text-sm text-primary transition hover:text-primary/80 md:text-base lg:text-lg",
-                  active === item.key &&
-                    "after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full after:bg-[#c9a24a]",
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
-            <button
-              className="text-primary transition hover:text-primary/70"
-              aria-label="Профил"
-            >
-              <User className="h-5 w-5 md:h-6 md:w-6" />
-            </button>
-          </nav>
-        </div>
-      </div>
-    </header>
-  );
+  return <SiteHeader active={active} />;
 }
 
 
@@ -285,18 +154,17 @@ function SearchBar({
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [areaMax, setAreaMax] = useReactState(initial?.area_max ?? "200");
 
+  const navigate = useNavigate();
   const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (city) params.set("city_slug", city);
-    if (quarter) params.set("quarter_slug", quarter);
-    if (ptype) params.set("property_type", ptype);
-    if (priceMin) params.set("price_min", priceMin);
-    if (priceMax) params.set("price_max", priceMax);
-    if (areaMin) params.set("area_min", areaMin);
-    if (areaMax) params.set("area_max", areaMax);
-    if (typeof window !== "undefined") {
-      window.location.href = `/search?${params.toString()}`;
-    }
+    const params: Record<string, string> = {};
+    if (city) params.city_slug = city;
+    if (quarter) params.quarter_slug = quarter;
+    if (ptype) params.property_type = ptype;
+    if (priceMin) params.price_min = priceMin;
+    if (priceMax) params.price_max = priceMax;
+    if (areaMin) params.area_min = areaMin;
+    if (areaMax) params.area_max = areaMax;
+    navigate({ to: "/search", search: params as never });
   };
 
   const cityOptions = cities.length ? cities : [
