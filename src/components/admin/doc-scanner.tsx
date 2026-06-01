@@ -3,7 +3,12 @@ import { Button } from "@/components/ui/button";
 import { ScanLine, Trash2, FileDown, Plus, Loader2, Camera, ImageIcon, X, Aperture, RotateCcw } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
-import jscanify from "jscanify";
+// jscanify is dynamically imported in browser-only code paths (SSR-safe)
+async function getScanner() {
+  const mod: any = await import("jscanify");
+  const Ctor = mod.default ?? mod;
+  return new Ctor();
+}
 import {
   Dialog,
   DialogContent,
