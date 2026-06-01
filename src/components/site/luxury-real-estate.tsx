@@ -657,9 +657,18 @@ export function CityPage({ data }: { data?: CityData } = {}) {
   const heroImage = city.hero_image_url || (city.slug === "burgas" ? burgasPier : burgasHero);
 
   return (
-    <main className="luxury-page min-h-screen bg-[#150409] text-primary-foreground">
+    <main
+      className="luxury-page bg-[#150409] text-primary-foreground lg:flex lg:flex-col lg:overflow-hidden"
+      style={{ minHeight: "100vh" }}
+    >
+      <style>{`
+        @media (min-width: 1024px) {
+          .luxury-page { height: 100vh; max-height: 100vh; }
+        }
+      `}</style>
+
       {/* Hero card */}
-      <section className="relative px-4 pt-4 md:px-8 md:pt-6">
+      <section className="relative px-4 pt-4 md:px-8 md:pt-4 lg:flex-[0_0_auto]">
         <div className="relative mx-auto max-w-[1480px]">
           {/* Outer gold glow */}
           <div
@@ -673,13 +682,11 @@ export function CityPage({ data }: { data?: CityData } = {}) {
           <div className="relative overflow-hidden rounded-[28px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(232,196,119,0.35)_inset]">
             <div className="grid md:grid-cols-[1.02fr_0.98fr]">
               {/* LEFT: hero image + marble logo corner */}
-              <div className="relative min-h-[460px] md:min-h-[600px]">
+              <div className="relative min-h-[420px] md:min-h-[460px] lg:min-h-[clamp(380px,52vh,540px)]">
                 <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 35%" }} />
-                {/* Subtle warm overlay to blend with burgundy side */}
                 <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(42,5,11,0.55) 100%)" }} />
-                {/* Marble corner badge */}
                 <div
-                  className="absolute left-0 top-0 z-10 h-[210px] w-[360px] md:h-[260px] md:w-[440px]"
+                  className="absolute left-0 top-0 z-10 h-[200px] w-[340px] md:h-[230px] md:w-[400px]"
                   style={{
                     background:
                       "radial-gradient(ellipse at 15% 0%, #fffaf0 0%, transparent 55%), linear-gradient(155deg, #fbf6ea 0%, #f4e6c4 55%, #ecd9a8 100%)",
@@ -688,12 +695,11 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                     boxShadow: "inset 0 -2px 12px rgba(184,137,58,0.25)",
                   }}
                 >
-                  <Link to="/" className="absolute left-7 top-7 md:left-12 md:top-10">
-                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-[72px] w-auto object-contain md:h-[92px]" />
+                  <Link to="/" className="absolute left-7 top-6 md:left-10 md:top-8">
+                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-[68px] w-auto object-contain md:h-[80px]" />
                   </Link>
                 </div>
-                {/* Gold curve trace — thicker, double line */}
-                <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 h-[260px] w-[440px]" viewBox="0 0 440 260" preserveAspectRatio="none">
+                <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 h-[240px] w-[420px]" viewBox="0 0 440 260" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="goldEdgeCity" x1="0" x2="1">
                       <stop offset="0%" stopColor="#b8893a" stopOpacity="0" />
@@ -709,16 +715,14 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
               {/* RIGHT: burgundy panel */}
               <div
-                className="relative flex flex-col px-8 py-7 md:px-14 md:py-10"
+                className="relative flex flex-col px-8 py-6 md:px-12 md:py-7"
                 style={{
                   background:
                     "radial-gradient(ellipse at 25% 15%, rgba(140,35,55,0.6), transparent 60%), linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
                 }}
               >
-                {/* faint marble veins on burgundy */}
                 <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover", mixBlendMode: "screen" }} />
-                {/* Nav row */}
-                <div className="relative mb-10 flex items-center justify-end gap-8 text-[15px] md:gap-12 md:text-[15.5px]">
+                <div className="relative mb-6 flex items-center justify-end gap-7 text-[14px] md:gap-10 md:text-[14.5px]">
                   {topNav.map((item) => (
                     <Link key={item.key} to={item.to} search={item.search as any} className="text-primary-foreground/90 transition hover:text-[#e8c477]">
                       {item.label}
@@ -728,15 +732,15 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                     <User className="h-5 w-5" />
                   </button>
                 </div>
-                <p className="relative font-display text-[12.5px] uppercase tracking-[0.32em] text-[#c9a24a]">За града</p>
-                <h1 className="relative mt-3 font-display text-[3.8rem] leading-[0.95] text-[#e8c477] md:text-[5.4rem]" style={{ textShadow: "0 2px 24px rgba(232,196,119,0.18)" }}>
+                <p className="relative font-display text-[11.5px] uppercase tracking-[0.32em] text-[#c9a24a]">За града</p>
+                <h1 className="relative mt-2 font-display text-[3.2rem] leading-[0.95] text-[#e8c477] md:text-[4.2rem] xl:text-[4.6rem]" style={{ textShadow: "0 2px 24px rgba(232,196,119,0.18)" }}>
                   {city.name}
                 </h1>
                 {city.description && (
-                  <p className="relative mt-6 max-w-[480px] text-[15px] leading-[1.75] text-primary-foreground/85 md:text-[15.5px]">{city.description}</p>
+                  <p className="relative mt-4 max-w-[480px] text-[13.5px] leading-[1.65] text-primary-foreground/85 md:text-[14px]">{city.description}</p>
                 )}
-                <div className="relative mt-8 h-px w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(201,162,74,0.6) 50%, transparent)" }} />
-                <div className="relative mt-7 grid grid-cols-4 gap-4">
+                <div className="relative mt-5 h-px w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(201,162,74,0.6) 50%, transparent)" }} />
+                <div className="relative mt-5 grid grid-cols-4 gap-3">
                   <StatItem icon={User} value={city.population ? `~${new Intl.NumberFormat("bg-BG").format(city.population)}` : "—"} label="жители" />
                   <StatItem icon={Square} value={city.area_km2 ? `${city.area_km2} km²` : "—"} label="площ" />
                   <StatItem icon={MapPin} value={city.region ?? "—"} label="регион" />
@@ -748,26 +752,26 @@ export function CityPage({ data }: { data?: CityData } = {}) {
         </div>
       </section>
 
-      {/* Inline burgundy search bar — gold "Търси" вграден вдясно */}
-      <section className="relative z-20 mx-auto -mt-9 max-w-[1380px] px-4 md:-mt-12 md:px-8">
+      {/* Inline burgundy search bar */}
+      <section className="relative z-20 mx-auto -mt-7 w-full max-w-[1380px] px-4 md:-mt-9 md:px-8 lg:flex-[0_0_auto]">
         <CitySearchBar citySlug={city.slug} cityName={city.name} />
       </section>
 
       {/* Marble quarters strip */}
-      <section className="relative mx-auto mt-8 max-w-[1480px] px-4 pb-14 md:mt-12 md:px-8 md:pb-20">
+      <section className="relative mx-auto mt-5 w-full max-w-[1480px] px-4 pb-6 md:mt-6 md:px-8 md:pb-6 lg:flex-1 lg:min-h-0 lg:flex lg:items-stretch">
         <div
-          className="relative overflow-hidden rounded-[28px] p-6 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:p-8"
+          className="relative w-full overflow-hidden rounded-[24px] p-5 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:p-6"
           style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}
         >
-          <div className="grid gap-6 md:grid-cols-[280px_1fr] md:items-center md:gap-8">
-            <div className="flex flex-col gap-6">
-              <h2 className="font-display text-[1.85rem] leading-tight text-[#2a050b] md:text-[2.15rem]">
+          <div className="grid h-full gap-5 md:grid-cols-[260px_1fr] md:items-center md:gap-7">
+            <div className="flex flex-col gap-4">
+              <h2 className="font-display text-[1.6rem] leading-tight text-[#2a050b] md:text-[1.85rem]">
                 Избери квартал<br />в гр. {city.name}
               </h2>
               <Link
                 to="/cities/$slug"
                 params={{ slug: city.slug }}
-                className="inline-flex items-center justify-between gap-3 rounded-[16px] px-6 py-4 font-display text-[15px] text-primary-foreground shadow-[0_14px_30px_-8px_rgba(77,8,20,0.6)] transition hover:brightness-110"
+                className="inline-flex items-center justify-between gap-3 rounded-[14px] px-5 py-3 font-display text-[14px] text-primary-foreground shadow-[0_14px_30px_-8px_rgba(77,8,20,0.6)] transition hover:brightness-110"
                 style={{
                   background: "linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
                   border: "1px solid rgba(232,196,119,0.55)",
@@ -784,7 +788,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       </section>
 
       {properties.length > 0 && (
-        <section className="relative mx-auto max-w-[1480px] px-4 pb-20 md:px-8">
+        <section className="relative mx-auto max-w-[1480px] px-4 pb-20 md:px-8 lg:hidden">
           <h2 className="mb-6 font-display text-[2.4rem] text-primary-foreground md:text-[3rem]">Активни имоти в {city.name}</h2>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {properties.map((p) => (
