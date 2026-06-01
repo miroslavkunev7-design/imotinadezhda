@@ -349,8 +349,10 @@ export const publishExtracted = createServerFn({ method: "POST" })
   });
 
 export const deleteExtracted = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { error } = await supabaseAdmin.from("extracted_listings").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
