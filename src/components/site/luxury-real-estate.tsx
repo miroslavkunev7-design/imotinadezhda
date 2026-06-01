@@ -754,8 +754,8 @@ export function CityPage({ data }: { data?: CityData } = {}) {
         </div>
       </section>
 
-      {/* Inline burgundy search bar */}
-      <section className="relative z-20 mx-auto -mt-7 w-full max-w-[1380px] px-4 md:-mt-9 md:px-8 lg:flex-[0_0_auto]">
+      {/* Inline burgundy search bar — tucked into the hero so they read as one piece */}
+      <section className="relative z-30 mx-auto -mt-12 w-full max-w-[1440px] px-4 md:-mt-14 md:px-8 lg:-mt-16 lg:flex-[0_0_auto]">
         <CitySearchBar citySlug={city.slug} cityName={city.name} />
       </section>
 
