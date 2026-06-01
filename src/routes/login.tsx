@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { logAdminAccess } from "@/lib/audit.functions";
+import { SiteHeader } from "@/components/site/site-header";
 import loginHero from "@/assets/login-hero.jpeg";
 
 export const Route = createFileRoute("/login")({
