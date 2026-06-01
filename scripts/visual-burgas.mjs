@@ -5,8 +5,9 @@
  *   2. Element overlap between scroller arrows and the "Виж всички квартали" CTA
  *   3. Pixel diff of full viewport + hero & quarters bands vs baseline
  *
- *   bun run visual:burgas                # diff vs baseline (creates if missing)
- *   bun run visual:burgas -- --update    # overwrite baseline
+ *   bun run visual:burgas                  # diff vs baseline (creates if missing)
+ *   bun run visual:burgas -- --update      # force overwrite baseline
+ *   bun run visual:burgas -- --update-safe # overwrite ONLY if overflow+overlap guards pass
  *   bun run visual:burgas -- --url=https://...lovable.app
  */
 import { spawnSync } from "node:child_process";
