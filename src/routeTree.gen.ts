@@ -139,9 +139,9 @@ const AdminAuditIdRoute = AdminAuditIdRouteImport.update({
 } as any)
 const CitiesSlugDistrictsDistrictRoute =
   CitiesSlugDistrictsDistrictRouteImport.update({
-    id: '/districts/$district',
-    path: '/districts/$district',
-    getParentRoute: () => CitiesSlugRoute,
+    id: '/cities/$slug/districts/$district',
+    path: '/cities/$slug/districts/$district',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -298,6 +298,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
   CitiesSlugIndexRoute: typeof CitiesSlugIndexRoute
+  CitiesSlugDistrictsDistrictRoute: typeof CitiesSlugDistrictsDistrictRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -451,10 +452,10 @@ declare module '@tanstack/react-router' {
     }
     '/cities/$slug/districts/$district': {
       id: '/cities/$slug/districts/$district'
-      path: '/districts/$district'
+      path: '/cities/$slug/districts/$district'
       fullPath: '/cities/$slug/districts/$district'
       preLoaderRoute: typeof CitiesSlugDistrictsDistrictRouteImport
-      parentRoute: typeof CitiesSlugRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -513,6 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
   CitiesSlugIndexRoute: CitiesSlugIndexRoute,
+  CitiesSlugDistrictsDistrictRoute: CitiesSlugDistrictsDistrictRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
