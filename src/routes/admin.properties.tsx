@@ -42,6 +42,7 @@ function PropertiesAdmin() {
   const [quarters, setQuarters] = useState<QuarterOpt[]>([]);
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [imagesFor, setImagesFor] = useState<Row | null>(null);
+  const [docsFor, setDocsFor] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
