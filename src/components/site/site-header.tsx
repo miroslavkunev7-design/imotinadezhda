@@ -151,7 +151,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
         {/* ============ Gold ribbon sash crossing the boundary ============ */}
         <svg
           aria-hidden
-          className="pointer-events-none absolute left-[18%] top-0 z-[7] h-full w-[64%] md:left-[20%] md:w-[58%]"
+          className="pointer-events-none absolute left-[10%] top-0 z-[7] h-full w-[88%] md:left-[12%] md:w-[84%]"
           viewBox="0 0 1000 160"
           preserveAspectRatio="none"
         >
@@ -177,20 +177,26 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             </linearGradient>
           </defs>
 
-          {/* Main ribbon body — gentle S-sweep from upper-left to far right */}
+          {/* Main ribbon body — wavy sweep extending fully across into burgundy */}
           <path
-            d="M40,-10 C160,10 240,90 360,80 C460,72 540,30 700,42 C820,50 920,30 1010,8 L1010,28 C920,52 820,72 700,62 C540,50 460,92 360,100 C240,110 160,32 40,12 Z"
+            d="M20,-8 C140,18 220,92 340,82 C440,74 520,28 640,38 C760,48 840,90 940,72 C980,66 1010,52 1020,42 L1020,62 C1010,72 980,86 940,92 C840,110 760,68 640,58 C520,48 440,94 340,102 C220,112 140,38 20,12 Z"
             fill="url(#ribbonFront)"
           />
           {/* Underside twist — small darker chevron near the curl */}
           <path
-            d="M348,78 C384,76 420,68 456,58 C440,82 408,98 372,102 C360,94 352,86 348,78 Z"
+            d="M328,80 C364,78 400,70 436,60 C420,84 388,100 352,104 C340,96 332,88 328,80 Z"
             fill="url(#ribbonBack)"
             opacity="0.92"
           />
+          {/* Second underside twist deeper in burgundy */}
+          <path
+            d="M628,40 C664,38 700,46 736,58 C720,72 688,76 652,72 C640,64 632,52 628,40 Z"
+            fill="url(#ribbonBack)"
+            opacity="0.88"
+          />
           {/* Edge stroke on top */}
           <path
-            d="M40,-10 C160,10 240,90 360,80 C460,72 540,30 700,42 C820,50 920,30 1010,8"
+            d="M20,-8 C140,18 220,92 340,82 C440,74 520,28 640,38 C760,48 840,90 940,72 C980,66 1010,52 1020,42"
             fill="none"
             stroke="#fff4cf"
             strokeWidth="1"
@@ -198,7 +204,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
           />
           {/* Edge stroke on bottom */}
           <path
-            d="M40,12 C160,32 240,110 360,100 C460,92 540,50 700,62 C820,72 920,52 1010,28"
+            d="M20,12 C140,38 220,112 340,102 C440,94 520,48 640,58 C760,68 840,110 940,92 C980,86 1010,72 1020,62"
             fill="none"
             stroke="#6b4612"
             strokeWidth="0.9"
@@ -206,12 +212,13 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
           />
           {/* Specular highlight running along the front face */}
           <path
-            d="M70,2 C180,22 250,86 360,76 C460,68 540,18 700,32 C820,42 910,22 1000,2"
+            d="M40,4 C160,28 230,88 340,78 C440,70 520,18 640,30 C760,42 840,80 940,62 C980,56 1000,44 1015,36"
             fill="none"
             stroke="url(#ribbonHighlight)"
             strokeWidth="1.6"
           />
         </svg>
+
 
         {/* ============ Logo (on marble) ============ */}
         <Link
