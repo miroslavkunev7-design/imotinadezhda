@@ -51,8 +51,9 @@ if (process.env.PW_CHROMIUM_EXEC) launchOpts.executablePath = process.env.PW_CHR
 const browser = await chromium.launch(launchOpts);
 const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 1 });
 const page = await ctx.newPage();
-await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
-await page.waitForTimeout(1500);
+await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
+await page.waitForTimeout(2500);
 
 const issues = [];
 
