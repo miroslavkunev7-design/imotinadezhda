@@ -56,11 +56,11 @@ export function GoldDustLayer({ density = 3 }: { density?: number } = {}) {
     ro.observe(parent);
 
     const tints = [
-      "255,236,170",
-      "255,222,134",
-      "248,206,108",
-      "232,188,82",
-      "255,248,222",
+      "248,113,113",
+      "239,68,68",
+      "220,38,38",
+      "255,255,255",
+      "245,245,245",
     ];
 
     const spawn = (clientX: number, clientY: number) => {
