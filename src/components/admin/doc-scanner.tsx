@@ -355,7 +355,8 @@ function CameraCapture({
       } catch {
         outCanvas = tmp;
       }
-      const dataUrl = outCanvas.toDataURL("image/jpeg", 0.92);
+      const enhanced = enhanceDocument(outCanvas);
+      const dataUrl = enhanced.toDataURL("image/jpeg", 0.95);
       const nextIndex = startCount + shots + 1;
       onCapture(dataUrl, outCanvas.width, outCanvas.height, nextIndex);
       setShots((s) => s + 1);
