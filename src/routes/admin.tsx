@@ -37,12 +37,25 @@ function AdminLayout() {
       navigate({ to: "/login" });
       return;
     }
-    checkAdminAccess()
-      .then(({ isAdmin }) => setIsAdmin(isAdmin))
-      .catch((error) => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (!data.session?.access_token) {
+        navigate({ to: "/login" });
+        return;
+      }
+      try {
+        const { isAdmin } = await checkAdminAccess();
+        if (!cancelled) setIsAdmin(isAdmin);
+      } catch (error) {
         console.error("admin access check failed", error);
-        setIsAdmin(false);
-      });
+        if (!cancelled) setIsAdmin(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [user, loading, navigate]);
 
   if (loading || isAdmin === null) {
