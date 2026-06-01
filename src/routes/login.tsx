@@ -12,7 +12,6 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -28,10 +27,12 @@ function LoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!loading && user) {
+      window.location.replace("/admin");
+    }
+  }, [loading, user]);
 
-  if (!loading && user) {
-    throw redirect({ to: "/admin" });
-  }
 
   const handle = async (e: FormEvent) => {
     e.preventDefault();
