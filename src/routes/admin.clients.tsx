@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, Mail, MapPin, AlertTriangle, Sparkles, CreditCard } from "lucide-react";
-import { listClients, upsertClient, deleteClient, getClientDocuments, addClientDocument, deleteClientDocument } from "@/lib/crm.functions";
+import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, Mail, MapPin, AlertTriangle, Sparkles, CreditCard, Handshake, XCircle } from "lucide-react";
+import { listClients, upsertClient, deleteClient, getClientDocuments, addClientDocument, deleteClientDocument, updateClientDeal } from "@/lib/crm.functions";
 import { MortgageSendModal } from "@/components/admin/mortgage-send-modal";
+import { MortgageStagesModal } from "@/components/admin/mortgage-stages-modal";
 
 export const Route = createFileRoute("/admin/clients")({
   component: ClientsAdmin,
