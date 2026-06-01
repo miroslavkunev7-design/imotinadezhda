@@ -396,11 +396,17 @@ function CameraCapture({
           </div>
         )}
         {status === "ready" && (
-          <div className="pointer-events-none absolute inset-x-0 top-4 mx-auto w-fit rounded-full bg-black/60 px-3 py-1 text-[11px] text-amber-100">
-            Центрирай документа — рамката се закача автоматично
+          <div className="pointer-events-none absolute inset-x-0 top-4 flex flex-col items-center gap-2">
+            <div className="rounded-full bg-black/60 px-3 py-1 text-[11px] text-amber-100">
+              Центрирай документа — рамката се закача автоматично
+            </div>
+            {shots > 0 && (
+              <div className="rounded-full bg-amber-500/90 px-3 py-1 text-[11px] font-semibold text-black">
+                {shots} {shots === 1 ? "страница заснета" : "страници заснети"}
+              </div>
+            )}
           </div>
         )}
-      </div>
       {status === "ready" && (
         <div className="flex items-center justify-center gap-6 bg-black/80 p-5">
           <button
