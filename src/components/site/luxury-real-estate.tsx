@@ -582,7 +582,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
             }}
           />
           <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[28px]">
-            <div className="grid h-[260px] md:h-[440px] lg:h-[clamp(420px,52vh,500px)] md:grid-cols-[1.02fr_0.98fr]">
+            <div className="grid h-[280px] md:h-[460px] lg:h-[clamp(460px,56vh,540px)] md:grid-cols-[1.02fr_0.98fr]">
               {/* LEFT: hero image + marble logo corner */}
               <div className="relative h-full overflow-hidden">
                 <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 40%" }} />
