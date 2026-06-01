@@ -440,6 +440,50 @@ export type Database = {
         }
         Relationships: []
       }
+      cross_post_queue: {
+        Row: {
+          created_at: string
+          error: string | null
+          external_url: string | null
+          id: string
+          property_id: string
+          requested_by: string | null
+          site: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          external_url?: string | null
+          id?: string
+          property_id: string
+          requested_by?: string | null
+          site: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          external_url?: string | null
+          id?: string
+          property_id?: string
+          requested_by?: string | null
+          site?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cross_post_queue_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       extracted_listings: {
         Row: {
           agency_logo_detected: boolean
