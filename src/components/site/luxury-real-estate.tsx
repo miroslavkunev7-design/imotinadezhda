@@ -1045,9 +1045,9 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
                   <h1 className="font-display text-[2.6rem] leading-tight text-accent-foreground md:text-[3.2rem]">
                     {quarter.name}, гр. {city.name}
                   </h1>
-                  {quarter.description ? (
-                    <p className="mt-3 text-[15px] leading-7 text-muted-foreground">{quarter.description}</p>
-                  ) : null}
+                  <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
+                    {quarter.description || `Един от най-предпочитаните квартали в ${city.name} – с морска панорама, близост до Морската градина и всички удобства за модерен начин на живот.`}
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <div className="flex min-w-[110px] flex-col items-center rounded-[16px] border border-primary/15 bg-background px-5 py-3 shadow-sm">
