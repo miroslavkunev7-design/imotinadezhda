@@ -56,7 +56,7 @@ function BrokersAdmin() {
     try { await deleteBroker({ data: { id } }); await load(); } catch (e: any) { alert(e.message); }
   };
 
-  const newBroker = () => setEditing({ full_name: "", phone: "", email: "", is_active: true });
+  const newBroker = () => setEditing({ full_name: "", phone: "", email: "", is_active: true, _createAccount: true, _password: "" });
 
   const onUploadPhoto = async (file: File | null) => {
     if (!file || !editing) return;
