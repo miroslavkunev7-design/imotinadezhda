@@ -140,7 +140,7 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
                   <div className="prose prose-sm max-w-none prose-p:my-1 prose-a:text-amber-700">
                     <ReactMarkdown
                       components={{
-                        a: ({ node, ...props }) => (
+                        a: (props) => (
                           <a {...props} target={props.href?.startsWith("/") ? "_self" : "_blank"} rel="noreferrer" />
                         ),
                       }}
