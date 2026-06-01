@@ -53,7 +53,7 @@ function LoginPage() {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
       }
-      navigate({ to: "/admin" });
+      window.location.replace("/admin");
     } catch (err: any) {
       setError(err?.message ?? "Възникна грешка");
     } finally {
