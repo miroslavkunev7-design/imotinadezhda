@@ -184,16 +184,18 @@ export const runScrape = createServerFn({ method: "POST" })
     }
 
 
-    // Filter private-only if requested
-    const filtered = data.privateOnly
-      ? allResults.filter((r) => r.seller_type === "private" || r.seller_type === "unknown")
-      : allResults;
+    // Filter private-only if requested + skip listings with agency logos in images
+    const filtered = allResults.filter((r) => {
+      if (r.agency_logo_detected) return false;
+      if (data.privateOnly) return r.seller_type === "private" || r.seller_type === "unknown";
+      return true;
+    });
+    const skippedAgencyLogo = allResults.filter((r) => r.agency_logo_detected).length;
 
     // Resolve city_id mapping
     const { data: cities } = await supabaseAdmin.from("cities").select("id, slug");
     const cityMap = new Map((cities ?? []).map((c) => [c.slug, c.id]));
 
-    // Upsert into extracted_listings
     let inserted = 0;
     let skipped = 0;
     for (const r of filtered) {
@@ -213,21 +215,20 @@ export const runScrape = createServerFn({ method: "POST" })
             phone: r.phone ?? null,
             images: r.images ?? [],
             seller_type: r.seller_type,
+            agency_logo_detected: false,
             status: "pending",
           },
           { onConflict: "source,source_url", ignoreDuplicates: true },
         );
-      if (error) {
-        skipped++;
-      } else {
-        inserted++;
-      }
+      if (error) skipped++; else inserted++;
     }
 
     return {
       ok: true,
       total_found: allResults.length,
       after_private_filter: filtered.length,
+      skipped_agency_logo: skippedAgencyLogo,
+
       inserted,
       skipped,
     };
