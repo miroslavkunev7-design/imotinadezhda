@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Pencil, X, Images, Upload, Star, Send, FileText, Check, Download } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Images, Upload, Star, Send, FileText, Check, Download, Layers, Mail, Loader2 } from "lucide-react";
+import { PDFDocument } from "pdf-lib";
+import { MORTGAGE_PARTNERS } from "@/lib/contact-config";
+import { toast } from "sonner";
 
 const CROSSPOST_SITES = [
   { key: "imot_bg", label: "Imot.bg" },
