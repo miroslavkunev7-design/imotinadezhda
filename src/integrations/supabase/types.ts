@@ -209,7 +209,22 @@ export type Database = {
           updated_at?: string
           year_built?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "archived_properties_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "archived_properties_quarter_id_fkey"
+            columns: ["quarter_id"]
+            isOneToOne: false
+            referencedRelation: "quarters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       broker_tasks: {
         Row: {
