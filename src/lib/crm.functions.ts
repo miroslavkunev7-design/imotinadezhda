@@ -161,6 +161,51 @@ export const upsertBroker = createServerFn({ method: "POST" })
     return row;
   });
 
+export const createBrokerAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    email: z.string().email().max(200),
+    password: z.string().min(8).max(200),
+    full_name: z.string().min(2).max(200),
+    phone: z.string().max(40).optional().nullable(),
+    photo_url: z.string().url().optional().nullable().or(z.literal("")),
+    license_number: z.string().max(100).optional().nullable(),
+    bio: z.string().max(2000).optional().nullable(),
+    is_active: z.boolean().default(true),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+
+    // 1) Create auth user (email confirmed so the broker can sign in immediately)
+    const { data: created, error: authErr } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { full_name: data.full_name },
+    });
+    if (authErr || !created?.user) throw new Error(authErr?.message ?? "Грешка при създаване на акаунта");
+    const newUserId = created.user.id;
+
+    // 2) Insert broker row linked to the new auth user
+    const { data: row, error } = await supabaseAdmin.from("brokers").insert({
+      user_id: newUserId,
+      full_name: data.full_name,
+      email: data.email,
+      phone: data.phone || null,
+      photo_url: data.photo_url || null,
+      license_number: data.license_number || null,
+      bio: data.bio || null,
+      is_active: data.is_active,
+    }).select().single();
+
+    if (error) {
+      // Rollback the auth user if broker insert fails
+      await supabaseAdmin.auth.admin.deleteUser(newUserId).catch(() => {});
+      throw new Error(error.message);
+    }
+    return row;
+  });
+
 export const deleteBroker = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))

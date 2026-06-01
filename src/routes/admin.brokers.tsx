@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Pencil, X, Upload, UserCog, Phone, Mail, CheckSquare, Square, ListChecks, UserPlus, MessageSquare, PhoneCall, CalendarClock, ClipboardList } from "lucide-react";
 import {
-  listBrokers, upsertBroker, deleteBroker,
+  listBrokers, upsertBroker, deleteBroker, createBrokerAccount,
   getBrokerDetails, upsertBrokerTask, toggleBrokerTask, deleteBrokerTask,
   assignClientToBroker, unassignClientFromBroker, listUnassignedClients,
 } from "@/lib/crm.functions";
@@ -29,8 +29,23 @@ function BrokersAdmin() {
     if (!editing) return;
     setBusy(true);
     try {
-      const { created_at, updated_at, properties_count, clients_count, ...payload } = editing;
-      await upsertBroker({ data: payload });
+      const { created_at, updated_at, properties_count, clients_count, _password, _createAccount, ...payload } = editing;
+      if (!editing.id && _createAccount) {
+        if (!payload.email) throw new Error("Имейлът е задължителен за акаунт");
+        if (!_password || _password.length < 8) throw new Error("Паролата трябва да е поне 8 символа");
+        await createBrokerAccount({ data: {
+          email: payload.email,
+          password: _password,
+          full_name: payload.full_name,
+          phone: payload.phone || null,
+          photo_url: payload.photo_url || null,
+          license_number: payload.license_number || null,
+          bio: payload.bio || null,
+          is_active: payload.is_active ?? true,
+        }});
+      } else {
+        await upsertBroker({ data: payload });
+      }
       setEditing(null);
       await load();
     } catch (e: any) { alert(e.message); } finally { setBusy(false); }
@@ -41,7 +56,7 @@ function BrokersAdmin() {
     try { await deleteBroker({ data: { id } }); await load(); } catch (e: any) { alert(e.message); }
   };
 
-  const newBroker = () => setEditing({ full_name: "", phone: "", email: "", is_active: true });
+  const newBroker = () => setEditing({ full_name: "", phone: "", email: "", is_active: true, _createAccount: true, _password: "" });
 
   const onUploadPhoto = async (file: File | null) => {
     if (!file || !editing) return;
@@ -114,7 +129,24 @@ function BrokersAdmin() {
               <label className="block"><span className="text-xs uppercase text-muted-foreground">Лиценз №</span><input value={editing.license_number ?? ""} onChange={(e) => setEditing({ ...editing, license_number: e.target.value })} className={iC} /></label>
               <label className="block"><span className="text-xs uppercase text-muted-foreground">Телефон</span><input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} className={iC} /></label>
               <label className="block"><span className="text-xs uppercase text-muted-foreground">Имейл</span><input type="email" value={editing.email ?? ""} onChange={(e) => setEditing({ ...editing, email: e.target.value })} className={iC} /></label>
-              <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">User ID (за достъп)</span><input value={editing.user_id ?? ""} onChange={(e) => setEditing({ ...editing, user_id: e.target.value || null })} placeholder="UUID на регистриран потребител" className={iC} /></label>
+              {editing.id ? (
+                <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">User ID (за достъп)</span><input value={editing.user_id ?? ""} onChange={(e) => setEditing({ ...editing, user_id: e.target.value || null })} placeholder="UUID на регистриран потребител" className={iC} /></label>
+              ) : (
+                <div className="md:col-span-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-semibold">
+                    <input type="checkbox" checked={!!editing._createAccount} onChange={(e) => setEditing({ ...editing, _createAccount: e.target.checked })} />
+                    Създай акаунт за брокера (имейл + парола)
+                  </label>
+                  {editing._createAccount && (
+                    <>
+                      <label className="block"><span className="text-xs uppercase text-muted-foreground">Парола *</span>
+                        <input type="text" required minLength={8} value={editing._password ?? ""} onChange={(e) => setEditing({ ...editing, _password: e.target.value })} placeholder="Минимум 8 символа" className={iC} autoComplete="new-password" />
+                      </label>
+                      <p className="text-[11px] text-muted-foreground">Брокерът ще може да влезе с този имейл и парола. Сподели ги сигурно с него.</p>
+                    </>
+                  )}
+                </div>
+              )}
               <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">Био</span><textarea rows={3} value={editing.bio ?? ""} onChange={(e) => setEditing({ ...editing, bio: e.target.value })} className={iC} /></label>
               <label className="flex items-center gap-2"><input type="checkbox" checked={!!editing.is_active} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} /> Активен</label>
             </div>
