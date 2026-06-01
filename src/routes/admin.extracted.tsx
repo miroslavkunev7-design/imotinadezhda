@@ -115,6 +115,16 @@ function ExtractedPage() {
     }
   };
 
+  const onArchive = async (id: string) => {
+    try {
+      const res = await archive({ data: { id } });
+      toast.success(`Запазено в архива → ${res.drive_folder_path}`);
+    } catch (e: any) {
+      toast.error(e.message ?? "Грешка при архивиране");
+    }
+  };
+
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
