@@ -32,7 +32,7 @@ import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
 import cityNoviPazar from "@/assets/city-novi-pazar.jpeg";
-import marbleBg from "@/assets/marble-bg.png";
+
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
