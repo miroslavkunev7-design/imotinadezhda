@@ -240,9 +240,10 @@ export function DocScanner() {
 
       {cameraOpen && (
         <CameraCapture
+          startCount={pages.length}
           onClose={() => setCameraOpen(false)}
-          onCapture={(src, w, h) => {
-            addProcessed(src, w, h, `Снимка ${pages.length + 1}.jpg`);
+          onCapture={(src, w, h, idx) => {
+            addProcessed(src, w, h, `Снимка ${idx}.jpg`);
           }}
         />
       )}
