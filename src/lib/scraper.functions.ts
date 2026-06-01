@@ -263,6 +263,7 @@ export const listExtracted = createServerFn({ method: "GET" })
   });
 
 export const updateExtracted = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z
       .object({
@@ -286,7 +287,8 @@ export const updateExtracted = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { error } = await supabaseAdmin.from("extracted_listings").update(data.patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
