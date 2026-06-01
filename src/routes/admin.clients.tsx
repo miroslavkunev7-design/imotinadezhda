@@ -242,6 +242,7 @@ function ClientsAdmin() {
 
       {docsFor && <DocumentsModal client={docsFor} onClose={() => setDocsFor(null)} />}
       {mortgageFor && <MortgageSendModal client={mortgageFor} onClose={() => setMortgageFor(null)} />}
+      {mortgageStagesFor && <MortgageStagesModal client={mortgageStagesFor} onClose={() => setMortgageStagesFor(null)} onSaved={load} />}
     </div>
   );
 }
