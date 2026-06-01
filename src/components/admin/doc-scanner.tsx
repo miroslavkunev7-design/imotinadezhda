@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
 import { ScanLine, Trash2, FileDown, Plus, Loader2, Camera, ImageIcon, X, Aperture, RotateCcw } from "lucide-react";
 import { jsPDF } from "jspdf";
