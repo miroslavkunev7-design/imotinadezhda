@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
+import { CustomerChat } from "@/components/site/customer-chat";
+import { useRouterState } from "@tanstack/react-router";
 
 function NotFoundComponent() {
   return (
