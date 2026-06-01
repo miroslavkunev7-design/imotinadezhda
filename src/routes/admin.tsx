@@ -15,26 +15,34 @@ export const Route = createFileRoute("/admin")({
  */
 async function ensureFreshSession(): Promise<string | null> {
   try {
-    // 1) getUser() ре-валидира JWT срещу Auth сървъра - надеждно за hydration
-    const { data: userData, error: userErr } = await supabase.auth.getUser();
-    if (userErr || !userData.user) return null;
-
+    // 1) Вземи текущата сесия от storage
     const { data: sessData } = await supabase.auth.getSession();
-    const session = sessData.session;
-    if (!session?.access_token) return null;
+    let session = sessData.session;
 
-    const expiresAt = session.expires_at ?? 0; // секунди от epoch
-    const nowSec = Math.floor(Date.now() / 1000);
-    const remaining = expiresAt - nowSec;
+    const nowSec = () => Math.floor(Date.now() / 1000);
+    const isExpiring = (s: typeof session) =>
+      !s?.access_token || (s.expires_at ?? 0) - nowSec() < 60;
 
-    // 2) Ако остават по-малко от 60s - refresh
-    if (remaining < 60) {
-      const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
-      if (refreshErr || !refreshed.session?.access_token) return null;
-      return refreshed.session.access_token;
+    // 2) Ако липсва/изтекла/близо до изтичане - опитай refresh
+    if (isExpiring(session)) {
+      const { data: refreshed, error: refreshErr } =
+        await supabase.auth.refreshSession();
+      if (refreshErr || !refreshed.session?.access_token) {
+        // refresh token е невалиден -> излез чисто
+        await supabase.auth.signOut().catch(() => {});
+        return null;
+      }
+      session = refreshed.session;
     }
 
-    return session.access_token;
+    // 3) Финална ре-валидация срещу Auth сървъра
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData.user) {
+      await supabase.auth.signOut().catch(() => {});
+      return null;
+    }
+
+    return session?.access_token ?? null;
   } catch (e) {
     console.error("ensureFreshSession failed", e);
     return null;
