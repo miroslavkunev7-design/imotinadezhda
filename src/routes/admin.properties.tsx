@@ -2,7 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Pencil, X, Images, Upload, Star } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Images, Upload, Star, Send } from "lucide-react";
+
+const CROSSPOST_SITES = [
+  { key: "imot_bg", label: "Imot.bg" },
+  { key: "imoti_net", label: "Imoti.net" },
+  { key: "olx_bg", label: "OLX.bg" },
+  { key: "bazar_bg", label: "Bazar.bg" },
+  { key: "alo_bg", label: "Alo.bg" },
+  { key: "home_bg", label: "Home.bg" },
+  { key: "facebook", label: "Facebook Marketplace" },
+];
+
 
 export const Route = createFileRoute("/admin/properties")({
   component: PropertiesAdmin,
@@ -74,6 +85,19 @@ function PropertiesAdmin() {
     load();
   };
 
+  const publishAll = async (r: Row) => {
+    if (!confirm(`Публикуване на "${r.title}" във всички сайтове (${CROSSPOST_SITES.map((s) => s.label).join(", ")})?`)) return;
+    const rows = CROSSPOST_SITES.map((s) => ({ property_id: r.id, site: s.key, status: "queued" }));
+    const { error } = await supabase.from("cross_post_queue" as any).insert(rows);
+    if (error) { alert(error.message); return; }
+    if (!r.is_published) {
+      await supabase.from("properties").update({ is_published: true }).eq("id", r.id);
+    }
+    alert(`Заявени са ${rows.length} публикации. Опашката се обработва от автоматизацията.`);
+    load();
+  };
+
+
   const newProperty = () => setEditing({
     title: "", price: 0, currency: "EUR", property_type: "apartment", status: "sale",
     is_published: true, is_featured: false, city_id: cities[0]?.id ?? "",
@@ -116,10 +140,12 @@ function PropertiesAdmin() {
                 <td className="px-4 py-2">{r.is_published ? "✓" : "—"}</td>
                 <td className="px-4 py-2">{r.is_featured ? "★" : "—"}</td>
                 <td className="px-4 py-2 text-right">
+                  <button className="mr-2 text-amber-600" title="Публикувай във всички сайтове" onClick={() => publishAll(r)}><Send className="h-4 w-4" /></button>
                   <button className="mr-2 text-primary" title="Снимки" onClick={() => setImagesFor(r)}><Images className="h-4 w-4" /></button>
                   <button className="mr-2 text-primary" title="Редакция" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></button>
                   <button className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></button>
                 </td>
+
               </tr>
             ))}
             {!rows.length && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Няма имоти</td></tr>}

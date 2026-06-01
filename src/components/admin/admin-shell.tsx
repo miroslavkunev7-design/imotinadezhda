@@ -99,20 +99,17 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
       {/* Sidebar — бял мрамор със златни жилки */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-amber-600/30 shadow-[8px_0_30px_rgba(0,0,0,0.35)] transition-transform duration-300 lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-amber-500/25 shadow-[8px_0_30px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
         style={{
           backgroundImage: `
-            linear-gradient(180deg, rgba(255,255,255,0.78), rgba(248,242,228,0.85)),
-            repeating-linear-gradient(115deg, transparent 0 60px, rgba(201,160,76,0.18) 60px 61px, transparent 61px 140px),
-            repeating-linear-gradient(75deg, transparent 0 90px, rgba(201,160,76,0.12) 90px 91px, transparent 91px 200px),
-            url(${marbleBg})
+            linear-gradient(180deg, rgba(26,6,8,0.55), rgba(26,6,8,0.65)),
+            repeating-linear-gradient(115deg, transparent 0 80px, rgba(201,160,76,0.08) 80px 81px, transparent 81px 180px)
           `,
-          backgroundSize: "cover, auto, auto, 600px",
-          backgroundBlendMode: "normal, normal, normal, soft-light",
         }}
       >
+
         {/* Logo */}
         <div className="flex items-center justify-between gap-3 border-b border-amber-600/25 px-5 py-5">
           <Link to="/" className="flex items-center gap-2">
@@ -120,8 +117,9 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-display text-base leading-none text-primary">Имоти</div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-700">Надежда</div>
+              <div className="font-display text-base leading-none text-amber-100">Имоти</div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">Надежда</div>
+
             </div>
           </Link>
           <button
@@ -135,16 +133,17 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
 
         {/* Profile */}
         <div className="border-b border-amber-600/25 px-4 py-3">
-          <div className="flex items-center gap-3 rounded-xl border border-amber-600/20 bg-white/55 px-3 py-2.5 backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-xl border border-amber-400/25 bg-white/5 px-3 py-2.5 backdrop-blur-sm">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
               {(user?.email ?? "U").slice(0, 1).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-primary">Профил</div>
-              <div className="text-[11px] text-amber-800/80">Админ</div>
+              <div className="truncate text-sm font-semibold text-amber-100">Профил</div>
+              <div className="text-[11px] text-amber-300/80">Админ</div>
             </div>
           </div>
         </div>
+
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-2 py-3">
@@ -154,8 +153,9 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
               "group relative mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition",
               active
                 ? "bg-gradient-to-r from-primary via-[#7a0d22] to-primary text-primary-foreground shadow-[0_10px_22px_rgba(102,8,28,0.4)] ring-1 ring-amber-400/60"
-                : "text-primary/85 hover:bg-amber-500/10",
-              item.disabled && !active && "opacity-50",
+                : "text-amber-100/85 hover:bg-amber-500/15",
+                item.disabled && !active && "opacity-50",
+
             );
             const content = (
               <>
@@ -175,7 +175,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
                   </span>
                 ) : null}
                 {item.disabled ? (
-                  <span className={cn("text-[9px] uppercase", active ? "text-amber-200/80" : "text-primary/40")}>скоро</span>
+                  <span className={cn("text-[9px] uppercase", active ? "text-amber-200/80" : "text-amber-100/40")}>скоро</span>
                 ) : null}
               </>
             );
@@ -196,19 +196,20 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
 
         {/* Footer */}
         <div className="border-t border-amber-600/25 px-3 py-3">
-          <Link to="/admin/ai" onClick={() => setMobileOpen(false)} className="mb-2 flex items-center gap-2 rounded-lg border border-amber-500/50 bg-gradient-to-r from-amber-500/15 to-amber-300/15 px-3 py-2.5 text-sm text-primary transition hover:from-amber-500/25 hover:to-amber-300/25">
-            <Sparkles className="h-4 w-4 text-amber-600" />
+          <Link to="/admin/ai" onClick={() => setMobileOpen(false)} className="mb-2 flex items-center gap-2 rounded-lg border border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-amber-300/15 px-3 py-2.5 text-sm text-amber-100 transition hover:from-amber-500/30 hover:to-amber-300/25">
+            <Sparkles className="h-4 w-4 text-amber-300" />
             <span className="flex-1 font-medium">AI Асистент</span>
           </Link>
-          <div className="mb-2 flex items-center gap-2 rounded-md bg-emerald-500/15 px-3 py-1.5 text-xs text-emerald-800">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Системата работи
+          <div className="mb-2 flex items-center gap-2 rounded-md bg-emerald-500/20 px-3 py-1.5 text-xs text-emerald-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Системата работи
           </div>
           <button
             onClick={() => signOut().then(() => navigate({ to: "/login" }))}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-primary/70 transition hover:bg-primary/10 hover:text-primary"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-amber-100/70 transition hover:bg-amber-500/10 hover:text-amber-100"
           >
             <LogOut className="h-3.5 w-3.5" /> Изход
           </button>
+
         </div>
       </aside>
 
