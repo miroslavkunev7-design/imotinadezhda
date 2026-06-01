@@ -75,7 +75,7 @@ function LoginPage() {
       }}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
-      <div className="relative w-full max-w-md rounded-2xl border border-white/30 bg-white/15 p-8 shadow-2xl backdrop-blur-xl ring-1 ring-amber-300/30">
+      <div className="relative w-full max-w-md rounded-2xl border border-amber-300/40 bg-[rgba(255,251,243,0.92)] p-8 shadow-2xl ring-1 ring-amber-300/30">
 
         <div className="mb-6 text-center">
           <Link to="/" className="font-display text-2xl text-primary">ИЛДЖ.ИА</Link>
