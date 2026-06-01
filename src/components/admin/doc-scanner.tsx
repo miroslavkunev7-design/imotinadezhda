@@ -3,7 +3,12 @@ import { Button } from "@/components/ui/button";
 import { ScanLine, Trash2, FileDown, Plus, Loader2, Camera, ImageIcon, X, Aperture, RotateCcw } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
-import jscanify from "jscanify";
+// jscanify is dynamically imported in browser-only code paths (SSR-safe)
+async function getScanner() {
+  const mod: any = await import("jscanify");
+  const Ctor = mod.default ?? mod;
+  return new Ctor();
+}
 import {
   Dialog,
   DialogContent,
@@ -78,7 +83,7 @@ export function DocScanner() {
     setBusy(true);
     try {
       const cv = await loadOpenCv().catch(() => null);
-      const scanner = cv ? new (jscanify as any)() : null;
+      const scanner = cv ? await getScanner().catch(() => null) : null;
       for (const f of Array.from(files)) {
         if (!f.type.startsWith("image/")) {
           toast.error(`${f.name}: само снимки`);
@@ -235,9 +240,10 @@ export function DocScanner() {
 
       {cameraOpen && (
         <CameraCapture
+          startCount={pages.length}
           onClose={() => setCameraOpen(false)}
-          onCapture={(src, w, h) => {
-            addProcessed(src, w, h, `Снимка ${pages.length + 1}.jpg`);
+          onCapture={(src, w, h, idx) => {
+            addProcessed(src, w, h, `Снимка ${idx}.jpg`);
           }}
         />
       )}
@@ -246,11 +252,13 @@ export function DocScanner() {
 }
 
 function CameraCapture({
+  startCount,
   onClose,
   onCapture,
 }: {
+  startCount: number;
   onClose: () => void;
-  onCapture: (src: string, w: number, h: number) => void;
+  onCapture: (src: string, w: number, h: number, index: number) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -260,6 +268,8 @@ function CameraCapture({
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [shooting, setShooting] = useState(false);
+  const [shots, setShots] = useState(0);
+  const [lastShot, setLastShot] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -279,7 +289,7 @@ function CameraCapture({
           await videoRef.current.play().catch(() => {});
         }
         await loadOpenCv();
-        scannerRef.current = new (jscanify as any)();
+        scannerRef.current = await getScanner();
         setStatus("ready");
         startDetectionLoop();
       } catch (e: any) {
@@ -346,8 +356,11 @@ function CameraCapture({
         outCanvas = tmp;
       }
       const dataUrl = outCanvas.toDataURL("image/jpeg", 0.92);
-      onCapture(dataUrl, outCanvas.width, outCanvas.height);
-      toast.success("Страницата е добавена");
+      const nextIndex = startCount + shots + 1;
+      onCapture(dataUrl, outCanvas.width, outCanvas.height, nextIndex);
+      setShots((s) => s + 1);
+      setLastShot(dataUrl);
+      toast.success(`Страница ${nextIndex} добавена`);
     } catch (e: any) {
       toast.error(e?.message ?? "Грешка при заснемане");
     } finally {
@@ -383,19 +396,36 @@ function CameraCapture({
           </div>
         )}
         {status === "ready" && (
-          <div className="pointer-events-none absolute inset-x-0 top-4 mx-auto w-fit rounded-full bg-black/60 px-3 py-1 text-[11px] text-amber-100">
-            Центрирай документа — рамката се закача автоматично
+          <div className="pointer-events-none absolute inset-x-0 top-4 flex flex-col items-center gap-2">
+            <div className="rounded-full bg-black/60 px-3 py-1 text-[11px] text-amber-100">
+              Центрирай документа — рамката се закача автоматично
+            </div>
+            {shots > 0 && (
+              <div className="rounded-full bg-amber-500/90 px-3 py-1 text-[11px] font-semibold text-black">
+                {shots} {shots === 1 ? "страница заснета" : "страници заснети"}
+              </div>
+            )}
           </div>
         )}
       </div>
       {status === "ready" && (
-        <div className="flex items-center justify-center gap-6 bg-black/80 p-5">
+        <div className="flex items-center justify-between gap-4 bg-black/85 px-4 py-4">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-amber-500/30 bg-black/40 text-[10px] text-amber-100/60">
+            {lastShot ? <img src={lastShot} alt="Последна" className="h-full w-full object-cover" /> : "—"}
+          </div>
           <button
             onClick={capture}
             disabled={shooting}
             className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-amber-300 bg-amber-500/20 text-amber-100 transition hover:scale-105 disabled:opacity-50"
           >
             {shooting ? <Loader2 className="h-8 w-8 animate-spin" /> : <Aperture className="h-9 w-9" />}
+          </button>
+          <button
+            onClick={onClose}
+            className="flex h-16 min-w-16 shrink-0 flex-col items-center justify-center rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 text-amber-100 hover:bg-amber-500/20"
+          >
+            <span className="text-xs font-semibold">Готово</span>
+            <span className="text-[10px] text-amber-200/70">{shots} стр.</span>
           </button>
         </div>
       )}
