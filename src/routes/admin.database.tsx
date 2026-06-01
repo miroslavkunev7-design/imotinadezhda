@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listArchive, deleteArchive } from "@/lib/archive.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminShell } from "@/components/admin/admin-shell";
+
 import { Database, Trash2, Search, ExternalLink, FolderTree, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadPropertyZip, downloadBulkZip } from "@/lib/download-archive";
