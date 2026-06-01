@@ -24,6 +24,7 @@ import {
   Layers,
   Heart,
   ShieldCheck,
+  Database,
   Menu,
   X,
 } from "lucide-react";
@@ -47,6 +48,7 @@ const NAV: NavItem[] = [
   { to: "/admin", label: "Дашборд", icon: LayoutDashboard },
   { to: "/admin/properties", label: "Имоти", icon: Building2 },
   { to: "/admin/extracted", label: "Извлечени имоти", icon: Download, badge: "NEW" },
+  { to: "/admin/database", label: "База данни (архив)", icon: Database },
   { to: "/admin/cities", label: "Градове", icon: MapPin },
   { to: "/admin/quarters", label: "Квартали", icon: Layers },
   { to: "/admin/inquiries", label: "Запитвания", icon: MessageSquare },

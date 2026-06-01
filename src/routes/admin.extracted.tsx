@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listExtracted, runScrape, updateExtracted, publishExtracted, deleteExtracted } from "@/lib/scraper.functions";
+import { archiveExtracted } from "@/lib/archive.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { Download, Loader2, Eye, Trash2, Send, CheckCircle2, XCircle, Phone, Euro, Square, MapPin } from "lucide-react";
+import { Download, Loader2, Eye, Trash2, Send, CheckCircle2, XCircle, Phone, Euro, Square, MapPin, Archive } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/extracted")({
@@ -36,6 +37,7 @@ function ExtractedPage() {
   const update = useServerFn(updateExtracted);
   const publish = useServerFn(publishExtracted);
   const remove = useServerFn(deleteExtracted);
+  const archive = useServerFn(archiveExtracted);
 
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,6 +114,16 @@ function ExtractedPage() {
       toast.error(e.message ?? "Грешка");
     }
   };
+
+  const onArchive = async (id: string) => {
+    try {
+      const res = await archive({ data: { id } });
+      toast.success(`Запазено в архива → ${res.drive_folder_path}`);
+    } catch (e: any) {
+      toast.error(e.message ?? "Грешка при архивиране");
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -237,6 +249,13 @@ function ExtractedPage() {
                         >
                           Оригинал
                         </a>
+                        <button
+                          onClick={() => onArchive(r.id)}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-amber-600/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-500/20"
+                          title="Запази в наши имоти (архив, само админ)"
+                        >
+                          <Archive className="h-3.5 w-3.5" /> В архив
+                        </button>
                         <button
                           onClick={() => onDelete(r.id)}
                           className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-red-500/30 px-3 py-1.5 text-xs text-red-700 hover:bg-red-500/10"

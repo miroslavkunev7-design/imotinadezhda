@@ -22,6 +22,7 @@ import { Route as AdminOwnersRouteImport } from './routes/admin.owners'
 import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
 import { Route as AdminInquiriesRouteImport } from './routes/admin.inquiries'
 import { Route as AdminExtractedRouteImport } from './routes/admin.extracted'
+import { Route as AdminDatabaseRouteImport } from './routes/admin.database'
 import { Route as AdminContractsRouteImport } from './routes/admin.contracts'
 import { Route as AdminClientsRouteImport } from './routes/admin.clients'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
@@ -97,6 +98,11 @@ const AdminExtractedRoute = AdminExtractedRouteImport.update({
   path: '/extracted',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDatabaseRoute = AdminDatabaseRouteImport.update({
+  id: '/database',
+  path: '/database',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminContractsRoute = AdminContractsRouteImport.update({
   id: '/contracts',
   path: '/contracts',
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contracts': typeof AdminContractsRoute
+  '/admin/database': typeof AdminDatabaseRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/matches': typeof AdminMatchesRoute
@@ -179,6 +186,7 @@ export interface FileRoutesByTo {
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contracts': typeof AdminContractsRoute
+  '/admin/database': typeof AdminDatabaseRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/matches': typeof AdminMatchesRoute
@@ -204,6 +212,7 @@ export interface FileRoutesById {
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contracts': typeof AdminContractsRoute
+  '/admin/database': typeof AdminDatabaseRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/matches': typeof AdminMatchesRoute
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/admin/cities'
     | '/admin/clients'
     | '/admin/contracts'
+    | '/admin/database'
     | '/admin/extracted'
     | '/admin/inquiries'
     | '/admin/matches'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/admin/cities'
     | '/admin/clients'
     | '/admin/contracts'
+    | '/admin/database'
     | '/admin/extracted'
     | '/admin/inquiries'
     | '/admin/matches'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/admin/cities'
     | '/admin/clients'
     | '/admin/contracts'
+    | '/admin/database'
     | '/admin/extracted'
     | '/admin/inquiries'
     | '/admin/matches'
@@ -394,6 +406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminExtractedRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/database': {
+      id: '/admin/database'
+      path: '/database'
+      fullPath: '/admin/database'
+      preLoaderRoute: typeof AdminDatabaseRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/contracts': {
       id: '/admin/contracts'
       path: '/contracts'
@@ -479,6 +498,7 @@ interface AdminRouteChildren {
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminClientsRoute: typeof AdminClientsRoute
   AdminContractsRoute: typeof AdminContractsRoute
+  AdminDatabaseRoute: typeof AdminDatabaseRoute
   AdminExtractedRoute: typeof AdminExtractedRoute
   AdminInquiriesRoute: typeof AdminInquiriesRoute
   AdminMatchesRoute: typeof AdminMatchesRoute
@@ -495,6 +515,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCitiesRoute: AdminCitiesRoute,
   AdminClientsRoute: AdminClientsRoute,
   AdminContractsRoute: AdminContractsRoute,
+  AdminDatabaseRoute: AdminDatabaseRoute,
   AdminExtractedRoute: AdminExtractedRoute,
   AdminInquiriesRoute: AdminInquiriesRoute,
   AdminMatchesRoute: AdminMatchesRoute,
