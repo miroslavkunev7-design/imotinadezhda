@@ -452,3 +452,103 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.src = src;
   });
 }
+
+// CamScanner-like enhancement: white-balance + adaptive contrast + sharpening
+// Removes shadows from table/surface and makes text crisp & dark on white background.
+function enhanceDocument(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement {
+  const w = (src as any).width || (src as HTMLImageElement).naturalWidth;
+  const h = (src as any).height || (src as HTMLImageElement).naturalHeight;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+  ctx.drawImage(src as any, 0, 0, w, h);
+
+  const img = ctx.getImageData(0, 0, w, h);
+  const data = img.data;
+  const n = w * h;
+
+  // 1) Compute luminance map
+  const lum = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const j = i * 4;
+    lum[i] = 0.299 * data[j] + 0.587 * data[j + 1] + 0.114 * data[j + 2];
+  }
+
+  // 2) Estimate background illumination via large box blur (shadow removal)
+  const radius = Math.max(15, Math.round(Math.min(w, h) / 25));
+  const bg = boxBlur(lum, w, h, radius);
+
+  // 3) Divide image by background -> flat lighting, then boost contrast
+  // Find global max of normalized to stretch to white
+  const norm = new Float32Array(n);
+  let maxN = 0;
+  for (let i = 0; i < n; i++) {
+    const v = (lum[i] / Math.max(bg[i], 1)) * 255;
+    norm[i] = v;
+    if (v > maxN) maxN = v;
+  }
+  const scale = maxN > 0 ? 255 / maxN : 1;
+
+  // Contrast curve: deepen mid-darks, keep paper white
+  for (let i = 0; i < n; i++) {
+    const j = i * 4;
+    const ratio = (lum[i] / Math.max(bg[i], 1)); // ~1 for paper
+    // White-balance: paper -> white
+    let r = (data[j] / Math.max(bg[i], 1)) * 255 * scale;
+    let g = (data[j + 1] / Math.max(bg[i], 1)) * 255 * scale;
+    let b = (data[j + 2] / Math.max(bg[i], 1)) * 255 * scale;
+
+    // Contrast around 0.85 midpoint, push text darker
+    const boost = (v: number) => {
+      // Soft S-curve: keeps white white, darkens dark
+      const x = v / 255;
+      const y = x < 0.5
+        ? Math.pow(x * 2, 1.6) / 2
+        : 1 - Math.pow((1 - x) * 2, 1.6) / 2;
+      return Math.max(0, Math.min(255, y * 255));
+    };
+    r = boost(r);
+    g = boost(g);
+    b = boost(b);
+
+    data[j] = r;
+    data[j + 1] = g;
+    data[j + 2] = b;
+  }
+
+  ctx.putImageData(img, 0, 0);
+  return canvas;
+}
+
+// Fast separable box blur on a single-channel Float32Array
+function boxBlur(src: Float32Array, w: number, h: number, r: number): Float32Array {
+  const tmp = new Float32Array(src.length);
+  const out = new Float32Array(src.length);
+  const win = r * 2 + 1;
+  // horizontal
+  for (let y = 0; y < h; y++) {
+    let sum = 0;
+    const row = y * w;
+    for (let x = -r; x <= r; x++) sum += src[row + Math.min(w - 1, Math.max(0, x))];
+    for (let x = 0; x < w; x++) {
+      tmp[row + x] = sum / win;
+      const addIdx = Math.min(w - 1, x + r + 1);
+      const subIdx = Math.max(0, x - r);
+      sum += src[row + addIdx] - src[row + subIdx];
+    }
+  }
+  // vertical
+  for (let x = 0; x < w; x++) {
+    let sum = 0;
+    for (let y = -r; y <= r; y++) sum += tmp[Math.min(h - 1, Math.max(0, y)) * w + x];
+    for (let y = 0; y < h; y++) {
+      out[y * w + x] = sum / win;
+      const addIdx = Math.min(h - 1, y + r + 1);
+      const subIdx = Math.max(0, y - r);
+      sum += tmp[addIdx * w + x] - tmp[subIdx * w + x];
+    }
+  }
+  return out;
+}
+
