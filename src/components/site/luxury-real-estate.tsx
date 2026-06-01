@@ -833,7 +833,7 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
   );
   return (
     <div
-      className="relative flex items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] md:rounded-[22px]"
+      className="relative flex min-h-[72px] items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] md:min-h-[88px] md:rounded-[22px]"
       style={{
         background: "radial-gradient(ellipse at 20% 0%, rgba(95,18,32,0.45), transparent 60%), linear-gradient(135deg, #350810 0%, #180307 100%)",
         border: "1px solid rgba(232,196,119,0.45)",
