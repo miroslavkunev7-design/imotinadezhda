@@ -677,7 +677,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
   return (
     <main
-      className="luxury-page flex min-h-screen flex-col bg-[#150409] text-primary-foreground"
+      className="dark luxury-page flex min-h-screen flex-col bg-[#150409] text-primary-foreground"
     >
       {/* Hero card */}
       <section className="relative flex-[0_0_auto] px-2 pt-2 md:px-8 md:pt-4">
