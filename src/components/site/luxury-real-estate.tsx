@@ -649,7 +649,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                   <StatItem icon={User} value={city.population ? `~${new Intl.NumberFormat("bg-BG").format(city.population)}` : "—"} label="жители" />
                   <StatItem icon={Square} value={city.area_km2 ? `${city.area_km2} km²` : "—"} label="площ" />
                   <StatItem icon={MapPin} value={city.region ?? "—"} label="регион" />
-                  <StatItem icon={Building2} value={`${properties.length || 850}+`} label="имоти" />
+                  <StatItem icon={Building2} value={`${properties.length || 850}+`} label="активни имота" />
                 </div>
               </div>
             </div>
