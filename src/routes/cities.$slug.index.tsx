@@ -3,7 +3,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { CityPage } from "@/components/site/luxury-real-estate";
 import { getCityBySlug } from "@/lib/catalog.functions";
 
-export const Route = createFileRoute("/cities/$slug")({
+export const Route = createFileRoute("/cities/$slug/")({
   loader: async ({ params }) => {
     const data = await getCityBySlug({ data: { slug: params.slug } });
     if (!data) throw notFound();
