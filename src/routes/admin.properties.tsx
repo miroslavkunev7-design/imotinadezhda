@@ -143,6 +143,7 @@ function PropertiesAdmin() {
                 <td className="px-4 py-2 text-right">
                   <button className="mr-2 text-amber-600" title="Публикувай във всички сайтове" onClick={() => publishAll(r)}><Send className="h-4 w-4" /></button>
                   <button className="mr-2 text-primary" title="Снимки" onClick={() => setImagesFor(r)}><Images className="h-4 w-4" /></button>
+                  <button className="mr-2 text-primary" title="Документи" onClick={() => setDocsFor(r)}><FileText className="h-4 w-4" /></button>
                   <button className="mr-2 text-primary" title="Редакция" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></button>
                   <button className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></button>
                 </td>
