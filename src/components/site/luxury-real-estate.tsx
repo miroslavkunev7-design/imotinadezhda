@@ -582,10 +582,10 @@ export function CityPage({ data }: { data?: CityData } = {}) {
             }}
           />
           <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[28px]">
-            <div className="grid md:grid-cols-[1.02fr_0.98fr]">
+            <div className="grid h-[260px] md:h-[440px] lg:h-[clamp(420px,52vh,500px)] md:grid-cols-[1.02fr_0.98fr]">
               {/* LEFT: hero image + marble logo corner */}
-              <div className="relative h-[160px] md:min-h-[380px] lg:min-h-[clamp(340px,44vh,440px)]">
-                <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 35%" }} />
+              <div className="relative h-full overflow-hidden">
+                <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 40%" }} />
                 <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(20,3,7,0.85) 100%)" }} />
                 {/* Marble logo badge with clean S-curve swoosh */}
                 <div
@@ -676,14 +676,14 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               <Link
                 to="/cities/$slug"
                 params={{ slug: city.slug }}
-                className="group inline-flex w-full flex-none items-center justify-between gap-3 rounded-[12px] px-4 py-3 font-display text-[12px] text-primary-foreground transition hover:brightness-110 md:rounded-[14px] md:px-5 md:py-5 md:text-[15px]"
+                className="group inline-flex w-full flex-none items-center justify-between gap-3 rounded-[12px] px-4 py-3 font-display text-[12px] text-[#f5ecd4] transition hover:brightness-110 md:rounded-[14px] md:px-5 md:py-4 md:text-[14px]"
                 style={{
                   background: "linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
                   border: "1px solid rgba(232,196,119,0.55)",
                   boxShadow: "0 14px 30px -8px rgba(77,8,20,0.55), inset 0 0 0 1px rgba(232,196,119,0.18)",
                 }}
               >
-                <span className="leading-tight">Виж всички<br />квартали</span>
+                <span className="whitespace-nowrap leading-tight text-[#f5ecd4]">Виж всички<br />квартали</span>
                 <span className="inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border border-[#e8c477]/60 text-[#e8c477] transition group-hover:bg-[#e8c477]/15 md:h-8 md:w-8">
                   <ChevronRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </span>
@@ -763,11 +763,11 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
         <Field icon={LandPlot} label="Цена" value="Без значение" />
         <Field icon={Ruler} label="Площ" value="Без значение" />
       </div>
-      <div className="hidden items-center gap-2 border-l border-[#c9a24a]/25 px-3 md:flex md:px-4">
+      <div className="hidden flex-none items-center gap-2 border-l border-[#c9a24a]/25 px-3 md:flex md:px-4">
         <button
           type="button"
           onClick={handleSearch}
-          className="inline-flex items-center gap-2 rounded-[14px] border border-[#c9a24a]/40 px-4 py-2.5 text-[13px] text-primary-foreground/95 transition hover:bg-white/[0.05]"
+          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] border border-[#c9a24a]/40 px-4 py-2.5 text-[13px] text-[#f5ecd4] transition hover:bg-white/[0.05]"
         >
           <SlidersHorizontal className="h-4 w-4 text-[#c9a24a]" />
           <span className="font-display">Филтри</span>
@@ -775,7 +775,7 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
         <button
           type="button"
           onClick={handleSearch}
-          className="inline-flex items-center gap-2 rounded-[14px] px-5 py-2.5 text-[13.5px] font-semibold text-[#2a050b] transition hover:brightness-105"
+          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] px-5 py-2.5 text-[13.5px] font-semibold text-[#2a050b] transition hover:brightness-105"
           style={{
             background: "linear-gradient(135deg, #f8e3a0 0%, #e8c477 50%, #b8893a 100%)",
             boxShadow: "0 8px 20px -6px rgba(184,137,58,0.6), inset 0 1px 0 rgba(255,255,255,0.35)",
