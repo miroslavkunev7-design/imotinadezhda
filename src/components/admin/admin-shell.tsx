@@ -24,6 +24,8 @@ import {
   Layers,
   Heart,
   ShieldCheck,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
