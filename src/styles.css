@@ -224,13 +224,48 @@
     pointer-events: none;
   }
 
-  /* Burgundy marble strip used at the bottom of city cards */
+  /* White polished marble strip with gold veining + organic gold-dust fade above */
   .marble-burgundy-bottom {
     background:
-      linear-gradient(180deg, rgba(53, 8, 16, 0.96) 0%, rgba(24, 3, 7, 0.99) 100%),
-      radial-gradient(circle at 80% 50%, rgba(232, 196, 119, 0.18), transparent 45%);
-    border-top: 1px solid rgba(232, 196, 119, 0.35);
-    box-shadow: inset 0 1px 0 rgba(255, 226, 164, 0.16);
+      linear-gradient(115deg, transparent 18%, rgba(198,148,58,0.10) 22%, transparent 26%, transparent 54%, rgba(176,128,46,0.09) 58%, transparent 63%),
+      linear-gradient(72deg, transparent 40%, rgba(214,170,82,0.07) 44%, transparent 49%),
+      radial-gradient(circle at 22% 30%, rgba(255,255,255,0.96), transparent 55%),
+      radial-gradient(circle at 78% 70%, rgba(244,232,206,0.85), transparent 60%),
+      linear-gradient(180deg, #f8efda 0%, #f3e6c6 50%, #ecdab0 100%);
+    border-top: 1px solid rgba(201,150,58,0.5);
+    box-shadow:
+      inset 0 1px 0 rgba(255,250,232,0.95),
+      inset 0 -1px 0 rgba(151,105,47,0.18),
+      0 -2px 14px rgba(218,170,72,0.18);
+    position: relative;
+    isolation: isolate;
+  }
+  .marble-burgundy-bottom::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -34px;
+    height: 42px;
+    pointer-events: none;
+    background:
+      radial-gradient(1.4px 1.4px at 6% 78%, rgba(255,228,150,0.95), transparent 60%),
+      radial-gradient(1px 1px at 14% 52%, rgba(255,214,118,0.85), transparent 60%),
+      radial-gradient(1.6px 1.6px at 22% 86%, rgba(255,236,170,0.9), transparent 60%),
+      radial-gradient(1px 1px at 31% 40%, rgba(248,206,108,0.7), transparent 60%),
+      radial-gradient(1.2px 1.2px at 39% 72%, rgba(255,224,140,0.9), transparent 60%),
+      radial-gradient(0.9px 0.9px at 47% 30%, rgba(238,196,96,0.55), transparent 60%),
+      radial-gradient(1.5px 1.5px at 55% 80%, rgba(255,232,160,0.95), transparent 60%),
+      radial-gradient(1px 1px at 63% 56%, rgba(244,202,102,0.7), transparent 60%),
+      radial-gradient(1.3px 1.3px at 71% 88%, rgba(255,222,134,0.9), transparent 60%),
+      radial-gradient(0.9px 0.9px at 79% 44%, rgba(232,188,82,0.55), transparent 60%),
+      radial-gradient(1.4px 1.4px at 87% 74%, rgba(255,230,150,0.92), transparent 60%),
+      radial-gradient(1px 1px at 95% 50%, rgba(248,206,108,0.7), transparent 60%),
+      linear-gradient(180deg, transparent 0%, rgba(232,190,98,0) 30%, rgba(232,190,98,0.18) 70%, rgba(232,190,98,0.32) 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.9) 75%, #000 100%);
+            mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.9) 75%, #000 100%);
+    filter: drop-shadow(0 0 2px rgba(255,210,120,0.55));
+    z-index: 2;
   }
 
   .gold-cta-button {
