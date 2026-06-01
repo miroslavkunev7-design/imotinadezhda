@@ -34,9 +34,15 @@ export const logAdminAccess = createServerFn({ method: "POST" })
     let ip: string | null = null;
     try {
       ip = getRequestIP({ xForwardedFor: true }) ?? null;
-    } catch {}
+    } catch {
+      ip = null;
+    }
     const userAgent = (() => {
-      try { return getRequestHeader("user-agent") ?? null; } catch { return null; }
+      try {
+        return getRequestHeader("user-agent") ?? null;
+      } catch {
+        return null;
+      }
     })();
 
     const { error } = await supabaseAdmin.from("admin_access_log").insert({
