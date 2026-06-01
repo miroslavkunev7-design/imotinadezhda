@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listExtracted, runScrape, updateExtracted, publishExtracted, deleteExtracted } from "@/lib/scraper.functions";
+import { archiveExtracted } from "@/lib/archive.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { Download, Loader2, Eye, Trash2, Send, CheckCircle2, XCircle, Phone, Euro, Square, MapPin } from "lucide-react";
+import { Download, Loader2, Eye, Trash2, Send, CheckCircle2, XCircle, Phone, Euro, Square, MapPin, Archive } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/extracted")({
