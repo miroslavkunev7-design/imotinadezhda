@@ -103,13 +103,21 @@ console.log(`✓ Captured snapshots to ${outDir}/`);
 const targets = ["burgas-viewport.png", "burgas-hero.png", "burgas-quarters.png"].filter((f) =>
   fs.existsSync(path.join(outDir, f)),
 );
+
+// --update-safe: only refresh baselines when layout guards passed.
+const guardsPassed = issues.length === 0;
+const doUpdate = update || (updateSafe && guardsPassed);
+if (updateSafe && !guardsPassed) {
+  console.error(`\n⛔ --update-safe: refusing to update baseline — layout guards failed.`);
+}
+
 let pixelFailed = 0;
 for (const name of targets) {
   const baseline = path.join(baselineDir, name);
   const current = path.join(outDir, name);
-  if (update || !fs.existsSync(baseline)) {
+  if (doUpdate || !fs.existsSync(baseline)) {
     fs.copyFileSync(current, baseline);
-    console.log(`📌 ${update ? "Updated" : "Seeded"} baseline: ${baseline}`);
+    console.log(`📌 ${fs.existsSync(baseline) && doUpdate ? "Updated" : "Seeded"} baseline: ${baseline}`);
     continue;
   }
   const diff = path.join(diffDir, name);
@@ -127,5 +135,5 @@ if (pixelFailed) {
   console.error(`\n❌ ${pixelFailed} pixel-diff target(s) exceeded threshold (see ${diffDir}/).`);
 }
 if (issues.length || pixelFailed) process.exit(1);
-console.log(`\n✅ Burgas visual regression passed.`);
+console.log(`\n✅ Burgas visual regression passed.${updateSafe && guardsPassed ? " Baselines refreshed." : ""}`);
 process.exit(0);
