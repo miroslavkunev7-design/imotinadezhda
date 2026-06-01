@@ -2,6 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import Firecrawl from "@mendable/firecrawl-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function assertAdmin(userId: string) {
+  const { data } = await supabaseAdmin
+    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (!data) throw new Error("Forbidden — admin only");
+}
 
 const SOURCES = ["realistimo", "imoti_bg", "olx", "bazar_bg", "home_bg", "alo_bg", "facebook"] as const;
 
@@ -149,6 +156,7 @@ async function searchAndBuild(
 
 
 export const runScrape = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z
       .object({
@@ -158,7 +166,8 @@ export const runScrape = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const client = fc();
     const allResults: ScrapeResult[] = [];
 
@@ -236,8 +245,10 @@ export const runScrape = createServerFn({ method: "POST" })
   });
 
 export const listExtracted = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ status: z.string().optional() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     let q = supabaseAdmin
       .from("extracted_listings")
       .select("*, cities:city_id(name, slug), quarters:quarter_id(name, slug)")
@@ -252,6 +263,7 @@ export const listExtracted = createServerFn({ method: "GET" })
   });
 
 export const updateExtracted = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z
       .object({
@@ -275,15 +287,18 @@ export const updateExtracted = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { error } = await supabaseAdmin.from("extracted_listings").update(data.patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
 export const publishExtracted = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { data: row, error: e1 } = await supabaseAdmin
       .from("extracted_listings")
       .select("*")
@@ -334,8 +349,10 @@ export const publishExtracted = createServerFn({ method: "POST" })
   });
 
 export const deleteExtracted = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { error } = await supabaseAdmin.from("extracted_listings").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };

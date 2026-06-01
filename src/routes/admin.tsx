@@ -14,10 +14,8 @@ function AdminLayout() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
-    logAdminAccess({
-      data: { path: "/admin", userId: user?.id ?? null, email: user?.email ?? null },
-    }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!user?.id) return;
+    logAdminAccess({ data: { path: "/admin" } }).catch(() => {});
   }, [user?.id]);
 
   useEffect(() => {

@@ -1,6 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+async function assertAdmin(userId: string) {
+  const { data } = await supabaseAdmin
+    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (!data) throw new Error("Forbidden — admin only");
+}
 
 function folderPath(year: number, cityName?: string | null, quarterName?: string | null, title?: string | null, id?: string) {
   const safe = (s?: string | null) => (s ?? "—").trim().replace(/[\/\\:*?"<>|]+/g, "-").slice(0, 60);
@@ -12,6 +19,7 @@ export const archiveExtracted = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase, userId } = context;
 
     const { data: src, error: srcErr } = await supabase
@@ -67,6 +75,7 @@ export const listArchive = createServerFn({ method: "POST" })
     }).parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     let q = supabase
       .from("archived_properties")
@@ -87,6 +96,7 @@ export const deleteArchive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { error } = await context.supabase.from("archived_properties").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
