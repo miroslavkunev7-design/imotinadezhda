@@ -96,6 +96,7 @@ export const deleteArchive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { error } = await context.supabase.from("archived_properties").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
