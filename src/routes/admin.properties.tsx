@@ -169,55 +169,55 @@ function PropertiesAdmin() {
               <h2 className="font-display text-2xl text-[#5a3a14]">{editing.id ? "Редакция" : "Нов имот"}</h2>
               <button type="button" onClick={() => setEditing(null)} className="text-[#5a3a14]/70 hover:text-[#5a3a14]"><X className="h-5 w-5" /></button>
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="relative z-10 grid gap-3 md:grid-cols-2">
               <Field label="Заглавие" className="md:col-span-2">
-                <input required value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="w-full rounded border border-input bg-background px-3 py-2" />
+                <input required value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
               </Field>
               <Field label="Цена">
-                <input required type="number" min="0" value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} className="w-full rounded border border-input bg-background px-3 py-2" />
+                <input required type="number" min="0" value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
               </Field>
               <Field label="Валута">
-                <select value={editing.currency ?? "EUR"} onChange={(e) => setEditing({ ...editing, currency: e.target.value })} className="w-full rounded border border-input bg-background px-3 py-2">
+                <select value={editing.currency ?? "EUR"} onChange={(e) => setEditing({ ...editing, currency: e.target.value })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="EUR">EUR</option><option value="BGN">BGN</option><option value="USD">USD</option>
                 </select>
               </Field>
               <Field label="Град">
-                <select required value={editing.city_id ?? ""} onChange={(e) => setEditing({ ...editing, city_id: e.target.value, quarter_id: null })} className="w-full rounded border border-input bg-background px-3 py-2">
+                <select required value={editing.city_id ?? ""} onChange={(e) => setEditing({ ...editing, city_id: e.target.value, quarter_id: null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="">Избери</option>
                   {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </Field>
               <Field label="Квартал">
-                <select value={editing.quarter_id ?? ""} onChange={(e) => setEditing({ ...editing, quarter_id: e.target.value || null })} className="w-full rounded border border-input bg-background px-3 py-2">
+                <select value={editing.quarter_id ?? ""} onChange={(e) => setEditing({ ...editing, quarter_id: e.target.value || null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="">—</option>
                   {filteredQuarters.map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
                 </select>
               </Field>
               <Field label="Тип">
-                <select value={editing.property_type ?? "apartment"} onChange={(e) => setEditing({ ...editing, property_type: e.target.value })} className="w-full rounded border border-input bg-background px-3 py-2">
+                <select value={editing.property_type ?? "apartment"} onChange={(e) => setEditing({ ...editing, property_type: e.target.value })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="apartment">Апартамент</option><option value="house">Къща</option><option value="office">Офис</option><option value="land">Парцел</option><option value="commercial">Търговски</option>
                 </select>
               </Field>
               <Field label="Статус">
-                <select value={editing.status ?? "sale"} onChange={(e) => setEditing({ ...editing, status: e.target.value })} className="w-full rounded border border-input bg-background px-3 py-2">
+                <select value={editing.status ?? "sale"} onChange={(e) => setEditing({ ...editing, status: e.target.value })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="sale">Продажба</option><option value="rent">Наем</option>
                 </select>
               </Field>
-              <Field label="Площ (m²)"><input type="number" value={(editing as any).area_sqm ?? ""} onChange={(e) => setEditing({ ...editing, area_sqm: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-input bg-background px-3 py-2" /></Field>
-              <Field label="Стаи"><input type="number" value={(editing as any).rooms ?? ""} onChange={(e) => setEditing({ ...editing, rooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-input bg-background px-3 py-2" /></Field>
-              <Field label="Спални"><input type="number" value={(editing as any).bedrooms ?? ""} onChange={(e) => setEditing({ ...editing, bedrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-input bg-background px-3 py-2" /></Field>
-              <Field label="Бани"><input type="number" value={(editing as any).bathrooms ?? ""} onChange={(e) => setEditing({ ...editing, bathrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-input bg-background px-3 py-2" /></Field>
+              <Field label="Площ (m²)"><input type="number" value={(editing as any).area_sqm ?? ""} onChange={(e) => setEditing({ ...editing, area_sqm: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
+              <Field label="Стаи"><input type="number" value={(editing as any).rooms ?? ""} onChange={(e) => setEditing({ ...editing, rooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
+              <Field label="Спални"><input type="number" value={(editing as any).bedrooms ?? ""} onChange={(e) => setEditing({ ...editing, bedrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
+              <Field label="Бани"><input type="number" value={(editing as any).bathrooms ?? ""} onChange={(e) => setEditing({ ...editing, bathrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
               <Field label="Cover image URL" className="md:col-span-2">
-                <input type="url" value={(editing as any).cover_image_url ?? ""} onChange={(e) => setEditing({ ...editing, cover_image_url: e.target.value } as any)} className="w-full rounded border border-input bg-background px-3 py-2" />
+                <input type="url" value={(editing as any).cover_image_url ?? ""} onChange={(e) => setEditing({ ...editing, cover_image_url: e.target.value } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
               </Field>
               <Field label="Описание" className="md:col-span-2">
-                <textarea rows={4} value={(editing as any).description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value } as any)} className="w-full rounded border border-input bg-background px-3 py-2" />
+                <textarea rows={4} value={(editing as any).description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
               </Field>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editing.is_published} onChange={(e) => setEditing({ ...editing, is_published: e.target.checked })} /> Публикуван</label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editing.is_featured} onChange={(e) => setEditing({ ...editing, is_featured: e.target.checked })} /> Препоръчан</label>
             </div>
-            <div className="mt-6 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setEditing(null)}>Отказ</Button>
+            <div className="relative z-10 mt-6 flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setEditing(null)} className="border-amber-700/40 bg-white/80 text-[#5a3a14] hover:bg-white">Отказ</Button>
               <Button type="submit" disabled={busy} className="gold-cta-button">{busy ? "Запис..." : "Запази"}</Button>
             </div>
           </form>
@@ -485,7 +485,7 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
                 {doc && (
                   <button onClick={() => openDoc(doc)} title="Изтегли" className="text-primary"><Download className="h-4 w-4" /></button>
                 )}
-                <label className="cursor-pointer rounded-lg border border-input bg-background px-3 py-2 text-xs hover:bg-muted">
+                <label className="cursor-pointer rounded-lg border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2 text-xs hover:bg-muted">
                   {isUploading ? "Качване…" : doc ? "Замени" : "Прикачи"}
                   <input type="file" className="hidden" disabled={isUploading} onChange={(e) => onUpload(key, e.target.files?.[0] ?? null)} />
                 </label>
@@ -503,7 +503,7 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
             <button
               onClick={() => mergeAndUpload()}
               disabled={merging}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-input bg-background px-3 py-2.5 text-xs font-semibold hover:bg-muted disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2.5 text-xs font-semibold hover:bg-muted disabled:opacity-50"
             >
               {merging ? <Loader2 className="h-4 w-4 animate-spin" /> : <Layers className="h-4 w-4" />}
               Обедини PDF файлове
