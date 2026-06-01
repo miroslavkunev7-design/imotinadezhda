@@ -17,7 +17,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-type Page = { id: string; src: string; w: number; h: number; name: string };
+export type Page = { id: string; src: string; w: number; h: number; name: string };
 
 // OpenCV.js loader (jscanify dependency)
 let cvLoadingPromise: Promise<any> | null = null;
