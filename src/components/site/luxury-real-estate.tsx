@@ -767,13 +767,13 @@ export function CityPage({ data }: { data?: CityData } = {}) {
         </div>
       </section>
 
-      {/* Inline burgundy search bar — tucked into the hero so they read as one piece */}
-      <section className="relative z-30 mx-auto -mt-3 w-full max-w-[1440px] flex-[0_0_auto] px-2 md:-mt-14 md:px-8 lg:-mt-16">
+      {/* Burgundy search bar — sits just above the marble quarters card */}
+      <section className="relative z-30 mx-auto -mt-2 w-full max-w-[1440px] flex-[0_0_auto] px-2 md:-mt-4 md:px-8">
         <CitySearchBar citySlug={city.slug} cityName={city.name} />
       </section>
 
       {/* Marble quarters strip */}
-      <section className="relative mx-auto mt-2 flex w-full max-w-[1480px] flex-1 items-stretch min-h-0 px-2 pb-2 md:mt-6 md:px-8 md:pb-6">
+      <section className="relative mx-auto -mt-3 flex w-full max-w-[1480px] flex-1 items-stretch min-h-0 px-2 pb-2 md:-mt-4 md:px-8 md:pb-6">
         <div
           className="relative w-full overflow-hidden rounded-[18px] p-3 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[24px] md:p-6"
           style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}
