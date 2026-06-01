@@ -108,14 +108,25 @@ function DatabasePage() {
             </div>
             <h1 className="mt-2 font-display text-4xl text-amber-100">База данни — Наши имоти</h1>
             <p className="mt-1 text-sm text-amber-100/70">
-              Архивирани имоти от извлечените обяви. Подредени по град и квартал. Папки в Drive: <code className="rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-200">Година / Град / Квартал / Имот</code>
+              Архивирани имоти от извлечените обяви. Подредени по град и квартал. Изтегли като ZIP — браузърът ще те попита къде да го запазиш. Структура: <code className="rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-200">Година / Град / Квартал / Имот</code>
             </p>
           </div>
-          <div className="rounded-xl border border-amber-500/25 bg-[rgba(255,251,243,0.95)] px-4 py-3 text-center shadow-lg">
-            <div className="text-[10px] uppercase tracking-wider text-primary/60">Общо</div>
-            <div className="font-display text-3xl text-primary">{loading ? "…" : rows.length}</div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onBulkDownload}
+              disabled={bulkDownloading || !rows.length}
+              className="inline-flex items-center gap-2 rounded-xl border border-amber-400/50 bg-amber-500/90 px-4 py-3 text-xs font-bold uppercase tracking-wider text-primary shadow-lg hover:bg-amber-400 disabled:opacity-50"
+            >
+              {bulkDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Изтегли всички ({rows.length})
+            </button>
+            <div className="rounded-xl border border-amber-500/25 bg-[rgba(255,251,243,0.95)] px-4 py-3 text-center shadow-lg">
+              <div className="text-[10px] uppercase tracking-wider text-primary/60">Общо</div>
+              <div className="font-display text-3xl text-primary">{loading ? "…" : rows.length}</div>
+            </div>
           </div>
         </header>
+
 
         {/* Filters */}
         <div className="grid gap-3 rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.95)] p-4 shadow-lg md:grid-cols-[1fr_1fr_1fr_2fr]">
