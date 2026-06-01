@@ -23,6 +23,12 @@ export const AGENCY = {
   mortgagePartnerUrl: "https://www.creditcenter.bg/calculator/",
 };
 
+// Кредитни консултанти, на които да изпращаме кандидатури за ипотечен кредит
+export const MORTGAGE_PARTNERS = [
+  { id: "plamen", name: "Пламен", email: "plamen@imotinadezhda.bg" },
+  { id: "kalina", name: "Калина (Ай Банк)", email: "kalina@aibank.bg" },
+] as const;
+
 export function buildWhatsAppUrl(message: string, whatsapp: string = AGENCY.whatsapp) {
   return `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`;
 }

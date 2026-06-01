@@ -18,6 +18,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PropertiesPropertyIdRouteImport } from './routes/properties.$propertyId'
 import { Route as AdminQuartersRouteImport } from './routes/admin.quarters'
 import { Route as AdminPropertiesRouteImport } from './routes/admin.properties'
+import { Route as AdminProfileRouteImport } from './routes/admin.profile'
 import { Route as AdminOwnersRouteImport } from './routes/admin.owners'
 import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
 import { Route as AdminInquiriesRouteImport } from './routes/admin.inquiries'
@@ -77,6 +78,11 @@ const AdminQuartersRoute = AdminQuartersRouteImport.update({
 const AdminPropertiesRoute = AdminPropertiesRouteImport.update({
   id: '/properties',
   path: '/properties',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProfileRoute = AdminProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminOwnersRoute = AdminOwnersRouteImport.update({
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/owners': typeof AdminOwnersRoute
+  '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/owners': typeof AdminOwnersRoute
+  '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
@@ -225,6 +233,7 @@ export interface FileRoutesById {
   '/admin/inquiries': typeof AdminInquiriesRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/owners': typeof AdminOwnersRoute
+  '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
@@ -253,6 +262,7 @@ export interface FileRouteTypes {
     | '/admin/inquiries'
     | '/admin/matches'
     | '/admin/owners'
+    | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
     | '/properties/$propertyId'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/admin/inquiries'
     | '/admin/matches'
     | '/admin/owners'
+    | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
     | '/properties/$propertyId'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/admin/inquiries'
     | '/admin/matches'
     | '/admin/owners'
+    | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
     | '/properties/$propertyId'
@@ -389,6 +401,13 @@ declare module '@tanstack/react-router' {
       path: '/properties'
       fullPath: '/admin/properties'
       preLoaderRoute: typeof AdminPropertiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/profile': {
+      id: '/admin/profile'
+      path: '/profile'
+      fullPath: '/admin/profile'
+      preLoaderRoute: typeof AdminProfileRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/owners': {
@@ -523,6 +542,7 @@ interface AdminRouteChildren {
   AdminInquiriesRoute: typeof AdminInquiriesRoute
   AdminMatchesRoute: typeof AdminMatchesRoute
   AdminOwnersRoute: typeof AdminOwnersRoute
+  AdminProfileRoute: typeof AdminProfileRoute
   AdminPropertiesRoute: typeof AdminPropertiesRoute
   AdminQuartersRoute: typeof AdminQuartersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -540,6 +560,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInquiriesRoute: AdminInquiriesRoute,
   AdminMatchesRoute: AdminMatchesRoute,
   AdminOwnersRoute: AdminOwnersRoute,
+  AdminProfileRoute: AdminProfileRoute,
   AdminPropertiesRoute: AdminPropertiesRoute,
   AdminQuartersRoute: AdminQuartersRoute,
   AdminIndexRoute: AdminIndexRoute,
