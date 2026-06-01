@@ -45,7 +45,7 @@ type NavKey = "sale" | "rent" | "about";
 const topNav: Array<{ key: "sale" | "rent" | "about"; label: string; to: string; search?: Record<string, string> }> = [
   { key: "sale", label: "За продажба", to: "/search", search: { status: "sale" } },
   { key: "rent", label: "Под наем", to: "/search", search: { status: "rent" } },
-  { key: "about", label: "За нас", to: "/" },
+  { key: "about", label: "За нас", to: "/about" },
 ];
 
 export const citySlugImages: Record<string, string> = {
