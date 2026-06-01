@@ -83,7 +83,7 @@ export function DocScanner() {
     setBusy(true);
     try {
       const cv = await loadOpenCv().catch(() => null);
-      const scanner = cv ? new (jscanify as any)() : null;
+      const scanner = cv ? await getScanner().catch(() => null) : null;
       for (const f of Array.from(files)) {
         if (!f.type.startsWith("image/")) {
           toast.error(`${f.name}: само снимки`);
