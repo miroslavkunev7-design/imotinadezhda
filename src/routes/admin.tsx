@@ -55,23 +55,6 @@ function AdminLayout() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!user?.id) return;
-    let cancelled = false;
-    (async () => {
-      const token = await ensureFreshSession();
-      if (cancelled || !token) return;
-      try {
-        await logAdminAccess({ data: { path: "/admin" } });
-      } catch {
-        /* non-blocking */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id]);
-
-  useEffect(() => {
     if (loading) return;
     if (!user) {
       navigate({ to: "/login" });
@@ -87,7 +70,11 @@ function AdminLayout() {
       }
       try {
         const { isAdmin } = await checkAdminAccess();
-        if (!cancelled) setIsAdmin(isAdmin);
+        if (cancelled) return;
+        setIsAdmin(isAdmin);
+        if (isAdmin) {
+          logAdminAccess({ data: { path: "/admin" } }).catch(() => {});
+        }
       } catch (error) {
         console.error("admin access check failed", error);
         if (!cancelled) setIsAdmin(false);
