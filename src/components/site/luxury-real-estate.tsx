@@ -440,16 +440,34 @@ function MarblePropertyCard({
   image: string;
 }) {
   return (
-    <article className="marble-hover-card group overflow-hidden rounded-[18px] border border-primary/18 bg-card shadow-[0_18px_35px_rgba(77,25,31,0.15)]">
-      <div className="relative aspect-[1.04/1] overflow-hidden">
-        <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.06]" loading="lazy" />
-        <div className="marble-wave-glow" />
+    <article
+      className="marble-hover-card group flex flex-col overflow-hidden rounded-[14px] border border-[#c9a24a]/40 shadow-[0_14px_30px_rgba(77,25,31,0.18)]"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(252,246,232,0.98), rgba(245,234,210,0.97))",
+      }}
+    >
+      <div className="relative aspect-[1.3/1] overflow-hidden p-1.5">
+        <img
+          src={image}
+          alt={title}
+          className="h-full w-full rounded-[10px] object-cover transition duration-500 group-hover:scale-[1.04]"
+          loading="lazy"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = burgasHero;
+          }}
+        />
       </div>
-      <div className="relative bg-card px-5 py-4">
-        <div className="mb-2 font-display text-[1.15rem] text-accent-foreground">{title}</div>
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{count} имота</span>
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/20"><ChevronRight className="h-4 w-4" /></span>
+      <div className="relative px-3 pb-3 pt-1">
+        <div className="font-display text-[1rem] leading-tight text-[#2a050b] md:text-[1.1rem]">{title}</div>
+        <div className="mt-1 flex items-center justify-between">
+          <span className="inline-flex items-center gap-1 text-[10.5px] text-[#7a4a10] md:text-[11.5px]">
+            <MapPin className="h-3 w-3 text-[#a87622]" />
+            {count} имота
+          </span>
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#c9a24a]/60 text-[#7a4a10]">
+            <ChevronRight className="h-3.5 w-3.5" />
+          </span>
         </div>
       </div>
     </article>
@@ -659,8 +677,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
   return (
     <main
-      className="luxury-page flex flex-col overflow-hidden bg-[#150409] text-primary-foreground"
-      style={{ height: "100dvh", maxHeight: "100dvh" }}
+      className="dark luxury-page flex min-h-screen flex-col bg-[#150409] text-primary-foreground"
     >
       {/* Hero card */}
       <section className="relative flex-[0_0_auto] px-2 pt-2 md:px-8 md:pt-4">
@@ -677,26 +694,26 @@ export function CityPage({ data }: { data?: CityData } = {}) {
           <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(232,196,119,0.35)_inset] md:rounded-[28px]">
             <div className="grid md:grid-cols-[1.02fr_0.98fr]">
               {/* LEFT: hero image + marble logo corner */}
-              <div className="relative h-[140px] md:min-h-[460px] lg:min-h-[clamp(380px,52vh,540px)]">
+              <div className="relative h-[160px] md:min-h-[380px] lg:min-h-[clamp(340px,44vh,440px)]">
                 <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 35%" }} />
                 <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(20,3,7,0.85) 100%)" }} />
-                {/* Marble logo badge with S-curve flare swoosh */}
+                {/* Marble logo badge with clean S-curve swoosh */}
                 <div
-                  className="absolute left-0 top-0 z-10 h-[110px] w-[230px] md:h-[240px] md:w-[500px] lg:h-[260px] lg:w-[540px]"
+                  className="absolute left-0 top-0 z-10 h-[90px] w-[180px] md:h-[160px] md:w-[340px] lg:h-[170px] lg:w-[360px]"
                   style={{
                     background:
                       "radial-gradient(ellipse at 18% 8%, #fffaf0 0%, transparent 55%), linear-gradient(155deg, #fbf6ea 0%, #f4e6c4 55%, #ecd9a8 100%)",
-                    clipPath: "path('M0 0 L70% 0 C80% 0 86% 8% 84% 20% C82% 32% 92% 40% 100% 44% C90% 50% 76% 56% 68% 66% C58% 78% 54% 90% 42% 96% C30% 100% 14% 100% 0 100% Z')",
-                    WebkitClipPath: "path('M0 0 L70% 0 C80% 0 86% 8% 84% 20% C82% 32% 92% 40% 100% 44% C90% 50% 76% 56% 68% 66% C58% 78% 54% 90% 42% 96% C30% 100% 14% 100% 0 100% Z')",
+                    clipPath: "path('M0 0 L72% 0 C84% 0 92% 14% 86% 32% C80% 52% 92% 70% 100% 78% C82% 92% 58% 100% 36% 100% L0 100% Z')",
+                    WebkitClipPath: "path('M0 0 L72% 0 C84% 0 92% 14% 86% 32% C80% 52% 92% 70% 100% 78% C82% 92% 58% 100% 36% 100% L0 100% Z')",
                     boxShadow: "inset 0 -2px 14px rgba(184,137,58,0.28)",
                   }}
                 >
-                  <Link to="/" className="absolute left-4 top-3 md:left-12 md:top-9">
-                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-[40px] w-auto object-contain md:h-[90px] lg:h-[98px]" />
+                  <Link to="/" className="absolute left-3 top-2 md:left-8 md:top-5">
+                    <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-[60px] w-auto object-contain md:h-[110px] lg:h-[120px]" />
                   </Link>
                 </div>
                 {/* Gold edge tracing the S-curve flare */}
-                <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 hidden h-[260px] w-[540px] md:block md:h-[280px]" viewBox="0 0 540 270" preserveAspectRatio="none">
+                <svg aria-hidden className="pointer-events-none absolute left-0 top-0 z-20 hidden h-[170px] w-[360px] md:block" viewBox="0 0 360 170" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="goldEdgeCity" x1="0" x2="1">
                       <stop offset="0%" stopColor="#b8893a" stopOpacity="0" />
@@ -705,10 +722,11 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                       <stop offset="100%" stopColor="#b8893a" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path d="M0,0 L378,0 C432,0 464,22 454,54 C443,87 497,108 540,119 C496,131 410,148 367,178 C314,212 292,240 227,256 C164,270 82,270 0,270" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="2.5" />
-                  <path d="M395,8 C436,12 462,32 450,60 C440,90 497,114 540,124" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="1.2" opacity="0.7" />
+                  <path d="M0,0 L259,0 C302,0 331,24 310,54 C290,88 331,119 360,133 C295,156 209,170 130,170 L0,170" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="2.5" />
+                  <path d="M268,6 C306,10 327,30 312,58 C298,84 335,108 360,118" fill="none" stroke="url(#goldEdgeCity)" strokeWidth="1.2" opacity="0.7" />
                 </svg>
               </div>
+
 
               {/* RIGHT: burgundy panel — deep dark wine to match mockup */}
               <div
@@ -721,11 +739,11 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                 <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover", mixBlendMode: "screen" }} />
                 <div className="relative mb-3 hidden items-center justify-end gap-7 text-[14px] md:mb-6 md:flex md:gap-10 md:text-[14.5px]">
                   {topNav.map((item) => (
-                    <Link key={item.key} to={item.to} search={item.search as any} className="text-primary-foreground/90 transition hover:text-[#e8c477]">
+                    <Link key={item.key} to={item.to} search={item.search as any} className="text-[#f0e3c8]/95 transition hover:text-[#e8c477]">
                       {item.label}
                     </Link>
                   ))}
-                  <button aria-label="Профил" className="rounded-full border border-[#c9a24a]/30 p-1.5 text-primary-foreground/90 transition hover:border-[#e8c477] hover:text-[#e8c477]">
+                  <button aria-label="Профил" className="rounded-full border border-[#c9a24a]/40 p-1.5 text-[#e8c477] transition hover:border-[#e8c477] hover:bg-[#e8c477]/10">
                     <User className="h-5 w-5" />
                   </button>
                 </div>
@@ -734,7 +752,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                   {city.name}
                 </h1>
                 {city.description && (
-                  <p className="relative mt-2 line-clamp-2 max-w-[480px] text-[11.5px] leading-[1.45] text-primary-foreground/85 md:mt-4 md:line-clamp-none md:text-[14px] md:leading-[1.65]">{city.description}</p>
+                  <p className="relative mt-2 line-clamp-2 max-w-[480px] text-[11.5px] leading-[1.45] text-[#f0e3c8]/90 md:mt-4 md:line-clamp-none md:text-[14px] md:leading-[1.65]">{city.description}</p>
                 )}
                 <div className="relative mt-3 h-px w-full md:mt-5" style={{ background: "linear-gradient(90deg, transparent, rgba(201,162,74,0.6) 50%, transparent)" }} />
                 <div className="relative mt-3 grid grid-cols-4 gap-2 md:mt-5 md:gap-3">
@@ -768,15 +786,17 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               <Link
                 to="/cities/$slug"
                 params={{ slug: city.slug }}
-                className="inline-flex flex-none items-center justify-between gap-2 rounded-[12px] px-3 py-2 font-display text-[11.5px] text-primary-foreground shadow-[0_14px_30px_-8px_rgba(77,8,20,0.6)] transition hover:brightness-110 md:gap-3 md:rounded-[14px] md:px-5 md:py-3 md:text-[14px]"
+                className="group inline-flex w-full flex-none items-center justify-between gap-3 rounded-[12px] px-4 py-3 font-display text-[12px] text-primary-foreground transition hover:brightness-110 md:rounded-[14px] md:px-5 md:py-5 md:text-[15px]"
                 style={{
                   background: "linear-gradient(135deg, #4d0814 0%, #2a050b 100%)",
                   border: "1px solid rgba(232,196,119,0.55)",
                   boxShadow: "0 14px 30px -8px rgba(77,8,20,0.55), inset 0 0 0 1px rgba(232,196,119,0.18)",
                 }}
               >
-                <span className="leading-tight">Всички<br />квартали</span>
-                <ChevronRight className="h-4 w-4 text-[#e8c477] md:h-5 md:w-5" />
+                <span className="leading-tight">Виж всички<br />квартали</span>
+                <span className="inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border border-[#e8c477]/60 text-[#e8c477] transition group-hover:bg-[#e8c477]/15 md:h-8 md:w-8">
+                  <ChevronRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                </span>
               </Link>
             </div>
             <QuartersScroller quarters={quarters} citySlug={city.slug} fallbackImage={burgasHero} />
@@ -900,49 +920,19 @@ function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: stri
 }
 
 function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Array<{ id: string; slug: string; name: string; image_url?: string | null; properties_count?: number | null }>; citySlug: string; fallbackImage: string }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const scroll = (dir: 1 | -1) => {
-    const el = ref.current;
-    if (!el) return;
-    const card = el.querySelector<HTMLElement>("[data-quarter-card]");
-    const step = (card?.offsetWidth ?? 280) + 16;
-    el.scrollBy({ left: dir * step * 2, behavior: "smooth" });
-  };
+  const visible = quarters.slice(0, 5);
   return (
-    <div className="relative mt-2 md:mt-6">
-      <button
-        type="button"
-        onClick={() => scroll(-1)}
-        aria-label="Предишни"
-        className="absolute left-2 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.92)] text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:scale-105 md:flex"
-      >
-        <ChevronLeft className="h-6 w-6" />
-      </button>
-      <button
-        type="button"
-        onClick={() => scroll(1)}
-        aria-label="Следващи"
-        className="absolute right-2 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(102,8,28,0.92)] text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:scale-105 md:flex"
-      >
-        <ChevronRight className="h-6 w-6" />
-      </button>
-      <div
-        ref={ref}
-        className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-3"
-        style={{ scrollbarWidth: "thin" }}
-      >
-        {quarters.map((q) => (
-          <Link
-            key={q.id}
-            to="/cities/$slug/districts/$district"
-            params={{ slug: citySlug, district: q.slug }}
-            data-quarter-card
-            className="block w-[170px] flex-none snap-start md:w-[185px]"
-          >
-            <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={q.image_url || fallbackImage} />
-          </Link>
-        ))}
-      </div>
+    <div className="relative grid grid-cols-2 gap-2.5 md:grid-cols-5 md:gap-3">
+      {visible.map((q) => (
+        <Link
+          key={q.id}
+          to="/cities/$slug/districts/$district"
+          params={{ slug: citySlug, district: q.slug }}
+          className="block"
+        >
+          <MarblePropertyCard title={q.name} count={q.properties_count ?? 0} image={q.image_url || fallbackImage} />
+        </Link>
+      ))}
     </div>
   );
 }
