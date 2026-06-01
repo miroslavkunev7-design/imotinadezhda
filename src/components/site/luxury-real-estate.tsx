@@ -300,7 +300,7 @@ function CityCard({ name, image, href, params }: { name: string; image: string; 
           className="pointer-events-none absolute inset-x-0 bottom-0 z-[8] h-[58%]"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(20,20,20,0.55) 55%, rgba(20,4,2,0.78) 100%)",
+              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(20,20,20,0.55) 55%, rgba(10,10,10,0.78) 100%)",
           }}
         />
         {/* Glassy gold label — overlay at the bottom of the image */}
@@ -476,7 +476,7 @@ function MapCard({ district = false }: { district?: boolean }) {
         <div className="font-display text-[1.8rem] text-accent-foreground">Локация</div>
         <p className="mt-1 text-base text-muted-foreground">кв. Лазур, гр. Бургас</p>
       </div>
-      <div className="relative h-[300px] overflow-hidden border-y border-primary/10 bg-[linear-gradient(135deg,rgba(215,203,186,0.85),rgba(231,224,210,0.92))]">
+      <div className="relative h-[300px] overflow-hidden border-y border-primary/10 bg-[linear-gradient(135deg,rgba(212,212,212,0.85),rgba(229,229,229,0.92))]">
         <div className="absolute inset-0 opacity-70" style={{ backgroundImage: "linear-gradient(90deg, rgba(120,106,94,0.18) 1px, transparent 1px), linear-gradient(rgba(120,106,94,0.18) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
         <div className={cn("absolute inset-y-0 right-[12%] w-[22%] bg-[linear-gradient(180deg,rgba(56,136,180,0.6),rgba(34,125,180,0.78))]", district ? "w-[28%]" : "")} />
         {district ? <div className="absolute inset-y-[12%] right-[18%] w-[28%] rounded-[40%] bg-[rgba(225,29,72,0.5)] border border-[rgba(225,29,72,0.4)]" /> : null}
@@ -848,12 +848,12 @@ function DistrictMapCard({ name }: { name: string }) {
   return (
     <aside className="overflow-hidden rounded-[26px] border border-primary/20 bg-card shadow-[0_24px_55px_rgba(88,40,18,0.18)]">
       <div className="relative h-[520px] overflow-hidden">
-        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(135deg,#6b6256 0%,#7a7062 35%,#5d5448 70%,#4a4338 100%)" }} />
+        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(135deg,#525252 0%,#737373 35%,#404040 70%,#525252 100%)" }} />
         <div
           className="absolute inset-0 opacity-30"
           style={{
             backgroundImage:
-              "linear-gradient(90deg, rgba(20,18,15,0.55) 1px, transparent 1px), linear-gradient(rgba(20,18,15,0.55) 1px, transparent 1px), linear-gradient(45deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
+              "linear-gradient(90deg, rgba(20,20,20,0.55) 1px, transparent 1px), linear-gradient(rgba(20,20,20,0.55) 1px, transparent 1px), linear-gradient(45deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
             backgroundSize: "26px 26px, 26px 26px, 14px 14px",
           }}
         />
@@ -869,7 +869,7 @@ function DistrictMapCard({ name }: { name: string }) {
           style={{
             top: "18%", left: "32%", width: "44%", height: "62%",
             background: "rgba(225,29,72,0.78)",
-            border: "1.5px solid rgba(196,140,72,0.65)",
+            border: "1.5px solid rgba(220,38,38,0.65)",
             clipPath: "polygon(20% 0,80% 6%,100% 32%,92% 68%,72% 96%,38% 100%,8% 78%,0 40%)",
             boxShadow: "0 0 30px rgba(225,29,72,0.45) inset",
           }}
