@@ -284,7 +284,7 @@ function CameraCapture({
           await videoRef.current.play().catch(() => {});
         }
         await loadOpenCv();
-        scannerRef.current = new (jscanify as any)();
+        scannerRef.current = await getScanner();
         setStatus("ready");
         startDetectionLoop();
       } catch (e: any) {
