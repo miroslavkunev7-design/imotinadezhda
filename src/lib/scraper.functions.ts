@@ -33,10 +33,20 @@ function parseNumber(text?: string | null): number | null {
   return m ? Number(m) : null;
 }
 
-function extractImages(html: string, baseUrl: string): string[] {
-  if (!html) return [];
+// Domains / keywords commonly used by competing agencies — skip listings that show their watermark/logo.
+const AGENCY_KEYWORDS = [
+  "logo", "watermark", "brand", "stamp",
+  "address.bg", "luximmo", "bulgarianproperties", "imotiplus", "yavlena", "mirela",
+  "imoti.net", "stoyanov", "homeland", "imoplus", "novahome", "primahome", "remax",
+  "era-bulgaria", "imotibg", "domsi", "newestate", "arcobaleno", "imoti24",
+  "suprimmo", "imoteka", "agencia", "agenciq",
+];
+
+function extractImages(html: string, baseUrl: string): { urls: string[]; agencyLogo: { detected: boolean; reason: string | null } } {
+  if (!html) return { urls: [], agencyLogo: { detected: false, reason: null } };
   const urls = new Set<string>();
   const re = /<img[^>]+src=["']([^"']+)["']/gi;
+  let agencyHit: string | null = null;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) !== null) {
     let u = m[1];
@@ -46,12 +56,20 @@ function extractImages(html: string, baseUrl: string): string[] {
     }
     if (!/^https?:\/\//.test(u)) continue;
     if (/\.(svg|gif)$/i.test(u)) continue;
-    if (/(logo|icon|sprite|avatar|placeholder)/i.test(u)) continue;
+    const lower = u.toLowerCase();
+    const hit = AGENCY_KEYWORDS.find((kw) => lower.includes(kw));
+    if (hit) { if (!agencyHit) agencyHit = hit; continue; }
+    if (/(icon|sprite|avatar|placeholder)/i.test(u)) continue;
     urls.add(u);
     if (urls.size >= 12) break;
   }
-  return Array.from(urls);
+  // Also scan raw HTML for explicit "лого на агенция" mentions
+  if (!agencyHit && /(агенция|агенциа|brokerage|estate agency)/i.test(html) && /<img[^>]+(logo|watermark)/i.test(html)) {
+    agencyHit = "agency-html-mention";
+  }
+  return { urls: Array.from(urls), agencyLogo: { detected: !!agencyHit, reason: agencyHit } };
 }
+
 
 type ScrapeResult = {
   source: typeof SOURCES[number];
