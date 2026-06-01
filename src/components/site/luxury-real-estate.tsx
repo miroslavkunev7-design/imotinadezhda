@@ -849,19 +849,19 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
 
 function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: string; label: string }) {
   return (
-    <div className="flex flex-col items-start gap-2">
+    <div className="flex flex-col items-start gap-1 md:gap-2">
       <div
-        className="flex h-11 w-11 items-center justify-center rounded-[10px] text-[#e8c477]"
+        className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[#e8c477] md:h-11 md:w-11 md:rounded-[10px]"
         style={{
           background: "linear-gradient(135deg, rgba(232,196,119,0.12), rgba(184,137,58,0.04))",
           border: "1px solid rgba(201,162,74,0.45)",
           boxShadow: "inset 0 0 0 1px rgba(232,196,119,0.08), 0 4px 12px rgba(0,0,0,0.25)",
         }}
       >
-        <Icon className="h-[18px] w-[18px]" />
+        <Icon className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]" />
       </div>
-      <div className="mt-1 font-display text-[1.25rem] leading-tight text-[#e8c477]">{value}</div>
-      <div className="text-[12px] leading-tight text-primary-foreground/75">{label}</div>
+      <div className="mt-0.5 font-display text-[0.85rem] leading-tight text-[#e8c477] md:mt-1 md:text-[1.25rem]">{value}</div>
+      <div className="text-[10px] leading-tight text-primary-foreground/75 md:text-[12px]">{label}</div>
     </div>
   );
 }
