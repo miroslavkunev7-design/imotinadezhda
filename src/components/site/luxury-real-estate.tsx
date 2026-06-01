@@ -128,13 +128,12 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
         backgroundImage: `url(${headerPanel})`,
         backgroundSize: "100% 100%",
         backgroundRepeat: "no-repeat",
-        backgroundColor: "#f7f1e6",
       }}
     >
-      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-6 pt-3 md:px-10 md:pb-8 md:pt-4">
+      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 pb-1 pt-1 md:px-10 md:pb-2 md:pt-1">
         <Link
           to="/"
-          className="flex shrink-0 items-center select-none"
+          className="flex shrink-0 items-center select-none -my-2"
           onClick={handleLogoClick}
           aria-label="Начало (троен клик за админ вход)"
         >
@@ -142,7 +141,7 @@ export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: bool
             src={logoNadezhda}
             alt="Недвижими имоти Надежда"
             draggable={false}
-            className="h-16 w-auto object-contain md:h-20 lg:h-24"
+            className="h-14 w-auto object-contain md:h-16 lg:h-20"
           />
         </Link>
 
