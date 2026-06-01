@@ -29,10 +29,15 @@ function BrokersAdmin() {
     if (!editing) return;
     setBusy(true);
     try {
-      const { created_at, updated_at, properties_count, clients_count, _password, _createAccount, ...payload } = editing;
+      const { created_at, updated_at, properties_count, clients_count, _password, _confirmPassword, _createAccount, ...payload } = editing;
       if (!editing.id && _createAccount) {
         if (!payload.email) throw new Error("Имейлът е задължителен за акаунт");
-        if (!_password || _password.length < 8) throw new Error("Паролата трябва да е поне 8 символа");
+        if (!_password) throw new Error("Моля, въведи парола");
+        if (_password.length < 8) throw new Error("Паролата трябва да е поне 8 символа");
+        if (!/[a-z]/.test(_password)) throw new Error("Паролата трябва да съдържа поне една малка буква");
+        if (!/[A-Z]/.test(_password)) throw new Error("Паролата трябва да съдържа поне една главна буква");
+        if (!/[0-9]/.test(_password)) throw new Error("Паролата трябва да съдържа поне една цифра");
+        if (_password !== _confirmPassword) throw new Error("Паролите не съвпадат");
         await createBrokerAccount({ data: {
           email: payload.email,
           password: _password,
@@ -56,7 +61,7 @@ function BrokersAdmin() {
     try { await deleteBroker({ data: { id } }); await load(); } catch (e: any) { alert(e.message); }
   };
 
-  const newBroker = () => setEditing({ full_name: "", phone: "", email: "", is_active: true, _createAccount: true, _password: "" });
+  const newBroker = () => setEditing({ full_name: "", phone: "", email: "", is_active: true, _createAccount: true, _password: "", _confirmPassword: "" });
 
   const onUploadPhoto = async (file: File | null) => {
     if (!file || !editing) return;
@@ -140,7 +145,10 @@ function BrokersAdmin() {
                   {editing._createAccount && (
                     <>
                       <label className="block"><span className="text-xs uppercase text-muted-foreground">Парола *</span>
-                        <input type="text" required minLength={8} value={editing._password ?? ""} onChange={(e) => setEditing({ ...editing, _password: e.target.value })} placeholder="Минимум 8 символа" className={iC} autoComplete="new-password" />
+                        <input type="password" required value={editing._password ?? ""} onChange={(e) => setEditing({ ...editing, _password: e.target.value })} placeholder="Минимум 8 символа, главна, малка, цифра" className={iC} autoComplete="new-password" />
+                      </label>
+                      <label className="block"><span className="text-xs uppercase text-muted-foreground">Потвърди паролата *</span>
+                        <input type="password" required value={editing._confirmPassword ?? ""} onChange={(e) => setEditing({ ...editing, _confirmPassword: e.target.value })} placeholder="Въведи паролата отново" className={iC} autoComplete="new-password" />
                       </label>
                       <p className="text-[11px] text-muted-foreground">Брокерът ще може да влезе с този имейл и парола. Сподели ги сигурно с него.</p>
                     </>
