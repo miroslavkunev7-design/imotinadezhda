@@ -135,6 +135,7 @@ function LoginPage() {
           {mode === "signin" ? "Нямаш профил? Регистрирай се" : "Имаш профил? Влез"}
         </button>
       </div>
+      </div>
     </main>
   );
 }
