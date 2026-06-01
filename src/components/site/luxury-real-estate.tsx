@@ -440,16 +440,34 @@ function MarblePropertyCard({
   image: string;
 }) {
   return (
-    <article className="marble-hover-card group overflow-hidden rounded-[18px] border border-primary/18 bg-card shadow-[0_18px_35px_rgba(77,25,31,0.15)]">
-      <div className="relative aspect-[1.04/1] overflow-hidden">
-        <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.06]" loading="lazy" />
-        <div className="marble-wave-glow" />
+    <article
+      className="marble-hover-card group flex flex-col overflow-hidden rounded-[14px] border border-[#c9a24a]/40 shadow-[0_14px_30px_rgba(77,25,31,0.18)]"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(252,246,232,0.98), rgba(245,234,210,0.97))",
+      }}
+    >
+      <div className="relative aspect-[1.3/1] overflow-hidden p-1.5">
+        <img
+          src={image}
+          alt={title}
+          className="h-full w-full rounded-[10px] object-cover transition duration-500 group-hover:scale-[1.04]"
+          loading="lazy"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = burgasHero;
+          }}
+        />
       </div>
-      <div className="relative bg-card px-5 py-4">
-        <div className="mb-2 font-display text-[1.15rem] text-accent-foreground">{title}</div>
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{count} имота</span>
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/20"><ChevronRight className="h-4 w-4" /></span>
+      <div className="relative px-3 pb-3 pt-1">
+        <div className="font-display text-[1rem] leading-tight text-[#2a050b] md:text-[1.1rem]">{title}</div>
+        <div className="mt-1 flex items-center justify-between">
+          <span className="inline-flex items-center gap-1 text-[10.5px] text-[#7a4a10] md:text-[11.5px]">
+            <MapPin className="h-3 w-3 text-[#a87622]" />
+            {count} имота
+          </span>
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#c9a24a]/60 text-[#7a4a10]">
+            <ChevronRight className="h-3.5 w-3.5" />
+          </span>
         </div>
       </div>
     </article>
