@@ -55,7 +55,7 @@ function proxyImage(url?: string | null): string {
 }
 
 
-type NavKey = "sale" | "rent" | "about";
+type NavKey = SiteNavKey;
 
 const topNav: Array<{ key: "sale" | "rent" | "about"; label: string; to: string; search?: Record<string, string> }> = [
   { key: "sale", label: "За продажба", to: "/search", search: { status: "sale" } },
@@ -106,7 +106,6 @@ const propertyFacts = [
 
 const amenityList = ["Панорамна гледка", "Тераса", "Климатик", "Обзаведен", "СОТ", "Контролиран достъп"];
 
-type NavKey = SiteNavKey;
 
 /**
  * Backwards-compatible alias for the old per-section LuxuryHeader. Every page
