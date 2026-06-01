@@ -92,20 +92,29 @@ function AuditPage() {
         <h1 className="font-display text-2xl text-amber-100">
           Одит лог — достъп до /login и /admin
         </h1>
-        {hasFilters && (
+        <div className="flex items-center gap-3">
+          {hasFilters && (
+            <button
+              onClick={() => {
+                setPathFilter("all");
+                setEmailFilter("");
+                setIpFilter("");
+                setDateFrom("");
+                setDateTo("");
+              }}
+              className="text-xs text-amber-300/70 underline hover:text-amber-200"
+            >
+              Изчисти филтрите
+            </button>
+          )}
           <button
-            onClick={() => {
-              setPathFilter("all");
-              setEmailFilter("");
-              setIpFilter("");
-              setDateFrom("");
-              setDateTo("");
-            }}
-            className="text-xs text-amber-300/70 underline hover:text-amber-200"
+            onClick={exportCsv}
+            disabled={rows.length === 0}
+            className="rounded border border-amber-300/40 bg-amber-300/10 px-3 py-1.5 text-xs text-amber-200 hover:bg-amber-300/20 disabled:opacity-40"
           >
-            Изчисти филтрите
+            Експорт CSV ({rows.length})
           </button>
-        )}
+        </div>
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-2 md:grid-cols-5">
