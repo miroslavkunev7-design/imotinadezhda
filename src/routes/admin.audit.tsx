@@ -170,11 +170,12 @@ function AuditPage() {
                 <th className="px-3 py-2 text-left">Потребител</th>
                 <th className="px-3 py-2 text-left">IP</th>
                 <th className="px-3 py-2 text-left">Браузър</th>
+                <th className="px-3 py-2 text-right"></th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} className="border-t border-amber-100/5">
+                <tr key={r.id} className="border-t border-amber-100/5 hover:bg-amber-100/5">
                   <td className="px-3 py-2 whitespace-nowrap">
                     {new Date(r.created_at).toLocaleString("bg-BG")}
                   </td>
@@ -189,6 +190,15 @@ function AuditPage() {
                     title={r.user_agent ?? ""}
                   >
                     {r.user_agent ?? "—"}
+                  </td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                    <Link
+                      to="/admin/audit/$id"
+                      params={{ id: r.id }}
+                      className="text-xs text-amber-300 underline hover:text-amber-200"
+                    >
+                      Детайли →
+                    </Link>
                   </td>
                 </tr>
               ))}
