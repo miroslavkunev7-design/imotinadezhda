@@ -29,8 +29,23 @@ function BrokersAdmin() {
     if (!editing) return;
     setBusy(true);
     try {
-      const { created_at, updated_at, properties_count, clients_count, ...payload } = editing;
-      await upsertBroker({ data: payload });
+      const { created_at, updated_at, properties_count, clients_count, _password, _createAccount, ...payload } = editing;
+      if (!editing.id && _createAccount) {
+        if (!payload.email) throw new Error("Имейлът е задължителен за акаунт");
+        if (!_password || _password.length < 8) throw new Error("Паролата трябва да е поне 8 символа");
+        await createBrokerAccount({ data: {
+          email: payload.email,
+          password: _password,
+          full_name: payload.full_name,
+          phone: payload.phone || null,
+          photo_url: payload.photo_url || null,
+          license_number: payload.license_number || null,
+          bio: payload.bio || null,
+          is_active: payload.is_active ?? true,
+        }});
+      } else {
+        await upsertBroker({ data: payload });
+      }
       setEditing(null);
       await load();
     } catch (e: any) { alert(e.message); } finally { setBusy(false); }
