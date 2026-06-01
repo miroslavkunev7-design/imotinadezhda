@@ -175,7 +175,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
                   </span>
                 ) : null}
                 {item.disabled ? (
-                  <span className={cn("text-[9px] uppercase", active ? "text-amber-200/80" : "text-primary/40")}>скоро</span>
+                  <span className={cn("text-[9px] uppercase", active ? "text-amber-200/80" : "text-amber-100/40")}>скоро</span>
                 ) : null}
               </>
             );
