@@ -163,7 +163,7 @@ function PropertiesAdmin() {
           <form
             onClick={(e) => e.stopPropagation()}
             onSubmit={save}
-            className="marble-modal relative max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl border border-amber-200/60 p-6 text-slate-800 shadow-[0_25px_60px_-15px_rgba(120,80,20,.45)]"
+            className="marble-light-panel relative max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl p-6 text-slate-800"
           >
             <div className="mb-4 flex items-center justify-between border-b border-amber-300/40 pb-3">
               <h2 className="font-display text-2xl text-[#5a3a14]">{editing.id ? "Редакция" : "Нов имот"}</h2>
