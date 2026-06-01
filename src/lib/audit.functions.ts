@@ -1,7 +1,26 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+export const checkAdminAccess = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (error) {
+      console.error("admin access check failed", error);
+      return { isAdmin: false };
+    }
+
+    return { isAdmin: !!data };
+  });
 
 export const logAdminAccess = createServerFn({ method: "POST" })
   .inputValidator(
@@ -15,9 +34,15 @@ export const logAdminAccess = createServerFn({ method: "POST" })
     let ip: string | null = null;
     try {
       ip = getRequestIP({ xForwardedFor: true }) ?? null;
-    } catch {}
+    } catch {
+      ip = null;
+    }
     const userAgent = (() => {
-      try { return getRequestHeader("user-agent") ?? null; } catch { return null; }
+      try {
+        return getRequestHeader("user-agent") ?? null;
+      } catch {
+        return null;
+      }
     })();
 
     const { error } = await supabaseAdmin.from("admin_access_log").insert({
