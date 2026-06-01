@@ -2,7 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Pencil, X, Images, Upload, Star } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Images, Upload, Star, Send } from "lucide-react";
+
+const CROSSPOST_SITES = [
+  { key: "imot_bg", label: "Imot.bg" },
+  { key: "imoti_net", label: "Imoti.net" },
+  { key: "olx_bg", label: "OLX.bg" },
+  { key: "bazar_bg", label: "Bazar.bg" },
+  { key: "alo_bg", label: "Alo.bg" },
+  { key: "home_bg", label: "Home.bg" },
+  { key: "facebook", label: "Facebook Marketplace" },
+];
+
 
 export const Route = createFileRoute("/admin/properties")({
   component: PropertiesAdmin,
