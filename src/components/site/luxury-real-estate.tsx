@@ -1000,7 +1000,7 @@ function DistrictListingCard({ p, location, fallback }: { p: QuarterData["proper
         <div className="relative aspect-[1.05/0.82] overflow-hidden">
           <img src={p.cover_image_url || fallback} alt={p.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
           <span className="absolute left-3 top-3 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-primary-foreground shadow">{tag}</span>
-          <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 text-primary shadow">
+          <button type="button" aria-label="Добави в любими" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 text-primary shadow">
             <Heart className="h-4 w-4" />
           </button>
           <div className="marble-wave-glow" />
