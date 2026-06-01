@@ -722,6 +722,85 @@ function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Arr
 }
 
 
+function DistrictMapCard({ name }: { name: string }) {
+  return (
+    <aside className="overflow-hidden rounded-[26px] border border-primary/20 bg-card shadow-[0_24px_55px_rgba(88,40,18,0.18)]">
+      <div className="relative h-[520px] overflow-hidden">
+        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(135deg,#6b6256 0%,#7a7062 35%,#5d5448 70%,#4a4338 100%)" }} />
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, rgba(20,18,15,0.55) 1px, transparent 1px), linear-gradient(rgba(20,18,15,0.55) 1px, transparent 1px), linear-gradient(45deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
+            backgroundSize: "26px 26px, 26px 26px, 14px 14px",
+          }}
+        />
+        <div
+          className="absolute inset-y-0 right-0 w-[36%]"
+          style={{
+            background: "linear-gradient(135deg,#1b4d62 0%,#0f3a4f 55%,#0b2c3d 100%)",
+            clipPath: "polygon(35% 0,100% 0,100% 100%,0 100%)",
+          }}
+        />
+        <div
+          className="absolute"
+          style={{
+            top: "18%", left: "32%", width: "44%", height: "62%",
+            background: "rgba(122,17,37,0.78)",
+            border: "1.5px solid rgba(196,140,72,0.65)",
+            clipPath: "polygon(20% 0,80% 6%,100% 32%,92% 68%,72% 96%,38% 100%,8% 78%,0 40%)",
+            boxShadow: "0 0 30px rgba(122,17,37,0.45) inset",
+          }}
+        />
+        <div className="absolute font-display tracking-[0.18em] text-primary-foreground" style={{ top: "44%", left: "44%", fontSize: "2rem", textShadow: "0 2px 8px rgba(0,0,0,0.55)" }}>
+          {name.toUpperCase()}
+        </div>
+      </div>
+      <div className="marble-dark-panel flex items-center justify-center px-4 py-5">
+        <Button className="h-12 rounded-[14px] border border-[var(--color-secondary)]/60 bg-transparent px-6 text-base text-primary-foreground hover:bg-white/5">
+          <MapPin className="mr-2 h-5 w-5 text-[var(--color-secondary)]" />
+          Виж на картата
+        </Button>
+      </div>
+    </aside>
+  );
+}
+
+function DistrictListingCard({ p, location, fallback }: { p: QuarterData["properties"][number]; location: string; fallback: string }) {
+  const tag = p.is_featured ? "ТОП ОФЕРТА" : "НОВО";
+  return (
+    <Link to="/properties/$propertyId" params={{ propertyId: p.id }} className="block">
+      <article className="marble-hover-card group flex h-full flex-col overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_18px_42px_rgba(93,39,22,0.16)]">
+        <div className="relative aspect-[1.05/0.82] overflow-hidden">
+          <img src={p.cover_image_url || fallback} alt={p.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+          <span className="absolute left-3 top-3 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-primary-foreground shadow">{tag}</span>
+          <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 text-primary shadow">
+            <Heart className="h-4 w-4" />
+          </button>
+          <div className="marble-wave-glow" />
+        </div>
+        <div className="flex flex-1 flex-col gap-2.5 px-4 pb-4 pt-3">
+          <h3 className="font-display text-[1.2rem] leading-tight text-accent-foreground">{p.title}</h3>
+          <p className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 text-primary" />{location}
+          </p>
+          <div className="flex items-center gap-3 border-t border-primary/10 pt-2.5 text-[13px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><Square className="h-3.5 w-3.5 text-primary" />{p.area_sqm ?? "—"} м²</span>
+            <span className="inline-flex items-center gap-1"><BedDouble className="h-3.5 w-3.5 text-primary" />{p.bedrooms ?? 0}</span>
+            <span className="inline-flex items-center gap-1"><User className="h-3.5 w-3.5 text-primary" />{p.bathrooms ?? 0}</span>
+          </div>
+          <div className="mt-auto flex items-center justify-between pt-1">
+            <div className="font-display text-[1.45rem] text-accent-foreground">{formatPrice(p.price, p.currency ?? "EUR")}</div>
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+              <ChevronRight className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
+      </article>
+    </Link>
+  );
+}
+
 type QuarterData = {
   city: { id: string; slug: string; name: string };
   quarter: { id: string; slug: string; name: string; description?: string | null; image_url?: string | null; properties_count?: number | null; avg_price_per_sqm?: number | null };
@@ -731,105 +810,122 @@ type QuarterData = {
 
 export function DistrictPage({ data }: { data?: QuarterData } = {}) {
   const city = data?.city ?? { id: "x", slug: "burgas", name: "Бургас" };
-  const quarter = data?.quarter ?? { id: "x", slug: "lazur", name: "Лазур", description: "Един от най-предпочитаните квартали с морска панорама.", image_url: null, properties_count: 0 };
+  const quarter = data?.quarter ?? { id: "x", slug: "lazur", name: "Лазур", description: "Един от най-предпочитаните квартали в Бургас – с морска панорама, близост до Морската градина и всички удобства за модерен начин на живот.", image_url: null, properties_count: 312 };
   const properties = data?.properties ?? [];
-  const heroImg = quarter.image_url || burgundyTerrace;
+  const count = quarter.properties_count ?? properties.length;
 
   return (
     <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "cover" }}>
       <section className="relative px-3 pb-12 md:px-6 md:pb-16">
         <LuxuryHeader active="sale" />
-        <div className="relative mx-auto mt-[-18px] max-w-[1460px] px-2 md:px-6">
-          <div className="overflow-hidden rounded-[30px] border border-primary/20 shadow-[0_24px_55px_rgba(88,40,18,0.16)]">
-            <img src={heroImg} alt={`${quarter.name} ${city.name}`} className="h-[350px] w-full object-cover md:h-[520px]" />
-          </div>
-          <div className="relative z-30 mx-auto mt-[-42px] md:mt-[-54px]">
-            <SearchBar />
-          </div>
-        </div>
-      </section>
 
-      <section className="mx-auto mt-[-8px] max-w-[1460px] px-4 pb-10 md:px-6 md:pb-16">
-        <div className="grid gap-8 xl:grid-cols-[270px_1fr_360px] xl:items-start">
-          <aside className="marble-dark-panel rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(60,10,20,0.28)]">
-            <div className="mb-5 font-display text-[2rem] text-primary-foreground">Бързи филтри</div>
+        <div className="mx-auto mt-2 grid max-w-[1460px] gap-6 px-2 md:px-4 xl:grid-cols-[270px_1fr_360px] xl:items-start">
+          <aside className="marble-dark-panel rounded-[22px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(60,10,20,0.32)]">
+            <div className="mb-5 text-center font-display text-[1.55rem] text-primary-foreground">Бързи филтри</div>
             <div className="space-y-6">
               <div>
-                <div className="mb-4 border-b border-primary/20 pb-3 text-lg text-primary/90">Тип имот</div>
-                <div className="space-y-3 text-lg">
+                <div className="mb-3 border-b border-[var(--color-secondary)]/30 pb-2 text-[15px] uppercase tracking-[0.06em] text-[var(--color-secondary)]">Тип имот</div>
+                <div className="space-y-2.5 text-[15px]">
                   {["Апартамент", "Многостаен", "Къща", "Парцел", "Офис", "Магазин"].map((item) => (
                     <label key={item} className="flex items-center gap-3">
-                      <input type="checkbox" className="h-5 w-5 rounded border-primary/40 bg-transparent accent-[var(--color-primary)]" />
+                      <input type="checkbox" className="h-[18px] w-[18px] rounded-sm border border-[var(--color-secondary)]/60 bg-transparent accent-[var(--color-secondary)]" />
                       <span>{item}</span>
                     </label>
                   ))}
                 </div>
               </div>
               <div>
-                <div className="mb-4 text-lg text-primary/90">Цена</div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-[12px] border border-primary/25 bg-background/5 px-4 py-3">От €</div>
-                  <div className="rounded-[12px] border border-primary/25 bg-background/5 px-4 py-3">До €</div>
+                <div className="mb-3 text-[15px] uppercase tracking-[0.06em] text-[var(--color-secondary)]">Цена</div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 text-sm text-primary-foreground/70">От</span>
+                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-black/15 px-3 py-2 text-sm">€</div>
+                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-black/15 px-3 py-2 text-sm">€</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 text-sm text-primary-foreground/70">До</span>
+                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-black/15 px-3 py-2 text-sm">€</div>
+                  </div>
                 </div>
               </div>
-              <Button className="gold-cta-button h-14 w-full rounded-[14px] text-lg">Приложи филтрите</Button>
+              <Button className="h-12 w-full rounded-[12px] border border-[var(--color-secondary)] bg-transparent text-[15px] text-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/10">
+                Приложи филтрите
+              </Button>
             </div>
           </aside>
 
-          <div className="space-y-6">
-            <div className="rounded-[26px] bg-card p-5 shadow-[0_18px_45px_rgba(92,41,20,0.12)] md:p-8">
+          <div className="space-y-5">
+            <div className="rounded-[24px] border border-primary/10 bg-card/90 p-6 shadow-[0_18px_45px_rgba(92,41,20,0.12)] md:p-8">
+              <div className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+                <Link to="/" className="hover:text-primary">Начало</Link>
+                <ChevronRight className="h-3.5 w-3.5" />
+                <Link to="/cities/$slug" params={{ slug: city.slug }} className="hover:text-primary">{city.name}</Link>
+                <ChevronRight className="h-3.5 w-3.5" />
+                <span className="text-accent-foreground">{quarter.name}</span>
+              </div>
               <div className="flex flex-wrap items-start justify-between gap-5">
-                <div>
-                  <div className="mb-3 flex flex-wrap items-center gap-3 text-base text-muted-foreground">
-                    <Link to="/" className="hover:text-primary">Начало</Link><ChevronRight className="h-4 w-4" />
-                    <Link to="/cities/$slug" params={{ slug: city.slug }} className="hover:text-primary">{city.name}</Link>
-                    <ChevronRight className="h-4 w-4" /><span>{quarter.name}</span>
-                  </div>
-                  <h1 className="font-display text-[3.4rem] leading-none text-accent-foreground md:text-[4.4rem]">{quarter.name}, гр. {city.name}</h1>
+                <div className="max-w-[640px]">
+                  <h1 className="font-display text-[2.6rem] leading-tight text-accent-foreground md:text-[3.2rem]">
+                    {quarter.name}, гр. {city.name}
+                  </h1>
                   {quarter.description ? (
-                    <p className="mt-4 max-w-[760px] text-lg leading-8 text-muted-foreground md:text-[1.35rem]">{quarter.description}</p>
+                    <p className="mt-3 text-[15px] leading-7 text-muted-foreground">{quarter.description}</p>
                   ) : null}
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <div className="rounded-[18px] border border-primary/14 bg-background px-5 py-4 shadow-sm">
-                    <div className="inline-flex items-center gap-3"><House className="h-5 w-5 text-primary" /><span className="font-display text-[1.9rem] text-accent-foreground">{properties.length}</span></div>
-                    <div className="text-base text-muted-foreground">имота</div>
+                  <div className="flex min-w-[110px] flex-col items-center rounded-[16px] border border-primary/15 bg-background px-5 py-3 shadow-sm">
+                    <House className="h-5 w-5 text-primary" />
+                    <div className="mt-1 font-display text-[1.6rem] leading-none text-accent-foreground">{count}</div>
+                    <div className="text-xs text-muted-foreground">имота</div>
                   </div>
+                  <button className="flex min-w-[110px] flex-col items-center rounded-[16px] border border-primary/15 bg-background px-5 py-3 shadow-sm transition hover:border-primary/40">
+                    <Heart className="h-5 w-5 text-primary" />
+                    <div className="mt-1 text-[13px] font-medium text-accent-foreground">Добави</div>
+                    <div className="text-xs text-muted-foreground">в любими</div>
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-primary/10 bg-card/90 px-5 py-3 shadow-sm">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span>Сортирай по:</span>
+                <button className="inline-flex items-center gap-2 rounded-[10px] border border-primary/20 bg-background px-3 py-1.5 text-accent-foreground">
+                  Най-нови <ChevronDown className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <button aria-label="Грид изглед" className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-primary/25 bg-primary/10 text-primary">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </button>
+                <button aria-label="Списък изглед" className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-primary/15 bg-background text-muted-foreground hover:text-primary">
+                  <Ruler className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {properties.length === 0 ? (
-                <div className="md:col-span-2 2xl:col-span-4 rounded-[20px] bg-card p-10 text-center text-muted-foreground">Все още няма публикувани имоти в този квартал.</div>
+                <div className="rounded-[20px] bg-card p-10 text-center text-muted-foreground sm:col-span-2 xl:col-span-4">
+                  Все още няма публикувани имоти в този квартал.
+                </div>
               ) : (
                 properties.map((p) => (
-                  <Link key={p.id} to="/properties/$propertyId" params={{ propertyId: p.id }} className="block">
-                    <ListingCard
-                      title={p.title}
-                      price={formatPrice(p.price, p.currency ?? "EUR")}
-                      size={`${p.area_sqm ?? "—"} m²`}
-                      beds={p.bedrooms ?? 0}
-                      baths={p.bathrooms ?? 0}
-                      image={p.cover_image_url || burgasHero}
-                      tag={p.is_featured ? "ТОП ОФЕРТА" : ""}
-                      location={`${quarter.name}, гр. ${city.name}`}
-                    />
-                  </Link>
+                  <DistrictListingCard key={p.id} p={p} location={`${quarter.name}, гр. ${city.name}`} fallback={burgasHero} />
                 ))
               )}
             </div>
 
             {data?.gallery && data.gallery.length > 0 ? (
-              <div className="rounded-[26px] bg-card p-5 shadow-[0_18px_45px_rgba(92,41,20,0.12)] md:p-8">
+              <div className="rounded-[24px] border border-primary/10 bg-card/90 p-6 shadow-sm md:p-8">
                 <div className="mb-5 flex items-center justify-between">
-                  <h2 className="font-display text-[2rem] text-accent-foreground md:text-[2.4rem]">Галерия — {quarter.name}</h2>
+                  <h2 className="font-display text-[1.8rem] text-accent-foreground">Галерия — {quarter.name}</h2>
                   <span className="text-sm text-muted-foreground">{data.gallery.length} снимки</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
                   {data.gallery.map((img) => (
-                    <div key={img.id} className="overflow-hidden rounded-[16px] border border-primary/15 shadow-sm">
-                      <img src={img.url} alt={`${quarter.name}`} className="h-44 w-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
+                    <div key={img.id} className="overflow-hidden rounded-[14px] border border-primary/15 shadow-sm">
+                      <img src={img.url} alt={quarter.name} className="h-40 w-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
                     </div>
                   ))}
                 </div>
@@ -837,7 +933,7 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
             ) : null}
           </div>
 
-          <MapCard district />
+          <DistrictMapCard name={quarter.name} />
         </div>
       </section>
     </main>
