@@ -22,6 +22,7 @@ function ClientsAdmin() {
   const [editing, setEditing] = useState<Partial<Client> | null>(null);
   const [docsFor, setDocsFor] = useState<Client | null>(null);
   const [mortgageFor, setMortgageFor] = useState<Client | null>(null);
+  const [mortgageStagesFor, setMortgageStagesFor] = useState<Client | null>(null);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
 
