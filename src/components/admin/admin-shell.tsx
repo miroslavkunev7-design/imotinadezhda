@@ -153,8 +153,9 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
               "group relative mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition",
               active
                 ? "bg-gradient-to-r from-primary via-[#7a0d22] to-primary text-primary-foreground shadow-[0_10px_22px_rgba(102,8,28,0.4)] ring-1 ring-amber-400/60"
-                : "text-primary/85 hover:bg-amber-500/10",
-              item.disabled && !active && "opacity-50",
+                : "text-amber-100/85 hover:bg-amber-500/15",
+                item.disabled && !active && "opacity-50",
+
             );
             const content = (
               <>
