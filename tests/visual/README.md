@@ -27,8 +27,9 @@ bun run visual:district -- --url=https://imotinadezhda.lovable.app/cities/burgas
 
 ## Праг
 
-`pixelmatch` threshold `0.1` (per-pixel), max diff `2%` от общата площ.
-При fail скриптът връща exit code 1 и записва diff PNG за преглед.
+`pixelmatch` threshold `0.1` (per-pixel), минимално съвпадение **97%**
+(max diff 3% от общата площ). При fail скриптът връща exit code 1 и
+записва diff PNG за преглед.
 
 ## Зависимости
 

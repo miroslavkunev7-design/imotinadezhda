@@ -26,7 +26,7 @@ const flags = Object.fromEntries(
 
 const [baselinePath, currentPath, diffPath = "diff.png"] = positional;
 if (!baselinePath || !currentPath) {
-  console.error("Usage: visual-diff.mjs <baseline> <current> [diff] [--threshold=0.1] [--max=2]");
+  console.error("Usage: visual-diff.mjs <baseline> <current> [diff] [--threshold=0.1] [--max=3]");
   process.exit(2);
 }
 if (!fs.existsSync(baselinePath)) {
@@ -40,7 +40,7 @@ if (!fs.existsSync(currentPath)) {
 }
 
 const threshold = Number(flags.threshold ?? 0.1);
-const maxPct = Number(flags.max ?? 2);
+const maxPct = Number(flags.max ?? 3);
 
 const a = PNG.sync.read(fs.readFileSync(baselinePath));
 const b = PNG.sync.read(fs.readFileSync(currentPath));

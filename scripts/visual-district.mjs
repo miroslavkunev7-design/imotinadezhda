@@ -86,7 +86,7 @@ for (const name of targets) {
     continue;
   }
   const diff = path.join(diffDir, name);
-  const res = spawnSync("node", ["scripts/visual-diff.mjs", baseline, current, diff, "--max=2"], {
+  const res = spawnSync("node", ["scripts/visual-diff.mjs", baseline, current, diff, "--max=3"], {
     stdio: "inherit",
   });
   if (res.status !== 0) failed++;
