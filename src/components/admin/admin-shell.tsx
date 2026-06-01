@@ -24,6 +24,8 @@ import {
   Layers,
   Heart,
   ShieldCheck,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -66,6 +68,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [matchBadge, setMatchBadge] = useState<number>(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     let cancel = false;
@@ -75,14 +78,31 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
     return () => { cancel = true; clearInterval(t); };
   }, []);
 
+  // Close mobile drawer on route change
+  useEffect(() => { setMobileOpen(false); }, [path]);
+
   const current = NAV.find((n) => (n.to === "/admin" ? path === "/admin" : path.startsWith(n.to)));
 
   return (
     <div className="flex min-h-screen bg-[#1a0608]" style={{ backgroundImage: `url(${marbleBg})`, backgroundSize: "600px", backgroundBlendMode: "overlay" }}>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <button
+          aria-label="Затвори меню"
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden"
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="flex w-[250px] flex-col border-r border-primary-foreground/10 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[8px_0_30px_rgba(0,0,0,0.25)]">
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-primary-foreground/10 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[8px_0_30px_rgba(0,0,0,0.25)] transition-transform duration-300 lg:static lg:translate-x-0",
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+        )}
+      >
         {/* Logo */}
-        <div className="flex items-center gap-3 border-b border-primary/15 px-5 py-5">
+        <div className="flex items-center justify-between gap-3 border-b border-primary/15 px-5 py-5">
           <Link to="/" className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Building2 className="h-5 w-5" />
@@ -92,6 +112,13 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/70">Надежда</div>
             </div>
           </Link>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="rounded-md p-1.5 text-primary/70 hover:bg-primary/10 lg:hidden"
+            aria-label="Затвори"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Profile */}
@@ -145,7 +172,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
               );
             }
             return (
-              <Link key={item.to} to={item.to} className={baseClass}>
+              <Link key={item.to} to={item.to} className={baseClass} onClick={() => setMobileOpen(false)}>
                 {content}
               </Link>
             );
@@ -154,7 +181,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
 
         {/* Footer */}
         <div className="border-t border-primary/15 px-3 py-3">
-          <Link to="/admin/ai" className="mb-2 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-gradient-to-r from-amber-500/10 to-amber-300/10 px-3 py-2.5 text-sm text-primary transition hover:from-amber-500/20 hover:to-amber-300/20">
+          <Link to="/admin/ai" onClick={() => setMobileOpen(false)} className="mb-2 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-gradient-to-r from-amber-500/10 to-amber-300/10 px-3 py-2.5 text-sm text-primary transition hover:from-amber-500/20 hover:to-amber-300/20">
             <Sparkles className="h-4 w-4 text-amber-600" />
             <span className="flex-1 font-medium">AI Асистент</span>
           </Link>
@@ -173,27 +200,34 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-amber-500/15 bg-[rgba(20,4,8,0.7)] px-6 py-3 backdrop-blur">
-          <div className="flex items-center gap-2 text-sm text-amber-100/70">
+        <header className="flex items-center justify-between gap-2 border-b border-amber-500/15 bg-[rgba(20,4,8,0.7)] px-4 py-3 backdrop-blur md:px-6">
+          <div className="flex min-w-0 items-center gap-2 text-sm text-amber-100/70">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="rounded-md border border-amber-500/30 bg-amber-500/5 p-1.5 text-amber-100 hover:bg-amber-500/15 lg:hidden"
+              aria-label="Отвори меню"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
             <Link to="/admin" className="hover:text-amber-100">Admin</Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-amber-100">{breadcrumb ?? current?.label ?? "Admin"}</span>
+            <ChevronRight className="h-3.5 w-3.5 flex-none" />
+            <span className="truncate text-amber-100">{breadcrumb ?? current?.label ?? "Admin"}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Link to="/" className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 text-xs text-amber-100 transition hover:bg-amber-500/15">
-              <ExternalLink className="h-3.5 w-3.5" /> Към сайта
+          <div className="flex flex-none items-center gap-2">
+            <Link to="/" className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-xs text-amber-100 transition hover:bg-amber-500/15">
+              <ExternalLink className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Към сайта</span>
             </Link>
             <button
               onClick={() => signOut().then(() => navigate({ to: "/login" }))}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 text-xs text-amber-100 transition hover:bg-amber-500/15"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-xs text-amber-100 transition hover:bg-amber-500/15"
             >
-              <LogOut className="h-3.5 w-3.5" /> Изход
+              <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Изход</span>
             </button>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-6 md:p-8">
+        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
           {children}
         </main>
       </div>
