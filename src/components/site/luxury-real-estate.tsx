@@ -983,6 +983,12 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
           </div>
 
           <div className="space-y-6">
+            <MortgageRangeBand
+              price={Number(property.price) || 0}
+              currency={property.currency ?? "EUR"}
+              propertyId={property.id}
+              propertyTitle={property.title}
+            />
             <InquiryForm propertyId={property.id} propertyTitle={property.title} />
             <MapCard />
           </div>

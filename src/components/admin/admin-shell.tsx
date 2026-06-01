@@ -30,6 +30,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { newMatchesCount } from "@/lib/crm.functions";
+import { AdminAIBubble } from "@/components/admin/ai-bubble";
 import marbleBg from "@/assets/marble-bg.png";
 
 type NavItem = {
@@ -231,6 +232,9 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
           {children}
         </main>
       </div>
+
+      {/* Floating AI assistant bubble */}
+      <AdminAIBubble />
     </div>
   );
 }
