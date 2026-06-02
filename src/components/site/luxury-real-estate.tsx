@@ -791,9 +791,9 @@ export function HomePage({
   const belowSections = desktopSections.filter((s) => s.id === "trust-strip");
 
   return (
-    <main className="luxury-page flex min-h-screen flex-col bg-[#0f0a0b] text-foreground">
+    <main className="luxury-page flex h-screen flex-col overflow-hidden bg-[#0f0a0b] text-foreground">
       <section
-        className="relative flex flex-col pb-6 pt-0"
+        className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
@@ -805,7 +805,7 @@ export function HomePage({
 
         {mobileSections.map((s) => sectionNode(s.id))}
 
-        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-5 md:px-8 md:pt-7">
+        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-3 md:px-8 md:pt-5">
           {heroSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
@@ -813,6 +813,7 @@ export function HomePage({
     </main>
   );
 }
+
 
 function TrustStrip() {
   const items = [
