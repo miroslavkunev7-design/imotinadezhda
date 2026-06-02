@@ -1088,6 +1088,27 @@ export type Database = {
         }
         Relationships: []
       }
+      page_layouts: {
+        Row: {
+          page_key: string
+          sections: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          page_key: string
+          sections?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          page_key?: string
+          sections?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
