@@ -38,18 +38,26 @@ function ProfilePage() {
     if (!user) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("avatars").upload(path, file, {
-        contentType: file.type,
+      const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+      const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : "jpg";
+      const path = `${user.id}/avatar-${Date.now()}.${safeExt}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, {
+        contentType: file.type || "image/jpeg",
         upsert: true,
+        cacheControl: "3600",
       });
-      if (error) throw error;
+      if (upErr) throw upErr;
       const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      setAvatarUrl(data.publicUrl);
-      await supabase.from("profiles").upsert({ id: user.id, avatar_url: data.publicUrl });
+      const publicUrl = data.publicUrl;
+      const { error: updErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+      if (updErr) throw updErr;
+      setAvatarUrl(publicUrl);
       toast.success("Снимката е качена");
     } catch (e: any) {
+      console.error("Avatar upload error:", e);
       toast.error(e?.message ?? "Грешка при качване");
     } finally {
       setUploading(false);
