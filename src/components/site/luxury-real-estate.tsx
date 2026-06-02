@@ -580,7 +580,7 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
         <LuxuryHeader active="sale" />
 
         {/* Mobile/tablet: search near the top under header — pushed below splash logo */}
-        <div className="relative z-20 mx-auto mt-[180px] w-full max-w-[1440px] px-4 sm:mt-[200px] md:mt-7 md:px-8 lg:hidden">
+        <div className="relative z-20 mx-auto mt-[220px] w-full max-w-[1440px] px-4 sm:mt-[240px] md:mt-7 md:px-8 lg:hidden">
           <SearchBar cities={cityOpts} variant="burgundy" />
         </div>
 
