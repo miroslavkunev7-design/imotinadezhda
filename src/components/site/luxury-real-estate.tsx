@@ -567,9 +567,9 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
     .map((c) => ({ ...c, image: citySlugImages[c.slug] || c.image || burgasHero }));
   const cityOpts = cityList.map((c) => ({ slug: c.slug, name: c.name }));
   return (
-    <main className="luxury-page flex h-screen max-h-screen flex-col overflow-hidden bg-background text-foreground">
+    <main className="luxury-page flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:max-h-screen lg:overflow-hidden">
       <section
-        className="relative flex flex-1 flex-col overflow-hidden pb-4 pt-0"
+        className="relative flex flex-col pb-6 pt-0 lg:flex-1 lg:overflow-hidden lg:pb-4"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
