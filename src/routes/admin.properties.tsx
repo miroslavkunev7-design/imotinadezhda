@@ -314,7 +314,7 @@ function PropertiesAdmin() {
             </div>
             <div className="relative z-10 mt-6 flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditing(null)} className="border-amber-700/40 bg-white/80 text-[#5a3a14] hover:bg-white">Отказ</Button>
-              <Button type="submit" disabled={busy} className="gold-cta-button">{busy ? "Запис..." : "Запази"}</Button>
+              <Button type="submit" disabled={busy || uploadingNew} className="gold-cta-button">{busy || uploadingNew ? (pendingImages.length ? `Качване ${pendingImages.length} снимки…` : "Запис...") : "Запази"}</Button>
             </div>
           </form>
         </div>
