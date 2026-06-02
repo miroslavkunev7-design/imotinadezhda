@@ -569,7 +569,7 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
   return (
     <main className="luxury-page flex h-screen max-h-screen flex-col overflow-hidden bg-background text-foreground">
       <section
-        className="relative flex flex-1 flex-col overflow-hidden px-4 pb-4 pt-0 md:px-6 lg:px-8"
+        className="relative flex flex-1 flex-col overflow-hidden pb-4 pt-0"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
@@ -579,12 +579,10 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
       >
         <LuxuryHeader active="sale" />
 
-
-
-
-        <div className="relative z-20 mx-auto mt-5 w-full max-w-[1440px] px-2 md:mt-7 md:px-6">
-          <SearchBar cities={cityOpts} />
+        <div className="relative z-20 mx-auto mt-5 w-full max-w-[1440px] px-4 md:mt-7 md:px-8">
+          <SearchBar cities={cityOpts} variant="burgundy" />
         </div>
+
 
         <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-2 pt-5 md:px-6 md:pt-7">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
