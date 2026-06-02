@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 170" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8f1731"/>
+      <stop offset="55%" stop-color="#770d25"/>
+      <stop offset="100%" stop-color="#580818"/>
+    </linearGradient>
+    <linearGradient id="curl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5E0F1D"/>
+      <stop offset="100%" stop-color="#3a0912"/>
+    </linearGradient>
+    <filter id="ds" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="10" flood-color="#000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#ds)">
+    <!-- back curls -->
+    <path d="M18,10 C32,2 54,2 70,14 L50,34 C38,24 28,20 14,26 Z" fill="url(#curl)"/>
+    <path d="M412,10 C398,2 376,2 360,14 L380,34 C392,24 402,20 416,26 Z" fill="url(#curl)"/>
+    <path d="M12,134 C24,160 54,168 80,158 L66,140 C50,148 34,144 22,134 Z" fill="url(#curl)"/>
+    <path d="M418,134 C406,160 376,168 350,158 L364,140 C380,148 396,144 408,134 Z" fill="url(#curl)"/>
+
+    <!-- main body -->
+    <path d="
+      M52,14
+      C26,14 20,26 20,40
+      L20,124
+      C20,142 34,154 60,154
+      L370,154
+      C396,154 410,142 410,124
+      L410,40
+      C410,26 404,14 378,14
+      Z" fill="url(#body)"/>
+
+    <!-- gold trim -->
+    <path d="
+      M54,22
+      C32,22 28,32 28,42
+      L28,122
+      C28,138 40,148 60,148
+      L370,148
+      C390,148 402,138 402,122
+      L402,42
+      C402,32 398,22 376,22
+      Z" fill="none" stroke="#D0A449" stroke-opacity="0.75" stroke-width="1.4"/>
+    <path d="
+      M58,26
+      C36,26 32,34 32,44
+      L32,120
+      C32,134 42,144 60,144
+      L370,144
+      C388,144 398,134 398,120
+      L398,44
+      C398,34 394,26 372,26
+      Z" fill="none" stroke="#D0A449" stroke-opacity="0.28" stroke-width="0.7"/>
+
+    <!-- dots -->
+    <circle cx="46" cy="38" r="1.6" fill="#D0A449" opacity="0.75"/>
+    <circle cx="384" cy="38" r="1.6" fill="#D0A449" opacity="0.75"/>
+    <circle cx="46" cy="128" r="1.6" fill="#D0A449" opacity="0.65"/>
+    <circle cx="384" cy="128" r="1.6" fill="#D0A449" opacity="0.65"/>
+
+    <!-- top shading -->
+    <path d="
+      M52,14
+      C26,14 20,26 20,40
+      L20,54
+      C50,46 100,44 215,44
+      C330,44 380,46 410,54
+      L410,40
+      C410,26 404,14 378,14
+      Z" fill="rgba(0,0,0,0.18)"/>
+  </g>
+</svg>
