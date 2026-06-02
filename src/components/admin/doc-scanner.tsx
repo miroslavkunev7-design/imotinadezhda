@@ -60,6 +60,7 @@ export function DocScanner() {
   const [name, setName] = useState("Сканиран документ");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [autoEnhance, setAutoEnhance] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddClick = () => setPickerOpen(true);
@@ -74,43 +75,76 @@ export function DocScanner() {
     setCameraOpen(true);
   };
 
-  const addProcessed = (src: string, w: number, h: number, label: string) => {
-    setPages((p) => [...p, { id: crypto.randomUUID(), src, w, h, name: label }]);
+  const addProcessed = (src: string, w: number, h: number, label: string): string => {
+    const id = crypto.randomUUID();
+    setPages((p) => [...p, { id, src, w, h, name: label }]);
+    return id;
+  };
+
+  // Run heavy OpenCV+jscanify enhancement in the background — UI stays responsive.
+  const enhancePageInBackground = async (pageId: string, sourceUrl: string) => {
+    try {
+      await new Promise((r) => setTimeout(r, 50));
+      const cv = await loadOpenCv().catch(() => null);
+      const scanner = cv ? await getScanner().catch(() => null) : null;
+      const img = await loadImage(sourceUrl);
+      let outCanvas: HTMLCanvasElement | null = null;
+      if (scanner) {
+        try {
+          outCanvas = scanner.extractPaper(img, img.naturalWidth, img.naturalHeight) as HTMLCanvasElement;
+        } catch { /* fallback */ }
+      }
+      await new Promise((r) => setTimeout(r, 0));
+      const enhanced = enhanceDocument(outCanvas ?? img);
+      const outUrl = enhanced.toDataURL("image/jpeg", 0.9);
+      setPages((p) => p.map((x) => x.id === pageId ? { ...x, src: outUrl, w: enhanced.width, h: enhanced.height } : x));
+    } catch {
+      /* keep original on failure */
+    }
+  };
+
+  // Downscale very large images to keep file size & rendering snappy.
+  const normalizeImage = async (file: File): Promise<{ url: string; w: number; h: number }> => {
+    const dataUrl = await fileToDataUrl(file);
+    const img = await loadImage(dataUrl);
+    const MAX = 1800;
+    const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.round(img.naturalWidth * scale);
+    const h = Math.round(img.naturalHeight * scale);
+    if (scale === 1) return { url: dataUrl, w, h };
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    c.getContext("2d")!.drawImage(img, 0, 0, w, h);
+    return { url: c.toDataURL("image/jpeg", 0.9), w, h };
   };
 
   const addFiles = async (files: FileList | null) => {
     if (!files?.length) return;
     setBusy(true);
     try {
-      const cv = await loadOpenCv().catch(() => null);
-      const scanner = cv ? await getScanner().catch(() => null) : null;
       for (const f of Array.from(files)) {
         if (!f.type.startsWith("image/")) {
           toast.error(`${f.name}: само снимки`);
           continue;
         }
-        const dataUrl = await fileToDataUrl(f);
-        const img = await loadImage(dataUrl);
-        let outCanvas: HTMLCanvasElement | null = null;
-        if (scanner) {
-          try {
-            outCanvas = scanner.extractPaper(img, img.naturalWidth, img.naturalHeight) as HTMLCanvasElement;
-          } catch {
-            /* fallback to original */
-          }
-        }
-        const enhanced = enhanceDocument(outCanvas ?? img);
-        const outUrl = enhanced.toDataURL("image/jpeg", 0.95);
-        const w = enhanced.width;
-        const h = enhanced.height;
-        addProcessed(outUrl, w, h, f.name);
+        const { url, w, h } = await normalizeImage(f);
+        const id = addProcessed(url, w, h, f.name);
+        if (autoEnhance) void enhancePageInBackground(id, url);
+        await new Promise((r) => setTimeout(r, 0));
       }
-      toast.success("Документът е обработен");
+      toast.success(autoEnhance ? "Добавено — подобряваме във фон" : "Добавено");
     } catch (e: any) {
       toast.error(e?.message ?? "Грешка при обработка");
     } finally {
       setBusy(false);
     }
+  };
+
+  const enhancePage = (id: string) => {
+    const page = pages.find((p) => p.id === id);
+    if (!page) return;
+    toast.info("Подобряваме страницата…");
+    void enhancePageInBackground(id, page.src);
   };
 
   const removePage = (id: string) => setPages((p) => p.filter((x) => x.id !== id));
