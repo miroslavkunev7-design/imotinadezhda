@@ -153,12 +153,39 @@
     min-height: 100vh;
     background-color: #ffffff;
     background-image:
-      radial-gradient(ellipse at 20% 0%, rgba(201, 168, 76, 0.08), transparent 55%),
-      radial-gradient(ellipse at 80% 100%, rgba(139, 26, 43, 0.05), transparent 55%);
+      /* glowing red ribbon - diagonal sweep top-right */
+      linear-gradient(115deg, transparent 38%, rgba(139, 26, 43, 0.07) 50%, transparent 62%),
+      /* secondary softer ribbon bottom-left */
+      linear-gradient(295deg, transparent 42%, rgba(139, 26, 43, 0.05) 54%, transparent 66%),
+      /* warm red glow top-left and bottom-right */
+      radial-gradient(ellipse at 12% 0%, rgba(139, 26, 43, 0.10), transparent 50%),
+      radial-gradient(ellipse at 90% 100%, rgba(139, 26, 43, 0.09), transparent 55%),
+      /* subtle gold dust top */
+      radial-gradient(ellipse at 50% -5%, rgba(201, 168, 76, 0.06), transparent 60%);
     background-repeat: no-repeat;
     background-position: center top;
     color: #2b1418;
+    position: relative;
   }
+  /* Floating red particles / dust across the page */
+  .luxury-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 8% 18%, rgba(139, 26, 43, 0.55) 0, rgba(139, 26, 43, 0) 2px),
+      radial-gradient(circle at 22% 72%, rgba(139, 26, 43, 0.45) 0, rgba(139, 26, 43, 0) 1.5px),
+      radial-gradient(circle at 58% 12%, rgba(139, 26, 43, 0.55) 0, rgba(139, 26, 43, 0) 2px),
+      radial-gradient(circle at 78% 34%, rgba(139, 26, 43, 0.45) 0, rgba(139, 26, 43, 0) 1.5px),
+      radial-gradient(circle at 92% 78%, rgba(139, 26, 43, 0.5) 0, rgba(139, 26, 43, 0) 2px),
+      radial-gradient(circle at 38% 88%, rgba(139, 26, 43, 0.4) 0, rgba(139, 26, 43, 0) 1.5px),
+      radial-gradient(circle at 66% 58%, rgba(139, 26, 43, 0.4) 0, rgba(139, 26, 43, 0) 1.5px);
+    background-size: 100% 100%;
+    opacity: 0.7;
+    z-index: 0;
+  }
+  .luxury-page > * { position: relative; z-index: 1; }
 
   /* ============================================================
      Luxury burgundy/gold panel utilities.
