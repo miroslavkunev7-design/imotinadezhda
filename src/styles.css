@@ -357,9 +357,12 @@
   }
 }
 
-/* Single-viewport mode: no vertical or horizontal scrolling anywhere. */
+/* Public site only: no scroll. Admin/CRM allows normal scrolling. */
 html, body, #root {
   max-width: 100vw;
+}
+
+body:has(.luxury-page) {
   max-height: 100vh;
   height: 100vh;
   overflow: hidden;
