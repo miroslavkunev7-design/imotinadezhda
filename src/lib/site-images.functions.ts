@@ -117,7 +117,7 @@ export const updateQuarterCard = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const patch: Record<string, unknown> = {};
+    const patch: { image_url?: string; is_published?: boolean } = {};
     if (data.image_url !== undefined) patch.image_url = data.image_url;
     if (data.is_published !== undefined) patch.is_published = data.is_published;
     const { error } = await supabase.from("quarters").update(patch).eq("id", data.id);
