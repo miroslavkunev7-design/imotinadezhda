@@ -66,7 +66,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             the full splash exactly as before. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-0 top-3 block h-[150%] w-[230px] md:top-0 md:hidden"
+          className="pointer-events-none absolute left-0 top-0 block h-[220%] w-[300px] md:hidden"
         >
           <svg
             viewBox="0 0 470 240"
