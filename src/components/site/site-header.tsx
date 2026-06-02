@@ -125,7 +125,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
           to="/"
           onClick={handleLogo}
           aria-label="Начало"
-          className="absolute left-4 top-1/2 z-20 -translate-y-1/2 md:left-10 lg:left-14"
+          className="absolute left-4 top-2 z-20 md:left-10 md:top-1/2 md:-translate-y-1/2 lg:left-14"
         >
           <img
             src={logoNadezhda}
