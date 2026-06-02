@@ -108,34 +108,42 @@ export function ClientDetailsSheet({
     finally { setBusy(false); }
   };
 
-  const uploadDocs = async (files: FileList | null) => {
-    if (!files?.length) return;
-    setBusy(true);
+  const reload = async () =>
+    setDocs(await getClientDocuments({ data: { client_id: client.id } }));
+
+  const uploadFile = async (file: File, category: string, month?: string) => {
+    const docType = month ? `${category}:${month}` : category;
+    const key = `${category}-${month ?? "single"}`;
+    setUploading(key);
     try {
-      for (const file of Array.from(files)) {
-        const ext = file.name.split(".").pop() ?? "bin";
-        const path = `${client.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("client-documents").upload(path, file, { contentType: file.type });
-        if (upErr) { alert(upErr.message); continue; }
-        const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 60 * 60 * 24 * 365);
-        await addClientDocument({ data: {
-          client_id: client.id,
-          document_type: docType,
-          file_url: signed?.signedUrl ?? path,
-          file_name: file.name,
-          file_size: file.size,
-          mime_type: file.type,
-        } });
-      }
-      setDocs(await getClientDocuments({ data: { client_id: client.id } }));
-    } finally { setBusy(false); }
+      const ext = file.name.split(".").pop() ?? "bin";
+      const path = `${client.id}/${docType}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("client-documents").upload(path, file, { contentType: file.type });
+      if (upErr) { alert(upErr.message); return; }
+      const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 60 * 60 * 24 * 365);
+      await addClientDocument({ data: {
+        client_id: client.id,
+        document_type: docType,
+        file_url: signed?.signedUrl ?? path,
+        file_name: file.name,
+        file_size: file.size,
+        mime_type: file.type,
+      } });
+      await reload();
+    } finally { setUploading(null); }
   };
+
+  const docsFor = (category: string, month?: string) =>
+    docs.filter((d) => d.document_type === (month ? `${category}:${month}` : category));
+  const monthsCompleted = (category: string) =>
+    months.filter((m) => docsFor(category, m.key).length > 0).length;
 
   const removeDoc = async (id: string) => {
     if (!confirm("Изтриване?")) return;
     await deleteClientDocument({ data: { id } });
-    setDocs(await getClientDocuments({ data: { client_id: client.id } }));
+    await reload();
   };
+
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
