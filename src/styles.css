@@ -458,15 +458,18 @@ body:has(.luxury-page) {
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .site-header__hotspot:hover {
-  background-color: rgba(248, 212, 122, 0.10);
-  box-shadow: inset 0 0 0 1px rgba(248, 212, 122, 0.35);
+  background-color: transparent;
+  box-shadow: none;
 }
 .site-header__hotspot.is-active {
-  background-color: rgba(248, 212, 122, 0.14);
+  background-color: transparent;
 }
+.site-header__hotspot:focus,
 .site-header__hotspot:focus-visible {
-  outline: 2px solid #f8d47a;
-  outline-offset: 2px;
+  outline: none;
+}
+.site-header__hotspot:active {
+  background-color: transparent;
 }
 
 
