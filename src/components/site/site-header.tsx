@@ -60,17 +60,17 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             "linear-gradient(90deg, rgba(139,26,43,0.0) 0%, rgba(139,26,43,0.0) 35%, rgba(139,26,43,0.35) 70%, rgba(94,15,29,0.55) 100%)",
         }}
       />
-      <div className="relative h-[84px] w-full md:h-[108px] lg:h-[120px]">
-        {/* Asymmetric wave-cut burgundy shield (left panel) */}
+      <div className="relative h-[110px] w-full md:h-[150px] lg:h-[180px]">
+        {/* Organic ink-splash burgundy panel (left) */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-0 top-0 h-full w-[220px] sm:w-[260px] md:w-[340px] lg:w-[400px]"
+          className="pointer-events-none absolute left-0 top-0 h-[150%] w-[320px] sm:w-[400px] md:w-[520px] lg:w-[640px]"
         >
           <svg
-            viewBox="0 0 400 120"
+            viewBox="0 0 640 240"
             preserveAspectRatio="none"
             className="h-full w-full"
-            style={{ filter: "drop-shadow(0 10px 24px rgba(139,26,43,0.4))" }}
+            style={{ filter: "drop-shadow(0 14px 30px rgba(139,26,43,0.45))" }}
           >
             <defs>
               <linearGradient id="hdr-grad" x1="0" y1="0" x2="1" y2="1">
@@ -78,40 +78,38 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
                 <stop offset="100%" stopColor={RED_DARK} />
               </linearGradient>
             </defs>
-            {/* Main shield with curved wave right edge */}
+            {/* Bold organic ink-splash silhouette */}
             <path
-              d="M0,0 L300,0 C320,30 290,55 305,80 C315,100 280,118 250,120 L0,120 Z"
+              d="M0,0 L430,0 C460,18 470,40 455,62 C500,70 520,55 555,72 C585,86 560,108 525,115 C575,118 605,108 612,130 C620,156 560,168 505,160 C540,175 525,196 470,200 C520,212 495,232 430,228 C380,225 340,210 285,212 C230,214 180,228 130,222 C70,215 30,200 0,180 Z"
               fill="url(#hdr-grad)"
             />
-            {/* Inner gold hairline accent following the curve */}
+            {/* Gold splash trim accent following the right contour */}
             <path
-              d="M300,0 C320,30 290,55 305,80 C315,100 280,118 250,120"
+              d="M430,0 C460,18 470,40 455,62 C500,70 520,55 555,72 C585,86 560,108 525,115 C575,118 605,108 612,130 C620,156 560,168 505,160 C540,175 525,196 470,200 C520,212 495,232 430,228"
               fill="none"
               stroke={GOLD}
               strokeOpacity="0.55"
-              strokeWidth="1.2"
+              strokeWidth="1.4"
             />
-            {/* Decorative trailing wave ribbon */}
-            <path
-              d="M305,80 C330,90 360,70 400,72 L400,86 C360,84 332,104 312,98 Z"
-              fill={GOLD}
-              fillOpacity="0.28"
-            />
+            {/* Tiny gold ink droplets */}
+            <circle cx="600" cy="60" r="4" fill={GOLD} fillOpacity="0.55" />
+            <circle cx="585" cy="190" r="3" fill={GOLD} fillOpacity="0.45" />
+            <circle cx="625" cy="100" r="2" fill={GOLD} fillOpacity="0.4" />
           </svg>
         </div>
 
-        {/* Logo */}
+        {/* Logo — enlarged to fill splash */}
         <Link
           to="/"
           onClick={handleLogo}
           aria-label="Начало"
-          className="absolute left-3 top-1/2 z-20 -translate-y-1/2 md:left-7"
+          className="absolute left-4 top-1/2 z-20 -translate-y-1/2 md:left-10 lg:left-14"
         >
           <img
             src={logoNadezhda}
             alt="Недвижими имоти ИЛДЖ.ИА"
             draggable={false}
-            className="h-[48px] w-auto object-contain md:h-[72px] lg:h-[84px]"
+            className="h-[74px] w-auto object-contain md:h-[112px] lg:h-[140px]"
             style={{ filter: "brightness(0) invert(1)" }}
           />
         </Link>

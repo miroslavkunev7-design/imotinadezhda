@@ -579,12 +579,17 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
       >
         <LuxuryHeader active="sale" />
 
-        <div className="relative z-20 mx-auto mt-5 w-full max-w-[1440px] px-4 md:mt-7 md:px-8">
+        {/* Mobile/tablet: search near the top under header */}
+        <div className="relative z-20 mx-auto mt-5 w-full max-w-[1440px] px-4 md:mt-7 md:px-8 lg:hidden">
           <SearchBar cities={cityOpts} variant="burgundy" />
         </div>
 
 
         <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-5 md:px-8 md:pt-7">
+          {/* Desktop: search bar sits directly above the city cards */}
+          <div className="mb-4 hidden lg:block">
+            <SearchBar cities={cityOpts} variant="burgundy" />
+          </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
             {cityList.map((city) => (
               <CityCard
