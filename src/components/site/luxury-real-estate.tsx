@@ -1259,27 +1259,27 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
 function PropertyGallery({ images, title }: { images: string[]; title: string }) {
   const [idx, setIdx] = useGalleryIndex(images.length);
   return (
-    <>
-      <div className="relative overflow-hidden rounded-[24px]">
-        <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className="h-[320px] w-full object-cover md:h-[520px]" />
+    <div className="flex h-full min-h-0 flex-col gap-2">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-[18px]">
+        <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className="absolute inset-0 h-full w-full object-cover" />
         {images.length > 1 ? (
           <>
-            <button type="button" aria-label="Предишна снимка" onClick={() => setIdx((idx - 1 + images.length) % images.length)} className="absolute left-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-6 w-6" /></button>
-            <button type="button" aria-label="Следваща снимка" onClick={() => setIdx((idx + 1) % images.length)} className="absolute right-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronRight className="h-6 w-6" /></button>
+            <button type="button" aria-label="Предишна снимка" onClick={() => setIdx((idx - 1 + images.length) % images.length)} className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-5 w-5" /></button>
+            <button type="button" aria-label="Следваща снимка" onClick={() => setIdx((idx + 1) % images.length)} className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronRight className="h-5 w-5" /></button>
           </>
         ) : null}
-        <div className="absolute bottom-4 left-4 rounded-[12px] bg-[rgba(53,12,18,0.9)] px-4 py-2 text-primary-foreground">{idx + 1} / {images.length}</div>
+        <div className="absolute bottom-3 left-3 rounded-[10px] bg-[rgba(53,12,18,0.85)] px-3 py-1 text-xs text-primary-foreground">{idx + 1} / {images.length}</div>
       </div>
       {images.length > 1 ? (
-        <div className="mt-4 grid grid-cols-6 gap-3">
+        <div className="grid flex-shrink-0 grid-cols-6 gap-2">
           {images.slice(0, 6).map((thumb, i) => (
-            <button key={`${thumb}-${i}`} type="button" aria-label={`Покажи снимка ${i + 1} от ${title}`} aria-current={i === idx} onClick={() => setIdx(i)} className={cn("overflow-hidden rounded-[12px] border", i === idx ? "border-primary" : "border-primary/12")}>
-              <img src={thumb} alt={`${title} – снимка ${i + 1}`} className="h-18 w-full object-cover md:h-24" loading="lazy" />
+            <button key={`${thumb}-${i}`} type="button" aria-label={`Покажи снимка ${i + 1} от ${title}`} aria-current={i === idx} onClick={() => setIdx(i)} className={cn("overflow-hidden rounded-[8px] border", i === idx ? "border-primary" : "border-primary/12")}>
+              <img src={thumb} alt={`${title} – снимка ${i + 1}`} className="h-14 w-full object-cover md:h-16" loading="lazy" />
             </button>
           ))}
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
 
