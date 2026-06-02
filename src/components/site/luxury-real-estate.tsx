@@ -468,31 +468,45 @@ function RangeCell({
 
 function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
   return (
-    <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[16px] md:rounded-[18px]">
-      <div className="relative aspect-[1.1/1] overflow-hidden rounded-[16px] border border-primary/25 shadow-[0_18px_38px_rgba(139, 26, 43,0.28)] md:aspect-[1.45/1] md:rounded-[18px] lg:aspect-[1.65/1]">
+    <Link to={href} params={params} className="group block overflow-hidden rounded-[20px] md:rounded-[24px]">
+      <div
+        className="relative aspect-[1.25/1] overflow-hidden rounded-[20px] border md:aspect-[1.45/1] md:rounded-[24px]"
+        style={{
+          borderColor: "rgba(201,168,76,0.55)",
+          boxShadow: "0 18px 38px rgba(0,0,0,0.45)",
+        }}
+      >
         <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
-        <div className="marble-wave-glow" />
-        <GoldDustLayer />
-        {/* Bottom gradient scrim so the label sits ON the image */}
+        {/* Bottom dark gradient for legibility */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[8] h-[58%]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[8] h-[65%]"
           style={{
             background:
-              "linear-gradient(180deg, rgba(139, 26, 43,0) 0%, rgba(139, 26, 43,0.55) 55%, rgba(139, 26, 43,0.78) 100%)",
+              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.85) 100%)",
           }}
         />
-        {/* Glassy gold label — overlay at the bottom of the image */}
-        <div className="absolute inset-x-0 bottom-0 z-[9] flex items-end justify-between gap-2 px-3 pb-2.5 pt-6 md:px-5 md:pb-3.5 md:pt-8">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-[#fca5a5] md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
-              <MapPin className="h-3 w-3 text-[#ef4444] md:h-3.5 md:w-3.5" />
-              <span>Виж града</span>
-            </div>
-            <div className="font-display text-base leading-tight text-[#ffffff] drop-shadow-[0_2px_6px_rgba(139, 26, 43,0.55)] md:text-2xl lg:text-[1.75rem]">{name}</div>
+        {/* Top-left small label */}
+        <div className="absolute left-3 top-3 z-[9] inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white md:left-4 md:top-4 md:text-[11px]"
+          style={{ backgroundColor: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.18)" }}
+        >
+          <MapPin className="h-3 w-3" style={{ color: "#C9A84C" }} />
+          <span>Виж града</span>
+        </div>
+        {/* Bottom row: city name + circular arrow */}
+        <div className="absolute inset-x-0 bottom-0 z-[9] flex items-end justify-between gap-2 px-4 pb-4 md:px-5 md:pb-5">
+          <div className="font-display text-2xl font-semibold leading-tight text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.65)] md:text-3xl lg:text-4xl">
+            {name}
           </div>
-          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[#ef4444]/70 bg-[#8B1A2B]/45 text-[#fca5a5] backdrop-blur-sm transition group-hover:bg-[#ef4444] group-hover:text-[#8B1A2B] md:h-10 md:w-10">
-            <ChevronRight className="h-3.5 w-3.5 -rotate-45 md:h-4 md:w-4" />
+          <div
+            className="flex h-10 w-10 flex-none items-center justify-center rounded-full text-white transition group-hover:brightness-110 md:h-12 md:w-12"
+            style={{
+              backgroundColor: "#8B1A2B",
+              border: "1.5px solid rgba(201,168,76,0.75)",
+              boxShadow: "0 6px 14px rgba(0,0,0,0.45)",
+            }}
+          >
+            <ChevronRight className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2.25} />
           </div>
         </div>
       </div>
