@@ -46,7 +46,11 @@ export const Route = createFileRoute("/")({
     ],
   }),
   loader: async () => {
-    const [cities, featured] = await Promise.all([getCities(), getFeaturedProperties()]);
+    const [cities, featured, layout] = await Promise.all([
+      getCities(),
+      getFeaturedProperties(),
+      getPublicPageLayout({ data: { page_key: "home" } }),
+    ]);
     return {
       cities: cities.map((c) => ({ name: c.name, image: c.hero_image_url, slug: c.slug })),
       featured: featured.map((f: any) => ({
@@ -61,12 +65,13 @@ export const Route = createFileRoute("/")({
         city_name: f.cities?.name ?? null,
         city_slug: f.cities?.slug ?? null,
       })),
+      layout,
     };
   },
   component: HomeRoute,
 });
 
 function HomeRoute() {
-  const { cities, featured } = Route.useLoaderData();
-  return <HomePage cities={cities} featured={featured} />;
+  const { cities, featured, layout } = Route.useLoaderData();
+  return <HomePage cities={cities} featured={featured} layout={layout} />;
 }
