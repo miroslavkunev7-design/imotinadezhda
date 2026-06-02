@@ -33,6 +33,29 @@ function detectSellerType(text: string): "private" | "agency" | "unknown" {
   return "unknown";
 }
 
+// Detect listings that are NOT real-estate (cars, motors, bikes, parts, services, etc.)
+function isNonPropertyListing(text: string, url: string): boolean {
+  const t = (text || "").toLowerCase();
+  const u = (url || "").toLowerCase();
+  // Block URLs that are not property categories
+  if (/(youtube\.com|youtu\.be|facebook\.com\/watch|tiktok\.com|instagram\.com|vbox7)/.test(u)) return true;
+  if (/\/(avtomobili|automobili|cars?|moto|motori|velosipedi|bike|elektronika|drehi|obuvki|igrachki|jobs?|rabota)\b/.test(u)) return true;
+  // Block by keywords in title/body
+  if (/\b(автомобил|кола|джип|бмв|мерцедес|ауди|пежо|опел|рено|тойота|мотор|скутер|велосипед|ремарке|джанти|гуми|части за|резервни части)\b/.test(t)) return true;
+  // Block listings that are clearly services or rentals of equipment, not estates
+  if (/(услуга|почистване|ремонт на коли|автосервиз|кредит без)/.test(t)) return true;
+  return false;
+}
+
+// Detect that the listing IS a property (apartment/house/land/office/etc.)
+function looksLikeProperty(text: string, url: string): boolean {
+  const t = (text || "").toLowerCase();
+  const u = (url || "").toLowerCase();
+  if (/(апартамент|едностаен|двустаен|тристаен|четиристаен|многостаен|къща|вила|парцел|урегулиран|офис|магазин|етаж от къща|студио|мезонет|таванско|имот)/.test(t)) return true;
+  if (/\/(apartament|imoti|nedvizhimi|imot|kashta|parcel|ofis|magazin)/.test(u)) return true;
+  return false;
+}
+
 // Parse number from text like "85 000 EUR" → 85000
 function parseNumber(text?: string | null): number | null {
   if (!text) return null;
