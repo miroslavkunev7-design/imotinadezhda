@@ -285,11 +285,17 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
-  /* Burgundy search bar variant — overrides default primary text/icon colors */
+  /* Burgundy search bar variant — matches logo panel red exactly */
   .search-burgundy .text-primary { color: #fdf6e3 !important; }
-  .search-burgundy [class*="text-primary/"] { color: rgba(253, 246, 227, 0.75) !important; }
-  .search-burgundy [class*="border-primary/"] { border-color: rgba(201, 168, 76, 0.45) !important; }
-  .search-burgundy [class*="bg-primary/"] { background-color: rgba(201, 168, 76, 0.18) !important; }
+  .search-burgundy [class*="text-primary/"] { color: rgba(253, 246, 227, 0.78) !important; }
+  .search-burgundy [class*="border-primary/"] { border-color: rgba(201, 168, 76, 0.35) !important; }
+  .search-burgundy [class*="bg-primary/"] { background-color: rgba(255, 255, 255, 0.08) !important; }
+  /* Deepen search bar gradient to match the logo splash, and kill the gold sheen overlay */
+  .search-burgundy .marble-dark-panel {
+    background: linear-gradient(135deg, #7a1426 0%, #4a0b18 100%) !important;
+    border-color: rgba(201, 168, 76, 0.35);
+  }
+  .search-burgundy .marble-dark-panel::before { display: none !important; }
 
 
   /* Card with luxury hover: scale + gold glow */
