@@ -38,6 +38,10 @@ import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
 import cityNoviPazar from "@/assets/city-novi-pazar.jpeg";
+import cityCardBurgas from "@/assets/city-card-burgas.png.asset.json";
+import cityCardVarna from "@/assets/city-card-varna.png.asset.json";
+import cityCardShumen from "@/assets/city-card-shumen.png.asset.json";
+import cityCardNoviPazar from "@/assets/city-card-novi-pazar.png.asset.json";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { Button } from "@/components/ui/button";
@@ -468,123 +472,34 @@ function RangeCell({
   );
 }
 
-function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
-  const curl = 52; // px — size of curled corner
-  const clip = `polygon(${curl}px 0, 100% 0, 100% calc(100% - ${curl}px), calc(100% - ${curl}px) 100%, 0 100%, 0 ${curl}px)`;
-  const parchment = "linear-gradient(135deg, #f0d39a 0%, #c9a458 45%, #6e5224 100%)";
 
+const cityCardArt: Record<string, string> = {
+  burgas: cityCardBurgas.url,
+  varna: cityCardVarna.url,
+  shumen: cityCardShumen.url,
+  "novi-pazar": cityCardNoviPazar.url,
+};
+
+function CityCard({ name, href, params }: { name: string; image?: string; href: "/cities/$slug"; params: { slug: string } }) {
+  const art = cityCardArt[params.slug] ?? cityCardBurgas.url;
   return (
-    <Link to={href} params={params} className="group relative block">
-      <div className="relative aspect-[1.45/1] md:aspect-[1.55/1]">
-        {/* Parchment underlay (visible through the clipped corners) */}
-        <div aria-hidden className="absolute inset-0 rounded-[22px]" style={{ background: parchment }} />
-
-        {/* Main image card with two corners clipped + gold inner border */}
-        <div
-          className="absolute inset-0 overflow-hidden rounded-[22px]"
-          style={{
-            clipPath: clip,
-            WebkitClipPath: clip,
-            background: "#0f0a0b",
-            boxShadow: "inset 0 0 0 1.5px rgba(201,168,76,0.75)",
-          }}
-        >
-          <img
-            src={image}
-            alt={name}
-            className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
-            loading="lazy"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[60%]"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.9) 100%)",
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-[6px] rounded-[16px]"
-            style={{ border: "1px solid rgba(201,168,76,0.45)" }}
-          />
-        </div>
-
-        {/* Top-left curled corner */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-0 top-0"
-          style={{
-            width: `${curl}px`,
-            height: `${curl}px`,
-            background:
-              "linear-gradient(135deg, #f3d99a 0%, #d9b56a 38%, #8a6a30 72%, #3e2f14 100%)",
-            clipPath: "polygon(0 0, 100% 0, 0 100%)",
-            WebkitClipPath: "polygon(0 0, 100% 0, 0 100%)",
-            borderTopLeftRadius: "22px",
-            filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.55))",
-          }}
-        />
-        {/* Bottom-right curled corner */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute bottom-0 right-0"
-          style={{
-            width: `${curl}px`,
-            height: `${curl}px`,
-            background:
-              "linear-gradient(315deg, #f3d99a 0%, #d9b56a 38%, #8a6a30 72%, #3e2f14 100%)",
-            clipPath: "polygon(100% 0, 100% 100%, 0 100%)",
-            WebkitClipPath: "polygon(100% 0, 100% 100%, 0 100%)",
-            borderBottomRightRadius: "22px",
-            filter: "drop-shadow(-2px -2px 4px rgba(0,0,0,0.55))",
-          }}
-        />
-
-        {/* "ВИЖ ГРАДА" label — offset away from TL curl */}
-        <div
-          className="absolute z-10 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-white md:text-[12px]"
-          style={{
-            top: `${curl - 12}px`,
-            left: `${curl + 4}px`,
-            backgroundColor: "rgba(15,10,11,0.78)",
-            border: "1px solid rgba(201,168,76,0.55)",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-          }}
-        >
-          <MapPin className="h-3.5 w-3.5" style={{ color: "#C9A84C" }} />
-          <span>Виж града</span>
-        </div>
-
-        {/* City name + fleur ornament (bottom-left) */}
-        <div className="absolute bottom-4 left-5 z-10 md:bottom-5 md:left-7">
-          <div className="font-display text-3xl font-semibold uppercase leading-none tracking-wide text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.75)] md:text-4xl lg:text-[2.6rem]">
-            {name}
-          </div>
-          <div className="mt-1.5 flex items-center gap-2" aria-hidden>
-            <span className="h-px w-8" style={{ background: "linear-gradient(90deg, transparent, #C9A84C)" }} />
-            <span style={{ color: "#C9A84C" }} className="text-sm">❦</span>
-            <span className="h-px w-8" style={{ background: "linear-gradient(90deg, #C9A84C, transparent)" }} />
-          </div>
-        </div>
-
-        {/* Circular arrow button (offset away from BR curl) */}
-        <div
-          className="absolute z-10 flex h-11 w-11 items-center justify-center rounded-full text-white transition group-hover:brightness-110 md:h-12 md:w-12"
-          style={{
-            bottom: `${curl - 4}px`,
-            right: `${curl - 4}px`,
-            backgroundColor: "#8B1A2B",
-            border: "2px solid rgba(201,168,76,0.85)",
-            boxShadow: "0 6px 16px rgba(0,0,0,0.55)",
-          }}
-        >
-          <ChevronRight className="h-5 w-5" strokeWidth={2.4} />
-        </div>
-      </div>
+    <Link
+      to={href}
+      params={params}
+      aria-label={name}
+      className="group relative block transition-transform duration-500 hover:-translate-y-1"
+    >
+      <img
+        src={art}
+        alt={name}
+        className="block h-auto w-full select-none transition duration-500 group-hover:brightness-110"
+        draggable={false}
+        loading="lazy"
+      />
     </Link>
   );
 }
+
 
 
 function MarblePropertyCard({
