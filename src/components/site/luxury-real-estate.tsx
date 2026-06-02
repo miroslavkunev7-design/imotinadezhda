@@ -555,9 +555,10 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
       <section
         className="relative flex flex-1 flex-col overflow-hidden px-3 pb-6 pt-0 md:px-6 lg:h-screen lg:max-h-screen lg:pb-4"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(236,236,236,0) 0%, rgba(236,236,236,0) 30%, rgba(236,236,236,0.85) 92%, rgba(236,236,236,1) 100%), url(${homeHero})`,
+          backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       >
         <LuxuryHeader active="sale" />
