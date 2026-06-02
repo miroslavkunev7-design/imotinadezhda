@@ -51,16 +51,16 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
 
   return (
     <header className="relative z-30 w-full select-none bg-transparent">
-      {/* Soft burgundy wash so navbar stays legible on any background */}
+      {/* Soft burgundy wash; on mobile stronger wash behind top nav links. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, rgba(139,26,43,0.0) 0%, rgba(139,26,43,0.0) 35%, rgba(139,26,43,0.35) 70%, rgba(94,15,29,0.55) 100%)",
+            "linear-gradient(90deg, rgba(139,26,43,0.0) 0%, rgba(139,26,43,0.15) 40%, rgba(139,26,43,0.45) 75%, rgba(94,15,29,0.6) 100%)",
         }}
       />
-      <div className="relative h-[110px] w-full md:h-[150px] lg:h-[180px]">
+      <div className="relative h-[56px] w-full md:h-[150px] lg:h-[180px]">
         {/* Organic ink-splash burgundy panel (left) */}
         <div
           aria-hidden
