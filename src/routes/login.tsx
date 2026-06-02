@@ -67,7 +67,7 @@ function LoginPage() {
 
   return (
     <main
-      className="relative flex min-h-screen flex-col"
+      className="relative flex h-screen max-h-screen flex-col overflow-hidden"
       style={{
         backgroundImage: `url(${loginHero})`,
         backgroundSize: "cover",
@@ -76,9 +76,16 @@ function LoginPage() {
       }}
     >
       <SiteHeader />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
-      <div className="relative z-10 flex flex-1 items-center justify-center px-4 py-12">
-      <div className="relative w-full max-w-md rounded-2xl border border-amber-300/40 bg-[rgba(255,251,243,0.92)] p-8 shadow-2xl ring-1 ring-amber-300/30">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(139,26,43,0.35) 0%, rgba(255,255,255,0.25) 45%, rgba(139,26,43,0.45) 100%)",
+        }}
+      />
+      <div className="relative z-10 flex flex-1 items-center justify-center px-4 py-8">
+      <div className="relative w-full max-w-md rounded-2xl border border-[#C9A84C]/50 bg-white/95 p-7 shadow-[0_30px_70px_-20px_rgba(139,26,43,0.4)] ring-1 ring-[#C9A84C]/30 md:p-8">
+
 
 
         <div className="mb-6 text-center">
