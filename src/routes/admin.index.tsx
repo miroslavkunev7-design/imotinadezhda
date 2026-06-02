@@ -70,7 +70,7 @@ function Dashboard() {
         {cards.map((c) => (
           <div
             key={c.label}
-            className={`relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br ${c.accent} p-5 shadow-[0_18px_45px_rgba(0,0,0,0.35)] backdrop-blur`}
+            className={`relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br ${c.accent} p-5 shadow-[0_18px_45px_rgba(139, 26, 43,0.35)] backdrop-blur`}
           >
             <div className="flex items-center justify-between">
               <span className="text-xs uppercase tracking-wider text-amber-100/75">{c.label}</span>

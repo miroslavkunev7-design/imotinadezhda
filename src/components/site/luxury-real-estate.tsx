@@ -290,7 +290,7 @@ function RangeCell({
 function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
   return (
     <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[16px] md:rounded-[18px]">
-      <div className="relative aspect-[1.1/1] overflow-hidden rounded-[16px] border border-primary/25 shadow-[0_18px_38px_rgba(20,20,20,0.28)] md:aspect-[1.45/1] md:rounded-[18px] lg:aspect-[1.65/1]">
+      <div className="relative aspect-[1.1/1] overflow-hidden rounded-[16px] border border-primary/25 shadow-[0_18px_38px_rgba(139, 26, 43,0.28)] md:aspect-[1.45/1] md:rounded-[18px] lg:aspect-[1.65/1]">
         <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
         <div className="marble-wave-glow" />
         <GoldDustLayer />
@@ -300,7 +300,7 @@ function CityCard({ name, image, href, params }: { name: string; image: string; 
           className="pointer-events-none absolute inset-x-0 bottom-0 z-[8] h-[58%]"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(20,20,20,0.55) 55%, rgba(10,10,10,0.78) 100%)",
+              "linear-gradient(180deg, rgba(139, 26, 43,0) 0%, rgba(139, 26, 43,0.55) 55%, rgba(139, 26, 43,0.78) 100%)",
           }}
         />
         {/* Glassy gold label — overlay at the bottom of the image */}
@@ -310,9 +310,9 @@ function CityCard({ name, image, href, params }: { name: string; image: string; 
               <MapPin className="h-3 w-3 text-[#ef4444] md:h-3.5 md:w-3.5" />
               <span>Виж града</span>
             </div>
-            <div className="font-display text-base leading-tight text-[#ffffff] drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] md:text-2xl lg:text-[1.75rem]">{name}</div>
+            <div className="font-display text-base leading-tight text-[#ffffff] drop-shadow-[0_2px_6px_rgba(139, 26, 43,0.55)] md:text-2xl lg:text-[1.75rem]">{name}</div>
           </div>
-          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[#ef4444]/70 bg-[#0a0a0a]/45 text-[#fca5a5] backdrop-blur-sm transition group-hover:bg-[#ef4444] group-hover:text-[#0a0a0a] md:h-10 md:w-10">
+          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[#ef4444]/70 bg-[#8B1A2B]/45 text-[#fca5a5] backdrop-blur-sm transition group-hover:bg-[#ef4444] group-hover:text-[#8B1A2B] md:h-10 md:w-10">
             <ChevronRight className="h-3.5 w-3.5 -rotate-45 md:h-4 md:w-4" />
           </div>
         </div>
@@ -333,7 +333,7 @@ function MarblePropertyCard({
 }) {
   return (
     <article
-      className="marble-hover-card group flex flex-col overflow-hidden rounded-[14px] border border-[#dc2626]/40 shadow-[0_14px_30px_rgba(20,20,20,0.18)]"
+      className="marble-hover-card group flex flex-col overflow-hidden rounded-[14px] border border-[#dc2626]/40 shadow-[0_14px_30px_rgba(139, 26, 43,0.18)]"
       style={{
         background:
           "linear-gradient(180deg, rgba(252,246,232,0.98), rgba(245,234,210,0.97))",
@@ -357,7 +357,7 @@ function MarblePropertyCard({
         <GoldDustLayer />
       </div>
       <div className="relative px-3 pb-3 pt-1">
-        <div className="font-display text-[1rem] leading-tight text-[#1a1a1a] md:text-[1.1rem]">{title}</div>
+        <div className="font-display text-[1rem] leading-tight text-[#4A4A4A] md:text-[1.1rem]">{title}</div>
         <div className="mt-1 flex items-center justify-between">
           <span className="inline-flex items-center gap-1 text-[10.5px] text-[#525252] md:text-[11.5px]">
             <MapPin className="h-3 w-3 text-[#b91c1c]" />
@@ -392,7 +392,7 @@ export function ListingCard({
   location?: string;
 }) {
   return (
-    <article className="marble-hover-card group overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_20px_45px_rgba(20,20,20,0.16)]">
+    <article className="marble-hover-card group overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_20px_45px_rgba(139, 26, 43,0.16)]">
       <div className="relative aspect-[1.08/0.82] overflow-hidden">
         <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
         {tag ? <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-[0.08em] text-primary-foreground">{tag}</span> : null}
@@ -402,7 +402,7 @@ export function ListingCard({
         <button
           type="button"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-[rgba(225,29,72,0.88)] px-3.5 py-1.5 text-xs font-semibold tracking-[0.08em] text-primary-foreground shadow-[0_8px_22px_rgba(20,20,20,0.45)] backdrop-blur-sm transition hover:bg-[rgba(225,29,72,0.95)]"
+          className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-[rgba(225,29,72,0.88)] px-3.5 py-1.5 text-xs font-semibold tracking-[0.08em] text-primary-foreground shadow-[0_8px_22px_rgba(139, 26, 43,0.45)] backdrop-blur-sm transition hover:bg-[rgba(225,29,72,0.95)]"
           aria-label="3D виртуален оглед"
         >
           <Box className="h-3.5 w-3.5 text-primary" />
@@ -430,7 +430,7 @@ export function ListingCard({
 
 function AgentCard() {
   return (
-    <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(20,20,20,0.3)]">
+    <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(139, 26, 43,0.3)]">
       <div className="flex items-center gap-4">
         <div className="h-18 w-18 flex h-18 w-18 items-center justify-center rounded-full border-2 border-primary bg-background/20 text-primary">
           <User className="h-8 w-8" />
@@ -452,7 +452,7 @@ function AgentCard() {
 
 function DetailCard() {
   return (
-    <aside className="marble-dark-panel rounded-[20px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(20,20,20,0.28)]">
+    <aside className="marble-dark-panel rounded-[20px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(139, 26, 43,0.28)]">
       <h3 className="mb-4 font-display text-[2rem] text-primary-foreground">Детайли за имота</h3>
       <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-3 text-base md:text-lg">
         <dt className="text-primary/78">Тип имот:</dt><dd>Апартамент</dd>
@@ -471,7 +471,7 @@ function DetailCard() {
 
 function MapCard({ district = false }: { district?: boolean }) {
   return (
-    <aside className="overflow-hidden rounded-[22px] border border-primary/15 bg-card shadow-[0_20px_45px_rgba(20,20,20,0.16)]">
+    <aside className="overflow-hidden rounded-[22px] border border-primary/15 bg-card shadow-[0_20px_45px_rgba(139, 26, 43,0.16)]">
       <div className="p-4">
         <div className="font-display text-[1.8rem] text-accent-foreground">Локация</div>
         <p className="mt-1 text-base text-muted-foreground">кв. Лазур, гр. Бургас</p>
@@ -590,12 +590,12 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               filter: "blur(0.5px)",
             }}
           />
-          <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(239,68,68,0.35)_inset] md:rounded-[28px]">
+          <div className="relative overflow-hidden rounded-[20px] shadow-[0_40px_90px_-20px_rgba(139, 26, 43,0.7),0_0_0_1px_rgba(239,68,68,0.35)_inset] md:rounded-[28px]">
             <div className="grid h-[280px] md:h-[460px] lg:h-[clamp(460px,56vh,540px)] md:grid-cols-[1.02fr_0.98fr]">
               {/* LEFT: hero image + marble logo corner */}
               <div className="relative h-full overflow-hidden">
                 <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "center 40%" }} />
-                <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(10,10,10,0.85) 100%)" }} />
+                <div aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, rgba(139, 26, 43,0.85) 100%)" }} />
                 {/* Marble logo badge with clean S-curve swoosh */}
                 <div
                   className="absolute left-0 top-0 z-10 h-[90px] w-[180px] md:h-[160px] md:w-[340px] lg:h-[170px] lg:w-[360px]"
@@ -632,7 +632,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                 className="relative flex flex-col px-4 py-3 md:px-12 md:py-7"
                 style={{
                   background:
-                    "radial-gradient(ellipse at 30% 12%, rgba(60,60,60,0.45), transparent 55%), linear-gradient(135deg, #2a2a2a 0%, #0a0a0a 100%)",
+                    "radial-gradient(ellipse at 30% 12%, rgba(201, 168, 76,0.45), transparent 55%), linear-gradient(135deg, #8B1A2B 0%, #8B1A2B 100%)",
                 }}
               >
                 <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: `none`, backgroundSize: "cover", mixBlendMode: "screen" }} />
@@ -674,12 +674,12 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       {/* Marble quarters strip */}
       <section className="relative mx-auto -mt-3 flex w-full max-w-[1480px] flex-1 items-stretch min-h-0 px-2 pb-2 md:-mt-4 md:px-8 md:pb-6">
         <div
-          className="relative w-full overflow-hidden rounded-[18px] p-3 shadow-[0_30px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(239,68,68,0.35)_inset] md:rounded-[24px] md:p-6"
+          className="relative w-full overflow-hidden rounded-[18px] p-3 shadow-[0_30px_70px_-15px_rgba(139, 26, 43,0.5),0_0_0_1px_rgba(239,68,68,0.35)_inset] md:rounded-[24px] md:p-6"
           style={{ backgroundImage: `none`, backgroundSize: "cover" }}
         >
           <div className="grid h-full gap-3 md:grid-cols-[260px_1fr] md:items-center md:gap-7">
             <div className="flex flex-row items-center justify-between gap-3 md:flex-col md:items-start md:gap-4">
-              <h2 className="font-display text-[1.05rem] leading-tight text-[#1a1a1a] md:text-[1.85rem]">
+              <h2 className="font-display text-[1.05rem] leading-tight text-[#4A4A4A] md:text-[1.85rem]">
                 Избери квартал<br />в гр. {city.name}
               </h2>
               <Link
@@ -687,9 +687,9 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                 params={{ slug: city.slug }}
                 className="group inline-flex w-full flex-none items-center justify-between gap-3 rounded-[12px] px-4 py-3 font-display text-[12px] text-[#f5f5f5] transition hover:brightness-110 md:rounded-[14px] md:px-5 md:py-4 md:text-[14px]"
                 style={{
-                  background: "linear-gradient(135deg, #262626 0%, #1a1a1a 100%)",
+                  background: "linear-gradient(135deg, #8B1A2B 0%, #4A4A4A 100%)",
                   border: "1px solid rgba(239,68,68,0.55)",
-                  boxShadow: "0 14px 30px -8px rgba(20,20,20,0.55), inset 0 0 0 1px rgba(239,68,68,0.18)",
+                  boxShadow: "0 14px 30px -8px rgba(139, 26, 43,0.55), inset 0 0 0 1px rgba(239,68,68,0.18)",
                 }}
               >
                 <span className="whitespace-nowrap leading-tight text-[#f5f5f5]">Виж всички<br />квартали</span>
@@ -727,11 +727,11 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
   );
   return (
     <div
-      className="relative flex min-h-[72px] items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] md:min-h-[88px] md:rounded-[22px]"
+      className="relative flex min-h-[72px] items-stretch overflow-hidden rounded-[16px] shadow-[0_30px_70px_-15px_rgba(139, 26, 43,0.6)] md:min-h-[88px] md:rounded-[22px]"
       style={{
-        background: "radial-gradient(ellipse at 20% 0%, rgba(60,60,60,0.45), transparent 60%), linear-gradient(135deg, #2a2a2a 0%, #0a0a0a 100%)",
+        background: "radial-gradient(ellipse at 20% 0%, rgba(201, 168, 76,0.45), transparent 60%), linear-gradient(135deg, #8B1A2B 0%, #8B1A2B 100%)",
         border: "1px solid rgba(239,68,68,0.45)",
-        boxShadow: "0 30px 70px -15px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(239,68,68,0.18), inset 0 1px 0 rgba(252,165,165,0.12)",
+        boxShadow: "0 30px 70px -15px rgba(139, 26, 43,0.65), inset 0 0 0 1px rgba(239,68,68,0.18), inset 0 1px 0 rgba(252,165,165,0.12)",
       }}
     >
       {/* Mobile compact: city + price + search button */}
@@ -757,7 +757,7 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
           className="flex flex-none items-center justify-center px-4"
           style={{
             background: "linear-gradient(135deg, #fca5a5 0%, #ef4444 50%, #b91c1c 100%)",
-            color: "#1a1a1a",
+            color: "#4A4A4A",
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
           }}
         >
@@ -784,7 +784,7 @@ function CitySearchBar({ citySlug, cityName }: { citySlug: string; cityName: str
         <button
           type="button"
           onClick={handleSearch}
-          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] px-5 py-2.5 text-[13.5px] font-semibold text-[#1a1a1a] transition hover:brightness-105"
+          className="inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-[14px] px-5 py-2.5 text-[13.5px] font-semibold text-[#4A4A4A] transition hover:brightness-105"
           style={{
             background: "linear-gradient(135deg, #fca5a5 0%, #ef4444 50%, #b91c1c 100%)",
             boxShadow: "0 8px 20px -6px rgba(185,28,28,0.6), inset 0 1px 0 rgba(255,255,255,0.35)",
@@ -806,7 +806,7 @@ function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: stri
         style={{
           background: "linear-gradient(135deg, rgba(239,68,68,0.12), rgba(185,28,28,0.04))",
           border: "1px solid rgba(220,38,38,0.45)",
-          boxShadow: "inset 0 0 0 1px rgba(239,68,68,0.08), 0 4px 12px rgba(0,0,0,0.25)",
+          boxShadow: "inset 0 0 0 1px rgba(239,68,68,0.08), 0 4px 12px rgba(139, 26, 43,0.25)",
         }}
       >
         <Icon className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]" />
@@ -853,7 +853,7 @@ function DistrictMapCard({ name }: { name: string }) {
           className="absolute inset-0 opacity-30"
           style={{
             backgroundImage:
-              "linear-gradient(90deg, rgba(20,20,20,0.55) 1px, transparent 1px), linear-gradient(rgba(20,20,20,0.55) 1px, transparent 1px), linear-gradient(45deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
+              "linear-gradient(90deg, rgba(139, 26, 43,0.55) 1px, transparent 1px), linear-gradient(rgba(139, 26, 43,0.55) 1px, transparent 1px), linear-gradient(45deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
             backgroundSize: "26px 26px, 26px 26px, 14px 14px",
           }}
         />
@@ -874,7 +874,7 @@ function DistrictMapCard({ name }: { name: string }) {
             boxShadow: "0 0 30px rgba(225,29,72,0.45) inset",
           }}
         />
-        <div className="absolute font-display tracking-[0.18em] text-primary-foreground" style={{ top: "44%", left: "44%", fontSize: "2rem", textShadow: "0 2px 8px rgba(0,0,0,0.55)" }}>
+        <div className="absolute font-display tracking-[0.18em] text-primary-foreground" style={{ top: "44%", left: "44%", fontSize: "2rem", textShadow: "0 2px 8px rgba(139, 26, 43,0.55)" }}>
           {name.toUpperCase()}
         </div>
       </div>
@@ -892,7 +892,7 @@ function DistrictListingCard({ p, location, fallback }: { p: QuarterData["proper
   const tag = p.is_featured ? "ТОП ОФЕРТА" : "НОВО";
   return (
     <Link to="/properties/$propertyId" params={{ propertyId: p.id }} className="block">
-      <article className="marble-hover-card group flex h-full flex-col overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_18px_42px_rgba(20,20,20,0.16)]">
+      <article className="marble-hover-card group flex h-full flex-col overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_18px_42px_rgba(139, 26, 43,0.16)]">
         <div className="relative aspect-[1.05/0.82] overflow-hidden">
           <img src={p.cover_image_url || fallback} alt={p.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
           <span className="absolute left-3 top-3 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-primary-foreground shadow">{tag}</span>
@@ -945,7 +945,7 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
 
       <section className="relative px-3 pb-12 md:px-6 md:pb-16">
         <div className="mx-auto mt-4 grid max-w-[1460px] gap-6 px-2 md:px-4 xl:grid-cols-[270px_1fr_360px] xl:items-start">
-          <aside className="marble-dark-panel rounded-[22px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(20,20,20,0.32)]">
+          <aside className="marble-dark-panel rounded-[22px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(139, 26, 43,0.32)]">
             <div className="mb-5 text-center font-display text-[1.55rem] text-primary-foreground">Бързи филтри</div>
             <div className="space-y-6">
               <div>
@@ -964,12 +964,12 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="w-8 text-sm text-primary-foreground/70">От</span>
-                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-black/15 px-3 py-2 text-sm">€</div>
-                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-black/15 px-3 py-2 text-sm">€</div>
+                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-[#8B1A2B]/12 px-3 py-2 text-sm">€</div>
+                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-[#8B1A2B]/12 px-3 py-2 text-sm">€</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-8 text-sm text-primary-foreground/70">До</span>
-                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-black/15 px-3 py-2 text-sm">€</div>
+                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-[#8B1A2B]/12 px-3 py-2 text-sm">€</div>
                   </div>
                 </div>
               </div>
@@ -1124,7 +1124,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
       <section className="mx-auto max-w-[1460px] px-4 pb-12 md:px-6 md:pb-18">
         <div className="grid gap-8 xl:grid-cols-[1fr_340px] xl:items-start">
           <div className="space-y-6">
-            <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(20,20,20,0.14)] md:p-8">
+            <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(139, 26, 43,0.14)] md:p-8">
               <div className="mb-5 flex flex-wrap items-center gap-3 text-base text-muted-foreground">
                 <Link to="/" className="hover:text-primary">Начало</Link><ChevronRight className="h-4 w-4" />
                 {citySlug ? <Link to="/cities/$slug" params={{ slug: citySlug }} className="hover:text-primary">{cityName}</Link> : <span>{cityName}</span>}
@@ -1157,13 +1157,13 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
             </div>
 
             {gallery.length > 0 ? (
-              <div className="rounded-[28px] bg-card p-4 shadow-[0_20px_45px_rgba(20,20,20,0.14)] md:p-5">
+              <div className="rounded-[28px] bg-card p-4 shadow-[0_20px_45px_rgba(139, 26, 43,0.14)] md:p-5">
                 <PropertyGallery images={gallery} title={property.title} />
               </div>
             ) : null}
 
             {property.description ? (
-              <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(20,20,20,0.14)] md:p-8">
+              <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(139, 26, 43,0.14)] md:p-8">
                 <h2 className="font-display text-[2.4rem] text-accent-foreground md:text-[3rem]">Описание</h2>
                 <div className="mt-4 space-y-4 text-lg leading-8 text-muted-foreground md:text-[1.16rem] whitespace-pre-line">{property.description}</div>
                 {property.amenities && property.amenities.length > 0 ? (
@@ -1254,7 +1254,7 @@ function InquiryForm({ propertyId, propertyTitle }: { propertyId?: string; prope
   };
 
   return (
-    <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(20,20,20,0.3)]">
+    <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(139, 26, 43,0.3)]">
       <div>
         <div className="font-display text-[1.8rem] leading-none text-primary-foreground">Изпрати запитване</div>
         <div className="mt-1 text-base text-primary/85">Ще се свържем с вас възможно най-бързо.</div>

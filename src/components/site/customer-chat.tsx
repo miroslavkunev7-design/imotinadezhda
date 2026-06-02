@@ -106,7 +106,7 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-[100] flex items-center gap-2 rounded-full bg-gradient-to-br from-primary to-[#3a0a14] px-5 py-3 text-sm font-semibold text-amber-100 shadow-2xl ring-2 ring-amber-400/60 transition hover:scale-105"
+          className="fixed bottom-5 right-5 z-[100] flex items-center gap-2 rounded-full bg-gradient-to-br from-primary to-[#5e0f1d] px-5 py-3 text-sm font-semibold text-amber-100 shadow-2xl ring-2 ring-amber-400/60 transition hover:scale-105"
           aria-label="Отвори чат"
         >
           <MessageCircle className="h-5 w-5" />
@@ -117,7 +117,7 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
 
       {open && (
         <div className="fixed inset-x-3 bottom-3 z-[100] flex max-h-[85vh] flex-col overflow-hidden rounded-2xl border border-amber-400/40 bg-[rgba(255,251,243,0.98)] shadow-2xl backdrop-blur-md sm:inset-auto sm:bottom-5 sm:right-5 sm:w-[400px]">
-          <header className="flex items-center justify-between gap-2 border-b border-amber-500/20 bg-gradient-to-r from-primary to-[#3a0a14] px-4 py-3 text-amber-100">
+          <header className="flex items-center justify-between gap-2 border-b border-amber-500/20 bg-gradient-to-r from-primary to-[#5e0f1d] px-4 py-3 text-amber-100">
             <div>
               <div className="text-[10px] uppercase tracking-widest text-amber-300/80">Виртуален консултант</div>
               <div className="font-display text-base">Надежда · онлайн</div>

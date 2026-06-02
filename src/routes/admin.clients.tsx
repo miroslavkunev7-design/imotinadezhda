@@ -80,7 +80,7 @@ function ClientsAdmin() {
         </div>
       </header>
 
-      <div className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(15,3,6,0.85)]">
+      <div className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)]">
         <table className="w-full text-sm text-amber-100">
           <thead className="bg-[rgba(40,8,16,0.7)] text-left text-amber-100/80">
             <tr>
@@ -253,7 +253,7 @@ function labelType(t: string) { return ({ buyer: "Купувач", seller: "Пр
 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/55 p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full max-w-3xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl">{children}</div>
     </div>
   );

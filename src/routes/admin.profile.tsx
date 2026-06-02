@@ -86,7 +86,7 @@ function ProfilePage() {
         <p className="mt-1 text-sm text-amber-100/60">Управление на админ профила и аватар</p>
       </header>
 
-      <div className="space-y-6 rounded-2xl border border-amber-500/20 bg-[rgba(15,3,6,0.85)] p-6 shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+      <div className="space-y-6 rounded-2xl border border-amber-500/20 bg-[rgba(255, 255, 255,0.85)] p-6 shadow-[0_18px_45px_rgba(139, 26, 43,0.35)]">
         <div className="flex items-center gap-6">
           <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-amber-400/40 bg-amber-500/10">
             {avatarUrl ? (
@@ -97,7 +97,7 @@ function ProfilePage() {
               </div>
             )}
             {uploading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+              <div className="absolute inset-0 flex items-center justify-center bg-[#8B1A2B]/55">
                 <Loader2 className="h-6 w-6 animate-spin text-amber-200" />
               </div>
             )}

@@ -82,7 +82,7 @@ function InquiriesAdmin() {
         </p>
       </header>
 
-      <div className="flex gap-1 rounded-xl border border-amber-500/20 bg-[rgba(15,3,6,0.6)] p-1">
+      <div className="flex gap-1 rounded-xl border border-amber-500/20 bg-[rgba(255, 255, 255,0.6)] p-1">
         <button
           onClick={() => setTab("inquiries")}
           className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
@@ -104,7 +104,7 @@ function InquiriesAdmin() {
       {tab === "inquiries" && (
         <div className="space-y-3">
           {rows.map((r) => (
-            <article key={r.id} className="rounded-2xl border border-amber-500/15 bg-[rgba(15,3,6,0.85)] p-5 text-amber-100">
+            <article key={r.id} className="rounded-2xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)] p-5 text-amber-100">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="font-semibold">{r.name} <span className="ml-2 text-sm text-amber-100/60">{r.email}</span></div>
@@ -128,7 +128,7 @@ function InquiriesAdmin() {
       {tab === "mortgages" && (
         <div className="space-y-3">
           {mortgages.map((m) => (
-            <article key={m.id} className="rounded-2xl border border-amber-500/15 bg-[rgba(15,3,6,0.85)] p-5 text-amber-100">
+            <article key={m.id} className="rounded-2xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)] p-5 text-amber-100">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">

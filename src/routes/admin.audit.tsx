@@ -88,7 +88,7 @@ function AuditPage() {
   }, [live, pathFilter, emailFilter, ipFilter, dateFrom, dateTo]);
 
   const inputCls =
-    "rounded border border-amber-100/20 bg-[#1a0608] px-3 py-1.5 text-sm text-amber-100 placeholder:text-amber-100/30";
+    "rounded border border-amber-100/20 bg-[#5e0f1d] px-3 py-1.5 text-sm text-amber-100 placeholder:text-amber-100/30";
 
   const hasFilters = useMemo(
     () => pathFilter !== "all" || emailFilter || ipFilter || dateFrom || dateTo,
@@ -141,7 +141,7 @@ function AuditPage() {
             className={`flex items-center gap-2 rounded border px-3 py-1.5 text-xs transition ${
               live
                 ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-200"
-                : "border-amber-100/20 bg-[#1a0608] text-amber-100/70"
+                : "border-amber-100/20 bg-[#5e0f1d] text-amber-100/70"
             }`}
             title={live ? "Изключи live обновяване" : "Включи live обновяване"}
           >
@@ -226,7 +226,7 @@ function AuditPage() {
       ) : (
         <div className="overflow-x-auto rounded-lg border border-amber-100/10">
           <table className="w-full text-sm text-amber-100/80">
-            <thead className="bg-[#1a0608] text-xs uppercase text-amber-300/70">
+            <thead className="bg-[#5e0f1d] text-xs uppercase text-amber-300/70">
               <tr>
                 <th className="px-3 py-2 text-left">Кога</th>
                 <th className="px-3 py-2 text-left">Път</th>

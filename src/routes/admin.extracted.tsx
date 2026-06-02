@@ -192,7 +192,7 @@ function ExtractedPage() {
         <button
           onClick={onScrape}
           disabled={scraping}
-          className="group relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-primary via-primary to-[#3a0a14] p-5 text-left text-primary-foreground shadow-[0_18px_45px_rgba(0,0,0,0.45)] transition hover:scale-[1.01] disabled:opacity-60"
+          className="group relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-primary via-primary to-[#5e0f1d] p-5 text-left text-primary-foreground shadow-[0_18px_45px_rgba(139, 26, 43,0.45)] transition hover:scale-[1.01] disabled:opacity-60"
         >
           <div className="flex items-center gap-3">
             {scraping ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}

@@ -116,11 +116,11 @@ function AboutPage() {
               </ul>
 
               {/* Contact block */}
-              <div className="mt-8 grid gap-3 rounded-2xl border border-[hsl(var(--gold))]/30 bg-black/15 p-4 md:p-5">
+              <div className="mt-8 grid gap-3 rounded-2xl border border-[hsl(var(--gold))]/30 bg-[#8B1A2B]/12 p-4 md:p-5">
                 <div className="font-display text-sm text-[hsl(var(--gold))] md:text-base">Свържете се с нас</div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {AGENCY_PHONES.map((p) => (
-                    <div key={p.tel} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-black/20 px-3 py-2">
+                    <div key={p.tel} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#8B1A2B]/15 px-3 py-2">
                       <a
                         href={buildTelUrl(p.tel)}
                         className="inline-flex items-center gap-2 text-sm text-primary-foreground hover:text-[hsl(var(--gold))]"

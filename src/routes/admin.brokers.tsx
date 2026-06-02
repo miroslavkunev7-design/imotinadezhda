@@ -85,7 +85,7 @@ function BrokersAdmin() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {rows.map((b) => (
-          <div key={b.id} className="rounded-2xl border border-amber-500/20 bg-[rgba(15,3,6,0.85)] p-5 text-amber-100 transition hover:border-amber-400/60 hover:shadow-[0_0_30px_-10px_rgba(212,175,55,0.45)] cursor-pointer" onClick={() => setDetailFor(b)}>
+          <div key={b.id} className="rounded-2xl border border-amber-500/20 bg-[rgba(255, 255, 255,0.85)] p-5 text-amber-100 transition hover:border-amber-400/60 hover:shadow-[0_0_30px_-10px_rgba(212,175,55,0.45)] cursor-pointer" onClick={() => setDetailFor(b)}>
             <div className="flex items-center gap-4">
               {b.photo_url ? (
                 <img src={b.photo_url} alt={b.full_name} className="h-16 w-16 rounded-full object-cover border border-amber-500/30" />
@@ -114,7 +114,7 @@ function BrokersAdmin() {
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setEditing(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/55 p-4" onClick={() => setEditing(null)}>
           <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl text-accent-foreground">{editing.id ? "Редакция" : "Нов брокер"}</h2>
@@ -232,8 +232,8 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-2xl border border-amber-500/30 bg-[rgba(15,3,6,0.95)] p-6 text-amber-100 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/65 p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-2xl border border-amber-500/30 bg-[rgba(255, 255, 255,0.95)] p-6 text-amber-100 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             {broker.photo_url
@@ -320,7 +320,7 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
 
         {/* Task draft modal */}
         {taskDraft && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={() => setTaskDraft(null)}>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#8B1A2B]/65 p-4" onClick={() => setTaskDraft(null)}>
             <form onSubmit={saveTask} onClick={(e) => e.stopPropagation()} className="w-full max-w-lg rounded-2xl bg-card p-6 text-foreground shadow-2xl space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-xl">Нова задача</h3>
@@ -364,7 +364,7 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
 
         {/* Assign client picker */}
         {showAssign && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowAssign(false)}>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#8B1A2B]/65 p-4" onClick={() => setShowAssign(false)}>
             <div onClick={(e) => e.stopPropagation()} className="max-h-[80vh] w-full max-w-lg overflow-auto rounded-2xl bg-card p-6 text-foreground shadow-2xl">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="font-display text-xl">Прикачи клиент</h3>

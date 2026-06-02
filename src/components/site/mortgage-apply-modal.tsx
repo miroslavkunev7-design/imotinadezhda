@@ -123,8 +123,8 @@ export function MortgageApplyModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/70 p-3 backdrop-blur-sm md:p-6">
-      <div className="my-4 w-full max-w-3xl overflow-hidden rounded-3xl border border-amber-500/30 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[#8B1A2B]/65 p-3 backdrop-blur-sm md:p-6">
+      <div className="my-4 w-full max-w-3xl overflow-hidden rounded-3xl border border-amber-500/30 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[0_30px_80px_rgba(139, 26, 43,0.5)]">
         {/* Header */}
         <div className="flex items-center justify-between gap-3 border-b border-primary/15 bg-gradient-to-r from-[#66081c] to-[#4a0613] px-5 py-4 text-amber-100">
           <div>

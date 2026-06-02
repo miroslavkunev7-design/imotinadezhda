@@ -82,7 +82,7 @@ export function AdminAIBubble() {
       {/* Slide-in panel */}
       <div
         className={cn(
-          "fixed bottom-24 right-5 z-50 flex w-[min(96vw,400px)] flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[0_28px_60px_rgba(0,0,0,0.45)] transition-all duration-300",
+          "fixed bottom-24 right-5 z-50 flex w-[min(96vw,400px)] flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[0_28px_60px_rgba(139, 26, 43,0.45)] transition-all duration-300",
           open ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0",
         )}
         style={{ maxHeight: "min(70vh, 600px)" }}

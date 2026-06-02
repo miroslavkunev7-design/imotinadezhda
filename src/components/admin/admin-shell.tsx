@@ -88,20 +88,20 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const current = NAV.find((n) => (n.to === "/admin" ? path === "/admin" : path.startsWith(n.to)));
 
   return (
-    <div className="flex min-h-screen bg-[#1a0608]">
+    <div className="flex min-h-screen bg-[#5e0f1d]">
       {/* Mobile overlay */}
       {mobileOpen && (
         <button
           aria-label="Затвори меню"
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-30 bg-[#8B1A2B]/55 backdrop-blur-sm lg:hidden"
         />
       )}
 
       {/* Sidebar — бял мрамор със златни жилки */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-amber-500/25 shadow-[8px_0_30px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-amber-500/25 shadow-[8px_0_30px_rgba(139, 26, 43,0.45)] backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
         style={{
@@ -278,7 +278,7 @@ export function MarbleCard({ children, className }: { children: ReactNode; class
   return (
     <div
       className={cn(
-        "rounded-2xl border border-amber-500/20 p-5 shadow-[0_18px_45px_rgba(0,0,0,0.35)]",
+        "rounded-2xl border border-amber-500/20 p-5 shadow-[0_18px_45px_rgba(139, 26, 43,0.35)]",
         className,
       )}
       style={{

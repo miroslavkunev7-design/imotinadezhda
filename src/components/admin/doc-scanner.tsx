@@ -134,7 +134,7 @@ export function DocScanner() {
   };
 
   return (
-    <div className="rounded-2xl border border-amber-500/20 bg-[rgba(15,3,6,0.85)] p-5 shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+    <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255, 255, 255,0.85)] p-5 shadow-[0_18px_45px_rgba(139, 26, 43,0.35)]">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-amber-100">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/20">
@@ -155,14 +155,14 @@ export function DocScanner() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {pages.map((p, i) => (
-          <div key={p.id} className="group relative overflow-hidden rounded-xl border border-amber-500/20 bg-black/40">
+          <div key={p.id} className="group relative overflow-hidden rounded-xl border border-amber-500/20 bg-[#8B1A2B]/40">
             <img src={p.src} alt={p.name} className="h-40 w-full object-cover" />
-            <div className="absolute left-2 top-2 rounded bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-amber-100">
+            <div className="absolute left-2 top-2 rounded bg-[#8B1A2B]/65 px-2 py-0.5 text-[10px] font-semibold text-amber-100">
               Стр. {i + 1}
             </div>
             <button
               onClick={() => removePage(p.id)}
-              className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-rose-300 opacity-0 transition group-hover:opacity-100"
+              className="absolute right-2 top-2 rounded-full bg-[#8B1A2B]/65 p-1.5 text-rose-300 opacity-0 transition group-hover:opacity-100"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -205,7 +205,7 @@ export function DocScanner() {
 
       {/* Source picker */}
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
-        <DialogContent className="border-amber-500/30 bg-[rgba(15,3,6,0.97)] text-amber-100">
+        <DialogContent className="border-amber-500/30 bg-[rgba(255, 255, 255,0.97)] text-amber-100">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl">Как да добавим страница?</DialogTitle>
             <DialogDescription className="text-amber-100/60">
@@ -369,7 +369,7 @@ function CameraCapture({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#8B1A2B]">
       <div className="flex items-center justify-between p-3 text-amber-100">
         <div className="text-sm font-semibold">Сканиране на документ</div>
         <button onClick={onClose} className="rounded-full bg-white/10 p-2 hover:bg-white/20">
@@ -397,11 +397,11 @@ function CameraCapture({
         )}
         {status === "ready" && (
           <div className="pointer-events-none absolute inset-x-0 top-4 flex flex-col items-center gap-2">
-            <div className="rounded-full bg-black/60 px-3 py-1 text-[11px] text-amber-100">
+            <div className="rounded-full bg-[#8B1A2B]/55 px-3 py-1 text-[11px] text-amber-100">
               Центрирай документа — рамката се закача автоматично
             </div>
             {shots > 0 && (
-              <div className="rounded-full bg-amber-500/90 px-3 py-1 text-[11px] font-semibold text-black">
+              <div className="rounded-full bg-amber-500/90 px-3 py-1 text-[11px] font-semibold text-[#4A4A4A]">
                 {shots} {shots === 1 ? "страница заснета" : "страници заснети"}
               </div>
             )}
@@ -409,8 +409,8 @@ function CameraCapture({
         )}
       </div>
       {status === "ready" && (
-        <div className="flex items-center justify-between gap-4 bg-black/85 px-4 py-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-amber-500/30 bg-black/40 text-[10px] text-amber-100/60">
+        <div className="flex items-center justify-between gap-4 bg-[#8B1A2B]/85 px-4 py-4">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-amber-500/30 bg-[#8B1A2B]/40 text-[10px] text-amber-100/60">
             {lastShot ? <img src={lastShot} alt="Последна" className="h-full w-full object-cover" /> : "—"}
           </div>
           <button
