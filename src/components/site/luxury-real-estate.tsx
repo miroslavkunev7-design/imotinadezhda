@@ -180,62 +180,176 @@ function SearchBar({
 
   const isBurgundy = variant === "burgundy";
 
+  void isBurgundy; // variant kept for API compatibility; design is unified now
+
   return (
-    <div className="relative mx-auto w-full max-w-[1180px]">
-      <button
-        type="button"
-        onClick={handleSearch}
-        className="gold-cta-button absolute -top-5 right-4 z-30 flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold md:-top-7 md:right-6 md:h-12 md:px-7 md:text-base lg:right-10"
-      >
-        <Search className="h-4 w-4 md:h-5 md:w-5" /> Търси
-      </button>
-
+    <div className="relative mx-auto w-full max-w-[1320px]">
       <div
-        className={cn(
-          "relative w-full overflow-hidden rounded-[18px] border border-[#8B1A2B]/25 bg-white shadow-[0_22px_50px_rgba(139,26,43,0.18)] md:rounded-[26px]",
-          isBurgundy && "search-wavy",
-        )}
+        className="relative flex w-full items-stretch gap-0 overflow-visible rounded-full border px-2 py-2 md:px-3 md:py-2"
+        style={{
+          background: "linear-gradient(180deg, #8B1A2B 0%, #6e1422 100%)",
+          borderColor: "rgba(201,168,76,0.55)",
+          boxShadow: "0 18px 40px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(201,168,76,0.12)",
+        }}
       >
-        {isBurgundy && (
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 1200 120"
-            preserveAspectRatio="none"
-            className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[70px] w-full md:h-[90px]"
-          >
-            <path
-              d="M0,0 L1200,0 L1200,55 C1080,95 960,40 840,62 C720,84 600,38 480,58 C360,78 240,42 120,66 C80,74 40,68 0,72 Z"
-              fill="#8B1A2B"
-            />
-          </svg>
-        )}
-
-        <div
-          className={cn(
-            "relative z-10 grid w-full grid-cols-2 gap-1 p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:p-3",
-            isBurgundy && "md:pt-12",
-          )}
-        >
-          <SelectCell icon={MapPin} label="Град" value={city} onChange={setCity}
+        <div className="flex flex-1 flex-wrap items-stretch md:flex-nowrap">
+          <PillCell icon={MapPin} label="Град" value={city} onChange={setCity}
             options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
-          <SelectCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
+          <PillDivider />
+          <PillCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
             options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]} />
-          <div className="col-span-2 md:col-span-1 md:contents">
-            <SelectCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
-              options={propertyTypeOptions} />
-          </div>
-          <RangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
+          <PillDivider />
+          <PillCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
+            options={propertyTypeOptions} />
+          <PillDivider />
+          <PillRangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
             onMin={setPriceMin} onMax={setPriceMax} suffix="€" />
-          <RangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
+          <PillDivider />
+          <PillRangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
             onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
+        </div>
+
+        <div className="flex flex-none items-center gap-2 pl-2 md:gap-3 md:pl-3">
           <button
             type="button"
-            className="marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-[#8B1A2B]/40 bg-[#8B1A2B]/5 px-5 text-[#8B1A2B] transition hover:bg-[#8B1A2B]/10 md:flex"
             onClick={handleSearch}
+            className="inline-flex h-11 items-center gap-2 rounded-full px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-12 md:px-7 md:text-base"
+            style={{
+              background: "linear-gradient(180deg, #E3BF66 0%, #C9A84C 60%, #A8852E 100%)",
+              color: "#5E0F1D",
+              boxShadow: "0 6px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35)",
+            }}
           >
-            <SlidersHorizontal className="h-5 w-5" />
-            <span className="font-display text-base">Филтри</span>
+            <Search className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2.25} />
+            <span className="uppercase tracking-wide">Търси</span>
           </button>
+          <button
+            type="button"
+            className="hidden items-center gap-1.5 px-1 font-display text-[12px] text-[#C9A84C] transition hover:text-white md:inline-flex md:text-[13px]"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span className="leading-tight">
+              Още
+              <br />
+              филтри
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PillDivider() {
+  return (
+    <span aria-hidden className="my-2 hidden w-px self-stretch md:inline-block" style={{ backgroundColor: "rgba(201,168,76,0.35)" }} />
+  );
+}
+
+function PillCell({
+  icon: Icon,
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  icon: typeof MapPin;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: SearchOption[];
+}) {
+  const [open, setOpen] = useReactState(false);
+  const selected = options.find((o) => o.value === value) ?? options[0];
+
+  return (
+    <div
+      className="relative flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 md:gap-3 md:px-4 md:py-2"
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
+      <Icon className="h-4 w-4 flex-none md:h-5 md:w-5" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-[#C9A84C] md:text-[10px]">{label}</div>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="-ml-px mt-0.5 flex w-full items-center justify-between gap-2 bg-transparent text-left font-display text-sm text-white outline-none md:text-[15px]"
+        >
+          <span className="truncate">{selected?.label ?? "—"}</span>
+          <ChevronDown className={cn("h-3.5 w-3.5 flex-none text-[#C9A84C] transition md:h-4 md:w-4", open && "rotate-180")} />
+        </button>
+      </div>
+      {open && (
+        <div
+          role="listbox"
+          className="absolute left-2 right-2 top-[calc(100%+6px)] z-50 overflow-hidden rounded-2xl border bg-white py-1 text-[#2b1418] shadow-[0_18px_45px_rgba(0,0,0,0.25)]"
+          style={{ borderColor: "rgba(201,168,76,0.5)" }}
+        >
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              className={cn(
+                "block w-full px-3 py-2 text-left text-sm transition hover:bg-amber-50",
+                option.value === value && "bg-amber-50 font-semibold text-[#8B1A2B]",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PillRangeCell({
+  icon: Icon,
+  label,
+  minVal,
+  maxVal,
+  onMin,
+  onMax,
+  suffix,
+}: {
+  icon: typeof MapPin;
+  label: string;
+  minVal: string;
+  maxVal: string;
+  onMin: (v: string) => void;
+  onMax: (v: string) => void;
+  suffix: string;
+}) {
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 md:gap-3 md:px-4 md:py-2">
+      <Icon className="h-4 w-4 flex-none md:h-5 md:w-5" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-[#C9A84C] md:text-[10px]">{label}</div>
+        <div className="mt-0.5 flex items-center gap-1 font-display text-[12px] text-white md:text-[13px]">
+          <span className="text-white/70">от</span>
+          <input
+            value={minVal}
+            onChange={(e) => onMin(e.target.value.replace(/[^0-9]/g, ""))}
+            inputMode="numeric"
+            className="w-12 bg-transparent outline-none placeholder:text-white/40 md:w-16"
+          />
+          <span className="text-white/60">-</span>
+          <span className="text-white/70">до</span>
+          <input
+            value={maxVal}
+            onChange={(e) => onMax(e.target.value.replace(/[^0-9]/g, ""))}
+            inputMode="numeric"
+            className="w-12 bg-transparent outline-none placeholder:text-white/40 md:w-16"
+          />
+          <span className="text-white/70">{suffix}</span>
         </div>
       </div>
     </div>
