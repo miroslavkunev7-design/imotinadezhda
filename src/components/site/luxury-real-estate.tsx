@@ -223,25 +223,58 @@ function SelectCell({
   onChange: (v: string) => void;
   options: SearchOption[];
 }) {
+  const [open, setOpen] = useReactState(false);
+  const selected = options.find((option) => option.value === value) ?? options[0];
+
   return (
-    <label className="flex min-h-[54px] items-center gap-2 border-primary/15 px-2 md:min-h-[60px] md:gap-3 md:border-r md:px-3">
+    <div
+      className="relative flex min-h-[54px] items-center gap-2 border-primary/15 px-2 md:min-h-[60px] md:gap-3 md:border-r md:px-3"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
       <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary md:h-11 md:w-11">
         <Icon className="h-4 w-4 md:h-5 md:w-5" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-[10px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">{label}</div>
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="-ml-1 mt-0.5 w-full appearance-none bg-transparent font-display text-sm text-primary outline-none md:text-lg"
+        <button
+          type="button"
+          onClick={() => setOpen((current) => !current)}
+          className="-ml-1 mt-0.5 flex w-full items-center justify-between gap-2 bg-transparent text-left font-display text-sm text-primary outline-none md:text-lg"
+          aria-haspopup="listbox"
+          aria-expanded={open}
         >
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+          <span className="truncate">{selected?.label ?? "—"}</span>
+        </button>
       </div>
-      <ChevronDown className="h-3.5 w-3.5 flex-none text-primary/70 md:h-4 md:w-4" />
-    </label>
+      <ChevronDown className={cn("h-3.5 w-3.5 flex-none text-primary/70 transition md:h-4 md:w-4", open && "rotate-180")} />
+      {open && (
+        <div
+          role="listbox"
+          className="absolute left-12 right-2 top-[calc(100%-4px)] z-50 overflow-hidden rounded-xl border border-amber-500/35 bg-white py-1 text-primary shadow-[0_18px_45px_rgba(139,26,43,0.16)] md:left-16"
+        >
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              className={cn(
+                "block w-full px-3 py-2 text-left text-sm transition hover:bg-amber-50",
+                option.value === value && "bg-amber-50 font-semibold text-primary",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

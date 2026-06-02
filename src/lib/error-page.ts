@@ -6,14 +6,14 @@ export function renderErrorPage(): string {
     <title>This page didn't load</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      body { font: 15px/1.5 system-ui, -apple-system, sans-serif; background: #fafafa; color: #111; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
-      .card { max-width: 28rem; width: 100%; text-align: center; padding: 2rem; }
-      h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
-      p { color: #4b5563; margin: 0 0 1.5rem; }
+      body { font: 15px/1.5 system-ui, -apple-system, sans-serif; background: #ffffff; color: #2b1418; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
+      .card { max-width: 28rem; width: 100%; text-align: center; padding: 2rem; border: 1px solid rgba(201, 168, 76, 0.45); border-radius: 1rem; background: #fffdf8; box-shadow: 0 24px 60px rgba(139, 26, 43, 0.14); }
+      h1 { font-size: 1.25rem; margin: 0 0 0.5rem; color: #8B1A2B; }
+      p { color: rgba(43, 20, 24, 0.72); margin: 0 0 1.5rem; }
       .actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
       a, button { padding: 0.5rem 1rem; border-radius: 0.375rem; font: inherit; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
-      .primary { background: #111; color: #fff; }
-      .secondary { background: #fff; color: #111; border-color: #d1d5db; }
+      .primary { background: #8B1A2B; color: #ffffff; border-color: #8B1A2B; }
+      .secondary { background: #ffffff; color: #8B1A2B; border-color: #C9A84C; }
     </style>
   </head>
   <body>
