@@ -3,7 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const InputSchema = z.object({
-  chat_id: z.string().uuid().optional(),
+  chat_id: z.string().uuid().nullable().optional(),
   visitor_token: z.string().min(8).max(128),
   property_id: z.string().uuid().nullable().optional(),
   page_url: z.string().max(500).optional(),
@@ -164,7 +164,7 @@ export const Route = createFileRoute("/api/public/customer-chat")({
           const body = InputSchema.parse(await request.json());
 
           // Find / create chat
-          let chatId = body.chat_id;
+          let chatId = body.chat_id ?? undefined;
           if (chatId) {
             const { data } = await supabaseAdmin
               .from("customer_chats")
