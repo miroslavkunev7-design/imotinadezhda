@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { HomePage } from "@/components/site/luxury-real-estate";
 import { getCities, getFeaturedProperties } from "@/lib/catalog.functions";
+import { getPublicPageLayout } from "@/lib/page-layouts.functions";
 
 const SITE_URL = "https://imotinadezhda.lovable.app";
 
