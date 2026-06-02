@@ -15,4 +15,8 @@ export default defineConfig({
     server: { entry: "server" },
   },
   nitro: isVercel ? { preset: "vercel" } : undefined,
+  // On Vercel, lightningcss tries to resolve Tailwind v4's `@import "tailwindcss"`
+  // before the Tailwind plugin can intercept it, causing ENOENT. Fall back to
+  // the default PostCSS-based CSS pipeline there. Lovable/Cloudflare keeps lightningcss.
+  ...(isVercel ? { css: { transformer: "postcss" as const } } : {}),
 });
