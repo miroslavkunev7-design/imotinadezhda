@@ -90,7 +90,7 @@ function ProfilePage() {
         <div className="flex items-center gap-6">
           <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-amber-400/40 bg-amber-500/10">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="Аватар" className="h-full w-full object-cover" />
+              <img src={avatarUrl} alt="Аватар" className="h-full w-full object-cover" loading="lazy" decoding="async" />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-amber-200/60">
                 <UserIcon className="h-12 w-12" />

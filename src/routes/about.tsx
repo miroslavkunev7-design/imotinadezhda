@@ -155,7 +155,7 @@ function AboutPage() {
               height={896}
             />
             <div className="absolute right-4 top-4 rounded-xl bg-white/90 px-3 py-2 ring-1 ring-[#C9A84C]/50 backdrop-blur md:right-6 md:top-6">
-              <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-10 w-auto md:h-12" />
+              <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-10 w-auto md:h-12" loading="lazy" decoding="async" />
             </div>
           </div>
         </div>

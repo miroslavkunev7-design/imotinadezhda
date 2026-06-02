@@ -289,7 +289,7 @@ function PropertiesAdmin() {
                   <div className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-5">
                     {pendingImages.map((f, i) => (
                       <div key={`${f.name}-${i}`} className="group relative overflow-hidden rounded-md border border-amber-700/30">
-                        <img src={URL.createObjectURL(f)} alt={f.name} className="aspect-square w-full object-cover" />
+                        <img src={URL.createObjectURL(f)} alt={f.name} className="aspect-square w-full object-cover" loading="lazy" decoding="async" />
                         <button
                           type="button"
                           onClick={() => setPendingImages((prev) => prev.filter((_, idx) => idx !== i))}
@@ -406,7 +406,7 @@ function ImagesModal({ property, onClose }: { property: Row; onClose: () => void
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {imgs.map((img) => (
             <div key={img.id} className="group relative overflow-hidden rounded-xl border border-border">
-              <img src={img.url} alt="" className="aspect-square w-full object-cover" />
+              <img src={img.url} alt="" className="aspect-square w-full object-cover" loading="lazy" decoding="async" />
               <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-[#8B1A2B]/55 p-2">
                 <button onClick={() => setCover(img)} className={`flex items-center gap-1 rounded px-2 py-1 text-xs ${img.is_cover ? "bg-primary text-primary-foreground" : "bg-white/10 text-white"}`}>
                   <Star className="h-3 w-3" /> {img.is_cover ? "Корица" : "Постави"}

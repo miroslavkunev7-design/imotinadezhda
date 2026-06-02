@@ -190,7 +190,7 @@ export function DocScanner() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {pages.map((p, i) => (
           <div key={p.id} className="group relative overflow-hidden rounded-xl border border-amber-500/20 bg-[#8B1A2B]/40">
-            <img src={p.src} alt={p.name} className="h-40 w-full object-cover" />
+            <img src={p.src} alt={p.name} className="h-40 w-full object-cover" loading="lazy" decoding="async" />
             <div className="absolute left-2 top-2 rounded bg-[#8B1A2B]/65 px-2 py-0.5 text-[10px] font-semibold text-amber-100">
               Стр. {i + 1}
             </div>
@@ -454,7 +454,7 @@ function CameraCapture({
       {status === "ready" && (
         <div className="flex items-center justify-between gap-4 bg-[#8B1A2B]/85 px-4 py-4">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-amber-500/30 bg-[#8B1A2B]/40 text-[10px] text-amber-100/60">
-            {lastShot ? <img src={lastShot} alt="Последна" className="h-full w-full object-cover" /> : "—"}
+            {lastShot ? <img src={lastShot} alt="Последна" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : "—"}
           </div>
           <button
             onClick={capture}
