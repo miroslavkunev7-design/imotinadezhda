@@ -46,11 +46,13 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   };
 
   return (
-    <header className="relative z-30 w-full select-none">
-      <div className="navbar-stack">
-        {/* Bordeaux nav pill — sits BELOW the logo and is partially covered by it */}
+    <header className="site-header">
+      <div className="site-header__inner">
+        <Link to="/" onClick={handleLogo} aria-label="Начало" className="logo-scroll">
+          <img src={logoScroll} alt="Недвижими имоти Надежда" draggable={false} />
+        </Link>
+
         <nav className="main-nav">
-          <span className="nav-spacer" aria-hidden />
           {NAV.map((item) => (
             <Link
               key={item.key}
@@ -70,11 +72,6 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             <User className="h-5 w-5" style={{ color: GOLD }} strokeWidth={1.75} />
           </Link>
         </nav>
-
-        {/* Scroll banner logo — overlaps the nav pill from above */}
-        <Link to="/" onClick={handleLogo} aria-label="Начало" className="logo-scroll">
-          <img src={logoScroll} alt="Недвижими имоти Надежда" draggable={false} />
-        </Link>
       </div>
     </header>
   );
