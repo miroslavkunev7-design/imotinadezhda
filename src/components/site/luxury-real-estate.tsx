@@ -312,24 +312,24 @@ function RangeCell({
   suffix: string;
 }) {
   return (
-    <div className="flex min-h-[54px] items-center gap-2 border-primary/15 px-2 md:min-h-[60px] md:gap-3 md:border-r md:px-3">
-      <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary md:h-11 md:w-11">
-        <Icon className="h-4 w-4 md:h-5 md:w-5" />
+    <div className="flex min-h-[54px] items-center gap-1.5 border-primary/15 px-1.5 md:min-h-[60px] md:gap-3 md:border-r md:px-3">
+      <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-primary/35 bg-primary/8 text-primary md:h-11 md:w-11">
+        <Icon className="h-3.5 w-3.5 md:h-5 md:w-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">{label}</div>
-        <div className="flex items-center gap-1 text-primary">
-          <span className="text-[10px] text-primary/60 md:text-[11px]">от</span>
+        <div className="text-[9px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">{label}</div>
+        <div className="flex items-center gap-0.5 text-primary md:gap-1">
+          <span className="text-[9px] text-primary/60 md:text-[11px]">от</span>
           <input value={minVal} onChange={(e) => onMin(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-12 bg-transparent font-display text-sm outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
-          <span className="text-[10px] text-primary/60 md:text-[11px]">{suffix}</span>
+            className="w-8 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
+          <span className="hidden text-[9px] text-primary/60 md:inline md:text-[11px]">{suffix}</span>
           <span className="mx-0.5 text-primary/40">·</span>
-          <span className="text-[10px] text-primary/60 md:text-[11px]">до</span>
+          <span className="text-[9px] text-primary/60 md:text-[11px]">до</span>
           <input value={maxVal} onChange={(e) => onMax(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-12 bg-transparent font-display text-sm outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
-          <span className="text-[10px] text-primary/60 md:text-[11px]">{suffix}</span>
+            className="w-8 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
+          <span className="text-[9px] text-primary/60 md:text-[11px]">{suffix}</span>
         </div>
       </div>
     </div>
@@ -579,8 +579,8 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
       >
         <LuxuryHeader active="sale" />
 
-        {/* Mobile/tablet: search near the top under header */}
-        <div className="relative z-20 mx-auto mt-5 w-full max-w-[1440px] px-4 md:mt-7 md:px-8 lg:hidden">
+        {/* Mobile/tablet: search near the top under header — pushed below splash logo */}
+        <div className="relative z-20 mx-auto mt-[180px] w-full max-w-[1440px] px-4 sm:mt-[200px] md:mt-7 md:px-8 lg:hidden">
           <SearchBar cities={cityOpts} variant="burgundy" />
         </div>
 

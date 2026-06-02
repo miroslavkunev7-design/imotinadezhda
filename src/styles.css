@@ -153,12 +153,39 @@
     min-height: 100vh;
     background-color: #ffffff;
     background-image:
-      radial-gradient(ellipse at 20% 0%, rgba(201, 168, 76, 0.08), transparent 55%),
-      radial-gradient(ellipse at 80% 100%, rgba(139, 26, 43, 0.05), transparent 55%);
+      /* glowing red ribbon - diagonal sweep top-right */
+      linear-gradient(115deg, transparent 38%, rgba(139, 26, 43, 0.07) 50%, transparent 62%),
+      /* secondary softer ribbon bottom-left */
+      linear-gradient(295deg, transparent 42%, rgba(139, 26, 43, 0.05) 54%, transparent 66%),
+      /* warm red glow top-left and bottom-right */
+      radial-gradient(ellipse at 12% 0%, rgba(139, 26, 43, 0.10), transparent 50%),
+      radial-gradient(ellipse at 90% 100%, rgba(139, 26, 43, 0.09), transparent 55%),
+      /* subtle gold dust top */
+      radial-gradient(ellipse at 50% -5%, rgba(201, 168, 76, 0.06), transparent 60%);
     background-repeat: no-repeat;
     background-position: center top;
     color: #2b1418;
+    position: relative;
   }
+  /* Floating red particles / dust across the page */
+  .luxury-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 8% 18%, rgba(139, 26, 43, 0.55) 0, rgba(139, 26, 43, 0) 2px),
+      radial-gradient(circle at 22% 72%, rgba(139, 26, 43, 0.45) 0, rgba(139, 26, 43, 0) 1.5px),
+      radial-gradient(circle at 58% 12%, rgba(139, 26, 43, 0.55) 0, rgba(139, 26, 43, 0) 2px),
+      radial-gradient(circle at 78% 34%, rgba(139, 26, 43, 0.45) 0, rgba(139, 26, 43, 0) 1.5px),
+      radial-gradient(circle at 92% 78%, rgba(139, 26, 43, 0.5) 0, rgba(139, 26, 43, 0) 2px),
+      radial-gradient(circle at 38% 88%, rgba(139, 26, 43, 0.4) 0, rgba(139, 26, 43, 0) 1.5px),
+      radial-gradient(circle at 66% 58%, rgba(139, 26, 43, 0.4) 0, rgba(139, 26, 43, 0) 1.5px);
+    background-size: 100% 100%;
+    opacity: 0.7;
+    z-index: 0;
+  }
+  .luxury-page > * { position: relative; z-index: 1; }
 
   /* ============================================================
      Luxury burgundy/gold panel utilities.
@@ -258,11 +285,17 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
-  /* Burgundy search bar variant — overrides default primary text/icon colors */
+  /* Burgundy search bar variant — matches logo panel red exactly */
   .search-burgundy .text-primary { color: #fdf6e3 !important; }
-  .search-burgundy [class*="text-primary/"] { color: rgba(253, 246, 227, 0.75) !important; }
-  .search-burgundy [class*="border-primary/"] { border-color: rgba(201, 168, 76, 0.45) !important; }
-  .search-burgundy [class*="bg-primary/"] { background-color: rgba(201, 168, 76, 0.18) !important; }
+  .search-burgundy [class*="text-primary/"] { color: rgba(253, 246, 227, 0.78) !important; }
+  .search-burgundy [class*="border-primary/"] { border-color: rgba(201, 168, 76, 0.35) !important; }
+  .search-burgundy [class*="bg-primary/"] { background-color: rgba(255, 255, 255, 0.08) !important; }
+  /* Deepen search bar gradient to match the logo splash, and kill the gold sheen overlay */
+  .search-burgundy .marble-dark-panel {
+    background: linear-gradient(135deg, #7a1426 0%, #4a0b18 100%) !important;
+    border-color: rgba(201, 168, 76, 0.35);
+  }
+  .search-burgundy .marble-dark-panel::before { display: none !important; }
 
 
   /* Card with luxury hover: scale + gold glow */
@@ -283,8 +316,8 @@
     border-radius: inherit;
     background: radial-gradient(
       ellipse at 50% 100%,
-      rgba(201, 168, 76, 0.55) 0%,
-      rgba(201, 168, 76, 0.2) 35%,
+      rgba(139, 26, 43, 0.65) 0%,
+      rgba(139, 26, 43, 0.28) 35%,
       transparent 65%
     );
     opacity: 0;
@@ -301,8 +334,8 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    border: 1px solid rgba(201, 168, 76, 0);
-    box-shadow: 0 0 0 rgba(201, 168, 76, 0);
+    border: 1px solid rgba(139, 26, 43, 0);
+    box-shadow: 0 0 0 rgba(139, 26, 43, 0);
     transition: border-color 320ms ease, box-shadow 320ms ease;
     pointer-events: none;
     z-index: 3;
@@ -310,12 +343,12 @@
 
   .marble-hover-card:hover::before,
   .marble-city-card:hover::before {
-    border-color: rgba(201, 168, 76, 0.7);
+    border-color: rgba(139, 26, 43, 0.75);
     box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-      0 0 0 1px rgba(201, 168, 76, 0.25),
-      0 0 38px rgba(201, 168, 76, 0.4),
-      0 22px 48px rgba(139, 26, 43, 0.18);
+      inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+      0 0 0 1px rgba(139, 26, 43, 0.35),
+      0 0 42px rgba(139, 26, 43, 0.45),
+      0 22px 48px rgba(94, 15, 29, 0.28);
   }
 
   .marble-hover-card:hover .marble-wave-glow,
