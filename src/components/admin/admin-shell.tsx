@@ -255,6 +255,17 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
             <span className="truncate text-amber-100">{breadcrumb ?? current?.label ?? "Admin"}</span>
           </div>
           <div className="flex flex-none items-center gap-2">
+            {installAvailable && (
+              <button
+                onClick={() => promptInstall()}
+                title="Инсталирай като приложение"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/60 bg-gradient-to-r from-amber-500/25 to-amber-300/20 px-2.5 py-1.5 text-xs font-semibold text-amber-100 shadow-sm transition hover:from-amber-500/35 hover:to-amber-300/30"
+              >
+                <DownloadIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Инсталирай приложението</span>
+                <span className="sm:hidden">Инсталирай</span>
+              </button>
+            )}
             <Link to="/" className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-xs text-amber-100 transition hover:bg-amber-500/15">
               <ExternalLink className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Към сайта</span>
             </Link>
