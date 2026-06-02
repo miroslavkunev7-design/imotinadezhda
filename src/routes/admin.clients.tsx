@@ -24,6 +24,7 @@ function ClientsAdmin() {
   const [docsFor, setDocsFor] = useState<Client | null>(null);
   const [mortgageFor, setMortgageFor] = useState<Client | null>(null);
   const [mortgageStagesFor, setMortgageStagesFor] = useState<Client | null>(null);
+  const [detailsFor, setDetailsFor] = useState<Client | null>(null);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
 
