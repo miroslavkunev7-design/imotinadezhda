@@ -263,8 +263,48 @@ function PropertiesAdmin() {
               <Field label="Стаи"><input type="number" value={(editing as any).rooms ?? ""} onChange={(e) => setEditing({ ...editing, rooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
               <Field label="Спални"><input type="number" value={(editing as any).bedrooms ?? ""} onChange={(e) => setEditing({ ...editing, bedrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
               <Field label="Бани"><input type="number" value={(editing as any).bathrooms ?? ""} onChange={(e) => setEditing({ ...editing, bathrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
-              <Field label="Cover image URL" className="md:col-span-2">
-                <input type="url" value={(editing as any).cover_image_url ?? ""} onChange={(e) => setEditing({ ...editing, cover_image_url: e.target.value } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
+              <Field label="Снимки от галерия" className="md:col-span-2">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-amber-700/40 bg-white/70 px-4 py-4 text-sm text-[#5a3a14] hover:bg-white">
+                  <Upload className="h-4 w-4" />
+                  <span>
+                    {uploadingNew
+                      ? "Качване…"
+                      : pendingImages.length
+                        ? `Избрани ${pendingImages.length} файла — добави още`
+                        : "Избери снимки (можеш да маркираш много наведнъж)"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files ?? []);
+                      if (files.length) setPendingImages((prev) => [...prev, ...files]);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {!!pendingImages.length && (
+                  <div className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+                    {pendingImages.map((f, i) => (
+                      <div key={`${f.name}-${i}`} className="group relative overflow-hidden rounded-md border border-amber-700/30">
+                        <img src={URL.createObjectURL(f)} alt={f.name} className="aspect-square w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setPendingImages((prev) => prev.filter((_, idx) => idx !== i))}
+                          className="absolute right-0.5 top-0.5 rounded-full bg-rose-500/90 p-0.5 text-white opacity-0 transition group-hover:opacity-100"
+                          title="Премахни"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-1 text-[11px] text-[#5a3a14]/70">
+                  Първата снимка става корица. След запис можеш да добавиш още от иконата „Снимки".
+                </p>
               </Field>
               <Field label="Описание" className="md:col-span-2">
                 <textarea rows={4} value={(editing as any).description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
