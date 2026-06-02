@@ -2,12 +2,14 @@ import { useEffect, useState as useReactState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import {
+  Award,
   Bath,
   BedDouble,
   Building2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Compass,
   Heart,
   House,
   LandPlot,
@@ -17,10 +19,12 @@ import {
   Ruler,
   Search,
   Share2,
+  Shield,
   SlidersHorizontal,
   Sparkles,
   Square,
   Trees,
+  Trophy,
   User,
   Box,
 } from "lucide-react";
