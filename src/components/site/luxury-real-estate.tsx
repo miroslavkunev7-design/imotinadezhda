@@ -562,10 +562,81 @@ function formatPrice(p: number | string, currency = "EUR") {
   return `${sym} ${new Intl.NumberFormat("bg-BG").format(num)}`;
 }
 
-export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?: FeaturedListing[] } = {}) {
+export function HomePage({
+  cities,
+  featured,
+  layout,
+}: {
+  cities?: HomeCity[];
+  featured?: FeaturedListing[];
+  layout?: Array<{ id: string; visible: boolean }> | null;
+} = {}) {
   const cityList = (cities && cities.length ? cities : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug })))
     .map((c) => ({ ...c, image: citySlugImages[c.slug] || c.image || burgasHero }));
   const cityOpts = cityList.map((c) => ({ slug: c.slug, name: c.name }));
+
+  // Default order if no saved layout
+  const defaults: Array<{ id: string; visible: boolean }> = [
+    { id: "hero-search-mobile", visible: true },
+    { id: "hero-search-desktop", visible: true },
+    { id: "cities-grid", visible: true },
+  ];
+  const known = new Set(defaults.map((d) => d.id));
+  const sections = (() => {
+    if (!layout || !Array.isArray(layout)) return defaults;
+    const seen = new Set<string>();
+    const out: Array<{ id: string; visible: boolean }> = [];
+    for (const s of layout) {
+      if (known.has(s.id) && !seen.has(s.id)) {
+        out.push({ id: s.id, visible: !!s.visible });
+        seen.add(s.id);
+      }
+    }
+    for (const d of defaults) if (!seen.has(d.id)) out.push(d);
+    return out;
+  })();
+
+  const sectionNode = (id: string) => {
+    switch (id) {
+      case "hero-search-mobile":
+        return (
+          <div
+            key={id}
+            data-section-id="hero-search-mobile"
+            className="relative z-20 mx-auto mt-[220px] w-full max-w-[1440px] px-4 sm:mt-[240px] md:mt-7 md:px-8 lg:hidden"
+          >
+            <SearchBar cities={cityOpts} variant="burgundy" />
+          </div>
+        );
+      case "hero-search-desktop":
+        return (
+          <div key={id} data-section-id="hero-search-desktop" className="mb-4 hidden lg:block">
+            <SearchBar cities={cityOpts} variant="burgundy" />
+          </div>
+        );
+      case "cities-grid":
+        return (
+          <div key={id} data-section-id="cities-grid" className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
+            {cityList.map((city) => (
+              <CityCard
+                key={city.slug}
+                name={city.name}
+                image={city.image}
+                href="/cities/$slug"
+                params={{ slug: city.slug }}
+              />
+            ))}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const visible = sections.filter((s) => s.visible);
+  const mobileSections = visible.filter((s) => s.id === "hero-search-mobile");
+  const desktopSections = visible.filter((s) => s.id !== "hero-search-mobile");
+
   return (
     <main className="luxury-page flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:max-h-screen lg:overflow-hidden">
       <section
@@ -579,31 +650,12 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
       >
         <LuxuryHeader active="sale" />
 
-        {/* Mobile/tablet: search near the top under header — pushed below splash logo */}
-        <div className="relative z-20 mx-auto mt-[220px] w-full max-w-[1440px] px-4 sm:mt-[240px] md:mt-7 md:px-8 lg:hidden">
-          <SearchBar cities={cityOpts} variant="burgundy" />
-        </div>
-
+        {mobileSections.map((s) => sectionNode(s.id))}
 
         <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-5 md:px-8 md:pt-7">
-          {/* Desktop: search bar sits directly above the city cards */}
-          <div className="mb-4 hidden lg:block">
-            <SearchBar cities={cityOpts} variant="burgundy" />
-          </div>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
-            {cityList.map((city) => (
-              <CityCard
-                key={city.slug}
-                name={city.name}
-                image={city.image}
-                href="/cities/$slug"
-                params={{ slug: city.slug }}
-              />
-            ))}
-          </div>
+          {desktopSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
-
     </main>
   );
 }

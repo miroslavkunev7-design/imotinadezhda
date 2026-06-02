@@ -1,51 +1,44 @@
+# Визуален редактор на страници
 
-## 1. Нов таб в Настройки (CRM Admin)
+Нова секция `/admin/settings/page-editor` — отваря избрана страница (Home / Sale / Rent / About / Contacts) в iframe с overlay за редактиране. Работи в 3 фази, за да получиш бързо стойност без да чупим production сайта.
 
-Добавям `/admin/settings/images` (линк "Промяна на снимки" в side menu на Настройки).
+## Фаза 1 — Подредба на секции (drag & drop + show/hide) ⭐ започвам с това
 
-### Секция A — Background на сайта (само админ)
-- Списък със страниците: Home, За продажба, Под наем, За нас, Контакти.
-- За всяка страница: upload на нова background снимка + live preview в две рамки: **Desktop (1440×900)** и **Mobile (375×812)**, една до друга.
-- Бутони "Запази" / "Откажи".
-- Снимките се пазят в нова таблица `page_backgrounds (page_key, image_url, updated_by, updated_at)` и storage bucket `page-backgrounds` (public).
-- Frontend компонентите четат от тази таблица (с public read RLS) и fallback към текущите дефолти.
+- Изброявам всички секции на избраната страница (Hero, Търсачка, Градове, Featured имоти, Quarters, За нас банер и т.н.) като карти в страничен панел.
+- Drag handle до всяка карта → местиш с мишката нагоре/надолу. Реалния preview в iframe се обновява веднага.
+- Toggle "око" → скриване/показване на секция на публичния сайт.
+- Бутон "Запази" → записва подредбата в нова таблица `page_layouts (page_key, sections jsonb, updated_by, updated_at)`.
+- Публичните компоненти (HomePage, search.tsx, about.tsx) четат подредбата и рендерират секциите в новия ред, скривайки изключените.
+- Има бутон "Възстанови оригинала".
 
-### Секция B — Background на CRM модула (всеки брокер/админ за себе си)
-- Upload + двоен preview (desktop/mobile).
-- Пази се в `profiles.crm_background_url` (нова колона).
-- Влияе само на `/admin/*` layout-а на текущия user.
+**Защо първо това:** дава ти 80% от контрола (кое къде стои, кое се вижда) без риск да счупим дизайна, защото компонентите остават както са.
 
-### Секция C — Карти Градове / Квартали (само админ)
-- Grid с всички градове / всички квартали.
-- За всяка карта: thumbnail + бутони **Смени снимка**, **Скрий/Покажи** (toggle `is_published`), **Изтрий**.
-- Бутон **+ Добави нов град** / **+ Добави нов квартал** (модал: име, slug auto, снимка).
-- Update-ва `cities.hero_image_url` / `quarters.image_url`.
+## Фаза 2 — Inline редактор на текст и снимки
 
-Всичко през `createServerFn` + `requireSupabaseAuth` с проверка `has_role(uid, 'admin')` за глобалните неща.
+- Кликаш върху всеки текст в preview-то → редактираш на място (заглавия, подзаглавия, бутони, описания).
+- Кликаш върху всяка снимка → upload на нова.
+- Промените се пазят в `page_content (page_key, slot_key, value jsonb)` и компонентите ги четат с fallback към текущите defaults.
+- Бутон "AI помощ" до всяко текстово поле → отваря prompt ("направи го по-кратко", "по-продаващ тон" и т.н.) и презаписва текста чрез Lovable AI (Gemini 2.5 Flash).
 
-## 2. Домейн imotinadezhda.bg (SuperHosting.bg)
+## Фаза 3 — Свободно местене и преоразмеряване (AI асистент)
 
-Lovable не може да управлява .bg регистрация. Стъпки за теб в SuperHosting контролния панел (DNS Manager):
+- В preview-то добавям resize handles и free-drag на отделни блокове.
+- Промените се пазят като per-block CSS overrides (`width`, `height`, `padding`, `margin`, `order`).
+- AI бутон "Опиши какво искаш да промениш" → Gemini вижда текущия layout + промпта и връща patch към overrides таблицата.
 
-```
-A   @       185.158.133.1
-A   www     185.158.133.1
-TXT _lovable lovable_verify=<ще ти го дам от Lovable>
-```
+⚠️ **Честно предупреждение за Фаза 3:** свободно местене на production компоненти лесно чупи responsive дизайна (mobile/tablet/desktop се чупят различно). Препоръчвам първо да изкараме Фаза 1+2 в работен вид и тогава да решим колко свобода даваме във Фаза 3 (примерно само padding/spacing вместо пълен free-drag).
 
-След това в Lovable: **Project Settings → Domains → Connect Domain → imotinadezhda.bg**, копираш TXT стойността, чакаш до ~30 мин за propagation, SSL се издава автоматично.
+## Технически детайли (за справка)
 
-Аз ще ти подам точните стойности след като влезеш в Domains таба.
+- Нови таблици: `page_layouts`, `page_content`, `page_overrides`. RLS: SELECT за всички (anon + authenticated), INSERT/UPDATE/DELETE само за admin.
+- Нов route: `src/routes/_authenticated/admin/settings/page-editor.tsx` + `?page=home|sale|rent|about|contacts`.
+- Iframe сочи към публичната страница с `?__editor=1` query parameter → публичните компоненти добавят `data-section-id` атрибути и слушат `postMessage` за highlight/hover.
+- Server functions: `getPageLayout`, `savePageLayout`, `getPageContent`, `savePageContent`, `aiRewriteText`.
+- Refactor: всеки секционен компонент в `luxury-real-estate.tsx`, `search.tsx`, `about.tsx`, `contacts.tsx` се изнася в отделен файл с уникален `slotKey`, за да може editor-ът да ги адресира.
+- Добавям връзка от `/admin/settings` → "Редактор на страници".
 
-## 3. GitHub push
+## Скоуп на тази заявка
 
-GitHub вече е свързан — всяка моя промяна автоматично се push-ва в твоето repo. Няма нужда от ръчен push.
+Започвам **само с Фаза 1**. След като я видиш и работи, продължавам с Фаза 2, после Фаза 3.
 
-## Технически детайли
-
-- Migration: нова таблица `page_backgrounds`, нова колона `profiles.crm_background_url`, нов public bucket `page-backgrounds`.
-- RLS: public SELECT на `page_backgrounds`; INSERT/UPDATE/DELETE само за admin. `profiles.crm_background_url` — own update (вече има policy).
-- Нови файлове: `src/routes/_authenticated/admin/settings/images.tsx`, `src/lib/site-images.functions.ts`, `src/components/admin/settings/*` компоненти.
-- Refactor: home/listings hero компонентите четат `page_backgrounds`; admin shell чете `profiles.crm_background_url`.
-
-Потвърди и започвам.
+Потвърди и започвам с миграцията + Фаза 1.
