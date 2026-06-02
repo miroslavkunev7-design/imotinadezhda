@@ -1,31 +1,38 @@
 import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
-import navbarAsset from "@/assets/navbar-bg.jpg.asset.json";
+import navbarDesktop from "@/assets/navbar-desktop.png.asset.json";
+import navbarMobile from "@/assets/navbar-mobile.png.asset.json";
 import { cn } from "@/lib/utils";
 
 export type SiteNavKey = "sale" | "rent" | "about";
 
-type NavItem = {
+type Hotspot = {
   key: SiteNavKey | "profile";
   label: string;
   to: string;
   search?: Record<string, string>;
-  /** Hotspot in % of the reference image (1280x530). */
   left: number;
   right: number;
 };
 
-// Hotspots measured against file_8970.jpg (1280x530). Vertical band ~46%-74%.
-const HOTSPOTS: NavItem[] = [
-  { key: "sale",    label: "За продажба", to: "/search", search: { status: "sale" }, left: 41.5, right: 57 },
-  { key: "rent",    label: "Под наем",   to: "/search", search: { status: "rent" }, left: 60.5, right: 75 },
-  { key: "about",   label: "За нас",     to: "/about",                                left: 77.5, right: 88 },
-  { key: "profile", label: "Профил",     to: "/login",  search: { redirect: "/admin" }, left: 91, right: 98 },
+// Desktop image is 1367x307. Hotspots in % of that image.
+const DESKTOP_HOTSPOTS: Hotspot[] = [
+  { key: "sale",    label: "За продажба", to: "/search", search: { status: "sale" }, left: 37,  right: 51 },
+  { key: "rent",    label: "Под наем",    to: "/search", search: { status: "rent" }, left: 56,  right: 69.5 },
+  { key: "about",   label: "За нас",      to: "/about",                                left: 72,  right: 85 },
+  { key: "profile", label: "Профил",      to: "/login",  search: { redirect: "/admin" }, left: 92, right: 99 },
 ];
+const DESKTOP_BAND = { top: 28, bottom: 70 };
 
-const BAND_TOP = 46;
-const BAND_BOTTOM = 74;
+// Mobile image is 1024x301. Icons-only nav.
+const MOBILE_HOTSPOTS: Hotspot[] = [
+  { key: "sale",    label: "За продажба", to: "/search", search: { status: "sale" }, left: 50.5, right: 60.5 },
+  { key: "rent",    label: "Под наем",    to: "/search", search: { status: "rent" }, left: 63,   right: 73 },
+  { key: "about",   label: "За нас",      to: "/about",                                left: 75.5, right: 85.5 },
+  { key: "profile", label: "Профил",      to: "/login",  search: { redirect: "/admin" }, left: 88, right: 98 },
+];
+const MOBILE_BAND = { top: 33, bottom: 73 };
 
 export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const navigate = useNavigate();
@@ -49,42 +56,49 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
     }, 420);
   };
 
+  const renderArt = (
+    src: string,
+    aspect: string,
+    hotspots: Hotspot[],
+    band: { top: number; bottom: number },
+    logoRight: number,
+    className: string,
+  ) => (
+    <div
+      className={cn("site-header__art", className)}
+      style={{ aspectRatio: aspect, backgroundImage: `url(${src})` }}
+      role="navigation"
+      aria-label="Главно меню"
+    >
+      <Link
+        to="/"
+        onClick={handleLogo}
+        aria-label="Начало — Недвижими имоти Надежда"
+        className="site-header__hotspot"
+        style={{ left: "0%", right: `${100 - logoRight}%`, top: "5%", bottom: "5%" }}
+      />
+      {hotspots.map((item) => (
+        <Link
+          key={item.key}
+          to={item.to}
+          search={item.search as never}
+          aria-label={item.label}
+          className={cn("site-header__hotspot", active && active === item.key && "is-active")}
+          style={{
+            left: `${item.left}%`,
+            right: `${100 - item.right}%`,
+            top: `${band.top}%`,
+            bottom: `${100 - band.bottom}%`,
+          }}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <header className="site-header">
-      <div
-        className="site-header__art"
-        style={{ backgroundImage: `url(${navbarAsset.url})` }}
-        role="navigation"
-        aria-label="Главно меню"
-      >
-        {/* Logo scroll hotspot (left ribbon) */}
-        <Link
-          to="/"
-          onClick={handleLogo}
-          aria-label="Начало — Недвижими имоти Надежда"
-          className="site-header__hotspot"
-          style={{ left: "1%", right: "62%", top: `${BAND_TOP - 14}%`, bottom: `${100 - BAND_BOTTOM - 10}%` }}
-        />
-
-        {HOTSPOTS.map((item) => (
-          <Link
-            key={item.key}
-            to={item.to}
-            search={item.search as never}
-            aria-label={item.label}
-            className={cn(
-              "site-header__hotspot",
-              active && active === item.key && "is-active",
-            )}
-            style={{
-              left: `${item.left}%`,
-              right: `${100 - item.right}%`,
-              top: `${BAND_TOP}%`,
-              bottom: `${100 - BAND_BOTTOM}%`,
-            }}
-          />
-        ))}
-      </div>
+      {renderArt(navbarDesktop.url, "1367 / 307", DESKTOP_HOTSPOTS, DESKTOP_BAND, 35, "site-header__art--desktop")}
+      {renderArt(navbarMobile.url, "1024 / 301", MOBILE_HOTSPOTS, MOBILE_BAND, 50, "site-header__art--mobile")}
     </header>
   );
 }
