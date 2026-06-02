@@ -413,3 +413,18 @@ body:has(.luxury-page) {
   max-height: 100vh;
   overflow: hidden;
 }
+
+/* Mobile: allow scrolling so city cards and search bar aren't clipped. */
+@media (max-width: 1023px) {
+  body:has(.luxury-page) {
+    max-height: none;
+    height: auto;
+    overflow: auto;
+  }
+  .luxury-page {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
