@@ -1016,7 +1016,7 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
 
 
       <section className="relative px-3 pb-12 md:px-6 md:pb-16">
-        <div className="mx-auto mt-4 grid max-w-[1460px] gap-6 px-2 md:px-4 xl:grid-cols-[270px_1fr_360px] xl:items-start">
+        <div className="mx-auto mt-4 grid max-w-[1460px] gap-6 px-2 pt-[120px] md:px-4 md:pt-[180px] xl:grid-cols-[270px_1fr_360px] xl:items-start xl:pt-[230px]">
           <aside className="marble-dark-panel rounded-[22px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(139, 26, 43,0.32)]">
             <div className="mb-5 text-center font-display text-[1.55rem] text-primary-foreground">Бързи филтри</div>
             <div className="space-y-6">
