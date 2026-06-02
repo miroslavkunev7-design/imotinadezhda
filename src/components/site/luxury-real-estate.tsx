@@ -472,10 +472,6 @@ function RangeCell({
   );
 }
 
-import cityCardBurgas from "@/assets/city-card-burgas.png.asset.json";
-import cityCardVarna from "@/assets/city-card-varna.png.asset.json";
-import cityCardShumen from "@/assets/city-card-shumen.png.asset.json";
-import cityCardNoviPazar from "@/assets/city-card-novi-pazar.png.asset.json";
 
 const cityCardArt: Record<string, string> = {
   burgas: cityCardBurgas.url,
