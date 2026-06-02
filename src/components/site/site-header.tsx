@@ -109,7 +109,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             src={logoNadezhda}
             alt="Недвижими имоти ИЛДЖ.ИА"
             draggable={false}
-            className="h-[74px] w-auto object-contain md:h-[112px] lg:h-[140px]"
+            className="h-[90px] w-auto object-contain md:h-[140px] lg:h-[176px]"
             style={{ filter: "brightness(0) invert(1)" }}
           />
         </Link>
