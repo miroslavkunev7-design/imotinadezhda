@@ -322,13 +322,13 @@ function RangeCell({
           <span className="text-[9px] text-primary/60 md:text-[11px]">от</span>
           <input value={minVal} onChange={(e) => onMin(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-9 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
-          <span className="text-[9px] text-primary/60 md:text-[11px]">{suffix}</span>
+            className="w-8 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
+          <span className="hidden text-[9px] text-primary/60 md:inline md:text-[11px]">{suffix}</span>
           <span className="mx-0.5 text-primary/40">·</span>
           <span className="text-[9px] text-primary/60 md:text-[11px]">до</span>
           <input value={maxVal} onChange={(e) => onMax(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-9 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
+            className="w-8 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
           <span className="text-[9px] text-primary/60 md:text-[11px]">{suffix}</span>
         </div>
       </div>
