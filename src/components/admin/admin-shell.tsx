@@ -76,8 +76,21 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const [matchBadge, setMatchBadge] = useState<number>(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [installAvailable, setInstallAvailable] = useState(false);
+  const [crmBg, setCrmBg] = useState<string | null>(null);
 
   useEffect(() => onInstallAvailabilityChange(setInstallAvailable), []);
+
+  useEffect(() => {
+    if (!user) return;
+    import("@/integrations/supabase/client").then(({ supabase }) =>
+      supabase
+        .from("profiles")
+        .select("crm_background_url")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => setCrmBg(data?.crm_background_url ?? null))
+    );
+  }, [user]);
 
   useEffect(() => {
     let cancel = false;
