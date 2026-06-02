@@ -332,10 +332,14 @@ function CameraCapture({
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => {});
         }
-        await loadOpenCv();
-        scannerRef.current = await getScanner();
+        // Camera is ready IMMEDIATELY — no wait for OpenCV
         setStatus("ready");
         startDetectionLoop();
+        // Lazy-load scanner in background for the edge-highlight overlay
+        loadOpenCv()
+          .then(() => getScanner())
+          .then((s) => { if (!cancelled) scannerRef.current = s; })
+          .catch(() => { /* overlay simply stays off */ });
       } catch (e: any) {
         setErrorMsg(e?.message ?? "Няма достъп до камера");
         setStatus("error");
@@ -354,7 +358,7 @@ function CameraCapture({
       const video = videoRef.current;
       const canvas = overlayRef.current;
       const scanner = scannerRef.current;
-      if (video && canvas && scanner && video.readyState >= 2) {
+      if (video && canvas && video.readyState >= 2) {
         const vw = video.videoWidth;
         const vh = video.videoHeight;
         if (vw && vh) {
@@ -366,12 +370,12 @@ function CameraCapture({
           if (ctx) {
             ctx.clearRect(0, 0, vw, vh);
             ctx.drawImage(video, 0, 0, vw, vh);
-            try {
-              const highlighted = scanner.highlightPaper(canvas) as HTMLCanvasElement;
-              ctx.clearRect(0, 0, vw, vh);
-              ctx.drawImage(highlighted, 0, 0);
-            } catch {
-              /* ignore frame errors */
+            if (scanner) {
+              try {
+                const highlighted = scanner.highlightPaper(canvas) as HTMLCanvasElement;
+                ctx.clearRect(0, 0, vw, vh);
+                ctx.drawImage(highlighted, 0, 0);
+              } catch { /* ignore frame errors */ }
             }
           }
         }
@@ -383,8 +387,7 @@ function CameraCapture({
 
   const capture = async () => {
     const video = videoRef.current;
-    const scanner = scannerRef.current;
-    if (!video || !scanner) return;
+    if (!video) return;
     setShooting(true);
     try {
       const vw = video.videoWidth;
@@ -393,16 +396,10 @@ function CameraCapture({
       tmp.width = vw;
       tmp.height = vh;
       tmp.getContext("2d")!.drawImage(video, 0, 0, vw, vh);
-      let outCanvas: HTMLCanvasElement;
-      try {
-        outCanvas = scanner.extractPaper(tmp, vw, vh) as HTMLCanvasElement;
-      } catch {
-        outCanvas = tmp;
-      }
-      const enhanced = enhanceDocument(outCanvas);
-      const dataUrl = enhanced.toDataURL("image/jpeg", 0.95);
+      // Capture is INSTANT — no enhancement in the gesture handler
+      const dataUrl = tmp.toDataURL("image/jpeg", 0.9);
       const nextIndex = startCount + shots + 1;
-      onCapture(dataUrl, enhanced.width, enhanced.height, nextIndex);
+      onCapture(dataUrl, tmp.width, tmp.height, nextIndex);
       setShots((s) => s + 1);
       setLastShot(dataUrl);
       toast.success(`Страница ${nextIndex} добавена`);
@@ -412,6 +409,7 @@ function CameraCapture({
       setShooting(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[#8B1A2B]">
