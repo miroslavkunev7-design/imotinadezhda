@@ -775,6 +775,8 @@ export function HomePage({
             ))}
           </div>
         );
+      case "trust-strip":
+        return <TrustStrip key={id} />;
       default:
         return null;
     }
