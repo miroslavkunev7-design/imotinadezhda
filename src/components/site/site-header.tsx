@@ -61,15 +61,16 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
         }}
       />
       <div className="relative h-[56px] w-full md:h-[150px] lg:h-[180px]">
-        {/* Organic ink-splash burgundy panel (left) */}
+        {/* Organic ink-splash burgundy panel (left).
+            Mobile: nudged down + cropped to hide the trailing transparent tail. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-0 top-0 h-[150%] w-[320px] sm:w-[400px] md:w-[520px] lg:w-[640px]"
+          className="pointer-events-none absolute left-0 top-2 h-[150%] w-[240px] overflow-hidden sm:w-[400px] md:top-0 md:w-[520px] lg:w-[640px]"
         >
           <svg
             viewBox="0 0 640 240"
-            preserveAspectRatio="none"
-            className="h-full w-full"
+            preserveAspectRatio="xMinYMin slice"
+            className="h-full w-full md:[preserve-aspect-ratio:none]"
             style={{ filter: "drop-shadow(0 14px 30px rgba(139,26,43,0.45))" }}
           >
             <defs>
