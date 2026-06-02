@@ -58,13 +58,13 @@ const NAV: NavItem[] = [
   { to: "/admin/contracts", label: "Договори", icon: FileText },
   { to: "/admin/audit", label: "Одит лог", icon: ShieldCheck },
   { to: "/admin/owners", label: "Собственици", icon: Crown },
-  { to: "/admin/chat", label: "Чат", icon: MessageCircle, disabled: true },
-  { to: "/admin/calendar", label: "Календар", icon: Calendar, disabled: true },
-  { to: "/admin/finance", label: "Финанси", icon: Wallet, disabled: true },
-  { to: "/admin/marketing", label: "Маркетинг", icon: Megaphone, disabled: true },
-  { to: "/admin/tasks", label: "Задачи", icon: CheckSquare, disabled: true },
-  { to: "/admin/documents", label: "Документи", icon: FolderOpen, disabled: true },
-  { to: "/admin/settings", label: "Настройки", icon: Settings, disabled: true },
+  { to: "/admin/chat", label: "Чат", icon: MessageCircle },
+  { to: "/admin/calendar", label: "Календар", icon: Calendar },
+  { to: "/admin/finance", label: "Финанси", icon: Wallet },
+  { to: "/admin/marketing", label: "Маркетинг", icon: Megaphone },
+  { to: "/admin/tasks", label: "Задачи", icon: CheckSquare },
+  { to: "/admin/documents", label: "Документи", icon: FolderOpen },
+  { to: "/admin/settings", label: "Настройки", icon: Settings },
 ];
 
 export function AdminShell({ children, breadcrumb }: { children: ReactNode; breadcrumb?: string }) {

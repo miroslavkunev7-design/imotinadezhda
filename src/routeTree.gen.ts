@@ -17,17 +17,24 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PropertiesPropertyIdRouteImport } from './routes/properties.$propertyId'
+import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminQuartersRouteImport } from './routes/admin.quarters'
 import { Route as AdminPropertiesRouteImport } from './routes/admin.properties'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
 import { Route as AdminOwnersRouteImport } from './routes/admin.owners'
 import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
+import { Route as AdminMarketingRouteImport } from './routes/admin.marketing'
 import { Route as AdminInquiriesRouteImport } from './routes/admin.inquiries'
+import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminExtractedRouteImport } from './routes/admin.extracted'
+import { Route as AdminDocumentsRouteImport } from './routes/admin.documents'
 import { Route as AdminDatabaseRouteImport } from './routes/admin.database'
 import { Route as AdminContractsRouteImport } from './routes/admin.contracts'
 import { Route as AdminClientsRouteImport } from './routes/admin.clients'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
+import { Route as AdminChatRouteImport } from './routes/admin.chat'
+import { Route as AdminCalendarRouteImport } from './routes/admin.calendar'
 import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
@@ -77,6 +84,16 @@ const PropertiesPropertyIdRoute = PropertiesPropertyIdRouteImport.update({
   path: '/properties/$propertyId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminTasksRoute = AdminTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminQuartersRoute = AdminQuartersRouteImport.update({
   id: '/quarters',
   path: '/quarters',
@@ -102,14 +119,29 @@ const AdminMatchesRoute = AdminMatchesRouteImport.update({
   path: '/matches',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMarketingRoute = AdminMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInquiriesRoute = AdminInquiriesRouteImport.update({
   id: '/inquiries',
   path: '/inquiries',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminFinanceRoute = AdminFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminExtractedRoute = AdminExtractedRouteImport.update({
   id: '/extracted',
   path: '/extracted',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDocumentsRoute = AdminDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDatabaseRoute = AdminDatabaseRouteImport.update({
@@ -130,6 +162,16 @@ const AdminClientsRoute = AdminClientsRouteImport.update({
 const AdminCitiesRoute = AdminCitiesRouteImport.update({
   id: '/cities',
   path: '/cities',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminChatRoute = AdminChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCalendarRoute = AdminCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminBrokersRoute = AdminBrokersRouteImport.update({
@@ -185,17 +227,24 @@ export interface FileRoutesByFullPath {
   '/admin/ai': typeof AdminAiRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
   '/admin/brokers': typeof AdminBrokersRoute
+  '/admin/calendar': typeof AdminCalendarRoute
+  '/admin/chat': typeof AdminChatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contracts': typeof AdminContractsRoute
   '/admin/database': typeof AdminDatabaseRoute
+  '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
+  '/admin/finance': typeof AdminFinanceRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
+  '/admin/marketing': typeof AdminMarketingRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/owners': typeof AdminOwnersRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
@@ -213,17 +262,24 @@ export interface FileRoutesByTo {
   '/admin/ai': typeof AdminAiRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
   '/admin/brokers': typeof AdminBrokersRoute
+  '/admin/calendar': typeof AdminCalendarRoute
+  '/admin/chat': typeof AdminChatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contracts': typeof AdminContractsRoute
   '/admin/database': typeof AdminDatabaseRoute
+  '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
+  '/admin/finance': typeof AdminFinanceRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
+  '/admin/marketing': typeof AdminMarketingRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/owners': typeof AdminOwnersRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
@@ -243,17 +299,24 @@ export interface FileRoutesById {
   '/admin/ai': typeof AdminAiRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
   '/admin/brokers': typeof AdminBrokersRoute
+  '/admin/calendar': typeof AdminCalendarRoute
+  '/admin/chat': typeof AdminChatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contracts': typeof AdminContractsRoute
   '/admin/database': typeof AdminDatabaseRoute
+  '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
+  '/admin/finance': typeof AdminFinanceRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
+  '/admin/marketing': typeof AdminMarketingRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/owners': typeof AdminOwnersRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
@@ -274,17 +337,24 @@ export interface FileRouteTypes {
     | '/admin/ai'
     | '/admin/audit'
     | '/admin/brokers'
+    | '/admin/calendar'
+    | '/admin/chat'
     | '/admin/cities'
     | '/admin/clients'
     | '/admin/contracts'
     | '/admin/database'
+    | '/admin/documents'
     | '/admin/extracted'
+    | '/admin/finance'
     | '/admin/inquiries'
+    | '/admin/marketing'
     | '/admin/matches'
     | '/admin/owners'
     | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
+    | '/admin/settings'
+    | '/admin/tasks'
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
@@ -302,17 +372,24 @@ export interface FileRouteTypes {
     | '/admin/ai'
     | '/admin/audit'
     | '/admin/brokers'
+    | '/admin/calendar'
+    | '/admin/chat'
     | '/admin/cities'
     | '/admin/clients'
     | '/admin/contracts'
     | '/admin/database'
+    | '/admin/documents'
     | '/admin/extracted'
+    | '/admin/finance'
     | '/admin/inquiries'
+    | '/admin/marketing'
     | '/admin/matches'
     | '/admin/owners'
     | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
+    | '/admin/settings'
+    | '/admin/tasks'
     | '/properties/$propertyId'
     | '/admin'
     | '/admin/audit/$id'
@@ -331,17 +408,24 @@ export interface FileRouteTypes {
     | '/admin/ai'
     | '/admin/audit'
     | '/admin/brokers'
+    | '/admin/calendar'
+    | '/admin/chat'
     | '/admin/cities'
     | '/admin/clients'
     | '/admin/contracts'
     | '/admin/database'
+    | '/admin/documents'
     | '/admin/extracted'
+    | '/admin/finance'
     | '/admin/inquiries'
+    | '/admin/marketing'
     | '/admin/matches'
     | '/admin/owners'
     | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
+    | '/admin/settings'
+    | '/admin/tasks'
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
@@ -423,6 +507,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropertiesPropertyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/tasks': {
+      id: '/admin/tasks'
+      path: '/tasks'
+      fullPath: '/admin/tasks'
+      preLoaderRoute: typeof AdminTasksRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/quarters': {
       id: '/admin/quarters'
       path: '/quarters'
@@ -458,6 +556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMatchesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/marketing': {
+      id: '/admin/marketing'
+      path: '/marketing'
+      fullPath: '/admin/marketing'
+      preLoaderRoute: typeof AdminMarketingRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inquiries': {
       id: '/admin/inquiries'
       path: '/inquiries'
@@ -465,11 +570,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInquiriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/finance': {
+      id: '/admin/finance'
+      path: '/finance'
+      fullPath: '/admin/finance'
+      preLoaderRoute: typeof AdminFinanceRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/extracted': {
       id: '/admin/extracted'
       path: '/extracted'
       fullPath: '/admin/extracted'
       preLoaderRoute: typeof AdminExtractedRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/documents': {
+      id: '/admin/documents'
+      path: '/documents'
+      fullPath: '/admin/documents'
+      preLoaderRoute: typeof AdminDocumentsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/database': {
@@ -498,6 +617,20 @@ declare module '@tanstack/react-router' {
       path: '/cities'
       fullPath: '/admin/cities'
       preLoaderRoute: typeof AdminCitiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/chat': {
+      id: '/admin/chat'
+      path: '/chat'
+      fullPath: '/admin/chat'
+      preLoaderRoute: typeof AdminChatRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/calendar': {
+      id: '/admin/calendar'
+      path: '/calendar'
+      fullPath: '/admin/calendar'
+      preLoaderRoute: typeof AdminCalendarRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/brokers': {
@@ -575,17 +708,24 @@ interface AdminRouteChildren {
   AdminAiRoute: typeof AdminAiRoute
   AdminAuditRoute: typeof AdminAuditRouteWithChildren
   AdminBrokersRoute: typeof AdminBrokersRoute
+  AdminCalendarRoute: typeof AdminCalendarRoute
+  AdminChatRoute: typeof AdminChatRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminClientsRoute: typeof AdminClientsRoute
   AdminContractsRoute: typeof AdminContractsRoute
   AdminDatabaseRoute: typeof AdminDatabaseRoute
+  AdminDocumentsRoute: typeof AdminDocumentsRoute
   AdminExtractedRoute: typeof AdminExtractedRoute
+  AdminFinanceRoute: typeof AdminFinanceRoute
   AdminInquiriesRoute: typeof AdminInquiriesRoute
+  AdminMarketingRoute: typeof AdminMarketingRoute
   AdminMatchesRoute: typeof AdminMatchesRoute
   AdminOwnersRoute: typeof AdminOwnersRoute
   AdminProfileRoute: typeof AdminProfileRoute
   AdminPropertiesRoute: typeof AdminPropertiesRoute
   AdminQuartersRoute: typeof AdminQuartersRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTasksRoute: typeof AdminTasksRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -593,17 +733,24 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAiRoute: AdminAiRoute,
   AdminAuditRoute: AdminAuditRouteWithChildren,
   AdminBrokersRoute: AdminBrokersRoute,
+  AdminCalendarRoute: AdminCalendarRoute,
+  AdminChatRoute: AdminChatRoute,
   AdminCitiesRoute: AdminCitiesRoute,
   AdminClientsRoute: AdminClientsRoute,
   AdminContractsRoute: AdminContractsRoute,
   AdminDatabaseRoute: AdminDatabaseRoute,
+  AdminDocumentsRoute: AdminDocumentsRoute,
   AdminExtractedRoute: AdminExtractedRoute,
+  AdminFinanceRoute: AdminFinanceRoute,
   AdminInquiriesRoute: AdminInquiriesRoute,
+  AdminMarketingRoute: AdminMarketingRoute,
   AdminMatchesRoute: AdminMatchesRoute,
   AdminOwnersRoute: AdminOwnersRoute,
   AdminProfileRoute: AdminProfileRoute,
   AdminPropertiesRoute: AdminPropertiesRoute,
   AdminQuartersRoute: AdminQuartersRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminTasksRoute: AdminTasksRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -625,13 +772,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

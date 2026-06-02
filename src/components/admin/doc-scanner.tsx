@@ -60,6 +60,7 @@ export function DocScanner() {
   const [name, setName] = useState("Сканиран документ");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [autoEnhance, setAutoEnhance] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddClick = () => setPickerOpen(true);
@@ -74,43 +75,76 @@ export function DocScanner() {
     setCameraOpen(true);
   };
 
-  const addProcessed = (src: string, w: number, h: number, label: string) => {
-    setPages((p) => [...p, { id: crypto.randomUUID(), src, w, h, name: label }]);
+  const addProcessed = (src: string, w: number, h: number, label: string): string => {
+    const id = crypto.randomUUID();
+    setPages((p) => [...p, { id, src, w, h, name: label }]);
+    return id;
+  };
+
+  // Run heavy OpenCV+jscanify enhancement in the background — UI stays responsive.
+  const enhancePageInBackground = async (pageId: string, sourceUrl: string) => {
+    try {
+      await new Promise((r) => setTimeout(r, 50));
+      const cv = await loadOpenCv().catch(() => null);
+      const scanner = cv ? await getScanner().catch(() => null) : null;
+      const img = await loadImage(sourceUrl);
+      let outCanvas: HTMLCanvasElement | null = null;
+      if (scanner) {
+        try {
+          outCanvas = scanner.extractPaper(img, img.naturalWidth, img.naturalHeight) as HTMLCanvasElement;
+        } catch { /* fallback */ }
+      }
+      await new Promise((r) => setTimeout(r, 0));
+      const enhanced = enhanceDocument(outCanvas ?? img);
+      const outUrl = enhanced.toDataURL("image/jpeg", 0.9);
+      setPages((p) => p.map((x) => x.id === pageId ? { ...x, src: outUrl, w: enhanced.width, h: enhanced.height } : x));
+    } catch {
+      /* keep original on failure */
+    }
+  };
+
+  // Downscale very large images to keep file size & rendering snappy.
+  const normalizeImage = async (file: File): Promise<{ url: string; w: number; h: number }> => {
+    const dataUrl = await fileToDataUrl(file);
+    const img = await loadImage(dataUrl);
+    const MAX = 1800;
+    const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.round(img.naturalWidth * scale);
+    const h = Math.round(img.naturalHeight * scale);
+    if (scale === 1) return { url: dataUrl, w, h };
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    c.getContext("2d")!.drawImage(img, 0, 0, w, h);
+    return { url: c.toDataURL("image/jpeg", 0.9), w, h };
   };
 
   const addFiles = async (files: FileList | null) => {
     if (!files?.length) return;
     setBusy(true);
     try {
-      const cv = await loadOpenCv().catch(() => null);
-      const scanner = cv ? await getScanner().catch(() => null) : null;
       for (const f of Array.from(files)) {
         if (!f.type.startsWith("image/")) {
           toast.error(`${f.name}: само снимки`);
           continue;
         }
-        const dataUrl = await fileToDataUrl(f);
-        const img = await loadImage(dataUrl);
-        let outCanvas: HTMLCanvasElement | null = null;
-        if (scanner) {
-          try {
-            outCanvas = scanner.extractPaper(img, img.naturalWidth, img.naturalHeight) as HTMLCanvasElement;
-          } catch {
-            /* fallback to original */
-          }
-        }
-        const enhanced = enhanceDocument(outCanvas ?? img);
-        const outUrl = enhanced.toDataURL("image/jpeg", 0.95);
-        const w = enhanced.width;
-        const h = enhanced.height;
-        addProcessed(outUrl, w, h, f.name);
+        const { url, w, h } = await normalizeImage(f);
+        const id = addProcessed(url, w, h, f.name);
+        if (autoEnhance) void enhancePageInBackground(id, url);
+        await new Promise((r) => setTimeout(r, 0));
       }
-      toast.success("Документът е обработен");
+      toast.success(autoEnhance ? "Добавено — подобряваме във фон" : "Добавено");
     } catch (e: any) {
       toast.error(e?.message ?? "Грешка при обработка");
     } finally {
       setBusy(false);
     }
+  };
+
+  const enhancePage = (id: string) => {
+    const page = pages.find((p) => p.id === id);
+    if (!page) return;
+    toast.info("Подобряваме страницата…");
+    void enhancePageInBackground(id, page.src);
   };
 
   const removePage = (id: string) => setPages((p) => p.filter((x) => x.id !== id));
@@ -161,6 +195,13 @@ export function DocScanner() {
               Стр. {i + 1}
             </div>
             <button
+              onClick={() => enhancePage(p.id)}
+              title="Подобри качеството"
+              className="absolute right-10 top-2 rounded-full bg-[#8B1A2B]/65 p-1.5 text-amber-200 opacity-0 transition group-hover:opacity-100 hover:bg-amber-500/30"
+            >
+              <ScanLine className="h-4 w-4" />
+            </button>
+            <button
               onClick={() => removePage(p.id)}
               className="absolute right-2 top-2 rounded-full bg-[#8B1A2B]/65 p-1.5 text-rose-300 opacity-0 transition group-hover:opacity-100"
             >
@@ -190,7 +231,11 @@ export function DocScanner() {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-100/60">
-        <span>{pages.length} страници</span>
+        <label className="inline-flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={autoEnhance} onChange={(e) => setAutoEnhance(e.target.checked)} className="accent-amber-400" />
+          <span>Авто-подобряване (по-бавно)</span>
+          <span className="text-amber-100/40">· {pages.length} стр.</span>
+        </label>
         <div className="flex gap-2">
           {pages.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => setPages([])} className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10">
@@ -287,10 +332,14 @@ function CameraCapture({
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => {});
         }
-        await loadOpenCv();
-        scannerRef.current = await getScanner();
+        // Camera is ready IMMEDIATELY — no wait for OpenCV
         setStatus("ready");
         startDetectionLoop();
+        // Lazy-load scanner in background for the edge-highlight overlay
+        loadOpenCv()
+          .then(() => getScanner())
+          .then((s) => { if (!cancelled) scannerRef.current = s; })
+          .catch(() => { /* overlay simply stays off */ });
       } catch (e: any) {
         setErrorMsg(e?.message ?? "Няма достъп до камера");
         setStatus("error");
@@ -309,7 +358,7 @@ function CameraCapture({
       const video = videoRef.current;
       const canvas = overlayRef.current;
       const scanner = scannerRef.current;
-      if (video && canvas && scanner && video.readyState >= 2) {
+      if (video && canvas && video.readyState >= 2) {
         const vw = video.videoWidth;
         const vh = video.videoHeight;
         if (vw && vh) {
@@ -321,12 +370,12 @@ function CameraCapture({
           if (ctx) {
             ctx.clearRect(0, 0, vw, vh);
             ctx.drawImage(video, 0, 0, vw, vh);
-            try {
-              const highlighted = scanner.highlightPaper(canvas) as HTMLCanvasElement;
-              ctx.clearRect(0, 0, vw, vh);
-              ctx.drawImage(highlighted, 0, 0);
-            } catch {
-              /* ignore frame errors */
+            if (scanner) {
+              try {
+                const highlighted = scanner.highlightPaper(canvas) as HTMLCanvasElement;
+                ctx.clearRect(0, 0, vw, vh);
+                ctx.drawImage(highlighted, 0, 0);
+              } catch { /* ignore frame errors */ }
             }
           }
         }
@@ -338,8 +387,7 @@ function CameraCapture({
 
   const capture = async () => {
     const video = videoRef.current;
-    const scanner = scannerRef.current;
-    if (!video || !scanner) return;
+    if (!video) return;
     setShooting(true);
     try {
       const vw = video.videoWidth;
@@ -348,16 +396,10 @@ function CameraCapture({
       tmp.width = vw;
       tmp.height = vh;
       tmp.getContext("2d")!.drawImage(video, 0, 0, vw, vh);
-      let outCanvas: HTMLCanvasElement;
-      try {
-        outCanvas = scanner.extractPaper(tmp, vw, vh) as HTMLCanvasElement;
-      } catch {
-        outCanvas = tmp;
-      }
-      const enhanced = enhanceDocument(outCanvas);
-      const dataUrl = enhanced.toDataURL("image/jpeg", 0.95);
+      // Capture is INSTANT — no enhancement in the gesture handler
+      const dataUrl = tmp.toDataURL("image/jpeg", 0.9);
       const nextIndex = startCount + shots + 1;
-      onCapture(dataUrl, enhanced.width, enhanced.height, nextIndex);
+      onCapture(dataUrl, tmp.width, tmp.height, nextIndex);
       setShots((s) => s + 1);
       setLastShot(dataUrl);
       toast.success(`Страница ${nextIndex} добавена`);
@@ -367,6 +409,7 @@ function CameraCapture({
       setShooting(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[#8B1A2B]">
