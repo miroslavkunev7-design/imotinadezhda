@@ -133,7 +133,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
  */
 function ScrollPanel() {
   return (
-    <div className="relative h-[64px] w-[150px] sm:h-[80px] sm:w-[180px] md:h-[132px] md:w-[300px] lg:h-[150px] lg:w-[340px]">
+    <div className="relative h-[56px] w-[132px] sm:h-[80px] sm:w-[180px] md:h-[132px] md:w-[300px] lg:h-[150px] lg:w-[340px]">
       <svg
         viewBox="0 0 340 150"
         preserveAspectRatio="xMidYMid meet"
