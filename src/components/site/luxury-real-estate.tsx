@@ -1153,91 +1153,105 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
     property.year_built ? { icon: Sparkles, label: "Година", value: String(property.year_built) } : null,
   ].filter(Boolean) as Array<{ icon: typeof LandPlot; label: string; value: string; sub?: string }>;
 
-  return (
-    <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `none`, backgroundSize: "cover" }}>
-      <section className="relative px-3 pb-10 md:px-6 md:pb-16">
-        <LuxuryHeader active="sale" />
-        <div className="relative mx-auto mt-[-18px] max-w-[1460px] px-2 md:px-6">
-          <div className="overflow-hidden rounded-[30px] border border-primary/20 shadow-[0_24px_55px_rgba(88,40,18,0.16)]">
-            <img src={gallery[0]} alt={property.title} className="h-[340px] w-full object-cover md:h-[500px]" />
-          </div>
-          <div className="relative z-30 mx-auto mt-[-42px] md:mt-[-54px]">
-            <SearchBar />
-          </div>
-        </div>
-      </section>
+  const mainFact = facts[0];
+  const restFacts = facts.slice(1);
 
-      <section className="mx-auto max-w-[1460px] px-4 pb-12 md:px-6 md:pb-18">
-        <div className="grid gap-8 xl:grid-cols-[1fr_340px] xl:items-start">
-          <div className="space-y-6">
-            <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(139, 26, 43,0.14)] md:p-8">
-              <div className="mb-5 flex flex-wrap items-center gap-3 text-base text-muted-foreground">
-                <Link to="/" className="hover:text-primary">Начало</Link><ChevronRight className="h-4 w-4" />
-                {citySlug ? <Link to="/cities/$slug" params={{ slug: citySlug }} className="hover:text-primary">{cityName}</Link> : <span>{cityName}</span>}
-                {quarterName ? <><ChevronRight className="h-4 w-4" /><span>{quarterName}</span></> : null}
-                <ChevronRight className="h-4 w-4" /><span className="line-clamp-1">{property.title}</span>
-              </div>
-              {property.is_featured ? <div className="mb-4 inline-flex rounded-full bg-primary px-4 py-2 text-sm font-semibold tracking-[0.08em] text-primary-foreground">ТОП ОФЕРТА</div> : null}
-              <div className="flex flex-wrap items-start justify-between gap-6">
-                <div>
-                  <h1 className="font-display text-[3rem] leading-tight text-accent-foreground md:text-[4.1rem]">{property.title}</h1>
-                  <p className="mt-2 inline-flex items-center gap-2 text-xl text-muted-foreground"><MapPin className="h-5 w-5 text-primary" />{quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}</p>
+  return (
+    <main className="luxury-page flex h-screen flex-col overflow-hidden bg-background">
+      <LuxuryHeader active="sale" />
+
+      <div className="mx-auto w-full max-w-[1460px] flex-shrink-0 px-4 pt-3 md:px-6">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Link to="/" className="hover:text-primary">Начало</Link><ChevronRight className="h-3.5 w-3.5" />
+          {citySlug ? <Link to="/cities/$slug" params={{ slug: citySlug }} className="hover:text-primary">{cityName}</Link> : <span>{cityName}</span>}
+          {quarterName ? <><ChevronRight className="h-3.5 w-3.5" /><span>{quarterName}</span></> : null}
+          <ChevronRight className="h-3.5 w-3.5" /><span className="line-clamp-1 text-accent-foreground">{property.title}</span>
+        </div>
+      </div>
+
+      <section className="mx-auto flex w-full max-w-[1460px] flex-1 min-h-0 flex-col px-4 py-3 md:px-6 md:py-4">
+        <div className="grid flex-1 min-h-0 gap-4 lg:grid-cols-[1.55fr_1fr]">
+          {/* LEFT — Gallery */}
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-[24px] bg-card p-3 shadow-[0_18px_38px_rgba(139,26,43,0.12)] md:p-4">
+            <PropertyGallery images={gallery} title={property.title} />
+          </div>
+
+          {/* RIGHT — Price panel + facts + CTA + description */}
+          <div className="flex min-h-0 flex-col gap-3 overflow-hidden">
+            {/* Title + price card */}
+            <div className="flex-shrink-0 rounded-[24px] bg-card p-4 shadow-[0_18px_38px_rgba(139,26,43,0.12)] md:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  {property.is_featured ? <div className="mb-2 inline-flex rounded-full bg-primary px-3 py-1 text-[11px] font-semibold tracking-[0.08em] text-primary-foreground">ТОП ОФЕРТА</div> : null}
+                  <h1 className="font-display text-2xl leading-tight text-accent-foreground md:text-[2rem]">{property.title}</h1>
+                  <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground"><MapPin className="h-4 w-4 text-primary" />{quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}</p>
                 </div>
-                <div className="flex flex-wrap gap-5 text-base text-muted-foreground">
-                  <button className="inline-flex items-center gap-2"><Heart className="h-5 w-5 text-primary" />Добави в любими</button>
-                  <button className="inline-flex items-center gap-2"><Share2 className="h-5 w-5 text-primary" />Сподели</button>
+                <div className="flex flex-col items-end gap-1.5 text-muted-foreground">
+                  <button aria-label="Любими" className="rounded-full border border-primary/20 p-2 hover:bg-primary/5"><Heart className="h-4 w-4 text-primary" /></button>
+                  <button aria-label="Сподели" className="rounded-full border border-primary/20 p-2 hover:bg-primary/5"><Share2 className="h-4 w-4 text-primary" /></button>
                 </div>
               </div>
-              <div className="mt-8 grid gap-5 border-t border-primary/10 pt-6 sm:grid-cols-2 xl:grid-cols-7">
-                {facts.map((fact) => {
-                  const Icon = fact.icon;
-                  return (
-                    <div key={fact.label} className="space-y-2">
-                      <div className="inline-flex items-center gap-2 text-base text-muted-foreground"><Icon className="h-5 w-5 text-primary" />{fact.label}</div>
-                      <div className="font-display text-[2rem] leading-none text-accent-foreground">{fact.value}</div>
-                      {fact.sub ? <div className="text-base text-muted-foreground">{fact.sub}</div> : null}
-                    </div>
-                  );
-                })}
-              </div>
+
+              {mainFact ? (
+                <div className="mt-3 flex items-end justify-between gap-3 border-t border-primary/10 pt-3">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{mainFact.label}</div>
+                    <div className="font-display text-3xl leading-none text-primary md:text-[2.4rem]">{mainFact.value}</div>
+                    {mainFact.sub ? <div className="mt-1 text-xs text-muted-foreground">{mainFact.sub}</div> : null}
+                  </div>
+                </div>
+              ) : null}
+
+              {restFacts.length > 0 ? (
+                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-primary/10 pt-3 sm:grid-cols-4">
+                  {restFacts.slice(0, 6).map((fact) => {
+                    const Icon = fact.icon;
+                    return (
+                      <div key={fact.label} className="rounded-[12px] border border-primary/10 bg-background/40 px-2 py-2">
+                        <div className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.1em] text-muted-foreground"><Icon className="h-3.5 w-3.5 text-primary" />{fact.label}</div>
+                        <div className="mt-0.5 font-display text-base leading-tight text-accent-foreground">{fact.value}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
             </div>
 
-            {gallery.length > 0 ? (
-              <div className="rounded-[28px] bg-card p-4 shadow-[0_20px_45px_rgba(139, 26, 43,0.14)] md:p-5">
-                <PropertyGallery images={gallery} title={property.title} />
-              </div>
-            ) : null}
-
+            {/* Description (scrollable) */}
             {property.description ? (
-              <div className="rounded-[28px] bg-card p-5 shadow-[0_20px_45px_rgba(139, 26, 43,0.14)] md:p-8">
-                <h2 className="font-display text-[2.4rem] text-accent-foreground md:text-[3rem]">Описание</h2>
-                <div className="mt-4 space-y-4 text-lg leading-8 text-muted-foreground md:text-[1.16rem] whitespace-pre-line">{property.description}</div>
+              <div className="min-h-0 flex-1 overflow-y-auto rounded-[24px] bg-card p-4 shadow-[0_18px_38px_rgba(139,26,43,0.12)] md:p-5">
+                <h2 className="font-display text-lg text-accent-foreground md:text-xl">Описание</h2>
+                <div className="mt-2 whitespace-pre-line text-sm leading-6 text-muted-foreground">{property.description}</div>
                 {property.amenities && property.amenities.length > 0 ? (
-                  <div className="mt-8 grid gap-5 sm:grid-cols-3 xl:grid-cols-6">
+                  <div className="mt-3 flex flex-wrap gap-1.5 border-t border-primary/10 pt-3">
                     {property.amenities.map((item) => (
-                      <div key={item} className="flex flex-col items-center gap-3 text-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-primary/16 bg-background text-primary"><Trees className="h-6 w-6" /></div>
-                        <div className="font-display text-lg text-accent-foreground">{item}</div>
-                      </div>
+                      <span key={item} className="inline-flex items-center gap-1 rounded-full border border-primary/15 bg-background/40 px-2.5 py-1 text-xs text-accent-foreground">
+                        <Trees className="h-3 w-3 text-primary" />{item}
+                      </span>
                     ))}
                   </div>
                 ) : null}
               </div>
             ) : null}
-          </div>
 
-          <div className="space-y-6">
-            <MortgageRangeBand
-              price={Number(property.price) || 0}
-              currency={property.currency ?? "EUR"}
-              propertyId={property.id}
-              propertyTitle={property.title}
-            />
-            <InquiryForm propertyId={property.id} propertyTitle={property.title} />
-            <MapCard />
+            {/* CTA row */}
+            <div className="flex flex-shrink-0 gap-2">
+              <Button asChild className="gold-cta-button h-11 flex-1 rounded-[12px] text-sm">
+                <a href="#inquiry"><Mail className="mr-1.5 h-4 w-4" />Запитване</a>
+              </Button>
+              <Button asChild variant="outline" className="h-11 flex-1 rounded-[12px] border-primary/30 text-sm">
+                <a href="tel:+359881234567"><Phone className="mr-1.5 h-4 w-4" />Обади се</a>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Off-screen anchor — inquiry form available via deeper nav; keep page within viewport */}
+      <div id="inquiry" className="sr-only">
+        <InquiryForm propertyId={property.id} propertyTitle={property.title} />
+        <MortgageRangeBand price={Number(property.price) || 0} currency={property.currency ?? "EUR"} propertyId={property.id} propertyTitle={property.title} />
+      </div>
     </main>
   );
 }
@@ -1245,27 +1259,27 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
 function PropertyGallery({ images, title }: { images: string[]; title: string }) {
   const [idx, setIdx] = useGalleryIndex(images.length);
   return (
-    <>
-      <div className="relative overflow-hidden rounded-[24px]">
-        <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className="h-[320px] w-full object-cover md:h-[520px]" />
+    <div className="flex h-full min-h-0 flex-col gap-2">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-[18px]">
+        <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className="absolute inset-0 h-full w-full object-cover" />
         {images.length > 1 ? (
           <>
-            <button type="button" aria-label="Предишна снимка" onClick={() => setIdx((idx - 1 + images.length) % images.length)} className="absolute left-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-6 w-6" /></button>
-            <button type="button" aria-label="Следваща снимка" onClick={() => setIdx((idx + 1) % images.length)} className="absolute right-4 top-1/2 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronRight className="h-6 w-6" /></button>
+            <button type="button" aria-label="Предишна снимка" onClick={() => setIdx((idx - 1 + images.length) % images.length)} className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-5 w-5" /></button>
+            <button type="button" aria-label="Следваща снимка" onClick={() => setIdx((idx + 1) % images.length)} className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronRight className="h-5 w-5" /></button>
           </>
         ) : null}
-        <div className="absolute bottom-4 left-4 rounded-[12px] bg-[rgba(53,12,18,0.9)] px-4 py-2 text-primary-foreground">{idx + 1} / {images.length}</div>
+        <div className="absolute bottom-3 left-3 rounded-[10px] bg-[rgba(53,12,18,0.85)] px-3 py-1 text-xs text-primary-foreground">{idx + 1} / {images.length}</div>
       </div>
       {images.length > 1 ? (
-        <div className="mt-4 grid grid-cols-6 gap-3">
+        <div className="grid flex-shrink-0 grid-cols-6 gap-2">
           {images.slice(0, 6).map((thumb, i) => (
-            <button key={`${thumb}-${i}`} type="button" aria-label={`Покажи снимка ${i + 1} от ${title}`} aria-current={i === idx} onClick={() => setIdx(i)} className={cn("overflow-hidden rounded-[12px] border", i === idx ? "border-primary" : "border-primary/12")}>
-              <img src={thumb} alt={`${title} – снимка ${i + 1}`} className="h-18 w-full object-cover md:h-24" loading="lazy" />
+            <button key={`${thumb}-${i}`} type="button" aria-label={`Покажи снимка ${i + 1} от ${title}`} aria-current={i === idx} onClick={() => setIdx(i)} className={cn("overflow-hidden rounded-[8px] border", i === idx ? "border-primary" : "border-primary/12")}>
+              <img src={thumb} alt={`${title} – снимка ${i + 1}`} className="h-14 w-full object-cover md:h-16" loading="lazy" />
             </button>
           ))}
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
 
