@@ -59,10 +59,10 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
     <header className="relative z-30 w-full select-none" style={{ backgroundColor: BAR_BG }}>
       <div className="relative mx-auto w-full max-w-[1440px] px-3 md:px-8">
         {/* Bar row */}
-        <div className="relative flex h-[72px] items-center justify-end md:h-[96px] lg:h-[108px]">
-          {/* Right: nav pill */}
+        <div className="relative flex h-[64px] items-center justify-end md:h-[96px] lg:h-[108px]">
+          {/* Right: nav pill — fits next to the scroll panel even on small phones */}
           <nav
-            className="ml-auto flex h-[48px] items-center gap-0 rounded-full border px-1.5 md:h-[60px] md:px-3 lg:h-[64px]"
+            className="ml-auto flex h-[40px] items-center gap-0 rounded-full border px-1 md:h-[60px] md:px-3 lg:h-[64px]"
             style={{
               backgroundColor: "rgba(42,15,20,0.85)",
               borderColor: `${GOLD}80`,
@@ -75,7 +75,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
                 {idx > 0 && (
                   <span
                     aria-hidden
-                    className="mx-0.5 hidden h-5 w-px sm:inline-block md:mx-2 md:h-6"
+                    className="mx-0.5 h-4 w-px md:mx-2 md:h-6"
                     style={{ backgroundColor: `${GOLD}55` }}
                   />
                 )}
@@ -83,12 +83,12 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
                   to={item.to}
                   search={item.search as never}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 font-display text-[11px] tracking-wide text-white transition hover:text-[#C9A84C] sm:text-[12px] md:gap-2 md:px-4 md:py-2 md:text-[15px] lg:text-[16px]",
+                    "inline-flex items-center gap-1 rounded-full px-1.5 py-1 font-display text-[9.5px] tracking-tight text-white transition hover:text-[#C9A84C] md:gap-2 md:px-4 md:py-2 md:text-[15px] md:tracking-wide lg:text-[16px]",
                     active === item.key && "text-[#C9A84C]",
                   )}
                 >
                   <item.Icon
-                    className="h-3.5 w-3.5 md:h-4 md:w-4"
+                    className="h-3 w-3 md:h-4 md:w-4"
                     style={{ color: GOLD }}
                     strokeWidth={1.75}
                   />
@@ -98,16 +98,16 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             ))}
             <span
               aria-hidden
-              className="mx-0.5 hidden h-5 w-px sm:inline-block md:mx-2 md:h-6"
+              className="mx-0.5 h-4 w-px md:mx-2 md:h-6"
               style={{ backgroundColor: `${GOLD}55` }}
             />
             <Link
               to="/login"
               search={{ redirect: "/admin" } as never}
               aria-label="Профил"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-white transition hover:text-[#C9A84C] md:h-10 md:w-10"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full text-white transition hover:text-[#C9A84C] md:h-10 md:w-10"
             >
-              <User className="h-4 w-4 md:h-[18px] md:w-[18px]" style={{ color: GOLD }} strokeWidth={1.75} />
+              <User className="h-3.5 w-3.5 md:h-[18px] md:w-[18px]" style={{ color: GOLD }} strokeWidth={1.75} />
             </Link>
           </nav>
 
@@ -133,7 +133,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
  */
 function ScrollPanel() {
   return (
-    <div className="relative h-[80px] w-[180px] sm:h-[96px] sm:w-[220px] md:h-[132px] md:w-[300px] lg:h-[150px] lg:w-[340px]">
+    <div className="relative h-[56px] w-[132px] sm:h-[80px] sm:w-[180px] md:h-[132px] md:w-[300px] lg:h-[150px] lg:w-[340px]">
       <svg
         viewBox="0 0 340 150"
         preserveAspectRatio="xMidYMid meet"
