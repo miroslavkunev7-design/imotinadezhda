@@ -16,6 +16,8 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { CustomerChat } from "@/components/site/customer-chat";
 import { useRouterState } from "@tanstack/react-router";
+import { initPwa } from "@/lib/pwa";
+import { enforceRememberMePolicy } from "@/lib/remember-me";
 
 function NotFoundComponent() {
   return (
@@ -90,6 +92,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "ИЛДЖ.ИА | Луксозни имоти в България" },
       { name: "description", content: "ИЛДЖ.ИА е платформа за търсене и публикуване на луксозни недвижими имоти в България." },
       { name: "author", content: "ИЛДЖ.ИА" },
+      { name: "theme-color", content: "#8B1A2B" },
+      { name: "application-name", content: "Имоти Надежда" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Имоти Надежда" },
       { property: "og:site_name", content: "ИЛДЖ.ИА" },
       { property: "og:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
       { property: "og:description", content: "ИЛДЖ.ИА е платформа за търсене и публикуване на луксозни недвижими имоти в България." },
@@ -99,10 +106,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "ИЛДЖ.ИА е платформа за търсене и публикуване на луксозни недвижими имоти в България." },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", href: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -131,6 +138,12 @@ function RootComponent() {
   const hideChat = pathname.startsWith("/admin") || pathname.startsWith("/login");
   const propertyMatch = pathname.match(/^\/properties\/([0-9a-f-]{36})/i);
   const propertyId = propertyMatch?.[1] ?? null;
+
+  useEffect(() => {
+    // Apply "remember me" policy before AuthProvider hydrates the session,
+    // then wire up PWA install + service worker (no-op in iframe/preview).
+    enforceRememberMePolicy().finally(() => initPwa());
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
