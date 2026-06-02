@@ -51,6 +51,15 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
 
   return (
     <header className="relative z-30 w-full select-none bg-transparent">
+      {/* Soft burgundy wash so navbar stays legible on any background */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(139,26,43,0.0) 0%, rgba(139,26,43,0.0) 35%, rgba(139,26,43,0.35) 70%, rgba(94,15,29,0.55) 100%)",
+        }}
+      />
       <div className="relative h-[84px] w-full md:h-[108px] lg:h-[120px]">
         {/* Asymmetric wave-cut burgundy shield (left panel) */}
         <div
