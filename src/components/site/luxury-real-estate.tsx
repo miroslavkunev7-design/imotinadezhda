@@ -649,86 +649,9 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
   return (
     <main className="min-h-screen bg-[#F5E6D3] text-[#2b1418]">
-      {/* NAVBAR */}
-      <header className="relative z-30 bg-[#F5E6D3]">
-        <div className="mx-auto flex max-w-[1480px] items-center gap-4 px-4 py-3 md:gap-6 md:px-8 md:py-4">
-          <Link to="/" className="relative flex-none">
-            <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="relative z-10 h-12 w-auto md:h-16" />
-            {/* Gold S-ribbon sweeping from logo across navbar */}
-            <svg
-              aria-hidden
-              className="pointer-events-none absolute left-[60%] top-1/2 hidden h-16 w-[320px] -translate-y-1/2 md:block"
-              viewBox="0 0 320 64"
-              preserveAspectRatio="none"
-            >
-              <defs>
-                <linearGradient id="goldRibbonCity" x1="0" x2="1">
-                  <stop offset="0%" stopColor="#C9A84C" stopOpacity="0" />
-                  <stop offset="25%" stopColor="#E8C766" />
-                  <stop offset="55%" stopColor="#C9A84C" />
-                  <stop offset="100%" stopColor="#8B7330" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M0,40 C70,4 160,58 320,18"
-                stroke="url(#goldRibbonCity)"
-                strokeWidth="10"
-                fill="none"
-                strokeLinecap="round"
-                opacity="0.9"
-              />
-              <path
-                d="M0,44 C70,8 160,62 320,22"
-                stroke="#E8C766"
-                strokeWidth="1.5"
-                fill="none"
-                strokeLinecap="round"
-                opacity="0.6"
-              />
-            </svg>
-          </Link>
+      {/* NAVBAR — unified site header */}
+      <LuxuryHeader active="sale" />
 
-          {/* Center search */}
-          <div className="hidden flex-1 items-center justify-center md:flex">
-            <div className="flex w-full max-w-[560px] items-center overflow-hidden rounded-full border border-[#C9A84C]/60 bg-white shadow-[0_6px_20px_rgba(139,26,43,0.08)]">
-              <input
-                placeholder="Търсене..."
-                className="flex-1 bg-transparent px-5 py-2.5 text-sm text-[#2b1418] outline-none placeholder:text-[#2b1418]/40"
-              />
-              <Link
-                to="/search"
-                className="flex items-center gap-2 bg-[#8B1A2B] px-5 py-2.5 text-sm font-medium text-white transition hover:brightness-110"
-              >
-                <Search className="h-4 w-4" />
-                Търси
-              </Link>
-            </div>
-          </div>
-
-          {/* Right nav */}
-          <nav className="hidden items-center gap-7 text-sm md:flex">
-            <Link
-              to="/search"
-              search={{ status: "sale" } as never}
-              className="border-b-2 border-[#C9A84C] pb-1 font-medium text-[#2b1418]"
-            >
-              За продажба
-            </Link>
-            <Link to="/search" search={{ status: "rent" } as never} className="text-[#2b1418]/80 transition hover:text-[#8B1A2B]">
-              Под наем
-            </Link>
-            <Link to="/about" className="text-[#2b1418]/80 transition hover:text-[#8B1A2B]">
-              За нас
-            </Link>
-            <Link
-              to="/auth"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#8B1A2B]/40 text-[#8B1A2B] transition hover:bg-[#8B1A2B]/5"
-            >
-              <User className="h-4 w-4" />
-            </Link>
-          </nav>
-        </div>
-      </header>
 
       {/* HERO */}
       <section className="relative">
