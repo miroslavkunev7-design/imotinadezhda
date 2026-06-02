@@ -164,7 +164,7 @@ export const Route = createFileRoute("/api/public/customer-chat")({
           const body = InputSchema.parse(await request.json());
 
           // Find / create chat
-          let chatId = body.chat_id;
+          let chatId = body.chat_id ?? undefined;
           if (chatId) {
             const { data } = await supabaseAdmin
               .from("customer_chats")
