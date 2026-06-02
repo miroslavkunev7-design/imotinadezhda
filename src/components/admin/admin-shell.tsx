@@ -247,7 +247,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
       <div
         className="relative flex min-w-0 flex-1 flex-col"
         style={{
-          backgroundImage: `linear-gradient(180deg, rgba(20,4,8,0.82) 0%, rgba(20,4,8,0.92) 100%), url(${heroBg})`,
+          backgroundImage: `linear-gradient(180deg, rgba(20,4,8,0.82) 0%, rgba(20,4,8,0.92) 100%), url(${crmBg ?? heroBg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundAttachment: "fixed",
