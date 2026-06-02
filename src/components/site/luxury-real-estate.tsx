@@ -136,12 +136,13 @@ function SearchBar({
   cities = [],
   quarters = [],
   initial,
+  variant = "light",
 }: {
   cities?: Array<{ slug: string; name: string }>;
   quarters?: Array<{ slug: string; name: string }>;
   initial?: { city_slug?: string; quarter_slug?: string; property_type?: string; price_min?: string; price_max?: string; area_min?: string; area_max?: string };
+  variant?: "light" | "burgundy";
 }) {
-  // navigation handled via window.location.href in handleSearch
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [city, setCity] = useReactState(initial?.city_slug ?? (cities[0]?.slug ?? ""));
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -177,9 +178,10 @@ function SearchBar({
     { slug: "novi-pazar", name: "Нов пазар" },
   ];
 
+  const isBurgundy = variant === "burgundy";
+
   return (
-    <div className="relative mx-auto w-full max-w-[1180px]">
-      {/* Floating gold "Search" button */}
+    <div className={cn("relative mx-auto w-full max-w-[1180px]", isBurgundy && "search-burgundy")}>
       <button
         type="button"
         onClick={handleSearch}
@@ -188,7 +190,12 @@ function SearchBar({
         <Search className="h-4 w-4 md:h-5 md:w-5" /> Търси
       </button>
 
-      <div className="marble-light-panel grid w-full grid-cols-2 gap-1 rounded-[18px] p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:rounded-[22px] md:p-3">
+      <div
+        className={cn(
+          "grid w-full grid-cols-2 gap-1 rounded-[18px] p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:rounded-[22px] md:p-3",
+          isBurgundy ? "marble-dark-panel" : "marble-light-panel",
+        )}
+      >
         <SelectCell icon={MapPin} label="Град" value={city} onChange={setCity}
           options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
         <SelectCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
@@ -203,7 +210,12 @@ function SearchBar({
           onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
         <button
           type="button"
-          className="marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-primary/35 bg-primary/5 px-5 text-primary transition hover:bg-primary/10 md:flex"
+          className={cn(
+            "marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border px-5 transition md:flex",
+            isBurgundy
+              ? "border-[#C9A84C]/55 bg-[#C9A84C]/15 text-[#fdf6e3] hover:bg-[#C9A84C]/25"
+              : "border-primary/35 bg-primary/5 text-primary hover:bg-primary/10",
+          )}
           onClick={handleSearch}
         >
           <SlidersHorizontal className="h-5 w-5" />
@@ -557,7 +569,7 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
   return (
     <main className="luxury-page flex h-screen max-h-screen flex-col overflow-hidden bg-background text-foreground">
       <section
-        className="relative flex flex-1 flex-col overflow-hidden px-4 pb-4 pt-0 md:px-6 lg:px-8"
+        className="relative flex flex-1 flex-col overflow-hidden pb-4 pt-0"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
@@ -567,14 +579,12 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
       >
         <LuxuryHeader active="sale" />
 
-
-
-
-        <div className="relative z-20 mx-auto mt-5 w-full max-w-[1440px] px-2 md:mt-7 md:px-6">
-          <SearchBar cities={cityOpts} />
+        <div className="relative z-20 mx-auto mt-5 w-full max-w-[1440px] px-4 md:mt-7 md:px-8">
+          <SearchBar cities={cityOpts} variant="burgundy" />
         </div>
 
-        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-2 pt-5 md:px-6 md:pt-7">
+
+        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-5 md:px-8 md:pt-7">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
             {cityList.map((city) => (
               <CityCard
@@ -638,93 +648,18 @@ export function CityPage({ data }: { data?: CityData } = {}) {
   const fmt = (n: number) => new Intl.NumberFormat("bg-BG").format(n);
 
   return (
-    <main className="min-h-screen bg-[#F5E6D3] text-[#2b1418]">
-      {/* NAVBAR */}
-      <header className="relative z-30 bg-[#F5E6D3]">
-        <div className="mx-auto flex max-w-[1480px] items-center gap-4 px-4 py-3 md:gap-6 md:px-8 md:py-4">
-          <Link to="/" className="relative flex-none">
-            <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="relative z-10 h-12 w-auto md:h-16" />
-            {/* Gold S-ribbon sweeping from logo across navbar */}
-            <svg
-              aria-hidden
-              className="pointer-events-none absolute left-[60%] top-1/2 hidden h-16 w-[320px] -translate-y-1/2 md:block"
-              viewBox="0 0 320 64"
-              preserveAspectRatio="none"
-            >
-              <defs>
-                <linearGradient id="goldRibbonCity" x1="0" x2="1">
-                  <stop offset="0%" stopColor="#C9A84C" stopOpacity="0" />
-                  <stop offset="25%" stopColor="#E8C766" />
-                  <stop offset="55%" stopColor="#C9A84C" />
-                  <stop offset="100%" stopColor="#8B7330" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M0,40 C70,4 160,58 320,18"
-                stroke="url(#goldRibbonCity)"
-                strokeWidth="10"
-                fill="none"
-                strokeLinecap="round"
-                opacity="0.9"
-              />
-              <path
-                d="M0,44 C70,8 160,62 320,22"
-                stroke="#E8C766"
-                strokeWidth="1.5"
-                fill="none"
-                strokeLinecap="round"
-                opacity="0.6"
-              />
-            </svg>
-          </Link>
+    <main className="min-h-screen bg-[#fbf6ea] text-[#2b1418]">
+      {/* HERO with overlay navbar */}
+      <section className="relative">
+        <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
+          <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-[#5e0f1d]/40" />
 
-          {/* Center search */}
-          <div className="hidden flex-1 items-center justify-center md:flex">
-            <div className="flex w-full max-w-[560px] items-center overflow-hidden rounded-full border border-[#C9A84C]/60 bg-white shadow-[0_6px_20px_rgba(139,26,43,0.08)]">
-              <input
-                placeholder="Търсене..."
-                className="flex-1 bg-transparent px-5 py-2.5 text-sm text-[#2b1418] outline-none placeholder:text-[#2b1418]/40"
-              />
-              <Link
-                to="/search"
-                className="flex items-center gap-2 bg-[#8B1A2B] px-5 py-2.5 text-sm font-medium text-white transition hover:brightness-110"
-              >
-                <Search className="h-4 w-4" />
-                Търси
-              </Link>
-            </div>
+          {/* Overlay navbar */}
+          <div className="absolute inset-x-0 top-0 z-30">
+            <LuxuryHeader active="sale" />
           </div>
 
-          {/* Right nav */}
-          <nav className="hidden items-center gap-7 text-sm md:flex">
-            <Link
-              to="/search"
-              search={{ status: "sale" } as never}
-              className="border-b-2 border-[#C9A84C] pb-1 font-medium text-[#2b1418]"
-            >
-              За продажба
-            </Link>
-            <Link to="/search" search={{ status: "rent" } as never} className="text-[#2b1418]/80 transition hover:text-[#8B1A2B]">
-              Под наем
-            </Link>
-            <Link to="/about" className="text-[#2b1418]/80 transition hover:text-[#8B1A2B]">
-              За нас
-            </Link>
-            <Link
-              to="/auth"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#8B1A2B]/40 text-[#8B1A2B] transition hover:bg-[#8B1A2B]/5"
-            >
-              <User className="h-4 w-4" />
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      {/* HERO */}
-      <section className="relative">
-        <div className="relative h-[58vh] min-h-[460px] w-full overflow-hidden md:h-[62vh]">
-          <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" />
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#5e0f1d]/30" />
 
           {/* Right-side overlays */}
           <div className="absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col gap-4 p-4 md:p-6">

@@ -43,9 +43,8 @@ function SearchRoute() {
   const search = Route.useSearch();
   return (
     <main className="luxury-page flex h-screen max-h-screen flex-col overflow-hidden bg-background">
-      <div className="flex-none px-4 md:px-8">
-        <LuxuryHeader active={search.status === "rent" ? "rent" : "sale"} />
-      </div>
+      <LuxuryHeader active={search.status === "rent" ? "rent" : "sale"} />
+
 
       {/* Compact title bar */}
       <header className="flex-none border-b border-[#C9A84C]/30 bg-white/80 px-4 py-3 backdrop-blur md:px-8">
