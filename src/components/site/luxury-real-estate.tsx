@@ -567,19 +567,8 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
       >
         <LuxuryHeader active="sale" />
 
-        {/* Brand title overlay — primary hero focal point */}
-        <div className="relative z-20 mx-auto mt-6 w-full max-w-[1100px] px-2 text-center md:mt-10">
-          <p className="font-display text-[10px] uppercase tracking-[0.42em] text-[#C9A84C] md:text-xs">
-            Луксозни имоти · България
-          </p>
-          <h1 className="mt-2 font-display text-[2.2rem] leading-[0.95] text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.55)] md:mt-3 md:text-[4rem] xl:text-[4.6rem]">
-            ИЛДЖ<span className="text-[#C9A84C]">.</span>ИА
-          </h1>
-          <div className="mx-auto mt-3 h-px w-24 bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent md:mt-4 md:w-40" />
-          <p className="mx-auto mt-3 max-w-[560px] text-[12.5px] leading-snug text-white/85 md:mt-4 md:text-[14px]">
-            Подбрани престижни имоти и квартали с премиум визуално изживяване.
-          </p>
-        </div>
+
+
 
         <div className="relative z-20 mx-auto mt-5 w-full max-w-[1440px] px-2 md:mt-7 md:px-6">
           <SearchBar cities={cityOpts} />
