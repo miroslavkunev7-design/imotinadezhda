@@ -3,7 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const InputSchema = z.object({
-  chat_id: z.string().uuid().optional(),
+  chat_id: z.string().uuid().nullable().optional(),
   visitor_token: z.string().min(8).max(128),
   property_id: z.string().uuid().nullable().optional(),
   page_url: z.string().max(500).optional(),
