@@ -14,7 +14,34 @@ import {
 import {
   Phone, Mail, MapPin, FileText, Upload, Trash2, Pencil,
   CreditCard, Handshake, XCircle, Sparkles, Save,
+  Check, AlertCircle, Loader2, IdCard, Briefcase, FileSignature, ChevronDown,
 } from "lucide-react";
+
+const BG_MONTHS = ["Януари", "Февруари", "Март", "Април", "Май", "Юни", "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември"];
+
+function lastTwelveMonths(): { key: string; label: string }[] {
+  const out: { key: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    out.push({ key, label: `${BG_MONTHS[d.getMonth()]} ${d.getFullYear()}` });
+  }
+  return out;
+}
+
+const MONTHLY_CATS = [
+  { id: "bank_statement", label: "Банкови извлечения (12 месеца)", icon: CreditCard },
+  { id: "payslip", label: "Фишове за заплата (12 месеца)", icon: FileText },
+] as const;
+
+const SINGLE_CATS = [
+  { id: "id_front", label: "Лична карта (лице)", icon: IdCard },
+  { id: "id_back", label: "Лична карта (гръб)", icon: IdCard },
+  { id: "contract", label: "Трудов договор", icon: FileSignature },
+  { id: "employer_note", label: "Служебна бележка", icon: Briefcase },
+] as const;
+
 
 type Client = any;
 
