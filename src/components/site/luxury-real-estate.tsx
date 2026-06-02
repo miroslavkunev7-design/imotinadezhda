@@ -750,10 +750,11 @@ export function HomePage({
           <div
             key={id}
             data-section-id="hero-search-mobile"
-            className="relative z-20 mx-auto mt-[220px] w-full max-w-[1440px] px-4 sm:mt-[240px] md:mt-7 md:px-8 lg:hidden"
+            className="relative z-20 mx-auto mt-4 w-full max-w-[1440px] px-4 md:mt-7 md:px-8 lg:hidden"
           >
             <SearchBar cities={cityOpts} variant="burgundy" />
           </div>
+
         );
       case "hero-search-desktop":
         return (
@@ -790,9 +791,9 @@ export function HomePage({
   const belowSections = desktopSections.filter((s) => s.id === "trust-strip");
 
   return (
-    <main className="luxury-page flex min-h-screen flex-col bg-[#0f0a0b] text-foreground">
+    <main className="luxury-page flex h-screen flex-col overflow-hidden bg-[#0f0a0b] text-foreground">
       <section
-        className="relative flex flex-col pb-6 pt-0"
+        className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
@@ -804,14 +805,18 @@ export function HomePage({
 
         {mobileSections.map((s) => sectionNode(s.id))}
 
-        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-5 md:px-8 md:pt-7">
+        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-3 md:px-8 md:pt-5">
           {heroSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
-      {belowSections.map((s) => sectionNode(s.id))}
+      <div className="flex-none">
+        {belowSections.map((s) => sectionNode(s.id))}
+      </div>
     </main>
   );
 }
+
+
 
 function TrustStrip() {
   const items = [
@@ -821,7 +826,7 @@ function TrustStrip() {
     { Icon: MapPin, title: "Локално знание", desc: "Най-добри оферти във всеки град" },
   ];
   return (
-    <section data-section-id="trust-strip" className="bg-[#0f0a0b] py-10 md:py-14">
+    <section data-section-id="trust-strip" className="bg-[#0f0a0b] py-3 md:py-5">
       <div className="mx-auto flex w-full max-w-[1420px] flex-col items-stretch gap-8 px-4 md:px-8 lg:flex-row lg:items-center lg:gap-10">
         <div className="grid flex-1 grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
           {items.map(({ Icon, title, desc }) => (
