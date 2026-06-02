@@ -648,16 +648,18 @@ export function CityPage({ data }: { data?: CityData } = {}) {
   const fmt = (n: number) => new Intl.NumberFormat("bg-BG").format(n);
 
   return (
-    <main className="min-h-screen bg-[#F5E6D3] text-[#2b1418]">
-      {/* NAVBAR — unified site header */}
-      <LuxuryHeader active="sale" />
-
-
-      {/* HERO */}
+    <main className="min-h-screen bg-[#fbf6ea] text-[#2b1418]">
+      {/* HERO with overlay navbar */}
       <section className="relative">
-        <div className="relative h-[58vh] min-h-[460px] w-full overflow-hidden md:h-[62vh]">
+        <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
           <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" />
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#5e0f1d]/30" />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-[#5e0f1d]/40" />
+
+          {/* Overlay navbar */}
+          <div className="absolute inset-x-0 top-0 z-30">
+            <LuxuryHeader active="sale" />
+          </div>
+
 
           {/* Right-side overlays */}
           <div className="absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col gap-4 p-4 md:p-6">
