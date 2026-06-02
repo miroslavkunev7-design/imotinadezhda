@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { User } from "lucide-react";
 
-import logoNadezhda from "@/assets/logo-nadezhda-red.png";
+import logoScroll from "@/assets/logo-scroll-banner.png";
 import { cn } from "@/lib/utils";
 
 export type SiteNavKey = "sale" | "rent" | "about";
@@ -21,8 +21,7 @@ const NAV: Array<{
 ];
 
 /**
- * Site header — scroll panel (SVG background) overlapping a bordeaux nav pill.
- * Matches the HTML/CSS spec provided by the user.
+ * Header: scroll-banner logo (PNG) on top, bordeaux nav pill underneath, overlapping.
  */
 export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const navigate = useNavigate();
@@ -48,19 +47,10 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
 
   return (
     <header className="relative z-30 w-full select-none">
-      <div className="navbar-wrapper">
-        {/* Scroll panel with logo */}
-        <Link
-          to="/"
-          onClick={handleLogo}
-          aria-label="Начало"
-          className="logo-scroll"
-        >
-          <img src={logoNadezhda} alt="Недвижими имоти Надежда" draggable={false} />
-        </Link>
-
-        {/* Bordeaux nav pill */}
+      <div className="navbar-stack">
+        {/* Bordeaux nav pill — sits BELOW the logo and is partially covered by it */}
         <nav className="main-nav">
+          <span className="nav-spacer" aria-hidden />
           {NAV.map((item) => (
             <Link
               key={item.key}
@@ -80,6 +70,11 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             <User className="h-5 w-5" style={{ color: GOLD }} strokeWidth={1.75} />
           </Link>
         </nav>
+
+        {/* Scroll banner logo — overlaps the nav pill from above */}
+        <Link to="/" onClick={handleLogo} aria-label="Начало" className="logo-scroll">
+          <img src={logoScroll} alt="Недвижими имоти Надежда" draggable={false} />
+        </Link>
       </div>
     </header>
   );

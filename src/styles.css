@@ -429,51 +429,48 @@ body:has(.luxury-page) {
 }
 
 
-/* === Site header: scroll panel + bordeaux nav pill === */
-.navbar-wrapper {
+/* === Site header: scroll-banner logo overlapping bordeaux nav pill === */
+.navbar-stack {
   position: relative;
-  display: flex;
-  align-items: center;
-  padding: 16px 20px 0;
+  padding: 14px 24px 0;
   z-index: 1000;
+  display: block;
 }
 .logo-scroll {
-  flex-shrink: 0;
-  width: 430px;
-  height: 170px;
-  background-image: url('/scroll-shape.svg');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 24px;
+  width: 420px;
+  height: auto;
   z-index: 5;
+  display: block;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.45));
 }
 .logo-scroll img {
-  width: 290px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
+  width: 100%;
+  height: auto;
+  display: block;
   pointer-events: none;
 }
 .main-nav {
-  margin-left: -40px;
-  height: 86px;
-  min-width: 650px;
-  padding: 0 40px 0 90px;
+  position: relative;
+  margin-top: 110px;            /* sit below the logo's top portion so they overlap */
+  margin-left: 360px;           /* logo covers the left part of the pill */
+  height: 76px;
+  padding: 0 36px 0 60px;
   display: flex;
   align-items: center;
-  gap: 48px;
-  border-radius: 0 43px 43px 0;
+  gap: 44px;
+  border-radius: 0 38px 38px 0;
   background: linear-gradient(180deg, #8f1731 0%, #770d25 45%, #580818 100%);
-  border: 2px solid rgba(208, 164, 73, 0.65);
+  border: 2px solid rgba(208, 164, 73, 0.7);
+  border-left: none;
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.18),
     inset 0 -12px 25px rgba(0, 0, 0, 0.45),
-    0 10px 35px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(10px);
+    0 12px 35px rgba(0, 0, 0, 0.35);
 }
+.main-nav .nav-spacer { display: none; }
 .main-nav .nav-link {
   color: #f4e8d2;
   text-decoration: none;
@@ -484,6 +481,7 @@ body:has(.luxury-page) {
   transition: color 0.25s ease;
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
 }
 .main-nav .nav-link:hover,
 .main-nav .nav-link.is-active {
@@ -495,28 +493,28 @@ body:has(.luxury-page) {
 }
 
 @media (max-width: 1023px) {
-  .navbar-wrapper { padding: 8px 10px 0; }
-  .logo-scroll { width: 220px; height: 88px; }
-  .logo-scroll img { width: 150px; }
+  .navbar-stack { padding: 8px 12px 0; }
+  .logo-scroll { width: 240px; left: 12px; }
   .main-nav {
-    height: 56px;
-    min-width: 0;
-    flex: 1;
-    margin-left: -24px;
-    padding: 0 16px 0 40px;
-    gap: 18px;
-    border-radius: 0 28px 28px 0;
+    margin-top: 64px;
+    margin-left: 200px;
+    height: 52px;
+    padding: 0 14px 0 30px;
+    gap: 16px;
+    border-radius: 0 26px 26px 0;
   }
   .main-nav .nav-link { font-size: 13px; }
 }
 
 @media (max-width: 640px) {
-  .logo-scroll { width: 170px; height: 68px; }
-  .logo-scroll img { width: 115px; }
+  .logo-scroll { width: 180px; }
   .main-nav {
-    height: 48px;
+    margin-top: 48px;
+    margin-left: 150px;
+    height: 44px;
     gap: 10px;
-    padding: 0 12px 0 30px;
+    padding: 0 10px 0 22px;
   }
   .main-nav .nav-link { font-size: 11px; }
 }
+
