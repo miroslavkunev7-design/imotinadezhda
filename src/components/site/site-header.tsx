@@ -45,47 +45,50 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
     }, 420);
   };
 
+  const RED = "#8B1A2B";
   return (
-    <header
-      className="relative z-30 w-full select-none"
-      style={{ filter: "drop-shadow(0 6px 18px rgba(139, 26, 43,0.18))" }}
-    >
-      <div
-        className="relative h-[88px] w-full overflow-hidden md:h-[108px] lg:h-[120px]"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(245,245,245,0.96) 0%, rgba(229,229,229,0.94) 100%)",
-          borderBottom: "1px solid rgba(225,29,72,0.45)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-        }}
-      >
-        {/* Subtle red accent sweep along the bottom — replaces the gold ribbon */}
-        <span
+    <header className="relative z-30 w-full select-none bg-transparent">
+      <div className="relative h-[88px] w-full md:h-[108px] lg:h-[120px]">
+        {/* Solid red diagonal-cut logo panel (left) */}
+        <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px]"
+          className="pointer-events-none absolute left-0 top-0 h-full w-[260px] md:w-[340px] lg:w-[400px]"
           style={{
-            background:
-              "linear-gradient(90deg, transparent 0%, rgba(225,29,72,0.0) 8%, rgba(239,68,68,0.85) 50%, rgba(225,29,72,0.0) 92%, transparent 100%)",
+            background: RED,
+            clipPath:
+              "polygon(0 0, 78% 0, 58% 100%, 0 100%)",
+            boxShadow: "0 8px 24px rgba(139,26,43,0.35)",
+          }}
+        />
+        {/* Red diagonal ribbon sweeping across */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-0 top-0 h-full w-[640px] md:w-[820px] lg:w-[960px]"
+          style={{
+            background: RED,
+            clipPath:
+              "polygon(54% 0, 64% 0, 22% 100%, 12% 100%)",
+            opacity: 0.95,
           }}
         />
 
-        {/* Logo */}
+        {/* Logo (inside the red panel) */}
         <Link
           to="/"
           onClick={handleLogo}
           aria-label="Начало (троен клик за админ вход)"
-          className="absolute left-4 top-1/2 z-20 -translate-y-1/2 md:left-10"
+          className="absolute left-3 top-1/2 z-20 -translate-y-1/2 md:left-6"
         >
           <img
             src={logoNadezhda}
             alt="Недвижими имоти ИЛДЖ.ИА"
             draggable={false}
             className="h-[52px] w-auto object-contain md:h-[76px] lg:h-[88px]"
+            style={{ filter: "brightness(0) invert(1)" }}
           />
         </Link>
 
-        {/* Navigation */}
+        {/* Navigation — floats over the transparent hero area */}
         <nav className="absolute right-4 top-1/2 z-20 flex -translate-y-1/2 items-center gap-5 md:right-10 md:gap-9 lg:gap-12">
           {NAV.map((item) => (
             <Link
@@ -93,9 +96,9 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
               to={item.to}
               search={item.search as never}
               className={cn(
-                "relative font-display text-[14px] tracking-wide text-[#4A4A4A] transition hover:text-[#dc2626] md:text-[16px] lg:text-[17px]",
+                "relative font-display text-[14px] tracking-wide text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)] transition hover:text-[#C9A84C] md:text-[16px] lg:text-[17px]",
                 active === item.key &&
-                  "text-[#dc2626] after:absolute after:-bottom-1.5 after:left-0 after:h-px after:w-full after:bg-[#dc2626]",
+                  "text-[#C9A84C] after:absolute after:-bottom-1.5 after:left-0 after:h-px after:w-full after:bg-[#C9A84C]",
               )}
             >
               {item.label}
@@ -105,7 +108,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             to="/login"
             search={{ redirect: "/admin" } as never}
             aria-label="Профил"
-            className="text-[#4A4A4A] transition hover:text-[#dc2626]"
+            className="text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)] transition hover:text-[#C9A84C]"
           >
             <User className="h-5 w-5 md:h-6 md:w-6" />
           </Link>
