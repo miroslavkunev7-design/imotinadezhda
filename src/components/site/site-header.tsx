@@ -115,7 +115,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
         </Link>
 
         {/* Navigation — always visible on every breakpoint */}
-        <nav className="absolute right-3 top-1/2 z-20 flex -translate-y-1/2 items-center gap-3 sm:gap-5 md:right-10 md:gap-8 lg:gap-12">
+        <nav className="absolute right-3 top-2 z-20 flex items-center gap-3 sm:gap-5 md:right-10 md:top-1/2 md:-translate-y-1/2 md:gap-8 lg:gap-12">
           {NAV.map((item) => (
             <Link
               key={item.key}
