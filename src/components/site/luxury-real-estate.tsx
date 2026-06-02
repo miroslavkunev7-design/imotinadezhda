@@ -750,10 +750,11 @@ export function HomePage({
           <div
             key={id}
             data-section-id="hero-search-mobile"
-            className="relative z-20 mx-auto mt-[220px] w-full max-w-[1440px] px-4 sm:mt-[240px] md:mt-7 md:px-8 lg:hidden"
+            className="relative z-20 mx-auto mt-4 w-full max-w-[1440px] px-4 md:mt-7 md:px-8 lg:hidden"
           >
             <SearchBar cities={cityOpts} variant="burgundy" />
           </div>
+
         );
       case "hero-search-desktop":
         return (
