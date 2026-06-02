@@ -78,6 +78,8 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const [installAvailable, setInstallAvailable] = useState(false);
 
   useEffect(() => onInstallAvailabilityChange(setInstallAvailable), []);
+
+  useEffect(() => {
     let cancel = false;
     const tick = () => newMatchesCount().then((r) => { if (!cancel) setMatchBadge(r.count); }).catch(() => {});
     tick();
