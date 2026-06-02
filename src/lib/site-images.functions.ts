@@ -96,7 +96,7 @@ export const updateCityCard = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const patch: Record<string, unknown> = {};
+    const patch: { hero_image_url?: string; is_published?: boolean } = {};
     if (data.hero_image_url !== undefined) patch.hero_image_url = data.hero_image_url;
     if (data.is_published !== undefined) patch.is_published = data.is_published;
     const { error } = await supabase.from("cities").update(patch).eq("id", data.id);
