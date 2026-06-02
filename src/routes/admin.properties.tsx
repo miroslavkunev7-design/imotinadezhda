@@ -47,6 +47,8 @@ function PropertiesAdmin() {
   const [imagesFor, setImagesFor] = useState<Row | null>(null);
   const [docsFor, setDocsFor] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pendingImages, setPendingImages] = useState<File[]>([]);
+  const [uploadingNew, setUploadingNew] = useState(false);
 
   const load = async () => {
     const [{ data: ps }, { data: cs }, { data: qs }] = await Promise.all([
@@ -61,6 +63,29 @@ function PropertiesAdmin() {
 
   useEffect(() => { load(); }, []);
 
+  const uploadImagesForProperty = async (propertyId: string, files: File[]) => {
+    let coverSet = false;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${propertyId}/${Date.now()}-${i}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("property-images").upload(path, file, { contentType: file.type });
+      if (upErr) { alert(upErr.message); continue; }
+      const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
+      const isCover = !coverSet && i === 0;
+      await supabase.from("property_images").insert({
+        property_id: propertyId,
+        url: pub.publicUrl,
+        is_cover: isCover,
+        display_order: i,
+      });
+      if (isCover) {
+        await supabase.from("properties").update({ cover_image_url: pub.publicUrl }).eq("id", propertyId);
+        coverSet = true;
+      }
+    }
+  };
+
   const save = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing) return;
@@ -72,12 +97,27 @@ function PropertiesAdmin() {
     if (payload.bathrooms) payload.bathrooms = Number(payload.bathrooms);
     if (payload.rooms) payload.rooms = Number(payload.rooms);
     if (!payload.quarter_id) payload.quarter_id = null;
-    const op = id
-      ? supabase.from("properties").update(payload).eq("id", id)
-      : supabase.from("properties").insert(payload);
-    const { error } = await op;
-    setBusy(false);
-    if (error) { alert(error.message); return; }
+    let propertyId = id;
+    try {
+      if (id) {
+        const { error } = await supabase.from("properties").update(payload).eq("id", id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from("properties").insert(payload).select("id").single();
+        if (error) throw error;
+        propertyId = data!.id;
+      }
+      if (pendingImages.length && propertyId) {
+        setUploadingNew(true);
+        await uploadImagesForProperty(propertyId, pendingImages);
+      }
+    } catch (err: any) {
+      alert(err?.message ?? "Грешка");
+      setBusy(false); setUploadingNew(false);
+      return;
+    }
+    setBusy(false); setUploadingNew(false);
+    setPendingImages([]);
     setEditing(null);
     load();
   };
@@ -102,10 +142,23 @@ function PropertiesAdmin() {
   };
 
 
-  const newProperty = () => setEditing({
-    title: "", price: 0, currency: "EUR", property_type: "apartment", status: "sale",
-    is_published: true, is_featured: false, city_id: cities[0]?.id ?? "",
-  });
+  const newProperty = async () => {
+    // Re-load cities to avoid empty dropdown if user opens before initial load finished
+    if (!cities.length) {
+      const { data: cs } = await supabase.from("cities").select("id, name").order("display_order");
+      if (cs) setCities(cs);
+    }
+    setPendingImages([]);
+    setEditing({
+      title: "", price: 0, currency: "EUR", property_type: "apartment", status: "sale",
+      is_published: true, is_featured: false, city_id: "",
+    });
+  };
+
+  const startEdit = (r: Row) => {
+    setPendingImages([]);
+    setEditing(r);
+  };
 
   const filteredQuarters = editing?.city_id ? quarters.filter((q) => q.city_id === editing.city_id) : [];
 
@@ -147,7 +200,7 @@ function PropertiesAdmin() {
                   <button className="mr-2 text-amber-600" title="Публикувай във всички сайтове" onClick={() => publishAll(r)}><Send className="h-4 w-4" /></button>
                   <button className="mr-2 text-primary" title="Снимки" onClick={() => setImagesFor(r)}><Images className="h-4 w-4" /></button>
                   <button className="mr-2 text-primary" title="Документи" onClick={() => setDocsFor(r)}><FileText className="h-4 w-4" /></button>
-                  <button className="mr-2 text-primary" title="Редакция" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></button>
+                  <button className="mr-2 text-primary" title="Редакция" onClick={() => startEdit(r)}><Pencil className="h-4 w-4" /></button>
                   <button className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></button>
                 </td>
 
@@ -183,9 +236,12 @@ function PropertiesAdmin() {
               </Field>
               <Field label="Град">
                 <select required value={editing.city_id ?? ""} onChange={(e) => setEditing({ ...editing, city_id: e.target.value, quarter_id: null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
-                  <option value="">Избери</option>
+                  <option value="">{cities.length ? "Избери град" : "Зареждане..."}</option>
                   {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
+                {!cities.length && (
+                  <p className="mt-1 text-[11px] text-rose-600">Няма градове в базата. Добави от меню „Градове" в админа.</p>
+                )}
               </Field>
               <Field label="Квартал">
                 <select value={editing.quarter_id ?? ""} onChange={(e) => setEditing({ ...editing, quarter_id: e.target.value || null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
@@ -207,8 +263,48 @@ function PropertiesAdmin() {
               <Field label="Стаи"><input type="number" value={(editing as any).rooms ?? ""} onChange={(e) => setEditing({ ...editing, rooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
               <Field label="Спални"><input type="number" value={(editing as any).bedrooms ?? ""} onChange={(e) => setEditing({ ...editing, bedrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
               <Field label="Бани"><input type="number" value={(editing as any).bathrooms ?? ""} onChange={(e) => setEditing({ ...editing, bathrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
-              <Field label="Cover image URL" className="md:col-span-2">
-                <input type="url" value={(editing as any).cover_image_url ?? ""} onChange={(e) => setEditing({ ...editing, cover_image_url: e.target.value } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
+              <Field label="Снимки от галерия" className="md:col-span-2">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-amber-700/40 bg-white/70 px-4 py-4 text-sm text-[#5a3a14] hover:bg-white">
+                  <Upload className="h-4 w-4" />
+                  <span>
+                    {uploadingNew
+                      ? "Качване…"
+                      : pendingImages.length
+                        ? `Избрани ${pendingImages.length} файла — добави още`
+                        : "Избери снимки (можеш да маркираш много наведнъж)"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files ?? []);
+                      if (files.length) setPendingImages((prev) => [...prev, ...files]);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {!!pendingImages.length && (
+                  <div className="mt-2 grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+                    {pendingImages.map((f, i) => (
+                      <div key={`${f.name}-${i}`} className="group relative overflow-hidden rounded-md border border-amber-700/30">
+                        <img src={URL.createObjectURL(f)} alt={f.name} className="aspect-square w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setPendingImages((prev) => prev.filter((_, idx) => idx !== i))}
+                          className="absolute right-0.5 top-0.5 rounded-full bg-rose-500/90 p-0.5 text-white opacity-0 transition group-hover:opacity-100"
+                          title="Премахни"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-1 text-[11px] text-[#5a3a14]/70">
+                  Първата снимка става корица. След запис можеш да добавиш още от иконата „Снимки".
+                </p>
               </Field>
               <Field label="Описание" className="md:col-span-2">
                 <textarea rows={4} value={(editing as any).description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
@@ -218,7 +314,7 @@ function PropertiesAdmin() {
             </div>
             <div className="relative z-10 mt-6 flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditing(null)} className="border-amber-700/40 bg-white/80 text-[#5a3a14] hover:bg-white">Отказ</Button>
-              <Button type="submit" disabled={busy} className="gold-cta-button">{busy ? "Запис..." : "Запази"}</Button>
+              <Button type="submit" disabled={busy || uploadingNew} className="gold-cta-button">{busy || uploadingNew ? (pendingImages.length ? `Качване ${pendingImages.length} снимки…` : "Запис...") : "Запази"}</Button>
             </div>
           </form>
         </div>
