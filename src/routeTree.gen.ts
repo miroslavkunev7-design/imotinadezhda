@@ -40,6 +40,7 @@ import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugIndexRouteImport } from './routes/cities.$slug.index'
 import { Route as ApiPublicCustomerChatRouteImport } from './routes/api/public/customer-chat'
+import { Route as AdminSettingsImagesRouteImport } from './routes/admin.settings.images'
 import { Route as AdminAuditIdRouteImport } from './routes/admin.audit.$id'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
@@ -199,6 +200,11 @@ const ApiPublicCustomerChatRoute = ApiPublicCustomerChatRouteImport.update({
   path: '/api/public/customer-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSettingsImagesRoute = AdminSettingsImagesRouteImport.update({
+  id: '/images',
+  path: '/images',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const AdminAuditIdRoute = AdminAuditIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -243,11 +249,12 @@ export interface FileRoutesByFullPath {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
-  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
+  '/admin/settings/images': typeof AdminSettingsImagesRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
@@ -278,11 +285,12 @@ export interface FileRoutesByTo {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
-  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
+  '/admin/settings/images': typeof AdminSettingsImagesRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
@@ -315,11 +323,12 @@ export interface FileRoutesById {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
-  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
+  '/admin/settings/images': typeof AdminSettingsImagesRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
@@ -358,6 +367,7 @@ export interface FileRouteTypes {
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
+    | '/admin/settings/images'
     | '/api/public/customer-chat'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/properties/$propertyId'
     | '/admin'
     | '/admin/audit/$id'
+    | '/admin/settings/images'
     | '/api/public/customer-chat'
     | '/cities/$slug'
     | '/cities/$slug/districts/$district'
@@ -429,6 +440,7 @@ export interface FileRouteTypes {
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
+    | '/admin/settings/images'
     | '/api/public/customer-chat'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
@@ -668,6 +680,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCustomerChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/settings/images': {
+      id: '/admin/settings/images'
+      path: '/images'
+      fullPath: '/admin/settings/images'
+      preLoaderRoute: typeof AdminSettingsImagesRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/audit/$id': {
       id: '/admin/audit/$id'
       path: '/$id'
@@ -704,6 +723,18 @@ const AdminAuditRouteWithChildren = AdminAuditRoute._addFileChildren(
   AdminAuditRouteChildren,
 )
 
+interface AdminSettingsRouteChildren {
+  AdminSettingsImagesRoute: typeof AdminSettingsImagesRoute
+}
+
+const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
+  AdminSettingsImagesRoute: AdminSettingsImagesRoute,
+}
+
+const AdminSettingsRouteWithChildren = AdminSettingsRoute._addFileChildren(
+  AdminSettingsRouteChildren,
+)
+
 interface AdminRouteChildren {
   AdminAiRoute: typeof AdminAiRoute
   AdminAuditRoute: typeof AdminAuditRouteWithChildren
@@ -724,7 +755,7 @@ interface AdminRouteChildren {
   AdminProfileRoute: typeof AdminProfileRoute
   AdminPropertiesRoute: typeof AdminPropertiesRoute
   AdminQuartersRoute: typeof AdminQuartersRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminSettingsRoute: typeof AdminSettingsRouteWithChildren
   AdminTasksRoute: typeof AdminTasksRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -749,7 +780,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProfileRoute: AdminProfileRoute,
   AdminPropertiesRoute: AdminPropertiesRoute,
   AdminQuartersRoute: AdminQuartersRoute,
-  AdminSettingsRoute: AdminSettingsRoute,
+  AdminSettingsRoute: AdminSettingsRouteWithChildren,
   AdminTasksRoute: AdminTasksRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

@@ -1067,10 +1067,32 @@ export type Database = {
           },
         ]
       }
+      page_backgrounds: {
+        Row: {
+          image_url: string
+          page_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          image_url: string
+          page_key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          image_url?: string
+          page_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
+          crm_background_url: string | null
           full_name: string | null
           id: string
           phone: string | null
@@ -1079,6 +1101,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          crm_background_url?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
@@ -1087,6 +1110,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          crm_background_url?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
