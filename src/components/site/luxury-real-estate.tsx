@@ -38,6 +38,10 @@ import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
 import cityNoviPazar from "@/assets/city-novi-pazar.jpeg";
+import cityCardBurgas from "@/assets/city-card-burgas.png.asset.json";
+import cityCardVarna from "@/assets/city-card-varna.png.asset.json";
+import cityCardShumen from "@/assets/city-card-shumen.png.asset.json";
+import cityCardNoviPazar from "@/assets/city-card-novi-pazar.png.asset.json";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { Button } from "@/components/ui/button";
