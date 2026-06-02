@@ -61,22 +61,23 @@ function Dashboard() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="flex h-full flex-col gap-6 overflow-y-auto pr-1">
       <header>
-        <h1 className="font-display text-4xl text-amber-100">Дашборд</h1>
-        <p className="mt-1 text-sm text-amber-100/60">Преглед на ключови метрики на агенцията.</p>
+        <p className="font-display text-[11px] uppercase tracking-[0.32em] text-[#C9A84C]">Преглед</p>
+        <h1 className="mt-1 font-display text-3xl text-[#8B1A2B] md:text-4xl">Дашборд</h1>
+        <p className="mt-1 text-sm text-[#2b1418]/70">Ключови метрики на агенцията.</p>
       </header>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((c) => (
           <div
             key={c.label}
-            className={`relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br ${c.accent} p-5 shadow-[0_18px_45px_rgba(139, 26, 43,0.35)] backdrop-blur`}
+            className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#C9A84C]/40 bg-[#fbf6ea] p-5 shadow-[0_18px_45px_-20px_rgba(139,26,43,0.25)]"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-wider text-amber-100/75">{c.label}</span>
-              <c.icon className="h-5 w-5 text-amber-200" />
+              <span className="font-display text-[10.5px] uppercase tracking-[0.22em] text-[#8B1A2B]">{c.label}</span>
+              <c.icon className="h-5 w-5 text-[#C9A84C]" />
             </div>
-            <div className="mt-3 font-display text-4xl text-amber-50">{c.value ?? "—"}</div>
+            <div className="mt-3 font-display text-4xl text-[#8B1A2B]">{c.value ?? "—"}</div>
           </div>
         ))}
       </div>

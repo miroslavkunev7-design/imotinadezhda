@@ -551,9 +551,9 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
     .map((c) => ({ ...c, image: citySlugImages[c.slug] || c.image || burgasHero }));
   const cityOpts = cityList.map((c) => ({ slug: c.slug, name: c.name }));
   return (
-    <main className="luxury-page flex min-h-screen flex-col bg-background text-foreground">
+    <main className="luxury-page flex h-screen max-h-screen flex-col overflow-hidden bg-background text-foreground">
       <section
-        className="relative flex flex-1 flex-col overflow-hidden px-3 pb-6 pt-0 md:px-6 lg:h-screen lg:max-h-screen lg:pb-4"
+        className="relative flex flex-1 flex-col overflow-hidden px-4 pb-4 pt-0 md:px-6 lg:px-8"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
@@ -562,14 +562,26 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
         }}
       >
         <LuxuryHeader active="sale" />
-        <h1 className="sr-only">Луксозни имоти и престижни квартали в България</h1>
 
-        <div className="relative z-20 mx-auto mt-auto w-full max-w-[1440px] px-2 pt-10 md:px-6">
+        {/* Brand title overlay — primary hero focal point */}
+        <div className="relative z-20 mx-auto mt-6 w-full max-w-[1100px] px-2 text-center md:mt-10">
+          <p className="font-display text-[10px] uppercase tracking-[0.42em] text-[#C9A84C] md:text-xs">
+            Луксозни имоти · България
+          </p>
+          <h1 className="mt-2 font-display text-[2.2rem] leading-[0.95] text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.55)] md:mt-3 md:text-[4rem] xl:text-[4.6rem]">
+            ИЛДЖ<span className="text-[#C9A84C]">.</span>ИА
+          </h1>
+          <div className="mx-auto mt-3 h-px w-24 bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent md:mt-4 md:w-40" />
+          <p className="mx-auto mt-3 max-w-[560px] text-[12.5px] leading-snug text-white/85 md:mt-4 md:text-[14px]">
+            Подбрани престижни имоти и квартали с премиум визуално изживяване.
+          </p>
+        </div>
+
+        <div className="relative z-20 mx-auto mt-5 w-full max-w-[1440px] px-2 md:mt-7 md:px-6">
           <SearchBar cities={cityOpts} />
         </div>
 
-
-        <section className="relative z-10 mx-auto mt-5 w-full max-w-[1420px] px-2 md:px-6 lg:mt-6">
+        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-2 pt-5 md:px-6 md:pt-7">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
             {cityList.map((city) => (
               <CityCard
