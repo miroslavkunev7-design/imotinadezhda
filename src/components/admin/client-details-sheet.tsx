@@ -72,7 +72,10 @@ export function ClientDetailsSheet({
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [docs, setDocs] = useState<any[]>([]);
-  const [docType, setDocType] = useState("id_card");
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const months = lastTwelveMonths();
+
 
   useEffect(() => {
     if (!client) return;
