@@ -42,20 +42,32 @@ function SearchRoute() {
   const { results } = Route.useLoaderData();
   const search = Route.useSearch();
   return (
-    <main className="luxury-page min-h-screen bg-background">
-      <div className="px-3 pt-0 md:px-6">
+    <main className="luxury-page flex h-screen max-h-screen flex-col overflow-hidden bg-background">
+      <div className="flex-none px-4 md:px-8">
         <LuxuryHeader active={search.status === "rent" ? "rent" : "sale"} />
       </div>
-      <section className="mx-auto max-w-[1420px] px-4 pb-16 pt-6 md:px-6">
-        <h1 className="mb-6 font-display text-3xl text-accent-foreground md:text-4xl">
-          Намерени имоти: {results.length}
-        </h1>
+
+      {/* Compact title bar */}
+      <header className="flex-none border-b border-[#C9A84C]/30 bg-white/80 px-4 py-3 backdrop-blur md:px-8">
+        <div className="mx-auto flex max-w-[1420px] flex-wrap items-baseline justify-between gap-3">
+          <h1 className="font-display text-2xl text-[#2b1418] md:text-3xl">
+            Намерени имоти
+          </h1>
+          <span className="font-display text-sm uppercase tracking-[0.18em] text-[#8B1A2B]">
+            {results.length} резултата
+          </span>
+        </div>
+      </header>
+
+      {/* Results — internal scroll keeps single-viewport feel */}
+      <section className="mx-auto w-full max-w-[1420px] flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6">
         {results.length === 0 ? (
-          <div className="rounded-3xl border border-primary/15 bg-card p-10 text-center text-accent-foreground/80">
-            Няма намерени имоти с тези критерии. <Link to="/" className="text-primary underline">Промени филтрите</Link>
+          <div className="rounded-3xl border border-[#C9A84C]/40 bg-[#fbf6ea] p-10 text-center text-[#2b1418]/80">
+            Няма намерени имоти с тези критерии.{" "}
+            <Link to="/" className="text-[#8B1A2B] underline">Промени филтрите</Link>
           </div>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {results.map((p: any) => (
               <ListingCard
                 key={p.id}
