@@ -99,53 +99,20 @@ function ClientsAdmin() {
             {filtered.map((r) => (
               <tr key={r.id} className="border-t border-amber-500/10 hover:bg-amber-500/5">
                 <td className="px-4 py-2 font-semibold">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="flex items-center gap-2 text-left hover:text-amber-300">
-                        {r.full_name}
-                        {r.deal_stage === "mortgage" && (
-                          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">ипотека</span>
-                        )}
-                        {r.deal_stage === "started" && (
-                          <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300">сделка</span>
-                        )}
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent align="start" className="w-56 p-1">
-                      <button
-                        className="flex w-full items-center gap-2 rounded px-2 py-2 text-sm hover:bg-accent"
-                        onClick={async () => {
-                          try {
-                            await updateClientDeal({ data: { id: r.id, deal_stage: "started", deal_started_at: new Date().toISOString() } });
-                            await load();
-                          } catch (e: any) { alert(e?.message ?? "Грешка"); }
-                        }}
-                      >
-                        <Handshake className="h-4 w-4 text-amber-500" /> Започната сделка
-                      </button>
-                      <button
-                        className="flex w-full items-center gap-2 rounded px-2 py-2 text-sm hover:bg-accent"
-                        onClick={() => setMortgageStagesFor(r)}
-                      >
-                        <CreditCard className="h-4 w-4 text-emerald-500" /> Ипотечен кредит
-                      </button>
-                      {r.deal_stage && (
-                        <button
-                          className="flex w-full items-center gap-2 rounded px-2 py-2 text-sm text-rose-400 hover:bg-accent"
-                          onClick={async () => {
-                            if (!confirm("Изчистване на статуса на сделката?")) return;
-                            try {
-                              await updateClientDeal({ data: { id: r.id, deal_stage: null, deal_started_at: null } });
-                              await load();
-                            } catch (e: any) { alert(e?.message ?? "Грешка"); }
-                          }}
-                        >
-                          <XCircle className="h-4 w-4" /> Откажи сделката
-                        </button>
-                      )}
-                    </PopoverContent>
-                  </Popover>
+                  <button
+                    onClick={() => setDetailsFor(r)}
+                    className="flex items-center gap-2 text-left hover:text-amber-300"
+                  >
+                    {r.full_name}
+                    {r.deal_stage === "mortgage" && (
+                      <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">ипотека</span>
+                    )}
+                    {r.deal_stage === "started" && (
+                      <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300">сделка</span>
+                    )}
+                  </button>
                 </td>
+
                 <td className="px-4 py-2 text-xs">
                   {r.phone && <div className="flex items-center gap-1"><Phone className="h-3 w-3" />{r.phone}</div>}
                   {r.email && <div className="flex items-center gap-1"><Mail className="h-3 w-3" />{r.email}</div>}
