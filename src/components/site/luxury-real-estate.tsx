@@ -10,11 +10,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Compass,
+  Handshake,
   Heart,
   House,
   LandPlot,
   Mail,
   MapPin,
+  MessageCircle,
   Phone,
   Ruler,
   Search,
@@ -180,62 +182,176 @@ function SearchBar({
 
   const isBurgundy = variant === "burgundy";
 
+  void isBurgundy; // variant kept for API compatibility; design is unified now
+
   return (
-    <div className="relative mx-auto w-full max-w-[1180px]">
-      <button
-        type="button"
-        onClick={handleSearch}
-        className="gold-cta-button absolute -top-5 right-4 z-30 flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold md:-top-7 md:right-6 md:h-12 md:px-7 md:text-base lg:right-10"
-      >
-        <Search className="h-4 w-4 md:h-5 md:w-5" /> Търси
-      </button>
-
+    <div className="relative mx-auto w-full max-w-[1320px]">
       <div
-        className={cn(
-          "relative w-full overflow-hidden rounded-[18px] border border-[#8B1A2B]/25 bg-white shadow-[0_22px_50px_rgba(139,26,43,0.18)] md:rounded-[26px]",
-          isBurgundy && "search-wavy",
-        )}
+        className="relative flex w-full items-stretch gap-0 overflow-visible rounded-full border px-2 py-2 md:px-3 md:py-2"
+        style={{
+          background: "linear-gradient(180deg, #8B1A2B 0%, #6e1422 100%)",
+          borderColor: "rgba(201,168,76,0.55)",
+          boxShadow: "0 18px 40px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(201,168,76,0.12)",
+        }}
       >
-        {isBurgundy && (
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 1200 120"
-            preserveAspectRatio="none"
-            className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[70px] w-full md:h-[90px]"
-          >
-            <path
-              d="M0,0 L1200,0 L1200,55 C1080,95 960,40 840,62 C720,84 600,38 480,58 C360,78 240,42 120,66 C80,74 40,68 0,72 Z"
-              fill="#8B1A2B"
-            />
-          </svg>
-        )}
-
-        <div
-          className={cn(
-            "relative z-10 grid w-full grid-cols-2 gap-1 p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:p-3",
-            isBurgundy && "md:pt-12",
-          )}
-        >
-          <SelectCell icon={MapPin} label="Град" value={city} onChange={setCity}
+        <div className="flex flex-1 flex-wrap items-stretch md:flex-nowrap">
+          <PillCell icon={MapPin} label="Град" value={city} onChange={setCity}
             options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
-          <SelectCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
+          <PillDivider />
+          <PillCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
             options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]} />
-          <div className="col-span-2 md:col-span-1 md:contents">
-            <SelectCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
-              options={propertyTypeOptions} />
-          </div>
-          <RangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
+          <PillDivider />
+          <PillCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
+            options={propertyTypeOptions} />
+          <PillDivider />
+          <PillRangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
             onMin={setPriceMin} onMax={setPriceMax} suffix="€" />
-          <RangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
+          <PillDivider />
+          <PillRangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
             onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
+        </div>
+
+        <div className="flex flex-none items-center gap-2 pl-2 md:gap-3 md:pl-3">
           <button
             type="button"
-            className="marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-[#8B1A2B]/40 bg-[#8B1A2B]/5 px-5 text-[#8B1A2B] transition hover:bg-[#8B1A2B]/10 md:flex"
             onClick={handleSearch}
+            className="inline-flex h-11 items-center gap-2 rounded-full px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-12 md:px-7 md:text-base"
+            style={{
+              background: "linear-gradient(180deg, #E3BF66 0%, #C9A84C 60%, #A8852E 100%)",
+              color: "#5E0F1D",
+              boxShadow: "0 6px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.35)",
+            }}
           >
-            <SlidersHorizontal className="h-5 w-5" />
-            <span className="font-display text-base">Филтри</span>
+            <Search className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2.25} />
+            <span className="uppercase tracking-wide">Търси</span>
           </button>
+          <button
+            type="button"
+            className="hidden items-center gap-1.5 px-1 font-display text-[12px] text-[#C9A84C] transition hover:text-white md:inline-flex md:text-[13px]"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span className="leading-tight">
+              Още
+              <br />
+              филтри
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PillDivider() {
+  return (
+    <span aria-hidden className="my-2 hidden w-px self-stretch md:inline-block" style={{ backgroundColor: "rgba(201,168,76,0.35)" }} />
+  );
+}
+
+function PillCell({
+  icon: Icon,
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  icon: typeof MapPin;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: SearchOption[];
+}) {
+  const [open, setOpen] = useReactState(false);
+  const selected = options.find((o) => o.value === value) ?? options[0];
+
+  return (
+    <div
+      className="relative flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 md:gap-3 md:px-4 md:py-2"
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
+      <Icon className="h-4 w-4 flex-none md:h-5 md:w-5" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-[#C9A84C] md:text-[10px]">{label}</div>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="-ml-px mt-0.5 flex w-full items-center justify-between gap-2 bg-transparent text-left font-display text-sm text-white outline-none md:text-[15px]"
+        >
+          <span className="truncate">{selected?.label ?? "—"}</span>
+          <ChevronDown className={cn("h-3.5 w-3.5 flex-none text-[#C9A84C] transition md:h-4 md:w-4", open && "rotate-180")} />
+        </button>
+      </div>
+      {open && (
+        <div
+          role="listbox"
+          className="absolute left-2 right-2 top-[calc(100%+6px)] z-50 overflow-hidden rounded-2xl border bg-white py-1 text-[#2b1418] shadow-[0_18px_45px_rgba(0,0,0,0.25)]"
+          style={{ borderColor: "rgba(201,168,76,0.5)" }}
+        >
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              className={cn(
+                "block w-full px-3 py-2 text-left text-sm transition hover:bg-amber-50",
+                option.value === value && "bg-amber-50 font-semibold text-[#8B1A2B]",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PillRangeCell({
+  icon: Icon,
+  label,
+  minVal,
+  maxVal,
+  onMin,
+  onMax,
+  suffix,
+}: {
+  icon: typeof MapPin;
+  label: string;
+  minVal: string;
+  maxVal: string;
+  onMin: (v: string) => void;
+  onMax: (v: string) => void;
+  suffix: string;
+}) {
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 md:gap-3 md:px-4 md:py-2">
+      <Icon className="h-4 w-4 flex-none md:h-5 md:w-5" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-[#C9A84C] md:text-[10px]">{label}</div>
+        <div className="mt-0.5 flex items-center gap-1 font-display text-[12px] text-white md:text-[13px]">
+          <span className="text-white/70">от</span>
+          <input
+            value={minVal}
+            onChange={(e) => onMin(e.target.value.replace(/[^0-9]/g, ""))}
+            inputMode="numeric"
+            className="w-12 bg-transparent outline-none placeholder:text-white/40 md:w-16"
+          />
+          <span className="text-white/60">-</span>
+          <span className="text-white/70">до</span>
+          <input
+            value={maxVal}
+            onChange={(e) => onMax(e.target.value.replace(/[^0-9]/g, ""))}
+            inputMode="numeric"
+            className="w-12 bg-transparent outline-none placeholder:text-white/40 md:w-16"
+          />
+          <span className="text-white/70">{suffix}</span>
         </div>
       </div>
     </div>
@@ -354,31 +470,45 @@ function RangeCell({
 
 function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
   return (
-    <Link to={href} params={params} className="marble-city-card group block overflow-hidden rounded-[16px] md:rounded-[18px]">
-      <div className="relative aspect-[1.1/1] overflow-hidden rounded-[16px] border border-primary/25 shadow-[0_18px_38px_rgba(139, 26, 43,0.28)] md:aspect-[1.45/1] md:rounded-[18px] lg:aspect-[1.65/1]">
+    <Link to={href} params={params} className="group block overflow-hidden rounded-[20px] md:rounded-[24px]">
+      <div
+        className="relative aspect-[1.25/1] overflow-hidden rounded-[20px] border md:aspect-[1.45/1] md:rounded-[24px]"
+        style={{
+          borderColor: "rgba(201,168,76,0.55)",
+          boxShadow: "0 18px 38px rgba(0,0,0,0.45)",
+        }}
+      >
         <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
-        <div className="marble-wave-glow" />
-        <GoldDustLayer />
-        {/* Bottom gradient scrim so the label sits ON the image */}
+        {/* Bottom dark gradient for legibility */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[8] h-[58%]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[8] h-[65%]"
           style={{
             background:
-              "linear-gradient(180deg, rgba(139, 26, 43,0) 0%, rgba(139, 26, 43,0.55) 55%, rgba(139, 26, 43,0.78) 100%)",
+              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.85) 100%)",
           }}
         />
-        {/* Glassy gold label — overlay at the bottom of the image */}
-        <div className="absolute inset-x-0 bottom-0 z-[9] flex items-end justify-between gap-2 px-3 pb-2.5 pt-6 md:px-5 md:pb-3.5 md:pt-8">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1 text-[9px] font-medium uppercase tracking-[0.16em] text-[#fca5a5] md:gap-1.5 md:text-[11px] md:tracking-[0.18em]">
-              <MapPin className="h-3 w-3 text-[#ef4444] md:h-3.5 md:w-3.5" />
-              <span>Виж града</span>
-            </div>
-            <div className="font-display text-base leading-tight text-[#ffffff] drop-shadow-[0_2px_6px_rgba(139, 26, 43,0.55)] md:text-2xl lg:text-[1.75rem]">{name}</div>
+        {/* Top-left small label */}
+        <div className="absolute left-3 top-3 z-[9] inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white md:left-4 md:top-4 md:text-[11px]"
+          style={{ backgroundColor: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.18)" }}
+        >
+          <MapPin className="h-3 w-3" style={{ color: "#C9A84C" }} />
+          <span>Виж града</span>
+        </div>
+        {/* Bottom row: city name + circular arrow */}
+        <div className="absolute inset-x-0 bottom-0 z-[9] flex items-end justify-between gap-2 px-4 pb-4 md:px-5 md:pb-5">
+          <div className="font-display text-2xl font-semibold leading-tight text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.65)] md:text-3xl lg:text-4xl">
+            {name}
           </div>
-          <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full border border-[#ef4444]/70 bg-[#8B1A2B]/45 text-[#fca5a5] backdrop-blur-sm transition group-hover:bg-[#ef4444] group-hover:text-[#8B1A2B] md:h-10 md:w-10">
-            <ChevronRight className="h-3.5 w-3.5 -rotate-45 md:h-4 md:w-4" />
+          <div
+            className="flex h-10 w-10 flex-none items-center justify-center rounded-full text-white transition group-hover:brightness-110 md:h-12 md:w-12"
+            style={{
+              backgroundColor: "#8B1A2B",
+              border: "1.5px solid rgba(201,168,76,0.75)",
+              boxShadow: "0 6px 14px rgba(0,0,0,0.45)",
+            }}
+          >
+            <ChevronRight className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2.25} />
           </div>
         </div>
       </div>
@@ -596,6 +726,7 @@ export function HomePage({
     { id: "hero-search-mobile", visible: true },
     { id: "hero-search-desktop", visible: true },
     { id: "cities-grid", visible: true },
+    { id: "trust-strip", visible: true },
   ];
   const known = new Set(defaults.map((d) => d.id));
   const sections = (() => {
@@ -644,6 +775,8 @@ export function HomePage({
             ))}
           </div>
         );
+      case "trust-strip":
+        return <TrustStrip key={id} />;
       default:
         return null;
     }
@@ -653,10 +786,13 @@ export function HomePage({
   const mobileSections = visible.filter((s) => s.id === "hero-search-mobile");
   const desktopSections = visible.filter((s) => s.id !== "hero-search-mobile");
 
+  const heroSections = desktopSections.filter((s) => s.id !== "trust-strip");
+  const belowSections = desktopSections.filter((s) => s.id === "trust-strip");
+
   return (
-    <main className="luxury-page flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:max-h-screen lg:overflow-hidden">
+    <main className="luxury-page flex min-h-screen flex-col bg-[#0f0a0b] text-foreground">
       <section
-        className="relative flex flex-col pb-6 pt-0 lg:flex-1 lg:overflow-hidden lg:pb-4"
+        className="relative flex flex-col pb-6 pt-0"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
@@ -669,10 +805,54 @@ export function HomePage({
         {mobileSections.map((s) => sectionNode(s.id))}
 
         <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-5 md:px-8 md:pt-7">
-          {desktopSections.map((s) => sectionNode(s.id))}
+          {heroSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
+      {belowSections.map((s) => sectionNode(s.id))}
     </main>
+  );
+}
+
+function TrustStrip() {
+  const items = [
+    { Icon: Shield, title: "Сигурност", desc: "Вашата сделка е на сигурно място" },
+    { Icon: Award, title: "Коректност", desc: "Работим честно и прозрачно" },
+    { Icon: Handshake, title: "Доверие", desc: "Дългосрочни отношения с нашите клиенти" },
+    { Icon: MapPin, title: "Локално знание", desc: "Най-добри оферти във всеки град" },
+  ];
+  return (
+    <section data-section-id="trust-strip" className="bg-[#0f0a0b] py-10 md:py-14">
+      <div className="mx-auto flex w-full max-w-[1420px] flex-col items-stretch gap-8 px-4 md:px-8 lg:flex-row lg:items-center lg:gap-10">
+        <div className="grid flex-1 grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
+          {items.map(({ Icon, title, desc }) => (
+            <div key={title} className="flex items-start gap-3">
+              <div
+                className="flex h-10 w-10 flex-none items-center justify-center rounded-full border md:h-12 md:w-12"
+                style={{ borderColor: "rgba(201,168,76,0.55)", backgroundColor: "rgba(201,168,76,0.08)" }}
+              >
+                <Icon className="h-5 w-5 md:h-6 md:w-6" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+              </div>
+              <div className="min-w-0">
+                <div className="font-display text-base font-semibold text-white md:text-lg">{title}</div>
+                <div className="mt-1 text-[12px] leading-snug text-white/65 md:text-[13px]">{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="inline-flex h-12 flex-none items-center justify-center gap-2 self-start rounded-full border px-6 font-display text-sm text-white transition hover:brightness-110 md:h-14 md:px-8 md:text-base lg:self-auto"
+          style={{
+            background: "linear-gradient(180deg, #8B1A2B 0%, #5E0F1D 100%)",
+            borderColor: "rgba(201,168,76,0.6)",
+            boxShadow: "0 8px 22px rgba(0,0,0,0.45)",
+          }}
+        >
+          <MessageCircle className="h-4 w-4 md:h-5 md:w-5" style={{ color: "#C9A84C" }} strokeWidth={2} />
+          <span>Чат с консултант</span>
+        </button>
+      </div>
+    </section>
   );
 }
 

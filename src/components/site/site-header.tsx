@@ -1,31 +1,34 @@
 import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { User } from "lucide-react";
+import { Home, Key, Users, User } from "lucide-react";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { cn } from "@/lib/utils";
 
 export type SiteNavKey = "sale" | "rent" | "about";
 
+const RED = "#8B1A2B";
+const RED_DARK = "#5E0F1D";
+const GOLD = "#C9A84C";
+
 const NAV: Array<{
   key: SiteNavKey;
   label: string;
   to: string;
   search?: Record<string, string>;
+  Icon: typeof Home;
 }> = [
-  { key: "sale", label: "За продажба", to: "/search", search: { status: "sale" } },
-  { key: "rent", label: "Под наем", to: "/search", search: { status: "rent" } },
-  { key: "about", label: "За нас", to: "/about" },
+  { key: "sale", label: "За продажба", to: "/search", search: { status: "sale" }, Icon: Home },
+  { key: "rent", label: "Под наем", to: "/search", search: { status: "rent" }, Icon: Key },
+  { key: "about", label: "За нас", to: "/about", Icon: Users },
 ];
 
-const RED = "#8B1A2B";
-const RED_DARK = "#5E0F1D";
-const GOLD = "#C9A84C";
-
 /**
- * Premium SiteHeader.
- * Left: asymmetric burgundy "wave-cut" shield panel hosting the white logo.
- * Right: nav links + user icon, always visible on every breakpoint.
+ * Site-wide premium header.
+ * - Dark near-black bar containing a bordeaux/gold rounded "pill" hosting the
+ *   nav links + profile icon (centered/right).
+ * - Left: a decorative bordeaux scroll/banner panel with gold trim that hosts
+ *   the white logo and overlaps below the bar.
  */
 export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const navigate = useNavigate();
@@ -50,117 +53,115 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   };
 
   return (
-    <header className="relative z-30 w-full select-none bg-transparent">
-      {/* Soft burgundy wash; on mobile stronger wash behind top nav links. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(139,26,43,0.0) 0%, rgba(139,26,43,0.15) 40%, rgba(139,26,43,0.45) 75%, rgba(94,15,29,0.6) 100%)",
-        }}
-      />
-      <div className="relative h-[56px] w-full md:h-[150px] lg:h-[180px]">
-        {/* Organic ink-splash burgundy panel (left). Mobile uses a tighter
-            viewBox to crop off the transparent trailing tail; desktop keeps
-            the full splash exactly as before. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-0 top-0 block h-[245%] w-[340px] md:hidden"
+    <header className="relative z-30 w-full select-none" style={{ backgroundColor: "#0f0a0b" }}>
+      <div className="relative mx-auto flex h-[80px] w-full max-w-[1440px] items-center justify-end px-4 md:h-[100px] md:px-8 lg:h-[110px]">
+        {/* Nav pill */}
+        <nav
+          className="flex h-[52px] items-center gap-1 rounded-full border px-2 sm:gap-2 sm:px-3 md:h-[60px] md:gap-3 md:px-4 lg:h-[64px] lg:gap-4 lg:px-5"
+          style={{
+            backgroundColor: "rgba(42,15,20,0.85)",
+            borderColor: `${GOLD}66`,
+            boxShadow: `inset 0 0 0 1px rgba(201,168,76,0.08), 0 6px 18px rgba(0,0,0,0.45)`,
+          }}
         >
-          <svg
-            viewBox="0 0 470 240"
-            preserveAspectRatio="xMinYMid meet"
-            className="h-full w-full"
-            style={{ filter: "drop-shadow(0 10px 22px rgba(139,26,43,0.45))" }}
-          >
-            <defs>
-              <linearGradient id="hdr-grad-m" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={RED} />
-                <stop offset="100%" stopColor={RED_DARK} />
-              </linearGradient>
-            </defs>
-            <path
-              d="M0,0 L430,0 C460,18 470,52 448,80 C470,118 455,160 430,196 C400,224 360,232 300,228 C240,224 180,228 130,222 C70,215 30,200 0,180 Z"
-              fill="url(#hdr-grad-m)"
-            />
-          </svg>
-        </div>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-0 top-0 hidden h-[180%] md:block md:w-[620px] lg:w-[780px]"
-        >
-          <svg
-            viewBox="0 0 640 240"
-            preserveAspectRatio="none"
-            className="h-full w-full"
-            style={{ filter: "drop-shadow(0 14px 30px rgba(139,26,43,0.45))" }}
-          >
-            <defs>
-              <linearGradient id="hdr-grad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={RED} />
-                <stop offset="100%" stopColor={RED_DARK} />
-              </linearGradient>
-            </defs>
-            <path
-              d="M0,0 L430,0 C460,18 470,40 455,62 C500,70 520,55 555,72 C585,86 560,108 525,115 C575,118 605,108 612,130 C620,156 560,168 505,160 C540,175 525,196 470,200 C520,212 495,232 430,228 C380,225 340,210 285,212 C230,214 180,228 130,222 C70,215 30,200 0,180 Z"
-              fill="url(#hdr-grad)"
-            />
-            <path
-              d="M430,0 C460,18 470,40 455,62 C500,70 520,55 555,72 C585,86 560,108 525,115 C575,118 605,108 612,130 C620,156 560,168 505,160 C540,175 525,196 470,200 C520,212 495,232 430,228"
-              fill="none"
-              stroke={GOLD}
-              strokeOpacity="0.55"
-              strokeWidth="1.4"
-            />
-            <circle cx="600" cy="60" r="4" fill={GOLD} fillOpacity="0.55" />
-            <circle cx="585" cy="190" r="3" fill={GOLD} fillOpacity="0.45" />
-            <circle cx="625" cy="100" r="2" fill={GOLD} fillOpacity="0.4" />
-          </svg>
-        </div>
-
-
-        {/* Logo — enlarged to fill splash */}
-        <Link
-          to="/"
-          onClick={handleLogo}
-          aria-label="Начало"
-          className="absolute left-4 top-2 z-20 md:left-10 md:top-1/2 md:-translate-y-1/2 lg:left-14"
-        >
-          <img
-            src={logoNadezhda}
-            alt="Недвижими имоти ИЛДЖ.ИА"
-            draggable={false}
-            className="h-[90px] w-auto object-contain md:h-[140px] lg:h-[176px]"
-            style={{ filter: "brightness(0) invert(1)" }}
-          />
-        </Link>
-
-        {/* Navigation — always visible on every breakpoint */}
-        <nav className="absolute right-3 top-2 z-20 flex items-center gap-3 sm:gap-5 md:right-10 md:top-1/2 md:-translate-y-1/2 md:gap-8 lg:gap-12">
-          {NAV.map((item) => (
-            <Link
-              key={item.key}
-              to={item.to}
-              search={item.search as never}
-              className={cn(
-                "relative font-display text-[12px] tracking-wide text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)] transition hover:text-[#C9A84C] sm:text-[14px] md:text-[16px] lg:text-[17px]",
-                active === item.key &&
-                  "text-[#C9A84C] after:absolute after:-bottom-1.5 after:left-0 after:h-px after:w-full after:bg-[#C9A84C]",
+          {NAV.map((item, idx) => (
+            <div key={item.key} className="flex items-center">
+              {idx > 0 && (
+                <span
+                  aria-hidden
+                  className="mx-1 hidden h-5 w-px sm:inline-block md:mx-2"
+                  style={{ backgroundColor: `${GOLD}40` }}
+                />
               )}
-            >
-              {item.label}
-            </Link>
+              <Link
+                to={item.to}
+                search={item.search as never}
+                className={cn(
+                  "group inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 font-display text-[12px] tracking-wide text-white transition hover:text-[#C9A84C] sm:px-3 sm:text-[13px] md:gap-2 md:px-4 md:py-2 md:text-[15px] lg:text-[16px]",
+                  active === item.key && "text-[#C9A84C]",
+                )}
+              >
+                <item.Icon
+                  className="h-3.5 w-3.5 md:h-4 md:w-4"
+                  style={{ color: GOLD }}
+                  strokeWidth={1.75}
+                />
+                <span>{item.label}</span>
+              </Link>
+            </div>
           ))}
+          <span aria-hidden className="mx-1 hidden h-5 w-px sm:inline-block md:mx-2" style={{ backgroundColor: `${GOLD}40` }} />
           <Link
             to="/login"
             search={{ redirect: "/admin" } as never}
             aria-label="Профил"
-            className="text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)] transition hover:text-[#C9A84C]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-white transition hover:text-[#C9A84C] md:h-9 md:w-9"
           >
-            <User className="h-5 w-5 md:h-6 md:w-6" />
+            <User className="h-4 w-4 md:h-5 md:w-5" style={{ color: GOLD }} strokeWidth={1.75} />
           </Link>
         </nav>
+
+        {/* Left: decorative ribbon/scroll panel with the logo. Sits over the bar
+            and overlaps slightly below for a scroll effect. */}
+        <Link
+          to="/"
+          onClick={handleLogo}
+          aria-label="Начало"
+          className="absolute left-2 top-1 z-20 md:left-6 md:top-2 lg:left-10"
+        >
+          <div className="relative h-[88px] w-[200px] md:h-[124px] md:w-[300px] lg:h-[140px] lg:w-[340px]">
+            <svg
+              viewBox="0 0 340 140"
+              preserveAspectRatio="none"
+              className="absolute inset-0 h-full w-full"
+              style={{ filter: "drop-shadow(0 12px 22px rgba(0,0,0,0.55))" }}
+            >
+              <defs>
+                <linearGradient id="ribbon-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={RED} />
+                  <stop offset="100%" stopColor={RED_DARK} />
+                </linearGradient>
+              </defs>
+              {/* Left curl tail */}
+              <path
+                d="M0,14 L18,4 L26,22 L10,30 Z"
+                fill={RED_DARK}
+                opacity="0.85"
+              />
+              {/* Right curl tail */}
+              <path
+                d="M340,14 L322,4 L314,22 L330,30 Z"
+                fill={RED_DARK}
+                opacity="0.85"
+              />
+              {/* Main banner body — gentle dip at bottom for scroll feel */}
+              <path
+                d="M12,6 L328,6 Q336,6 336,18 L336,108 Q336,118 326,120 L260,124 Q170,132 80,124 L14,120 Q4,118 4,108 L4,18 Q4,6 12,6 Z"
+                fill="url(#ribbon-grad)"
+              />
+              {/* Inner gold border */}
+              <path
+                d="M14,12 L326,12 Q330,12 330,18 L330,106 Q330,114 322,116 L258,119 Q170,126 82,119 L18,116 Q10,114 10,106 L10,18 Q10,12 14,12 Z"
+                fill="none"
+                stroke={GOLD}
+                strokeOpacity="0.7"
+                strokeWidth="1.2"
+              />
+              {/* Decorative gold dots in corners */}
+              <circle cx="22" cy="22" r="1.6" fill={GOLD} opacity="0.7" />
+              <circle cx="318" cy="22" r="1.6" fill={GOLD} opacity="0.7" />
+            </svg>
+            <div className="relative z-10 flex h-full w-full items-center justify-center px-6">
+              <img
+                src={logoNadezhda}
+                alt="Недвижими имоти Надежда"
+                draggable={false}
+                className="max-h-[78%] w-auto object-contain"
+                style={{ filter: "brightness(0) invert(1)" }}
+              />
+            </div>
+          </div>
+        </Link>
       </div>
     </header>
   );

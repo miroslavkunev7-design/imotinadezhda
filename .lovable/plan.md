@@ -1,44 +1,54 @@
-# Визуален редактор на страници
+# Pixel-perfect redesign — Имоти Надежда
 
-Нова секция `/admin/settings/page-editor` — отваря избрана страница (Home / Sale / Rent / About / Contacts) в iframe с overlay за редактиране. Работи в 3 фази, за да получиш бързо стойност без да чупим production сайта.
+Reference: file_8957.jpg. No improvisations.
 
-## Фаза 1 — Подредба на секции (drag & drop + show/hide) ⭐ започвам с това
+## 1. Navbar (site-wide, replaces current `SiteHeader`)
 
-- Изброявам всички секции на избраната страница (Hero, Търсачка, Градове, Featured имоти, Quarters, За нас банер и т.н.) като карти в страничен панел.
-- Drag handle до всяка карта → местиш с мишката нагоре/надолу. Реалния preview в iframe се обновява веднага.
-- Toggle "око" → скриване/показване на секция на публичния сайт.
-- Бутон "Запази" → записва подредбата в нова таблица `page_layouts (page_key, sections jsonb, updated_by, updated_at)`.
-- Публичните компоненти (HomePage, search.tsx, about.tsx) четат подредбата и рендерират секциите в новия ред, скривайки изключените.
-- Има бутон "Възстанови оригинала".
+- Full-width dark near-black bar (#0f0a0b), height ~110px desktop, ~70px mobile.
+- Inside: a rounded "pill" track (dark bordeaux #2a0f14 with thin gold #C9A84C border) hosting nav links — centered/right-aligned.
+- Nav items with small gold icons + white labels: `🏠 За продажба` · `🔑 Под наем` · `👥 За нас` · profile icon. Each link separated by faint gold divider, gold pill border on hover/active.
+- Left: decorative **scroll/banner** panel — bordeaux gradient (#8B1A2B → #5E0F1D) shaped like a ribbon with curled ends and gold trim/inner stroke. Contains the white logo (house icon + "НЕДВИЖИМИ ИМОТИ • НАДЕЖДА •").
+- The ribbon overlaps below the dark bar (~30px) for the scroll effect.
+- Mobile: collapses ribbon scale, links shrink, profile stays visible.
+- Applied to ALL pages by editing `src/components/site/site-header.tsx` (existing usage across routes remains).
 
-**Защо първо това:** дава ти 80% от контрола (кое къде стои, кое се вижда) без риск да счупим дизайна, защото компонентите остават както са.
+## 2. Search/filter bar (home page)
 
-## Фаза 2 — Inline редактор на текст и снимки
+Replaces the current wavy split panel in `src/components/site/luxury-real-estate.tsx`.
 
-- Кликаш върху всеки текст в preview-то → редактираш на място (заглавия, подзаглавия, бутони, описания).
-- Кликаш върху всяка снимка → upload на нова.
-- Промените се пазят в `page_content (page_key, slot_key, value jsonb)` и компонентите ги четат с fallback към текущите defaults.
-- Бутон "AI помощ" до всяко текстово поле → отваря prompt ("направи го по-кратко", "по-продаващ тон" и т.н.) и презаписва текста чрез Lovable AI (Gemini 2.5 Flash).
+- Single full-width **bordeaux #8B1A2B rounded pill** (border-radius ~9999px), thin gold border, soft drop shadow.
+- Inline fields with thin vertical gold dividers between each:
+  - ГРАД (icon: pin) — value + chevron
+  - КВАРТАЛ (icon: house)
+  - ВИД ИМОТ (icon: building)
+  - ЦЕНА (icon: tag) — "от 200000 - до 500000 €"
+  - ПЛОЩ (icon: ruler) — "от 100 m² - до 200 m²"
+- Each field: tiny gold icon left, uppercase gold micro-label on top, white value below.
+- Right cluster: solid **gold pill button "ТЪРСИ"** with magnifier icon (bordeaux text), then plain text link `≡ Още филтри` in gold.
 
-## Фаза 3 — Свободно местене и преоразмеряване (AI асистент)
+## 3. City cards (home page grid)
 
-- В preview-то добавям resize handles и free-drag на отделни блокове.
-- Промените се пазят като per-block CSS overrides (`width`, `height`, `padding`, `margin`, `order`).
-- AI бутон "Опиши какво искаш да промениш" → Gemini вижда текущия layout + промпта и връща patch към overrides таблицата.
+- 4-column grid (responsive 2 / 1 col below).
+- Card: rounded-2xl (~24px), gold border, full-bleed panorama, dark gradient at bottom 60%.
+- Top-left tiny uppercase white label `ВИЖ ГРАДА`.
+- Bottom-left large white display name (city).
+- Bottom-right circular bordeaux button with white arrow icon, gold ring.
 
-⚠️ **Честно предупреждение за Фаза 3:** свободно местене на production компоненти лесно чупи responsive дизайна (mobile/tablet/desktop се чупят различно). Препоръчвам първо да изкараме Фаза 1+2 в работен вид и тогава да решим колко свобода даваме във Фаза 3 (примерно само padding/spacing вместо пълен free-drag).
+## 4. Trust strip (bottom of home)
 
-## Технически детайли (за справка)
+- Dark background band.
+- 4 columns, each with gold icon + bold white title + small muted description: Сигурност / Коректност / Доверие / Локално знание.
+- Right side: rounded **"Чат с консултант"** pill button — bordeaux fill, gold border, chat icon.
 
-- Нови таблици: `page_layouts`, `page_content`, `page_overrides`. RLS: SELECT за всички (anon + authenticated), INSERT/UPDATE/DELETE само за admin.
-- Нов route: `src/routes/_authenticated/admin/settings/page-editor.tsx` + `?page=home|sale|rent|about|contacts`.
-- Iframe сочи към публичната страница с `?__editor=1` query parameter → публичните компоненти добавят `data-section-id` атрибути и слушат `postMessage` за highlight/hover.
-- Server functions: `getPageLayout`, `savePageLayout`, `getPageContent`, `savePageContent`, `aiRewriteText`.
-- Refactor: всеки секционен компонент в `luxury-real-estate.tsx`, `search.tsx`, `about.tsx`, `contacts.tsx` се изнася в отделен файл с уникален `slotKey`, за да може editor-ът да ги адресира.
-- Добавям връзка от `/admin/settings` → "Редактор на страници".
+## Files to edit
 
-## Скоуп на тази заявка
+- `src/components/site/site-header.tsx` — rewrite navbar (ribbon + dark pill nav).
+- `src/components/site/luxury-real-estate.tsx` — replace search bar markup, city card visuals, trust strip block at bottom of `HomePage`.
+- `src/styles.css` — add helper classes if needed (gold border, ribbon clip shadow).
 
-Започвам **само с Фаза 1**. След като я видиш и работи, продължавам с Фаза 2, после Фаза 3.
+No backend / data / routing changes.
 
-Потвърди и започвам с миграцията + Фаза 1.
+## Out of scope
+
+- Hero imagery, property cards, other sections not visible in the reference remain untouched.
+- No new routes, no logic changes.
