@@ -662,7 +662,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
 
           {/* Right-side overlays */}
-          <div className="absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col gap-4 p-4 md:p-6">
+          <div className="absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col gap-4 p-4 pt-[120px] md:p-6 md:pt-[130px]">
             {/* FILTER PANEL */}
             <div
               className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
