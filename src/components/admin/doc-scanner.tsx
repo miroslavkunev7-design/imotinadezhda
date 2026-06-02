@@ -195,6 +195,13 @@ export function DocScanner() {
               Стр. {i + 1}
             </div>
             <button
+              onClick={() => enhancePage(p.id)}
+              title="Подобри качеството"
+              className="absolute right-10 top-2 rounded-full bg-[#8B1A2B]/65 p-1.5 text-amber-200 opacity-0 transition group-hover:opacity-100 hover:bg-amber-500/30"
+            >
+              <ScanLine className="h-4 w-4" />
+            </button>
+            <button
               onClick={() => removePage(p.id)}
               className="absolute right-2 top-2 rounded-full bg-[#8B1A2B]/65 p-1.5 text-rose-300 opacity-0 transition group-hover:opacity-100"
             >
