@@ -217,9 +217,12 @@ export const runScrape = createServerFn({ method: "POST" })
     }
 
 
-    // Filter private-only if requested + skip listings with agency logos in images
+    // Filter: agency-logo, non-property (cars/youtube/etc.), property-only, private-only
     const filtered = allResults.filter((r) => {
       if (r.agency_logo_detected) return false;
+      const text = `${r.title ?? ""} ${r.description ?? ""}`;
+      if (isNonPropertyListing(text, r.source_url)) return false;
+      if (!looksLikeProperty(text, r.source_url)) return false;
       if (data.privateOnly) return r.seller_type === "private" || r.seller_type === "unknown";
       return true;
     });
