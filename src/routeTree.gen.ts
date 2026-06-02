@@ -29,6 +29,7 @@ import { Route as AdminInquiriesRouteImport } from './routes/admin.inquiries'
 import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminExtractedRouteImport } from './routes/admin.extracted'
 import { Route as AdminDocumentsRouteImport } from './routes/admin.documents'
+import { Route as AdminDnsRouteImport } from './routes/admin.dns'
 import { Route as AdminDatabaseRouteImport } from './routes/admin.database'
 import { Route as AdminContractsRouteImport } from './routes/admin.contracts'
 import { Route as AdminClientsRouteImport } from './routes/admin.clients'
@@ -146,6 +147,11 @@ const AdminDocumentsRoute = AdminDocumentsRouteImport.update({
   path: '/documents',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDnsRoute = AdminDnsRouteImport.update({
+  id: '/dns',
+  path: '/dns',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDatabaseRoute = AdminDatabaseRouteImport.update({
   id: '/database',
   path: '/database',
@@ -245,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contracts': typeof AdminContractsRoute
   '/admin/database': typeof AdminDatabaseRoute
+  '/admin/dns': typeof AdminDnsRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/finance': typeof AdminFinanceRoute
@@ -282,6 +289,7 @@ export interface FileRoutesByTo {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contracts': typeof AdminContractsRoute
   '/admin/database': typeof AdminDatabaseRoute
+  '/admin/dns': typeof AdminDnsRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/finance': typeof AdminFinanceRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contracts': typeof AdminContractsRoute
   '/admin/database': typeof AdminDatabaseRoute
+  '/admin/dns': typeof AdminDnsRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/finance': typeof AdminFinanceRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/contracts'
     | '/admin/database'
+    | '/admin/dns'
     | '/admin/documents'
     | '/admin/extracted'
     | '/admin/finance'
@@ -398,6 +408,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/contracts'
     | '/admin/database'
+    | '/admin/dns'
     | '/admin/documents'
     | '/admin/extracted'
     | '/admin/finance'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/contracts'
     | '/admin/database'
+    | '/admin/dns'
     | '/admin/documents'
     | '/admin/extracted'
     | '/admin/finance'
@@ -615,6 +627,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDocumentsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/dns': {
+      id: '/admin/dns'
+      path: '/dns'
+      fullPath: '/admin/dns'
+      preLoaderRoute: typeof AdminDnsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/database': {
       id: '/admin/database'
       path: '/database'
@@ -766,6 +785,7 @@ interface AdminRouteChildren {
   AdminClientsRoute: typeof AdminClientsRoute
   AdminContractsRoute: typeof AdminContractsRoute
   AdminDatabaseRoute: typeof AdminDatabaseRoute
+  AdminDnsRoute: typeof AdminDnsRoute
   AdminDocumentsRoute: typeof AdminDocumentsRoute
   AdminExtractedRoute: typeof AdminExtractedRoute
   AdminFinanceRoute: typeof AdminFinanceRoute
@@ -791,6 +811,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminClientsRoute: AdminClientsRoute,
   AdminContractsRoute: AdminContractsRoute,
   AdminDatabaseRoute: AdminDatabaseRoute,
+  AdminDnsRoute: AdminDnsRoute,
   AdminDocumentsRoute: AdminDocumentsRoute,
   AdminExtractedRoute: AdminExtractedRoute,
   AdminFinanceRoute: AdminFinanceRoute,
