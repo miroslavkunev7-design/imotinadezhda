@@ -47,6 +47,8 @@ function PropertiesAdmin() {
   const [imagesFor, setImagesFor] = useState<Row | null>(null);
   const [docsFor, setDocsFor] = useState<Row | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pendingImages, setPendingImages] = useState<File[]>([]);
+  const [uploadingNew, setUploadingNew] = useState(false);
 
   const load = async () => {
     const [{ data: ps }, { data: cs }, { data: qs }] = await Promise.all([
@@ -61,6 +63,29 @@ function PropertiesAdmin() {
 
   useEffect(() => { load(); }, []);
 
+  const uploadImagesForProperty = async (propertyId: string, files: File[]) => {
+    let coverSet = false;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${propertyId}/${Date.now()}-${i}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("property-images").upload(path, file, { contentType: file.type });
+      if (upErr) { alert(upErr.message); continue; }
+      const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
+      const isCover = !coverSet && i === 0;
+      await supabase.from("property_images").insert({
+        property_id: propertyId,
+        url: pub.publicUrl,
+        is_cover: isCover,
+        display_order: i,
+      });
+      if (isCover) {
+        await supabase.from("properties").update({ cover_image_url: pub.publicUrl }).eq("id", propertyId);
+        coverSet = true;
+      }
+    }
+  };
+
   const save = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing) return;
@@ -72,12 +97,27 @@ function PropertiesAdmin() {
     if (payload.bathrooms) payload.bathrooms = Number(payload.bathrooms);
     if (payload.rooms) payload.rooms = Number(payload.rooms);
     if (!payload.quarter_id) payload.quarter_id = null;
-    const op = id
-      ? supabase.from("properties").update(payload).eq("id", id)
-      : supabase.from("properties").insert(payload);
-    const { error } = await op;
-    setBusy(false);
-    if (error) { alert(error.message); return; }
+    let propertyId = id;
+    try {
+      if (id) {
+        const { error } = await supabase.from("properties").update(payload).eq("id", id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from("properties").insert(payload).select("id").single();
+        if (error) throw error;
+        propertyId = data!.id;
+      }
+      if (pendingImages.length && propertyId) {
+        setUploadingNew(true);
+        await uploadImagesForProperty(propertyId, pendingImages);
+      }
+    } catch (err: any) {
+      alert(err?.message ?? "Грешка");
+      setBusy(false); setUploadingNew(false);
+      return;
+    }
+    setBusy(false); setUploadingNew(false);
+    setPendingImages([]);
     setEditing(null);
     load();
   };
@@ -102,10 +142,23 @@ function PropertiesAdmin() {
   };
 
 
-  const newProperty = () => setEditing({
-    title: "", price: 0, currency: "EUR", property_type: "apartment", status: "sale",
-    is_published: true, is_featured: false, city_id: cities[0]?.id ?? "",
-  });
+  const newProperty = async () => {
+    // Re-load cities to avoid empty dropdown if user opens before initial load finished
+    if (!cities.length) {
+      const { data: cs } = await supabase.from("cities").select("id, name").order("display_order");
+      if (cs) setCities(cs);
+    }
+    setPendingImages([]);
+    setEditing({
+      title: "", price: 0, currency: "EUR", property_type: "apartment", status: "sale",
+      is_published: true, is_featured: false, city_id: "",
+    });
+  };
+
+  const startEdit = (r: Row) => {
+    setPendingImages([]);
+    setEditing(r);
+  };
 
   const filteredQuarters = editing?.city_id ? quarters.filter((q) => q.city_id === editing.city_id) : [];
 
