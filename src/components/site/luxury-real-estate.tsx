@@ -136,12 +136,13 @@ function SearchBar({
   cities = [],
   quarters = [],
   initial,
+  variant = "light",
 }: {
   cities?: Array<{ slug: string; name: string }>;
   quarters?: Array<{ slug: string; name: string }>;
   initial?: { city_slug?: string; quarter_slug?: string; property_type?: string; price_min?: string; price_max?: string; area_min?: string; area_max?: string };
+  variant?: "light" | "burgundy";
 }) {
-  // navigation handled via window.location.href in handleSearch
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [city, setCity] = useReactState(initial?.city_slug ?? (cities[0]?.slug ?? ""));
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -177,9 +178,10 @@ function SearchBar({
     { slug: "novi-pazar", name: "Нов пазар" },
   ];
 
+  const isBurgundy = variant === "burgundy";
+
   return (
-    <div className="relative mx-auto w-full max-w-[1180px]">
-      {/* Floating gold "Search" button */}
+    <div className={cn("relative mx-auto w-full max-w-[1180px]", isBurgundy && "search-burgundy")}>
       <button
         type="button"
         onClick={handleSearch}
@@ -188,7 +190,12 @@ function SearchBar({
         <Search className="h-4 w-4 md:h-5 md:w-5" /> Търси
       </button>
 
-      <div className="marble-light-panel grid w-full grid-cols-2 gap-1 rounded-[18px] p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:rounded-[22px] md:p-3">
+      <div
+        className={cn(
+          "grid w-full grid-cols-2 gap-1 rounded-[18px] p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:rounded-[22px] md:p-3",
+          isBurgundy ? "marble-dark-panel" : "marble-light-panel",
+        )}
+      >
         <SelectCell icon={MapPin} label="Град" value={city} onChange={setCity}
           options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
         <SelectCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
@@ -203,7 +210,12 @@ function SearchBar({
           onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
         <button
           type="button"
-          className="marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-primary/35 bg-primary/5 px-5 text-primary transition hover:bg-primary/10 md:flex"
+          className={cn(
+            "marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border px-5 transition md:flex",
+            isBurgundy
+              ? "border-[#C9A84C]/55 bg-[#C9A84C]/15 text-[#fdf6e3] hover:bg-[#C9A84C]/25"
+              : "border-primary/35 bg-primary/5 text-primary hover:bg-primary/10",
+          )}
           onClick={handleSearch}
         >
           <SlidersHorizontal className="h-5 w-5" />
