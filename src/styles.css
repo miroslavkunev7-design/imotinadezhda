@@ -429,84 +429,41 @@ body:has(.luxury-page) {
 }
 
 
-/* === Site header: full-width bordeaux bar, scroll-logo left, nav right === */
+/* === Site header: pixel-perfect reference image with clickable hotspots === */
 .site-header {
   position: relative;
   width: 100%;
   z-index: 1000;
-  background: linear-gradient(180deg, #8b1a2b 0%, #730f22 55%, #5e0f1d 100%);
-  border-bottom: 2px solid rgba(208, 164, 73, 0.55);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -10px 28px rgba(0, 0, 0, 0.35),
-    0 10px 28px rgba(0, 0, 0, 0.25);
+  background: #000;
 }
-.site-header__inner {
+.site-header__art {
+  position: relative;
+  width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 8px 32px;
-  min-height: 84px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  aspect-ratio: 1280 / 530;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-color: #000;
 }
-.logo-scroll {
-  position: relative;
+.site-header__hotspot {
+  position: absolute;
   display: block;
-  width: 300px;
-  flex-shrink: 0;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
+  cursor: pointer;
+  border-radius: 999px;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
-.logo-scroll img {
-  width: 100%;
-  height: auto;
-  display: block;
-  pointer-events: none;
+.site-header__hotspot:hover {
+  background-color: rgba(248, 212, 122, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(248, 212, 122, 0.35);
 }
-.main-nav {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-  padding-right: 8px;
+.site-header__hotspot.is-active {
+  background-color: rgba(248, 212, 122, 0.14);
 }
-.main-nav .nav-link {
-  color: #f4e8d2;
-  text-decoration: none;
-  font-size: 20px;
-  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  transition: color 0.25s ease;
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
-}
-.main-nav .nav-link:hover,
-.main-nav .nav-link.is-active {
-  color: #f8d47a;
-}
-.main-nav .nav-icon { padding-left: 4px; }
-
-@media (max-width: 1023px) {
-  .site-header__inner {
-    padding: 6px 16px;
-    min-height: 64px;
-    gap: 12px;
-  }
-  .logo-scroll { width: 180px; }
-  .main-nav { gap: 18px; }
-  .main-nav .nav-link { font-size: 15px; }
-}
-
-@media (max-width: 640px) {
-  .site-header__inner {
-    padding: 6px 12px;
-    min-height: 56px;
-  }
-  .logo-scroll { width: 130px; }
-  .main-nav { gap: 12px; }
-  .main-nav .nav-link { font-size: 12px; }
+.site-header__hotspot:focus-visible {
+  outline: 2px solid #f8d47a;
+  outline-offset: 2px;
 }
 
 
