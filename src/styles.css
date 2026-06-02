@@ -429,23 +429,26 @@ body:has(.luxury-page) {
 }
 
 
-/* === Site header: pixel-perfect reference image with clickable hotspots === */
+/* === Site header: transparent navbar PNGs (desktop + mobile) with hotspots === */
 .site-header {
   position: relative;
   width: 100%;
   z-index: 1000;
-  background: #000;
+  background: transparent;
 }
 .site-header__art {
   position: relative;
   width: 100%;
-  max-width: 1440px;
+  max-width: 1400px;
   margin: 0 auto;
-  aspect-ratio: 1280 / 530;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-color: #000;
+}
+.site-header__art--mobile { display: none; }
+@media (max-width: 768px) {
+  .site-header__art--desktop { display: none; }
+  .site-header__art--mobile { display: block; }
 }
 .site-header__hotspot {
   position: absolute;
