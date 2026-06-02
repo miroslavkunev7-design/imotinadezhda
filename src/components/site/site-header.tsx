@@ -88,7 +88,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
         </div>
         <div
           aria-hidden
-          className="pointer-events-none absolute left-0 top-0 hidden h-[150%] md:block md:w-[520px] lg:w-[640px]"
+          className="pointer-events-none absolute left-0 top-0 hidden h-[180%] md:block md:w-[620px] lg:w-[780px]"
         >
           <svg
             viewBox="0 0 640 240"
