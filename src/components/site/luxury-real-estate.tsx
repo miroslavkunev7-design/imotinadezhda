@@ -584,7 +584,7 @@ export function HomePage({ cities, featured }: { cities?: HomeCity[]; featured?:
         </div>
 
 
-        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-2 pt-5 md:px-6 md:pt-7">
+        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-5 md:px-8 md:pt-7">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
             {cityList.map((city) => (
               <CityCard
