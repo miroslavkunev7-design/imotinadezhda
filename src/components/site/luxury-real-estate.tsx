@@ -786,10 +786,13 @@ export function HomePage({
   const mobileSections = visible.filter((s) => s.id === "hero-search-mobile");
   const desktopSections = visible.filter((s) => s.id !== "hero-search-mobile");
 
+  const heroSections = desktopSections.filter((s) => s.id !== "trust-strip");
+  const belowSections = desktopSections.filter((s) => s.id === "trust-strip");
+
   return (
-    <main className="luxury-page flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:max-h-screen lg:overflow-hidden">
+    <main className="luxury-page flex min-h-screen flex-col bg-[#0f0a0b] text-foreground">
       <section
-        className="relative flex flex-col pb-6 pt-0 lg:flex-1 lg:overflow-hidden lg:pb-4"
+        className="relative flex flex-col pb-6 pt-0"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
@@ -802,10 +805,54 @@ export function HomePage({
         {mobileSections.map((s) => sectionNode(s.id))}
 
         <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-5 md:px-8 md:pt-7">
-          {desktopSections.map((s) => sectionNode(s.id))}
+          {heroSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
+      {belowSections.map((s) => sectionNode(s.id))}
     </main>
+  );
+}
+
+function TrustStrip() {
+  const items = [
+    { Icon: Shield, title: "Сигурност", desc: "Вашата сделка е на сигурно място" },
+    { Icon: Award, title: "Коректност", desc: "Работим честно и прозрачно" },
+    { Icon: Handshake, title: "Доверие", desc: "Дългосрочни отношения с нашите клиенти" },
+    { Icon: MapPin, title: "Локално знание", desc: "Най-добри оферти във всеки град" },
+  ];
+  return (
+    <section data-section-id="trust-strip" className="bg-[#0f0a0b] py-10 md:py-14">
+      <div className="mx-auto flex w-full max-w-[1420px] flex-col items-stretch gap-8 px-4 md:px-8 lg:flex-row lg:items-center lg:gap-10">
+        <div className="grid flex-1 grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
+          {items.map(({ Icon, title, desc }) => (
+            <div key={title} className="flex items-start gap-3">
+              <div
+                className="flex h-10 w-10 flex-none items-center justify-center rounded-full border md:h-12 md:w-12"
+                style={{ borderColor: "rgba(201,168,76,0.55)", backgroundColor: "rgba(201,168,76,0.08)" }}
+              >
+                <Icon className="h-5 w-5 md:h-6 md:w-6" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+              </div>
+              <div className="min-w-0">
+                <div className="font-display text-base font-semibold text-white md:text-lg">{title}</div>
+                <div className="mt-1 text-[12px] leading-snug text-white/65 md:text-[13px]">{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="inline-flex h-12 flex-none items-center justify-center gap-2 self-start rounded-full border px-6 font-display text-sm text-white transition hover:brightness-110 md:h-14 md:px-8 md:text-base lg:self-auto"
+          style={{
+            background: "linear-gradient(180deg, #8B1A2B 0%, #5E0F1D 100%)",
+            borderColor: "rgba(201,168,76,0.6)",
+            boxShadow: "0 8px 22px rgba(0,0,0,0.45)",
+          }}
+        >
+          <MessageCircle className="h-4 w-4 md:h-5 md:w-5" style={{ color: "#C9A84C" }} strokeWidth={2} />
+          <span>Чат с консултант</span>
+        </button>
+      </div>
+    </section>
   );
 }
 
