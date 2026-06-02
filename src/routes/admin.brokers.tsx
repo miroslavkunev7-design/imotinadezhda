@@ -88,7 +88,7 @@ function BrokersAdmin() {
           <div key={b.id} className="rounded-2xl border border-amber-500/20 bg-[rgba(255, 255, 255,0.85)] p-5 text-amber-100 transition hover:border-amber-400/60 hover:shadow-[0_0_30px_-10px_rgba(212,175,55,0.45)] cursor-pointer" onClick={() => setDetailFor(b)}>
             <div className="flex items-center gap-4">
               {b.photo_url ? (
-                <img src={b.photo_url} alt={b.full_name} className="h-16 w-16 rounded-full object-cover border border-amber-500/30" />
+                <img src={b.photo_url} alt={b.full_name} className="h-16 w-16 rounded-full object-cover border border-amber-500/30" loading="lazy" decoding="async" />
               ) : (
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20 text-amber-300"><UserCog className="h-7 w-7" /></div>
               )}
@@ -122,7 +122,7 @@ function BrokersAdmin() {
             </div>
 
             <div className="flex items-center gap-4">
-              {editing.photo_url ? <img src={editing.photo_url} alt="" className="h-20 w-20 rounded-full object-cover" /> : <div className="h-20 w-20 rounded-full bg-muted" />}
+              {editing.photo_url ? <img src={editing.photo_url} alt="" className="h-20 w-20 rounded-full object-cover" loading="lazy" decoding="async" /> : <div className="h-20 w-20 rounded-full bg-muted" />}
               <label className="cursor-pointer rounded-lg border border-input px-3 py-2 text-sm hover:bg-muted">
                 <Upload className="inline h-4 w-4 mr-1" /> Качи снимка
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => onUploadPhoto(e.target.files?.[0] ?? null)} />
@@ -237,7 +237,7 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             {broker.photo_url
-              ? <img src={broker.photo_url} alt="" className="h-20 w-20 rounded-full object-cover border border-amber-500/40" />
+              ? <img src={broker.photo_url} alt="" className="h-20 w-20 rounded-full object-cover border border-amber-500/40" loading="lazy" decoding="async" />
               : <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-500/20 text-amber-300"><UserCog className="h-9 w-9" /></div>}
             <div>
               <h2 className="font-display text-3xl">{broker.full_name}</h2>

@@ -254,7 +254,7 @@ function ExtractedPage() {
                   className="flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-xs text-primary/60 hover:ring-2 hover:ring-primary/40"
                 >
                   {Array.isArray(r.images) && r.images[0] ? (
-                    <img src={r.images[0]} alt="" className="h-full w-full object-cover" />
+                    <img src={r.images[0]} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     "няма"
                   )}
@@ -357,7 +357,7 @@ function ExtractedPage() {
               {Array.isArray(previewRow.images) && previewRow.images.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2 max-h-[420px] overflow-y-auto">
                   {previewRow.images.slice(0, 12).map((url: string, i: number) => (
-                    <img key={i} src={url} alt="" className="h-44 w-full rounded-lg object-cover" />
+                    <img key={i} src={url} alt="" className="h-44 w-full rounded-lg object-cover" loading="lazy" decoding="async" />
                   ))}
                 </div>
               ) : (

@@ -142,7 +142,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
           >
             <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-primary-foreground">
               {user?.user_metadata?.avatar_url ? (
-                <img src={user.user_metadata.avatar_url as string} alt="" className="h-full w-full object-cover" />
+                <img src={user.user_metadata.avatar_url as string} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : (
                 (user?.email ?? "U").slice(0, 1).toUpperCase()
               )}

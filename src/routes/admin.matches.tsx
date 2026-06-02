@@ -65,7 +65,7 @@ function MatchesAdmin() {
             <div className="grid gap-5 md:grid-cols-[200px_1fr_auto] md:items-center">
               <div className="flex items-center gap-3">
                 {m.properties?.cover_image_url ? (
-                  <img src={m.properties.cover_image_url} alt="" className="h-20 w-28 rounded-lg object-cover" />
+                  <img src={m.properties.cover_image_url} alt="" className="h-20 w-28 rounded-lg object-cover" loading="lazy" decoding="async" />
                 ) : <div className="h-20 w-28 rounded-lg bg-amber-500/10" />}
                 <div className="text-2xl font-display text-amber-200">{m.score}%</div>
               </div>

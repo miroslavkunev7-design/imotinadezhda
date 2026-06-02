@@ -652,7 +652,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       {/* HERO with overlay navbar */}
       <section className="relative">
         <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
-          <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" />
+          <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-[#5e0f1d]/40" />
 
           {/* Overlay navbar */}
@@ -662,7 +662,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
 
           {/* Right-side overlays */}
-          <div className="absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col gap-4 p-4 md:p-6">
+          <div className="absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col gap-4 p-4 pt-[120px] md:p-6 md:pt-[130px]">
             {/* FILTER PANEL */}
             <div
               className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
@@ -720,7 +720,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               style={{ background: "linear-gradient(135deg,#8B1A2B 0%,#5e0f1d 100%)" }}
             >
               <div className="flex gap-3 p-3.5 md:gap-4 md:p-4">
-                <img src={heroImage} alt="" className="h-24 w-24 flex-none rounded-xl object-cover ring-1 ring-[#C9A84C]/30" />
+                <img src={heroImage} alt="" className="h-24 w-24 flex-none rounded-xl object-cover ring-1 ring-[#C9A84C]/30" loading="lazy" decoding="async" />
                 <div className="min-w-0">
                   <div className="text-[9.5px] uppercase tracking-[0.22em] text-[#C9A84C]">За града</div>
                   <h1 className="mt-1 font-display text-[2.2rem] leading-none text-white">{city.name}</h1>
@@ -1282,7 +1282,7 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-[18px]">
-        <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
         {images.length > 1 ? (
           <>
             <button type="button" aria-label="Предишна снимка" onClick={() => setIdx((idx - 1 + images.length) % images.length)} className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-5 w-5" /></button>
