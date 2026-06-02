@@ -236,32 +236,133 @@ export function ClientDetailsSheet({
           <AccordionItem value="docs">
             <AccordionTrigger className="text-sm"><Upload className="mr-2 h-3.5 w-3.5 text-primary" />Документи ({docs.length})</AccordionTrigger>
             <AccordionContent>
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <select value={docType} onChange={(e) => setDocType(e.target.value)} className="rounded border border-input bg-background px-2 py-1.5 text-xs">
-                  <option value="id_card">Лична карта</option>
-                  <option value="bank_statement">Банково извлечение</option>
-                  <option value="contract">Договор</option>
-                  <option value="other">Друго</option>
-                </select>
-                <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 px-3 py-1.5 text-xs text-primary hover:bg-primary/10">
-                  <Upload className="h-3.5 w-3.5" /> {busy ? "Качване…" : "Качи файл"}
-                  <input type="file" multiple className="hidden" onChange={(e) => uploadDocs(e.target.files)} disabled={busy} />
-                </label>
-              </div>
-              <div className="space-y-1.5">
-                {docs.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-xs">
-                    <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-center gap-2 truncate hover:underline">
-                      <FileText className="h-3.5 w-3.5 flex-none text-primary" />
-                      <span className="truncate">{d.file_name}</span>
-                    </a>
-                    <button onClick={() => removeDoc(d.id)} className="text-rose-500"><Trash2 className="h-3.5 w-3.5" /></button>
-                  </div>
-                ))}
-                {!docs.length && <div className="rounded-lg border border-dashed border-border py-6 text-center text-xs text-muted-foreground">Няма качени документи.</div>}
+              <div className="space-y-2">
+                {/* 12-month checklists */}
+                {MONTHLY_CATS.map((cat) => {
+                  const completed = monthsCompleted(cat.id);
+                  const allDone = completed === 12;
+                  const isOpen = expanded === cat.id;
+                  return (
+                    <div key={cat.id} className="rounded-xl border border-border bg-background">
+                      <button
+                        type="button"
+                        onClick={() => setExpanded(isOpen ? null : cat.id)}
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left"
+                      >
+                        <div className="flex min-w-0 items-center gap-2">
+                          <cat.icon className="h-4 w-4 flex-none text-primary" />
+                          <span className="truncate text-sm font-medium">{cat.label}</span>
+                        </div>
+                        <div className="flex flex-none items-center gap-2">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${allDone ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"}`}>
+                            {completed}/12
+                          </span>
+                          {allDone && <Check className="h-4 w-4 text-emerald-600" />}
+                          <ChevronDown className={`h-4 w-4 text-muted-foreground transition ${isOpen ? "rotate-180" : ""}`} />
+                        </div>
+                      </button>
+                      {isOpen && (
+                        <div className="grid grid-cols-2 gap-1.5 border-t border-border p-2 sm:grid-cols-3">
+                          {months.map((m) => {
+                            const items = docsFor(cat.id, m.key);
+                            const ok = items.length > 0;
+                            const isUp = uploading === `${cat.id}-${m.key}`;
+                            return (
+                              <label
+                                key={m.key}
+                                className={`group flex cursor-pointer flex-col gap-1 rounded-lg border p-2 text-[11px] transition ${
+                                  ok ? "border-emerald-400/60 bg-emerald-50" : "border-dashed border-rose-300/60 bg-rose-50/40 hover:border-rose-400"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-1">
+                                  <span className={`truncate font-medium ${ok ? "text-emerald-800" : "text-rose-700"}`}>{m.label}</span>
+                                  {ok ? <Check className="h-3.5 w-3.5 flex-none text-emerald-600" /> : <AlertCircle className="h-3.5 w-3.5 flex-none text-rose-500" />}
+                                </div>
+                                {items.length > 0 ? (
+                                  <div className="space-y-0.5">
+                                    {items.map((f) => (
+                                      <div key={f.id} className="flex items-center justify-between gap-1 text-[10px] text-emerald-700/90">
+                                        <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{f.file_name}</a>
+                                        <button type="button" onClick={(e) => { e.preventDefault(); removeDoc(f.id); }} className="text-rose-500 hover:text-rose-700"><Trash2 className="h-3 w-3" /></button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 text-[10px] text-rose-600/80">
+                                    {isUp ? <><Loader2 className="h-3 w-3 animate-spin" /> Качване…</> : <><Upload className="h-3 w-3" /> Добави</>}
+                                  </div>
+                                )}
+                                <input
+                                  type="file"
+                                  accept="image/*,application/pdf"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) uploadFile(file, cat.id, m.key);
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Single docs */}
+                <div className="grid gap-1.5 sm:grid-cols-2">
+                  {SINGLE_CATS.map((cat) => {
+                    const items = docsFor(cat.id);
+                    const ok = items.length > 0;
+                    const isUp = uploading === `${cat.id}-single`;
+                    return (
+                      <label
+                        key={cat.id}
+                        className={`flex cursor-pointer flex-col gap-1 rounded-xl border-2 border-dashed p-2.5 text-xs transition ${
+                          ok ? "border-emerald-400 bg-emerald-50" : "border-primary/25 bg-background hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            <cat.icon className="h-3.5 w-3.5 flex-none text-primary" />
+                            <span className="truncate font-medium text-primary">{cat.label}</span>
+                          </div>
+                          {ok ? <Check className="h-4 w-4 flex-none text-emerald-600" /> : <AlertCircle className="h-4 w-4 flex-none text-rose-500" />}
+                        </div>
+                        {items.length > 0 ? (
+                          <div className="space-y-0.5 text-[10px] text-emerald-800">
+                            {items.map((f) => (
+                              <div key={f.id} className="flex items-center justify-between gap-1">
+                                <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{f.file_name}</a>
+                                <button type="button" onClick={(e) => { e.preventDefault(); removeDoc(f.id); }} className="text-rose-500"><Trash2 className="h-3 w-3" /></button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                            {isUp ? <><Loader2 className="h-3 w-3 animate-spin" /> Качване…</> : <><Upload className="h-3 w-3" /> Добави документ</>}
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) uploadFile(file, cat.id);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
+
         </Accordion>
       </SheetContent>
     </Sheet>
