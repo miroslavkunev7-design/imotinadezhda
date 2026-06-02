@@ -61,10 +61,34 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
         }}
       />
       <div className="relative h-[56px] w-full md:h-[150px] lg:h-[180px]">
-        {/* Organic ink-splash burgundy panel (left) */}
+        {/* Organic ink-splash burgundy panel (left). Mobile uses a tighter
+            viewBox to crop off the transparent trailing tail; desktop keeps
+            the full splash exactly as before. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-0 top-0 h-[150%] w-[320px] sm:w-[400px] md:w-[520px] lg:w-[640px]"
+          className="pointer-events-none absolute left-0 top-3 block h-[150%] w-[230px] md:top-0 md:hidden"
+        >
+          <svg
+            viewBox="0 0 470 240"
+            preserveAspectRatio="xMinYMid meet"
+            className="h-full w-full"
+            style={{ filter: "drop-shadow(0 10px 22px rgba(139,26,43,0.45))" }}
+          >
+            <defs>
+              <linearGradient id="hdr-grad-m" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={RED} />
+                <stop offset="100%" stopColor={RED_DARK} />
+              </linearGradient>
+            </defs>
+            <path
+              d="M0,0 L430,0 C460,18 470,52 448,80 C470,118 455,160 430,196 C400,224 360,232 300,228 C240,224 180,228 130,222 C70,215 30,200 0,180 Z"
+              fill="url(#hdr-grad-m)"
+            />
+          </svg>
+        </div>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-0 top-0 hidden h-[150%] md:block md:w-[520px] lg:w-[640px]"
         >
           <svg
             viewBox="0 0 640 240"
@@ -78,12 +102,10 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
                 <stop offset="100%" stopColor={RED_DARK} />
               </linearGradient>
             </defs>
-            {/* Bold organic ink-splash silhouette */}
             <path
               d="M0,0 L430,0 C460,18 470,40 455,62 C500,70 520,55 555,72 C585,86 560,108 525,115 C575,118 605,108 612,130 C620,156 560,168 505,160 C540,175 525,196 470,200 C520,212 495,232 430,228 C380,225 340,210 285,212 C230,214 180,228 130,222 C70,215 30,200 0,180 Z"
               fill="url(#hdr-grad)"
             />
-            {/* Gold splash trim accent following the right contour */}
             <path
               d="M430,0 C460,18 470,40 455,62 C500,70 520,55 555,72 C585,86 560,108 525,115 C575,118 605,108 612,130 C620,156 560,168 505,160 C540,175 525,196 470,200 C520,212 495,232 430,228"
               fill="none"
@@ -91,19 +113,19 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
               strokeOpacity="0.55"
               strokeWidth="1.4"
             />
-            {/* Tiny gold ink droplets */}
             <circle cx="600" cy="60" r="4" fill={GOLD} fillOpacity="0.55" />
             <circle cx="585" cy="190" r="3" fill={GOLD} fillOpacity="0.45" />
             <circle cx="625" cy="100" r="2" fill={GOLD} fillOpacity="0.4" />
           </svg>
         </div>
 
+
         {/* Logo — enlarged to fill splash */}
         <Link
           to="/"
           onClick={handleLogo}
           aria-label="Начало"
-          className="absolute left-4 top-1/2 z-20 -translate-y-1/2 md:left-10 lg:left-14"
+          className="absolute left-4 top-2 z-20 md:left-10 md:top-1/2 md:-translate-y-1/2 lg:left-14"
         >
           <img
             src={logoNadezhda}
