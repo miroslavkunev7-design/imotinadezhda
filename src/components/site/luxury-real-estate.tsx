@@ -809,10 +809,13 @@ export function HomePage({
           {heroSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
-      {belowSections.map((s) => sectionNode(s.id))}
+      <div className="flex-none">
+        {belowSections.map((s) => sectionNode(s.id))}
+      </div>
     </main>
   );
 }
+
 
 
 function TrustStrip() {
