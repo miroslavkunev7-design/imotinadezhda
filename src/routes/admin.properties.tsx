@@ -236,9 +236,12 @@ function PropertiesAdmin() {
               </Field>
               <Field label="Град">
                 <select required value={editing.city_id ?? ""} onChange={(e) => setEditing({ ...editing, city_id: e.target.value, quarter_id: null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
-                  <option value="">Избери</option>
+                  <option value="">{cities.length ? "Избери град" : "Зареждане..."}</option>
                   {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
+                {!cities.length && (
+                  <p className="mt-1 text-[11px] text-rose-600">Няма градове в базата. Добави от меню „Градове" в админа.</p>
+                )}
               </Field>
               <Field label="Квартал">
                 <select value={editing.quarter_id ?? ""} onChange={(e) => setEditing({ ...editing, quarter_id: e.target.value || null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
