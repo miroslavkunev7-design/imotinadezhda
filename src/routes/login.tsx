@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { logAdminAccess } from "@/lib/audit.functions";
+
 import { SiteHeader } from "@/components/site/site-header";
 import { setRememberMe } from "@/lib/remember-me";
 import loginHero from "@/assets/login-hero.jpeg";
@@ -26,12 +26,6 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
 
-  useEffect(() => {
-    logAdminAccess({
-      data: { path: "/login", userId: user?.id ?? null, email: user?.email ?? null },
-    }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     if (!loading && user) {
