@@ -231,7 +231,11 @@ export function DocScanner() {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-100/60">
-        <span>{pages.length} страници</span>
+        <label className="inline-flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={autoEnhance} onChange={(e) => setAutoEnhance(e.target.checked)} className="accent-amber-400" />
+          <span>Авто-подобряване (по-бавно)</span>
+          <span className="text-amber-100/40">· {pages.length} стр.</span>
+        </label>
         <div className="flex gap-2">
           {pages.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => setPages([])} className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10">
