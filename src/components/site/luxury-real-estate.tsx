@@ -181,7 +181,7 @@ function SearchBar({
   const isBurgundy = variant === "burgundy";
 
   return (
-    <div className={cn("relative mx-auto w-full max-w-[1180px]", isBurgundy && "search-burgundy")}>
+    <div className="relative mx-auto w-full max-w-[1180px]">
       <button
         type="button"
         onClick={handleSearch}
@@ -192,35 +192,51 @@ function SearchBar({
 
       <div
         className={cn(
-          "grid w-full grid-cols-2 gap-1 rounded-[18px] p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:rounded-[22px] md:p-3",
-          isBurgundy ? "marble-dark-panel" : "marble-light-panel",
+          "relative w-full overflow-hidden rounded-[18px] border border-[#8B1A2B]/25 bg-white shadow-[0_22px_50px_rgba(139,26,43,0.18)] md:rounded-[26px]",
+          isBurgundy && "search-wavy",
         )}
       >
-        <SelectCell icon={MapPin} label="Град" value={city} onChange={setCity}
-          options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
-        <SelectCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
-          options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]} />
-        <div className="col-span-2 md:col-span-1 md:contents">
-          <SelectCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
-            options={propertyTypeOptions} />
-        </div>
-        <RangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
-          onMin={setPriceMin} onMax={setPriceMax} suffix="€" />
-        <RangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
-          onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
-        <button
-          type="button"
+        {isBurgundy && (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+            className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[70px] w-full md:h-[90px]"
+          >
+            <path
+              d="M0,0 L1200,0 L1200,55 C1080,95 960,40 840,62 C720,84 600,38 480,58 C360,78 240,42 120,66 C80,74 40,68 0,72 Z"
+              fill="#8B1A2B"
+            />
+          </svg>
+        )}
+
+        <div
           className={cn(
-            "marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border px-5 transition md:flex",
-            isBurgundy
-              ? "border-[#C9A84C]/55 bg-[#C9A84C]/15 text-[#fdf6e3] hover:bg-[#C9A84C]/25"
-              : "border-primary/35 bg-primary/5 text-primary hover:bg-primary/10",
+            "relative z-10 grid w-full grid-cols-2 gap-1 p-2 md:grid-cols-[1fr_1fr_1fr_1.1fr_1.1fr_auto] md:items-stretch md:gap-0 md:p-3",
+            isBurgundy && "md:pt-12",
           )}
-          onClick={handleSearch}
         >
-          <SlidersHorizontal className="h-5 w-5" />
-          <span className="font-display text-base">Филтри</span>
-        </button>
+          <SelectCell icon={MapPin} label="Град" value={city} onChange={setCity}
+            options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
+          <SelectCell icon={House} label="Квартал" value={quarter} onChange={setQuarter}
+            options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]} />
+          <div className="col-span-2 md:col-span-1 md:contents">
+            <SelectCell icon={Building2} label="Вид имот" value={ptype} onChange={setPtype}
+              options={propertyTypeOptions} />
+          </div>
+          <RangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
+            onMin={setPriceMin} onMax={setPriceMax} suffix="€" />
+          <RangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
+            onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
+          <button
+            type="button"
+            className="marble-action-button hidden h-full min-h-[60px] items-center justify-center gap-2 rounded-[14px] border border-[#8B1A2B]/40 bg-[#8B1A2B]/5 px-5 text-[#8B1A2B] transition hover:bg-[#8B1A2B]/10 md:flex"
+            onClick={handleSearch}
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+            <span className="font-display text-base">Филтри</span>
+          </button>
+        </div>
       </div>
     </div>
   );
