@@ -78,7 +78,7 @@ export function MortgageStagesModal({
   const completed = STAGES.filter((s) => data.stages?.[s.key]?.done).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/55 p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>

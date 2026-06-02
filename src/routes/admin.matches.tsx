@@ -61,7 +61,7 @@ function MatchesAdmin() {
 
       <div className="grid gap-4">
         {filtered.map((m) => (
-          <div key={m.id} className="rounded-2xl border border-amber-500/20 bg-[rgba(15,3,6,0.85)] p-5 text-amber-100">
+          <div key={m.id} className="rounded-2xl border border-amber-500/20 bg-[rgba(255, 255, 255,0.85)] p-5 text-amber-100">
             <div className="grid gap-5 md:grid-cols-[200px_1fr_auto] md:items-center">
               <div className="flex items-center gap-3">
                 {m.properties?.cover_image_url ? (

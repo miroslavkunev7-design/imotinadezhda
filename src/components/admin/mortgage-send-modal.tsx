@@ -47,7 +47,7 @@ export function MortgageSendModal({ client, onClose }: { client: ClientLite; onC
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#8B1A2B]/55 p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg overflow-hidden rounded-2xl border border-amber-500/30 bg-card shadow-2xl">
         <div className="flex items-center justify-between border-b border-primary/15 bg-gradient-to-r from-[#66081c] to-[#4a0613] px-5 py-4 text-amber-100">
           <div>

@@ -48,7 +48,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   return (
     <header
       className="relative z-30 w-full select-none"
-      style={{ filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.18))" }}
+      style={{ filter: "drop-shadow(0 6px 18px rgba(139, 26, 43,0.18))" }}
     >
       <div
         className="relative h-[88px] w-full overflow-hidden md:h-[108px] lg:h-[120px]"
@@ -93,7 +93,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
               to={item.to}
               search={item.search as never}
               className={cn(
-                "relative font-display text-[14px] tracking-wide text-[#1a1a1a] transition hover:text-[#dc2626] md:text-[16px] lg:text-[17px]",
+                "relative font-display text-[14px] tracking-wide text-[#4A4A4A] transition hover:text-[#dc2626] md:text-[16px] lg:text-[17px]",
                 active === item.key &&
                   "text-[#dc2626] after:absolute after:-bottom-1.5 after:left-0 after:h-px after:w-full after:bg-[#dc2626]",
               )}
@@ -105,7 +105,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             to="/login"
             search={{ redirect: "/admin" } as never}
             aria-label="Профил"
-            className="text-[#1a1a1a] transition hover:text-[#dc2626]"
+            className="text-[#4A4A4A] transition hover:text-[#dc2626]"
           >
             <User className="h-5 w-5 md:h-6 md:w-6" />
           </Link>

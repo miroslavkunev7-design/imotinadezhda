@@ -88,7 +88,7 @@ function QuartersAdmin() {
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditing(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/50 p-4" onClick={() => setEditing(null)}>
           <form onClick={(e) => e.stopPropagation()} onSubmit={save} className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-2xl text-accent-foreground">{editing.id ? "Редакция" : "Нов квартал"}</h2>

@@ -110,7 +110,7 @@ function OwnersAdmin() {
 
       <div className="space-y-6">
         {groupedByCity.map((g) => (
-          <div key={g.name} className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(15,3,6,0.85)]">
+          <div key={g.name} className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)]">
             <div className="flex items-center justify-between border-b border-amber-500/15 bg-[rgba(40,8,16,0.7)] px-4 py-2 text-amber-100">
               <div className="font-display text-lg flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-300" />{g.name}</div>
               <span className="text-xs text-amber-100/60">{g.rows.length}</span>
@@ -151,7 +151,7 @@ function OwnersAdmin() {
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setEditing(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/55 p-4" onClick={() => setEditing(null)}>
           <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl text-accent-foreground">{editing.id ? "Редакция" : "Нов собственик"}</h2>

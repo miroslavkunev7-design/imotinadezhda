@@ -65,7 +65,7 @@ function AuditDetailPage() {
       ) : !row ? (
         <p className="text-amber-100/60">Записът не е намерен.</p>
       ) : (
-        <div className="rounded-lg border border-amber-100/10 bg-[#1a0608]/40 p-6">
+        <div className="rounded-lg border border-amber-100/10 bg-[#5e0f1d]/40 p-6">
           <Row label="ID" value={<span className="font-mono text-xs">{row.id}</span>} />
           <Row
             label="Време"
@@ -98,7 +98,7 @@ function AuditDetailPage() {
             label="Metadata"
             value={
               row.metadata && Object.keys(row.metadata).length > 0 ? (
-                <pre className="overflow-x-auto rounded bg-[#0d0405] p-3 text-xs text-amber-100/80">
+                <pre className="overflow-x-auto rounded bg-[#5e0f1d] p-3 text-xs text-amber-100/80">
                   {JSON.stringify(row.metadata, null, 2)}
                 </pre>
               ) : (

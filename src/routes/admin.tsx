@@ -87,7 +87,7 @@ function AdminLayout() {
 
   if (loading || isAdmin === null) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#1a0608] text-amber-100/70">
+      <div className="flex min-h-screen items-center justify-center bg-[#5e0f1d] text-amber-100/70">
         Зареждане...
       </div>
     );
@@ -95,7 +95,7 @@ function AdminLayout() {
   if (!user) return null;
   if (!isAdmin) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#1a0608] px-4">
+      <div className="flex min-h-screen items-center justify-center bg-[#5e0f1d] px-4">
         <div className="max-w-md text-center">
           <h1 className="font-display text-3xl text-amber-100">Нямате достъп</h1>
           <p className="mt-2 text-sm text-amber-100/60">Този раздел е само за администратори.</p>

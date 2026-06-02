@@ -28,7 +28,7 @@ function ContractsAdmin() {
         <p className="mt-1 text-sm text-amber-100/60">Генерирани от AI асистента ({rows.length})</p>
       </header>
 
-      <div className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(15,3,6,0.85)]">
+      <div className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)]">
         <table className="w-full text-sm text-amber-100">
           <thead className="bg-[rgba(40,8,16,0.7)] text-left text-amber-100/80">
             <tr>
@@ -62,7 +62,7 @@ function ContractsAdmin() {
       </div>
 
       {view && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setView(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/55 p-4" onClick={() => setView(null)}>
           <div onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full max-w-4xl overflow-auto rounded-2xl bg-card p-8 shadow-2xl">
             <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
               <h2 className="font-display text-2xl text-accent-foreground">{view.title}</h2>
