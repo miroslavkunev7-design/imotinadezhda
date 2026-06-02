@@ -3,7 +3,7 @@ import { LuxuryHeader } from "@/components/site/luxury-real-estate";
 import { AGENCY, AGENCY_PHONES, buildTelUrl, buildWhatsAppUrl } from "@/lib/contact-config";
 import aboutSofa from "@/assets/about-sofa.jpeg";
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
-import marbleBg from "@/assets/marble-bg.png";
+
 import {
   ShieldCheck,
   Sparkles,
