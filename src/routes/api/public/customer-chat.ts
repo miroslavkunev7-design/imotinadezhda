@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { safeAdmin as supabaseAdmin } from "@/integrations/supabase/safe-admin";
 
 const InputSchema = z.object({
   chat_id: z.string().uuid().nullable().optional(),

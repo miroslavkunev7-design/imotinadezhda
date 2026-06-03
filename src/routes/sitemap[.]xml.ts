@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { safeAdmin as supabaseAdmin } from "@/integrations/supabase/safe-admin";
 
 const BASE_URL = "https://imotinadezhda.lovable.app";
 
