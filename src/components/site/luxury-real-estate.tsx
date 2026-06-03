@@ -997,7 +997,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
             {/* CITY INFO CARD */}
             <div
-              className="mt-auto overflow-hidden rounded-2xl text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] ring-1 ring-[#8B1A2B]/50 md:ring-1 md:ring-[#C9A84C]/25 bg-transparent md:bg-none md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]"
+              className="mt-auto overflow-hidden rounded-2xl text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:ring-1 md:ring-[#C9A84C]/25 bg-transparent md:bg-none md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]"
             >
 
               <div className="flex gap-3 p-3.5 md:gap-4 md:p-4">
