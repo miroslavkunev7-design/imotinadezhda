@@ -151,7 +151,7 @@ function buildResult(
 
 
 async function searchAndBuild(
-  client: Firecrawl,
+  client: Awaited<ReturnType<typeof fc>>,
   source: typeof SOURCES[number],
   query: string,
   domainFilter: RegExp | null,
