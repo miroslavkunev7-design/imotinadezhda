@@ -1,77 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { HomePage } from "@/components/site/luxury-real-estate";
-import { getCities, getFeaturedProperties } from "@/lib/catalog.functions";
-import { getPublicPageLayout } from "@/lib/page-layouts.functions";
+import { SiteHeader } from "@/components/site/site-header";
 
 const SITE_URL = "https://imotinadezhda.lovable.app";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ИЛДЖ.ИА | Луксозни имоти в България" },
+      { title: "Недвижими имоти Надежда | Луксозни имоти в България" },
       { name: "description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
-      { property: "og:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
+      { property: "og:title", content: "Недвижими имоти Надежда" },
       { property: "og:description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
       { property: "og:url", content: `${SITE_URL}/` },
     ],
-    links: [
-      { rel: "canonical", href: `${SITE_URL}/` },
-    ],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "ИЛДЖ.ИА",
-          url: SITE_URL,
-          description: "Луксозни недвижими имоти в България.",
-        }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          name: "ИЛДЖ.ИА",
-          url: SITE_URL,
-          potentialAction: {
-            "@type": "SearchAction",
-            target: `${SITE_URL}/search?city_slug={search_term}`,
-            "query-input": "required name=search_term",
-          },
-        }),
-      },
-    ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
   }),
-  loader: async () => {
-    const [cities, featured, layout] = await Promise.all([
-      getCities(),
-      getFeaturedProperties(),
-      getPublicPageLayout({ data: { page_key: "home" } }),
-    ]);
-    return {
-      cities: cities.map((c) => ({ name: c.name, image: c.hero_image_url, slug: c.slug })),
-      featured: featured.map((f: any) => ({
-        id: f.id,
-        title: f.title,
-        price: f.price,
-        currency: f.currency,
-        area_sqm: f.area_sqm,
-        bedrooms: f.bedrooms,
-        bathrooms: f.bathrooms,
-        cover_image_url: f.cover_image_url,
-        city_name: f.cities?.name ?? null,
-        city_slug: f.cities?.slug ?? null,
-      })),
-      layout,
-    };
-  },
   component: HomeRoute,
 });
 
 function HomeRoute() {
-  const { cities, featured, layout } = Route.useLoaderData();
-  return <HomePage cities={cities} featured={featured} layout={layout} />;
+  return (
+    <div className="h-screen w-screen overflow-hidden bg-[#1a0a0f] flex flex-col">
+      <SiteHeader />
+      <main className="flex-1 min-h-0" />
+    </div>
+  );
 }
