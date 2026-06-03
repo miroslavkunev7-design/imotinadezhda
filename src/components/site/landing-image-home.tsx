@@ -291,7 +291,7 @@ export function LandingImageHome() {
       </main>
 
       {/* ===================== MOBILE / TABLET (< lg) — locked image mode ===================== */}
-      <main className="relative w-full lg:hidden" style={{ backgroundColor: "#1a0d10" }}>
+      <main className="relative hidden w-full" style={{ backgroundColor: "#1a0d10" }}>
         <h1 className="sr-only">Недвижими имоти Надежда — Луксозни имоти в България</h1>
         <p className="sr-only">
           Агенция Надежда предлага премиум недвижими имоти в Бургас, Варна, Шумен и Нов Пазар.
