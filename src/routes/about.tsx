@@ -145,7 +145,8 @@ function AboutPage() {
           </article>
 
           {/* Sofa image with logo plaque */}
-          <div className="relative overflow-hidden rounded-3xl ring-1 ring-[#C9A84C]/40 shadow-[0_30px_80px_-30px_rgba(139,26,43,0.45)]">
+          <section className="relative overflow-hidden rounded-3xl ring-1 ring-[#C9A84C]/40 shadow-[0_30px_80px_-30px_rgba(139,26,43,0.45)]">
+            <h2 className="sr-only">Луксозен интериор и визия</h2>
             <img
               src={aboutSofa}
               alt="Луксозен интериор ИЛДЖ.ИА"
@@ -155,9 +156,9 @@ function AboutPage() {
               height={896}
             />
             <div className="absolute right-4 top-4 rounded-xl bg-white/90 px-3 py-2 ring-1 ring-[#C9A84C]/50 backdrop-blur md:right-6 md:top-6">
-              <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-10 w-auto md:h-12" loading="lazy" decoding="async" />
+              <img src={logoNadezhda} alt="Лого на Недвижими имоти ИЛДЖ.ИА" className="h-10 w-auto md:h-12" loading="lazy" decoding="async" />
             </div>
-          </div>
+          </section>
         </div>
 
         {/* Stats bar */}
