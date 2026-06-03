@@ -493,7 +493,7 @@ function CityCard({ name, href, params }: { name: string; image?: string; href: 
     >
       <img
         src={src}
-        alt={name}
+        alt={`Недвижими имоти в ${name}`}
         className="block h-auto w-full select-none drop-shadow-[0_18px_40px_rgba(0,0,0,0.45)]"
         draggable={false}
         loading="lazy"
@@ -595,7 +595,7 @@ export function ListingCard({
       </div>
       <div className="space-y-3 px-4 pb-5 pt-4">
         <div>
-          <h3 className="font-display text-[1.35rem] leading-snug text-accent-foreground">{title}</h3>
+          <h2 className="font-display text-[1.35rem] leading-snug text-accent-foreground">{title}</h2>
           {location ? <p className="mt-1 inline-flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 text-primary" />{location}</p> : null}
         </div>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -897,7 +897,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       {/* HERO with overlay navbar */}
       <section className="relative">
         <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
-          <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+          <img src={heroImage} alt={`Панорамен изглед ${city.name}`} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-[#5e0f1d]/40" />
 
           {/* Overlay navbar */}
@@ -1043,7 +1043,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                   <div className="relative aspect-[1.25/1] overflow-hidden">
                     <img
                       src={img}
-                      alt={q.name}
+                      alt={`Жилищен квартал ${q.name}`}
                       className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]"
                       loading="lazy"
                     />

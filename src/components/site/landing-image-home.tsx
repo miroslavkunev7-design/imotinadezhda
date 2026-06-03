@@ -49,6 +49,12 @@ export function LandingImageHome() {
         backgroundColor: "#1a0d10",
       }}
     >
+      <h1 className="sr-only">Недвижими имоти Надежда — Луксозни имоти в България</h1>
+      <p className="sr-only">
+        Агенция Надежда предлага премиум недвижими имоти в Бургас, Варна, Шумен и Нов Пазар.
+        Специализирани сме в луксозни апартаменти, къщи и инвестиционни оферти за продажба и под наем.
+        Доверете се на нашия професионален екип за сигурни сделки и индивидуален подход.
+      </p>
       <div className="relative mx-auto w-full" style={{ maxWidth: 1402 }}>
         <div className="relative w-full" style={{ aspectRatio: "1402 / 1122" }}>
           <img
