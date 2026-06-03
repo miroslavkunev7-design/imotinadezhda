@@ -867,6 +867,7 @@ type CityData = {
     name: string;
     description?: string | null;
     hero_image_url?: string | null;
+    hero_video_url?: string | null;
     region?: string | null;
     population?: number | null;
     area_km2?: number | null;
@@ -910,7 +911,20 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       {/* HERO with overlay navbar */}
       <section className="relative">
         <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
-          <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+          {city.hero_video_url ? (
+            <video
+              src={city.hero_video_url}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              poster={typeof heroImage === "string" ? heroImage : undefined}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+          )}
           <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-[#5e0f1d]/40" />
 
           {/* Overlay navbar */}

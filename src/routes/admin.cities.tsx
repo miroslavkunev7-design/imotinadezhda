@@ -15,6 +15,7 @@ type City = {
   name_en?: string | null;
   description?: string | null;
   hero_image_url?: string | null;
+  hero_video_url?: string | null;
   region?: string | null;
   population?: number | null;
   area_km2?: number | null;
@@ -98,6 +99,7 @@ function CitiesAdmin() {
               <Lbl label="Slug"><input required value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className="inp" /></Lbl>
               <Lbl label="Регион"><input value={editing.region ?? ""} onChange={(e) => setEditing({ ...editing, region: e.target.value })} className="inp" /></Lbl>
               <Lbl label="Hero снимка (URL)"><input value={editing.hero_image_url ?? ""} onChange={(e) => setEditing({ ...editing, hero_image_url: e.target.value })} className="inp" /></Lbl>
+              <Lbl label="Hero видео (URL .mp4/.webm)" className="md:col-span-2"><input value={editing.hero_video_url ?? ""} onChange={(e) => setEditing({ ...editing, hero_video_url: e.target.value || null })} placeholder="https://…/video.mp4" className="inp" /></Lbl>
               <Lbl label="Население"><input type="number" value={editing.population ?? ""} onChange={(e) => setEditing({ ...editing, population: e.target.value ? Number(e.target.value) : null })} className="inp" /></Lbl>
               <Lbl label="Площ (км²)"><input type="number" step="0.01" value={editing.area_km2 ?? ""} onChange={(e) => setEditing({ ...editing, area_km2: e.target.value ? Number(e.target.value) : null })} className="inp" /></Lbl>
               <Lbl label="Подредба"><input type="number" value={editing.display_order ?? 0} onChange={(e) => setEditing({ ...editing, display_order: Number(e.target.value) })} className="inp" /></Lbl>
