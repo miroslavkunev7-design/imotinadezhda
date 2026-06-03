@@ -138,7 +138,7 @@ const propertyTypeOptions: SearchOption[] = [
   { value: "commercial", label: "Търговски" },
 ];
 
-function SearchBar({
+export function SearchBar({
   cities = [],
   quarters = [],
   initial,
