@@ -79,7 +79,7 @@ function SearchRoute() {
 
   const update = (patch: Partial<Record<SearchKey, string | undefined>>) => {
     navigate({
-      search: (prev) => {
+      search: (prev: Record<string, string | undefined>) => {
         const next: Record<string, string | undefined> = { ...prev, ...patch };
         // If city changes, clear quarter so filter stays valid.
         if (patch.city_slug !== undefined && patch.city_slug !== prev.city_slug) {
