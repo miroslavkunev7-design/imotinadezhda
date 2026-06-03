@@ -735,19 +735,10 @@ export function HomePage({
   const sectionNode = (id: string) => {
     switch (id) {
       case "hero-search-mobile":
-        return (
-          <div
-            key={id}
-            data-section-id="hero-search-mobile"
-            className="relative z-20 mx-auto mt-4 w-full max-w-[1440px] px-4 md:mt-7 md:px-8 lg:hidden"
-          >
-            <SearchBar cities={cityOpts} variant="burgundy" />
-          </div>
-
-        );
+        return null;
       case "hero-search-desktop":
         return (
-          <div key={id} data-section-id="hero-search-desktop" className="mb-4 hidden lg:block">
+          <div key={id} data-section-id="hero-search-desktop" className="mb-4">
             <SearchBar cities={cityOpts} variant="burgundy" />
           </div>
         );
