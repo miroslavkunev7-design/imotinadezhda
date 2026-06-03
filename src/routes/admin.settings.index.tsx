@@ -39,7 +39,6 @@ function Page() {
 
           <Link
             to="/admin/settings/page-editor"
-            search={{ page: "home" }}
             className="group flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-[rgba(20,4,8,0.55)] p-5 transition hover:border-amber-400/60 hover:bg-[rgba(20,4,8,0.7)]"
           >
             <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-300/20 text-amber-200">

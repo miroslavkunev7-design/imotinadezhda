@@ -776,9 +776,9 @@ export function HomePage({
   const belowSections = desktopSections.filter((s) => s.id === "trust-strip");
 
   return (
-    <main className="luxury-page flex h-screen flex-col overflow-hidden bg-[#0f0a0b] text-foreground">
+    <main className="luxury-page home-fit-page flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-[#0f0a0b] text-foreground">
       <section
-        className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
+        className="relative flex min-h-0 flex-1 flex-col pb-2 pt-0 md:pb-3"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
@@ -790,7 +790,7 @@ export function HomePage({
 
         {mobileSections.map((s) => sectionNode(s.id))}
 
-        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-3 md:px-8 md:pt-5">
+        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-2 md:px-8 md:pt-4">
           {heroSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
@@ -811,27 +811,27 @@ function TrustStrip() {
     { Icon: MapPin, title: "Локално знание", desc: "Най-добри оферти във всеки град" },
   ];
   return (
-    <section data-section-id="trust-strip" className="bg-[#0f0a0b] py-3 md:py-5">
-      <div className="mx-auto flex w-full max-w-[1420px] flex-col items-stretch gap-8 px-4 md:px-8 lg:flex-row lg:items-center lg:gap-10">
-        <div className="grid flex-1 grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
+    <section data-section-id="trust-strip" className="bg-[#0f0a0b] py-2 md:py-4">
+      <div className="mx-auto flex w-full max-w-[1420px] flex-col items-stretch gap-3 px-4 md:px-8 lg:flex-row lg:items-center lg:gap-8">
+        <div className="grid flex-1 grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4 md:gap-6">
           {items.map(({ Icon, title, desc }) => (
-            <div key={title} className="flex items-start gap-3">
+            <div key={title} className="flex items-start gap-2.5 md:gap-3">
               <div
-                className="flex h-10 w-10 flex-none items-center justify-center rounded-full border md:h-12 md:w-12"
+                className="flex h-9 w-9 flex-none items-center justify-center rounded-full border md:h-12 md:w-12"
                 style={{ borderColor: "rgba(201,168,76,0.55)", backgroundColor: "rgba(201,168,76,0.08)" }}
               >
-                <Icon className="h-5 w-5 md:h-6 md:w-6" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+                <Icon className="h-4.5 w-4.5 md:h-6 md:w-6" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
               </div>
               <div className="min-w-0">
-                <div className="font-display text-base font-semibold text-white md:text-lg">{title}</div>
-                <div className="mt-1 text-[12px] leading-snug text-white/65 md:text-[13px]">{desc}</div>
+                <div className="font-display text-[15px] font-semibold leading-tight text-white md:text-lg">{title}</div>
+                <div className="mt-0.5 text-[11px] leading-snug text-white/65 md:mt-1 md:text-[13px]">{desc}</div>
               </div>
             </div>
           ))}
         </div>
         <button
           type="button"
-          className="inline-flex h-12 flex-none items-center justify-center gap-2 self-start rounded-full border px-6 font-display text-sm text-white transition hover:brightness-110 md:h-14 md:px-8 md:text-base lg:self-auto"
+          className="hidden h-12 flex-none items-center justify-center gap-2 self-start rounded-full border px-6 font-display text-sm text-white transition hover:brightness-110 md:inline-flex md:h-14 md:px-8 md:text-base lg:self-auto"
           style={{
             background: "linear-gradient(180deg, #8B1A2B 0%, #5E0F1D 100%)",
             borderColor: "rgba(201,168,76,0.6)",

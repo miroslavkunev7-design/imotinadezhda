@@ -96,7 +96,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   );
 
   return (
-    <header className="site-header">
+    <header className="site-header" data-site-header>
       {renderArt(navbarDesktop.url, "1367 / 307", DESKTOP_HOTSPOTS, DESKTOP_BAND, 35, "site-header__art--desktop")}
       {renderArt(navbarMobile.url, "1024 / 301", MOBILE_HOTSPOTS, MOBILE_BAND, 50, "site-header__art--mobile")}
     </header>
