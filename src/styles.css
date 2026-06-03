@@ -438,17 +438,25 @@ body:has(.luxury-page) {
 }
 .site-header__art {
   position: relative;
-  width: 100%;
-  max-width: min(100vw, 1180px);
   margin: 0 auto;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
 }
+.site-header__art--desktop {
+  height: 72px;
+  width: calc(72px * 1367 / 307);
+  max-width: 100vw;
+}
 .site-header__art--mobile { display: none; }
 @media (max-width: 768px) {
   .site-header__art--desktop { display: none; }
-  .site-header__art--mobile { display: block; }
+  .site-header__art--mobile {
+    display: block;
+    height: 56px;
+    width: calc(56px * 1024 / 301);
+    max-width: 100vw;
+  }
 }
 .site-header__hotspot {
   position: absolute;
@@ -457,32 +465,15 @@ body:has(.luxury-page) {
   border-radius: 999px;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
-.site-header__hotspot:hover {
+.site-header__hotspot:hover,
+.site-header__hotspot.is-active,
+.site-header__hotspot:active {
   background-color: transparent;
   box-shadow: none;
-}
-.site-header__hotspot.is-active {
-  background-color: transparent;
 }
 .site-header__hotspot:focus,
 .site-header__hotspot:focus-visible {
   outline: none;
-}
-.site-header__hotspot:active {
-  background-color: transparent;
-}
-
-@media (max-width: 1023px) {
-  .home-fit-page .site-header__art {
-    max-width: min(100vw, 720px);
-  }
-}
-
-@media (max-width: 480px) {
-  .home-fit-page .site-header__art {
-    width: 100vw;
-    max-width: 100vw;
-  }
 }
 
 
