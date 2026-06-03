@@ -105,38 +105,48 @@ export function LandingImageHome() {
           Специализирани сме в луксозни апартаменти, къщи и инвестиционни оферти за продажба и под наем.
         </p>
 
-        {/* Navbar — PNG panel with invisible click hotspots */}
-        <header className="relative flex-none">
-          <img
-            src={navbarDesktop.url}
-            alt="Навигация — Недвижими имоти Надежда"
-            className="block h-auto w-full select-none"
-            draggable={false}
-          />
-          {/* Hotspots — Начало, За продажба, Под наем, За нас, Профил */}
-          {[
-            { to: "/", label: "Начало", left: 2.1, right: 71.8 },
-            { to: "/search", search: { status: "sale" }, label: "За продажба", left: 43.2, right: 43.7 },
-            { to: "/search", search: { status: "rent" }, label: "Под наем", left: 60.3, right: 27.2 },
-            { to: "/about", label: "За нас", left: 75.6, right: 15.1 },
-            { to: "/login", search: { redirect: "/admin" }, label: "Профил", left: 94.2, right: 1.6 },
-          ].map((h) => (
-            <Link
-              key={h.label}
-              to={h.to as never}
-              search={h.search as never}
-              aria-label={h.label}
-              className="absolute top-[15%] bottom-[15%] block rounded-md transition-colors duration-150 hover:bg-white/5 focus:bg-white/10 focus:outline-none"
-              style={{ left: `${h.left}%`, right: `${h.right}%` }}
+        {/* Navbar — smaller PNG panel pinned to the top */}
+        <nav aria-label="Основна навигация" className="relative z-20 mx-auto w-full max-w-[1100px] flex-none px-4 pt-3">
+          <div className="relative">
+            <img
+              src={navbarDesktop.url}
+              alt="Навигация — Недвижими имоти Надежда"
+              className="block h-auto w-full select-none"
+              style={{ maxHeight: 64 }}
+              draggable={false}
             />
-          ))}
-        </header>
+            {[
+              { to: "/", label: "Начало", left: 2.1, right: 71.8 },
+              { to: "/search", search: { status: "sale" }, label: "За продажба", left: 43.2, right: 43.7 },
+              { to: "/search", search: { status: "rent" }, label: "Под наем", left: 60.3, right: 27.2 },
+              { to: "/about", label: "За нас", left: 75.6, right: 15.1 },
+              { to: "/login", search: { redirect: "/admin" }, label: "Профил", left: 94.2, right: 1.6 },
+            ].map((h) => (
+              <Link
+                key={h.label}
+                to={h.to as never}
+                search={h.search as never}
+                aria-label={h.label}
+                className="absolute top-[15%] bottom-[15%] block rounded-md transition-colors duration-150 hover:bg-white/10 focus-visible:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A84C]"
+                style={{ left: `${h.left}%`, right: `${h.right}%` }}
+              />
+            ))}
+          </div>
+        </nav>
 
-        {/* Hero — fills remaining viewport, contains search + city cards */}
-        <section className="relative flex flex-1 flex-col items-center justify-between overflow-hidden px-8 py-10">
+        {/* Hero — fullscreen background, contains search + city cards */}
+        <section
+          className="relative -mt-3 flex flex-1 flex-col items-center justify-between overflow-hidden px-8 pb-8 pt-6"
+          style={{
+            backgroundImage: `linear-gradient(180deg, rgba(251,246,234,0.55) 0%, rgba(255,255,255,0.35) 50%, rgba(244,233,208,0.55) 100%), url(${landing.url})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
           {/* Decorative gold lines */}
           <span aria-hidden className="pointer-events-none absolute left-0 right-0 top-12 mx-auto h-px max-w-[1180px]" style={{ background: "linear-gradient(90deg, transparent, #C9A84C66, transparent)" }} />
           <span aria-hidden className="pointer-events-none absolute left-0 right-0 bottom-10 mx-auto h-px max-w-[1180px]" style={{ background: "linear-gradient(90deg, transparent, #C9A84C66, transparent)" }} />
+
 
           {/* Search bar */}
           <form
