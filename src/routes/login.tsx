@@ -102,7 +102,7 @@ function LoginPage() {
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-black">
       <video
         key={quality}
-        className="absolute inset-0 h-full w-full object-contain"
+        className="absolute inset-0 h-full w-full object-cover md:object-contain"
         src={videoSources[quality]}
         autoPlay
         loop

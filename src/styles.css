@@ -439,13 +439,17 @@ body:has(.luxury-page) {
 .site-header__art {
   position: relative;
   width: 100%;
-  max-width: 1400px;
   margin: 0 auto;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: contain;
+  background-size: 100% 100%;
 }
-.site-header__art--mobile { display: none; }
+.site-header__art--desktop {
+  max-width: none;
+  aspect-ratio: auto !important;
+  height: clamp(64px, 6.5vw, 96px);
+}
+.site-header__art--mobile { display: none; max-width: 1400px; }
 @media (max-width: 768px) {
   .site-header__art--desktop { display: none; }
   .site-header__art--mobile { display: block; }
