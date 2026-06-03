@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { CustomerChat } from "@/components/site/customer-chat";
+import { InstallAppButton } from "@/components/site/install-app-button";
 import { useRouterState } from "@tanstack/react-router";
 import { initPwa } from "@/lib/pwa";
 import { enforceRememberMePolicy } from "@/lib/remember-me";
@@ -152,6 +153,7 @@ function RootComponent() {
         <Outlet />
         <Toaster />
         {!hideChat && <CustomerChat propertyId={propertyId} />}
+        {!pathname.startsWith("/admin") && <InstallAppButton />}
       </AuthProvider>
     </QueryClientProvider>
   );
