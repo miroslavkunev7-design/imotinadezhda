@@ -778,7 +778,7 @@ export function HomePage({
   const belowSections = desktopSections.filter((s) => s.id === "trust-strip");
 
   return (
-    <main className="luxury-page home-fit-page flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-[#0f0a0b] text-foreground">
+    <main className="luxury-page home-fit-page flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-white text-foreground">
       <section
         className="relative flex min-h-0 flex-1 flex-col pb-2 pt-0 md:pb-3"
         style={{
