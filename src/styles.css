@@ -451,16 +451,12 @@ body:has(.luxury-page) {
   aspect-ratio: 1367 / 307;
 }
 
-.site-header__art--mobile { display: none; }
-@media (max-width: 768px) {
-  .site-header__art--desktop { display: none; }
-  .site-header__art--mobile {
-    display: block;
-    width: 100vw;
-    height: auto;
-    aspect-ratio: 1024 / 301;
-    max-width: 100vw;
-  }
+.site-header__art--mobile {
+  display: block;
+  width: 100vw;
+  height: auto;
+  aspect-ratio: 1024 / 301;
+  max-width: 100vw;
 }
 .site-header__hotspot {
   position: absolute;
