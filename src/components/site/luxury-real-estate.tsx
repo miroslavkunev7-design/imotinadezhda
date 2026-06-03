@@ -792,7 +792,7 @@ export function HomePage({
 
         {mobileSections.map((s) => sectionNode(s.id))}
 
-        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-2 md:px-8 md:pt-4">
+        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1520px] px-4 pt-2 md:px-8 md:pt-4">
           {heroSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
