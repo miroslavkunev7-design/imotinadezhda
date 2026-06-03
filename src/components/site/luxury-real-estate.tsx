@@ -711,8 +711,9 @@ export function HomePage({
     { id: "hero-search-mobile", visible: true },
     { id: "hero-search-desktop", visible: true },
     { id: "cities-grid", visible: true },
-    { id: "trust-strip", visible: true },
+    { id: "trust-strip", visible: false },
   ];
+
   const known = new Set(defaults.map((d) => d.id));
   const sections = (() => {
     if (!layout || !Array.isArray(layout)) return defaults;
