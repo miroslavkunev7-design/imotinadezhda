@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import landing from "@/assets/landing-master.png.asset.json";
+import navbarDesktop from "@/assets/navbar-desktop.png.asset.json";
 import cityBurgas from "@/assets/city-card-burgas.png.asset.json";
 import cityVarna from "@/assets/city-card-varna.png.asset.json";
 import cityShumen from "@/assets/city-card-shumen.png.asset.json";
@@ -104,60 +105,31 @@ export function LandingImageHome() {
           Специализирани сме в луксозни апартаменти, къщи и инвестиционни оферти за продажба и под наем.
         </p>
 
-        {/* Navbar — burgundy panel + white logo block with diagonal cut */}
-        <header
-          className="relative flex h-[76px] flex-none items-center text-white shadow-[0_2px_20px_rgba(94,15,29,0.35)]"
-          style={{ background: "linear-gradient(135deg, #8B1A2B 0%, #5e0f1d 100%)" }}
-        >
-          {/* White logo block with diagonal right edge */}
-          <Link
-            to="/"
-            aria-label="Начало — Недвижими имоти Надежда"
-            className="relative flex h-full items-center bg-white pl-6 pr-12"
-            style={{ clipPath: "polygon(0 0, 100% 0, calc(100% - 28px) 100%, 0 100%)", minWidth: 260 }}
-          >
-            <img src={logoUrl} alt="Лого на агенция Надежда" className="h-12 w-auto" />
-          </Link>
-
-          {/* Gold trim line below navbar */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]"
-            style={{ background: "linear-gradient(90deg, transparent, #C9A84C 30%, #C9A84C 70%, transparent)" }}
+        {/* Navbar — PNG panel with invisible click hotspots */}
+        <header className="relative flex-none">
+          <img
+            src={navbarDesktop.url}
+            alt="Навигация — Недвижими имоти Надежда"
+            className="block h-auto w-full select-none"
+            draggable={false}
           />
-
-          {/* Nav links */}
-          <nav className="ml-8 flex flex-1 items-center gap-1">
-            {NAV_LINKS.map((l) => (
-              <Link
-                key={l.label}
-                to={l.to as never}
-                search={l.search as never}
-                className="group relative rounded px-4 py-2 font-display text-[15px] uppercase tracking-[0.14em] text-white/95 transition-colors hover:text-[#C9A84C]"
-                activeOptions={{ exact: l.to === "/" }}
-                activeProps={{ className: "text-[#C9A84C]" }}
-              >
-                {l.label}
-                <span
-                  aria-hidden
-                  className="absolute inset-x-3 -bottom-0.5 h-[2px] origin-center scale-x-0 bg-[#C9A84C] transition-transform group-hover:scale-x-100"
-                />
-              </Link>
-            ))}
-          </nav>
-
-          {/* Profile */}
-          <Link
-            to="/login"
-            search={{ redirect: "/admin" } as never}
-            aria-label="Профил"
-            className="mr-6 flex h-10 w-10 items-center justify-center rounded-full border border-[#C9A84C]/60 text-[#C9A84C] transition-colors hover:bg-[#C9A84C] hover:text-[#5e0f1d]"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </Link>
+          {/* Hotspots — Начало, За продажба, Под наем, За нас, Профил */}
+          {[
+            { to: "/", label: "Начало", left: 2.1, right: 71.8 },
+            { to: "/search", search: { status: "sale" }, label: "За продажба", left: 43.2, right: 43.7 },
+            { to: "/search", search: { status: "rent" }, label: "Под наем", left: 60.3, right: 27.2 },
+            { to: "/about", label: "За нас", left: 75.6, right: 15.1 },
+            { to: "/login", search: { redirect: "/admin" }, label: "Профил", left: 94.2, right: 1.6 },
+          ].map((h) => (
+            <Link
+              key={h.label}
+              to={h.to as never}
+              search={h.search as never}
+              aria-label={h.label}
+              className="absolute top-[15%] bottom-[15%] block rounded-md transition-colors duration-150 hover:bg-white/5 focus:bg-white/10 focus:outline-none"
+              style={{ left: `${h.left}%`, right: `${h.right}%` }}
+            />
+          ))}
         </header>
 
         {/* Hero — fills remaining viewport, contains search + city cards */}
