@@ -34,6 +34,7 @@ import {
 import burgasHero from "@/assets/burgas-hero.jpeg";
 import burgasPier from "@/assets/burgas-pier.jpeg";
 import homeHero from "@/assets/home-hero-living.jpeg";
+import homeHeroVideo from "@/assets/home-hero.mp4.asset.json";
 import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
@@ -796,7 +797,7 @@ export function HomePage({
         className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
       >
         <video
-          src="/__l5e/assets-v1/53411c50-cb60-4e7c-b72d-5af43241e631/home-hero.mp4"
+          src={homeHeroVideo.url}
           autoPlay
           loop
           muted
