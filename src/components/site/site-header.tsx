@@ -52,7 +52,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
           onClick={handleLogo}
           aria-label="Начало — Недвижими имоти Надежда"
           className="fixed left-0 z-30 flex flex-none items-center justify-center"
-          style={{ top: "14px" }}
+          style={{ top: "0px" }}
 
         >
           <img
