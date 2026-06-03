@@ -193,7 +193,7 @@ export const runScrape = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const client = fc();
+    const client = await fc();
     const allResults: ScrapeResult[] = [];
 
     const SOURCE_MAP: Record<string, { domain: string; rx: RegExp }> = {
