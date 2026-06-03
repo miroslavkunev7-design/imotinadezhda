@@ -1,38 +1,23 @@
 import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { Home, KeyRound, Users, User } from "lucide-react";
 
-import navbarDesktop from "@/assets/navbar-desktop.png.asset.json";
-import navbarMobile from "@/assets/navbar-mobile.png.asset.json";
-import { cn } from "@/lib/utils";
+import logoNadezhda from "@/assets/logo-nadezhda.png";
 
 export type SiteNavKey = "sale" | "rent" | "about";
 
-type Hotspot = {
-  key: SiteNavKey | "profile";
-  label: string;
-  to: string;
-  search?: Record<string, string>;
-  left: number;
-  right: number;
+const navItems = [
+  { key: "sale" as const,  label: "За продажба", icon: Home,     to: "/search", search: { status: "sale" } },
+  { key: "rent" as const,  label: "Под наем",    icon: KeyRound, to: "/search", search: { status: "rent" } },
+  { key: "about" as const, label: "За нас",      icon: Users,    to: "/about" },
+];
+
+const panelStyle: React.CSSProperties = {
+  background: "linear-gradient(180deg, #8B1A2B 0%, #6e1422 100%)",
+  border: "2px solid #C9A84C",
+  boxShadow:
+    "0 10px 28px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(201,168,76,0.25)",
 };
-
-// Desktop image is 1367x307. Hotspots in % of that image.
-const DESKTOP_HOTSPOTS: Hotspot[] = [
-  { key: "sale",    label: "За продажба", to: "/search", search: { status: "sale" }, left: 37,  right: 51 },
-  { key: "rent",    label: "Под наем",    to: "/search", search: { status: "rent" }, left: 56,  right: 69.5 },
-  { key: "about",   label: "За нас",      to: "/about",                                left: 72,  right: 85 },
-  { key: "profile", label: "Профил",      to: "/login",  search: { redirect: "/admin" }, left: 92, right: 99 },
-];
-const DESKTOP_BAND = { top: 28, bottom: 70 };
-
-// Mobile image is 1024x301. Icons-only nav.
-const MOBILE_HOTSPOTS: Hotspot[] = [
-  { key: "sale",    label: "За продажба", to: "/search", search: { status: "sale" }, left: 50.5, right: 60.5 },
-  { key: "rent",    label: "Под наем",    to: "/search", search: { status: "rent" }, left: 63,   right: 73 },
-  { key: "about",   label: "За нас",      to: "/about",                                left: 75.5, right: 85.5 },
-  { key: "profile", label: "Профил",      to: "/login",  search: { redirect: "/admin" }, left: 88, right: 98 },
-];
-const MOBILE_BAND = { top: 33, bottom: 73 };
 
 export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const navigate = useNavigate();
@@ -56,49 +41,72 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
     }, 420);
   };
 
-  const renderArt = (
-    src: string,
-    aspect: string,
-    hotspots: Hotspot[],
-    band: { top: number; bottom: number },
-    logoRight: number,
-    className: string,
-  ) => (
-    <div
-      className={cn("site-header__art", className)}
-      style={{ aspectRatio: aspect, backgroundImage: `url(${src})` }}
-      role="navigation"
-      aria-label="Главно меню"
-    >
-      <Link
-        to="/"
-        onClick={handleLogo}
-        aria-label="Начало — Недвижими имоти Надежда"
-        className="site-header__hotspot"
-        style={{ left: "0%", right: `${100 - logoRight}%`, top: "5%", bottom: "5%" }}
-      />
-      {hotspots.map((item) => (
-        <Link
-          key={item.key}
-          to={item.to}
-          search={item.search as never}
-          aria-label={item.label}
-          className={cn("site-header__hotspot", active && active === item.key && "is-active")}
-          style={{
-            left: `${item.left}%`,
-            right: `${100 - item.right}%`,
-            top: `${band.top}%`,
-            bottom: `${100 - band.bottom}%`,
-          }}
-        />
-      ))}
-    </div>
-  );
-
   return (
     <header className="site-header">
-      {renderArt(navbarDesktop.url, "1367 / 307", DESKTOP_HOTSPOTS, DESKTOP_BAND, 35, "site-header__art--desktop")}
-      {renderArt(navbarMobile.url, "1024 / 301", MOBILE_HOTSPOTS, MOBILE_BAND, 50, "site-header__art--mobile")}
+      <div className="mx-auto flex w-full max-w-[1400px] items-stretch gap-2 px-2 py-2 md:gap-3 md:px-4 md:py-3">
+        {/* Logo rectangle */}
+        <Link
+          to="/"
+          onClick={handleLogo}
+          aria-label="Начало — Недвижими имоти Надежда"
+          className="flex flex-none items-center justify-center rounded-md px-3 py-2 md:px-5 md:py-3"
+          style={{ ...panelStyle, width: "min(26%, 300px)" }}
+        >
+          <img
+            src={logoNadezhda}
+            alt="Недвижими имоти Надежда"
+            className="block h-auto w-full max-h-[64px] md:max-h-[84px]"
+            style={{ filter: "brightness(0) invert(1)" }}
+            draggable={false}
+          />
+        </Link>
+
+        {/* Menu bar */}
+        <nav
+          className="flex flex-1 items-center justify-end gap-4 rounded-md px-3 md:gap-8 md:px-6"
+          style={panelStyle}
+          aria-label="Главно меню"
+        >
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = active === item.key;
+            return (
+              <Link
+                key={item.key}
+                to={item.to}
+                search={item.search as never}
+                className={`flex items-center gap-2 font-display text-sm transition md:text-base ${
+                  isActive ? "text-white" : "text-white/95 hover:text-[#C9A84C]"
+                }`}
+              >
+                <Icon
+                  className="h-5 w-5 md:h-6 md:w-6"
+                  style={{ color: "#C9A84C" }}
+                  strokeWidth={1.75}
+                />
+                <span className="hidden sm:inline">{item.label}</span>
+              </Link>
+            );
+          })}
+          <span
+            aria-hidden
+            className="hidden h-8 w-px md:inline-block"
+            style={{ backgroundColor: "rgba(201,168,76,0.45)" }}
+          />
+          <Link
+            to="/login"
+            search={{ redirect: "/admin" } as never}
+            aria-label="Профил"
+            className="flex items-center justify-center rounded-full p-1.5 transition hover:bg-white/10"
+          >
+            <User
+              className="h-5 w-5 md:h-6 md:w-6"
+              style={{ color: "#C9A84C" }}
+              strokeWidth={1.75}
+            />
+          </Link>
+        </nav>
+      </div>
     </header>
   );
 }
