@@ -44,18 +44,14 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   return (
     <header className="site-header" style={{ overflow: "visible" }}>
       <div className="relative mx-auto flex w-full max-w-[1400px] items-stretch gap-0 px-2 py-2 md:px-4 md:py-3">
-        {/* Left burgundy panel (mirrors menu bar) behind the logo */}
-        <div
-          aria-hidden
-          className="flex-none rounded-md"
-          style={{ ...panelStyle, width: "min(28%, 360px)" }}
-        />
-        {/* Logo — oversized scroll-banner overlapping the left panel */}
+        {/* Spacer to reserve the logo's footprint in the layout */}
+        <div aria-hidden className="flex-none" style={{ width: "min(28%, 360px)" }} />
+        {/* Logo — oversized scroll-banner, fully visible (no panel behind) */}
         <Link
           to="/"
           onClick={handleLogo}
           aria-label="Начало — Недвижими имоти Надежда"
-          className="absolute -left-4 -top-2 z-20 flex flex-none items-center justify-center"
+          className="absolute -left-4 top-2 z-20 flex flex-none items-center justify-center"
         >
           <img
             src={logoScrollBanner}
@@ -65,6 +61,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
             draggable={false}
           />
         </Link>
+
 
         {/* Menu bar */}
         <nav
