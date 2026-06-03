@@ -156,7 +156,10 @@ export function LandingImageHome() {
 
         {/* Hero — fullscreen background, contains search + city cards */}
         <section
-          className="relative -mt-3 flex flex-1 flex-col items-center justify-between overflow-hidden px-8 pb-8 pt-6"
+          id="main-content"
+          tabIndex={-1}
+          aria-label="Търсене на имоти и градове"
+          className="relative -mt-3 flex flex-1 flex-col items-center justify-between overflow-hidden px-8 pb-8 pt-6 focus:outline-none"
           style={{
             backgroundImage: `linear-gradient(180deg, rgba(251,246,234,0.55) 0%, rgba(255,255,255,0.35) 50%, rgba(244,233,208,0.55) 100%), url(${landing.url})`,
             backgroundSize: "cover",
