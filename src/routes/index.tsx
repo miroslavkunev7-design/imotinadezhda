@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import homeHero from "@/assets/home-hero-living.jpeg";
 import { HomePage } from "@/components/site/luxury-real-estate";
 import { getCities, getFeaturedProperties } from "@/lib/catalog.functions";
 import { getPublicPageLayout } from "@/lib/page-layouts.functions";
@@ -14,9 +15,11 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
       { property: "og:description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
       { property: "og:url", content: `${SITE_URL}/` },
+      { property: "og:image", content: `${SITE_URL}${homeHero}` },
     ],
     links: [
       { rel: "canonical", href: `${SITE_URL}/` },
+      { rel: "preload", as: "image", href: homeHero, fetchpriority: "high" } as never,
     ],
     scripts: [
       {
