@@ -3,29 +3,30 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import landing from "@/assets/landing-master.png.asset.json";
+import cityBurgas from "@/assets/city-card-burgas.png.asset.json";
+import cityVarna from "@/assets/city-card-varna.png.asset.json";
+import cityShumen from "@/assets/city-card-shumen.png.asset.json";
+import cityNoviPazar from "@/assets/city-card-novi-pazar.png.asset.json";
+import logoUrl from "@/assets/logo-nadezhda.png";
 import { getQuartersByCity } from "@/lib/catalog.functions";
 
 type Hotspot = {
   to: string;
   search?: Record<string, string>;
   label: string;
-  // % positions in the 1402x1122 master image
   left: number;
   right: number;
   top: number;
   bottom: number;
 };
 
-// Navbar + city-card hotspots. Search-bar fields are replaced by a real form below.
+// Mobile-only navbar + city-card hotspots (kept for mobile image overlay).
 const HOTSPOTS: Hotspot[] = [
-  // Navbar
   { to: "/", label: "Начало", left: 2.1, right: 71.8, top: 1.3, bottom: 82.2 },
   { to: "/search", search: { status: "sale" }, label: "За продажба", left: 43.2, right: 43.7, top: 7.1, bottom: 88.4 },
   { to: "/search", search: { status: "rent" }, label: "Под наем", left: 60.3, right: 27.2, top: 7.1, bottom: 88.4 },
   { to: "/about", label: "За нас", left: 75.6, right: 15.1, top: 7.1, bottom: 88.4 },
   { to: "/login", search: { redirect: "/admin" }, label: "Профил", left: 94.2, right: 1.6, top: 7.1, bottom: 88.4 },
-
-  // City cards
   { to: "/cities/$slug", label: "Бургас", left: 4.6, right: 74.7, top: 61.9, bottom: 17.6 },
   { to: "/cities/$slug", label: "Варна", left: 26.4, right: 52.9, top: 61.9, bottom: 17.6 },
   { to: "/cities/$slug", label: "Шумен", left: 48.1, right: 31.2, top: 61.9, bottom: 17.6 },
@@ -33,12 +34,13 @@ const HOTSPOTS: Hotspot[] = [
 ];
 
 const CITY_SLUGS = ["burgas", "varna", "shumen", "novi-pazar"];
+const SEARCH_BAR = { left: 4.6, right: 1.6, top: 52.6, bottom: 41.2 };
 
 const CITIES = [
-  { slug: "burgas", name: "Бургас" },
-  { slug: "varna", name: "Варна" },
-  { slug: "shumen", name: "Шумен" },
-  { slug: "novi-pazar", name: "Нов Пазар" },
+  { slug: "burgas", name: "Бургас", img: cityBurgas.url },
+  { slug: "varna", name: "Варна", img: cityVarna.url },
+  { slug: "shumen", name: "Шумен", img: cityShumen.url },
+  { slug: "novi-pazar", name: "Нов Пазар", img: cityNoviPazar.url },
 ];
 
 const PROPERTY_TYPES = [
@@ -48,9 +50,12 @@ const PROPERTY_TYPES = [
   { value: "commercial", label: "Бизнес" },
 ];
 
-// Search-bar region in the master image (1402 × 1122).
-// Form spans the full bar: left 4.6% → right 1.6%, top 52.6% → bottom 41.2%.
-const SEARCH_BAR = { left: 4.6, right: 1.6, top: 52.6, bottom: 41.2 };
+const NAV_LINKS: { to: string; label: string; search?: Record<string, string> }[] = [
+  { to: "/", label: "Начало" },
+  { to: "/search", label: "За продажба", search: { status: "sale" } },
+  { to: "/search", label: "Под наем", search: { status: "rent" } },
+  { to: "/about", label: "За нас" },
+];
 
 export function LandingImageHome() {
   const navigate = useNavigate();
@@ -69,8 +74,7 @@ export function LandingImageHome() {
     enabled: !!city,
   });
 
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const buildSearch = () => {
     const search: Record<string, string> = {};
     if (city) search.city_slug = city;
     if (quarter) search.quarter_slug = quarter;
@@ -79,210 +83,296 @@ export function LandingImageHome() {
     if (priceMax) search.price_max = priceMax;
     if (areaMin) search.area_min = areaMin;
     if (areaMax) search.area_max = areaMax;
-    navigate({ to: "/search", search: search as never });
+    return search;
+  };
+
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    navigate({ to: "/search", search: buildSearch() as never });
   };
 
   return (
-    <main
-      className="relative w-full lg:flex lg:h-[100dvh] lg:items-center lg:justify-center lg:overflow-hidden"
-      style={{ backgroundColor: "#1a0d10" }}
-    >
-      <h1 className="sr-only">Недвижими имоти Надежда — Луксозни имоти в България</h1>
-      <p className="sr-only">
-        Агенция Надежда предлага премиум недвижими имоти в Бургас, Варна, Шумен и Нов Пазар.
-        Специализирани сме в луксозни апартаменти, къщи и инвестиционни оферти за продажба и под наем.
-      </p>
-
-      <div
-        className="relative mx-auto w-full lg:mx-0 lg:h-[100dvh] lg:w-auto"
-        style={{ maxWidth: 1402 }}
+    <>
+      {/* ===================== DESKTOP (lg+) — real working clone ===================== */}
+      <main
+        className="hidden lg:flex lg:h-[100dvh] lg:flex-col lg:overflow-hidden"
+        style={{ background: "linear-gradient(180deg, #fbf6ea 0%, #ffffff 60%, #f4e9d0 100%)" }}
       >
-        <div
-          className="relative w-full lg:h-[100dvh] lg:w-auto"
-          style={{ aspectRatio: "1402 / 1122" }}
+        <h1 className="sr-only">Недвижими имоти Надежда — Луксозни имоти в България</h1>
+        <p className="sr-only">
+          Агенция Надежда предлага премиум недвижими имоти в Бургас, Варна, Шумен и Нов Пазар.
+          Специализирани сме в луксозни апартаменти, къщи и инвестиционни оферти за продажба и под наем.
+        </p>
+
+        {/* Navbar — burgundy panel + white logo block with diagonal cut */}
+        <header
+          className="relative flex h-[76px] flex-none items-center text-white shadow-[0_2px_20px_rgba(94,15,29,0.35)]"
+          style={{ background: "linear-gradient(135deg, #8B1A2B 0%, #5e0f1d 100%)" }}
         >
-          <img
-            src={landing.url}
-            alt="Недвижими имоти Надежда — начална страница"
-            className="absolute inset-0 h-full w-full select-none"
-            draggable={false}
-            style={{ objectFit: "fill" }}
-            fetchPriority="high"
+          {/* White logo block with diagonal right edge */}
+          <Link
+            to="/"
+            aria-label="Начало — Недвижими имоти Надежда"
+            className="relative flex h-full items-center bg-white pl-6 pr-12"
+            style={{ clipPath: "polygon(0 0, 100% 0, calc(100% - 28px) 100%, 0 100%)", minWidth: 260 }}
+          >
+            <img src={logoUrl} alt="Лого на агенция Надежда" className="h-12 w-auto" />
+          </Link>
+
+          {/* Gold trim line below navbar */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]"
+            style={{ background: "linear-gradient(90deg, transparent, #C9A84C 30%, #C9A84C 70%, transparent)" }}
           />
 
-          {/* Navbar + city hotspots */}
-          {HOTSPOTS.map((h, i) => {
-            const isCity = h.to === "/cities/$slug";
-            const cityIndex = isCity
-              ? HOTSPOTS.filter((x, j) => x.to === "/cities/$slug" && j <= i).length - 1
-              : -1;
-            const params = isCity ? { slug: CITY_SLUGS[cityIndex] } : undefined;
-            return (
+          {/* Nav links */}
+          <nav className="ml-8 flex flex-1 items-center gap-1">
+            {NAV_LINKS.map((l) => (
               <Link
-                key={`${h.label}-${i}`}
-                to={h.to as never}
-                params={params as never}
-                search={h.search as never}
-                aria-label={h.label}
-                className="absolute block rounded-md transition-colors duration-150 hover:bg-white/5 focus:bg-white/10 focus:outline-none"
-                style={{
-                  left: `${h.left}%`,
-                  right: `${h.right}%`,
-                  top: `${h.top}%`,
-                  bottom: `${h.bottom}%`,
-                }}
-              />
-            );
-          })}
+                key={l.label}
+                to={l.to as never}
+                search={l.search as never}
+                className="group relative rounded px-4 py-2 font-display text-[15px] uppercase tracking-[0.14em] text-white/95 transition-colors hover:text-[#C9A84C]"
+                activeOptions={{ exact: l.to === "/" }}
+                activeProps={{ className: "text-[#C9A84C]" }}
+              >
+                {l.label}
+                <span
+                  aria-hidden
+                  className="absolute inset-x-3 -bottom-0.5 h-[2px] origin-center scale-x-0 bg-[#C9A84C] transition-transform group-hover:scale-x-100"
+                />
+              </Link>
+            ))}
+          </nav>
 
-          {/* Real, working search bar — overlays the painted bar in the image */}
+          {/* Profile */}
+          <Link
+            to="/login"
+            search={{ redirect: "/admin" } as never}
+            aria-label="Профил"
+            className="mr-6 flex h-10 w-10 items-center justify-center rounded-full border border-[#C9A84C]/60 text-[#C9A84C] transition-colors hover:bg-[#C9A84C] hover:text-[#5e0f1d]"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </Link>
+        </header>
+
+        {/* Hero — fills remaining viewport, contains search + city cards */}
+        <section className="relative flex flex-1 flex-col items-center justify-between overflow-hidden px-8 py-10">
+          {/* Decorative gold lines */}
+          <span aria-hidden className="pointer-events-none absolute left-0 right-0 top-12 mx-auto h-px max-w-[1180px]" style={{ background: "linear-gradient(90deg, transparent, #C9A84C66, transparent)" }} />
+          <span aria-hidden className="pointer-events-none absolute left-0 right-0 bottom-10 mx-auto h-px max-w-[1180px]" style={{ background: "linear-gradient(90deg, transparent, #C9A84C66, transparent)" }} />
+
+          {/* Search bar */}
           <form
             onSubmit={onSubmit}
-            className="absolute flex items-stretch gap-0"
-            style={{
-              left: `${SEARCH_BAR.left}%`,
-              right: `${SEARCH_BAR.right}%`,
-              top: `${SEARCH_BAR.top}%`,
-              bottom: `${SEARCH_BAR.bottom}%`,
-            }}
+            className="relative z-10 mx-auto mt-6 flex w-full max-w-[1180px] items-stretch rounded-2xl border border-[#C9A84C]/60 bg-white shadow-[0_20px_60px_-20px_rgba(94,15,29,0.35)]"
           >
-            {/* Град — 14.9% (4.6→19.5) */}
-            <select
-              aria-label="Град"
-              value={city}
-              onChange={(e) => {
-                setCity(e.target.value);
-                setQuarter("");
-              }}
-              className="h-full cursor-pointer appearance-none bg-transparent px-2 text-[#2b1418] outline-none focus:bg-white/40"
-              style={{ flexBasis: "15.6%" }}
-            >
-              <option value="">Град</option>
-              {CITIES.map((c) => (
-                <option key={c.slug} value={c.slug}>{c.name}</option>
-              ))}
-            </select>
+            <DesktopField label="Град" className="flex-[1.1]">
+              <select
+                aria-label="Град"
+                value={city}
+                onChange={(e) => { setCity(e.target.value); setQuarter(""); }}
+                className="w-full cursor-pointer appearance-none bg-transparent text-[15px] font-medium text-[#2b1418] outline-none"
+              >
+                <option value="">Всички</option>
+                {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+              </select>
+            </DesktopField>
 
-            {/* Квартал — 13.6% */}
-            <select
-              aria-label="Квартал"
-              value={quarter}
-              onChange={(e) => setQuarter(e.target.value)}
-              disabled={!city}
-              className="h-full cursor-pointer appearance-none bg-transparent px-2 text-[#2b1418] outline-none focus:bg-white/40 disabled:cursor-not-allowed disabled:opacity-60"
-              style={{ flexBasis: "13.6%" }}
-            >
-              <option value="">Квартал</option>
-              {quarters.map((q: any) => (
-                <option key={q.slug} value={q.slug}>{q.name}</option>
-              ))}
-            </select>
+            <DesktopField label="Квартал" className="flex-[1.1]">
+              <select
+                aria-label="Квартал"
+                value={quarter}
+                onChange={(e) => setQuarter(e.target.value)}
+                disabled={!city}
+                className="w-full cursor-pointer appearance-none bg-transparent text-[15px] font-medium text-[#2b1418] outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Всички</option>
+                {(quarters as any[]).map((q) => <option key={q.slug} value={q.slug}>{q.name}</option>)}
+              </select>
+            </DesktopField>
 
-            {/* Вид имот — 13.7% */}
-            <select
-              aria-label="Вид имот"
-              value={propertyType}
-              onChange={(e) => setPropertyType(e.target.value)}
-              className="h-full cursor-pointer appearance-none bg-transparent px-2 text-[#2b1418] outline-none focus:bg-white/40"
-              style={{ flexBasis: "13.7%" }}
-            >
-              <option value="">Вид имот</option>
-              {PROPERTY_TYPES.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
+            <DesktopField label="Вид имот" className="flex-[1.1]">
+              <select
+                aria-label="Вид имот"
+                value={propertyType}
+                onChange={(e) => setPropertyType(e.target.value)}
+                className="w-full cursor-pointer appearance-none bg-transparent text-[15px] font-medium text-[#2b1418] outline-none"
+              >
+                <option value="">Всички</option>
+                {PROPERTY_TYPES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+              </select>
+            </DesktopField>
 
-            {/* Цена (min/max) — 19.1% */}
-            <div className="flex h-full items-center gap-1 px-2" style={{ flexBasis: "19.1%" }}>
-              <input
-                aria-label="Цена от"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                placeholder="от"
-                value={priceMin}
-                onChange={(e) => setPriceMin(e.target.value)}
-                className="h-full w-full min-w-0 bg-transparent text-[#2b1418] outline-none placeholder:text-[#2b1418]/50 focus:bg-white/40"
-              />
-              <span className="text-[#2b1418]/60">–</span>
-              <input
-                aria-label="Цена до"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                placeholder="до"
-                value={priceMax}
-                onChange={(e) => setPriceMax(e.target.value)}
-                className="h-full w-full min-w-0 bg-transparent text-[#2b1418] outline-none placeholder:text-[#2b1418]/50 focus:bg-white/40"
-              />
-            </div>
+            <DesktopField label="Цена (€)" className="flex-[1.3]">
+              <div className="flex w-full items-center gap-1">
+                <input aria-label="Цена от" type="number" inputMode="numeric" min={0} placeholder="от" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} className="w-full min-w-0 bg-transparent text-[15px] font-medium text-[#2b1418] outline-none placeholder:text-[#2b1418]/40" />
+                <span className="text-[#2b1418]/40">–</span>
+                <input aria-label="Цена до" type="number" inputMode="numeric" min={0} placeholder="до" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} className="w-full min-w-0 bg-transparent text-[15px] font-medium text-[#2b1418] outline-none placeholder:text-[#2b1418]/40" />
+              </div>
+            </DesktopField>
 
-            {/* Площ (min/max) — 16.1% */}
-            <div className="flex h-full items-center gap-1 px-2" style={{ flexBasis: "16.1%" }}>
-              <input
-                aria-label="Площ от"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                placeholder="от"
-                value={areaMin}
-                onChange={(e) => setAreaMin(e.target.value)}
-                className="h-full w-full min-w-0 bg-transparent text-[#2b1418] outline-none placeholder:text-[#2b1418]/50 focus:bg-white/40"
-              />
-              <span className="text-[#2b1418]/60">–</span>
-              <input
-                aria-label="Площ до"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                placeholder="до"
-                value={areaMax}
-                onChange={(e) => setAreaMax(e.target.value)}
-                className="h-full w-full min-w-0 bg-transparent text-[#2b1418] outline-none placeholder:text-[#2b1418]/50 focus:bg-white/40"
-              />
-            </div>
+            <DesktopField label="Площ (m²)" className="flex-[1.2]" last>
+              <div className="flex w-full items-center gap-1">
+                <input aria-label="Площ от" type="number" inputMode="numeric" min={0} placeholder="от" value={areaMin} onChange={(e) => setAreaMin(e.target.value)} className="w-full min-w-0 bg-transparent text-[15px] font-medium text-[#2b1418] outline-none placeholder:text-[#2b1418]/40" />
+                <span className="text-[#2b1418]/40">–</span>
+                <input aria-label="Площ до" type="number" inputMode="numeric" min={0} placeholder="до" value={areaMax} onChange={(e) => setAreaMax(e.target.value)} className="w-full min-w-0 bg-transparent text-[15px] font-medium text-[#2b1418] outline-none placeholder:text-[#2b1418]/40" />
+              </div>
+            </DesktopField>
 
-            {/* Търси — 13.2% */}
             <button
               type="submit"
-              aria-label="Търси"
-              className="h-full cursor-pointer bg-transparent text-transparent hover:bg-white/10 focus:bg-white/15 focus:outline-none"
-              style={{ flexBasis: "13.2%" }}
+              className="flex items-center gap-2 rounded-r-2xl px-8 font-display text-[15px] uppercase tracking-[0.16em] text-white transition-colors"
+              style={{ background: "linear-gradient(135deg, #8B1A2B 0%, #5e0f1d 100%)" }}
             >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
               Търси
             </button>
 
-            {/* Още филтри — 6.8% */}
             <button
               type="button"
               aria-label="Още филтри"
               onClick={() => setMoreOpen((v) => !v)}
-              className="h-full cursor-pointer bg-transparent text-transparent hover:bg-white/10 focus:bg-white/15 focus:outline-none"
-              style={{ flexBasis: "6.8%" }}
+              className="ml-px flex items-center justify-center rounded-r-2xl border-l border-[#C9A84C]/40 bg-white px-4 text-[#8B1A2B] hover:bg-[#fbf6ea]"
             >
-              Още
+              ⋯
             </button>
           </form>
 
-          {/* Optional "Още филтри" popover — appears below the bar without changing layout */}
           {moreOpen && (
-            <div
-              className="absolute z-10 rounded-xl border border-[#C9A84C]/60 bg-white/95 p-4 shadow-xl backdrop-blur"
-              style={{
-                left: `${SEARCH_BAR.left}%`,
-                right: `${SEARCH_BAR.right}%`,
-                top: `${100 - SEARCH_BAR.bottom + 0.5}%`,
-              }}
-            >
-              <p className="text-sm text-[#2b1418]/80">
-                Допълнителните филтри са налични в страницата с резултати.{" "}
-                <Link to="/search" className="text-[#8B1A2B] underline">Отвори търсене →</Link>
-              </p>
+            <div className="absolute left-1/2 top-[160px] z-20 -translate-x-1/2 rounded-xl border border-[#C9A84C]/60 bg-white/95 p-4 text-sm text-[#2b1418] shadow-xl backdrop-blur">
+              Допълнителните филтри са в страницата с резултати.{" "}
+              <Link to="/search" search={buildSearch() as never} className="text-[#8B1A2B] underline">Отвори търсене →</Link>
             </div>
           )}
+
+          {/* City cards */}
+          <div className="relative z-10 mx-auto mt-10 grid w-full max-w-[1180px] grid-cols-4 gap-6">
+            {CITIES.map((c) => (
+              <Link
+                key={c.slug}
+                to="/cities/$slug"
+                params={{ slug: c.slug } as never}
+                className="group relative flex aspect-[4/5] flex-col overflow-hidden rounded-2xl border border-[#C9A84C]/60 bg-[#fbf6ea] shadow-[0_10px_30px_-15px_rgba(94,15,29,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_rgba(94,15,29,0.55)]"
+              >
+                <div className="relative flex-1 overflow-hidden">
+                  <img
+                    src={c.img}
+                    alt={`Имоти в ${c.name}`}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <span aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 50%, rgba(94,15,29,0.55) 100%)" }} />
+                </div>
+                <div className="relative flex items-center justify-between border-t border-[#C9A84C]/50 bg-white px-4 py-3">
+                  <div>
+                    <p className="font-display text-[10px] uppercase tracking-[0.22em] text-[#8B1A2B]/70">Имоти в</p>
+                    <p className="font-display text-lg font-semibold text-[#2b1418]">{c.name}</p>
+                  </div>
+                  <span className="text-[#C9A84C] transition-transform group-hover:translate-x-1" aria-hidden>→</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      {/* ===================== MOBILE / TABLET (< lg) — locked image mode ===================== */}
+      <main className="relative w-full lg:hidden" style={{ backgroundColor: "#1a0d10" }}>
+        <h1 className="sr-only">Недвижими имоти Надежда — Луксозни имоти в България</h1>
+        <p className="sr-only">
+          Агенция Надежда предлага премиум недвижими имоти в Бургас, Варна, Шумен и Нов Пазар.
+        </p>
+
+        <div className="relative mx-auto w-full" style={{ maxWidth: 1402 }}>
+          <div className="relative w-full" style={{ aspectRatio: "1402 / 1122" }}>
+            <img
+              src={landing.url}
+              alt="Недвижими имоти Надежда — начална страница"
+              className="absolute inset-0 h-full w-full select-none"
+              draggable={false}
+              style={{ objectFit: "fill" }}
+              fetchPriority="high"
+            />
+
+            {HOTSPOTS.map((h, i) => {
+              const isCity = h.to === "/cities/$slug";
+              const cityIndex = isCity
+                ? HOTSPOTS.filter((x, j) => x.to === "/cities/$slug" && j <= i).length - 1
+                : -1;
+              const params = isCity ? { slug: CITY_SLUGS[cityIndex] } : undefined;
+              return (
+                <Link
+                  key={`${h.label}-${i}`}
+                  to={h.to as never}
+                  params={params as never}
+                  search={h.search as never}
+                  aria-label={h.label}
+                  className="absolute block rounded-md transition-colors duration-150 hover:bg-white/5 focus:bg-white/10 focus:outline-none"
+                  style={{ left: `${h.left}%`, right: `${h.right}%`, top: `${h.top}%`, bottom: `${h.bottom}%` }}
+                />
+              );
+            })}
+
+            <form
+              onSubmit={onSubmit}
+              className="absolute flex items-stretch gap-0"
+              style={{ left: `${SEARCH_BAR.left}%`, right: `${SEARCH_BAR.right}%`, top: `${SEARCH_BAR.top}%`, bottom: `${SEARCH_BAR.bottom}%` }}
+            >
+              <select aria-label="Град" value={city} onChange={(e) => { setCity(e.target.value); setQuarter(""); }} className="h-full cursor-pointer appearance-none bg-transparent px-2 text-[#2b1418] outline-none focus:bg-white/40" style={{ flexBasis: "15.6%" }}>
+                <option value="">Град</option>
+                {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+              </select>
+              <select aria-label="Квартал" value={quarter} onChange={(e) => setQuarter(e.target.value)} disabled={!city} className="h-full cursor-pointer appearance-none bg-transparent px-2 text-[#2b1418] outline-none focus:bg-white/40 disabled:cursor-not-allowed disabled:opacity-60" style={{ flexBasis: "13.6%" }}>
+                <option value="">Квартал</option>
+                {(quarters as any[]).map((q) => <option key={q.slug} value={q.slug}>{q.name}</option>)}
+              </select>
+              <select aria-label="Вид имот" value={propertyType} onChange={(e) => setPropertyType(e.target.value)} className="h-full cursor-pointer appearance-none bg-transparent px-2 text-[#2b1418] outline-none focus:bg-white/40" style={{ flexBasis: "13.7%" }}>
+                <option value="">Вид имот</option>
+                {PROPERTY_TYPES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+              </select>
+              <div className="flex h-full items-center gap-1 px-2" style={{ flexBasis: "19.1%" }}>
+                <input aria-label="Цена от" type="number" inputMode="numeric" min={0} placeholder="от" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} className="h-full w-full min-w-0 bg-transparent text-[#2b1418] outline-none placeholder:text-[#2b1418]/50 focus:bg-white/40" />
+                <span className="text-[#2b1418]/60">–</span>
+                <input aria-label="Цена до" type="number" inputMode="numeric" min={0} placeholder="до" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} className="h-full w-full min-w-0 bg-transparent text-[#2b1418] outline-none placeholder:text-[#2b1418]/50 focus:bg-white/40" />
+              </div>
+              <div className="flex h-full items-center gap-1 px-2" style={{ flexBasis: "16.1%" }}>
+                <input aria-label="Площ от" type="number" inputMode="numeric" min={0} placeholder="от" value={areaMin} onChange={(e) => setAreaMin(e.target.value)} className="h-full w-full min-w-0 bg-transparent text-[#2b1418] outline-none placeholder:text-[#2b1418]/50 focus:bg-white/40" />
+                <span className="text-[#2b1418]/60">–</span>
+                <input aria-label="Площ до" type="number" inputMode="numeric" min={0} placeholder="до" value={areaMax} onChange={(e) => setAreaMax(e.target.value)} className="h-full w-full min-w-0 bg-transparent text-[#2b1418] outline-none placeholder:text-[#2b1418]/50 focus:bg-white/40" />
+              </div>
+              <button type="submit" aria-label="Търси" className="h-full cursor-pointer bg-transparent text-transparent hover:bg-white/10 focus:bg-white/15 focus:outline-none" style={{ flexBasis: "13.2%" }}>Търси</button>
+              <button type="button" aria-label="Още филтри" onClick={() => setMoreOpen((v) => !v)} className="h-full cursor-pointer bg-transparent text-transparent hover:bg-white/10 focus:bg-white/15 focus:outline-none" style={{ flexBasis: "6.8%" }}>Още</button>
+            </form>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
+  );
+}
+
+function DesktopField({
+  label,
+  children,
+  className,
+  last,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+  last?: boolean;
+}) {
+  return (
+    <label className={`flex flex-col justify-center gap-0.5 px-5 py-3 ${last ? "" : "border-r border-[#C9A84C]/30"} ${className ?? ""}`}>
+      <span className="font-display text-[10px] uppercase tracking-[0.18em] text-[#8B1A2B]/70">{label}</span>
+      {children}
+    </label>
   );
 }
 

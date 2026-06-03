@@ -1,54 +1,82 @@
-# Pixel-perfect redesign — Имоти Надежда
+## Цел
 
-Reference: file_8957.jpg. No improvisations.
+Премахваме image-overlay подхода на десктоп home (/) и изграждаме реални компоненти, които изглеждат 1:1 като `landing-master.png`, но са истински действащи (hover, фокус, типография, отзивчивост, SEO-достъпни текстове). Мобилният изглед остава непокътнат (mobile-perfect-lock).
 
-## 1. Navbar (site-wide, replaces current `SiteHeader`)
+## Какво се променя
 
-- Full-width dark near-black bar (#0f0a0b), height ~110px desktop, ~70px mobile.
-- Inside: a rounded "pill" track (dark bordeaux #2a0f14 with thin gold #C9A84C border) hosting nav links — centered/right-aligned.
-- Nav items with small gold icons + white labels: `🏠 За продажба` · `🔑 Под наем` · `👥 За нас` · profile icon. Each link separated by faint gold divider, gold pill border on hover/active.
-- Left: decorative **scroll/banner** panel — bordeaux gradient (#8B1A2B → #5E0F1D) shaped like a ribbon with curled ends and gold trim/inner stroke. Contains the white logo (house icon + "НЕДВИЖИМИ ИМОТИ • НАДЕЖДА •").
-- The ribbon overlaps below the dark bar (~30px) for the scroll effect.
-- Mobile: collapses ribbon scale, links shrink, profile stays visible.
-- Applied to ALL pages by editing `src/components/site/site-header.tsx` (existing usage across routes remains).
+Един файл: `src/components/site/landing-image-home.tsx` (запазваме името заради route и SEO мета).
 
-## 2. Search/filter bar (home page)
+- На `lg+` показваме **нова реална секция** (без `<img>` от master)
+- Под `lg` (mobile/tablet) запазваме точно текущия image-mode + работещата търсачка-overlay — без промяна
 
-Replaces the current wavy split panel in `src/components/site/luxury-real-estate.tsx`.
+## Структура на десктоп клонинга (1:1 с master)
 
-- Single full-width **bordeaux #8B1A2B rounded pill** (border-radius ~9999px), thin gold border, soft drop shadow.
-- Inline fields with thin vertical gold dividers between each:
-  - ГРАД (icon: pin) — value + chevron
-  - КВАРТАЛ (icon: house)
-  - ВИД ИМОТ (icon: building)
-  - ЦЕНА (icon: tag) — "от 200000 - до 500000 €"
-  - ПЛОЩ (icon: ruler) — "от 100 m² - до 200 m²"
-- Each field: tiny gold icon left, uppercase gold micro-label on top, white value below.
-- Right cluster: solid **gold pill button "ТЪРСИ"** with magnifier icon (bordeaux text), then plain text link `≡ Още филтри` in gold.
+```text
+┌────────────────────────────────────────────────────────────────┐
+│  NAVBAR (бордо панел + бял лого блок отляво, диагонален ръб)   │
+│  [Логo] [Начало] [За продажба] [Под наем] [За нас]  [Профил]  │
+├────────────────────────────────────────────────────────────────┤
+│                       HERO (фон/градиент бордо→крем)           │
+│            (без текст "ИЛДЖ.ИА" — само визуални акценти)        │
+│                                                                │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │ [Град▾][Квартал▾][Вид имот▾][Цена от–до][Площ от–до]    │  │
+│  │ [    Търси    ] [Още ⋯]                                 │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                │
+│   ┌───────┐  ┌───────┐  ┌───────┐  ┌──────────┐               │
+│   │Бургас │  │ Варна │  │ Шумен │  │Нов Пазар │  (city cards) │
+│   └───────┘  └───────┘  └───────┘  └──────────┘               │
+└────────────────────────────────────────────────────────────────┘
+```
 
-## 3. City cards (home page grid)
+Цялата секция е `h-[100dvh]`, без скрол, всичко влиза в един екран.
 
-- 4-column grid (responsive 2 / 1 col below).
-- Card: rounded-2xl (~24px), gold border, full-bleed panorama, dark gradient at bottom 60%.
-- Top-left tiny uppercase white label `ВИЖ ГРАДА`.
-- Bottom-left large white display name (city).
-- Bottom-right circular bordeaux button with white arrow icon, gold ring.
+### Навбар
+- Бордо панел (`#8B1A2B → #5e0f1d`) на цяла ширина, височина ~76px
+- Бял лого блок отляво с диагонален десен ръб (`clip-path`), сегашното лого
+- Меню линкове в бяло, с gold underline на hover/active
+- Десен край: иконка "Профил" → `/login?redirect=/admin`
+- Реални `<Link>` от `@tanstack/react-router`
 
-## 4. Trust strip (bottom of home)
+### Hero фон
+- Лек градиент крем→бяло със златни декоративни линии (CSS, без `<img>`)
+- Без текст върху hero (по правилото — без "ИЛДЖ.ИА")
 
-- Dark background band.
-- 4 columns, each with gold icon + bold white title + small muted description: Сигурност / Коректност / Доверие / Локално знание.
-- Right side: rounded **"Чат с консултант"** pill button — bordeaux fill, gold border, chat icon.
+### Търсачка (истинска, не overlay)
+- Бяла лента с gold border и shadow-elegant, центрирана, max-width ~1180px
+- Същите 7 полета които вече имаме в overlay-а: Град, Квартал, Вид имот, Цена min/max, Площ min/max
+- "Търси" бутон в burgundy с бял текст
+- "Още" → линк/popover към `/search`
+- Submit → `navigate({ to: "/search", search })` (логиката е готова)
+- Квартал dropdown се пълни от `getQuartersByCity` (като сега)
 
-## Files to edit
+### City cards (4 бр.)
+- Reusable `ListingCityCard`: cream фон, gold border, име на града в burgundy, малка декоративна линия
+- Hover: lift + gold glow
+- Линкове към `/cities/$slug`
+- Използваме съществуващите `city-card-*.png.asset.json` за изображенията на картите
 
-- `src/components/site/site-header.tsx` — rewrite navbar (ribbon + dark pill nav).
-- `src/components/site/luxury-real-estate.tsx` — replace search bar markup, city card visuals, trust strip block at bottom of `HomePage`.
-- `src/styles.css` — add helper classes if needed (gold border, ribbon clip shadow).
+## Какво НЕ се променя
 
-No backend / data / routing changes.
+- Мобилно (`< lg`): запазваме image-mode + overlay търсачка (mobile-perfect-lock)
+- `/search`, `/about`, `/cities/*`, `/properties/*` — без промяна
+- SEO `head()` в `src/routes/index.tsx` — без промяна (запазва `og:image` от master)
+- `landing-master.png` asset остава (използва се за og:image и mobile)
+- Дизайн tokens в `src/styles.css` — използваме съществуващите (burgundy/gold/cream)
+- Без нови dependencies
 
-## Out of scope
+## Технически детайли
 
-- Hero imagery, property cards, other sections not visible in the reference remain untouched.
-- No new routes, no logic changes.
+- Tailwind + семантични токени (`bg-[#8B1A2B]`, `border-[#C9A84C]/50`, и т.н. — както е навсякъде в проекта)
+- Без `<img src={landing.url}>` на десктоп; мобилно остава както сега
+- Стейт на търсачката (city/quarter/type/price/area) — пренасяме съществуващите `useState` + `useQuery` + `onSubmit` без промяна на логиката
+- Aspect/positioning хотспоти за десктоп се изтриват (заменят се от реални компоненти)
+- Тип-безопасни линкове чрез `<Link to=... search=...>`
+
+## Резултат
+
+- Истински действащ home: hover, keyboard focus, accessibility, без невидими overlays
+- Същата визия 1:1 с master.png на десктоп
+- Мобилно — нула регресия
+- Запазен SEO и og:image
