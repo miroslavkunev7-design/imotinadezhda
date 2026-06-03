@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 import { SiteHeader } from "@/components/site/site-header";
 import { setRememberMe } from "@/lib/remember-me";
-import varnaHeroVideo from "@/assets/varna-hero.mp4";
+import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Вход | Имоти Надежда" }] }),
@@ -93,7 +93,7 @@ function LoginPage() {
     <main className="relative flex min-h-screen flex-col overflow-hidden">
       <video
         className="absolute inset-0 h-full w-full object-cover"
-        src={varnaHeroVideo}
+        src={varnaHeroVideo.url}
         autoPlay
         loop
         muted
