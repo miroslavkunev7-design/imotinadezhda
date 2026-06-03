@@ -153,7 +153,7 @@ function RootComponent() {
         <Outlet />
         <Toaster />
         {!hideChat && <CustomerChat propertyId={propertyId} />}
-        {!pathname.startsWith("/admin") && <InstallAppButton />}
+        {pathname.startsWith("/admin") && <InstallAppButton />}
       </AuthProvider>
     </QueryClientProvider>
   );
