@@ -1,0 +1,1 @@
+UPDATE public.cities SET hero_video_url='/__l5e/assets-v1/b9b5fd44-8a3c-4346-a7d6-5c82c25bc946/varna-hero-4k.mp4' WHERE slug='varna';
