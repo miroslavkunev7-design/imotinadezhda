@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Home, KeyRound, Users, User } from "lucide-react";
 
-import logoNadezhda from "@/assets/logo-nadezhda.png";
+import logoScrollBanner from "@/assets/logo-scroll-banner.png";
 
 export type SiteNavKey = "sale" | "rent" | "about";
 
