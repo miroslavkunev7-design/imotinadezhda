@@ -54,10 +54,12 @@ function LoginPage() {
     setError(null);
     try {
       setRememberMe(remember);
+      const normEmail = email.trim().toLowerCase();
+      const normPassword = password.trim();
       if (mode === "signup") {
         const { error: err } = await supabase.auth.signUp({
-          email,
-          password,
+          email: normEmail,
+          password: normPassword,
           options: {
             emailRedirectTo: window.location.origin,
             data: { full_name: fullName },
@@ -65,9 +67,10 @@ function LoginPage() {
         });
         if (err) throw err;
       } else {
-        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        const { error: err } = await supabase.auth.signInWithPassword({ email: normEmail, password: normPassword });
         if (err) throw err;
       }
+
       window.location.replace("/admin");
     } catch (err: any) {
       setError(err?.message ?? "Възникна грешка");
