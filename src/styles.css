@@ -447,8 +447,10 @@ body:has(.luxury-page) {
 .site-header__art--desktop {
   max-width: none;
   aspect-ratio: auto !important;
-  height: clamp(64px, 6.5vw, 96px);
+  height: clamp(44px, 4.2vw, 64px);
 }
+.site-header { padding: 0; margin: 0; }
+.site-header__art { padding: 0; margin: 0; }
 .site-header__art--mobile { display: none; max-width: 1400px; }
 @media (max-width: 768px) {
   .site-header__art--desktop { display: none; }
