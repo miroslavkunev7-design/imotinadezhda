@@ -809,7 +809,7 @@ export function HomePage({
           {heroSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
-      <div className="flex-none">
+      <div className="hidden flex-none md:block">
         {belowSections.map((s) => sectionNode(s.id))}
       </div>
     </main>

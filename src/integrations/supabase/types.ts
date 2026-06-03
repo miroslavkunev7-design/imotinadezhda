@@ -281,6 +281,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "broker_tasks_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "broker_tasks_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
@@ -428,7 +435,15 @@ export type Database = {
           notes?: string | null
           uploaded_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {
@@ -518,6 +533,13 @@ export type Database = {
             columns: ["assigned_broker_id"]
             isOneToOne: false
             referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_assigned_broker_id_fkey"
+            columns: ["assigned_broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers_public"
             referencedColumns: ["id"]
           },
           {
@@ -926,7 +948,29 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "generated_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_contracts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inquiries: {
         Row: {
@@ -1367,7 +1411,22 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "property_matches_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_matches_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quarter_images: {
         Row: {
@@ -1504,7 +1563,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      brokers_public: {
+        Row: {
+          bio: string | null
+          clients_count: number | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          is_active: boolean | null
+          photo_url: string | null
+          properties_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          bio?: string | null
+          clients_count?: number | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          photo_url?: string | null
+          properties_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          bio?: string | null
+          clients_count?: number | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          photo_url?: string | null
+          properties_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       delete_email: {
