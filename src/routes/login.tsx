@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 import { SiteHeader } from "@/components/site/site-header";
 import { setRememberMe } from "@/lib/remember-me";
-import loginHero from "@/assets/login-hero.jpeg";
+import varnaHeroVideo from "@/assets/varna-hero.mp4";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Вход | Имоти Надежда" }] }),
@@ -90,26 +90,27 @@ function LoginPage() {
   };
 
   return (
-    <main
-      className="relative flex min-h-screen flex-col overflow-hidden"
-      style={{
-        backgroundImage: `url(${loginHero})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+    <main className="relative flex min-h-screen flex-col overflow-hidden">
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        src={varnaHeroVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+      />
       <SiteHeader />
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(139,26,43,0.35) 0%, rgba(255,255,255,0.25) 45%, rgba(139,26,43,0.45) 100%)",
+            "linear-gradient(180deg, rgba(139,26,43,0.25) 0%, rgba(0,0,0,0.15) 45%, rgba(139,26,43,0.35) 100%)",
         }}
       />
       <div className="relative z-10 flex flex-1 items-center justify-center gap-8 px-4 py-8">
-        {/* Login card */}
-        <div className="relative w-full max-w-md rounded-2xl border border-[#C9A84C]/50 bg-white/95 p-7 shadow-[0_30px_70px_-20px_rgba(139,26,43,0.4)] ring-1 ring-[#C9A84C]/30 md:p-8">
+        {/* Login card — fully transparent */}
+        <div className="relative w-full max-w-md rounded-2xl p-7 md:p-8">
           <div className="mb-6 text-center">
             <Link to="/" className="font-display text-2xl text-primary">Имоти Надежда</Link>
             <h1 className="mt-3 font-display text-3xl text-accent-foreground">
