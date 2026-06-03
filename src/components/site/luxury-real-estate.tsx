@@ -189,9 +189,9 @@ function SearchBar({
   void isBurgundy; // variant kept for API compatibility; design is unified now
 
   return (
-    <div className="relative mx-auto w-full max-w-[1320px]">
+    <div className="relative mx-auto w-full max-w-[1440px]">
       <div
-        className="relative flex w-full flex-col items-stretch gap-2 overflow-visible rounded-3xl border p-2 md:flex-row md:gap-0 md:rounded-full md:px-3 md:py-2"
+        className="relative flex w-full flex-col items-stretch gap-2 overflow-visible rounded-3xl border p-2 md:flex-row md:gap-0 md:rounded-full md:px-4 md:py-3"
         style={{
           background: "linear-gradient(180deg, #8B1A2B 0%, #6e1422 100%)",
           borderColor: "rgba(201,168,76,0.55)",
