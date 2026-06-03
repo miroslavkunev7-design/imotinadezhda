@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import landing from "@/assets/landing-master.png.asset.json";
+import navbarDesktop from "@/assets/navbar-desktop.png.asset.json";
 import cityBurgas from "@/assets/city-card-burgas.png.asset.json";
 import cityVarna from "@/assets/city-card-varna.png.asset.json";
 import cityShumen from "@/assets/city-card-shumen.png.asset.json";
@@ -129,7 +130,6 @@ export function LandingImageHome() {
               style={{ left: `${h.left}%`, right: `${h.right}%` }}
             />
           ))}
-        </header>
         </header>
 
         {/* Hero — fills remaining viewport, contains search + city cards */}
