@@ -87,8 +87,8 @@ function ClientsAdmin() {
         </div>
       </header>
 
-      <div className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)]">
-        <table className="w-full text-sm text-amber-100">
+      <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)]">
+        <table className="w-full min-w-[760px] text-sm text-amber-100">
           <thead className="bg-[rgba(40,8,16,0.7)] text-left text-amber-100/80">
             <tr>
               <th className="px-4 py-3">Име</th>
@@ -225,6 +225,13 @@ function ClientsAdmin() {
         onEdit={(c) => { setDetailsFor(null); setEditing(c); }}
         onMortgageSend={(c) => { setDetailsFor(null); setMortgageFor(c); }}
         onMortgageStages={(c) => { setDetailsFor(null); setMortgageStagesFor(c); }}
+      />
+      <ClientScanModal
+        open={scanOpen}
+        onClose={() => setScanOpen(false)}
+        onExtracted={(prefill) => setEditing(prefill)}
+        cities={cities}
+        quarters={quarters}
       />
     </div>
   );
