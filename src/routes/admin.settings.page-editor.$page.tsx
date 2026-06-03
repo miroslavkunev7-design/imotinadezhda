@@ -31,11 +31,12 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/settings/page-editor/$page")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    page: (typeof search.page === "string" ? search.page : "home") as PageKey,
-  }),
   component: Page,
 });
+
+function isPageKey(value: string): value is PageKey {
+  return value in PAGE_LABELS;
+}
 
 const PAGE_PATHS: Record<PageKey, string> = {
   home: "/",
@@ -46,8 +47,9 @@ const PAGE_PATHS: Record<PageKey, string> = {
 };
 
 function Page() {
-  const { page } = Route.useSearch();
-  return <PageEditor key={page} pageKey={page} />;
+  const { page } = Route.useParams();
+  const pageKey = isPageKey(page) ? page : "home";
+  return <PageEditor key={pageKey} pageKey={pageKey} />;
 }
 
 function PageEditor({ pageKey }: { pageKey: PageKey }) {
@@ -150,10 +152,10 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
-              to="/admin/settings"
+              to="/admin/settings/page-editor"
               className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-xs text-amber-100 hover:bg-amber-500/15"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> Настройки
+              <ArrowLeft className="h-3.5 w-3.5" /> Всички страници
             </Link>
             <div>
               <h1 className="font-display text-xl text-amber-100">Редактор на страници</h1>
@@ -167,8 +169,8 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
             {(Object.keys(PAGE_LABELS) as PageKey[]).map((k) => (
               <Link
                 key={k}
-                to="/admin/settings/page-editor"
-                search={{ page: k }}
+                to="/admin/settings/page-editor/$page"
+                params={{ page: k }}
                 className={cn(
                   "rounded-lg border px-3 py-1.5 text-xs transition",
                   k === pageKey
