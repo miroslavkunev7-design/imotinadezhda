@@ -189,16 +189,16 @@ function SearchBar({
   void isBurgundy; // variant kept for API compatibility; design is unified now
 
   return (
-    <div className="relative mx-auto w-full max-w-[1440px]">
+    <div className="relative mx-auto w-full max-w-[1320px]">
       <div
-        className="relative flex w-full flex-col items-stretch gap-2 overflow-visible rounded-3xl border p-2 md:flex-row md:gap-0 md:rounded-full md:px-4 md:py-3"
+        className="relative flex w-full items-stretch gap-0 overflow-visible rounded-full border px-2 py-2 md:px-3 md:py-2"
         style={{
           background: "linear-gradient(180deg, #8B1A2B 0%, #6e1422 100%)",
           borderColor: "rgba(201,168,76,0.55)",
           boxShadow: "0 18px 40px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(201,168,76,0.12)",
         }}
       >
-        <div className="grid w-full grid-cols-2 gap-x-1 gap-y-1 md:flex md:flex-1 md:flex-nowrap md:items-stretch md:gap-0">
+        <div className="flex flex-1 flex-wrap items-stretch md:flex-nowrap">
           <PillCell icon={MapPin} label="Град" value={city} onChange={setCity}
             options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
           <PillDivider />
@@ -211,17 +211,15 @@ function SearchBar({
           <PillRangeCell icon={LandPlot} label="Цена" minVal={priceMin} maxVal={priceMax}
             onMin={setPriceMin} onMax={setPriceMax} suffix="€" />
           <PillDivider />
-          <div className="col-span-2 md:contents">
-            <PillRangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
-              onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
-          </div>
+          <PillRangeCell icon={Ruler} label="Площ" minVal={areaMin} maxVal={areaMax}
+            onMin={setAreaMin} onMax={setAreaMax} suffix="m²" />
         </div>
 
-        <div className="flex flex-none items-center gap-2 md:pl-3 md:gap-3">
+        <div className="flex flex-none items-center gap-2 pl-2 md:gap-3 md:pl-3">
           <button
             type="button"
             onClick={handleSearch}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-14 md:w-auto md:px-8 md:text-base"
+            className="inline-flex h-11 items-center gap-2 rounded-full px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-12 md:px-7 md:text-base"
             style={{
               background: "linear-gradient(180deg, #E3BF66 0%, #C9A84C 60%, #A8852E 100%)",
               color: "#5E0F1D",
@@ -292,7 +290,7 @@ function PillCell({
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 min-w-[180px] max-h-[260px] overflow-y-auto rounded-2xl border bg-white py-1 text-[#2b1418] shadow-[0_18px_45px_rgba(0,0,0,0.25)]"
+          className="absolute left-2 right-2 top-[calc(100%+6px)] z-50 overflow-hidden rounded-2xl border bg-white py-1 text-[#2b1418] shadow-[0_18px_45px_rgba(0,0,0,0.25)]"
           style={{ borderColor: "rgba(201,168,76,0.5)" }}
         >
           {options.map((option) => (
@@ -493,7 +491,7 @@ function CityCard({ name, href, params }: { name: string; image?: string; href: 
     >
       <img
         src={src}
-        alt={`Недвижими имоти в ${name}`}
+        alt={name}
         className="block h-auto w-full select-none drop-shadow-[0_18px_40px_rgba(0,0,0,0.45)]"
         draggable={false}
         loading="lazy"
@@ -595,7 +593,7 @@ export function ListingCard({
       </div>
       <div className="space-y-3 px-4 pb-5 pt-4">
         <div>
-          <h2 className="font-display text-[1.35rem] leading-snug text-accent-foreground">{title}</h2>
+          <h3 className="font-display text-[1.35rem] leading-snug text-accent-foreground">{title}</h3>
           {location ? <p className="mt-1 inline-flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 text-primary" />{location}</p> : null}
         </div>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -778,9 +776,9 @@ export function HomePage({
   const belowSections = desktopSections.filter((s) => s.id === "trust-strip");
 
   return (
-    <main className="luxury-page home-fit-page flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-white text-foreground">
+    <main className="luxury-page flex h-screen flex-col overflow-hidden bg-[#0f0a0b] text-foreground">
       <section
-        className="relative flex min-h-0 flex-1 flex-col pb-2 pt-0 md:pb-3"
+        className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
         style={{
           backgroundImage: `url(${homeHero})`,
           backgroundSize: "cover",
@@ -792,7 +790,7 @@ export function HomePage({
 
         {mobileSections.map((s) => sectionNode(s.id))}
 
-        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1520px] px-4 pt-2 md:px-8 md:pt-4">
+        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-3 md:px-8 md:pt-5">
           {heroSections.map((s) => sectionNode(s.id))}
         </section>
       </section>
@@ -813,27 +811,27 @@ function TrustStrip() {
     { Icon: MapPin, title: "Локално знание", desc: "Най-добри оферти във всеки град" },
   ];
   return (
-    <section data-section-id="trust-strip" className="hidden" style={{ background: "linear-gradient(180deg, #8B1A2B 0%, #5E0F1D 100%)" }}>
-      <div className="mx-auto flex w-full max-w-[1420px] flex-col items-stretch gap-3 px-4 md:px-8 lg:flex-row lg:items-center lg:gap-8">
-        <div className="grid flex-1 grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4 md:gap-6">
+    <section data-section-id="trust-strip" className="bg-[#0f0a0b] py-3 md:py-5">
+      <div className="mx-auto flex w-full max-w-[1420px] flex-col items-stretch gap-8 px-4 md:px-8 lg:flex-row lg:items-center lg:gap-10">
+        <div className="grid flex-1 grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
           {items.map(({ Icon, title, desc }) => (
-            <div key={title} className="flex items-start gap-2.5 md:gap-3">
+            <div key={title} className="flex items-start gap-3">
               <div
-                className="flex h-9 w-9 flex-none items-center justify-center rounded-full border md:h-12 md:w-12"
+                className="flex h-10 w-10 flex-none items-center justify-center rounded-full border md:h-12 md:w-12"
                 style={{ borderColor: "rgba(201,168,76,0.55)", backgroundColor: "rgba(201,168,76,0.08)" }}
               >
-                <Icon className="h-4.5 w-4.5 md:h-6 md:w-6" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+                <Icon className="h-5 w-5 md:h-6 md:w-6" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
               </div>
               <div className="min-w-0">
-                <div className="font-display text-[15px] font-semibold leading-tight text-white md:text-lg">{title}</div>
-                <div className="mt-0.5 text-[11px] leading-snug text-white/65 md:mt-1 md:text-[13px]">{desc}</div>
+                <div className="font-display text-base font-semibold text-white md:text-lg">{title}</div>
+                <div className="mt-1 text-[12px] leading-snug text-white/65 md:text-[13px]">{desc}</div>
               </div>
             </div>
           ))}
         </div>
         <button
           type="button"
-          className="hidden h-12 flex-none items-center justify-center gap-2 self-start rounded-full border px-6 font-display text-sm text-white transition hover:brightness-110 md:inline-flex md:h-14 md:px-8 md:text-base lg:self-auto"
+          className="inline-flex h-12 flex-none items-center justify-center gap-2 self-start rounded-full border px-6 font-display text-sm text-white transition hover:brightness-110 md:h-14 md:px-8 md:text-base lg:self-auto"
           style={{
             background: "linear-gradient(180deg, #8B1A2B 0%, #5E0F1D 100%)",
             borderColor: "rgba(201,168,76,0.6)",
@@ -897,7 +895,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       {/* HERO with overlay navbar */}
       <section className="relative">
         <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
-          <img src={heroImage} alt={`Панорамен изглед ${city.name}`} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+          <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-[#5e0f1d]/40" />
 
           {/* Overlay navbar */}
@@ -1043,7 +1041,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                   <div className="relative aspect-[1.25/1] overflow-hidden">
                     <img
                       src={img}
-                      alt={`Жилищен квартал ${q.name}`}
+                      alt={q.name}
                       className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]"
                       loading="lazy"
                     />

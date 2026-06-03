@@ -15,7 +15,6 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { CustomerChat } from "@/components/site/customer-chat";
-import { InstallAppButton } from "@/components/site/install-app-button";
 import { useRouterState } from "@tanstack/react-router";
 import { initPwa } from "@/lib/pwa";
 import { enforceRememberMePolicy } from "@/lib/remember-me";
@@ -90,6 +89,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "ИЛДЖ.ИА | Луксозни имоти в България" },
+      { name: "description", content: "ИЛДЖ.ИА е платформа за търсене и публикуване на луксозни недвижими имоти в България." },
       { name: "author", content: "ИЛДЖ.ИА" },
       { name: "theme-color", content: "#8B1A2B" },
       { name: "application-name", content: "Имоти Надежда" },
@@ -97,11 +98,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Имоти Надежда" },
       { property: "og:site_name", content: "ИЛДЖ.ИА" },
+      { property: "og:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
+      { property: "og:description", content: "ИЛДЖ.ИА е платформа за търсене и публикуване на луксозни недвижими имоти в България." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "google-site-verification", content: "xsdZbCr0IiwCQJMurctPf8B39tICkdCuqXDxk4Qq0p4" },
+      { name: "twitter:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
+      { name: "twitter:description", content: "ИЛДЖ.ИА е платформа за търсене и публикуване на луксозни недвижими имоти в България." },
     ],
-
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
@@ -149,7 +152,6 @@ function RootComponent() {
         <Outlet />
         <Toaster />
         {!hideChat && <CustomerChat propertyId={propertyId} />}
-        {pathname.startsWith("/admin") && <InstallAppButton />}
       </AuthProvider>
     </QueryClientProvider>
   );

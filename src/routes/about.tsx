@@ -145,8 +145,7 @@ function AboutPage() {
           </article>
 
           {/* Sofa image with logo plaque */}
-          <section className="relative overflow-hidden rounded-3xl ring-1 ring-[#C9A84C]/40 shadow-[0_30px_80px_-30px_rgba(139,26,43,0.45)]">
-            <h2 className="sr-only">Луксозен интериор и визия</h2>
+          <div className="relative overflow-hidden rounded-3xl ring-1 ring-[#C9A84C]/40 shadow-[0_30px_80px_-30px_rgba(139,26,43,0.45)]">
             <img
               src={aboutSofa}
               alt="Луксозен интериор ИЛДЖ.ИА"
@@ -156,27 +155,24 @@ function AboutPage() {
               height={896}
             />
             <div className="absolute right-4 top-4 rounded-xl bg-white/90 px-3 py-2 ring-1 ring-[#C9A84C]/50 backdrop-blur md:right-6 md:top-6">
-              <img src={logoNadezhda} alt="Лого на Недвижими имоти ИЛДЖ.ИА" className="h-10 w-auto md:h-12" loading="lazy" decoding="async" />
+              <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-10 w-auto md:h-12" loading="lazy" decoding="async" />
             </div>
-          </section>
+          </div>
         </div>
 
         {/* Stats bar */}
-        <section className="mt-4 flex-none rounded-2xl border border-[#C9A84C]/45 bg-[#fbf6ea] p-4 md:mt-5 md:p-5">
-          <h2 className="sr-only">Нашите постижения в цифри</h2>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
-            {stats.map((s) => (
-              <div key={s.label} className="flex items-center gap-3 md:flex-col md:items-center md:text-center">
-                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#8B1A2B]/10 text-[#8B1A2B] md:h-11 md:w-11">
-                  <s.icon className="h-5 w-5" />
-                </span>
-                <div>
-                  <div className="font-display text-xl text-[#8B1A2B] md:text-2xl">{s.value}</div>
-                  <div className="text-xs text-[#2b1418]/75 md:text-sm">{s.label}</div>
-                </div>
+        <section className="mt-4 grid flex-none grid-cols-2 gap-3 rounded-2xl border border-[#C9A84C]/45 bg-[#fbf6ea] p-4 md:mt-5 md:grid-cols-4 md:gap-6 md:p-5">
+          {stats.map((s) => (
+            <div key={s.label} className="flex items-center gap-3 md:flex-col md:items-center md:text-center">
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#8B1A2B]/10 text-[#8B1A2B] md:h-11 md:w-11">
+                <s.icon className="h-5 w-5" />
+              </span>
+              <div>
+                <div className="font-display text-xl text-[#8B1A2B] md:text-2xl">{s.value}</div>
+                <div className="text-xs text-[#2b1418]/75 md:text-sm">{s.label}</div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </section>
       </main>
     </div>

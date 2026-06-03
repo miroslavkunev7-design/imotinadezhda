@@ -18,7 +18,7 @@ export type PageKey = (typeof PAGE_KEYS)[number];
 export const getPublicPageLayout = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ page_key: pageKeySchema }).parse(input))
   .handler(async ({ data }) => {
-    const { safeAdmin: supabaseAdmin } = await import("@/integrations/supabase/safe-admin");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("page_layouts")
       .select("sections")

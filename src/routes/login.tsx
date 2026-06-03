@@ -11,16 +11,7 @@ import { setRememberMe } from "@/lib/remember-me";
 import loginHero from "@/assets/login-hero.jpeg";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({
-    meta: [
-      { title: "Вход | Имоти Надежда" },
-      { name: "description", content: "Влезте в профила си в Имоти Надежда, за да управлявате запитвания, любими имоти и съобщения с екипа." },
-      { property: "og:title", content: "Вход | Имоти Надежда" },
-      { property: "og:description", content: "Влезте в профила си в Имоти Надежда, за да управлявате запитвания и любими имоти." },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
-  }),
-
+  head: () => ({ meta: [{ title: "Вход | Имоти Надежда" }] }),
   component: LoginPage,
 });
 

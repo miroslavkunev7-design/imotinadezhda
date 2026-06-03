@@ -6,18 +6,8 @@ import { checkAdminAccess, logAdminAccess } from "@/lib/audit.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({
-    meta: [
-      { title: "Администрация | Имоти Надежда" },
-      { name: "description", content: "Вътрешен административен панел за управление на имоти, клиенти и запитвания в Имоти Надежда." },
-      { property: "og:title", content: "Администрация | Имоти Надежда" },
-      { property: "og:description", content: "Вътрешен административен панел за управление на имоти, клиенти и запитвания." },
-      { name: "robots", content: "noindex,nofollow" },
-    ],
-  }),
   component: AdminLayout,
 });
-
 
 /**
  * Връща валидна сесия с access_token. Ако токенът е изтекъл или близо до изтичане

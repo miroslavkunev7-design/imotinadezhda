@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { safeAdmin as supabaseAdmin } from "@/integrations/supabase/safe-admin";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const getCities = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin

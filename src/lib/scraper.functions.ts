@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import Firecrawl from "@mendable/firecrawl-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -11,12 +12,9 @@ async function assertAdmin(userId: string) {
 
 const SOURCES = ["realistimo", "imoti_bg", "olx", "bazar_bg", "home_bg", "alo_bg", "facebook"] as const;
 
-async function fc() {
+function fc() {
   const key = process.env.FIRECRAWL_API_KEY;
   if (!key) throw new Error("FIRECRAWL_API_KEY не е конфигуриран. Свържете Firecrawl в Connectors.");
-  // Dynamic import keeps this server-only package out of the client bundle
-  // without needing rollup `external` (which breaks SSR module resolution).
-  const { default: Firecrawl } = await import("@mendable/firecrawl-js");
   return new Firecrawl({ apiKey: key });
 }
 
@@ -151,7 +149,7 @@ function buildResult(
 
 
 async function searchAndBuild(
-  client: Awaited<ReturnType<typeof fc>>,
+  client: Firecrawl,
   source: typeof SOURCES[number],
   query: string,
   domainFilter: RegExp | null,
@@ -193,7 +191,7 @@ export const runScrape = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const client = await fc();
+    const client = fc();
     const allResults: ScrapeResult[] = [];
 
     const SOURCE_MAP: Record<string, { domain: string; rx: RegExp }> = {
