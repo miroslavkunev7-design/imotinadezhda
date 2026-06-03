@@ -34,6 +34,7 @@ import {
 import burgasHero from "@/assets/burgas-hero.jpeg";
 import burgasPier from "@/assets/burgas-pier.jpeg";
 import homeHero from "@/assets/home-hero-living.jpeg";
+import homeHeroVideo from "@/assets/home-hero.mp4.asset.json";
 import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
