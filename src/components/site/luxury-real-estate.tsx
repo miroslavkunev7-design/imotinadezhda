@@ -38,10 +38,6 @@ import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
 import cityNoviPazar from "@/assets/city-novi-pazar.jpeg";
-import cityCardBurgas from "@/assets/city-card-burgas.png.asset.json";
-import cityCardVarna from "@/assets/city-card-varna.png.asset.json";
-import cityCardShumen from "@/assets/city-card-shumen.png.asset.json";
-import cityCardNoviPazar from "@/assets/city-card-novi-pazar.png.asset.json";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { Button } from "@/components/ui/button";
@@ -472,34 +468,53 @@ function RangeCell({
   );
 }
 
-
-const cityCardImages: Record<string, string> = {
-  burgas: cityCardBurgas.url,
-  varna: cityCardVarna.url,
-  shumen: cityCardShumen.url,
-  "novi-pazar": cityCardNoviPazar.url,
-};
-
-function CityCard({ name, href, params }: { name: string; image?: string; href: "/cities/$slug"; params: { slug: string } }) {
-  const src = cityCardImages[params.slug] ?? cityCardBurgas.url;
+function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
   return (
-    <Link
-      to={href}
-      params={params}
-      aria-label={name}
-      className="group block w-full transition-transform duration-500 hover:-translate-y-1"
-    >
-      <img
-        src={src}
-        alt={name}
-        className="block h-auto w-full select-none drop-shadow-[0_18px_40px_rgba(0,0,0,0.45)]"
-        draggable={false}
-        loading="lazy"
-      />
+    <Link to={href} params={params} className="group block overflow-hidden rounded-[20px] md:rounded-[24px]">
+      <div
+        className="relative aspect-[1.25/1] overflow-hidden rounded-[20px] border md:aspect-[1.45/1] md:rounded-[24px]"
+        style={{
+          borderColor: "rgba(201,168,76,0.55)",
+          boxShadow: "0 18px 38px rgba(0,0,0,0.45)",
+        }}
+      >
+        <img src={image} alt={name} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" loading="lazy" />
+        {/* Bottom dark gradient for legibility */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[8] h-[65%]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.85) 100%)",
+          }}
+        />
+        {/* Top-left small label */}
+        <div className="absolute left-3 top-3 z-[9] inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white md:left-4 md:top-4 md:text-[11px]"
+          style={{ backgroundColor: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.18)" }}
+        >
+          <MapPin className="h-3 w-3" style={{ color: "#C9A84C" }} />
+          <span>Виж града</span>
+        </div>
+        {/* Bottom row: city name + circular arrow */}
+        <div className="absolute inset-x-0 bottom-0 z-[9] flex items-end justify-between gap-2 px-4 pb-4 md:px-5 md:pb-5">
+          <div className="font-display text-2xl font-semibold leading-tight text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.65)] md:text-3xl lg:text-4xl">
+            {name}
+          </div>
+          <div
+            className="flex h-10 w-10 flex-none items-center justify-center rounded-full text-white transition group-hover:brightness-110 md:h-12 md:w-12"
+            style={{
+              backgroundColor: "#8B1A2B",
+              border: "1.5px solid rgba(201,168,76,0.75)",
+              boxShadow: "0 6px 14px rgba(0,0,0,0.45)",
+            }}
+          >
+            <ChevronRight className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2.25} />
+          </div>
+        </div>
+      </div>
     </Link>
   );
 }
-
 
 
 function MarblePropertyCard({
