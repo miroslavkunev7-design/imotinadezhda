@@ -42,22 +42,24 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   };
 
   return (
-    <header className="site-header">
-      <div className="mx-auto flex w-full max-w-[1400px] items-stretch gap-2 px-2 py-2 md:gap-3 md:px-4 md:py-3">
-        {/* Logo — original scroll-banner PNG, natural shape */}
+    <header className="site-header" style={{ overflow: "visible" }}>
+      <div className="relative mx-auto flex w-full max-w-[1400px] items-stretch gap-2 px-2 py-2 md:gap-3 md:px-4 md:py-3">
+        {/* Logo — oversized scroll-banner overlapping below the navbar */}
         <Link
           to="/"
           onClick={handleLogo}
           aria-label="Начало — Недвижими имоти Надежда"
-          className="flex flex-none items-center justify-center"
+          className="absolute left-2 top-1 z-20 flex flex-none items-center justify-center md:left-4 md:top-2"
         >
           <img
             src={logoScrollBanner}
             alt="Недвижими имоти Надежда"
-            className="block h-[72px] w-auto md:h-[100px]"
+            className="block h-[140px] w-auto drop-shadow-[0_10px_24px_rgba(0,0,0,0.55)] md:h-[220px]"
             draggable={false}
           />
         </Link>
+        {/* Spacer to reserve the logo's footprint in the layout */}
+        <div aria-hidden className="flex-none" style={{ width: "min(28%, 360px)" }} />
 
         {/* Menu bar */}
         <nav
