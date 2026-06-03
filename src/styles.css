@@ -453,8 +453,9 @@ body:has(.luxury-page) {
   .site-header__art--desktop { display: none; }
   .site-header__art--mobile {
     display: block;
-    height: 56px;
-    width: calc(56px * 1024 / 301);
+    width: 100vw;
+    height: auto;
+    aspect-ratio: 1024 / 301;
     max-width: 100vw;
   }
 }
