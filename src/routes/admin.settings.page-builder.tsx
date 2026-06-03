@@ -209,7 +209,7 @@ function Builder({ slug }: { slug: (typeof PAGES)[number]["slug"] }) {
       {showRef && (
         <RefModal
           onClose={() => setShowRef(false)}
-          onGenerated={(blocks) => {
+          onGenerated={(blocks: any[]) => {
             store.setDesign(store.designId, slug, { blocks, theme: {} });
             setShowRef(false);
             toast.success("Дизайнът е генериран. Можеш да го коригираш и да публикуваш.");
