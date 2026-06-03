@@ -42,6 +42,7 @@ import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugIndexRouteImport } from './routes/cities.$slug.index'
 import { Route as AdminSettingsIndexRouteImport } from './routes/admin.settings.index'
 import { Route as ApiPublicCustomerChatRouteImport } from './routes/api/public/customer-chat'
+import { Route as AdminSettingsPageEditorRouteImport } from './routes/admin.settings.page-editor'
 import { Route as AdminSettingsImagesRouteImport } from './routes/admin.settings.images'
 import { Route as AdminAuditIdRouteImport } from './routes/admin.audit.$id'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -213,6 +214,11 @@ const ApiPublicCustomerChatRoute = ApiPublicCustomerChatRouteImport.update({
   path: '/api/public/customer-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSettingsPageEditorRoute = AdminSettingsPageEditorRouteImport.update({
+  id: '/page-editor',
+  path: '/page-editor',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const AdminSettingsImagesRoute = AdminSettingsImagesRouteImport.update({
   id: '/images',
   path: '/images',
@@ -237,9 +243,9 @@ const CitiesSlugDistrictsDistrictRoute =
   } as any)
 const AdminSettingsPageEditorPageRoute =
   AdminSettingsPageEditorPageRouteImport.update({
-    id: '/page-editor/$page',
-    path: '/page-editor/$page',
-    getParentRoute: () => AdminSettingsRoute,
+    id: '/$page',
+    path: '/$page',
+    getParentRoute: () => AdminSettingsPageEditorRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -275,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
   '/admin/settings/images': typeof AdminSettingsImagesRoute
+  '/admin/settings/page-editor': typeof AdminSettingsPageEditorRouteWithChildren
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
@@ -313,6 +320,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
   '/admin/settings/images': typeof AdminSettingsImagesRoute
+  '/admin/settings/page-editor': typeof AdminSettingsPageEditorRouteWithChildren
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/admin/settings': typeof AdminSettingsIndexRoute
   '/cities/$slug': typeof CitiesSlugIndexRoute
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
   '/admin/settings/images': typeof AdminSettingsImagesRoute
+  '/admin/settings/page-editor': typeof AdminSettingsPageEditorRouteWithChildren
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/admin/settings/': typeof AdminSettingsIndexRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
@@ -396,6 +405,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/audit/$id'
     | '/admin/settings/images'
+    | '/admin/settings/page-editor'
     | '/api/public/customer-chat'
     | '/admin/settings/'
     | '/cities/$slug/'
@@ -434,6 +444,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/audit/$id'
     | '/admin/settings/images'
+    | '/admin/settings/page-editor'
     | '/api/public/customer-chat'
     | '/admin/settings'
     | '/cities/$slug'
@@ -474,6 +485,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/audit/$id'
     | '/admin/settings/images'
+    | '/admin/settings/page-editor'
     | '/api/public/customer-chat'
     | '/admin/settings/'
     | '/cities/$slug/'
@@ -729,6 +741,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCustomerChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/settings/page-editor': {
+      id: '/admin/settings/page-editor'
+      path: '/page-editor'
+      fullPath: '/admin/settings/page-editor'
+      preLoaderRoute: typeof AdminSettingsPageEditorRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/admin/settings/images': {
       id: '/admin/settings/images'
       path: '/images'
@@ -759,10 +778,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/settings/page-editor/$page': {
       id: '/admin/settings/page-editor/$page'
-      path: '/page-editor/$page'
+      path: '/$page'
       fullPath: '/admin/settings/page-editor/$page'
       preLoaderRoute: typeof AdminSettingsPageEditorPageRouteImport
-      parentRoute: typeof AdminSettingsRoute
+      parentRoute: typeof AdminSettingsPageEditorRoute
     }
   }
 }
@@ -779,16 +798,30 @@ const AdminAuditRouteWithChildren = AdminAuditRoute._addFileChildren(
   AdminAuditRouteChildren,
 )
 
+interface AdminSettingsPageEditorRouteChildren {
+  AdminSettingsPageEditorPageRoute: typeof AdminSettingsPageEditorPageRoute
+}
+
+const AdminSettingsPageEditorRouteChildren: AdminSettingsPageEditorRouteChildren =
+  {
+    AdminSettingsPageEditorPageRoute: AdminSettingsPageEditorPageRoute,
+  }
+
+const AdminSettingsPageEditorRouteWithChildren =
+  AdminSettingsPageEditorRoute._addFileChildren(
+    AdminSettingsPageEditorRouteChildren,
+  )
+
 interface AdminSettingsRouteChildren {
   AdminSettingsImagesRoute: typeof AdminSettingsImagesRoute
+  AdminSettingsPageEditorRoute: typeof AdminSettingsPageEditorRouteWithChildren
   AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
-  AdminSettingsPageEditorPageRoute: typeof AdminSettingsPageEditorPageRoute
 }
 
 const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
   AdminSettingsImagesRoute: AdminSettingsImagesRoute,
+  AdminSettingsPageEditorRoute: AdminSettingsPageEditorRouteWithChildren,
   AdminSettingsIndexRoute: AdminSettingsIndexRoute,
-  AdminSettingsPageEditorPageRoute: AdminSettingsPageEditorPageRoute,
 }
 
 const AdminSettingsRouteWithChildren = AdminSettingsRoute._addFileChildren(
