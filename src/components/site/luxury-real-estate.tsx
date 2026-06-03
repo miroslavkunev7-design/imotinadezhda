@@ -138,7 +138,7 @@ const propertyTypeOptions: SearchOption[] = [
   { value: "commercial", label: "Търговски" },
 ];
 
-export function SearchBar({
+function SearchBar({
   cities = [],
   quarters = [],
   initial,
@@ -191,16 +191,13 @@ export function SearchBar({
   return (
     <div className="relative mx-auto w-full max-w-[1320px]">
       <div
-        className="relative flex w-full items-stretch gap-0 overflow-visible rounded-[18px] border px-2 py-2 md:px-3 md:py-2"
+        className="relative flex w-full items-stretch gap-0 overflow-visible rounded-full border px-2 py-2 md:px-3 md:py-2"
         style={{
           background: "linear-gradient(180deg, #8B1A2B 0%, #6e1422 100%)",
           borderColor: "rgba(201,168,76,0.55)",
           boxShadow: "0 18px 40px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(201,168,76,0.12)",
         }}
       >
-        {/* scroll-roll corners (match city cards) */}
-        <span aria-hidden className="search-roll search-roll--tl" />
-        <span aria-hidden className="search-roll search-roll--br" />
         <div className="flex flex-1 flex-wrap items-stretch md:flex-nowrap">
           <PillCell icon={MapPin} label="Град" value={city} onChange={setCity}
             options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
@@ -222,7 +219,7 @@ export function SearchBar({
           <button
             type="button"
             onClick={handleSearch}
-            className="inline-flex h-11 items-center gap-2 rounded-[14px] px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-12 md:px-7 md:text-base"
+            className="inline-flex h-11 items-center gap-2 rounded-full px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-12 md:px-7 md:text-base"
             style={{
               background: "linear-gradient(180deg, #E3BF66 0%, #C9A84C 60%, #A8852E 100%)",
               color: "#5E0F1D",
@@ -483,7 +480,7 @@ const cityCardImages: Record<string, string> = {
   "novi-pazar": cityCardNoviPazar.url,
 };
 
-export function CityCard({ name, href, params }: { name: string; image?: string; href: "/cities/$slug"; params: { slug: string } }) {
+function CityCard({ name, href, params }: { name: string; image?: string; href: "/cities/$slug"; params: { slug: string } }) {
   const src = cityCardImages[params.slug] ?? cityCardBurgas.url;
   return (
     <Link
@@ -714,9 +711,8 @@ export function HomePage({
     { id: "hero-search-mobile", visible: true },
     { id: "hero-search-desktop", visible: true },
     { id: "cities-grid", visible: true },
-    { id: "trust-strip", visible: false },
+    { id: "trust-strip", visible: true },
   ];
-
   const known = new Set(defaults.map((d) => d.id));
   const sections = (() => {
     if (!layout || !Array.isArray(layout)) return defaults;
@@ -735,10 +731,19 @@ export function HomePage({
   const sectionNode = (id: string) => {
     switch (id) {
       case "hero-search-mobile":
-        return null;
+        return (
+          <div
+            key={id}
+            data-section-id="hero-search-mobile"
+            className="relative z-20 mx-auto mt-4 w-full max-w-[1440px] px-4 md:mt-7 md:px-8 lg:hidden"
+          >
+            <SearchBar cities={cityOpts} variant="burgundy" />
+          </div>
+
+        );
       case "hero-search-desktop":
         return (
-          <div key={id} data-section-id="hero-search-desktop" className="mb-4">
+          <div key={id} data-section-id="hero-search-desktop" className="mb-4 hidden lg:block">
             <SearchBar cities={cityOpts} variant="burgundy" />
           </div>
         );
@@ -757,8 +762,7 @@ export function HomePage({
           </div>
         );
       case "trust-strip":
-        return null;
-
+        return <TrustStrip key={id} />;
       default:
         return null;
     }

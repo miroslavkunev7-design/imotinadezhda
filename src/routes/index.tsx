@@ -1,54 +1,77 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { SiteHeader } from "@/components/site/site-header";
-import { SearchBar, CityCard } from "@/components/site/luxury-real-estate";
-import heroBg from "@/assets/hero-shumen-panorama.jpg.asset.json";
+import { HomePage } from "@/components/site/luxury-real-estate";
+import { getCities, getFeaturedProperties } from "@/lib/catalog.functions";
+import { getPublicPageLayout } from "@/lib/page-layouts.functions";
 
 const SITE_URL = "https://imotinadezhda.lovable.app";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Недвижими имоти Надежда | Луксозни имоти в България" },
+      { title: "ИЛДЖ.ИА | Луксозни имоти в България" },
       { name: "description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
-      { property: "og:title", content: "Недвижими имоти Надежда" },
+      { property: "og:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
       { property: "og:description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
       { property: "og:url", content: `${SITE_URL}/` },
-      { property: "og:image", content: heroBg.url },
     ],
-    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
+    links: [
+      { rel: "canonical", href: `${SITE_URL}/` },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "ИЛДЖ.ИА",
+          url: SITE_URL,
+          description: "Луксозни недвижими имоти в България.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "ИЛДЖ.ИА",
+          url: SITE_URL,
+          potentialAction: {
+            "@type": "SearchAction",
+            target: `${SITE_URL}/search?city_slug={search_term}`,
+            "query-input": "required name=search_term",
+          },
+        }),
+      },
+    ],
   }),
+  loader: async () => {
+    const [cities, featured, layout] = await Promise.all([
+      getCities(),
+      getFeaturedProperties(),
+      getPublicPageLayout({ data: { page_key: "home" } }),
+    ]);
+    return {
+      cities: cities.map((c) => ({ name: c.name, image: c.hero_image_url, slug: c.slug })),
+      featured: featured.map((f: any) => ({
+        id: f.id,
+        title: f.title,
+        price: f.price,
+        currency: f.currency,
+        area_sqm: f.area_sqm,
+        bedrooms: f.bedrooms,
+        bathrooms: f.bathrooms,
+        cover_image_url: f.cover_image_url,
+        city_name: f.cities?.name ?? null,
+        city_slug: f.cities?.slug ?? null,
+      })),
+      layout,
+    };
+  },
   component: HomeRoute,
 });
 
-const CITIES: Array<{ slug: string; name: string }> = [
-  { slug: "burgas", name: "Бургас" },
-  { slug: "varna", name: "Варна" },
-  { slug: "shumen", name: "Шумен" },
-  { slug: "novi-pazar", name: "Нов пазар" },
-];
-
 function HomeRoute() {
-  return (
-    <div
-      className="relative h-screen w-screen overflow-hidden flex flex-col"
-      style={{
-        backgroundImage: `linear-gradient(180deg, rgba(10,5,8,0.35) 0%, rgba(10,5,8,0.15) 35%, rgba(10,5,8,0.65) 100%), url("${heroBg.url}")`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <SiteHeader />
-      <main className="flex-1 min-h-0 flex flex-col justify-end px-4 pb-6 md:px-8 md:pb-10">
-        <div className="mx-auto w-full max-w-[1320px] space-y-5 md:space-y-7">
-          <SearchBar cities={CITIES} />
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
-            {CITIES.map((c) => (
-              <CityCard key={c.slug} name={c.name} href="/cities/$slug" params={{ slug: c.slug }} />
-            ))}
-          </div>
-        </div>
-      </main>
-    </div>
-  );
+  const { cities, featured, layout } = Route.useLoaderData();
+  return <HomePage cities={cities} featured={featured} layout={layout} />;
 }

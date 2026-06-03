@@ -472,38 +472,4 @@ body:has(.luxury-page) {
   background-color: transparent;
 }
 
-/* Search bar scroll-roll corners (matches city cards) */
-.search-roll {
-  position: absolute;
-  width: 56px;
-  height: 22px;
-  pointer-events: none;
-  border-radius: 999px;
-  background:
-    radial-gradient(ellipse at 50% 35%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 55%),
-    linear-gradient(180deg, #C9A84C 0%, #8B1A2B 45%, #4a0c17 100%);
-  box-shadow:
-    0 4px 10px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(255,255,255,0.35),
-    inset 0 -2px 3px rgba(0,0,0,0.55);
-}
-.search-roll--tl {
-  top: -10px;
-  left: -14px;
-  transform: rotate(-18deg);
-  transform-origin: left center;
-}
-.search-roll--br {
-  bottom: -10px;
-  right: -14px;
-  transform: rotate(-18deg);
-  transform-origin: right center;
-}
-@media (max-width: 640px) {
-  .search-roll { width: 40px; height: 16px; }
-  .search-roll--tl { top: -7px; left: -10px; }
-  .search-roll--br { bottom: -7px; right: -10px; }
-}
-
-
 

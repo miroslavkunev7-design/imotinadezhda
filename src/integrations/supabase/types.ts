@@ -281,13 +281,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "broker_tasks_broker_id_fkey"
-            columns: ["broker_id"]
-            isOneToOne: false
-            referencedRelation: "brokers_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "broker_tasks_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
@@ -533,13 +526,6 @@ export type Database = {
             columns: ["assigned_broker_id"]
             isOneToOne: false
             referencedRelation: "brokers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "clients_assigned_broker_id_fkey"
-            columns: ["assigned_broker_id"]
-            isOneToOne: false
-            referencedRelation: "brokers_public"
             referencedColumns: ["id"]
           },
           {
@@ -1563,42 +1549,7 @@ export type Database = {
       }
     }
     Views: {
-      brokers_public: {
-        Row: {
-          bio: string | null
-          clients_count: number | null
-          created_at: string | null
-          full_name: string | null
-          id: string | null
-          is_active: boolean | null
-          photo_url: string | null
-          properties_count: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          bio?: string | null
-          clients_count?: number | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          photo_url?: string | null
-          properties_count?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          bio?: string | null
-          clients_count?: number | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string | null
-          is_active?: boolean | null
-          photo_url?: string | null
-          properties_count?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       delete_email: {

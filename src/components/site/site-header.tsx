@@ -2,32 +2,43 @@ import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import navbarDesktop from "@/assets/navbar-desktop.png.asset.json";
+import navbarMobile from "@/assets/navbar-mobile.png.asset.json";
+import { cn } from "@/lib/utils";
 
 export type SiteNavKey = "sale" | "rent" | "about";
 
-// Click-zone coordinates in % of the 1367x307 navbar PNG.
-// Each zone is rendered as a transparent <Link>.
-const zones: {
-  key: SiteNavKey | "logo" | "profile";
+type Hotspot = {
+  key: SiteNavKey | "profile";
+  label: string;
   to: string;
   search?: Record<string, string>;
-  label: string;
-  // left / top / width / height in %
-  l: number; t: number; w: number; h: number;
-}[] = [
-  { key: "logo",    to: "/",       label: "Начало",      l: 0,    t: 0,  w: 38, h: 100 },
-  { key: "sale",    to: "/search", search: { status: "sale" }, label: "За продажба", l: 39, t: 24, w: 17, h: 60 },
-  { key: "rent",    to: "/search", search: { status: "rent" }, label: "Под наем",    l: 57, t: 24, w: 16, h: 60 },
-  { key: "about",   to: "/about",  label: "За нас",      l: 74, t: 24, w: 13, h: 60 },
-  { key: "profile", to: "/login",  search: { redirect: "/admin" }, label: "Профил", l: 89, t: 24, w: 9,  h: 60 },
-];
+  left: number;
+  right: number;
+};
 
-export function SiteHeader({ active: _active }: { active?: SiteNavKey } = {}) {
+// Desktop image is 1367x307. Hotspots in % of that image.
+const DESKTOP_HOTSPOTS: Hotspot[] = [
+  { key: "sale",    label: "За продажба", to: "/search", search: { status: "sale" }, left: 37,  right: 51 },
+  { key: "rent",    label: "Под наем",    to: "/search", search: { status: "rent" }, left: 56,  right: 69.5 },
+  { key: "about",   label: "За нас",      to: "/about",                                left: 72,  right: 85 },
+  { key: "profile", label: "Профил",      to: "/login",  search: { redirect: "/admin" }, left: 92, right: 99 },
+];
+const DESKTOP_BAND = { top: 28, bottom: 70 };
+
+// Mobile image is 1024x301. Icons-only nav.
+const MOBILE_HOTSPOTS: Hotspot[] = [
+  { key: "sale",    label: "За продажба", to: "/search", search: { status: "sale" }, left: 50.5, right: 60.5 },
+  { key: "rent",    label: "Под наем",    to: "/search", search: { status: "rent" }, left: 63,   right: 73 },
+  { key: "about",   label: "За нас",      to: "/about",                                left: 75.5, right: 85.5 },
+  { key: "profile", label: "Профил",      to: "/login",  search: { redirect: "/admin" }, left: 88, right: 98 },
+];
+const MOBILE_BAND = { top: 33, bottom: 73 };
+
+export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const navigate = useNavigate();
   const clickCount = useRef(0);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Triple-click on logo opens admin login (kept from previous behavior).
   const handleLogo = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -45,47 +56,49 @@ export function SiteHeader({ active: _active }: { active?: SiteNavKey } = {}) {
     }, 420);
   };
 
-  return (
-    <header className="site-header" style={{ overflow: "visible" }}>
-      <div
-        className="relative mx-auto w-full"
-        style={{ maxWidth: "1400px", aspectRatio: "1367 / 307" }}
-      >
-        <img
-          src={navbarDesktop.url}
-          alt="Недвижими имоти Надежда"
-          className="block h-full w-full select-none"
-          draggable={false}
-          style={{ filter: "drop-shadow(0 10px 24px rgba(0,0,0,0.45))" }}
+  const renderArt = (
+    src: string,
+    aspect: string,
+    hotspots: Hotspot[],
+    band: { top: number; bottom: number },
+    logoRight: number,
+    className: string,
+  ) => (
+    <div
+      className={cn("site-header__art", className)}
+      style={{ aspectRatio: aspect, backgroundImage: `url(${src})` }}
+      role="navigation"
+      aria-label="Главно меню"
+    >
+      <Link
+        to="/"
+        onClick={handleLogo}
+        aria-label="Начало — Недвижими имоти Надежда"
+        className="site-header__hotspot"
+        style={{ left: "0%", right: `${100 - logoRight}%`, top: "5%", bottom: "5%" }}
+      />
+      {hotspots.map((item) => (
+        <Link
+          key={item.key}
+          to={item.to}
+          search={item.search as never}
+          aria-label={item.label}
+          className={cn("site-header__hotspot", active && active === item.key && "is-active")}
+          style={{
+            left: `${item.left}%`,
+            right: `${100 - item.right}%`,
+            top: `${band.top}%`,
+            bottom: `${100 - band.bottom}%`,
+          }}
         />
+      ))}
+    </div>
+  );
 
-        {zones.map((z) => {
-          const common = {
-            "aria-label": z.label,
-            className: "absolute block",
-            style: {
-              left:   `${z.l}%`,
-              top:    `${z.t}%`,
-              width:  `${z.w}%`,
-              height: `${z.h}%`,
-              background: "transparent",
-            } as React.CSSProperties,
-          };
-          if (z.key === "logo") {
-            return (
-              <Link key={z.key} to="/" onClick={handleLogo} {...common} />
-            );
-          }
-          return (
-            <Link
-              key={z.key}
-              to={z.to}
-              search={z.search as never}
-              {...common}
-            />
-          );
-        })}
-      </div>
+  return (
+    <header className="site-header">
+      {renderArt(navbarDesktop.url, "1367 / 307", DESKTOP_HOTSPOTS, DESKTOP_BAND, 35, "site-header__art--desktop")}
+      {renderArt(navbarMobile.url, "1024 / 301", MOBILE_HOTSPOTS, MOBILE_BAND, 50, "site-header__art--mobile")}
     </header>
   );
 }
