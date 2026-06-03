@@ -15,6 +15,7 @@ type City = {
   name_en?: string | null;
   description?: string | null;
   hero_image_url?: string | null;
+  hero_video_url?: string | null;
   region?: string | null;
   population?: number | null;
   area_km2?: number | null;
