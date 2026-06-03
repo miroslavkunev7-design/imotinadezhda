@@ -292,7 +292,7 @@ function PillCell({
       {open && (
         <div
           role="listbox"
-          className="absolute left-2 right-2 top-[calc(100%+6px)] z-50 overflow-hidden rounded-2xl border bg-white py-1 text-[#2b1418] shadow-[0_18px_45px_rgba(0,0,0,0.25)]"
+          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 min-w-[180px] max-h-[260px] overflow-y-auto rounded-2xl border bg-white py-1 text-[#2b1418] shadow-[0_18px_45px_rgba(0,0,0,0.25)]"
           style={{ borderColor: "rgba(201,168,76,0.5)" }}
         >
           {options.map((option) => (
