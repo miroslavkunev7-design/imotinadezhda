@@ -36,6 +36,7 @@ import { AdminAIBubble } from "@/components/admin/ai-bubble";
 import { onInstallAvailabilityChange, promptInstall } from "@/lib/pwa";
 import marbleBg from "@/assets/marble-bg.png";
 import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
+import brandLogoAsset from "@/assets/brand-logo-square.png.asset.json";
 
 type NavItem = {
   to: string;
@@ -131,20 +132,19 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
       >
 
         {/* Logo */}
-        <div className="flex items-center justify-between gap-3 border-b border-amber-600/25 px-5 py-5">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md">
-              <Building2 className="h-5 w-5" />
+        <div className="flex items-center justify-between gap-3 border-b border-amber-600/25 px-5 py-4">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl ring-1 ring-amber-400/40 shadow-md">
+              <img src={brandLogoAsset.url} alt="Имоти Надежда" className="h-full w-full object-cover" />
             </div>
             <div>
-              <div className="font-display text-base leading-none text-amber-100">Имоти</div>
+              <div className="font-display text-base leading-tight text-amber-100">Имоти</div>
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">Надежда</div>
-
             </div>
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
-            className="rounded-md p-1.5 text-primary/70 hover:bg-primary/10 lg:hidden"
+            className="rounded-md p-1.5 text-amber-100/80 hover:bg-amber-500/10 lg:hidden"
             aria-label="Затвори"
           >
             <X className="h-5 w-5" />
