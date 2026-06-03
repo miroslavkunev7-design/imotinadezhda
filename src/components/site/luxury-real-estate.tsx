@@ -473,83 +473,29 @@ function RangeCell({
 }
 
 
-const cityPhotos: Record<string, string> = {
-  burgas: cityPhotoBurgas.url,
-  varna: cityPhotoVarna.url,
-  shumen: cityPhotoShumen.url,
-  "novi-pazar": cityPhotoNoviPazar.url,
+const cityCardImages: Record<string, string> = {
+  burgas: cityCardBurgas.url,
+  varna: cityCardVarna.url,
+  shumen: cityCardShumen.url,
+  "novi-pazar": cityCardNoviPazar.url,
 };
 
 function CityCard({ name, href, params }: { name: string; image?: string; href: "/cities/$slug"; params: { slug: string } }) {
-  const photo = cityPhotos[params.slug] ?? cityPhotoBurgas.url;
-  const curlId = `curlTL-${params.slug}`;
+  const src = cityCardImages[params.slug] ?? cityCardBurgas.url;
   return (
     <Link
       to={href}
       params={params}
       aria-label={name}
-      className="group relative block aspect-[3/2] w-full overflow-visible transition-transform duration-500 hover:-translate-y-1"
+      className="group block w-full transition-transform duration-500 hover:-translate-y-1"
     >
-      {/* Card frame: thin gold border on near-black */}
-      <div
-        className="relative h-full w-full overflow-hidden rounded-[18px] border border-[#C9A84C]/80 bg-[#0f0a0b] shadow-[0_24px_50px_-18px_rgba(0,0,0,0.7)]"
-      >
-        {/* Photo */}
-        <img
-          src={photo}
-          alt={name}
-          className="block h-full w-full select-none object-cover transition duration-700 group-hover:scale-[1.04]"
-          draggable={false}
-          loading="lazy"
-        />
-        {/* Bottom dark gradient — ~40% */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/85 via-black/55 to-transparent" />
-
-        {/* Top-left "ВИЖ ГРАДА" pill (offset right of curl) */}
-        <div className="absolute left-14 top-3 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/55 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-md backdrop-blur-sm">
-          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-[#C9A84C]" aria-hidden>
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
-          </svg>
-          ВИЖ ГРАДА
-        </div>
-
-        {/* Bottom-left city name + fleur ornament */}
-        <div className="absolute bottom-5 left-6 right-24">
-          <div
-            className="font-serif text-4xl font-bold uppercase leading-none tracking-[0.04em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-5xl"
-            style={{ fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif' }}
-          >
-            {name}
-          </div>
-          <div className="mt-2.5 flex items-center gap-2 text-[#C9A84C]">
-            <span className="h-px w-8 bg-gradient-to-r from-transparent to-[#C9A84C]" />
-            <span className="text-base leading-none">⚜</span>
-            <span className="h-px w-8 bg-gradient-to-l from-transparent to-[#C9A84C]" />
-          </div>
-        </div>
-
-        {/* Bottom-right bordeaux circle arrow */}
-        <div className="absolute bottom-5 right-5 grid h-12 w-12 place-items-center rounded-full border border-[#C9A84C]/70 bg-[#8B1A2B] text-white shadow-[0_6px_14px_rgba(0,0,0,0.6)] transition group-hover:scale-110">
-          <svg viewBox="0 0 24 24" className="h-5 w-5 stroke-white" fill="none" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M9 6l6 6-6 6" />
-          </svg>
-        </div>
-
-        {/* Parchment curl — top-left only */}
-        <svg viewBox="0 0 80 80" className="pointer-events-none absolute -left-px -top-px h-16 w-16" aria-hidden>
-          <defs>
-            <linearGradient id={curlId} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#f5e5b8" />
-              <stop offset="55%" stopColor="#d9b56a" />
-              <stop offset="100%" stopColor="#7a5821" />
-            </linearGradient>
-          </defs>
-          {/* peeled triangle revealing parchment */}
-          <path d="M0,0 L70,0 C40,8 8,40 0,70 Z" fill={`url(#${curlId})`} />
-          {/* subtle dark shadow underline along curl edge */}
-          <path d="M70,0 C40,8 8,40 0,70" fill="none" stroke="#3a2710" strokeWidth="0.9" opacity="0.55" />
-        </svg>
-      </div>
+      <img
+        src={src}
+        alt={name}
+        className="block h-auto w-full select-none drop-shadow-[0_18px_40px_rgba(0,0,0,0.45)]"
+        draggable={false}
+        loading="lazy"
+      />
     </Link>
   );
 }
