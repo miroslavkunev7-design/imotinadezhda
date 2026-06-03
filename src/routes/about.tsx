@@ -162,7 +162,8 @@ function AboutPage() {
         </div>
 
         {/* Stats bar */}
-        <section className="mt-4 grid flex-none grid-cols-2 gap-3 rounded-2xl border border-[#C9A84C]/45 bg-[#fbf6ea] p-4 md:mt-5 md:grid-cols-4 md:gap-6 md:p-5">
+        <section aria-labelledby="about-stats-heading" className="mt-4 grid flex-none grid-cols-2 gap-3 rounded-2xl border border-[#C9A84C]/45 bg-[#fbf6ea] p-4 md:mt-5 md:grid-cols-4 md:gap-6 md:p-5">
+          <h2 id="about-stats-heading" className="sr-only">Нашите постижения в цифри</h2>
           {stats.map((s) => (
             <div key={s.label} className="flex items-center gap-3 md:flex-col md:items-center md:text-center">
               <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#8B1A2B]/10 text-[#8B1A2B] md:h-11 md:w-11">
