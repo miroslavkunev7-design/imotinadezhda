@@ -292,10 +292,43 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-auto p-4 pb-24 md:p-6 lg:p-8 lg:pb-8">
           {children}
         </main>
       </div>
+
+      {/* Mobile bottom navigation */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-amber-500/25 bg-[rgba(20,4,8,0.95)] backdrop-blur-md lg:hidden">
+        {[
+          { to: "/admin/properties", label: "Имоти", icon: Building2 },
+          { to: "/admin/clients", label: "Клиенти", icon: Users },
+          { to: "/admin/calendar", label: "Календар", icon: Calendar },
+          { to: "/admin/chat", label: "Чат", icon: MessageCircle },
+        ].map((item) => {
+          const active = path.startsWith(item.to);
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={cn(
+                "flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition",
+                active ? "text-amber-300" : "text-amber-100/70",
+              )}
+            >
+              <item.icon className={cn("h-5 w-5", active && "text-amber-300")} />
+              <span className="leading-none">{item.label}</span>
+            </Link>
+          );
+        })}
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="flex flex-col items-center gap-0.5 py-2.5 text-[10px] text-amber-100/70 transition hover:text-amber-200"
+          aria-label="Още"
+        >
+          <Menu className="h-5 w-5" />
+          <span className="leading-none">Още</span>
+        </button>
+      </nav>
 
       {/* Floating AI assistant bubble */}
       <AdminAIBubble />
