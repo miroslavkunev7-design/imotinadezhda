@@ -138,7 +138,7 @@ const propertyTypeOptions: SearchOption[] = [
   { value: "commercial", label: "Търговски" },
 ];
 
-function SearchBar({
+export function SearchBar({
   cities = [],
   quarters = [],
   initial,
@@ -483,7 +483,7 @@ const cityCardImages: Record<string, string> = {
   "novi-pazar": cityCardNoviPazar.url,
 };
 
-function CityCard({ name, href, params }: { name: string; image?: string; href: "/cities/$slug"; params: { slug: string } }) {
+export function CityCard({ name, href, params }: { name: string; image?: string; href: "/cities/$slug"; params: { slug: string } }) {
   const src = cityCardImages[params.slug] ?? cityCardBurgas.url;
   return (
     <Link
