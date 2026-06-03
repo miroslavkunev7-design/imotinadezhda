@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -100,16 +100,7 @@ function LoginPage() {
 
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-black">
-      <video
-        key={quality}
-        className="absolute inset-0 h-full w-full object-cover md:object-contain"
-        src={videoSources[quality]}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-      />
+      <LoginVideo src={videoSources[quality]} quality={quality} />
       <SiteHeader />
       <div
         className="absolute inset-0"
@@ -242,6 +233,47 @@ function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+function LoginVideo({ src, quality }: { src: string; quality: string }) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.muted = true;
+    el.defaultMuted = true;
+    el.setAttribute("muted", "");
+    el.setAttribute("playsinline", "");
+    const tryPlay = () => {
+      const p = el.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          const resume = () => {
+            el.play().catch(() => {});
+            window.removeEventListener("touchstart", resume);
+            window.removeEventListener("click", resume);
+          };
+          window.addEventListener("touchstart", resume, { once: true, passive: true });
+          window.addEventListener("click", resume, { once: true });
+        });
+      }
+    };
+    if (el.readyState >= 2) tryPlay();
+    else el.addEventListener("loadeddata", tryPlay, { once: true });
+  }, [src]);
+  return (
+    <video
+      key={quality}
+      ref={ref}
+      className="absolute inset-0 h-full w-full object-cover md:object-contain"
+      src={src}
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload="auto"
+    />
   );
 }
 

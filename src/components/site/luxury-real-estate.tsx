@@ -1,4 +1,38 @@
-import { useEffect, useState as useReactState } from "react";
+import { useEffect, useRef, useState as useReactState } from "react";
+
+// Auto-play helper: forces muted+playsInline DOM attrs and retries .play()
+// against browser/iframe autoplay policies. Works around React not always
+// reflecting the `muted` prop as an attribute before the autoplay attempt.
+function AutoPlayVideo(
+  props: React.VideoHTMLAttributes<HTMLVideoElement> & { src?: string },
+) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !props.src) return;
+    el.muted = true;
+    el.defaultMuted = true;
+    el.setAttribute("muted", "");
+    el.setAttribute("playsinline", "");
+    const tryPlay = () => {
+      const p = el.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          const resume = () => {
+            el.play().catch(() => {});
+            window.removeEventListener("touchstart", resume);
+            window.removeEventListener("click", resume);
+          };
+          window.addEventListener("touchstart", resume, { once: true, passive: true });
+          window.addEventListener("click", resume, { once: true });
+        });
+      }
+    };
+    if (el.readyState >= 2) tryPlay();
+    else el.addEventListener("loadeddata", tryPlay, { once: true });
+  }, [props.src]);
+  return <video ref={ref} autoPlay loop muted playsInline {...props} />;
+}
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import {
@@ -796,13 +830,9 @@ export function HomePage({
       <section
         className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
       >
-        <video
+        <AutoPlayVideo
           src={homeHeroVideo.url}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
+          preload="auto"
           poster={homeHero}
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -921,13 +951,9 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       <section className="relative">
         <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
           {city.hero_video_url ? (
-            <video
+            <AutoPlayVideo
               src={city.hero_video_url}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
+              preload="auto"
               poster={typeof heroImage === "string" ? heroImage : undefined}
               className="absolute inset-0 h-full w-full object-cover"
             />
