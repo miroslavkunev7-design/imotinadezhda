@@ -22,6 +22,8 @@ const panelStyle: React.CSSProperties = {
 
 export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const navigate = useNavigate();
+  const { settings: logo } = useLogoSettings();
+
   const clickCount = useRef(0);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
