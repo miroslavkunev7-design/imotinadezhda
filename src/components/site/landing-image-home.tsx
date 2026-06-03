@@ -96,7 +96,7 @@ export function LandingImageHome() {
     <>
       {/* ===================== DESKTOP (lg+) — real working clone ===================== */}
       <main
-        className="hidden lg:flex lg:h-[100dvh] lg:flex-col lg:overflow-hidden"
+        className="flex h-[100dvh] flex-col overflow-hidden"
         style={{ background: "linear-gradient(180deg, #fbf6ea 0%, #ffffff 60%, #f4e9d0 100%)" }}
       >
         <h1 className="sr-only">Недвижими имоти Надежда — Луксозни имоти в България</h1>
@@ -291,7 +291,7 @@ export function LandingImageHome() {
       </main>
 
       {/* ===================== MOBILE / TABLET (< lg) — locked image mode ===================== */}
-      <main className="relative w-full lg:hidden" style={{ backgroundColor: "#1a0d10" }}>
+      <main className="relative hidden w-full" style={{ backgroundColor: "#1a0d10" }}>
         <h1 className="sr-only">Недвижими имоти Надежда — Луксозни имоти в България</h1>
         <p className="sr-only">
           Агенция Надежда предлага премиум недвижими имоти в Бургас, Варна, Шумен и Нов Пазар.
