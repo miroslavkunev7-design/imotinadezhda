@@ -191,13 +191,16 @@ function SearchBar({
   return (
     <div className="relative mx-auto w-full max-w-[1320px]">
       <div
-        className="relative flex w-full items-stretch gap-0 overflow-visible rounded-full border px-2 py-2 md:px-3 md:py-2"
+        className="relative flex w-full items-stretch gap-0 overflow-visible rounded-[18px] border px-2 py-2 md:px-3 md:py-2"
         style={{
           background: "linear-gradient(180deg, #8B1A2B 0%, #6e1422 100%)",
           borderColor: "rgba(201,168,76,0.55)",
           boxShadow: "0 18px 40px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(201,168,76,0.12)",
         }}
       >
+        {/* scroll-roll corners (match city cards) */}
+        <span aria-hidden className="search-roll search-roll--tl" />
+        <span aria-hidden className="search-roll search-roll--br" />
         <div className="flex flex-1 flex-wrap items-stretch md:flex-nowrap">
           <PillCell icon={MapPin} label="Град" value={city} onChange={setCity}
             options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
@@ -219,7 +222,7 @@ function SearchBar({
           <button
             type="button"
             onClick={handleSearch}
-            className="inline-flex h-11 items-center gap-2 rounded-full px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-12 md:px-7 md:text-base"
+            className="inline-flex h-11 items-center gap-2 rounded-[14px] px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-12 md:px-7 md:text-base"
             style={{
               background: "linear-gradient(180deg, #E3BF66 0%, #C9A84C 60%, #A8852E 100%)",
               color: "#5E0F1D",
