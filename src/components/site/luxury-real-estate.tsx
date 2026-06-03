@@ -38,10 +38,10 @@ import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
 import cityNoviPazar from "@/assets/city-novi-pazar.jpeg";
-import cityCardBurgas from "@/assets/city-card-burgas.png.asset.json";
-import cityCardVarna from "@/assets/city-card-varna.png.asset.json";
-import cityCardShumen from "@/assets/city-card-shumen.png.asset.json";
-import cityCardNoviPazar from "@/assets/city-card-novi-pazar.png.asset.json";
+import cityPhotoBurgas from "@/assets/city-photo-burgas.jpg.asset.json";
+import cityPhotoVarna from "@/assets/city-photo-varna.jpg.asset.json";
+import cityPhotoShumen from "@/assets/city-photo-shumen.jpg.asset.json";
+import cityPhotoNoviPazar from "@/assets/city-photo-novi-pazar.jpg.asset.json";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { Button } from "@/components/ui/button";
@@ -473,29 +473,101 @@ function RangeCell({
 }
 
 
-const cityCardArt: Record<string, string> = {
-  burgas: cityCardBurgas.url,
-  varna: cityCardVarna.url,
-  shumen: cityCardShumen.url,
-  "novi-pazar": cityCardNoviPazar.url,
+const cityPhotos: Record<string, string> = {
+  burgas: cityPhotoBurgas.url,
+  varna: cityPhotoVarna.url,
+  shumen: cityPhotoShumen.url,
+  "novi-pazar": cityPhotoNoviPazar.url,
 };
 
 function CityCard({ name, href, params }: { name: string; image?: string; href: "/cities/$slug"; params: { slug: string } }) {
-  const art = cityCardArt[params.slug] ?? cityCardBurgas.url;
+  const photo = cityPhotos[params.slug] ?? cityPhotoBurgas.url;
   return (
     <Link
       to={href}
       params={params}
       aria-label={name}
-      className="group relative block transition-transform duration-500 hover:-translate-y-1"
+      className="group relative block aspect-[3/2] w-full overflow-visible transition-transform duration-500 hover:-translate-y-1"
     >
-      <img
-        src={art}
-        alt={name}
-        className="block h-auto w-full select-none transition duration-500 group-hover:brightness-110"
-        draggable={false}
-        loading="lazy"
-      />
+      {/* Outer parchment / gold frame */}
+      <div
+        className="relative h-full w-full overflow-hidden rounded-[10px] shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)]"
+        style={{
+          background:
+            "linear-gradient(135deg, #d9b566 0%, #8a6a2a 25%, #f1d589 50%, #6e5320 75%, #c79a44 100%)",
+          padding: "6px",
+        }}
+      >
+        {/* Inner thin dark ring */}
+        <div className="relative h-full w-full overflow-hidden rounded-[6px] ring-1 ring-[#3a2710]/60">
+          {/* Photo */}
+          <img
+            src={photo}
+            alt={name}
+            className="block h-full w-full select-none object-cover transition duration-700 group-hover:scale-[1.04]"
+            draggable={false}
+            loading="lazy"
+          />
+          {/* Bottom gradient for text legibility */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+
+          {/* Top-left "ВИЖ ГРАДА" pill */}
+          <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-md border border-[#C9A84C]/70 bg-gradient-to-b from-[#2a1408] to-[#0f0604] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#f4d98a] shadow-md">
+            <svg viewBox="0 0 24 24" className="h-3 w-3 fill-[#C9A84C]" aria-hidden>
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+            </svg>
+            ВИЖ ГРАДА
+          </div>
+
+          {/* Bottom-left city name + fleur ornament */}
+          <div className="absolute bottom-3 left-4 right-20">
+            <div
+              className="font-serif text-2xl uppercase leading-none tracking-[0.06em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] sm:text-3xl"
+              style={{ fontFamily: '"Cormorant Garamond", "Playfair Display", Georgia, serif' }}
+            >
+              {name}
+            </div>
+            <div className="mt-1.5 flex items-center gap-2 text-[#C9A84C]">
+              <span className="h-px w-6 bg-gradient-to-r from-transparent to-[#C9A84C]" />
+              <span className="text-sm leading-none">❦</span>
+              <span className="h-px w-6 bg-gradient-to-l from-transparent to-[#C9A84C]" />
+            </div>
+          </div>
+
+          {/* Bottom-right circular arrow button */}
+          <div className="absolute bottom-3 right-3 grid h-11 w-11 place-items-center rounded-full border-2 border-[#C9A84C] bg-gradient-to-b from-[#8B1A2B] to-[#5e0f1d] text-white shadow-[0_4px_12px_rgba(0,0,0,0.55)] transition group-hover:scale-110">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 stroke-white" fill="none" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M5 12h14M13 5l7 7-7 7" />
+            </svg>
+          </div>
+
+          {/* Curled corner — top left */}
+          <svg viewBox="0 0 60 60" className="pointer-events-none absolute -left-[1px] -top-[1px] h-12 w-12" aria-hidden>
+            <defs>
+              <linearGradient id={`curlTL-${params.slug}`} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#f5e5b8" />
+                <stop offset="55%" stopColor="#d9b56a" />
+                <stop offset="100%" stopColor="#7a5821" />
+              </linearGradient>
+            </defs>
+            <path d="M0,0 L60,0 C30,5 5,30 0,60 Z" fill={`url(#curlTL-${params.slug})`} />
+            <path d="M60,0 C30,5 5,30 0,60" fill="none" stroke="#3a2710" strokeWidth="0.8" opacity="0.5" />
+          </svg>
+
+          {/* Curled corner — bottom right */}
+          <svg viewBox="0 0 60 60" className="pointer-events-none absolute -bottom-[1px] -right-[1px] h-12 w-12" aria-hidden>
+            <defs>
+              <linearGradient id={`curlBR-${params.slug}`} x1="1" y1="1" x2="0" y2="0">
+                <stop offset="0%" stopColor="#f5e5b8" />
+                <stop offset="55%" stopColor="#d9b56a" />
+                <stop offset="100%" stopColor="#7a5821" />
+              </linearGradient>
+            </defs>
+            <path d="M60,60 L60,0 C55,30 30,55 0,60 Z" fill={`url(#curlBR-${params.slug})`} />
+            <path d="M60,0 C55,30 30,55 0,60" fill="none" stroke="#3a2710" strokeWidth="0.8" opacity="0.5" />
+          </svg>
+        </div>
+      </div>
     </Link>
   );
 }
