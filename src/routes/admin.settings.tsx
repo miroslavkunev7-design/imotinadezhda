@@ -56,7 +56,26 @@ function Page() {
               </p>
             </div>
           </Link>
+
+          <Link
+            to="/admin/settings/logo"
+            className="group flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-[rgba(20,4,8,0.55)] p-5 transition hover:border-amber-400/60 hover:bg-[rgba(20,4,8,0.7)]"
+          >
+            <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-300/20 text-amber-200">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 font-display text-base text-amber-100">
+                Лого — качване и позиция
+                <ChevronRight className="h-4 w-4 text-amber-300/70 transition group-hover:translate-x-0.5" />
+              </div>
+              <p className="mt-1 text-xs text-amber-100/60">
+                Качи ново лого и настрой позицията/размера му в навбара (без режене на ръбовете).
+              </p>
+            </div>
+          </Link>
         </div>
+
       </div>
     </AdminShell>
   );
