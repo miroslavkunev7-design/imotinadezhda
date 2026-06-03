@@ -40,6 +40,7 @@ import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugIndexRouteImport } from './routes/cities.$slug.index'
+import { Route as AdminSettingsIndexRouteImport } from './routes/admin.settings.index'
 import { Route as ApiPublicCustomerChatRouteImport } from './routes/api/public/customer-chat'
 import { Route as AdminSettingsPageEditorRouteImport } from './routes/admin.settings.page-editor'
 import { Route as AdminSettingsImagesRouteImport } from './routes/admin.settings.images'
@@ -202,6 +203,11 @@ const CitiesSlugIndexRoute = CitiesSlugIndexRouteImport.update({
   path: '/cities/$slug/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSettingsIndexRoute = AdminSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminSettingsRoute,
+} as any)
 const ApiPublicCustomerChatRoute = ApiPublicCustomerChatRouteImport.update({
   id: '/api/public/customer-chat',
   path: '/api/public/customer-chat',
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings/images': typeof AdminSettingsImagesRoute
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
+  '/admin/settings/': typeof AdminSettingsIndexRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -300,7 +307,6 @@ export interface FileRoutesByTo {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
-  '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin': typeof AdminIndexRoute
@@ -308,6 +314,7 @@ export interface FileRoutesByTo {
   '/admin/settings/images': typeof AdminSettingsImagesRoute
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
+  '/admin/settings': typeof AdminSettingsIndexRoute
   '/cities/$slug': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -348,6 +355,7 @@ export interface FileRoutesById {
   '/admin/settings/images': typeof AdminSettingsImagesRoute
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
+  '/admin/settings/': typeof AdminSettingsIndexRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -389,6 +397,7 @@ export interface FileRouteTypes {
     | '/admin/settings/images'
     | '/admin/settings/page-editor'
     | '/api/public/customer-chat'
+    | '/admin/settings/'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
     | '/lovable/email/queue/process'
@@ -419,7 +428,6 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
-    | '/admin/settings'
     | '/admin/tasks'
     | '/properties/$propertyId'
     | '/admin'
@@ -427,6 +435,7 @@ export interface FileRouteTypes {
     | '/admin/settings/images'
     | '/admin/settings/page-editor'
     | '/api/public/customer-chat'
+    | '/admin/settings'
     | '/cities/$slug'
     | '/cities/$slug/districts/$district'
     | '/lovable/email/queue/process'
@@ -466,6 +475,7 @@ export interface FileRouteTypes {
     | '/admin/settings/images'
     | '/admin/settings/page-editor'
     | '/api/public/customer-chat'
+    | '/admin/settings/'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
     | '/lovable/email/queue/process'
@@ -704,6 +714,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CitiesSlugIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/settings/': {
+      id: '/admin/settings/'
+      path: '/'
+      fullPath: '/admin/settings/'
+      preLoaderRoute: typeof AdminSettingsIndexRouteImport
+      parentRoute: typeof AdminSettingsRoute
+    }
     '/api/public/customer-chat': {
       id: '/api/public/customer-chat'
       path: '/api/public/customer-chat'
@@ -764,11 +781,13 @@ const AdminAuditRouteWithChildren = AdminAuditRoute._addFileChildren(
 interface AdminSettingsRouteChildren {
   AdminSettingsImagesRoute: typeof AdminSettingsImagesRoute
   AdminSettingsPageEditorRoute: typeof AdminSettingsPageEditorRoute
+  AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
 }
 
 const AdminSettingsRouteChildren: AdminSettingsRouteChildren = {
   AdminSettingsImagesRoute: AdminSettingsImagesRoute,
   AdminSettingsPageEditorRoute: AdminSettingsPageEditorRoute,
+  AdminSettingsIndexRoute: AdminSettingsIndexRoute,
 }
 
 const AdminSettingsRouteWithChildren = AdminSettingsRoute._addFileChildren(
@@ -845,3 +864,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
