@@ -951,13 +951,9 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       <section className="relative">
         <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
           {city.hero_video_url ? (
-            <video
+            <AutoPlayVideo
               src={city.hero_video_url}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
+              preload="auto"
               poster={typeof heroImage === "string" ? heroImage : undefined}
               className="absolute inset-0 h-full w-full object-cover"
             />
