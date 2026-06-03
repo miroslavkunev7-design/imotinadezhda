@@ -1,4 +1,38 @@
-import { useEffect, useState as useReactState } from "react";
+import { useEffect, useRef, useState as useReactState } from "react";
+
+// Auto-play helper: forces muted+playsInline DOM attrs and retries .play()
+// against browser/iframe autoplay policies. Works around React not always
+// reflecting the `muted` prop as an attribute before the autoplay attempt.
+function AutoPlayVideo(
+  props: React.VideoHTMLAttributes<HTMLVideoElement> & { src?: string },
+) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !props.src) return;
+    el.muted = true;
+    el.defaultMuted = true;
+    el.setAttribute("muted", "");
+    el.setAttribute("playsinline", "");
+    const tryPlay = () => {
+      const p = el.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          const resume = () => {
+            el.play().catch(() => {});
+            window.removeEventListener("touchstart", resume);
+            window.removeEventListener("click", resume);
+          };
+          window.addEventListener("touchstart", resume, { once: true, passive: true });
+          window.addEventListener("click", resume, { once: true });
+        });
+      }
+    };
+    if (el.readyState >= 2) tryPlay();
+    else el.addEventListener("loadeddata", tryPlay, { once: true });
+  }, [props.src]);
+  return <video ref={ref} autoPlay loop muted playsInline {...props} />;
+}
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import {
