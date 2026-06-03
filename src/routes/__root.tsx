@@ -105,6 +105,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
       { name: "twitter:description", content: "ИЛДЖ.ИА е платформа за търсене и публикуване на луксозни недвижими имоти в България." },
+      { name: "google-site-verification", content: "xsdZbCr0IiwCQJMurctPf8B39tICkdCuqXDxk4Qq0p4" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
