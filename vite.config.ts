@@ -15,9 +15,17 @@ export default defineConfig({
     server: { entry: "server" },
   },
   nitro: isVercel ? { preset: "vercel" } : undefined,
-  // On Vercel, lightningcss tries to resolve Tailwind v4's `@import "tailwindcss"`
-  // before the Tailwind plugin can intercept it, causing ENOENT. Fall back to
-  // the default PostCSS-based CSS pipeline there. CSS options must live under
-  // `vite` — they are not a top-level option of the Lovable config wrapper.
-  vite: isVercel ? { css: { transformer: "postcss" } } : undefined,
+  // - On Vercel, lightningcss tries to resolve Tailwind v4's `@import "tailwindcss"`
+  //   before the Tailwind plugin can intercept it, causing ENOENT. Fall back to
+  //   the default PostCSS-based CSS pipeline there.
+  // - `@mendable/firecrawl-js` is server-only and pulls in Node built-ins like
+  //   `undici`; mark it external so Vite never tries to bundle it for the client.
+  vite: {
+    ...(isVercel ? { css: { transformer: "postcss" } } : {}),
+    build: {
+      rollupOptions: {
+        external: ["undici", "@mendable/firecrawl-js"],
+      },
+    },
+  },
 });
