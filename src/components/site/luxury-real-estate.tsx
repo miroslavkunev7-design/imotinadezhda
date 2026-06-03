@@ -813,7 +813,7 @@ function TrustStrip() {
     { Icon: MapPin, title: "Локално знание", desc: "Най-добри оферти във всеки град" },
   ];
   return (
-    <section data-section-id="trust-strip" className="bg-[#0f0a0b] py-2 md:py-4">
+    <section data-section-id="trust-strip" className="bg-[#0f0a0b] py-2 pb-20 md:py-4 md:pb-4">
       <div className="mx-auto flex w-full max-w-[1420px] flex-col items-stretch gap-3 px-4 md:px-8 lg:flex-row lg:items-center lg:gap-8">
         <div className="grid flex-1 grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4 md:gap-6">
           {items.map(({ Icon, title, desc }) => (
