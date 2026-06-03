@@ -1,0 +1,1 @@
+UPDATE public.cities SET hero_video_url = '/__l5e/assets-v1/11c132dd-b670-41f7-8c3d-b43c7d138c84/burgas-hero-4k.mp4' WHERE slug = 'burgas';
