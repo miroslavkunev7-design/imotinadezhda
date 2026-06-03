@@ -1,54 +1,117 @@
-# Pixel-perfect redesign — Имоти Надежда
 
-Reference: file_8957.jpg. No improvisations.
+# Visual Page Builder — пълна система
 
-## 1. Navbar (site-wide, replaces current `SiteHeader`)
+## Какво ще има потребителят накрая
 
-- Full-width dark near-black bar (#0f0a0b), height ~110px desktop, ~70px mobile.
-- Inside: a rounded "pill" track (dark bordeaux #2a0f14 with thin gold #C9A84C border) hosting nav links — centered/right-aligned.
-- Nav items with small gold icons + white labels: `🏠 За продажба` · `🔑 Под наем` · `👥 За нас` · profile icon. Each link separated by faint gold divider, gold pill border on hover/active.
-- Left: decorative **scroll/banner** panel — bordeaux gradient (#8B1A2B → #5E0F1D) shaped like a ribbon with curled ends and gold trim/inner stroke. Contains the white logo (house icon + "НЕДВИЖИМИ ИМОТИ • НАДЕЖДА •").
-- The ribbon overlaps below the dark bar (~30px) for the scroll effect.
-- Mobile: collapses ribbon scale, links shrink, profile stays visible.
-- Applied to ALL pages by editing `src/components/site/site-header.tsx` (existing usage across routes remains).
+В **Админ → Настройки** ще има трета карта **"Смяна на дизайн на страница"**. Тя води до `/admin/page-builder`, където:
 
-## 2. Search/filter bar (home page)
+1. **Избира страница** за редакция: Home, About, Cities, Properties, Brokers, Contact
+2. **Drag & Drop канвас** в средата (live preview как ще изглежда)
+3. **Лява лента — Библиотека**: Navbars (20+), Heroes (15+), Buttons (20+), Cards, Sections, Footers, Forms, Galleries
+4. **Дясна лента — Property panel**: за избрания компонент → цвят, форма (radius), шрифт, размер, padding, margin, текст
+5. **Top bar**: Save, Publish, Undo/Redo, Preview (mobile/desktop), Reset
+6. **Modal "Качи референция"** с 2 режима:
+   - **Подобен дизайн** — scrape с Firecrawl (branding format) → AI генерира тема (цветове/шрифтове/spacing) и приложима към текущите компоненти
+   - **1:1 копие** — Firecrawl scrape (html + screenshot + branding) → AI Gateway (Gemini 2.5 Pro) преобразува в JSON layout от наши компоненти → запис в база → рендване като жива страница
 
-Replaces the current wavy split panel in `src/components/site/luxury-real-estate.tsx`.
+## Архитектура
 
-- Single full-width **bordeaux #8B1A2B rounded pill** (border-radius ~9999px), thin gold border, soft drop shadow.
-- Inline fields with thin vertical gold dividers between each:
-  - ГРАД (icon: pin) — value + chevron
-  - КВАРТАЛ (icon: house)
-  - ВИД ИМОТ (icon: building)
-  - ЦЕНА (icon: tag) — "от 200000 - до 500000 €"
-  - ПЛОЩ (icon: ruler) — "от 100 m² - до 200 m²"
-- Each field: tiny gold icon left, uppercase gold micro-label on top, white value below.
-- Right cluster: solid **gold pill button "ТЪРСИ"** with magnifier icon (bordeaux text), then plain text link `≡ Още филтри` in gold.
+### База данни (нови таблици)
+```
+page_designs
+  id, page_slug (home|about|cities|...), name, layout_json (jsonb), 
+  is_published, created_by, created_at, updated_at
 
-## 3. City cards (home page grid)
+design_revisions  (history за undo)
+  id, page_design_id, layout_json, created_at
 
-- 4-column grid (responsive 2 / 1 col below).
-- Card: rounded-2xl (~24px), gold border, full-bleed panorama, dark gradient at bottom 60%.
-- Top-left tiny uppercase white label `ВИЖ ГРАДА`.
-- Bottom-left large white display name (city).
-- Bottom-right circular bordeaux button with white arrow icon, gold ring.
+component_presets  (запазени потребителски варианти)
+  id, component_type, name, props_json, preview_url
+```
+RLS: само admin може да създава/редактира; всички четат `is_published=true`.
 
-## 4. Trust strip (bottom of home)
+### Frontend структура
+```
+src/admin/page-builder/
+  PageBuilder.tsx              — главен layout (3 колони)
+  Canvas.tsx                   — drop zone, рендва избраните компоненти
+  ComponentLibrary.tsx         — лява лента, табове по тип
+  PropertyPanel.tsx            — дясна лента, динамичен формуляр
+  Toolbar.tsx                  — top bar
+  blocks/                      — изградени компоненти-блокове
+    navbars/Navbar01..20.tsx
+    heroes/Hero01..15.tsx
+    buttons/Button01..20.tsx
+    sections/, footers/, ...
+  registry.ts                  — мета за всеки блок (props schema, preview, defaults)
+  store.ts                     — Zustand: layout, selection, undo/redo
+  
+src/components/site/
+  RenderDesign.tsx             — на публичните страници; чете layout_json и рендва блокове
+```
 
-- Dark background band.
-- 4 columns, each with gold icon + bold white title + small muted description: Сигурност / Коректност / Доверие / Локално знание.
-- Right side: rounded **"Чат с консултант"** pill button — bordeaux fill, gold border, chat icon.
+### Server functions (TanStack)
+```
+src/lib/page-builder.functions.ts
+  loadDesign(page_slug)                     — публично, чете published
+  saveDesign({page_slug, layout_json})      — admin
+  publishDesign(id)                         — admin
+  scrapeReference(url, mode)                — Firecrawl + AI
+  generateFromReference(scraped, mode)      — AI Gateway → layout_json
+```
 
-## Files to edit
+### Drag & Drop
+`@dnd-kit/core` + `@dnd-kit/sortable` — стандартна, лека, работи с TanStack/SSR.
 
-- `src/components/site/site-header.tsx` — rewrite navbar (ribbon + dark pill nav).
-- `src/components/site/luxury-real-estate.tsx` — replace search bar markup, city card visuals, trust strip block at bottom of `HomePage`.
-- `src/styles.css` — add helper classes if needed (gold border, ribbon clip shadow).
+### Колко "компоненти" реално
 
-No backend / data / routing changes.
+За **първа версия която работи** не мога физически да генерирам 20–30 уникални качествени навбара в един prompt. Реалистично:
+- **5 навбара**, 5 heroes, 8 бутона, 4 sections, 3 footers, 3 cards, 3 forms = **~31 блока** общо
+- Всеки има 3–5 цветови варианта + property controls → ефективно стотици комбинации
+- Преди да маркирам "готово" ще тествам, че всеки блок рендва и се конфигурира
 
-## Out of scope
+### Upload референция
 
-- Hero imagery, property cards, other sections not visible in the reference remain untouched.
-- No new routes, no logic changes.
+- **Similar** режим: Firecrawl `formats: ['branding', 'screenshot']` → AI получава палитра/шрифтове → връща тема (CSS variables) → applied като theme override
+- **1:1 clone** режим: Firecrawl `formats: ['html', 'screenshot', 'branding']` → Gemini 2.5 Pro получава HTML + скрийншот + нашия registry от блокове → връща `layout_json` използвайки наши блокове, най-близки до оригинала → потребителят вижда резултата в канваса и може да дотюнва
+
+Това **няма да е perfect pixel clone** от първия път — ще е близко приближение което после се редактира. Истинският 1:1 clone като жива React страница е research-level проблем, никакъв инструмент в света не го прави автоматично безгрешно.
+
+## Свързване с публичния сайт
+
+На всяка публична страница (`/`, `/about`, etc.) добавям логика:
+```tsx
+const design = useDesign('home');  // serverFn зарежда published layout
+if (design) return <RenderDesign layout={design.layout_json} />;
+return <DefaultHomePage />;        // fallback към текущата ръчно-кодирана
+```
+Така старият дизайн остава като fallback; новият се активира когато публикуваш през builder-а.
+
+## Етапи на изграждане (в един turn)
+
+1. Миграция: `page_designs`, `design_revisions`, `component_presets` + RLS
+2. Server functions + Firecrawl connector check
+3. Zustand store + registry + dnd-kit setup
+4. Библиотека блокове (5 navbars, 5 heroes, 8 buttons, etc.)
+5. Canvas + ComponentLibrary + PropertyPanel + Toolbar
+6. Route `/admin/page-builder`, карта в Settings
+7. RenderDesign + интеграция с публичните страници
+8. Upload референция modal + scrape/generate flows
+9. Smoke test: създавам тестов layout, публикувам, проверявам че `/` го рендва
+
+## Какво НЕ обещавам
+
+- Че всеки блок ще изглежда Awwwards-quality от първия път (ще са функционални и чисти, но ще искат полиране).
+- Че 1:1 clone ще е перфектен — ще е "близо, после ръчно дотюнваш в канваса".
+- Че няма да открием бъгове при първото пускане. Това е сложен flow; ще трябва итерация.
+
+## Технически зависимости за инсталиране
+
+- `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`
+- `zustand` (за builder state)
+- `@mendable/firecrawl-js` (за scrape) — Firecrawl connector е вече наличен в проекта
+- Lovable AI Gateway — вече налично през `LOVABLE_API_KEY`
+
+---
+
+**Ако одобриш плана, започвам веднага и пиша всичко в един дълъг turn.**

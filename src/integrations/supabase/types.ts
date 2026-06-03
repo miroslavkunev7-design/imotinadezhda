@@ -558,6 +558,39 @@ export type Database = {
           },
         ]
       }
+      component_presets: {
+        Row: {
+          component_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          preview_url: string | null
+          props_json: Json
+          updated_at: string
+        }
+        Insert: {
+          component_type: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          preview_url?: string | null
+          props_json?: Json
+          updated_at?: string
+        }
+        Update: {
+          component_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          preview_url?: string | null
+          props_json?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contract_templates: {
         Row: {
           contract_type: string
@@ -708,6 +741,38 @@ export type Database = {
           visitor_token?: string
         }
         Relationships: []
+      }
+      design_revisions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          layout_json: Json
+          page_design_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          layout_json: Json
+          page_design_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          layout_json?: Json
+          page_design_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_revisions_page_design_id_fkey"
+            columns: ["page_design_id"]
+            isOneToOne: false
+            referencedRelation: "page_designs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_send_log: {
         Row: {
@@ -1129,6 +1194,39 @@ export type Database = {
           page_key?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      page_designs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean
+          layout_json: Json
+          name: string
+          page_slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          layout_json?: Json
+          name?: string
+          page_slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          layout_json?: Json
+          name?: string
+          page_slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
