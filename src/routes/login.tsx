@@ -236,6 +236,47 @@ function LoginPage() {
   );
 }
 
+function LoginVideo({ src, quality }: { src: string; quality: string }) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.muted = true;
+    el.defaultMuted = true;
+    el.setAttribute("muted", "");
+    el.setAttribute("playsinline", "");
+    const tryPlay = () => {
+      const p = el.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          const resume = () => {
+            el.play().catch(() => {});
+            window.removeEventListener("touchstart", resume);
+            window.removeEventListener("click", resume);
+          };
+          window.addEventListener("touchstart", resume, { once: true, passive: true });
+          window.addEventListener("click", resume, { once: true });
+        });
+      }
+    };
+    if (el.readyState >= 2) tryPlay();
+    else el.addEventListener("loadeddata", tryPlay, { once: true });
+  }, [src]);
+  return (
+    <video
+      key={quality}
+      ref={ref}
+      className="absolute inset-0 h-full w-full object-cover md:object-contain"
+      src={src}
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload="auto"
+    />
+  );
+}
+
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
