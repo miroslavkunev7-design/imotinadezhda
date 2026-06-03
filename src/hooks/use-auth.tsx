@@ -17,16 +17,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+    let subscription: { unsubscribe: () => void } | undefined;
+    try {
+      const result = supabase.auth.onAuthStateChange((_event, sess) => {
+        setSession(sess);
+        setUser(sess?.user ?? null);
+      });
+      subscription = result.data.subscription;
+      supabase.auth.getSession().then(({ data }) => {
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    } catch {
+      // Supabase client not configured (missing env vars) — treat as logged-out
       setLoading(false);
-    });
-    return () => subscription.unsubscribe();
+    }
+    return () => subscription?.unsubscribe();
   }, []);
 
   return (
@@ -36,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         loading,
         signOut: async () => {
-          await supabase.auth.signOut();
+          try { await supabase.auth.signOut(); } catch { /* ignore if client not configured */ }
         },
       }}
     >
