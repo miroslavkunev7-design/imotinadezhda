@@ -797,7 +797,7 @@ export function HomePage({
         className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
       >
         <video
-          src="/__l5e/assets-v1/53411c50-cb60-4e7c-b72d-5af43241e631/home-hero.mp4"
+          src={homeHeroVideo.url}
           autoPlay
           loop
           muted
