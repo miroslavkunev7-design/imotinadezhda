@@ -196,14 +196,17 @@ export const createBrokerAccount = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
 
     // 1) Create auth user (email confirmed so the broker can sign in immediately)
+    const cleanEmail = data.email.trim().toLowerCase();
+    const cleanPassword = data.password.trim();
     const { data: created, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-      email: data.email,
-      password: data.password,
+      email: cleanEmail,
+      password: cleanPassword,
       email_confirm: true,
       user_metadata: { full_name: data.full_name },
     });
     if (authErr || !created?.user) throw new Error(authErr?.message ?? "Грешка при създаване на акаунта");
     const newUserId = created.user.id;
+
 
     // 2) Insert broker row linked to the new auth user
     const { data: row, error } = await supabaseAdmin.from("brokers").insert({
