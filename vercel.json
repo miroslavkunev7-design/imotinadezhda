@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm ci",
   "buildCommand": "DEPLOY_TARGET=vercel vite build",
   "framework": null
 }
