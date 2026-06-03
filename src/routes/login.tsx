@@ -100,16 +100,7 @@ function LoginPage() {
 
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-black">
-      <video
-        key={quality}
-        className="absolute inset-0 h-full w-full object-cover md:object-contain"
-        src={videoSources[quality]}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-      />
+      <LoginVideo src={videoSources[quality]} quality={quality} />
       <SiteHeader />
       <div
         className="absolute inset-0"
