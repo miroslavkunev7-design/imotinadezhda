@@ -21,6 +21,8 @@ export const Route = createFileRoute("/")({
     links: [
       { rel: "canonical", href: `${SITE_URL}/` },
       { rel: "preload", as: "image", href: landing.url, fetchpriority: "high" } as never,
+      { rel: "preconnect", href: "https://imotinadezhda.lovable.app" },
+      { rel: "dns-prefetch", href: "https://imotinadezhda.lovable.app" },
     ],
     scripts: [
       {

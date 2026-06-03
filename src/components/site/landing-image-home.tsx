@@ -122,6 +122,11 @@ export function LandingImageHome() {
               role="presentation"
               className="block h-auto w-full select-none"
               style={{ maxHeight: 64 }}
+              width={1600}
+              height={600}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               draggable={false}
             />
             <ul className="contents">
@@ -272,6 +277,10 @@ export function LandingImageHome() {
                 <img
                   src={c.img}
                   alt={`Свитък — имоти в ${c.name}`}
+                  width={900}
+                  height={1200}
+                  loading="lazy"
+                  decoding="async"
                   className="block h-auto w-full select-none drop-shadow-[0_15px_25px_rgba(94,15,29,0.35)] transition-[filter] duration-300 group-hover:drop-shadow-[0_20px_35px_rgba(201,168,76,0.5)]"
                   draggable={false}
                 />
@@ -296,6 +305,10 @@ export function LandingImageHome() {
               className="absolute inset-0 h-full w-full select-none"
               draggable={false}
               style={{ objectFit: "fill" }}
+              width={1402}
+              height={1122}
+              loading="eager"
+              decoding="async"
               fetchPriority="high"
             />
 
