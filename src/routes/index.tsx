@@ -1,34 +1,36 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import homeHero from "@/assets/home-hero-living.jpeg";
-import { HomePage } from "@/components/site/luxury-real-estate";
-import { getCities, getFeaturedProperties } from "@/lib/catalog.functions";
-import { getPublicPageLayout } from "@/lib/page-layouts.functions";
+import landing from "@/assets/landing-master.png.asset.json";
+import { LandingImageHome } from "@/components/site/landing-image-home";
 
 const SITE_URL = "https://imotinadezhda.lovable.app";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ИЛДЖ.ИА | Луксозни имоти в България" },
-      { name: "description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
-      { property: "og:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
-      { property: "og:description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
+      { title: "Недвижими имоти Надежда | Луксозни имоти в България" },
+      { name: "description", content: "Премиум недвижими имоти в Бургас, Варна, Шумен и Нов Пазар. Луксозни апартаменти, къщи и инвестиционни оферти." },
+      { property: "og:title", content: "Недвижими имоти Надежда | Луксозни имоти в България" },
+      { property: "og:description", content: "Премиум недвижими имоти в Бургас, Варна, Шумен и Нов Пазар." },
       { property: "og:url", content: `${SITE_URL}/` },
-      { property: "og:image", content: `${SITE_URL}${homeHero}` },
+      { property: "og:image", content: landing.url },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: landing.url },
     ],
     links: [
       { rel: "canonical", href: `${SITE_URL}/` },
-      { rel: "preload", as: "image", href: homeHero, fetchpriority: "high" } as never,
+      { rel: "preload", as: "image", href: landing.url, fetchpriority: "high" } as never,
     ],
     scripts: [
       {
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "ИЛДЖ.ИА",
+          "@type": "RealEstateAgent",
+          name: "Недвижими имоти Надежда",
           url: SITE_URL,
+          areaServed: ["Бургас", "Варна", "Шумен", "Нов Пазар"],
           description: "Луксозни недвижими имоти в България.",
         }),
       },
@@ -37,7 +39,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "ИЛДЖ.ИА",
+          name: "Недвижими имоти Надежда",
           url: SITE_URL,
           potentialAction: {
             "@type": "SearchAction",
@@ -48,33 +50,5 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  loader: async () => {
-    const [cities, featured, layout] = await Promise.all([
-      getCities(),
-      getFeaturedProperties(),
-      getPublicPageLayout({ data: { page_key: "home" } }),
-    ]);
-    return {
-      cities: cities.map((c) => ({ name: c.name, image: c.hero_image_url, slug: c.slug })),
-      featured: featured.map((f: any) => ({
-        id: f.id,
-        title: f.title,
-        price: f.price,
-        currency: f.currency,
-        area_sqm: f.area_sqm,
-        bedrooms: f.bedrooms,
-        bathrooms: f.bathrooms,
-        cover_image_url: f.cover_image_url,
-        city_name: f.cities?.name ?? null,
-        city_slug: f.cities?.slug ?? null,
-      })),
-      layout,
-    };
-  },
-  component: HomeRoute,
+  component: LandingImageHome,
 });
-
-function HomeRoute() {
-  const { cities, featured, layout } = Route.useLoaderData();
-  return <HomePage cities={cities} featured={featured} layout={layout} />;
-}
