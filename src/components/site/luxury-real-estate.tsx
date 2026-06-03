@@ -946,7 +946,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
           <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-[60%] flex-col gap-3 overflow-y-auto p-3 md:inset-y-0 md:right-0 md:left-auto md:bottom-auto md:max-h-none md:w-full md:max-w-[480px] md:gap-4 md:p-6 md:pt-[130px]">
             {/* FILTER PANEL */}
             <div
-              className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-transparent ring-1 ring-[#8B1A2B]/50 md:ring-0 md:bg-none md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]"
+              className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-transparent md:bg-none md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]"
             >
 
               <div className="grid grid-cols-3 gap-2">
