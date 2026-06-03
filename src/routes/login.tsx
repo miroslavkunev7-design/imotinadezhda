@@ -25,7 +25,14 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [quality, setQuality] = useState<"4k" | "8k">("4k");
 
+  // Video quality sources. Both currently point to the same uploaded clip;
+  // replace the 8K entry when a true 8K master is uploaded.
+  const videoSources: Record<"4k" | "8k", string> = {
+    "4k": loginHeroVideo.url,
+    "8k": loginHeroVideo.url,
+  };
 
   useEffect(() => {
     if (!loading && user) {
@@ -34,10 +41,12 @@ function LoginPage() {
   }, [loading, user]);
 
   // QR code points to this page so a phone scan opens login directly.
-  const loginUrl = useMemo(() => {
-    if (typeof window === "undefined") return "https://imotinadezhda.lovable.app/login";
-    return `${window.location.origin}/login`;
+  // Initialize to null to avoid SSR/client mismatch — fill on mount.
+  const [loginUrl, setLoginUrl] = useState<string | null>(null);
+  useEffect(() => {
+    setLoginUrl(`${window.location.origin}/login`);
   }, []);
+
 
   const handle = async (e: FormEvent) => {
     e.preventDefault();
@@ -90,10 +99,11 @@ function LoginPage() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col overflow-hidden">
+    <main className="relative flex min-h-screen flex-col overflow-hidden bg-black">
       <video
-        className="absolute inset-0 h-full w-full object-cover"
-        src={loginHeroVideo.url}
+        key={quality}
+        className="absolute inset-0 h-full w-full object-contain"
+        src={videoSources[quality]}
         autoPlay
         loop
         muted
@@ -108,6 +118,25 @@ function LoginPage() {
             "linear-gradient(180deg, rgba(139,26,43,0.25) 0%, rgba(0,0,0,0.15) 45%, rgba(139,26,43,0.35) 100%)",
         }}
       />
+      {/* Quality toggle 4K / 8K */}
+      <div className="absolute right-3 top-3 z-20 flex items-center gap-1 rounded-full border border-[#C9A84C]/60 bg-black/45 p-1 backdrop-blur-md">
+        {(["4k", "8k"] as const).map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => setQuality(q)}
+            className={`rounded-full px-3 py-1 text-xs font-semibold tracking-wide transition ${
+              quality === q
+                ? "bg-[#C9A84C] text-[#2b1418] shadow"
+                : "text-white/85 hover:text-white"
+            }`}
+            aria-pressed={quality === q}
+          >
+            {q.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
       <div className="relative z-10 flex flex-1 items-center justify-center gap-8 px-4 py-8">
         {/* Login card — fully transparent */}
         <div className="relative w-full max-w-md rounded-2xl p-7 md:p-8">
@@ -199,15 +228,17 @@ function LoginPage() {
             Отвори страницата за вход на телефона си
           </p>
           <div className="mt-4 rounded-xl border-4 border-[#C9A84C] bg-white p-3 shadow-inner">
-            <QRCodeSVG
-              value={loginUrl}
-              size={172}
-              level="M"
-              fgColor="#8B1A2B"
-              bgColor="#ffffff"
-            />
+            {loginUrl && (
+              <QRCodeSVG
+                value={loginUrl}
+                size={172}
+                level="M"
+                fgColor="#8B1A2B"
+                bgColor="#ffffff"
+              />
+            )}
           </div>
-          <p className="mt-3 break-all text-[10px] text-muted-foreground">{loginUrl}</p>
+          <p className="mt-3 break-all text-[10px] text-muted-foreground">{loginUrl ?? ""}</p>
         </div>
       </div>
     </main>
