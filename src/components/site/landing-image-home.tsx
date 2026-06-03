@@ -253,30 +253,22 @@ export function LandingImageHome() {
             </div>
           )}
 
-          {/* City cards */}
-          <div className="relative z-10 mx-auto mt-10 grid w-full max-w-[1180px] grid-cols-4 gap-6">
+          {/* City cards — parchment scroll PNGs as-is */}
+          <div className="relative z-10 mx-auto mt-6 grid w-full max-w-[1180px] grid-cols-4 gap-6">
             {CITIES.map((c) => (
               <Link
                 key={c.slug}
                 to="/cities/$slug"
                 params={{ slug: c.slug } as never}
-                className="group relative flex aspect-[4/5] flex-col overflow-hidden rounded-2xl border border-[#C9A84C]/60 bg-[#fbf6ea] shadow-[0_10px_30px_-15px_rgba(94,15,29,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_rgba(94,15,29,0.55)]"
+                aria-label={`Имоти в ${c.name}`}
+                className="group block transition-transform duration-300 hover:-translate-y-1 focus:outline-none focus:-translate-y-1"
               >
-                <div className="relative flex-1 overflow-hidden">
-                  <img
-                    src={c.img}
-                    alt={`Имоти в ${c.name}`}
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <span aria-hidden className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 50%, rgba(94,15,29,0.55) 100%)" }} />
-                </div>
-                <div className="relative flex items-center justify-between border-t border-[#C9A84C]/50 bg-white px-4 py-3">
-                  <div>
-                    <p className="font-display text-[10px] uppercase tracking-[0.22em] text-[#8B1A2B]/70">Имоти в</p>
-                    <p className="font-display text-lg font-semibold text-[#2b1418]">{c.name}</p>
-                  </div>
-                  <span className="text-[#C9A84C] transition-transform group-hover:translate-x-1" aria-hidden>→</span>
-                </div>
+                <img
+                  src={c.img}
+                  alt={`Свитък — имоти в ${c.name}`}
+                  className="block h-auto w-full select-none drop-shadow-[0_15px_25px_rgba(94,15,29,0.35)] transition-[filter] duration-300 group-hover:drop-shadow-[0_20px_35px_rgba(201,168,76,0.5)]"
+                  draggable={false}
+                />
               </Link>
             ))}
           </div>
