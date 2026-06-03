@@ -312,7 +312,7 @@ export function LandingImageHome() {
                   params={params as never}
                   search={h.search as never}
                   aria-label={h.label}
-                  className="absolute block rounded-md transition-colors duration-150 hover:bg-white/5 focus:bg-white/10 focus:outline-none"
+                  className="absolute block rounded-md transition-colors duration-150 hover:bg-white/10 focus-visible:bg-[#5e0f1d]/80 focus-visible:shadow-[0_0_0_2px_#C9A84C] focus-visible:outline-none"
                   style={{ left: `${h.left}%`, right: `${h.right}%`, top: `${h.top}%`, bottom: `${h.bottom}%` }}
                 />
               );
