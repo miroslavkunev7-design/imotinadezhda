@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { Settings, Image as ImageIcon, ChevronRight, LayoutTemplate } from "lucide-react";
+import { Settings, Image as ImageIcon, ChevronRight, LayoutTemplate, Sparkles } from "lucide-react";
+
 
 export const Route = createFileRoute("/admin/settings")({ component: Page });
 
