@@ -221,7 +221,7 @@ function SearchBar({
           <button
             type="button"
             onClick={handleSearch}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-12 md:w-auto md:px-7 md:text-base"
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-5 font-display text-sm font-semibold transition hover:brightness-110 md:h-14 md:w-auto md:px-8 md:text-base"
             style={{
               background: "linear-gradient(180deg, #E3BF66 0%, #C9A84C 60%, #A8852E 100%)",
               color: "#5E0F1D",
