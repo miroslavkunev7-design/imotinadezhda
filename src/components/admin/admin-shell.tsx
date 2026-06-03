@@ -36,6 +36,7 @@ import { AdminAIBubble } from "@/components/admin/ai-bubble";
 import { onInstallAvailabilityChange, promptInstall } from "@/lib/pwa";
 import marbleBg from "@/assets/marble-bg.png";
 import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
+import brandLogoAsset from "@/assets/brand-logo-square.png.asset.json";
 
 type NavItem = {
   to: string;
@@ -131,20 +132,19 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
       >
 
         {/* Logo */}
-        <div className="flex items-center justify-between gap-3 border-b border-amber-600/25 px-5 py-5">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md">
-              <Building2 className="h-5 w-5" />
+        <div className="flex items-center justify-between gap-3 border-b border-amber-600/25 px-5 py-4">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl ring-1 ring-amber-400/40 shadow-md">
+              <img src={brandLogoAsset.url} alt="Имоти Надежда" className="h-full w-full object-cover" />
             </div>
             <div>
-              <div className="font-display text-base leading-none text-amber-100">Имоти</div>
+              <div className="font-display text-base leading-tight text-amber-100">Имоти</div>
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">Надежда</div>
-
             </div>
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
-            className="rounded-md p-1.5 text-primary/70 hover:bg-primary/10 lg:hidden"
+            className="rounded-md p-1.5 text-amber-100/80 hover:bg-amber-500/10 lg:hidden"
             aria-label="Затвори"
           >
             <X className="h-5 w-5" />
@@ -292,10 +292,43 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-auto p-4 pb-24 md:p-6 lg:p-8 lg:pb-8">
           {children}
         </main>
       </div>
+
+      {/* Mobile bottom navigation */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-amber-500/25 bg-[rgba(20,4,8,0.95)] backdrop-blur-md lg:hidden">
+        {[
+          { to: "/admin/properties", label: "Имоти", icon: Building2 },
+          { to: "/admin/clients", label: "Клиенти", icon: Users },
+          { to: "/admin/calendar", label: "Календар", icon: Calendar },
+          { to: "/admin/chat", label: "Чат", icon: MessageCircle },
+        ].map((item) => {
+          const active = path.startsWith(item.to);
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={cn(
+                "flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition",
+                active ? "text-amber-300" : "text-amber-100/70",
+              )}
+            >
+              <item.icon className={cn("h-5 w-5", active && "text-amber-300")} />
+              <span className="leading-none">{item.label}</span>
+            </Link>
+          );
+        })}
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="flex flex-col items-center gap-0.5 py-2.5 text-[10px] text-amber-100/70 transition hover:text-amber-200"
+          aria-label="Още"
+        >
+          <Menu className="h-5 w-5" />
+          <span className="leading-none">Още</span>
+        </button>
+      </nav>
 
       {/* Floating AI assistant bubble */}
       <AdminAIBubble />

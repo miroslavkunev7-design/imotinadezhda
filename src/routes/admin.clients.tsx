@@ -2,11 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, Mail, MapPin, AlertTriangle, Sparkles, CreditCard } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, Mail, MapPin, AlertTriangle, Sparkles, CreditCard, Camera } from "lucide-react";
 import { listClients, upsertClient, deleteClient, getClientDocuments, addClientDocument, deleteClientDocument } from "@/lib/crm.functions";
 import { MortgageSendModal } from "@/components/admin/mortgage-send-modal";
 import { MortgageStagesModal } from "@/components/admin/mortgage-stages-modal";
 import { ClientDetailsSheet } from "@/components/admin/client-details-sheet";
+import { ClientScanModal } from "@/components/admin/client-scan-modal";
 
 
 export const Route = createFileRoute("/admin/clients")({
@@ -27,6 +28,7 @@ function ClientsAdmin() {
   const [detailsFor, setDetailsFor] = useState<Client | null>(null);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
+  const [scanOpen, setScanOpen] = useState(false);
 
   const load = async () => {
     const [clientsData, { data: cs }, { data: qs }, { data: bs }] = await Promise.all([
@@ -76,14 +78,17 @@ function ClientsAdmin() {
           <h1 className="font-display text-4xl text-amber-100">Клиенти</h1>
           <p className="mt-1 text-sm text-amber-100/60">{rows.length} записа</p>
         </div>
-        <div className="flex gap-2">
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Търси по име, тел., имейл..." className="rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-2 text-sm text-amber-100 placeholder:text-amber-100/40" />
+        <div className="flex flex-wrap gap-2">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Търси..." className="w-full sm:w-auto rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-2 text-sm text-amber-100 placeholder:text-amber-100/40" />
+          <Button onClick={() => setScanOpen(true)} variant="outline" className="border-amber-500/50 text-amber-100 hover:bg-amber-500/15">
+            <Camera className="h-4 w-4" /> Сканирай
+          </Button>
           <Button onClick={newClient} className="gold-cta-button"><Plus className="h-4 w-4" /> Нов клиент</Button>
         </div>
       </header>
 
-      <div className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)]">
-        <table className="w-full text-sm text-amber-100">
+      <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)]">
+        <table className="w-full min-w-[760px] text-sm text-amber-100">
           <thead className="bg-[rgba(40,8,16,0.7)] text-left text-amber-100/80">
             <tr>
               <th className="px-4 py-3">Име</th>
@@ -220,6 +225,13 @@ function ClientsAdmin() {
         onEdit={(c) => { setDetailsFor(null); setEditing(c); }}
         onMortgageSend={(c) => { setDetailsFor(null); setMortgageFor(c); }}
         onMortgageStages={(c) => { setDetailsFor(null); setMortgageStagesFor(c); }}
+      />
+      <ClientScanModal
+        open={scanOpen}
+        onClose={() => setScanOpen(false)}
+        onExtracted={(prefill) => setEditing(prefill)}
+        cities={cities}
+        quarters={quarters}
       />
     </div>
   );
