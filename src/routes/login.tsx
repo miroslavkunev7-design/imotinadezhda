@@ -228,15 +228,17 @@ function LoginPage() {
             Отвори страницата за вход на телефона си
           </p>
           <div className="mt-4 rounded-xl border-4 border-[#C9A84C] bg-white p-3 shadow-inner">
-            <QRCodeSVG
-              value={loginUrl}
-              size={172}
-              level="M"
-              fgColor="#8B1A2B"
-              bgColor="#ffffff"
-            />
+            {loginUrl && (
+              <QRCodeSVG
+                value={loginUrl}
+                size={172}
+                level="M"
+                fgColor="#8B1A2B"
+                bgColor="#ffffff"
+              />
+            )}
           </div>
-          <p className="mt-3 break-all text-[10px] text-muted-foreground">{loginUrl}</p>
+          <p className="mt-3 break-all text-[10px] text-muted-foreground">{loginUrl ?? ""}</p>
         </div>
       </div>
     </main>
