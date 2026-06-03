@@ -830,13 +830,9 @@ export function HomePage({
       <section
         className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
       >
-        <video
+        <AutoPlayVideo
           src={homeHeroVideo.url}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
+          preload="auto"
           poster={homeHero}
           className="absolute inset-0 h-full w-full object-cover"
         />
