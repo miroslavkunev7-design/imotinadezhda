@@ -2,7 +2,8 @@ import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Home, KeyRound, Users, User } from "lucide-react";
 
-import logoScrollBanner from "@/assets/logo-scroll-banner.png";
+import { useLogoSettings } from "@/hooks/useLogoSettings";
+
 
 export type SiteNavKey = "sale" | "rent" | "about";
 
@@ -21,6 +22,8 @@ const panelStyle: React.CSSProperties = {
 
 export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const navigate = useNavigate();
+  const { settings: logo } = useLogoSettings();
+
   const clickCount = useRef(0);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -51,18 +54,18 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
           to="/"
           onClick={handleLogo}
           aria-label="Начало — Недвижими имоти Надежда"
-          className="fixed left-0 z-30 flex flex-none items-center justify-center"
-          style={{ top: "0px" }}
-
+          className="fixed z-30 flex flex-none items-center justify-center"
+          style={{ top: `${logo.top}px`, left: `${logo.left}px` }}
         >
           <img
-            src={logoScrollBanner}
+            src={logo.src}
             alt="Недвижими имоти Надежда"
             className="block w-auto drop-shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
-            style={{ height: "220px" }}
+            style={{ height: `${logo.height}px` }}
             draggable={false}
           />
         </Link>
+
 
 
         {/* Menu bar */}
