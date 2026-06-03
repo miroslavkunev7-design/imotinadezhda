@@ -44,19 +44,17 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   return (
     <header className="site-header">
       <div className="mx-auto flex w-full max-w-[1400px] items-stretch gap-2 px-2 py-2 md:gap-3 md:px-4 md:py-3">
-        {/* Logo rectangle */}
+        {/* Logo — original scroll-banner PNG, natural shape */}
         <Link
           to="/"
           onClick={handleLogo}
           aria-label="Начало — Недвижими имоти Надежда"
-          className="flex flex-none items-center justify-center rounded-md px-3 py-2 md:px-5 md:py-3"
-          style={{ ...panelStyle, width: "min(26%, 300px)" }}
+          className="flex flex-none items-center justify-center"
         >
           <img
-            src={logoNadezhda}
+            src={logoScrollBanner}
             alt="Недвижими имоти Надежда"
-            className="block h-auto w-full max-h-[64px] md:max-h-[84px]"
-            style={{ filter: "brightness(0) invert(1)" }}
+            className="block h-[72px] w-auto md:h-[100px]"
             draggable={false}
           />
         </Link>
