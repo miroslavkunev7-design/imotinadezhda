@@ -105,32 +105,52 @@ export function LandingImageHome() {
           Специализирани сме в луксозни апартаменти, къщи и инвестиционни оферти за продажба и под наем.
         </p>
 
+        {/* Skip link for keyboard users */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[#8B1A2B] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg focus:outline-2 focus:outline-offset-2 focus:outline-[#C9A84C]"
+        >
+          Прескочи към съдържанието
+        </a>
+
         {/* Navbar — smaller PNG panel pinned to the top */}
         <nav aria-label="Основна навигация" className="relative z-20 mx-auto w-full max-w-[1100px] flex-none px-4 pt-3">
           <div className="relative">
             <img
               src={navbarDesktop.url}
-              alt="Навигация — Недвижими имоти Надежда"
+              alt=""
+              role="presentation"
               className="block h-auto w-full select-none"
               style={{ maxHeight: 64 }}
               draggable={false}
             />
-            {[
-              { to: "/", label: "Начало", left: 2.1, right: 71.8 },
-              { to: "/search", search: { status: "sale" }, label: "За продажба", left: 43.2, right: 43.7 },
-              { to: "/search", search: { status: "rent" }, label: "Под наем", left: 60.3, right: 27.2 },
-              { to: "/about", label: "За нас", left: 75.6, right: 15.1 },
-              { to: "/login", search: { redirect: "/admin" }, label: "Профил", left: 94.2, right: 1.6 },
-            ].map((h) => (
-              <Link
-                key={h.label}
-                to={h.to as never}
-                search={h.search as never}
-                aria-label={h.label}
-                className="absolute top-[15%] bottom-[15%] block rounded-md transition-colors duration-150 hover:bg-white/10 focus-visible:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9A84C]"
-                style={{ left: `${h.left}%`, right: `${h.right}%` }}
-              />
-            ))}
+            <ul className="contents">
+              {[
+                { to: "/", label: "Начало", left: 2.1, right: 71.8 },
+                { to: "/search", search: { status: "sale" }, label: "За продажба", left: 43.2, right: 43.7 },
+                { to: "/search", search: { status: "rent" }, label: "Под наем", left: 60.3, right: 27.2 },
+                { to: "/about", label: "За нас", left: 75.6, right: 15.1 },
+                { to: "/login", search: { redirect: "/admin" }, label: "Профил", left: 90.5, right: 1.6 },
+              ].map((h) => (
+                <li key={h.label} className="contents">
+                  <Link
+                    to={h.to as never}
+                    search={h.search as never}
+                    aria-label={h.label}
+                    className="group absolute top-[10%] bottom-[10%] flex items-center justify-center rounded-md transition-colors duration-150 hover:bg-white/10 focus-visible:bg-[#5e0f1d] focus-visible:shadow-[0_0_0_2px_#C9A84C] focus-visible:outline-none"
+                    style={{ left: `${h.left}%`, right: `${h.right}%`, minHeight: 44 }}
+                  >
+                    <span className="sr-only">{h.label}</span>
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none select-none px-1 text-[11px] font-semibold uppercase tracking-wider text-white opacity-0 group-focus-visible:opacity-100"
+                    >
+                      {h.label}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </nav>
 
