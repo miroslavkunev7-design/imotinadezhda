@@ -49,12 +49,13 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
           to="/"
           onClick={handleLogo}
           aria-label="Начало — Недвижими имоти Надежда"
-          className="absolute left-2 -top-8 z-20 flex flex-none items-center justify-center md:left-4 md:-top-12"
+          className="absolute left-0 -top-12 z-20 flex flex-none items-center justify-center"
         >
           <img
             src={logoScrollBanner}
             alt="Недвижими имоти Надежда"
-            className="block h-[140px] w-auto drop-shadow-[0_10px_24px_rgba(0,0,0,0.55)] md:h-[220px]"
+            className="block w-auto drop-shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
+            style={{ height: "220px" }}
             draggable={false}
           />
         </Link>
