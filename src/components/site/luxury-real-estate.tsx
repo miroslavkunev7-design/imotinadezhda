@@ -595,7 +595,7 @@ export function ListingCard({
       </div>
       <div className="space-y-3 px-4 pb-5 pt-4">
         <div>
-          <h3 className="font-display text-[1.35rem] leading-snug text-accent-foreground">{title}</h3>
+          <h2 className="font-display text-[1.35rem] leading-snug text-accent-foreground">{title}</h2>
           {location ? <p className="mt-1 inline-flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 text-primary" />{location}</p> : null}
         </div>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
