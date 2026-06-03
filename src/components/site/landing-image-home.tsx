@@ -151,7 +151,8 @@ export function LandingImageHome() {
           {/* Search bar */}
           <form
             onSubmit={onSubmit}
-            className="relative z-10 mx-auto mt-6 flex w-full max-w-[1180px] items-stretch rounded-2xl border border-[#C9A84C]/60 bg-white shadow-[0_20px_60px_-20px_rgba(94,15,29,0.35)]"
+            className="relative z-10 mx-auto mt-6 flex w-full max-w-[1180px] items-stretch rounded-2xl border border-[#C9A84C]/70 shadow-[0_20px_60px_-20px_rgba(94,15,29,0.45)]"
+            style={{ background: "linear-gradient(180deg, #fbf6ea 0%, #f4e9d0 100%)" }}
           >
             <DesktopField label="Град" className="flex-[1.1]">
               <select
