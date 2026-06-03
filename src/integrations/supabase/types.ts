@@ -352,6 +352,7 @@ export type Database = {
           description: string | null
           display_order: number | null
           hero_image_url: string | null
+          hero_video_url: string | null
           id: string
           is_published: boolean
           name: string
@@ -369,6 +370,7 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           hero_image_url?: string | null
+          hero_video_url?: string | null
           id?: string
           is_published?: boolean
           name: string
@@ -386,6 +388,7 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           hero_image_url?: string | null
+          hero_video_url?: string | null
           id?: string
           is_published?: boolean
           name?: string
