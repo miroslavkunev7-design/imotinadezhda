@@ -794,21 +794,29 @@ export function HomePage({
     <main className="luxury-page flex h-screen flex-col overflow-hidden bg-[#0f0a0b] text-foreground">
       <section
         className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
-        style={{
-          backgroundImage: `url(${homeHero})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
       >
-        <LuxuryHeader active="sale" />
+        <video
+          src="/__l5e/assets-v1/53411c50-cb60-4e7c-b72d-5af43241e631/home-hero.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster={homeHero}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/40" />
+        <div className="relative z-10 flex flex-1 min-h-0 flex-col">
+          <LuxuryHeader active="sale" />
 
-        {mobileSections.map((s) => sectionNode(s.id))}
+          {mobileSections.map((s) => sectionNode(s.id))}
 
-        <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-3 md:px-8 md:pt-5">
-          {heroSections.map((s) => sectionNode(s.id))}
-        </section>
+          <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-3 md:px-8 md:pt-5">
+            {heroSections.map((s) => sectionNode(s.id))}
+          </section>
+        </div>
       </section>
+
       <div className="hidden flex-none md:block">
         {belowSections.map((s) => sectionNode(s.id))}
       </div>
