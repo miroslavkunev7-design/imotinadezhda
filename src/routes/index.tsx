@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
 function HomeRoute() {
   return (
     <div className="h-screen w-screen overflow-hidden bg-[#1a0a0f] flex flex-col">
-      <SiteHeader active="home" />
+      <SiteHeader />
       <main className="flex-1 min-h-0" />
     </div>
   );
