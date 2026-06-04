@@ -38,6 +38,7 @@ import { onInstallAvailabilityChange, promptInstall } from "@/lib/pwa";
 import marbleBg from "@/assets/marble-bg.png";
 import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
 import brandLogoAsset from "@/assets/brand-logo-square.png.asset.json";
+import loginHeroVideo from "@/assets/login-hero.mp4.asset.json";
 
 type NavItem = {
   to: string;
@@ -247,7 +248,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
 
       {/* Main — херо фон */}
       <div
-        className="relative flex min-w-0 flex-1 flex-col"
+        className="relative flex min-w-0 flex-1 flex-col overflow-hidden"
         style={{
           backgroundImage: `linear-gradient(180deg, rgba(20,4,8,0.82) 0%, rgba(20,4,8,0.92) 100%), url(${crmBg ?? heroBg})`,
           backgroundSize: "cover",
@@ -255,8 +256,30 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
           backgroundAttachment: "fixed",
         }}
       >
+        {/* Ambient video clip (same as login hero) */}
+        {!crmBg && (
+          <>
+            <video
+              className="pointer-events-none absolute inset-0 -z-0 h-full w-full object-cover opacity-40"
+              src={loginHeroVideo.url}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+            />
+            <div
+              className="pointer-events-none absolute inset-0 -z-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(20,4,8,0.78) 0%, rgba(20,4,8,0.88) 100%)",
+              }}
+            />
+          </>
+        )}
         {/* Header */}
-        <header className="flex items-center justify-between gap-2 border-b border-amber-500/20 bg-[rgba(20,4,8,0.55)] px-4 py-3 backdrop-blur-md md:px-6">
+        <header className="relative z-10 flex items-center justify-between gap-2 border-b border-amber-500/20 bg-[rgba(20,4,8,0.55)] px-4 py-3 backdrop-blur-md md:px-6">
           <div className="flex min-w-0 items-center gap-2 text-sm text-amber-100/70">
             <button
               onClick={() => setMobileOpen(true)}
@@ -294,7 +317,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-4 pb-24 md:p-6 lg:p-8 lg:pb-8">
+        <main className="relative z-10 flex-1 overflow-auto p-4 pb-24 md:p-6 lg:p-8 lg:pb-8">
           {children}
         </main>
       </div>
