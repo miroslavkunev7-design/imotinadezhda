@@ -1,15 +1,26 @@
-import { useEffect, useRef, useState as useReactState } from "react";
+import { useEffect, useRef, useState as useReactState, type VideoHTMLAttributes } from "react";
 
 // Auto-play helper: forces muted+playsInline DOM attrs and retries .play()
 // against browser/iframe autoplay policies. Works around React not always
 // reflecting the `muted` prop as an attribute before the autoplay attempt.
 function AutoPlayVideo(
-  props: React.VideoHTMLAttributes<HTMLVideoElement> & { src?: string },
+  props: VideoHTMLAttributes<HTMLVideoElement> & {
+    src?: string;
+    fallbackSrc?: string;
+    onPermanentError?: () => void;
+  },
 ) {
+  const { src, fallbackSrc, onPermanentError, onError, ...videoProps } = props;
   const ref = useRef<HTMLVideoElement | null>(null);
+  const [activeSrc, setActiveSrc] = useReactState(src);
+
+  useEffect(() => {
+    setActiveSrc(src);
+  }, [src, setActiveSrc]);
+
   useEffect(() => {
     const el = ref.current;
-    if (!el || !props.src) return;
+    if (!el || !activeSrc) return;
     el.muted = true;
     el.defaultMuted = true;
     el.setAttribute("muted", "");
@@ -30,8 +41,30 @@ function AutoPlayVideo(
     };
     if (el.readyState >= 2) tryPlay();
     else el.addEventListener("loadeddata", tryPlay, { once: true });
-  }, [props.src]);
-  return <video ref={ref} autoPlay loop muted playsInline {...props} />;
+  }, [activeSrc]);
+
+  const handleError: VideoHTMLAttributes<HTMLVideoElement>["onError"] = (event) => {
+    onError?.(event);
+    if (fallbackSrc && activeSrc !== fallbackSrc) {
+      setActiveSrc(fallbackSrc);
+      return;
+    }
+    onPermanentError?.();
+  };
+
+  return (
+    <video
+      key={activeSrc ?? "video"}
+      ref={ref}
+      autoPlay
+      loop
+      muted
+      playsInline
+      {...videoProps}
+      src={activeSrc}
+      onError={handleError}
+    />
+  );
 }
 import { Link, useNavigate } from "@tanstack/react-router";
 
@@ -69,6 +102,9 @@ import burgasHero from "@/assets/burgas-hero.jpeg";
 import burgasPier from "@/assets/burgas-pier.jpeg";
 import homeHero from "@/assets/home-hero-living.jpeg";
 import homeHeroVideo from "@/assets/home-hero.mp4.asset.json";
+import burgasHeroVideo from "@/assets/burgas-hero.mp4.asset.json";
+import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
+import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
 import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
@@ -109,6 +145,12 @@ export const citySlugImages: Record<string, string> = {
   burgas: cityBurgas,
   varna: cityVarna,
   "novi-pazar": cityNoviPazar,
+};
+
+const cityVideoFallbacks: Record<string, string> = {
+  burgas: burgasHeroVideo.url,
+  shumen: shumenHeroVideo.url,
+  varna: varnaHeroVideo.url,
 };
 
 const homeCities: Array<{ name: string; image: string; href: "/cities/$slug"; params: { slug: string } }> = [
@@ -916,6 +958,7 @@ type CityData = {
 };
 
 export function CityPage({ data }: { data?: CityData } = {}) {
+  const [videoFailed, setVideoFailed] = useReactState(false);
   const city = data?.city ?? {
     slug: "shumen",
     name: "Шумен",
@@ -942,6 +985,8 @@ export function CityPage({ data }: { data?: CityData } = {}) {
     (city.hero_image_url && !/^https?:/i.test(city.hero_image_url)
       ? city.hero_image_url
       : citySlugImages[city.slug]) || cityShumen;
+  const fallbackVideo = cityVideoFallbacks[city.slug];
+  const heroVideo = videoFailed ? null : (city.hero_video_url || fallbackVideo);
 
   const fmt = (n: number) => new Intl.NumberFormat("bg-BG").format(n);
 
@@ -950,9 +995,11 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       {/* HERO with overlay navbar */}
       <section className="relative">
         <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
-          {city.hero_video_url ? (
+          {heroVideo ? (
             <AutoPlayVideo
-              src={city.hero_video_url}
+              src={heroVideo}
+              fallbackSrc={fallbackVideo}
+              onPermanentError={() => setVideoFailed(true)}
               preload="auto"
               poster={typeof heroImage === "string" ? heroImage : undefined}
               className="absolute inset-0 h-full w-full object-cover"
