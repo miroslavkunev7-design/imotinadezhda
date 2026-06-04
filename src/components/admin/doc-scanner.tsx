@@ -1,8 +1,12 @@
-import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ScanLine, Trash2, FileDown, Plus, Loader2, Camera, ImageIcon, X, Aperture, RotateCcw } from "lucide-react";
+import { ScanLine, Trash2, FileDown, Plus, Loader2, Camera, ImageIcon, X, Aperture, RotateCcw, Merge, Send, Search } from "lucide-react";
 import { jsPDF } from "jspdf";
+import { PDFDocument } from "pdf-lib";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { listContactGroups, listContacts } from "@/lib/contacts.functions";
 // jscanify is dynamically imported in browser-only code paths (SSR-safe)
 async function getScanner() {
   const mod: any = await import("jscanify/client");
@@ -15,7 +19,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export type Page = { id: string; src: string; w: number; h: number; name: string };
 
