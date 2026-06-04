@@ -73,7 +73,17 @@ function LoginPage() {
 
       window.location.replace("/admin");
     } catch (err: any) {
-      setError(err?.message ?? "Възникна грешка");
+      console.error("[login] sign-in failed", err);
+      const msg = err?.message ?? "Възникна грешка";
+      // Translate common Supabase errors to Bulgarian
+      const translated = msg.includes("Invalid login credentials")
+        ? "Грешен имейл или парола"
+        : msg.includes("Email not confirmed")
+        ? "Имейлът не е потвърден"
+        : msg.includes("rate limit")
+        ? "Твърде много опити — изчакай малко"
+        : msg;
+      setError(translated);
     } finally {
       setBusy(false);
     }
