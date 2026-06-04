@@ -2,12 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, X, Upload, UserCog, Phone, Mail, CheckSquare, Square, ListChecks, UserPlus, MessageSquare, PhoneCall, CalendarClock, ClipboardList } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Upload, UserCog, Phone, Mail, Shield, CheckSquare, Square, ListChecks, UserPlus, MessageSquare, PhoneCall, CalendarClock, ClipboardList } from "lucide-react";
 import {
   listBrokers, upsertBroker, deleteBroker, createBrokerAccount,
   getBrokerDetails, upsertBrokerTask, toggleBrokerTask, deleteBrokerTask,
   assignClientToBroker, unassignClientFromBroker, listUnassignedClients,
 } from "@/lib/crm.functions";
+import { BrokerRolesDialog } from "@/components/admin/broker-roles-dialog";
 
 export const Route = createFileRoute("/admin/brokers")({
   component: BrokersAdmin,
