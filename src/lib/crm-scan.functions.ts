@@ -1,13 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-async function assertAdmin(userId: string) {
-  const { data } = await supabaseAdmin
-    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
-  if (!data) throw new Error("Forbidden — admin only");
-}
+import { assertAdmin } from "@/lib/auth/assert-admin";
 
 const inputSchema = z.object({
   imageBase64: z.string().min(100).max(15_000_000),
@@ -46,54 +40,65 @@ const SYSTEM = `Ти си асистент за разпознаване на к
 - Числа без валута приемай за EUR ако сумата е под 5000 (наем) или над 30000 (продажба).
 - Гарантирай валиден JSON.`;
 
+export type ScanInput = z.infer<typeof inputSchema>;
+
+// Exported for unit testing. Performs admin gate, then calls Lovable AI.
+export async function scanClientFromImageHandler(
+  data: ScanInput,
+  context: { userId: string },
+) {
+  await assertAdmin(context.userId);
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) throw new Error("LOVABLE_API_KEY не е конфигуриран");
+
+  const dataUrl = `data:${data.mimeType};base64,${data.imageBase64}`;
+
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        { role: "system", content: SYSTEM },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Извлечи информацията от тази снимка." },
+            { type: "image_url", image_url: { url: dataUrl } },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (res.status === 429) throw new Error("Лимитът е изчерпан, моля опитай след малко.");
+  if (res.status === 402) throw new Error("Кредитите за AI са изчерпани. Зареди от Settings → Workspace → Usage.");
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`AI грешка ${res.status}: ${t.slice(0, 200)}`);
+  }
+
+  const json = await res.json();
+  const raw: string = json?.choices?.[0]?.message?.content ?? "";
+  const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+  let parsed: any;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    const m = cleaned.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error("AI не върна валиден JSON");
+    parsed = JSON.parse(m[0]);
+  }
+  return { ok: true as const, data: parsed };
+}
+
 export const scanClientFromImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => inputSchema.parse(d))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY не е конфигуриран");
+  .handler(async ({ data, context }) =>
+    scanClientFromImageHandler(data, { userId: context.userId }),
+  );
 
-    const dataUrl = `data:${data.mimeType};base64,${data.imageBase64}`;
-
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: SYSTEM },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Извлечи информацията от тази снимка." },
-              { type: "image_url", image_url: { url: dataUrl } },
-            ],
-          },
-        ],
-      }),
-    });
-
-    if (res.status === 429) throw new Error("Лимитът е изчерпан, моля опитай след малко.");
-    if (res.status === 402) throw new Error("Кредитите за AI са изчерпани. Зареди от Settings → Workspace → Usage.");
-    if (!res.ok) {
-      const t = await res.text().catch(() => "");
-      throw new Error(`AI грешка ${res.status}: ${t.slice(0, 200)}`);
-    }
-
-    const json = await res.json();
-    const raw: string = json?.choices?.[0]?.message?.content ?? "";
-    const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-    let parsed: any;
-    try {
-      parsed = JSON.parse(cleaned);
-    } catch {
-      const m = cleaned.match(/\{[\s\S]*\}/);
-      if (!m) throw new Error("AI не върна валиден JSON");
-      parsed = JSON.parse(m[0]);
-    }
-    return { ok: true as const, data: parsed };
-  });

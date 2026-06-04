@@ -1,13 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-async function assertAdmin(userId: string) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
-  if (!data) throw new Error("Forbidden — admin only");
-}
+import { assertAdmin } from "@/lib/auth/assert-admin";
 
 const PAGE_SLUGS = ["home", "about", "cities", "properties", "brokers", "contact"] as const;
 export type PageSlug = (typeof PAGE_SLUGS)[number];
@@ -175,81 +169,86 @@ export const deleteDesign = createServerFn({ method: "POST" })
   });
 
 // ADMIN — scrape a reference URL with Firecrawl
-export const scrapeReference = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({
-        url: z.string().url().max(500),
-        mode: z.enum(["similar", "clone"]),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const apiKey = process.env.FIRECRAWL_API_KEY;
-    if (!apiKey) throw new Error("FIRECRAWL_API_KEY е липсва. Свържи Firecrawl в Connectors.");
-    const { default: Firecrawl } = await import("@mendable/firecrawl-js");
-    const fc = new Firecrawl({ apiKey });
+const scrapeReferenceInput = z.object({
+  url: z.string().url().max(500),
+  mode: z.enum(["similar", "clone"]),
+});
+export type ScrapeReferenceInput = z.infer<typeof scrapeReferenceInput>;
 
-    const formats =
-      data.mode === "clone"
-        ? (["html", "markdown", "branding", "screenshot"] as const)
-        : (["branding", "screenshot", "markdown"] as const);
+export async function scrapeReferenceHandler(
+  data: ScrapeReferenceInput,
+  context: { userId: string },
+) {
+  await assertAdmin(context.userId);
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) throw new Error("FIRECRAWL_API_KEY е липсва. Свържи Firecrawl в Connectors.");
+  const { default: Firecrawl } = await import("@mendable/firecrawl-js");
+  const fc = new Firecrawl({ apiKey });
 
-    const result: any = await fc.scrape(data.url, {
-      formats: formats as any,
-      onlyMainContent: false,
-    });
+  const formats =
+    data.mode === "clone"
+      ? (["html", "markdown", "branding", "screenshot"] as const)
+      : (["branding", "screenshot", "markdown"] as const);
 
-    return {
-      url: data.url,
-      mode: data.mode,
-      branding: result.branding ?? null,
-      screenshot: result.screenshot ?? null,
-      markdown: typeof result.markdown === "string" ? result.markdown.slice(0, 20000) : null,
-      html: typeof result.html === "string" ? result.html.slice(0, 60000) : null,
-      title: result.metadata?.title ?? null,
-    };
+  const result: any = await fc.scrape(data.url, {
+    formats: formats as any,
+    onlyMainContent: false,
   });
 
-// ADMIN — call Lovable AI to convert scraped reference into a layout_json
-export const generateFromReference = createServerFn({ method: "POST" })
+  return {
+    url: data.url,
+    mode: data.mode,
+    branding: result.branding ?? null,
+    screenshot: result.screenshot ?? null,
+    markdown: typeof result.markdown === "string" ? result.markdown.slice(0, 20000) : null,
+    html: typeof result.html === "string" ? result.html.slice(0, 60000) : null,
+    title: result.metadata?.title ?? null,
+  };
+}
+
+export const scrapeReference = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({
-        mode: z.enum(["similar", "clone"]),
-        page_slug: pageSlugSchema,
-        scraped: z.object({
-          url: z.string(),
-          branding: z.any().optional().nullable(),
-          markdown: z.string().nullable().optional(),
-          html: z.string().nullable().optional(),
-          title: z.string().nullable().optional(),
-        }),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY не е конфигуриран.");
+  .inputValidator((input) => scrapeReferenceInput.parse(input))
+  .handler(async ({ data, context }) =>
+    scrapeReferenceHandler(data, { userId: context.userId }),
+  );
 
-    // import block registry definitions for the prompt
-    const { BLOCK_REGISTRY } = await import("./blocks");
-    const blockCatalog = BLOCK_REGISTRY.map((b) => ({
-      type: b.type,
-      label: b.label,
-      category: b.category,
-      props: Object.keys(b.defaults),
-    }));
+// ADMIN — call Lovable AI to convert scraped reference into a layout_json
+const generateFromReferenceInput = z.object({
+  mode: z.enum(["similar", "clone"]),
+  page_slug: pageSlugSchema,
+  scraped: z.object({
+    url: z.string(),
+    branding: z.any().optional().nullable(),
+    markdown: z.string().nullable().optional(),
+    html: z.string().nullable().optional(),
+    title: z.string().nullable().optional(),
+  }),
+});
+export type GenerateFromReferenceInput = z.infer<typeof generateFromReferenceInput>;
 
-    const branding = data.scraped.branding ?? {};
-    const colors = branding.colors ?? {};
-    const fonts = branding.fonts ?? [];
+export async function generateFromReferenceHandler(
+  data: GenerateFromReferenceInput,
+  context: { userId: string },
+) {
+  await assertAdmin(context.userId);
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) throw new Error("LOVABLE_API_KEY не е конфигуриран.");
 
-    const userPrompt = `
+  // import block registry definitions for the prompt
+  const { BLOCK_REGISTRY } = await import("./blocks");
+  const blockCatalog = BLOCK_REGISTRY.map((b) => ({
+    type: b.type,
+    label: b.label,
+    category: b.category,
+    props: Object.keys(b.defaults),
+  }));
+
+  const branding = data.scraped.branding ?? {};
+  const colors = branding.colors ?? {};
+  const fonts = branding.fonts ?? [];
+
+  const userPrompt = `
 Ти си експерт по уеб дизайн. Имам референтна страница и каталог от готови блокове.
 Трябва да върнеш JSON layout, който възпроизвежда визията използвайки САМО блокове от каталога.
 
@@ -284,63 +283,71 @@ ${JSON.stringify(blockCatalog, null, 2)}
 - Минимум 4 блока, максимум 12.
 `.trim();
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Връщаш САМО валиден JSON. Никакъв друг текст. Никакви markdown code fences.",
-          },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
-
-    if (!aiRes.ok) {
-      const txt = await aiRes.text();
-      if (aiRes.status === 429) throw new Error("AI rate limit. Опитай след минута.");
-      if (aiRes.status === 402)
-        throw new Error("Изчерпани AI кредити. Добави кредити в Workspace settings.");
-      throw new Error(`AI грешка ${aiRes.status}: ${txt.slice(0, 200)}`);
-    }
-
-    const json = await aiRes.json();
-    const content = json.choices?.[0]?.message?.content ?? "{}";
-    let parsed: any;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      throw new Error("AI върна невалиден JSON.");
-    }
-
-    // sanity check
-    const blocks: any[] = Array.isArray(parsed.blocks) ? parsed.blocks : [];
-    const valid = blocks
-      .filter((b) => b && typeof b === "object" && typeof b.type === "string")
-      .slice(0, 20)
-      .map((b: any) => ({
-        id: Math.random().toString(36).slice(2, 10),
-        type: b.type,
-        props: typeof b.props === "object" && b.props ? b.props : {},
-      }));
-
-    return {
-      layout: {
-        blocks: valid,
-        theme: {
-          primary: colors.primary ?? "#8B1A2B",
-          accent: colors.accent ?? colors.secondary ?? "#C9A84C",
-          bg: colors.background ?? "#ffffff",
-          fg: colors.textPrimary ?? "#2b1418",
+  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-pro",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Връщаш САМО валиден JSON. Никакъв друг текст. Никакви markdown code fences.",
         },
-      },
-    };
+        { role: "user", content: userPrompt },
+      ],
+      response_format: { type: "json_object" },
+    }),
   });
+
+  if (!aiRes.ok) {
+    const txt = await aiRes.text();
+    if (aiRes.status === 429) throw new Error("AI rate limit. Опитай след минута.");
+    if (aiRes.status === 402)
+      throw new Error("Изчерпани AI кредити. Добави кредити в Workspace settings.");
+    throw new Error(`AI грешка ${aiRes.status}: ${txt.slice(0, 200)}`);
+  }
+
+  const json = await aiRes.json();
+  const content = json.choices?.[0]?.message?.content ?? "{}";
+  let parsed: any;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    throw new Error("AI върна невалиден JSON.");
+  }
+
+  // sanity check
+  const blocks: any[] = Array.isArray(parsed.blocks) ? parsed.blocks : [];
+  const valid = blocks
+    .filter((b) => b && typeof b === "object" && typeof b.type === "string")
+    .slice(0, 20)
+    .map((b: any) => ({
+      id: Math.random().toString(36).slice(2, 10),
+      type: b.type,
+      props: typeof b.props === "object" && b.props ? b.props : {},
+    }));
+
+  return {
+    layout: {
+      blocks: valid,
+      theme: {
+        primary: colors.primary ?? "#8B1A2B",
+        accent: colors.accent ?? colors.secondary ?? "#C9A84C",
+        bg: colors.background ?? "#ffffff",
+        fg: colors.textPrimary ?? "#2b1418",
+      },
+    },
+  };
+}
+
+export const generateFromReference = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => generateFromReferenceInput.parse(input))
+  .handler(async ({ data, context }) =>
+    generateFromReferenceHandler(data, { userId: context.userId }),
+  );
+
