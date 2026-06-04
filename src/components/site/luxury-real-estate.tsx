@@ -4,7 +4,11 @@ import { useEffect, useRef, useState as useReactState, type VideoHTMLAttributes 
 // against browser/iframe autoplay policies. Works around React not always
 // reflecting the `muted` prop as an attribute before the autoplay attempt.
 function AutoPlayVideo(
-  props: VideoHTMLAttributes<HTMLVideoElement> & { src?: string; fallbackSrc?: string; onPermanentError?: () => void },
+  props: VideoHTMLAttributes<HTMLVideoElement> & {
+    src?: string;
+    fallbackSrc?: string;
+    onPermanentError?: () => void;
+  },
 ) {
   const { src, fallbackSrc, onPermanentError, onError, ...videoProps } = props;
   const ref = useRef<HTMLVideoElement | null>(null);
@@ -12,7 +16,7 @@ function AutoPlayVideo(
 
   useEffect(() => {
     setActiveSrc(src);
-  }, [src]);
+  }, [src, setActiveSrc]);
 
   useEffect(() => {
     const el = ref.current;
@@ -48,7 +52,19 @@ function AutoPlayVideo(
     onPermanentError?.();
   };
 
-  return <video key={activeSrc ?? "video"} ref={ref} autoPlay loop muted playsInline {...videoProps} src={activeSrc} onError={handleError} />;
+  return (
+    <video
+      key={activeSrc ?? "video"}
+      ref={ref}
+      autoPlay
+      loop
+      muted
+      playsInline
+      {...videoProps}
+      src={activeSrc}
+      onError={handleError}
+    />
+  );
 }
 import { Link, useNavigate } from "@tanstack/react-router";
 
