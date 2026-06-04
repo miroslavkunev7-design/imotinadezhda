@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
+    "test": "vitest run",
     "visual:district": "node scripts/visual-district.mjs",
     "visual:burgas": "node scripts/visual-burgas.mjs",
     "visual:burgas:update-safe": "node scripts/visual-burgas.mjs --update-safe",
