@@ -5,6 +5,12 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { checkAdminAccess, logAdminAccess } from "@/lib/audit.functions";
 import { supabase } from "@/integrations/supabase/client";
 
+const withTimeout = <T,>(promise: Promise<T>, ms = 6000): Promise<T | null> =>
+  Promise.race([
+    promise,
+    new Promise<null>((resolve) => window.setTimeout(() => resolve(null), ms)),
+  ]);
+
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
@@ -16,7 +22,8 @@ export const Route = createFileRoute("/admin")({
 async function ensureFreshSession(): Promise<string | null> {
   try {
     // 1) Вземи текущата сесия от storage
-    const { data: sessData } = await supabase.auth.getSession();
+    const sessData = await withTimeout(supabase.auth.getSession());
+    if (!sessData) return null;
     let session = sessData.session;
 
     const nowSec = () => Math.floor(Date.now() / 1000);
@@ -36,7 +43,9 @@ async function ensureFreshSession(): Promise<string | null> {
     }
 
     // 3) Финална ре-валидация срещу Auth сървъра
-    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    const userResult = await withTimeout(supabase.auth.getUser());
+    if (!userResult) return null;
+    const { data: userData, error: userErr } = userResult;
     if (userErr || !userData.user) {
       await supabase.auth.signOut().catch(() => {});
       return null;
