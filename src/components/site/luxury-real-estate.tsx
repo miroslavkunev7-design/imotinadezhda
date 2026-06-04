@@ -1,15 +1,22 @@
-import { useEffect, useRef, useState as useReactState } from "react";
+import { useEffect, useRef, useState as useReactState, type VideoHTMLAttributes } from "react";
 
 // Auto-play helper: forces muted+playsInline DOM attrs and retries .play()
 // against browser/iframe autoplay policies. Works around React not always
 // reflecting the `muted` prop as an attribute before the autoplay attempt.
 function AutoPlayVideo(
-  props: React.VideoHTMLAttributes<HTMLVideoElement> & { src?: string },
+  props: VideoHTMLAttributes<HTMLVideoElement> & { src?: string; fallbackSrc?: string; onPermanentError?: () => void },
 ) {
+  const { src, fallbackSrc, onPermanentError, onError, ...videoProps } = props;
   const ref = useRef<HTMLVideoElement | null>(null);
+  const [activeSrc, setActiveSrc] = useReactState(src);
+
+  useEffect(() => {
+    setActiveSrc(src);
+  }, [src]);
+
   useEffect(() => {
     const el = ref.current;
-    if (!el || !props.src) return;
+    if (!el || !activeSrc) return;
     el.muted = true;
     el.defaultMuted = true;
     el.setAttribute("muted", "");
@@ -30,8 +37,18 @@ function AutoPlayVideo(
     };
     if (el.readyState >= 2) tryPlay();
     else el.addEventListener("loadeddata", tryPlay, { once: true });
-  }, [props.src]);
-  return <video ref={ref} autoPlay loop muted playsInline {...props} />;
+  }, [activeSrc]);
+
+  const handleError: VideoHTMLAttributes<HTMLVideoElement>["onError"] = (event) => {
+    onError?.(event);
+    if (fallbackSrc && activeSrc !== fallbackSrc) {
+      setActiveSrc(fallbackSrc);
+      return;
+    }
+    onPermanentError?.();
+  };
+
+  return <video key={activeSrc ?? "video"} ref={ref} autoPlay loop muted playsInline {...videoProps} src={activeSrc} onError={handleError} />;
 }
 import { Link, useNavigate } from "@tanstack/react-router";
 
@@ -69,6 +86,9 @@ import burgasHero from "@/assets/burgas-hero.jpeg";
 import burgasPier from "@/assets/burgas-pier.jpeg";
 import homeHero from "@/assets/home-hero-living.jpeg";
 import homeHeroVideo from "@/assets/home-hero.mp4.asset.json";
+import burgasHeroVideo from "@/assets/burgas-hero.mp4.asset.json";
+import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
+import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
 import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
@@ -109,6 +129,12 @@ export const citySlugImages: Record<string, string> = {
   burgas: cityBurgas,
   varna: cityVarna,
   "novi-pazar": cityNoviPazar,
+};
+
+const cityVideoFallbacks: Record<string, string> = {
+  burgas: burgasHeroVideo.url,
+  shumen: shumenHeroVideo.url,
+  varna: varnaHeroVideo.url,
 };
 
 const homeCities: Array<{ name: string; image: string; href: "/cities/$slug"; params: { slug: string } }> = [
