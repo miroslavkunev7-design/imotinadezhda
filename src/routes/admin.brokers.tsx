@@ -18,6 +18,7 @@ function BrokersAdmin() {
   const [rows, setRows] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [detailFor, setDetailFor] = useState<any | null>(null);
+  const [rolesFor, setRolesFor] = useState<any | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
