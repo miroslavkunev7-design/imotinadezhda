@@ -1631,7 +1631,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   const restFacts = facts.slice(1);
 
   return (
-    <main className="luxury-page flex h-screen flex-col overflow-hidden bg-background">
+    <main className="luxury-page flex min-h-screen flex-col bg-background lg:h-screen lg:max-h-screen lg:overflow-hidden">
       <LuxuryHeader active="sale" />
 
       <div className="mx-auto w-full max-w-[1460px] flex-shrink-0 px-4 pt-3 md:px-6">
