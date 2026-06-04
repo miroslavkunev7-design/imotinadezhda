@@ -354,29 +354,53 @@ function CameraCapture({
   }, []);
 
   const startDetectionLoop = () => {
+    // Live видеото се показва директно през <video> елемента.
+    // Тук пускаме САМО детекция на ръбовете върху downscale-нат кадър,
+    // максимум ~3 пъти в секунда, и пропускаме кадри докато тече обработка.
+    // Иначе OpenCV на 60fps × 1920×1080 замразява мобилния браузър.
+    let processing = false;
+    let lastRun = 0;
+    const MIN_INTERVAL = 320; // ms (≈3 fps)
+    const MAX_DIM = 640;      // px за работен canvas
+
     const tick = () => {
       const video = videoRef.current;
-      const canvas = overlayRef.current;
+      const overlay = overlayRef.current;
       const scanner = scannerRef.current;
-      if (video && canvas && video.readyState >= 2) {
+      const now = performance.now();
+      const due = now - lastRun >= MIN_INTERVAL;
+
+      if (!processing && due && video && overlay && scanner && video.readyState >= 2) {
         const vw = video.videoWidth;
         const vh = video.videoHeight;
         if (vw && vh) {
-          if (canvas.width !== vw || canvas.height !== vh) {
-            canvas.width = vw;
-            canvas.height = vh;
-          }
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.clearRect(0, 0, vw, vh);
-            ctx.drawImage(video, 0, 0, vw, vh);
-            if (scanner) {
+          processing = true;
+          lastRun = now;
+          const scale = Math.min(1, MAX_DIM / Math.max(vw, vh));
+          const sw = Math.max(1, Math.round(vw * scale));
+          const sh = Math.max(1, Math.round(vh * scale));
+          const work = document.createElement("canvas");
+          work.width = sw; work.height = sh;
+          const wctx = work.getContext("2d");
+          if (wctx) {
+            wctx.drawImage(video, 0, 0, sw, sh);
+            // Изпълни в отделен microtask — не блокирай rAF
+            Promise.resolve().then(() => {
               try {
-                const highlighted = scanner.highlightPaper(canvas) as HTMLCanvasElement;
-                ctx.clearRect(0, 0, vw, vh);
-                ctx.drawImage(highlighted, 0, 0);
-              } catch { /* ignore frame errors */ }
-            }
+                const highlighted = scanner.highlightPaper(work) as HTMLCanvasElement;
+                if (overlay.width !== sw || overlay.height !== sh) {
+                  overlay.width = sw; overlay.height = sh;
+                }
+                const octx = overlay.getContext("2d");
+                if (octx) {
+                  octx.clearRect(0, 0, sw, sh);
+                  octx.drawImage(highlighted, 0, 0);
+                }
+              } catch { /* пропусни кадъра */ }
+              finally { processing = false; }
+            });
+          } else {
+            processing = false;
           }
         }
       }
