@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
       { name: "description", content: "Имоти Надежда — агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар." },
       { name: "keywords", content: "Имоти Надежда, недвижими имоти, имоти Бургас, имоти Варна, имоти Шумен, имоти Нови пазар, апартаменти, къщи, парцели, агенция недвижими имоти" },
