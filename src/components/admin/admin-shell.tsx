@@ -38,6 +38,7 @@ import { onInstallAvailabilityChange, promptInstall } from "@/lib/pwa";
 import marbleBg from "@/assets/marble-bg.png";
 import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
 import brandLogoAsset from "@/assets/brand-logo-square.png.asset.json";
+import loginHeroVideo from "@/assets/login-hero.mp4.asset.json";
 
 type NavItem = {
   to: string;
