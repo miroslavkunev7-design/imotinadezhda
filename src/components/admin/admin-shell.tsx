@@ -279,7 +279,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
           </>
         )}
         {/* Header */}
-        <header className="flex items-center justify-between gap-2 border-b border-amber-500/20 bg-[rgba(20,4,8,0.55)] px-4 py-3 backdrop-blur-md md:px-6">
+        <header className="relative z-10 flex items-center justify-between gap-2 border-b border-amber-500/20 bg-[rgba(20,4,8,0.55)] px-4 py-3 backdrop-blur-md md:px-6">
           <div className="flex min-w-0 items-center gap-2 text-sm text-amber-100/70">
             <button
               onClick={() => setMobileOpen(true)}
