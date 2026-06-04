@@ -56,13 +56,21 @@ function AutoPlayVideo(
     <video
       key={activeSrc ?? "video"}
       ref={ref}
+      {...videoProps}
       autoPlay
       loop
       muted
       playsInline
-      {...videoProps}
+      preload="auto"
       src={activeSrc}
       onError={handleError}
+      onEnded={(e) => {
+        const v = e.currentTarget;
+        try {
+          v.currentTime = 0;
+          void v.play();
+        } catch {}
+      }}
     />
   );
 }
