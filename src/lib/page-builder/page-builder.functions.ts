@@ -182,8 +182,8 @@ export async function scrapeReferenceHandler(
   await assertAdmin(context.userId);
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) throw new Error("FIRECRAWL_API_KEY е липсва. Свържи Firecrawl в Connectors.");
-  const { default: Firecrawl } = await import("@mendable/firecrawl-js");
-  const fc = new Firecrawl({ apiKey });
+  const { createFirecrawlClient } = await import("@/server/scraper-firecrawl");
+  const fc = createFirecrawlClient();
 
   const formats =
     data.mode === "clone"

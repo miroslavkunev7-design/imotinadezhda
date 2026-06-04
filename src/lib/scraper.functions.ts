@@ -13,10 +13,8 @@ async function assertAdmin(userId: string) {
 const SOURCES = ["realistimo", "imoti_bg", "olx", "bazar_bg", "home_bg", "alo_bg", "facebook"] as const;
 
 async function fc() {
-  const key = process.env.FIRECRAWL_API_KEY;
-  if (!key) throw new Error("FIRECRAWL_API_KEY не е конфигуриран. Свържете Firecrawl в Connectors.");
-  const { default: Firecrawl } = await import("@mendable/firecrawl-js");
-  return new Firecrawl({ apiKey: key });
+  const { createFirecrawlClient } = await import("@/server/scraper-firecrawl");
+  return createFirecrawlClient();
 }
 
 const CITY_QUERY: Record<string, string> = {
