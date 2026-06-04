@@ -276,6 +276,13 @@ function LoginVideo({ src, quality }: { src: string; quality: string }) {
       muted
       playsInline
       preload="auto"
+      onEnded={(e) => {
+        const v = e.currentTarget;
+        try {
+          v.currentTime = 0;
+          void v.play();
+        } catch {}
+      }}
     />
   );
 }
