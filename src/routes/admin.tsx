@@ -24,7 +24,7 @@ async function ensureFreshSession(): Promise<string | null> {
     // 1) Вземи текущата сесия от storage
     const sessData = await withTimeout(supabase.auth.getSession());
     if (!sessData) return null;
-    let session = sessData.session;
+    let session = sessData.data.session;
 
     const nowSec = () => Math.floor(Date.now() / 1000);
     const isExpiring = (s: typeof session) =>
