@@ -201,7 +201,7 @@ export function DocScanner() {
         copied.forEach((p) => merged.addPage(p));
       }
       const out = await merged.save();
-      triggerDownload(new Blob([out], { type: "application/pdf" }), "merged.pdf");
+      triggerDownload(new Blob([out as BlobPart], { type: "application/pdf" }), "merged.pdf");
       toast.success("PDF файловете са обединени");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Грешка при обединяване");
