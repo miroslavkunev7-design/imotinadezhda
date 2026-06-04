@@ -60,3 +60,10 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+// Allow the page to trigger immediate activation of an updated SW.
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
