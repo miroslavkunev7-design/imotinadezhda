@@ -39,7 +39,40 @@ export function initPwa(): void {
   // Register service worker only in production-style contexts.
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => {
+          // 1) When a new SW takes control, reload once so the user gets the latest build.
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+          });
+
+          // 2) When a new SW finishes installing, ask it to skip waiting.
+          const triggerUpdate = (worker: ServiceWorker | null) => {
+            if (!worker) return;
+            worker.addEventListener("statechange", () => {
+              if (worker.state === "installed" && navigator.serviceWorker.controller) {
+                try { worker.postMessage({ type: "SKIP_WAITING" }); } catch {}
+              }
+            });
+          };
+          triggerUpdate(registration.installing);
+          registration.addEventListener("updatefound", () => {
+            triggerUpdate(registration.installing);
+          });
+
+          // 3) Poll for updates periodically and when tab regains focus/visibility.
+          const checkForUpdate = () => { registration.update().catch(() => {}); };
+          setInterval(checkForUpdate, 60 * 1000);
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") checkForUpdate();
+          });
+          window.addEventListener("focus", checkForUpdate);
+        })
+        .catch(() => {});
     });
   }
 
