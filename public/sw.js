@@ -1,8 +1,11 @@
 // Minimal service worker for "Имоти Надежда" PWA.
-// Strategy: NetworkFirst for navigations, CacheFirst for icons/manifest.
-// Kept intentionally simple to avoid stale-shell issues.
+// Strategy: NETWORK-ONLY for HTML navigations (always fresh, no stale shell).
+//           CacheFirst only for static icons/manifest.
+// Combined with the page-side updater in src/lib/pwa.ts this gives reliable
+// auto-update: every new deploy is picked up on the next navigation/visibility
+// change without the user having to clear caches or reinstall the PWA.
 
-const CACHE = "imoti-nadezhda-v1";
+const CACHE = "imoti-nadezhda-v3";
 const PRECACHE = ["/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -15,6 +18,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
+      // Drop every previous cache (including older HTML shells).
       const keys = await caches.keys();
       await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
       await self.clients.claim();
@@ -27,41 +31,31 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
-  // Never intercept OAuth / API / supabase requests
-  if (url.pathname.startsWith("/~oauth") || url.pathname.startsWith("/api/")) return;
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/~oauth") || url.pathname.startsWith("/api/")) return;
 
-  // HTML navigations: network first, fall back to cached shell
+  // HTML navigations → network-only. No fallback to stale cached HTML that
+  // may reference deleted JS chunks.
   if (req.mode === "navigate") {
-    event.respondWith(
-      (async () => {
-        try {
-          const fresh = await fetch(req);
-          const cache = await caches.open(CACHE);
-          cache.put(req, fresh.clone()).catch(() => {});
-          return fresh;
-        } catch {
-          const cached = await caches.match(req);
-          return cached || caches.match("/") || Response.error();
-        }
-      })(),
-    );
+    event.respondWith(fetch(req));
     return;
   }
 
-  // Static assets: cache first
+  // Static PWA assets → cache-first.
   if (PRECACHE.includes(url.pathname) || url.pathname.startsWith("/icon-")) {
     event.respondWith(
-      caches.match(req).then((c) => c || fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
-        return res;
-      })),
+      caches.match(req).then((c) =>
+        c ||
+        fetch(req).then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
+          return res;
+        }),
+      ),
     );
   }
 });
 
-// Allow the page to trigger immediate activation of an updated SW.
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
