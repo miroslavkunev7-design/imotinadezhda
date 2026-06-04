@@ -185,7 +185,8 @@ export const scrapeReference = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const apiKey = process.env.FIRECRAWL_API_KEY;
     if (!apiKey) throw new Error("FIRECRAWL_API_KEY е липсва. Свържи Firecrawl в Connectors.");
     const { default: Firecrawl } = await import("@mendable/firecrawl-js");
