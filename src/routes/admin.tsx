@@ -66,7 +66,7 @@ function AdminLayout() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      navigate({ to: "/login" });
+      navigate({ to: "/login", replace: true });
       return;
     }
     let cancelled = false;
@@ -74,12 +74,13 @@ function AdminLayout() {
       const token = await ensureFreshSession();
       if (cancelled) return;
       if (!token) {
-        navigate({ to: "/login" });
+        navigate({ to: "/login", replace: true });
         return;
       }
       try {
-        const { isAdmin } = await checkAdminAccess();
+        const adminResult = await withTimeout(checkAdminAccess());
         if (cancelled) return;
+        const isAdmin = !!adminResult?.isAdmin;
         setIsAdmin(isAdmin);
         if (isAdmin) {
           logAdminAccess({ data: { path: "/admin" } }).catch(() => {});
