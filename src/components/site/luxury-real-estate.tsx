@@ -965,6 +965,141 @@ type CityData = {
   properties: Array<{ id: string; title: string; price: number | string; currency?: string | null; area_sqm?: number | null; bedrooms?: number | null; bathrooms?: number | null; cover_image_url?: string | null }>;
 };
 
+function CityFilterPanel({
+  citySlug,
+  cityName,
+  quarters,
+}: {
+  citySlug: string;
+  cityName: string;
+  quarters: Array<{ slug: string; name: string }>;
+}) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [quarter, setQuarter] = useReactState("");
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [ptype, setPtype] = useReactState("");
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [priceMax, setPriceMax] = useReactState("");
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [areaMin, setAreaMin] = useReactState("");
+  const navigate = useNavigate();
+
+  const submit = () => {
+    const params: Record<string, string> = { city_slug: citySlug };
+    if (quarter) params.quarter_slug = quarter;
+    if (ptype) params.property_type = ptype;
+    if (priceMax) params.price_max = priceMax;
+    if (areaMin) params.area_min = areaMin;
+    navigate({ to: "/search", search: params as never });
+  };
+
+  const fieldBase =
+    "flex items-center gap-1.5 rounded-xl bg-[#5e0f1d]/80 px-2.5 py-2 text-left ring-1 ring-[#C9A84C]/20 transition hover:bg-[#5e0f1d] relative";
+  const selectBase =
+    "absolute inset-0 w-full h-full cursor-pointer opacity-0";
+
+  return (
+    <div className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-transparent md:bg-none md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]">
+      <div className="grid grid-cols-3 gap-2">
+        {/* Град (fixed to current city) */}
+        <div className={fieldBase}>
+          <MapPin className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Град</div>
+            <div className="truncate text-[11px] text-white">{cityName}</div>
+          </div>
+        </div>
+        {/* Квартал */}
+        <label className={fieldBase}>
+          <House className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Квартал</div>
+            <div className="truncate text-[11px] text-white">
+              {quarters.find((q) => q.slug === quarter)?.name ?? "Всички"}
+            </div>
+          </div>
+          <ChevronDown className="h-3 w-3 flex-none text-[#C9A84C]/80" />
+          <select
+            value={quarter}
+            onChange={(e) => setQuarter(e.target.value)}
+            className={selectBase}
+            aria-label="Квартал"
+          >
+            <option value="">Всички</option>
+            {quarters.map((q) => (
+              <option key={q.slug} value={q.slug}>{q.name}</option>
+            ))}
+          </select>
+        </label>
+        {/* Вид имот */}
+        <label className={fieldBase}>
+          <LandPlot className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Вид имот</div>
+            <div className="truncate text-[11px] text-white">
+              {propertyTypeOptions.find((o) => o.value === ptype)?.label ?? "Всички"}
+            </div>
+          </div>
+          <ChevronDown className="h-3 w-3 flex-none text-[#C9A84C]/80" />
+          <select
+            value={ptype}
+            onChange={(e) => setPtype(e.target.value)}
+            className={selectBase}
+            aria-label="Вид имот"
+          >
+            <option value="">Всички</option>
+            {propertyTypeOptions.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        {/* Цена до */}
+        <label className={fieldBase}>
+          <LandPlot className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Цена до</div>
+            <input
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              placeholder="€"
+              className="w-full bg-transparent text-[11px] text-white outline-none placeholder:text-white/60"
+            />
+          </div>
+        </label>
+        {/* Площ от */}
+        <label className={fieldBase}>
+          <Square className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Площ от</div>
+            <input
+              value={areaMin}
+              onChange={(e) => setAreaMin(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              placeholder="m²"
+              className="w-full bg-transparent text-[11px] text-white outline-none placeholder:text-white/60"
+            />
+          </div>
+        </label>
+        <button
+          type="button"
+          onClick={submit}
+          className="flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold text-[#5e0f1d] transition hover:brightness-105"
+          style={{
+            background: "linear-gradient(180deg,#E8C766 0%,#C9A84C 100%)",
+            boxShadow: "0 6px 16px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.45)",
+          }}
+        >
+          <Search className="h-3.5 w-3.5" />
+          Търси
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function CityPage({ data }: { data?: CityData } = {}) {
   const [videoFailed, setVideoFailed] = useReactState(false);
   const city = data?.city ?? {
