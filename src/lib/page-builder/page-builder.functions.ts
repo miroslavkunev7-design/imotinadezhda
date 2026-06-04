@@ -169,43 +169,49 @@ export const deleteDesign = createServerFn({ method: "POST" })
   });
 
 // ADMIN — scrape a reference URL with Firecrawl
+const scrapeReferenceInput = z.object({
+  url: z.string().url().max(500),
+  mode: z.enum(["similar", "clone"]),
+});
+export type ScrapeReferenceInput = z.infer<typeof scrapeReferenceInput>;
+
+export async function scrapeReferenceHandler(
+  data: ScrapeReferenceInput,
+  context: { userId: string },
+) {
+  await assertAdmin(context.userId);
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) throw new Error("FIRECRAWL_API_KEY е липсва. Свържи Firecrawl в Connectors.");
+  const { default: Firecrawl } = await import("@mendable/firecrawl-js");
+  const fc = new Firecrawl({ apiKey });
+
+  const formats =
+    data.mode === "clone"
+      ? (["html", "markdown", "branding", "screenshot"] as const)
+      : (["branding", "screenshot", "markdown"] as const);
+
+  const result: any = await fc.scrape(data.url, {
+    formats: formats as any,
+    onlyMainContent: false,
+  });
+
+  return {
+    url: data.url,
+    mode: data.mode,
+    branding: result.branding ?? null,
+    screenshot: result.screenshot ?? null,
+    markdown: typeof result.markdown === "string" ? result.markdown.slice(0, 20000) : null,
+    html: typeof result.html === "string" ? result.html.slice(0, 60000) : null,
+    title: result.metadata?.title ?? null,
+  };
+}
+
 export const scrapeReference = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({
-        url: z.string().url().max(500),
-        mode: z.enum(["similar", "clone"]),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const apiKey = process.env.FIRECRAWL_API_KEY;
-    if (!apiKey) throw new Error("FIRECRAWL_API_KEY е липсва. Свържи Firecrawl в Connectors.");
-    const { default: Firecrawl } = await import("@mendable/firecrawl-js");
-    const fc = new Firecrawl({ apiKey });
-
-    const formats =
-      data.mode === "clone"
-        ? (["html", "markdown", "branding", "screenshot"] as const)
-        : (["branding", "screenshot", "markdown"] as const);
-
-    const result: any = await fc.scrape(data.url, {
-      formats: formats as any,
-      onlyMainContent: false,
-    });
-
-    return {
-      url: data.url,
-      mode: data.mode,
-      branding: result.branding ?? null,
-      screenshot: result.screenshot ?? null,
-      markdown: typeof result.markdown === "string" ? result.markdown.slice(0, 20000) : null,
-      html: typeof result.html === "string" ? result.html.slice(0, 60000) : null,
-      title: result.metadata?.title ?? null,
-    };
-  });
+  .inputValidator((input) => scrapeReferenceInput.parse(input))
+  .handler(async ({ data, context }) =>
+    scrapeReferenceHandler(data, { userId: context.userId }),
+  );
 
 // ADMIN — call Lovable AI to convert scraped reference into a layout_json
 export const generateFromReference = createServerFn({ method: "POST" })
