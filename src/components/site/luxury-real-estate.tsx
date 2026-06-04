@@ -942,6 +942,7 @@ type CityData = {
 };
 
 export function CityPage({ data }: { data?: CityData } = {}) {
+  const [videoFailed, setVideoFailed] = useReactState(false);
   const city = data?.city ?? {
     slug: "shumen",
     name: "Шумен",
@@ -968,6 +969,8 @@ export function CityPage({ data }: { data?: CityData } = {}) {
     (city.hero_image_url && !/^https?:/i.test(city.hero_image_url)
       ? city.hero_image_url
       : citySlugImages[city.slug]) || cityShumen;
+  const fallbackVideo = cityVideoFallbacks[city.slug];
+  const heroVideo = videoFailed ? null : (city.hero_video_url || fallbackVideo);
 
   const fmt = (n: number) => new Intl.NumberFormat("bg-BG").format(n);
 
@@ -976,9 +979,11 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       {/* HERO with overlay navbar */}
       <section className="relative">
         <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
-          {city.hero_video_url ? (
+          {heroVideo ? (
             <AutoPlayVideo
-              src={city.hero_video_url}
+              src={heroVideo}
+              fallbackSrc={fallbackVideo}
+              onPermanentError={() => setVideoFailed(true)}
               preload="auto"
               poster={typeof heroImage === "string" ? heroImage : undefined}
               className="absolute inset-0 h-full w-full object-cover"
