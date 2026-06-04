@@ -27,10 +27,10 @@ function softTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ИЛДЖ.ИА | Луксозни имоти в България" },
-      { name: "description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
-      { property: "og:title", content: "ИЛДЖ.ИА | Луксозни имоти в България" },
-      { property: "og:description", content: "Луксозни имоти, квартали и подбрани предложения с премиум визуално изживяване." },
+      { title: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
+      { name: "description", content: "Имоти Надежда — водеща агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар." },
+      { property: "og:title", content: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
+      { property: "og:description", content: "Имоти Надежда — водеща агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар." },
       { property: "og:url", content: `${SITE_URL}/` },
     ],
     links: [
@@ -41,10 +41,13 @@ export const Route = createFileRoute("/")({
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "ИЛДЖ.ИА",
+          "@type": "RealEstateAgent",
+          name: "Имоти Надежда",
+          alternateName: ["Imoti Nadezhda", "Nadezhda Imoti"],
           url: SITE_URL,
-          description: "Луксозни недвижими имоти в България.",
+          description: "Агенция за недвижими имоти Имоти Надежда — апартаменти, къщи, парцели и офиси в Бургас, Варна, Шумен и Нови пазар.",
+          areaServed: ["Бургас", "Варна", "Шумен", "Нови пазар", "България"],
+          address: { "@type": "PostalAddress", addressCountry: "BG" },
         }),
       },
       {
@@ -52,8 +55,10 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "ИЛДЖ.ИА",
+          name: "Имоти Надежда",
+          alternateName: "Imoti Nadezhda",
           url: SITE_URL,
+          inLanguage: "bg-BG",
           potentialAction: {
             "@type": "SearchAction",
             target: `${SITE_URL}/search?city_slug={search_term}`,
@@ -63,6 +68,7 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+
   loader: async () => {
     // Each fetch has its own soft timeout + fallback so a single slow query
     // doesn't blank the page. Layout is non-critical → null fallback.
