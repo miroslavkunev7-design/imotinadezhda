@@ -835,18 +835,21 @@ export function HomePage({
           <div
             key={id}
             data-section-id="hero-search-mobile"
-            className="relative z-20 mx-auto mt-4 w-full max-w-[1440px] px-4 md:mt-7 md:px-8 lg:hidden"
+            className="relative z-20 mx-auto mt-4 w-full max-w-[560px] px-4 md:mt-7 md:px-8 lg:hidden"
           >
-            <SearchBar cities={cityOpts} variant="burgundy" />
+            <HomeFilterPanel cities={cityOpts} />
           </div>
 
         );
       case "hero-search-desktop":
         return (
           <div key={id} data-section-id="hero-search-desktop" className="mb-4 hidden lg:block">
-            <SearchBar cities={cityOpts} variant="burgundy" />
+            <div className="mx-auto w-full max-w-[640px]">
+              <HomeFilterPanel cities={cityOpts} />
+            </div>
           </div>
         );
+
       case "cities-grid":
         return (
           <div key={id} data-section-id="cities-grid" className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
