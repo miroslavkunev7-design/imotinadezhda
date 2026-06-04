@@ -384,13 +384,139 @@ export function DocScanner() {
       {cameraOpen && (
         <CameraCapture
           startCount={pages.length}
-          onClose={() => setCameraOpen(false)}
+          onClose={() => {
+            setCameraOpen(false);
+            if (autoExport) {
+              // Изчакай state-а да се обнови с новите страници, после авто-сваляне.
+              setTimeout(() => {
+                const built = buildPdfBlob();
+                if (built) {
+                  triggerDownload(built.blob, built.filename);
+                  toast.success("PDF е генериран автоматично");
+                }
+              }, 200);
+            }
+          }}
           onCapture={(src, w, h, idx) => {
             addProcessed(src, w, h, `Снимка ${idx}.jpg`);
           }}
         />
       )}
+
+      {sendOpen && <SendDialog onClose={() => setSendOpen(false)} onSend={sendToRecipients} />}
     </div>
+  );
+}
+
+function SendDialog({ onClose, onSend }: { onClose: () => void; onSend: (emails: string[]) => void | Promise<void> }) {
+  const fetchGroups = useServerFn(listContactGroups);
+  const fetchContacts = useServerFn(listContacts);
+  const groupsQ = useQuery({ queryKey: ["contact_groups"], queryFn: () => fetchGroups() });
+  const contactsQ = useQuery({ queryKey: ["contacts"], queryFn: () => fetchContacts() });
+  const groups = (groupsQ.data?.groups ?? []) as Array<{ id: string; name: string; slug: string }>;
+  const contacts = (contactsQ.data?.contacts ?? []) as Array<{ id: string; group_id: string; company_name: string; contact_person: string | null; email: string | null }>;
+
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [manual, setManual] = useState("");
+  const [query, setQuery] = useState("");
+
+  const visible = contacts.filter((c) => {
+    if (!c.email) return false;
+    if (activeGroup && c.group_id !== activeGroup) return false;
+    if (query) {
+      const q = query.toLowerCase();
+      return (
+        c.company_name.toLowerCase().includes(q) ||
+        (c.contact_person?.toLowerCase().includes(q) ?? false) ||
+        (c.email?.toLowerCase().includes(q) ?? false)
+      );
+    }
+    return true;
+  });
+
+  const toggle = (email: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(email)) next.delete(email); else next.add(email);
+      return next;
+    });
+  };
+
+  const submit = async () => {
+    const emails = Array.from(selected);
+    manual.split(/[,\s;]+/).map((e) => e.trim()).filter((e) => /.+@.+\..+/.test(e)).forEach((e) => emails.push(e));
+    if (!emails.length) { toast.error("Избери поне един получател"); return; }
+    await onSend(emails);
+    onClose();
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg bg-white">
+        <DialogHeader>
+          <DialogTitle>Изпрати PDF на…</DialogTitle>
+          <DialogDescription>
+            Избери от групите контакти или въведи ръчно. На телефон PDF се прикача директно; на компютър се сваля и се отваря имейл клиент с попълнени получатели.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Group bubbles */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveGroup(null)}
+            className={`rounded-full px-3 py-1 text-xs ${activeGroup === null ? "bg-amber-400 text-[#4A1217] font-semibold" : "border bg-amber-50 text-amber-900 hover:bg-amber-100"}`}
+          >Всички</button>
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              onClick={() => setActiveGroup(g.id === activeGroup ? null : g.id)}
+              className={`rounded-full px-3 py-1 text-xs ${activeGroup === g.id ? "bg-amber-400 text-[#4A1217] font-semibold" : "border bg-amber-50 text-amber-900 hover:bg-amber-100"}`}
+            >{g.name}</button>
+          ))}
+        </div>
+
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Търси по име, контакт, имейл…" className="pl-8" />
+        </div>
+
+        <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border">
+          {visible.length === 0 ? (
+            <div className="px-3 py-6 text-center text-xs text-muted-foreground">Няма контакти с имейл в тази група.</div>
+          ) : (
+            visible.map((c) => (
+              <label key={c.id} className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-amber-50">
+                <input
+                  type="checkbox"
+                  checked={c.email ? selected.has(c.email) : false}
+                  onChange={() => c.email && toggle(c.email)}
+                  className="accent-amber-500"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{c.company_name}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {c.contact_person ? `${c.contact_person} · ` : ""}{c.email}
+                  </div>
+                </div>
+              </label>
+            ))
+          )}
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold">Ръчно (разделени със запетая)</label>
+          <Input value={manual} onChange={(e) => setManual(e.target.value)} placeholder="ivan@primer.bg, mария@bank.bg" />
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Отказ</Button>
+          <Button onClick={submit} className="gold-cta-button">
+            <Send className="h-4 w-4" /> Изпрати ({selected.size + (manual.trim() ? "+" : "")})
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
