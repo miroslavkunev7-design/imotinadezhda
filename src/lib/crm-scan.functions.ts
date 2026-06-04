@@ -1,5 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+async function assertAdmin(userId: string) {
+  const { data } = await supabaseAdmin
+    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (!data) throw new Error("Forbidden — admin only");
+}
 
 const inputSchema = z.object({
   imageBase64: z.string().min(100).max(15_000_000),
@@ -39,8 +47,10 @@ const SYSTEM = `Ти си асистент за разпознаване на к
 - Гарантирай валиден JSON.`;
 
 export const scanClientFromImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d) => inputSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY не е конфигуриран");
 
@@ -76,13 +86,11 @@ export const scanClientFromImage = createServerFn({ method: "POST" })
 
     const json = await res.json();
     const raw: string = json?.choices?.[0]?.message?.content ?? "";
-    // Strip code fences if any
     const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
     let parsed: any;
     try {
       parsed = JSON.parse(cleaned);
     } catch {
-      // Try to extract JSON object
       const m = cleaned.match(/\{[\s\S]*\}/);
       if (!m) throw new Error("AI не върна валиден JSON");
       parsed = JSON.parse(m[0]);

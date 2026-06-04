@@ -2,6 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+async function assertAdmin(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (!data) throw new Error("Forbidden — admin only");
+}
+
 const PAGE_SLUGS = ["home", "about", "cities", "properties", "brokers", "contact"] as const;
 export type PageSlug = (typeof PAGE_SLUGS)[number];
 
@@ -178,7 +185,8 @@ export const scrapeReference = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const apiKey = process.env.FIRECRAWL_API_KEY;
     if (!apiKey) throw new Error("FIRECRAWL_API_KEY е липсва. Свържи Firecrawl в Connectors.");
     const { default: Firecrawl } = await import("@mendable/firecrawl-js");
@@ -223,7 +231,8 @@ export const generateFromReference = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY не е конфигуриран.");
 
