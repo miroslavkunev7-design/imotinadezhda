@@ -317,7 +317,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-4 pb-24 md:p-6 lg:p-8 lg:pb-8">
+        <main className="relative z-10 flex-1 overflow-auto p-4 pb-24 md:p-6 lg:p-8 lg:pb-8">
           {children}
         </main>
       </div>
