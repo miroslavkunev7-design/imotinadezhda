@@ -177,6 +177,13 @@ function BrokersAdmin() {
       )}
 
       {detailFor && <BrokerDetailModal broker={detailFor} onClose={() => setDetailFor(null)} />}
+      {rolesFor && (
+        <BrokerRolesDialog
+          brokerName={rolesFor.full_name}
+          userId={rolesFor.user_id}
+          onClose={() => setRolesFor(null)}
+        />
+      )}
     </div>
   );
 }
