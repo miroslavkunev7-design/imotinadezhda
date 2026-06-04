@@ -1,8 +1,12 @@
-import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ScanLine, Trash2, FileDown, Plus, Loader2, Camera, ImageIcon, X, Aperture, RotateCcw } from "lucide-react";
+import { ScanLine, Trash2, FileDown, Plus, Loader2, Camera, ImageIcon, X, Aperture, RotateCcw, Merge, Send, Search } from "lucide-react";
 import { jsPDF } from "jspdf";
+import { PDFDocument } from "pdf-lib";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { listContactGroups, listContacts } from "@/lib/contacts.functions";
 // jscanify is dynamically imported in browser-only code paths (SSR-safe)
 async function getScanner() {
   const mod: any = await import("jscanify/client");
@@ -15,7 +19,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export type Page = { id: string; src: string; w: number; h: number; name: string };
 
@@ -61,7 +67,10 @@ export function DocScanner() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [autoEnhance, setAutoEnhance] = useState(false);
+  const [autoExport, setAutoExport] = useState(true); // авто-PDF след затваряне на камерата
+  const [sendOpen, setSendOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mergeInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddClick = () => setPickerOpen(true);
 
@@ -149,8 +158,9 @@ export function DocScanner() {
 
   const removePage = (id: string) => setPages((p) => p.filter((x) => x.id !== id));
 
-  const downloadPdf = () => {
-    if (!pages.length) return;
+  // Изгражда PDF от текущите страници и връща (blob, filename) — без сваляне.
+  const buildPdfBlob = (): { blob: Blob; filename: string } | null => {
+    if (!pages.length) return null;
     const pdf = new jsPDF({ unit: "pt", format: "a4" });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
@@ -163,8 +173,65 @@ export function DocScanner() {
       const y = (pageH - h) / 2;
       pdf.addImage(pg.src, "JPEG", x, y, w, h, undefined, "FAST");
     });
-    pdf.save(`${name || "Документ"}.pdf`);
+    const filename = `${(name || "Документ").replace(/[\\/:*?"<>|]+/g, "_")}.pdf`;
+    return { blob: pdf.output("blob"), filename };
+  };
+
+  const downloadPdf = () => {
+    const built = buildPdfBlob();
+    if (!built) return;
+    triggerDownload(built.blob, built.filename);
     toast.success("PDF файлът е изтеглен");
+  };
+
+  // Merge външни PDF файлове в един — без да пипа текущите сканирани страници.
+  const mergeExternalPdfs = async (files: FileList | null) => {
+    if (!files?.length) return;
+    if (files.length < 2) {
+      toast.error("Избери поне 2 PDF файла за обединяване");
+      return;
+    }
+    setBusy(true);
+    try {
+      const merged = await PDFDocument.create();
+      for (const f of Array.from(files)) {
+        const bytes = await f.arrayBuffer();
+        const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
+        const copied = await merged.copyPages(src, src.getPageIndices());
+        copied.forEach((p) => merged.addPage(p));
+      }
+      const out = await merged.save();
+      triggerDownload(new Blob([out as BlobPart], { type: "application/pdf" }), "merged.pdf");
+      toast.success("PDF файловете са обединени");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Грешка при обединяване");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Споделяне (Web Share API на телефони – истинско прикачване на PDF);
+  // ако не се поддържа – сваля PDF и отваря mailto с попълнени получатели.
+  const sendToRecipients = async (emails: string[]) => {
+    const built = buildPdfBlob();
+    if (!built) {
+      toast.error("Няма страници за изпращане");
+      return;
+    }
+    const file = new File([built.blob], built.filename, { type: "application/pdf" });
+    const subject = `${name || "Документ"} — от Имоти Надежда`;
+    const body = `Здравейте,\n\nИзпращаме Ви прикачения документ "${name || "Документ"}".\n\nПоздрави,\nИмоти Надежда`;
+    const navAny = navigator as unknown as { canShare?: (d: ShareData) => boolean; share?: (d: ShareData) => Promise<void> };
+    if (emails.length && navAny.canShare && navAny.canShare({ files: [file] })) {
+      try {
+        await navAny.share!({ files: [file], title: subject, text: `${body}\n\nДо: ${emails.join(", ")}` });
+        return;
+      } catch { /* user cancelled or share failed — продължи с mailto */ }
+    }
+    triggerDownload(built.blob, built.filename);
+    const to = emails.join(",");
+    const url = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body + "\n\n(Моля, прикачи свалния PDF файл към имейла.)")}`;
+    window.location.href = url;
   };
 
   return (
@@ -231,17 +298,49 @@ export function DocScanner() {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-100/60">
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={autoEnhance} onChange={(e) => setAutoEnhance(e.target.checked)} className="accent-amber-400" />
-          <span>Авто-подобряване (по-бавно)</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="inline-flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={autoEnhance} onChange={(e) => setAutoEnhance(e.target.checked)} className="accent-amber-400" />
+            <span>Авто-подобряване</span>
+          </label>
+          <label className="inline-flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={autoExport} onChange={(e) => setAutoExport(e.target.checked)} className="accent-amber-400" />
+            <span>Авто PDF при затваряне на камерата</span>
+          </label>
           <span className="text-amber-100/40">· {pages.length} стр.</span>
-        </label>
-        <div className="flex gap-2">
+        </div>
+        <div className="flex flex-wrap gap-2">
           {pages.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => setPages([])} className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10">
               Изчисти
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => mergeInputRef.current?.click()}
+            disabled={busy}
+            className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10"
+          >
+            <Merge className="h-4 w-4" /> Merge PDF
+          </Button>
+          <input
+            ref={mergeInputRef}
+            type="file"
+            accept="application/pdf"
+            multiple
+            className="hidden"
+            onChange={(e) => { mergeExternalPdfs(e.target.files); e.target.value = ""; }}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSendOpen(true)}
+            disabled={!pages.length}
+            className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10"
+          >
+            <Send className="h-4 w-4" /> Изпрати на…
+          </Button>
           <Button onClick={downloadPdf} disabled={!pages.length} className="gold-cta-button">
             <FileDown className="h-4 w-4" /> Свали PDF
           </Button>
@@ -285,13 +384,139 @@ export function DocScanner() {
       {cameraOpen && (
         <CameraCapture
           startCount={pages.length}
-          onClose={() => setCameraOpen(false)}
+          onClose={() => {
+            setCameraOpen(false);
+            if (autoExport) {
+              // Изчакай state-а да се обнови с новите страници, после авто-сваляне.
+              setTimeout(() => {
+                const built = buildPdfBlob();
+                if (built) {
+                  triggerDownload(built.blob, built.filename);
+                  toast.success("PDF е генериран автоматично");
+                }
+              }, 200);
+            }
+          }}
           onCapture={(src, w, h, idx) => {
             addProcessed(src, w, h, `Снимка ${idx}.jpg`);
           }}
         />
       )}
+
+      {sendOpen && <SendDialog onClose={() => setSendOpen(false)} onSend={sendToRecipients} />}
     </div>
+  );
+}
+
+function SendDialog({ onClose, onSend }: { onClose: () => void; onSend: (emails: string[]) => void | Promise<void> }) {
+  const fetchGroups = useServerFn(listContactGroups);
+  const fetchContacts = useServerFn(listContacts);
+  const groupsQ = useQuery({ queryKey: ["contact_groups"], queryFn: () => fetchGroups() });
+  const contactsQ = useQuery({ queryKey: ["contacts"], queryFn: () => fetchContacts() });
+  const groups = (groupsQ.data?.groups ?? []) as Array<{ id: string; name: string; slug: string }>;
+  const contacts = (contactsQ.data?.contacts ?? []) as Array<{ id: string; group_id: string; company_name: string; contact_person: string | null; email: string | null }>;
+
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [manual, setManual] = useState("");
+  const [query, setQuery] = useState("");
+
+  const visible = contacts.filter((c) => {
+    if (!c.email) return false;
+    if (activeGroup && c.group_id !== activeGroup) return false;
+    if (query) {
+      const q = query.toLowerCase();
+      return (
+        c.company_name.toLowerCase().includes(q) ||
+        (c.contact_person?.toLowerCase().includes(q) ?? false) ||
+        (c.email?.toLowerCase().includes(q) ?? false)
+      );
+    }
+    return true;
+  });
+
+  const toggle = (email: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(email)) next.delete(email); else next.add(email);
+      return next;
+    });
+  };
+
+  const submit = async () => {
+    const emails = Array.from(selected);
+    manual.split(/[,\s;]+/).map((e) => e.trim()).filter((e) => /.+@.+\..+/.test(e)).forEach((e) => emails.push(e));
+    if (!emails.length) { toast.error("Избери поне един получател"); return; }
+    await onSend(emails);
+    onClose();
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg bg-white">
+        <DialogHeader>
+          <DialogTitle>Изпрати PDF на…</DialogTitle>
+          <DialogDescription>
+            Избери от групите контакти или въведи ръчно. На телефон PDF се прикача директно; на компютър се сваля и се отваря имейл клиент с попълнени получатели.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Group bubbles */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveGroup(null)}
+            className={`rounded-full px-3 py-1 text-xs ${activeGroup === null ? "bg-amber-400 text-[#4A1217] font-semibold" : "border bg-amber-50 text-amber-900 hover:bg-amber-100"}`}
+          >Всички</button>
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              onClick={() => setActiveGroup(g.id === activeGroup ? null : g.id)}
+              className={`rounded-full px-3 py-1 text-xs ${activeGroup === g.id ? "bg-amber-400 text-[#4A1217] font-semibold" : "border bg-amber-50 text-amber-900 hover:bg-amber-100"}`}
+            >{g.name}</button>
+          ))}
+        </div>
+
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Търси по име, контакт, имейл…" className="pl-8" />
+        </div>
+
+        <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border">
+          {visible.length === 0 ? (
+            <div className="px-3 py-6 text-center text-xs text-muted-foreground">Няма контакти с имейл в тази група.</div>
+          ) : (
+            visible.map((c) => (
+              <label key={c.id} className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-amber-50">
+                <input
+                  type="checkbox"
+                  checked={c.email ? selected.has(c.email) : false}
+                  onChange={() => c.email && toggle(c.email)}
+                  className="accent-amber-500"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{c.company_name}</div>
+                  <div className="truncate text-xs text-muted-foreground">
+                    {c.contact_person ? `${c.contact_person} · ` : ""}{c.email}
+                  </div>
+                </div>
+              </label>
+            ))
+          )}
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold">Ръчно (разделени със запетая)</label>
+          <Input value={manual} onChange={(e) => setManual(e.target.value)} placeholder="ivan@primer.bg, mария@bank.bg" />
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Отказ</Button>
+          <Button onClick={submit} className="gold-cta-button">
+            <Send className="h-4 w-4" /> Изпрати ({selected.size + (manual.trim() ? "+" : "")})
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -498,6 +723,17 @@ function CameraCapture({
       )}
     </div>
   );
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function fileToDataUrl(f: File): Promise<string> {

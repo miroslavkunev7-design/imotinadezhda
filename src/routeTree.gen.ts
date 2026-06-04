@@ -32,6 +32,7 @@ import { Route as AdminDocumentsRouteImport } from './routes/admin.documents'
 import { Route as AdminDnsRouteImport } from './routes/admin.dns'
 import { Route as AdminDatabaseRouteImport } from './routes/admin.database'
 import { Route as AdminContractsRouteImport } from './routes/admin.contracts'
+import { Route as AdminContactsRouteImport } from './routes/admin.contacts'
 import { Route as AdminClientsRouteImport } from './routes/admin.clients'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
 import { Route as AdminChatRouteImport } from './routes/admin.chat'
@@ -163,6 +164,11 @@ const AdminContractsRoute = AdminContractsRouteImport.update({
   path: '/contracts',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminContactsRoute = AdminContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminClientsRoute = AdminClientsRouteImport.update({
   id: '/clients',
   path: '/clients',
@@ -256,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/admin/chat': typeof AdminChatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/contacts': typeof AdminContactsRoute
   '/admin/contracts': typeof AdminContractsRoute
   '/admin/database': typeof AdminDatabaseRoute
   '/admin/dns': typeof AdminDnsRoute
@@ -295,6 +302,7 @@ export interface FileRoutesByTo {
   '/admin/chat': typeof AdminChatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/contacts': typeof AdminContactsRoute
   '/admin/contracts': typeof AdminContractsRoute
   '/admin/database': typeof AdminDatabaseRoute
   '/admin/dns': typeof AdminDnsRoute
@@ -336,6 +344,7 @@ export interface FileRoutesById {
   '/admin/chat': typeof AdminChatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/contacts': typeof AdminContactsRoute
   '/admin/contracts': typeof AdminContractsRoute
   '/admin/database': typeof AdminDatabaseRoute
   '/admin/dns': typeof AdminDnsRoute
@@ -378,6 +387,7 @@ export interface FileRouteTypes {
     | '/admin/chat'
     | '/admin/cities'
     | '/admin/clients'
+    | '/admin/contacts'
     | '/admin/contracts'
     | '/admin/database'
     | '/admin/dns'
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/admin/chat'
     | '/admin/cities'
     | '/admin/clients'
+    | '/admin/contacts'
     | '/admin/contracts'
     | '/admin/database'
     | '/admin/dns'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/admin/chat'
     | '/admin/cities'
     | '/admin/clients'
+    | '/admin/contacts'
     | '/admin/contracts'
     | '/admin/database'
     | '/admin/dns'
@@ -661,6 +673,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContractsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/contacts': {
+      id: '/admin/contacts'
+      path: '/contacts'
+      fullPath: '/admin/contacts'
+      preLoaderRoute: typeof AdminContactsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/clients': {
       id: '/admin/clients'
       path: '/clients'
@@ -805,6 +824,7 @@ interface AdminRouteChildren {
   AdminChatRoute: typeof AdminChatRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminClientsRoute: typeof AdminClientsRoute
+  AdminContactsRoute: typeof AdminContactsRoute
   AdminContractsRoute: typeof AdminContractsRoute
   AdminDatabaseRoute: typeof AdminDatabaseRoute
   AdminDnsRoute: typeof AdminDnsRoute
@@ -831,6 +851,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminChatRoute: AdminChatRoute,
   AdminCitiesRoute: AdminCitiesRoute,
   AdminClientsRoute: AdminClientsRoute,
+  AdminContactsRoute: AdminContactsRoute,
   AdminContractsRoute: AdminContractsRoute,
   AdminDatabaseRoute: AdminDatabaseRoute,
   AdminDnsRoute: AdminDnsRoute,
