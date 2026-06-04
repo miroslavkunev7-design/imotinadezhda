@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import Firecrawl from "@mendable/firecrawl-js";
+type Firecrawl = any;
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -12,9 +12,10 @@ async function assertAdmin(userId: string) {
 
 const SOURCES = ["realistimo", "imoti_bg", "olx", "bazar_bg", "home_bg", "alo_bg", "facebook"] as const;
 
-function fc() {
+async function fc() {
   const key = process.env.FIRECRAWL_API_KEY;
   if (!key) throw new Error("FIRECRAWL_API_KEY не е конфигуриран. Свържете Firecrawl в Connectors.");
+  const { default: Firecrawl } = await import("@mendable/firecrawl-js");
   return new Firecrawl({ apiKey: key });
 }
 
@@ -191,7 +192,7 @@ export const runScrape = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const client = fc();
+    const client = await fc();
     const allResults: ScrapeResult[] = [];
 
     const SOURCE_MAP: Record<string, { domain: string; rx: RegExp }> = {
