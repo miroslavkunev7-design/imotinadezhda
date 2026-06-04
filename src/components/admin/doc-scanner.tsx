@@ -67,7 +67,10 @@ export function DocScanner() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [autoEnhance, setAutoEnhance] = useState(false);
+  const [autoExport, setAutoExport] = useState(true); // авто-PDF след затваряне на камерата
+  const [sendOpen, setSendOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mergeInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddClick = () => setPickerOpen(true);
 
