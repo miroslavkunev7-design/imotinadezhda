@@ -248,6 +248,40 @@ export const assignBrokerRole = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// ============ BROKER ROLES MANAGEMENT ============
+const ROLE_VALUES = ["admin", "boss", "head_broker", "broker", "consultant", "rental_dept", "agent", "user"] as const;
+export type BrokerRole = typeof ROLE_VALUES[number];
+
+export const getBrokerRoles = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { data: rows, error } = await supabaseAdmin
+      .from("user_roles").select("role").eq("user_id", data.user_id);
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((r) => r.role as BrokerRole);
+  });
+
+export const setBrokerRoles = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    user_id: z.string().uuid(),
+    roles: z.array(z.enum(ROLE_VALUES)).min(0).max(8),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    // Replace all roles for this user atomically
+    const { error: delErr } = await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
+    if (delErr) throw new Error(delErr.message);
+    if (data.roles.length > 0) {
+      const rows = data.roles.map((role) => ({ user_id: data.user_id, role: role as any }));
+      const { error: insErr } = await supabaseAdmin.from("user_roles").insert(rows);
+      if (insErr) throw new Error(insErr.message);
+    }
+    return { ok: true, roles: data.roles };
+  });
+
 // ============ MATCHING ============
 async function runMatchForClient(clientId: string) {
   const { data: client } = await supabaseAdmin.from("clients").select("*").eq("id", clientId).maybeSingle();

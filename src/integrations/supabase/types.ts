@@ -1736,7 +1736,15 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "agent" | "user" | "broker"
+      app_role:
+        | "admin"
+        | "agent"
+        | "user"
+        | "broker"
+        | "head_broker"
+        | "consultant"
+        | "rental_dept"
+        | "boss"
       extracted_source:
         | "realistimo"
         | "imoti_bg"
@@ -1878,7 +1886,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "agent", "user", "broker"],
+      app_role: [
+        "admin",
+        "agent",
+        "user",
+        "broker",
+        "head_broker",
+        "consultant",
+        "rental_dept",
+        "boss",
+      ],
       extracted_source: [
         "realistimo",
         "imoti_bg",

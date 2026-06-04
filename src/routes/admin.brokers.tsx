@@ -2,12 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, X, Upload, UserCog, Phone, Mail, CheckSquare, Square, ListChecks, UserPlus, MessageSquare, PhoneCall, CalendarClock, ClipboardList } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Upload, UserCog, Phone, Mail, Shield, CheckSquare, Square, ListChecks, UserPlus, MessageSquare, PhoneCall, CalendarClock, ClipboardList } from "lucide-react";
 import {
   listBrokers, upsertBroker, deleteBroker, createBrokerAccount,
   getBrokerDetails, upsertBrokerTask, toggleBrokerTask, deleteBrokerTask,
   assignClientToBroker, unassignClientFromBroker, listUnassignedClients,
 } from "@/lib/crm.functions";
+import { BrokerRolesDialog } from "@/components/admin/broker-roles-dialog";
 
 export const Route = createFileRoute("/admin/brokers")({
   component: BrokersAdmin,
@@ -17,6 +18,7 @@ function BrokersAdmin() {
   const [rows, setRows] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [detailFor, setDetailFor] = useState<any | null>(null);
+  const [rolesFor, setRolesFor] = useState<any | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
@@ -103,8 +105,15 @@ function BrokersAdmin() {
               {b.email && <div className="flex items-center gap-2 break-all"><Mail className="h-3.5 w-3.5" />{b.email}</div>}
             </div>
             {b.bio && <p className="mt-3 line-clamp-3 text-xs text-amber-100/70">{b.bio}</p>}
-            <div className="mt-4 flex gap-2" onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => setDetailFor(b)} className="flex-1 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200 hover:bg-amber-500/20"><ListChecks className="inline h-3.5 w-3.5 mr-1" />Задачи и клиенти</button>
+            <div className="mt-4 flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setDetailFor(b)} className="flex-1 min-w-[120px] rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200 hover:bg-amber-500/20"><ListChecks className="inline h-3.5 w-3.5 mr-1" />Задачи и клиенти</button>
+              <button
+                onClick={() => b.user_id ? setRolesFor(b) : alert("Брокерът няма свързан акаунт. Свържи го с user_id първо.")}
+                title="Управление на роли"
+                className={`rounded-lg border px-3 py-1.5 text-xs ${b.user_id ? "border-[#C9A84C]/60 bg-[#C9A84C]/10 text-[#C9A84C] hover:bg-[#C9A84C]/20" : "border-white/10 text-white/30 cursor-not-allowed"}`}
+              >
+                <Shield className="inline h-3.5 w-3.5 mr-1" />Роли
+              </button>
               <button onClick={() => setEditing(b)} className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs hover:bg-amber-500/10"><Pencil className="inline h-3.5 w-3.5" /></button>
               <button onClick={() => remove(b.id)} className="rounded-lg border border-rose-500/30 px-3 py-1.5 text-xs text-rose-300 hover:bg-rose-500/10"><Trash2 className="inline h-3.5 w-3.5" /></button>
             </div>
@@ -168,6 +177,13 @@ function BrokersAdmin() {
       )}
 
       {detailFor && <BrokerDetailModal broker={detailFor} onClose={() => setDetailFor(null)} />}
+      {rolesFor && (
+        <BrokerRolesDialog
+          brokerName={rolesFor.full_name}
+          userId={rolesFor.user_id}
+          onClose={() => setRolesFor(null)}
+        />
+      )}
     </div>
   );
 }
