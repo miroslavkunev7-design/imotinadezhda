@@ -5,6 +5,12 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { checkAdminAccess, logAdminAccess } from "@/lib/audit.functions";
 import { supabase } from "@/integrations/supabase/client";
 
+const withTimeout = <T,>(promise: Promise<T>, ms = 6000): Promise<T | null> =>
+  Promise.race([
+    promise,
+    new Promise<null>((resolve) => window.setTimeout(() => resolve(null), ms)),
+  ]);
+
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
@@ -16,8 +22,9 @@ export const Route = createFileRoute("/admin")({
 async function ensureFreshSession(): Promise<string | null> {
   try {
     // 1) Вземи текущата сесия от storage
-    const { data: sessData } = await supabase.auth.getSession();
-    let session = sessData.session;
+    const sessData = await withTimeout(supabase.auth.getSession());
+    if (!sessData) return null;
+    let session = sessData.data.session;
 
     const nowSec = () => Math.floor(Date.now() / 1000);
     const isExpiring = (s: typeof session) =>
@@ -36,7 +43,9 @@ async function ensureFreshSession(): Promise<string | null> {
     }
 
     // 3) Финална ре-валидация срещу Auth сървъра
-    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    const userResult = await withTimeout(supabase.auth.getUser());
+    if (!userResult) return null;
+    const { data: userData, error: userErr } = userResult;
     if (userErr || !userData.user) {
       await supabase.auth.signOut().catch(() => {});
       return null;
@@ -57,7 +66,7 @@ function AdminLayout() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      navigate({ to: "/login" });
+      navigate({ to: "/login", replace: true });
       return;
     }
     let cancelled = false;
@@ -65,12 +74,13 @@ function AdminLayout() {
       const token = await ensureFreshSession();
       if (cancelled) return;
       if (!token) {
-        navigate({ to: "/login" });
+        navigate({ to: "/login", replace: true });
         return;
       }
       try {
-        const { isAdmin } = await checkAdminAccess();
+        const adminResult = await withTimeout(checkAdminAccess());
         if (cancelled) return;
+        const isAdmin = !!adminResult?.isAdmin;
         setIsAdmin(isAdmin);
         if (isAdmin) {
           logAdminAccess({ data: { path: "/admin" } }).catch(() => {});
