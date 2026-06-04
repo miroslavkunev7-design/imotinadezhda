@@ -444,8 +444,8 @@ function CameraCapture({
         </button>
       </div>
       <div className="relative flex-1 overflow-hidden">
-        <video ref={videoRef} playsInline muted className="absolute inset-0 h-full w-full object-contain opacity-0" />
-        <canvas ref={overlayRef} className="absolute inset-0 h-full w-full object-contain" />
+        <video ref={videoRef} playsInline muted autoPlay className="absolute inset-0 h-full w-full object-contain" />
+        <canvas ref={overlayRef} className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-70 mix-blend-screen" />
         {status === "loading" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-amber-100">
             <Loader2 className="h-8 w-8 animate-spin" />
