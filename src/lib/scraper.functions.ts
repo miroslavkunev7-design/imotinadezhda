@@ -13,7 +13,7 @@ async function assertAdmin(userId: string) {
 const SOURCES = ["realistimo", "imoti_bg", "olx", "bazar_bg", "home_bg", "alo_bg", "facebook"] as const;
 
 async function fc() {
-  const { createFirecrawlClient } = await import("./scraper-firecrawl.server");
+  const { createFirecrawlClient } = await import("@/server/scraper-firecrawl");
   return createFirecrawlClient();
 }
 
