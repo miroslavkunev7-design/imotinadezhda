@@ -158,8 +158,9 @@ export function DocScanner() {
 
   const removePage = (id: string) => setPages((p) => p.filter((x) => x.id !== id));
 
-  const downloadPdf = () => {
-    if (!pages.length) return;
+  // Изгражда PDF от текущите страници и връща (blob, filename) — без сваляне.
+  const buildPdfBlob = (): { blob: Blob; filename: string } | null => {
+    if (!pages.length) return null;
     const pdf = new jsPDF({ unit: "pt", format: "a4" });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
@@ -172,8 +173,65 @@ export function DocScanner() {
       const y = (pageH - h) / 2;
       pdf.addImage(pg.src, "JPEG", x, y, w, h, undefined, "FAST");
     });
-    pdf.save(`${name || "Документ"}.pdf`);
+    const filename = `${(name || "Документ").replace(/[\\/:*?"<>|]+/g, "_")}.pdf`;
+    return { blob: pdf.output("blob"), filename };
+  };
+
+  const downloadPdf = () => {
+    const built = buildPdfBlob();
+    if (!built) return;
+    triggerDownload(built.blob, built.filename);
     toast.success("PDF файлът е изтеглен");
+  };
+
+  // Merge външни PDF файлове в един — без да пипа текущите сканирани страници.
+  const mergeExternalPdfs = async (files: FileList | null) => {
+    if (!files?.length) return;
+    if (files.length < 2) {
+      toast.error("Избери поне 2 PDF файла за обединяване");
+      return;
+    }
+    setBusy(true);
+    try {
+      const merged = await PDFDocument.create();
+      for (const f of Array.from(files)) {
+        const bytes = await f.arrayBuffer();
+        const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
+        const copied = await merged.copyPages(src, src.getPageIndices());
+        copied.forEach((p) => merged.addPage(p));
+      }
+      const out = await merged.save();
+      triggerDownload(new Blob([out], { type: "application/pdf" }), "merged.pdf");
+      toast.success("PDF файловете са обединени");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Грешка при обединяване");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Споделяне (Web Share API на телефони – истинско прикачване на PDF);
+  // ако не се поддържа – сваля PDF и отваря mailto с попълнени получатели.
+  const sendToRecipients = async (emails: string[]) => {
+    const built = buildPdfBlob();
+    if (!built) {
+      toast.error("Няма страници за изпращане");
+      return;
+    }
+    const file = new File([built.blob], built.filename, { type: "application/pdf" });
+    const subject = `${name || "Документ"} — от Имоти Надежда`;
+    const body = `Здравейте,\n\nИзпращаме Ви прикачения документ "${name || "Документ"}".\n\nПоздрави,\nИмоти Надежда`;
+    const navAny = navigator as unknown as { canShare?: (d: ShareData) => boolean; share?: (d: ShareData) => Promise<void> };
+    if (emails.length && navAny.canShare && navAny.canShare({ files: [file] })) {
+      try {
+        await navAny.share!({ files: [file], title: subject, text: `${body}\n\nДо: ${emails.join(", ")}` });
+        return;
+      } catch { /* user cancelled or share failed — продължи с mailto */ }
+    }
+    triggerDownload(built.blob, built.filename);
+    const to = emails.join(",");
+    const url = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body + "\n\n(Моля, прикачи свалния PDF файл към имейла.)")}`;
+    window.location.href = url;
   };
 
   return (
