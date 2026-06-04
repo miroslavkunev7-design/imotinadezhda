@@ -298,17 +298,49 @@ export function DocScanner() {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-100/60">
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={autoEnhance} onChange={(e) => setAutoEnhance(e.target.checked)} className="accent-amber-400" />
-          <span>Авто-подобряване (по-бавно)</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="inline-flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={autoEnhance} onChange={(e) => setAutoEnhance(e.target.checked)} className="accent-amber-400" />
+            <span>Авто-подобряване</span>
+          </label>
+          <label className="inline-flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={autoExport} onChange={(e) => setAutoExport(e.target.checked)} className="accent-amber-400" />
+            <span>Авто PDF при затваряне на камерата</span>
+          </label>
           <span className="text-amber-100/40">· {pages.length} стр.</span>
-        </label>
-        <div className="flex gap-2">
+        </div>
+        <div className="flex flex-wrap gap-2">
           {pages.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => setPages([])} className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10">
               Изчисти
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => mergeInputRef.current?.click()}
+            disabled={busy}
+            className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10"
+          >
+            <Merge className="h-4 w-4" /> Merge PDF
+          </Button>
+          <input
+            ref={mergeInputRef}
+            type="file"
+            accept="application/pdf"
+            multiple
+            className="hidden"
+            onChange={(e) => { mergeExternalPdfs(e.target.files); e.target.value = ""; }}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSendOpen(true)}
+            disabled={!pages.length}
+            className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10"
+          >
+            <Send className="h-4 w-4" /> Изпрати на…
+          </Button>
           <Button onClick={downloadPdf} disabled={!pages.length} className="gold-cta-button">
             <FileDown className="h-4 w-4" /> Свали PDF
           </Button>
