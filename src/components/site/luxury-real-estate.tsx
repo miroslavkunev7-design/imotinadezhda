@@ -1646,7 +1646,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
       <section className="mx-auto flex w-full max-w-[1460px] flex-1 min-h-0 flex-col px-4 py-3 md:px-6 md:py-4">
         <div className="grid flex-1 min-h-0 gap-4 lg:grid-cols-[1.55fr_1fr]">
           {/* LEFT — Gallery */}
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-[24px] bg-card p-3 shadow-[0_18px_38px_rgba(139,26,43,0.12)] md:p-4">
+          <div className="flex min-h-[55vh] min-h-0 flex-col overflow-hidden rounded-[24px] bg-card p-3 shadow-[0_18px_38px_rgba(139,26,43,0.12)] md:p-4 lg:min-h-0">
             <PropertyGallery images={gallery} title={property.title} />
           </div>
 
