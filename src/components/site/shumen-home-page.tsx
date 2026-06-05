@@ -24,7 +24,9 @@ import {
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
 import cityShumen from "@/assets/city-shumen.jpeg";
+import { SiteHeader } from "@/components/site/site-header";
 const shumenPanorama = { url: cityShumen };
+
 
 /* ---------------- Шумен квартали ---------------- */
 const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image: string }> = [
@@ -42,10 +44,10 @@ const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image:
   { name: "Еверест",            slug: "everest",            count: 9,  image: cityShumen },
 ];
 
-/* ---------------- Logo header (top-left) ---------------- */
+/* ---------------- Logo header (top-left) — desktop only ---------------- */
 function LogoHeader() {
   return (
-    <Link to="/" className="absolute top-0 left-0 z-50 block" aria-label="Имоти Надежда — начало">
+    <Link to="/" className="absolute top-0 left-0 z-50 hidden md:block" aria-label="Имоти Надежда — начало">
       <div className="nadezhda-marble-bg w-52 md:w-64 pt-5 pb-6 px-5 nadezhda-top-logo-curve shadow-2xl relative border-b-4 border-r-4 border-[#c59441] flex items-center justify-center">
         <img
           src={logoNadezhda}
@@ -56,6 +58,7 @@ function LogoHeader() {
     </Link>
   );
 }
+
 
 /* ---------------- Header nav (top-right) ---------------- */
 function HeaderNav() {
@@ -182,28 +185,51 @@ function Field({
   );
 }
 
-/* ---------------- Neighborhood card ---------------- */
-function NeighborhoodCard({ image, title, count, slug }: { image: string; title: string; count: number; slug: string }) {
+/* ---------------- Neighborhood card — SHUMEN variant ---------------- */
+/* Distinct from Burgas: split layout (image top + marble content panel below),
+   gold ribbon counter, burgundy underline reveal on hover, image gentle zoom + lift. */
+function NeighborhoodCardShumen({ image, title, count, slug }: { image: string; title: string; count: number; slug: string }) {
   return (
     <Link
       to="/cities/$slug/districts/$district"
       params={{ slug: "shumen", district: slug } as never}
-      className="rounded-2xl overflow-hidden relative h-44 md:h-48 group cursor-pointer shadow-lg border border-[#eaddc4] block"
+      className="group block rounded-2xl overflow-hidden bg-white border border-[#eaddc4] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 font-sans-nadezhda"
     >
-      <img src={image} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#4a0010]/90 via-black/40 to-transparent" />
-      <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4 text-white font-sans-nadezhda">
-        <h4 className="font-bold text-lg md:text-xl mb-1 md:mb-2 font-serif-nadezhda">{title}</h4>
-        <div className="flex items-center justify-between text-xs md:text-sm text-gray-300">
-          <span className="flex items-center gap-1.5">
-            <MapPin className="text-yellow-500 w-3.5 h-3.5" /> {count} имота
-          </span>
-          <ArrowRight className="text-white w-4 h-4 group-hover:translate-x-1 transition" />
+      {/* Image panel (top) */}
+      <div className="relative h-28 md:h-32 overflow-hidden">
+        <img
+          src={image}
+          alt={title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#4f0314]/40 to-transparent" />
+        {/* Gold ribbon with property count */}
+        <div className="absolute top-3 right-3 nadezhda-gold-bg text-[#260108] text-[11px] md:text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+          <HomeIcon className="w-3 h-3" /> {count}
         </div>
+      </div>
+
+      {/* Marble content panel (bottom) */}
+      <div className="nadezhda-marble-bg px-4 py-3 md:px-5 md:py-4 border-t border-[#eaddc4] relative">
+        <h4 className="font-serif-nadezhda text-[#600f1c] text-base md:text-lg font-bold leading-tight mb-1">
+          {title}
+        </h4>
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-[#600f1c]/70 text-xs">
+            <MapPin className="text-[#c59441] w-3.5 h-3.5" /> Шумен
+          </span>
+          <span className="flex items-center gap-1 text-[#c59441] text-xs font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+            Виж <ArrowRight className="w-3.5 h-3.5" />
+          </span>
+        </div>
+        {/* Burgundy underline reveal */}
+        <span className="absolute left-4 right-4 bottom-0 h-[2px] bg-gradient-to-r from-[#600f1c] to-[#c59441] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500" />
       </div>
     </Link>
   );
 }
+
+
 
 /* ---------------- Feature strip (bottom) ---------------- */
 function FeatureIcon({ Icon, title, desc }: { Icon: React.ComponentType<{ className?: string }>; title: string; desc: string }) {
@@ -249,7 +275,12 @@ function HeroVideoOrImage({
 export function ShumenHomePage() {
   return (
     <div className="min-h-screen relative nadezhda-marble-bg text-[#31020c] font-sans-nadezhda overflow-x-hidden">
+      {/* Mobile-only navigation (restored SiteHeader) */}
+      <div className="md:hidden">
+        <SiteHeader />
+      </div>
       {/* HERO */}
+
       <div className="relative">
         <TopFloatSearch />
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
@@ -283,7 +314,7 @@ export function ShumenHomePage() {
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-12">
           {SHUMEN_QUARTERS.map((q) => (
-            <NeighborhoodCard key={q.slug} image={q.image} title={q.name} count={q.count} slug={q.slug} />
+            <NeighborhoodCardShumen key={q.slug} image={q.image} title={q.name} count={q.count} slug={q.slug} />
           ))}
         </div>
 
