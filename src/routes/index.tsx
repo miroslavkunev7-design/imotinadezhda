@@ -5,22 +5,6 @@ import { HomeSkeleton, PageErrorRetry } from "@/components/site/page-skeleton";
 
 const SITE_URL = "https://imotinadezhda.lovable.app";
 
-// Race a promise with a timeout; on timeout resolve with fallback rather than rejecting,
-// so a slow backend never blocks the whole page render.
-function softTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
-  return new Promise<T>((resolve) => {
-    const t = setTimeout(() => resolve(fallback), ms);
-    promise
-      .then((v) => {
-        clearTimeout(t);
-        resolve(v);
-      })
-      .catch(() => {
-        clearTimeout(t);
-        resolve(fallback);
-      });
-  });
-}
 
 export const Route = createFileRoute("/")({
   head: () => ({
