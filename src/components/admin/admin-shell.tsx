@@ -110,7 +110,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const current = NAV.find((n) => (n.to === "/admin" ? path === "/admin" : path.startsWith(n.to)));
 
   return (
-    <div className="flex min-h-screen bg-[#5e0f1d]">
+    <div className="relative flex min-h-screen bg-[#1a0608]">
       {/* Mobile overlay */}
       {mobileOpen && (
         <button
@@ -248,7 +248,10 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
 
       {/* Main — херо фон */}
       <div
-        className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-[#1a0608]"
+        className={cn(
+          "relative flex min-w-0 flex-1 flex-col overflow-hidden",
+          crmBg ? "bg-[#1a0608]" : "bg-transparent",
+        )}
         style={
           crmBg
             ? {
@@ -260,10 +263,10 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
             : undefined
         }
       >
-        {/* Ambient video clip (same as login hero) — clean, no red overlay */}
+        {/* Ambient video clip (same as login hero) — clean, full screen, no overlay */}
         {!crmBg && (
           <video
-            className="pointer-events-none absolute inset-0 -z-0 h-full w-full object-cover"
+            className="pointer-events-none fixed inset-0 z-0 h-screen w-screen object-cover"
             src={loginHeroVideo.url}
             autoPlay
             loop
@@ -275,7 +278,8 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         )}
 
         {/* Header */}
-        <header className="relative z-10 flex items-center justify-between gap-2 border-b border-amber-500/20 bg-[rgba(20,4,8,0.55)] px-4 py-3 backdrop-blur-md md:px-6">
+        <header className="relative z-10 flex items-center justify-between gap-2 border-b border-amber-500/20 px-4 py-3 backdrop-blur-sm md:px-6">
+
           <div className="flex min-w-0 items-center gap-2 text-sm text-amber-100/70">
             <button
               onClick={() => setMobileOpen(true)}
