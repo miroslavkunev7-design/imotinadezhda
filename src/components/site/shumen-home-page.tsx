@@ -44,10 +44,10 @@ const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image:
   { name: "Еверест",            slug: "everest",            count: 9,  image: cityShumen },
 ];
 
-/* ---------------- Logo header (top-left) ---------------- */
+/* ---------------- Logo header (top-left) — desktop only ---------------- */
 function LogoHeader() {
   return (
-    <Link to="/" className="absolute top-0 left-0 z-50 block" aria-label="Имоти Надежда — начало">
+    <Link to="/" className="absolute top-0 left-0 z-50 hidden md:block" aria-label="Имоти Надежда — начало">
       <div className="nadezhda-marble-bg w-52 md:w-64 pt-5 pb-6 px-5 nadezhda-top-logo-curve shadow-2xl relative border-b-4 border-r-4 border-[#c59441] flex items-center justify-center">
         <img
           src={logoNadezhda}
@@ -58,6 +58,7 @@ function LogoHeader() {
     </Link>
   );
 }
+
 
 /* ---------------- Header nav (top-right) ---------------- */
 function HeaderNav() {
