@@ -266,7 +266,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         {/* Ambient video clip (same as login hero) — clean, full screen, no overlay */}
         {!crmBg && (
           <video
-            className="pointer-events-none fixed inset-0 -z-10 h-screen w-screen object-cover"
+            className="pointer-events-none fixed inset-0 z-0 h-screen w-screen object-cover"
             src={loginHeroVideo.url}
             autoPlay
             loop
