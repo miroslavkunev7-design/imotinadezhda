@@ -25,6 +25,7 @@ import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
 import cityShumen from "@/assets/city-shumen.jpeg";
 import { SiteHeader } from "@/components/site/site-header";
+import { InstallCrmButton } from "@/components/site/install-crm-button";
 const shumenPanorama = { url: cityShumen };
 
 
@@ -338,6 +339,7 @@ export function ShumenHomePage() {
           <FeatureIcon Icon={Trophy} title="Професионализъм" desc="Опитен екип с доказани резултати" />
         </div>
       </div>
+      <InstallCrmButton />
     </div>
   );
 }
