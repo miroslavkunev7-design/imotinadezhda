@@ -82,6 +82,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const [mobileOpen, setMobileOpen] = useState(false);
   const [installAvailable, setInstallAvailable] = useState(false);
   const [crmBg, setCrmBg] = useState<string | null>(null);
+  const { theme } = useCrmTheme();
 
   useEffect(() => onInstallAvailabilityChange(setInstallAvailable), []);
 
