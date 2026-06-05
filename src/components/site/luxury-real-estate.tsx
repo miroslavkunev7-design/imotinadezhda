@@ -1593,15 +1593,40 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
   const quarter = data?.quarter ?? { id: "x", slug: "lazur", name: "Лазур", description: "Един от най-предпочитаните квартали в Бургас – с морска панорама, близост до Морската градина и всички удобства за модерен начин на живот.", image_url: null, properties_count: 312 };
   const properties = data?.properties ?? [];
   const count = quarter.properties_count ?? properties.length;
+  const [districtVideoFailed, setDistrictVideoFailed] = useReactState(false);
+  const districtFallbackVideo = cityVideoFallbacks[city.slug];
+  const districtHeroVideo = districtVideoFailed ? null : districtFallbackVideo;
+  const districtHeroPoster = (citySlugImages as Record<string, string>)[city.slug] || burgasHero;
 
   return (
     <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `none`, backgroundSize: "cover" }}>
       <LuxuryHeader active="sale" />
 
-
+      {/* CITY HERO VIDEO */}
+      <section className="relative h-[42vh] min-h-[280px] w-full overflow-hidden md:h-[52vh]">
+        {districtHeroVideo ? (
+          <AutoPlayVideo
+            src={districtHeroVideo}
+            fallbackSrc={districtFallbackVideo}
+            onPermanentError={() => setDistrictVideoFailed(true)}
+            preload="auto"
+            poster={districtHeroPoster}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <img src={districtHeroPoster} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+        )}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#5e0f1d]/50" />
+        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-6 md:px-8 md:pb-10">
+          <div className="mx-auto max-w-[1460px]">
+            <div className="font-display text-[2rem] leading-tight text-white drop-shadow md:text-[3rem]">{quarter.name}</div>
+            <div className="mt-1 text-sm uppercase tracking-[0.18em] text-[#C9A84C] md:text-base">гр. {city.name}</div>
+          </div>
+        </div>
+      </section>
 
       <section className="relative px-3 pb-12 md:px-6 md:pb-16">
-        <div className="mx-auto mt-4 grid max-w-[1460px] gap-6 px-2 pt-[120px] md:px-4 md:pt-[180px] xl:grid-cols-[270px_1fr_360px] xl:items-start xl:pt-[230px]">
+        <div className="mx-auto mt-4 grid max-w-[1460px] gap-6 px-2 pt-8 md:px-4 md:pt-10 xl:grid-cols-[270px_1fr_360px] xl:items-start xl:pt-12">
           <aside className="marble-dark-panel rounded-[22px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(139, 26, 43,0.32)]">
             <div className="mb-5 text-center font-display text-[1.55rem] text-primary-foreground">Бързи филтри</div>
             <div className="space-y-6">
@@ -1767,9 +1792,38 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   const mainFact = facts[0];
   const restFacts = facts.slice(1);
 
+  const [propVideoFailed, setPropVideoFailed] = useReactState(false);
+  const propFallbackVideo = cityVideoFallbacks[citySlug];
+  const propHeroVideo = propVideoFailed ? null : propFallbackVideo;
+  const propHeroPoster = (citySlugImages as Record<string, string>)[citySlug] || property.cover_image_url || burgasHero;
+
   return (
-    <main className="luxury-page flex min-h-screen flex-col bg-background lg:h-screen lg:max-h-screen lg:overflow-hidden">
+    <main className="luxury-page flex min-h-screen flex-col bg-background">
       <LuxuryHeader active="sale" />
+
+      {/* CITY HERO VIDEO */}
+      <section className="relative h-[36vh] min-h-[240px] w-full overflow-hidden md:h-[44vh]">
+        {propHeroVideo ? (
+          <AutoPlayVideo
+            src={propHeroVideo}
+            fallbackSrc={propFallbackVideo}
+            onPermanentError={() => setPropVideoFailed(true)}
+            preload="auto"
+            poster={propHeroPoster}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <img src={propHeroPoster} alt={cityName} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+        )}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#5e0f1d]/50" />
+        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-5 md:px-8 md:pb-8">
+          <div className="mx-auto max-w-[1460px]">
+            <div className="text-sm uppercase tracking-[0.18em] text-[#C9A84C] md:text-base">гр. {cityName}{quarterName ? ` · кв. ${quarterName}` : ""}</div>
+            <div className="font-display text-[1.5rem] leading-tight text-white drop-shadow md:text-[2.4rem]">{property.title}</div>
+          </div>
+        </div>
+      </section>
+
 
       <div className="mx-auto w-full max-w-[1460px] flex-shrink-0 px-4 pt-3 md:px-6">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
