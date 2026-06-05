@@ -65,5 +65,5 @@ function HomeErrorRoute({ error }: { error: Error }) {
 }
 
 function HomeRoute() {
-  return <ShumenHomePage />;
+  return <HomePage />;
 }
