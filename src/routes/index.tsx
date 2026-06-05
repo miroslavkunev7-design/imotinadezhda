@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 
-import { ShumenHomePage } from "@/components/site/shumen-home-page";
+import { HomePage } from "@/components/site/luxury-real-estate";
 import { HomeSkeleton, PageErrorRetry } from "@/components/site/page-skeleton";
 
 const SITE_URL = "https://imotinadezhda.lovable.app";
