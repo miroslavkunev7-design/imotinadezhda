@@ -39,9 +39,10 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const clickCount = useRef(0);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleLogo = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleLogo = (_e: React.MouseEvent) => {
+    // Triple-click opens admin login. Single click still navigates to "/"
+    // via <Link to="/"> — do NOT preventDefault, so home navigation works
+    // on the very first click.
     clickCount.current += 1;
     if (clickTimer.current) clearTimeout(clickTimer.current);
     if (clickCount.current >= 3) {
@@ -50,9 +51,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
       return;
     }
     clickTimer.current = setTimeout(() => {
-      const c = clickCount.current;
       clickCount.current = 0;
-      if (c === 1) navigate({ to: "/" });
     }, 420);
   };
 

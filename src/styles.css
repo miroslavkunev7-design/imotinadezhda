@@ -447,6 +447,9 @@ html, body, #root {
   background-repeat: no-repeat;
   background-position: center top;
   background-size: 100% 100%;
+  /* Removes the white background around the logo + red panel so only those
+     remain visible against the page background / hero behind the header. */
+  mix-blend-mode: multiply;
 }
 .site-header__art--desktop {
   max-width: 100%;
