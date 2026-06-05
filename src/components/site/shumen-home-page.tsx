@@ -219,6 +219,33 @@ function FeatureIcon({ Icon, title, desc }: { Icon: React.ComponentType<{ classN
 }
 
 /* ==================== MAIN PAGE ==================== */
+function HeroVideoOrImage({
+  videoUrl,
+  posterUrl,
+  alt,
+}: {
+  videoUrl: string;
+  posterUrl: string;
+  alt: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed || !videoUrl) {
+    return <img src={posterUrl} alt={alt} className="absolute inset-0 w-full h-full object-cover" />;
+  }
+  return (
+    <video
+      src={videoUrl}
+      autoPlay
+      muted
+      loop
+      playsInline
+      className="absolute inset-0 w-full h-full object-cover"
+      poster={posterUrl}
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export function ShumenHomePage() {
   return (
     <div className="min-h-screen relative nadezhda-marble-bg text-[#31020c] font-sans-nadezhda overflow-x-hidden">
@@ -226,15 +253,7 @@ export function ShumenHomePage() {
       <div className="relative">
         <TopFloatSearch />
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
-          <video
-            src={shumenHeroVideo.url}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            poster={shumenPanorama.url}
-          />
+          <HeroVideoOrImage videoUrl={shumenHeroVideo.url} posterUrl={shumenPanorama.url} alt="Шумен" />
           <div className="absolute inset-0 bg-black/30" />
           <LogoHeader />
           <HeaderNav />
