@@ -1603,7 +1603,7 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
       <LuxuryHeader active="sale" />
 
       {/* CITY HERO VIDEO */}
-      <section className="relative h-screen min-h-[100dvh] w-full overflow-hidden">
+      <section className="relative h-[100dvh] min-h-[100svh] w-full overflow-hidden">
         {districtHeroVideo ? (
           <AutoPlayVideo
             src={districtHeroVideo}
@@ -1802,7 +1802,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
       <LuxuryHeader active="sale" />
 
       {/* CITY HERO VIDEO */}
-      <section className="relative h-screen min-h-[100dvh] w-full overflow-hidden">
+      <section className="relative h-[100dvh] min-h-[100svh] w-full overflow-hidden">
         {propHeroVideo ? (
           <AutoPlayVideo
             src={propHeroVideo}
