@@ -309,7 +309,7 @@ export function ShumenHomePage() {
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-12">
           {SHUMEN_QUARTERS.map((q) => (
-            <NeighborhoodCard key={q.slug} image={q.image} title={q.name} count={q.count} slug={q.slug} />
+            <NeighborhoodCardShumen key={q.slug} image={q.image} title={q.name} count={q.count} slug={q.slug} />
           ))}
         </div>
 
