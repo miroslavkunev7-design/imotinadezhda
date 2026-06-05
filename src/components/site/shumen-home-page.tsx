@@ -24,7 +24,9 @@ import {
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
 import cityShumen from "@/assets/city-shumen.jpeg";
+import { SiteHeader } from "@/components/site/site-header";
 const shumenPanorama = { url: cityShumen };
+
 
 /* ---------------- Шумен квартали ---------------- */
 const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image: string }> = [
