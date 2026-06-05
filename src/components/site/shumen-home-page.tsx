@@ -275,7 +275,12 @@ function HeroVideoOrImage({
 export function ShumenHomePage() {
   return (
     <div className="min-h-screen relative nadezhda-marble-bg text-[#31020c] font-sans-nadezhda overflow-x-hidden">
+      {/* Mobile-only navigation (restored SiteHeader) */}
+      <div className="md:hidden">
+        <SiteHeader />
+      </div>
       {/* HERO */}
+
       <div className="relative">
         <TopFloatSearch />
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
