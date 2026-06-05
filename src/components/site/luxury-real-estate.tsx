@@ -1591,8 +1591,8 @@ type QuarterData = {
 };
 
 export function DistrictPage({ data }: { data?: QuarterData } = {}) {
-  const city = data?.city ?? { id: "x", slug: "burgas", name: "Бургас" };
-  const quarter = data?.quarter ?? { id: "x", slug: "lazur", name: "Лазур", description: "Един от най-предпочитаните квартали в Бургас – с морска панорама, близост до Морската градина и всички удобства за модерен начин на живот.", image_url: null, properties_count: 312 };
+  const city = data?.city ?? { id: "x", slug: "shumen", name: "Шумен" };
+  const quarter = data?.quarter ?? { id: "x", slug: "centar", name: "Център", description: null, image_url: null, properties_count: 0 };
   const properties = data?.properties ?? [];
   const count = quarter.properties_count ?? properties.length;
   const [districtVideoFailed, setDistrictVideoFailed] = useReactState(false);
@@ -1601,11 +1601,11 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
   const districtHeroPoster = (citySlugImages as Record<string, string>)[city.slug] || burgasHero;
 
   return (
-    <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `none`, backgroundSize: "cover" }}>
+    <main className="luxury-page nadezhda-marble-bg min-h-screen font-sans-nadezhda text-[#31020c]">
       <LuxuryHeader active="sale" />
 
-      {/* CITY HERO VIDEO */}
-      <section className="relative h-[100dvh] min-h-[100svh] w-full overflow-hidden">
+      {/* HERO — city video */}
+      <div className="relative h-[450px] w-full">
         {districtHeroVideo ? (
           <AutoPlayVideo
             src={districtHeroVideo}
@@ -1613,139 +1613,202 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
             onPermanentError={() => setDistrictVideoFailed(true)}
             preload="auto"
             poster={districtHeroPoster}
-            className="absolute inset-0 h-full w-full object-cover"
+            className="h-full w-full object-cover"
           />
         ) : (
-          <img src={districtHeroPoster} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+          <img src={districtHeroPoster} alt={city.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         )}
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#5e0f1d]/50" />
-        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-6 md:px-8 md:pb-10">
-          <div className="mx-auto max-w-[1460px]">
-            <div className="font-display text-[2rem] leading-tight text-white drop-shadow md:text-[3rem]">{quarter.name}</div>
-            <div className="mt-1 text-sm uppercase tracking-[0.18em] text-[#C9A84C] md:text-base">гр. {city.name}</div>
-          </div>
-        </div>
-      </section>
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent" />
+      </div>
 
-      <section className="relative px-3 pb-12 md:px-6 md:pb-16">
-        <div className="mx-auto mt-4 grid max-w-[1460px] gap-6 px-2 pt-8 md:px-4 md:pt-10 xl:grid-cols-[270px_1fr_360px] xl:items-start xl:pt-12">
-          <aside className="marble-dark-panel rounded-[22px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(139, 26, 43,0.32)]">
-            <div className="mb-5 text-center font-display text-[1.55rem] text-primary-foreground">Бързи филтри</div>
-            <div className="space-y-6">
-              <div>
-                <div className="mb-3 border-b border-[var(--color-secondary)]/30 pb-2 text-[15px] uppercase tracking-[0.06em] text-[var(--color-secondary)]">Тип имот</div>
-                <div className="space-y-2.5 text-[15px]">
-                  {["Апартамент", "Многостаен", "Къща", "Парцел", "Офис", "Магазин"].map((item) => (
-                    <label key={item} className="flex items-center gap-3">
-                      <input type="checkbox" className="h-[18px] w-[18px] rounded-sm border border-[var(--color-secondary)]/60 bg-transparent accent-[var(--color-secondary)]" />
-                      <span>{item}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="mb-3 text-[15px] uppercase tracking-[0.06em] text-[var(--color-secondary)]">Цена</div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 text-sm text-primary-foreground/70">От</span>
-                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-[#8B1A2B]/12 px-3 py-2 text-sm">€</div>
-                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-[#8B1A2B]/12 px-3 py-2 text-sm">€</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 text-sm text-primary-foreground/70">До</span>
-                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-[#8B1A2B]/12 px-3 py-2 text-sm">€</div>
-                  </div>
-                </div>
-              </div>
-              <Button className="h-12 w-full rounded-[12px] border border-[var(--color-secondary)] bg-transparent text-[15px] text-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/10">
-                Приложи филтрите
-              </Button>
-            </div>
-          </aside>
+      {/* Floating search bar overlapping hero */}
+      <div className="relative z-10 mx-auto -mt-12 max-w-6xl px-4">
+        <DistrictSearchBar cityName={city.name} />
+      </div>
 
-          <div className="space-y-5">
-            <div className="rounded-[24px] border border-primary/10 bg-card/90 p-6 shadow-[0_18px_45px_rgba(92,41,20,0.12)] md:p-8">
-              <div className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-                <Link to="/" className="hover:text-primary">Начало</Link>
-                <ChevronRight className="h-3.5 w-3.5" />
-                <Link to="/cities/$slug" params={{ slug: city.slug }} className="hover:text-primary">{city.name}</Link>
-                <ChevronRight className="h-3.5 w-3.5" />
-                <span className="text-accent-foreground">{quarter.name}</span>
-              </div>
-              <div className="flex flex-wrap items-start justify-between gap-5">
-                <div className="max-w-[640px]">
-                  <h1 className="font-display text-[2.6rem] leading-tight text-accent-foreground md:text-[3.2rem]">
-                    {quarter.name}, гр. {city.name}
-                  </h1>
-                  <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
-                    {quarter.description || `Един от най-предпочитаните квартали в ${city.name} – с морска панорама, близост до Морската градина и всички удобства за модерен начин на живот.`}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <div className="flex min-w-[110px] flex-col items-center rounded-[16px] border border-primary/15 bg-background px-5 py-3 shadow-sm">
-                    <House className="h-5 w-5 text-primary" />
-                    <div className="mt-1 font-display text-[1.6rem] leading-none text-accent-foreground">{count}</div>
-                    <div className="text-xs text-muted-foreground">имота</div>
-                  </div>
-                  <button className="flex min-w-[110px] flex-col items-center rounded-[16px] border border-primary/15 bg-background px-5 py-3 shadow-sm transition hover:border-primary/40">
-                    <Heart className="h-5 w-5 text-primary" />
-                    <div className="mt-1 text-[13px] font-medium text-accent-foreground">Добави</div>
-                    <div className="text-xs text-muted-foreground">в любими</div>
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* Main content */}
+      <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-8 px-4 pb-24 lg:flex-row">
+        <DistrictFilterSidebar />
 
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-primary/10 bg-card/90 px-5 py-3 shadow-sm">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span>Сортирай по:</span>
-                <button className="inline-flex items-center gap-2 rounded-[10px] border border-primary/20 bg-background px-3 py-1.5 text-accent-foreground">
-                  Най-нови <ChevronDown className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <button aria-label="Грид изглед" className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-primary/25 bg-primary/10 text-primary">
-                  <SlidersHorizontal className="h-4 w-4" />
-                </button>
-                <button aria-label="Списък изглед" className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-primary/15 bg-background text-muted-foreground hover:text-primary">
-                  <Ruler className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {properties.length === 0 ? (
-                <div className="rounded-[20px] bg-card p-10 text-center text-muted-foreground sm:col-span-2 xl:col-span-4">
-                  Все още няма публикувани имоти в този квартал.
-                </div>
-              ) : (
-                properties.map((p) => (
-                  <DistrictListingCard key={p.id} p={p} location={`${quarter.name}, гр. ${city.name}`} fallback={burgasHero} />
-                ))
-              )}
-            </div>
-
-            {data?.gallery && data.gallery.length > 0 ? (
-              <div className="rounded-[24px] border border-primary/10 bg-card/90 p-6 shadow-sm md:p-8">
-                <div className="mb-5 flex items-center justify-between">
-                  <h2 className="font-display text-[1.8rem] text-accent-foreground">Галерия — {quarter.name}</h2>
-                  <span className="text-sm text-muted-foreground">{data.gallery.length} снимки</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-                  {data.gallery.map((img) => (
-                    <div key={img.id} className="overflow-hidden rounded-[14px] border border-primary/15 shadow-sm">
-                      <img src={img.url} alt={quarter.name} className="h-40 w-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+        <div className="flex-1">
+          {/* Breadcrumb */}
+          <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+            <Link to="/" className="hover:text-black">Начало</Link>
+            <ChevronRight className="h-3 w-3" />
+            <Link to="/cities/$slug" params={{ slug: city.slug }} className="hover:text-black">{city.name}</Link>
+            <ChevronRight className="h-3 w-3" />
+            <span className="font-bold text-[#600f1c]">{quarter.name}</span>
           </div>
 
-          <DistrictMapCard name={quarter.name} />
+          {/* Title row */}
+          <div className="mb-8 flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-xl">
+              <h1 className="font-serif-nadezhda mb-3 text-4xl font-bold leading-tight text-[#600f1c] md:text-5xl">{quarter.name}, гр. {city.name}</h1>
+              <p className="text-base leading-relaxed text-gray-600">
+                {quarter.description || `Един от предпочитаните квартали в гр. ${city.name} – с отлична инфраструктура, удобства и възможности за съвременен начин на живот.`}
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-4 rounded-2xl border border-[#eaddc4] bg-white px-5 py-3 shadow-sm">
+                <House className="h-7 w-7 text-[#c59441]" />
+                <div>
+                  <div className="font-serif-nadezhda text-xl font-bold leading-none text-[#600f1c]">{count}</div>
+                  <div className="text-sm text-gray-500">имота</div>
+                </div>
+              </div>
+              <button className="flex items-center gap-4 rounded-2xl border border-[#eaddc4] bg-white px-5 py-3 shadow-sm transition hover:bg-gray-50">
+                <Heart className="h-7 w-7 text-[#c59441]" />
+                <div className="text-left">
+                  <div className="text-base font-bold leading-none text-[#600f1c]">Добави</div>
+                  <div className="mt-1 text-xs text-gray-500">в любими</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Sort bar */}
+          <div className="mb-8 flex items-center justify-between rounded-2xl border border-[#eaddc4] bg-[#fdfaf5] px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">Сортирай по:</span>
+              <select className="cursor-pointer border-none bg-transparent text-base font-bold text-[#600f1c] outline-none">
+                <option>Най-нови</option>
+                <option>Най-евтини</option>
+                <option>Най-скъпи</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button className="nadezhda-dark-red-bg flex h-10 w-10 items-center justify-center rounded-lg text-white shadow"><SlidersHorizontal className="h-4 w-4" /></button>
+              <button className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm hover:bg-gray-50"><Ruler className="h-4 w-4" /></button>
+            </div>
+          </div>
+
+          {/* Listings grid */}
+          <div className="grid gap-8 md:grid-cols-2">
+            {properties.length === 0 ? (
+              <div className="rounded-2xl bg-white p-10 text-center text-muted-foreground md:col-span-2">
+                Все още няма публикувани имоти в този квартал.
+              </div>
+            ) : (
+              properties.map((p) => (
+                <DistrictListingCard key={p.id} p={p} location={`${quarter.name}, гр. ${city.name}`} fallback={districtHeroPoster} />
+              ))
+            )}
+          </div>
+
+          {data?.gallery && data.gallery.length > 0 ? (
+            <div className="mt-10 rounded-3xl border border-[#eaddc4] bg-[#fdfaf5] p-8 shadow-sm">
+              <div className="mb-5 flex items-center justify-between">
+                <h2 className="font-serif-nadezhda text-2xl font-bold text-[#600f1c]">Галерия — {quarter.name}</h2>
+                <span className="text-sm text-gray-500">{data.gallery.length} снимки</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {data.gallery.map((img) => (
+                  <div key={img.id} className="overflow-hidden rounded-2xl border border-[#eaddc4] shadow-sm">
+                    <img src={img.url} alt={quarter.name} className="h-40 w-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
-      </section>
+
+        <DistrictQuarterMap name={quarter.name} />
+      </div>
     </main>
+  );
+}
+
+function DistrictSearchBar({ cityName }: { cityName: string }) {
+  return (
+    <div className="nadezhda-dark-red-bg flex flex-wrap items-center justify-between gap-3 rounded-full border border-[#c59441] p-4 font-sans-nadezhda text-sm text-white shadow-2xl">
+      <div className="flex w-full items-center gap-3 border-gray-600 px-4 md:w-1/5 md:border-r">
+        <MapPin className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
+          <div className="text-xs text-gray-300">Град</div>
+          <div className="flex items-center justify-between text-base font-bold">{cityName} <ChevronDown className="h-3 w-3" /></div>
+        </div>
+      </div>
+      <div className="flex w-full items-center gap-3 border-gray-600 px-4 md:w-1/5 md:border-r">
+        <House className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
+          <div className="text-xs text-gray-300">Вид имот</div>
+          <div className="flex items-center justify-between text-base font-bold">Всички <ChevronDown className="h-3 w-3" /></div>
+        </div>
+      </div>
+      <div className="flex w-full items-center gap-3 border-gray-600 px-4 md:w-1/5 md:border-r">
+        <LandPlot className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
+          <div className="text-xs text-gray-300">Цена</div>
+          <div className="flex items-center justify-between text-base font-bold">Без значение <ChevronDown className="h-3 w-3" /></div>
+        </div>
+      </div>
+      <div className="flex w-full items-center gap-3 px-4 md:w-1/5">
+        <Square className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
+          <div className="text-xs text-gray-300">Площ</div>
+          <div className="flex items-center justify-between text-base font-bold">Без значение <ChevronDown className="h-3 w-3" /></div>
+        </div>
+      </div>
+      <div className="flex w-full items-center justify-end gap-3 pl-4 md:w-1/5">
+        <button className="flex items-center gap-2 rounded-full border border-gray-500 px-5 py-3 text-white transition hover:bg-white/10">
+          <SlidersHorizontal className="h-4 w-4" /> Филтри
+        </button>
+        <Link to="/search" className="nadezhda-gold-bg flex items-center gap-2 rounded-full px-8 py-3 text-base font-bold text-black shadow-lg transition hover:brightness-110">
+          <Search className="h-4 w-4" /> Търси
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function DistrictFilterSidebar() {
+  return (
+    <aside className="nadezhda-dark-red-bg w-full flex-shrink-0 rounded-3xl border border-[#c59441] p-6 text-white shadow-xl lg:w-72">
+      <h3 className="font-serif-nadezhda mb-4 text-2xl font-bold">Бързи филтри</h3>
+      <hr className="mb-6 border-gray-600/50" />
+      <div className="mb-8">
+        <div className="mb-3 text-lg text-gray-300">Тип имот</div>
+        {["Апартамент", "Многостаен", "Къща", "Парцел", "Офис", "Магазин"].map((t) => (
+          <label key={t} className="mb-3 flex cursor-pointer items-center gap-3 transition hover:text-yellow-400">
+            <span className="flex h-5 w-5 items-center justify-center rounded border border-gray-400">
+              {t === "Апартамент" ? <span className="h-3 w-3 rounded-sm bg-[#f4d07d]" /> : null}
+            </span>
+            <span className="text-sm">{t}</span>
+          </label>
+        ))}
+      </div>
+      <div className="mb-8">
+        <div className="mb-3 text-lg text-gray-300">Цена</div>
+        <div className="mb-3 flex items-center gap-3">
+          <span className="w-6 text-sm">От</span>
+          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2"><span className="ml-1 text-gray-400">€</span></div>
+        </div>
+        <div className="mb-4 flex items-center gap-3">
+          <span className="w-6 text-sm">До</span>
+          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2"><span className="ml-1 text-gray-400">€</span></div>
+        </div>
+      </div>
+      <button className="nadezhda-gold-bg mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-3 text-lg font-bold text-black shadow-lg transition hover:brightness-110">
+        Приложи филтрите <SlidersHorizontal className="h-4 w-4" />
+      </button>
+    </aside>
+  );
+}
+
+function DistrictQuarterMap({ name }: { name: string }) {
+  return (
+    <aside className="relative h-[700px] w-full flex-shrink-0 overflow-hidden rounded-3xl border border-[#c59441] bg-gray-200 shadow-xl lg:w-80">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#525252] via-[#737373] to-[#404040]" />
+      <div className="absolute inset-y-0 right-0 w-[36%]" style={{ background: "linear-gradient(135deg,#1b4d62 0%,#0f3a4f 55%,#0b2c3d 100%)", clipPath: "polygon(35% 0,100% 0,100% 100%,0 100%)" }} />
+      <div className="absolute bottom-1/3 left-10 right-10 top-1/4 flex items-center justify-center rounded-[3rem] border-2 border-red-500 bg-red-600/30 backdrop-blur-sm">
+        <span className="font-serif-nadezhda text-3xl font-bold tracking-wider text-white drop-shadow-lg">{name.toUpperCase()}</span>
+      </div>
+      <div className="absolute bottom-6 left-6 right-6">
+        <button className="nadezhda-dark-red-bg flex w-full items-center justify-center gap-3 rounded-xl border border-[#c59441] py-4 text-lg text-white shadow-xl transition hover:brightness-125">
+          <MapPin className="h-5 w-5 text-[#c59441]" /> Виж на картата
+        </button>
+      </div>
+    </aside>
   );
 }
 
