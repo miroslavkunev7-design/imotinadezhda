@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2, User as UserIcon, Save } from "lucide-react";
+import { Upload, Loader2, User as UserIcon, Save, Palette, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useCrmTheme, CRM_THEME_PRESETS, type CrmTheme } from "@/hooks/use-crm-theme";
 
 export const Route = createFileRoute("/admin/profile")({
   component: ProfilePage,
