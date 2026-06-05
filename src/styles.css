@@ -397,15 +397,36 @@
   }
 }
 
-/* Public site: natural document flow at all viewports. */
+/* Public site only: no scroll. Admin/CRM allows normal scrolling. */
 html, body, #root {
   max-width: 100vw;
 }
 
-.luxury-page {
-  min-height: 100vh;
+body:has(.luxury-page) {
+  max-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
+.luxury-page {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+/* Mobile: allow scrolling so city cards and search bar aren't clipped. */
+@media (max-width: 1023px) {
+  body:has(.luxury-page) {
+    max-height: none;
+    height: auto;
+    overflow: auto;
+  }
+  .luxury-page {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+}
 
 
 /* === Site header: transparent navbar PNGs (desktop + mobile) with hotspots === */
@@ -414,24 +435,27 @@ html, body, #root {
   width: 100%;
   z-index: 1000;
   background: transparent;
+  padding: 0;
+  margin: 0;
 }
 .site-header__art {
   position: relative;
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
+  padding: 0;
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
+  background-position: center top;
+  background-size: 100% 100%;
 }
 .site-header__art--desktop {
-  max-width: none;
+  max-width: 100%;
   aspect-ratio: 1367 / 307 !important;
   height: auto;
-  max-height: clamp(72px, 8vw, 120px);
+  max-height: clamp(110px, 12vw, 230px);
 }
-.site-header { padding: 0; margin: 0; }
-.site-header__art { padding: 0; margin: 0; }
 .site-header__art--mobile { display: none; max-width: 1400px; }
+
+
 @media (max-width: 768px) {
   .site-header__art--desktop { display: none; }
   .site-header__art--mobile { display: block; }
