@@ -110,7 +110,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const current = NAV.find((n) => (n.to === "/admin" ? path === "/admin" : path.startsWith(n.to)));
 
   return (
-    <div className="flex min-h-screen bg-[#5e0f1d]">
+    <div className="relative flex min-h-screen bg-[#1a0608]">
       {/* Mobile overlay */}
       {mobileOpen && (
         <button
