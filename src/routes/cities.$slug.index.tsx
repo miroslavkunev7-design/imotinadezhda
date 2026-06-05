@@ -13,6 +13,7 @@ const fallbackCities: Record<string, { name: string; description: string; region
 
 function CityFallbackRoute() {
   const { slug } = Route.useParams();
+  if (slug === "shumen") return <ShumenHomePage />;
   const fallback = fallbackCities[slug] ?? { name: "Град", description: "Имоти и квартали от Имоти Надежда.", region: "България" };
   return <CityPage data={{ city: { slug, ...fallback, hero_image_url: null, hero_video_url: null }, quarters: [], properties: [] }} />;
 }
