@@ -1603,7 +1603,7 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
       <LuxuryHeader active="sale" />
 
       {/* CITY HERO VIDEO */}
-      <section className="relative h-[42vh] min-h-[280px] w-full overflow-hidden md:h-[52vh]">
+      <section className="relative h-screen min-h-[100dvh] w-full overflow-hidden">
         {districtHeroVideo ? (
           <AutoPlayVideo
             src={districtHeroVideo}
