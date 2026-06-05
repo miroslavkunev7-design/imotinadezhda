@@ -57,6 +57,8 @@ export const Route = createFileRoute("/cities/$slug/")({
 });
 
 function CityRoute() {
+  const { slug } = Route.useParams();
   const data = Route.useLoaderData();
+  if (slug === "shumen") return <ShumenHomePage />;
   return <CityPage data={data} />;
 }
