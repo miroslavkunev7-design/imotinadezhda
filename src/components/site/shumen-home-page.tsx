@@ -46,22 +46,12 @@ const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image:
 function LogoHeader() {
   return (
     <Link to="/" className="absolute top-0 left-0 z-50 block" aria-label="Имоти Надежда — начало">
-      <div className="nadezhda-marble-bg w-60 md:w-72 pt-5 pb-7 px-5 nadezhda-top-logo-curve shadow-2xl relative border-b-4 border-r-4 border-[#c59441]">
-        <div className="text-center flex flex-col items-center">
-          <img
-            src={logoNadezhda}
-            alt="Имоти Надежда"
-            className="h-16 md:h-20 w-auto mb-2 drop-shadow-sm"
-          />
-          <div className="text-[#600f1c] font-serif-nadezhda font-bold text-[11px] md:text-xs tracking-[0.22em] uppercase">
-            Недвижими Имоти
-          </div>
-          <div className="text-[#600f1c] font-serif-nadezhda font-bold text-lg md:text-xl flex items-center justify-center gap-2 mt-1">
-            <span className="text-[#c59441] text-[10px]">◆</span>
-            НАДЕЖДА
-            <span className="text-[#c59441] text-[10px]">◆</span>
-          </div>
-        </div>
+      <div className="nadezhda-marble-bg w-52 md:w-64 pt-5 pb-6 px-5 nadezhda-top-logo-curve shadow-2xl relative border-b-4 border-r-4 border-[#c59441] flex items-center justify-center">
+        <img
+          src={logoNadezhda}
+          alt="Имоти Надежда"
+          className="h-20 md:h-24 w-auto drop-shadow-sm"
+        />
       </div>
     </Link>
   );
