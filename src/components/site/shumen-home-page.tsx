@@ -23,8 +23,8 @@ import {
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
-import shumenPanorama from "@/assets/shumen-panorama.jpg.asset.json";
 import cityShumen from "@/assets/city-shumen.jpeg";
+const shumenPanorama = { url: cityShumen };
 
 /* ---------------- Шумен квартали ---------------- */
 const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image: string }> = [
