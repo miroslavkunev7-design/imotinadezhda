@@ -1348,6 +1348,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           crm_background_url: string | null
+          crm_theme: Json
           full_name: string | null
           id: string
           phone: string | null
@@ -1357,6 +1358,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           crm_background_url?: string | null
+          crm_theme?: Json
           full_name?: string | null
           id: string
           phone?: string | null
@@ -1366,6 +1368,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           crm_background_url?: string | null
+          crm_theme?: Json
           full_name?: string | null
           id?: string
           phone?: string | null

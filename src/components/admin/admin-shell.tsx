@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { newMatchesCount } from "@/lib/crm.functions";
 import { AdminAIBubble } from "@/components/admin/ai-bubble";
 import { onInstallAvailabilityChange, promptInstall } from "@/lib/pwa";
+import { useCrmTheme, crmThemeStyle } from "@/hooks/use-crm-theme";
 import marbleBg from "@/assets/marble-bg.png";
 import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
 import brandLogoAsset from "@/assets/brand-logo-square.png.asset.json";
@@ -81,6 +82,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const [mobileOpen, setMobileOpen] = useState(false);
   const [installAvailable, setInstallAvailable] = useState(false);
   const [crmBg, setCrmBg] = useState<string | null>(null);
+  const { theme } = useCrmTheme();
 
   useEffect(() => onInstallAvailabilityChange(setInstallAvailable), []);
 
@@ -110,7 +112,15 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const current = NAV.find((n) => (n.to === "/admin" ? path === "/admin" : path.startsWith(n.to)));
 
   return (
-    <div className="relative flex min-h-screen bg-[#1a0608]">
+    <div
+      data-crm-themed
+      className="relative flex min-h-screen"
+      style={{
+        ...crmThemeStyle(theme),
+        background: `linear-gradient(180deg, ${theme.surface} 0%, ${theme.surfaceTo} 100%)`,
+        color: theme.text,
+      }}
+    >
       {/* Mobile overlay */}
       {mobileOpen && (
         <button
@@ -264,7 +274,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         }
       >
         {/* Ambient video clip (same as login hero) — clean, full screen, no overlay */}
-        {!crmBg && (
+        {!crmBg && (!theme.preset || theme.preset === "burgundy") && (
           <video
             className="pointer-events-none fixed inset-0 z-0 h-screen w-screen object-cover"
             src={loginHeroVideo.url}

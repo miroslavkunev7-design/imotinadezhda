@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS crm_theme jsonb NOT NULL DEFAULT '{}'::jsonb;
