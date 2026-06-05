@@ -1,58 +1,84 @@
-# Плавно адаптивен homepage — една кодова база за desktop / tablet / mobile
 
-## Цел
-Един и същ компонент да се показва коректно на всяка ширина (от 320px до 1920px+), без всеки път да правим ръчни поправки за мобайл или таблет. Сменяш браузъра — layout-ът сам си намира позициите.
+# План: Pixel-perfect редизайн "Имоти Надежда"
 
-## Текущо състояние (защо има проблем)
-- `src/components/site/luxury-real-estate.tsx` (~2000 реда) има на места **две паралелни версии** на едни и същи блокове: `hidden lg:block` (desktop) и `lg:hidden` (mobile). Всяка промяна трябва да се прави на две места.
-- В `src/styles.css` `body:has(.luxury-page)` заключва `height: 100vh; overflow: hidden` на десктоп, и има отделна `@media (max-width: 1023px)` секция, която отключва скрол на мобайл. Това е "shrunk desktop" заключването.
-- Hero видеото, search bar-ът, картите на градовете и навбарът имат фиксирани размери в px вместо `clamp()`.
+## Какво ще направя
 
-## План
+Ще пресъздам **визуалната концепция** от референтния HTML 1:1 (структура, разположение, пропорции, сенки, marble background, burgundy + gold), но с твоето брандиране и данни. Засягам **само публичния сайт** — admin/CRM, login, mortgage калкулатор остават както са.
 
-### 1. Дефиниране на 3 breakpoint-а (Tailwind v4 в `src/styles.css`)
+## Страници (4 шаблона от референцията)
+
+1. **Начало / Град Шумен** (`/` — както View 3 в референцията) — hero със Шумен видео, ShumenInfoBox панел (бордо + злато), search bar, grid 4×3 с всичките 12 квартала, feature strip (доверие/подход/избор/професионализъм).
+2. **Квартал** (`/cities/shumen/districts/$district` — както View 1) — hero с видео/снимка на квартала, FilterSidebar отляво, listing grid + LazurMap-style мини-карта отдясно.
+3. **Имот** (`/properties/$id` — както View 4) — галерия, цена/площ/стаи bar, описание + features, sticky брокер карта отдясно с телефон/имейл/бутони, детайли таблица, локация карта.
+4. **За нас** (`/about`) — рестилизирана с burgundy/marble визията, екип секция за тримата консултанти.
+
+## Данни — какво слагам сега и какво остава за теб
+
+### Слагам веднага:
+- **Лого**: `brand-logo-square.png` (вече в проекта) на мястото на "ИЛДЖ.ИА"
+- **Град**: Шумен (премахвам Бургас/Варна от публичния homepage)
+- **12 квартала**: Център, Тракия, Добруджански, Боян Българанов 1, Боян Българанов 2, Херсон, Гривица, Пазара, Топхане, Дивдядово, Мътница, Еверест
+- **Hero видео**: `shumen-hero.mp4` (вече в проекта)
+- **Телефони**: Надежда 0899620262, Мирослав 0898977370, Христина 0884872266
+- **Имейл**: agenciq_nadejdi@abv.bg
+- **Снимки на квартали**: ще ги взема със скрейп на realistimo.bg за съвпадащите квартали в Шумен и качвам като assets
+
+### Чакам от теб (за финален polish, но сайтът ще работи и без тях с placeholder-и):
+- **Снимки и био на 3-мата консултанти** — за момента слагам силует + име/телефон
+- **Снимки на конкретни имоти** — за момента БД-та с имоти продължава да работи както досега; новата детайл страница ще използва каквото е качено
+
+## Визуални промени в design system-а
+
+Референцията използва:
+- **Marble background** (`#fdfaf5` + текстура) — възстановявам го (паметта казва "no marble" заради предишен етап, но сега ти изрично го искаш — ще обновя паметта)
+- **Burgundy** `#600f1c` / dark `#4f0314 → #260108` gradient — мапва се към сегашния `--primary` с лека корекция
+- **Gold** `#f4d07d → #c59441 → #f4d07d` gradient — мапва се към сегашния gold accent
+- **Шрифтове**: Playfair Display (serif headlines) + Open Sans (sans body) — добавям през `<link>` в `__root.tsx`
+- **Font Awesome** — добавям през CDN `<link>` (референцията го ползва навсякъде)
+
+## Технически план
+
 ```text
-mobile:  < 768px   (default)
-tablet:  768–1023px (md:)
-desktop: ≥ 1024px  (lg:)
+src/styles.css
+  + .marble-bg, .dark-red-bg, .gold-bg, .gold-text, .top-logo-curve, .hide-scrollbar
+  + Playfair Display + Open Sans font family tokens
+  + актуализирани oklch стойности за burgundy да съвпаднат с #600f1c
+
+src/routes/__root.tsx
+  + <link> към Google Fonts (Playfair + Open Sans) и Font Awesome
+
+src/components/site/luxury-real-estate.tsx  (rewrite на публичните секции)
+  - LogoHeader (бяло marble панелче с лого + бордо текст, top-left, изрязан bottom-right)
+  - HeaderNav (бордо/прозрачен фон, дясно)
+  - MainSearchBar (бордо capsule, 5 колони, gold "Търси")
+  - ShumenHero + ShumenInfoBox (картичка отдясно с 4 stats)
+  - NeighborhoodGrid (12 квартала в 4×3 grid, gradient overlay, "X имота")
+  - FeatureStrip (4 икони доверие/подход/избор/професионализъм)
+
+src/routes/cities.$slug.districts.$district.tsx
+  → нова DistrictPage с FilterSidebar + ListingGrid + MiniMap
+
+src/routes/properties.$propertyId.tsx
+  → нов ViewProperty layout с галерия + sticky broker card
+
+scripts/scrape-realistimo-quarters.mjs
+  → еднократен скрейп на 12-те квартала от realistimo.bg, изтегля 1 снимка/квартал, качва като assets, връща JSON с asset URLs
 ```
-Това са стандартните Tailwind breakpoints — вече се ползват, само ще ги направим единствен източник на истина.
 
-### 2. Премахване на дублираните mobile/desktop клонове
-В `luxury-real-estate.tsx` обединявам двата варианта на:
-- Hero search bar (редове ~838 и ~846) → един блок с responsive класове
-- Hero секция (ред ~1277) → fluid височина с `clamp()`
-- Cards grid → `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`
-- Navbar панел → `site-header__art` единен със `aspect-ratio` + `clamp()` за max-height
+## Какво НЕ пипам
+- Admin / CRM / brokers / properties / clients таблици и страници
+- Login flow, auth
+- Mortgage calculator
+- Page builder
+- Search route (търсачка) — само ще проверя че работи с новата визия
 
-### 3. Fluid типография и spacing
-Заменям фиксирани px с `clamp(min, preferred, max)`:
-- Logo "НАДЕЖДА": `clamp(20px, 3vw, 32px)`
-- "НЕДВИЖИМИ ИМОТИ": `clamp(7px, 1vw, 12px)`
-- Бутон "Търси": `clamp(44px, 5vw, 56px)`
-- Card titles, padding-и на панели по същия начин
+## Pixel-perfect QA
+След имплементация ще снимам всяка от 4-те страници в desktop (1440px) и mobile (375px) и ще ги сравня с референтния HTML рендериран в `/tmp`. Ако има отклонение в разположение/пропорции/сенки — коригирам преди да приключа.
 
-### 4. Отключване на скрола в `src/styles.css`
-Премахвам `body:has(.luxury-page) { overflow: hidden }` lock-a (и съответната `@media (max-width: 1023px)` секция). Страницата става нормално скролируема навсякъде → еднакво поведение на десктоп и мобайл.
+---
 
-### 5. Hero видео — fluid височина
-Сегашно: `h-[100dvh] min-h-[100svh]` (мобайл специфично).
-Ново: `h-[clamp(420px,80svh,900px)]` — изглежда добре от телефон до 4K, без отделни branch-ове.
+## Преди да започна — потвърди 3 неща:
 
-### 6. City cards
-Един `<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">` вместо horizontal scroll на мобайл + grid на десктоп.
-
-## Какво НЕ променям
-- Цветовете, шрифтовете, лого панела (бяло на бордо), gold accents — всичко визуално остава.
-- Admin / CRM модулът — извън скоупа.
-- Detail и listing страниците с city hero видеата — извън скоупа (работят добре вече).
-
-## Технически детайли
-- Файлове: `src/components/site/luxury-real-estate.tsx`, `src/components/site/site-header.tsx`, `src/styles.css`.
-- Verify: browser tool на 375 / 768 / 1280 / 1920 ширини след промените.
-- Update на memory: махам "desktop layout shrunk to 375px" правилото, защото вече ще е истински fluid.
-
-## Компромис, който трябва да приемеш
-Сегашният "shrunk desktop на мобайл" вид ще изчезне. На телефон ще виждаш **една колона** (карти под търсачката, не horizontal scroll), типографията ще е по-крупна и по-четима, а лого панелът ще е по-компактен. Това е стандартен mobile layout, а не умален десктоп.
-
-Ако предпочиташ да запазя horizontal scroll за картите на мобайл или нещо друго от текущия мобайл вид — кажи преди да започна.
+1. **Скрейпване на realistimo.bg**: ОК ли е да взема по 1 снимка от всеки от 12-те квартала оттам? (легално: публични снимки, ще ги използваме като визуални представяния, не като оферти)
+2. **Изтриване на Бургас/Варна от публичния homepage**: премахвам ги напълно от началната страница (остават само в БД-то за съвместимост) — или искаш да са скрити само визуално?
+3. **Консултантите**: започвам с името + телефона + плейсхолдър снимка (силует). Ти после качваш истинските снимки и аз ги слагам с 1 кратко съобщение. ОК?
