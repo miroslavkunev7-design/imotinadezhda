@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { newMatchesCount } from "@/lib/crm.functions";
 import { AdminAIBubble } from "@/components/admin/ai-bubble";
 import { onInstallAvailabilityChange, promptInstall } from "@/lib/pwa";
+import { useCrmTheme, crmThemeStyle } from "@/hooks/use-crm-theme";
 import marbleBg from "@/assets/marble-bg.png";
 import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
 import brandLogoAsset from "@/assets/brand-logo-square.png.asset.json";
