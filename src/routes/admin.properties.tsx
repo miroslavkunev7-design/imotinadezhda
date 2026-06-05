@@ -549,8 +549,8 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/50 p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#8B1A2B]/50 p-4 sm:items-center" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="my-4 w-full max-w-2xl overflow-y-auto rounded-2xl bg-card p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-h-[calc(100dvh-3rem)]">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="font-display text-2xl text-accent-foreground">Документи</h2>
