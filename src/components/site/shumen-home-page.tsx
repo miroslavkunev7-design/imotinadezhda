@@ -85,17 +85,29 @@ function HeaderNav() {
 function TopFloatSearch() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  const submit = () => {
+    const trimmed = q.trim().toLowerCase();
+    const cityMap: Record<string, string> = {
+      шумен: "shumen", shumen: "shumen",
+      бургас: "burgas", burgas: "burgas",
+      варна: "varna", varna: "varna",
+      "нови пазар": "novi-pazar", "novi pazar": "novi-pazar",
+    };
+    const city_slug = cityMap[trimmed] ?? "shumen";
+    navigate({ to: "/search", search: { city_slug } as never });
+  };
   return (
     <div className="absolute top-6 md:top-8 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-40 flex bg-white rounded-full overflow-hidden shadow-2xl border border-gray-200 h-12 md:h-14 font-sans-nadezhda">
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
         type="text"
-        placeholder="Търсене..."
+        placeholder="Търсене на град..."
         className="px-5 md:px-6 py-2 flex-1 outline-none text-black text-sm md:text-base bg-white"
       />
       <button
-        onClick={() => navigate({ to: "/search", search: q ? { q } as never : ({} as never) })}
+        onClick={submit}
         className="nadezhda-dark-red-bg px-5 md:px-8 text-white font-bold flex items-center justify-center gap-2 hover:brightness-110 transition"
       >
         <Search className="text-yellow-500 w-4 h-4 md:w-5 md:h-5" />

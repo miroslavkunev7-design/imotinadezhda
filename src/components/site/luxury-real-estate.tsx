@@ -1004,7 +1004,7 @@ function CityFilterPanel({
     "absolute inset-0 w-full h-full cursor-pointer opacity-0";
 
   return (
-    <div className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-transparent md:bg-none md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]">
+    <div className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-black/25 backdrop-blur-md md:bg-transparent md:backdrop-blur-0 md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]">
       <div className="grid grid-cols-3 gap-2">
         {/* Град (fixed to current city) */}
         <div className={fieldBase}>
@@ -1308,15 +1308,15 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
             {/* CITY INFO CARD */}
             <div
-              className="mt-auto overflow-hidden rounded-2xl text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:ring-1 md:ring-[#C9A84C]/25 bg-transparent md:bg-none md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]"
+              className="mt-auto overflow-hidden rounded-2xl text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:ring-1 md:ring-[#C9A84C]/25 bg-transparent backdrop-blur-md md:backdrop-blur-0 md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]"
             >
 
               <div className="flex gap-3 p-3.5 md:gap-4 md:p-4">
                 <img src={heroImage} alt="" className="h-24 w-24 flex-none rounded-xl object-cover ring-1 ring-[#C9A84C]/30" loading="lazy" decoding="async" />
                 <div className="min-w-0">
-                  <div className="text-[9.5px] uppercase tracking-[0.22em] text-[#C9A84C]">За града</div>
-                  <h1 className="mt-1 font-display text-[2.2rem] leading-none text-white">{city.name}</h1>
-                  <p className="mt-2 line-clamp-3 text-[11px] leading-snug text-white/85">{city.description}</p>
+                  <div className="text-[9.5px] uppercase tracking-[0.22em] text-[#C9A84C] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">За града</div>
+                  <h1 className="mt-1 font-display text-[2.2rem] leading-none text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.55)]">{city.name}</h1>
+                  <p className="mt-2 line-clamp-3 text-[11px] leading-snug text-white/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">{city.description}</p>
                 </div>
               </div>
               <div className="grid grid-cols-4 gap-1 border-t border-[#C9A84C]/15 px-3 py-3">
@@ -1336,8 +1336,8 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                 ].map((s, i) => (
                   <div key={i} className="flex flex-col items-center text-center">
                     <s.icon className="h-4 w-4 text-[#C9A84C]" />
-                    <div className="mt-1 text-[11.5px] font-semibold leading-tight text-white">{s.val}</div>
-                    <div className="text-[9px] leading-tight text-white/70">{s.label}</div>
+                    <div className="mt-1 text-[11.5px] font-semibold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">{s.val}</div>
+                    <div className="text-[9px] leading-tight text-white/85 [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">{s.label}</div>
                   </div>
                 ))}
               </div>
