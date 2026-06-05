@@ -1004,7 +1004,7 @@ function CityFilterPanel({
     "absolute inset-0 w-full h-full cursor-pointer opacity-0";
 
   return (
-    <div className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-transparent md:bg-none md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]">
+    <div className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-black/25 backdrop-blur-md md:bg-transparent md:backdrop-blur-0 md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]">
       <div className="grid grid-cols-3 gap-2">
         {/* Град (fixed to current city) */}
         <div className={fieldBase}>
