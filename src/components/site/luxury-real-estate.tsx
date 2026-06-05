@@ -1591,8 +1591,8 @@ type QuarterData = {
 };
 
 export function DistrictPage({ data }: { data?: QuarterData } = {}) {
-  const city = data?.city ?? { id: "x", slug: "burgas", name: "Бургас" };
-  const quarter = data?.quarter ?? { id: "x", slug: "lazur", name: "Лазур", description: "Един от най-предпочитаните квартали в Бургас – с морска панорама, близост до Морската градина и всички удобства за модерен начин на живот.", image_url: null, properties_count: 312 };
+  const city = data?.city ?? { id: "x", slug: "shumen", name: "Шумен" };
+  const quarter = data?.quarter ?? { id: "x", slug: "centar", name: "Център", description: null, image_url: null, properties_count: 0 };
   const properties = data?.properties ?? [];
   const count = quarter.properties_count ?? properties.length;
   const [districtVideoFailed, setDistrictVideoFailed] = useReactState(false);
@@ -1601,11 +1601,11 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
   const districtHeroPoster = (citySlugImages as Record<string, string>)[city.slug] || burgasHero;
 
   return (
-    <main className="luxury-page min-h-screen bg-background" style={{ backgroundImage: `none`, backgroundSize: "cover" }}>
+    <main className="luxury-page nadezhda-marble-bg min-h-screen font-sans-nadezhda text-[#31020c]">
       <LuxuryHeader active="sale" />
 
-      {/* CITY HERO VIDEO */}
-      <section className="relative h-[100dvh] min-h-[100svh] w-full overflow-hidden">
+      {/* HERO — city video */}
+      <div className="relative h-[450px] w-full">
         {districtHeroVideo ? (
           <AutoPlayVideo
             src={districtHeroVideo}
@@ -1613,139 +1613,202 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
             onPermanentError={() => setDistrictVideoFailed(true)}
             preload="auto"
             poster={districtHeroPoster}
-            className="absolute inset-0 h-full w-full object-cover"
+            className="h-full w-full object-cover"
           />
         ) : (
-          <img src={districtHeroPoster} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+          <img src={districtHeroPoster} alt={city.name} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         )}
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#5e0f1d]/50" />
-        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-6 md:px-8 md:pb-10">
-          <div className="mx-auto max-w-[1460px]">
-            <div className="font-display text-[2rem] leading-tight text-white drop-shadow md:text-[3rem]">{quarter.name}</div>
-            <div className="mt-1 text-sm uppercase tracking-[0.18em] text-[#C9A84C] md:text-base">гр. {city.name}</div>
-          </div>
-        </div>
-      </section>
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent" />
+      </div>
 
-      <section className="relative px-3 pb-12 md:px-6 md:pb-16">
-        <div className="mx-auto mt-4 grid max-w-[1460px] gap-6 px-2 pt-8 md:px-4 md:pt-10 xl:grid-cols-[270px_1fr_360px] xl:items-start xl:pt-12">
-          <aside className="marble-dark-panel rounded-[22px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(139, 26, 43,0.32)]">
-            <div className="mb-5 text-center font-display text-[1.55rem] text-primary-foreground">Бързи филтри</div>
-            <div className="space-y-6">
-              <div>
-                <div className="mb-3 border-b border-[var(--color-secondary)]/30 pb-2 text-[15px] uppercase tracking-[0.06em] text-[var(--color-secondary)]">Тип имот</div>
-                <div className="space-y-2.5 text-[15px]">
-                  {["Апартамент", "Многостаен", "Къща", "Парцел", "Офис", "Магазин"].map((item) => (
-                    <label key={item} className="flex items-center gap-3">
-                      <input type="checkbox" className="h-[18px] w-[18px] rounded-sm border border-[var(--color-secondary)]/60 bg-transparent accent-[var(--color-secondary)]" />
-                      <span>{item}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="mb-3 text-[15px] uppercase tracking-[0.06em] text-[var(--color-secondary)]">Цена</div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 text-sm text-primary-foreground/70">От</span>
-                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-[#8B1A2B]/12 px-3 py-2 text-sm">€</div>
-                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-[#8B1A2B]/12 px-3 py-2 text-sm">€</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 text-sm text-primary-foreground/70">До</span>
-                    <div className="flex-1 rounded-[10px] border border-[var(--color-secondary)]/40 bg-[#8B1A2B]/12 px-3 py-2 text-sm">€</div>
-                  </div>
-                </div>
-              </div>
-              <Button className="h-12 w-full rounded-[12px] border border-[var(--color-secondary)] bg-transparent text-[15px] text-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/10">
-                Приложи филтрите
-              </Button>
-            </div>
-          </aside>
+      {/* Floating search bar overlapping hero */}
+      <div className="relative z-10 mx-auto -mt-12 max-w-6xl px-4">
+        <DistrictSearchBar cityName={city.name} />
+      </div>
 
-          <div className="space-y-5">
-            <div className="rounded-[24px] border border-primary/10 bg-card/90 p-6 shadow-[0_18px_45px_rgba(92,41,20,0.12)] md:p-8">
-              <div className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-                <Link to="/" className="hover:text-primary">Начало</Link>
-                <ChevronRight className="h-3.5 w-3.5" />
-                <Link to="/cities/$slug" params={{ slug: city.slug }} className="hover:text-primary">{city.name}</Link>
-                <ChevronRight className="h-3.5 w-3.5" />
-                <span className="text-accent-foreground">{quarter.name}</span>
-              </div>
-              <div className="flex flex-wrap items-start justify-between gap-5">
-                <div className="max-w-[640px]">
-                  <h1 className="font-display text-[2.6rem] leading-tight text-accent-foreground md:text-[3.2rem]">
-                    {quarter.name}, гр. {city.name}
-                  </h1>
-                  <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
-                    {quarter.description || `Един от най-предпочитаните квартали в ${city.name} – с морска панорама, близост до Морската градина и всички удобства за модерен начин на живот.`}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <div className="flex min-w-[110px] flex-col items-center rounded-[16px] border border-primary/15 bg-background px-5 py-3 shadow-sm">
-                    <House className="h-5 w-5 text-primary" />
-                    <div className="mt-1 font-display text-[1.6rem] leading-none text-accent-foreground">{count}</div>
-                    <div className="text-xs text-muted-foreground">имота</div>
-                  </div>
-                  <button className="flex min-w-[110px] flex-col items-center rounded-[16px] border border-primary/15 bg-background px-5 py-3 shadow-sm transition hover:border-primary/40">
-                    <Heart className="h-5 w-5 text-primary" />
-                    <div className="mt-1 text-[13px] font-medium text-accent-foreground">Добави</div>
-                    <div className="text-xs text-muted-foreground">в любими</div>
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* Main content */}
+      <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-8 px-4 pb-24 lg:flex-row">
+        <DistrictFilterSidebar />
 
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-primary/10 bg-card/90 px-5 py-3 shadow-sm">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span>Сортирай по:</span>
-                <button className="inline-flex items-center gap-2 rounded-[10px] border border-primary/20 bg-background px-3 py-1.5 text-accent-foreground">
-                  Най-нови <ChevronDown className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <button aria-label="Грид изглед" className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-primary/25 bg-primary/10 text-primary">
-                  <SlidersHorizontal className="h-4 w-4" />
-                </button>
-                <button aria-label="Списък изглед" className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-primary/15 bg-background text-muted-foreground hover:text-primary">
-                  <Ruler className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {properties.length === 0 ? (
-                <div className="rounded-[20px] bg-card p-10 text-center text-muted-foreground sm:col-span-2 xl:col-span-4">
-                  Все още няма публикувани имоти в този квартал.
-                </div>
-              ) : (
-                properties.map((p) => (
-                  <DistrictListingCard key={p.id} p={p} location={`${quarter.name}, гр. ${city.name}`} fallback={burgasHero} />
-                ))
-              )}
-            </div>
-
-            {data?.gallery && data.gallery.length > 0 ? (
-              <div className="rounded-[24px] border border-primary/10 bg-card/90 p-6 shadow-sm md:p-8">
-                <div className="mb-5 flex items-center justify-between">
-                  <h2 className="font-display text-[1.8rem] text-accent-foreground">Галерия — {quarter.name}</h2>
-                  <span className="text-sm text-muted-foreground">{data.gallery.length} снимки</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-                  {data.gallery.map((img) => (
-                    <div key={img.id} className="overflow-hidden rounded-[14px] border border-primary/15 shadow-sm">
-                      <img src={img.url} alt={quarter.name} className="h-40 w-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+        <div className="flex-1">
+          {/* Breadcrumb */}
+          <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+            <Link to="/" className="hover:text-black">Начало</Link>
+            <ChevronRight className="h-3 w-3" />
+            <Link to="/cities/$slug" params={{ slug: city.slug }} className="hover:text-black">{city.name}</Link>
+            <ChevronRight className="h-3 w-3" />
+            <span className="font-bold text-[#600f1c]">{quarter.name}</span>
           </div>
 
-          <DistrictMapCard name={quarter.name} />
+          {/* Title row */}
+          <div className="mb-8 flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-xl">
+              <h1 className="font-serif-nadezhda mb-3 text-4xl font-bold leading-tight text-[#600f1c] md:text-5xl">{quarter.name}, гр. {city.name}</h1>
+              <p className="text-base leading-relaxed text-gray-600">
+                {quarter.description || `Един от предпочитаните квартали в гр. ${city.name} – с отлична инфраструктура, удобства и възможности за съвременен начин на живот.`}
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-4 rounded-2xl border border-[#eaddc4] bg-white px-5 py-3 shadow-sm">
+                <House className="h-7 w-7 text-[#c59441]" />
+                <div>
+                  <div className="font-serif-nadezhda text-xl font-bold leading-none text-[#600f1c]">{count}</div>
+                  <div className="text-sm text-gray-500">имота</div>
+                </div>
+              </div>
+              <button className="flex items-center gap-4 rounded-2xl border border-[#eaddc4] bg-white px-5 py-3 shadow-sm transition hover:bg-gray-50">
+                <Heart className="h-7 w-7 text-[#c59441]" />
+                <div className="text-left">
+                  <div className="text-base font-bold leading-none text-[#600f1c]">Добави</div>
+                  <div className="mt-1 text-xs text-gray-500">в любими</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Sort bar */}
+          <div className="mb-8 flex items-center justify-between rounded-2xl border border-[#eaddc4] bg-[#fdfaf5] px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">Сортирай по:</span>
+              <select className="cursor-pointer border-none bg-transparent text-base font-bold text-[#600f1c] outline-none">
+                <option>Най-нови</option>
+                <option>Най-евтини</option>
+                <option>Най-скъпи</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button className="nadezhda-dark-red-bg flex h-10 w-10 items-center justify-center rounded-lg text-white shadow"><SlidersHorizontal className="h-4 w-4" /></button>
+              <button className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm hover:bg-gray-50"><Ruler className="h-4 w-4" /></button>
+            </div>
+          </div>
+
+          {/* Listings grid */}
+          <div className="grid gap-8 md:grid-cols-2">
+            {properties.length === 0 ? (
+              <div className="rounded-2xl bg-white p-10 text-center text-muted-foreground md:col-span-2">
+                Все още няма публикувани имоти в този квартал.
+              </div>
+            ) : (
+              properties.map((p) => (
+                <DistrictListingCard key={p.id} p={p} location={`${quarter.name}, гр. ${city.name}`} fallback={districtHeroPoster} />
+              ))
+            )}
+          </div>
+
+          {data?.gallery && data.gallery.length > 0 ? (
+            <div className="mt-10 rounded-3xl border border-[#eaddc4] bg-[#fdfaf5] p-8 shadow-sm">
+              <div className="mb-5 flex items-center justify-between">
+                <h2 className="font-serif-nadezhda text-2xl font-bold text-[#600f1c]">Галерия — {quarter.name}</h2>
+                <span className="text-sm text-gray-500">{data.gallery.length} снимки</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {data.gallery.map((img) => (
+                  <div key={img.id} className="overflow-hidden rounded-2xl border border-[#eaddc4] shadow-sm">
+                    <img src={img.url} alt={quarter.name} className="h-40 w-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
-      </section>
+
+        <DistrictQuarterMap name={quarter.name} />
+      </div>
     </main>
+  );
+}
+
+function DistrictSearchBar({ cityName }: { cityName: string }) {
+  return (
+    <div className="nadezhda-dark-red-bg flex flex-wrap items-center justify-between gap-3 rounded-full border border-[#c59441] p-4 font-sans-nadezhda text-sm text-white shadow-2xl">
+      <div className="flex w-full items-center gap-3 border-gray-600 px-4 md:w-1/5 md:border-r">
+        <MapPin className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
+          <div className="text-xs text-gray-300">Град</div>
+          <div className="flex items-center justify-between text-base font-bold">{cityName} <ChevronDown className="h-3 w-3" /></div>
+        </div>
+      </div>
+      <div className="flex w-full items-center gap-3 border-gray-600 px-4 md:w-1/5 md:border-r">
+        <House className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
+          <div className="text-xs text-gray-300">Вид имот</div>
+          <div className="flex items-center justify-between text-base font-bold">Всички <ChevronDown className="h-3 w-3" /></div>
+        </div>
+      </div>
+      <div className="flex w-full items-center gap-3 border-gray-600 px-4 md:w-1/5 md:border-r">
+        <LandPlot className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
+          <div className="text-xs text-gray-300">Цена</div>
+          <div className="flex items-center justify-between text-base font-bold">Без значение <ChevronDown className="h-3 w-3" /></div>
+        </div>
+      </div>
+      <div className="flex w-full items-center gap-3 px-4 md:w-1/5">
+        <Square className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
+          <div className="text-xs text-gray-300">Площ</div>
+          <div className="flex items-center justify-between text-base font-bold">Без значение <ChevronDown className="h-3 w-3" /></div>
+        </div>
+      </div>
+      <div className="flex w-full items-center justify-end gap-3 pl-4 md:w-1/5">
+        <button className="flex items-center gap-2 rounded-full border border-gray-500 px-5 py-3 text-white transition hover:bg-white/10">
+          <SlidersHorizontal className="h-4 w-4" /> Филтри
+        </button>
+        <Link to="/search" className="nadezhda-gold-bg flex items-center gap-2 rounded-full px-8 py-3 text-base font-bold text-black shadow-lg transition hover:brightness-110">
+          <Search className="h-4 w-4" /> Търси
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function DistrictFilterSidebar() {
+  return (
+    <aside className="nadezhda-dark-red-bg w-full flex-shrink-0 rounded-3xl border border-[#c59441] p-6 text-white shadow-xl lg:w-72">
+      <h3 className="font-serif-nadezhda mb-4 text-2xl font-bold">Бързи филтри</h3>
+      <hr className="mb-6 border-gray-600/50" />
+      <div className="mb-8">
+        <div className="mb-3 text-lg text-gray-300">Тип имот</div>
+        {["Апартамент", "Многостаен", "Къща", "Парцел", "Офис", "Магазин"].map((t) => (
+          <label key={t} className="mb-3 flex cursor-pointer items-center gap-3 transition hover:text-yellow-400">
+            <span className="flex h-5 w-5 items-center justify-center rounded border border-gray-400">
+              {t === "Апартамент" ? <span className="h-3 w-3 rounded-sm bg-[#f4d07d]" /> : null}
+            </span>
+            <span className="text-sm">{t}</span>
+          </label>
+        ))}
+      </div>
+      <div className="mb-8">
+        <div className="mb-3 text-lg text-gray-300">Цена</div>
+        <div className="mb-3 flex items-center gap-3">
+          <span className="w-6 text-sm">От</span>
+          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2"><span className="ml-1 text-gray-400">€</span></div>
+        </div>
+        <div className="mb-4 flex items-center gap-3">
+          <span className="w-6 text-sm">До</span>
+          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2"><span className="ml-1 text-gray-400">€</span></div>
+        </div>
+      </div>
+      <button className="nadezhda-gold-bg mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-3 text-lg font-bold text-black shadow-lg transition hover:brightness-110">
+        Приложи филтрите <SlidersHorizontal className="h-4 w-4" />
+      </button>
+    </aside>
+  );
+}
+
+function DistrictQuarterMap({ name }: { name: string }) {
+  return (
+    <aside className="relative h-[700px] w-full flex-shrink-0 overflow-hidden rounded-3xl border border-[#c59441] bg-gray-200 shadow-xl lg:w-80">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#525252] via-[#737373] to-[#404040]" />
+      <div className="absolute inset-y-0 right-0 w-[36%]" style={{ background: "linear-gradient(135deg,#1b4d62 0%,#0f3a4f 55%,#0b2c3d 100%)", clipPath: "polygon(35% 0,100% 0,100% 100%,0 100%)" }} />
+      <div className="absolute bottom-1/3 left-10 right-10 top-1/4 flex items-center justify-center rounded-[3rem] border-2 border-red-500 bg-red-600/30 backdrop-blur-sm">
+        <span className="font-serif-nadezhda text-3xl font-bold tracking-wider text-white drop-shadow-lg">{name.toUpperCase()}</span>
+      </div>
+      <div className="absolute bottom-6 left-6 right-6">
+        <button className="nadezhda-dark-red-bg flex w-full items-center justify-center gap-3 rounded-xl border border-[#c59441] py-4 text-lg text-white shadow-xl transition hover:brightness-125">
+          <MapPin className="h-5 w-5 text-[#c59441]" /> Виж на картата
+        </button>
+      </div>
+    </aside>
   );
 }
 
@@ -1765,10 +1828,10 @@ type PropertyData = {
 export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   if (!data) {
     return (
-      <main className="luxury-page min-h-screen bg-background flex items-center justify-center">
+      <main className="luxury-page nadezhda-marble-bg flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="font-display text-3xl text-accent-foreground">Имотът не е намерен</h1>
-          <Link to="/" className="mt-4 inline-block text-primary underline">Към началната страница</Link>
+          <h1 className="font-serif-nadezhda text-3xl text-[#600f1c]">Имотът не е намерен</h1>
+          <Link to="/" className="mt-4 inline-block text-[#600f1c] underline">Към началната страница</Link>
         </div>
       </main>
     );
@@ -1778,21 +1841,9 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   const cityName = property.cities?.name ?? "—";
   const citySlug = property.cities?.slug ?? "";
   const quarterName = property.quarters?.name ?? "";
+  const quarterSlug = property.quarters?.slug ?? "";
   const priceStr = formatPrice(property.price, property.currency ?? "EUR");
   const pricePerSqm = property.area_sqm ? formatPrice(Math.round(Number(property.price) / Number(property.area_sqm)), property.currency ?? "EUR") + " / м²" : undefined;
-
-  const facts = [
-    { icon: LandPlot, label: "Цена", value: priceStr, sub: pricePerSqm },
-    property.area_sqm ? { icon: Square, label: "Площ", value: `${property.area_sqm} m²` } : null,
-    (property.floor != null) ? { icon: Building2, label: "Етаж", value: `${property.floor}${property.total_floors ? ` от ${property.total_floors}` : ""}` } : null,
-    property.rooms ? { icon: House, label: "Стаи", value: String(property.rooms) } : null,
-    property.bedrooms ? { icon: BedDouble, label: "Спални", value: String(property.bedrooms) } : null,
-    property.bathrooms ? { icon: Bath, label: "Бани", value: String(property.bathrooms) } : null,
-    property.year_built ? { icon: Sparkles, label: "Година", value: String(property.year_built) } : null,
-  ].filter(Boolean) as Array<{ icon: typeof LandPlot; label: string; value: string; sub?: string }>;
-
-  const mainFact = facts[0];
-  const restFacts = facts.slice(1);
 
   const [propVideoFailed, setPropVideoFailed] = useReactState(false);
   const propFallbackVideo = cityVideoFallbacks[citySlug];
@@ -1800,11 +1851,11 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   const propHeroPoster = (citySlugImages as Record<string, string>)[citySlug] || property.cover_image_url || burgasHero;
 
   return (
-    <main className="luxury-page flex min-h-screen flex-col bg-background">
+    <main className="luxury-page nadezhda-marble-bg min-h-screen font-sans-nadezhda text-[#31020c]">
       <LuxuryHeader active="sale" />
 
-      {/* CITY HERO VIDEO */}
-      <section className="relative h-[100dvh] min-h-[100svh] w-full overflow-hidden">
+      {/* HERO — city video (replaces the big top image; gallery below is untouched) */}
+      <div className="relative h-[550px] w-full">
         {propHeroVideo ? (
           <AutoPlayVideo
             src={propHeroVideo}
@@ -1812,109 +1863,177 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
             onPermanentError={() => setPropVideoFailed(true)}
             preload="auto"
             poster={propHeroPoster}
-            className="absolute inset-0 h-full w-full object-cover"
+            className="h-full w-full object-cover"
           />
         ) : (
-          <img src={propHeroPoster} alt={cityName} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+          <img src={propHeroPoster} alt={cityName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         )}
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#5e0f1d]/50" />
-        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-5 md:px-8 md:pb-8">
-          <div className="mx-auto max-w-[1460px]">
-            <div className="text-sm uppercase tracking-[0.18em] text-[#C9A84C] md:text-base">гр. {cityName}{quarterName ? ` · кв. ${quarterName}` : ""}</div>
-            <div className="font-display text-[1.5rem] leading-tight text-white drop-shadow md:text-[2.4rem]">{property.title}</div>
-          </div>
-        </div>
-      </section>
-
-
-      <div className="mx-auto w-full max-w-[1460px] flex-shrink-0 px-4 pt-3 md:px-6">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-primary">Начало</Link><ChevronRight className="h-3.5 w-3.5" />
-          {citySlug ? <Link to="/cities/$slug" params={{ slug: citySlug }} className="hover:text-primary">{cityName}</Link> : <span>{cityName}</span>}
-          {quarterName ? <><ChevronRight className="h-3.5 w-3.5" /><span>{quarterName}</span></> : null}
-          <ChevronRight className="h-3.5 w-3.5" /><span className="line-clamp-1 text-accent-foreground">{property.title}</span>
-        </div>
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
       </div>
 
-      <section className="mx-auto flex w-full max-w-[1460px] flex-1 min-h-0 flex-col px-4 py-3 md:px-6 md:py-4">
-        <div className="grid flex-1 min-h-0 gap-4 lg:grid-cols-[1.55fr_1fr]">
-          {/* LEFT — Gallery */}
-          <div className="flex min-h-[55vh] min-h-0 flex-col overflow-hidden rounded-[24px] bg-card p-3 shadow-[0_18px_38px_rgba(139,26,43,0.12)] md:p-4 lg:min-h-0">
-            <PropertyGallery images={gallery} title={property.title} />
-          </div>
+      {/* Floating search bar */}
+      <div className="relative z-10 mx-auto -mt-12 max-w-6xl px-4">
+        <DistrictSearchBar cityName={cityName} />
+      </div>
 
-          {/* RIGHT — Price panel + facts + CTA + description */}
-          <div className="flex min-h-0 flex-col gap-3 overflow-hidden">
-            {/* Title + price card */}
-            <div className="flex-shrink-0 rounded-[24px] bg-card p-4 shadow-[0_18px_38px_rgba(139,26,43,0.12)] md:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  {property.is_featured ? <div className="mb-2 inline-flex rounded-full bg-primary px-3 py-1 text-[11px] font-semibold tracking-[0.08em] text-primary-foreground">ТОП ОФЕРТА</div> : null}
-                  <h1 className="font-display text-2xl leading-tight text-accent-foreground md:text-[2rem]">{property.title}</h1>
-                  <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-muted-foreground"><MapPin className="h-4 w-4 text-primary" />{quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}</p>
+      <div className="mx-auto mt-12 max-w-7xl px-4 pb-24">
+        {/* Breadcrumb */}
+        <div className="mb-8 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+          <Link to="/" className="hover:text-black">Начало</Link>
+          <ChevronRight className="h-3 w-3" />
+          {citySlug ? <Link to="/cities/$slug" params={{ slug: citySlug }} className="hover:text-black">{cityName}</Link> : <span>{cityName}</span>}
+          {quarterName ? (
+            <>
+              <ChevronRight className="h-3 w-3" />
+              {quarterSlug ? <Link to="/cities/$slug/districts/$district" params={{ slug: citySlug, district: quarterSlug }} className="hover:text-black">{quarterName}</Link> : <span>{quarterName}</span>}
+            </>
+          ) : null}
+          <ChevronRight className="h-3 w-3" />
+          <span className="line-clamp-1 font-bold text-[#600f1c]">{property.title}</span>
+        </div>
+
+        <div className="flex flex-col gap-10 lg:flex-row">
+          {/* LEFT */}
+          <div className="flex-1">
+            <div className="mb-6">
+              {property.is_featured ? <span className="nadezhda-gold-bg mb-4 inline-block rounded-md px-4 py-2 text-xs font-bold tracking-wide text-black shadow">ТОП ОФЕРТА</span> : null}
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h1 className="font-serif-nadezhda mb-3 text-3xl font-bold text-[#600f1c] md:text-4xl">{property.title}</h1>
+                  <div className="text-lg text-gray-600">{quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}</div>
                 </div>
-                <div className="flex flex-col items-end gap-1.5 text-muted-foreground">
-                  <button aria-label="Любими" className="rounded-full border border-primary/20 p-2 hover:bg-primary/5"><Heart className="h-4 w-4 text-primary" /></button>
-                  <button aria-label="Сподели" className="rounded-full border border-primary/20 p-2 hover:bg-primary/5"><Share2 className="h-4 w-4 text-primary" /></button>
+                <div className="flex gap-6">
+                  <button className="flex items-center gap-2 text-gray-500 transition hover:text-red-500">
+                    <Heart className="h-6 w-6 text-[#c59441]" />
+                    <span className="text-left text-sm">Добави<br />в любими</span>
+                  </button>
+                  <button className="flex items-center gap-2 text-gray-500 transition hover:text-blue-500">
+                    <Share2 className="h-6 w-6 text-[#c59441]" />
+                    <span className="text-sm">Сподели</span>
+                  </button>
                 </div>
               </div>
-
-              {mainFact ? (
-                <div className="mt-3 flex items-end justify-between gap-3 border-t border-primary/10 pt-3">
-                  <div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{mainFact.label}</div>
-                    <div className="font-display text-3xl leading-none text-primary md:text-[2.4rem]">{mainFact.value}</div>
-                    {mainFact.sub ? <div className="mt-1 text-xs text-muted-foreground">{mainFact.sub}</div> : null}
-                  </div>
-                </div>
-              ) : null}
-
-              {restFacts.length > 0 ? (
-                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-primary/10 pt-3 sm:grid-cols-4">
-                  {restFacts.slice(0, 6).map((fact) => {
-                    const Icon = fact.icon;
-                    return (
-                      <div key={fact.label} className="rounded-[12px] border border-primary/10 bg-background/40 px-2 py-2">
-                        <div className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.1em] text-muted-foreground"><Icon className="h-3.5 w-3.5 text-primary" />{fact.label}</div>
-                        <div className="mt-0.5 font-display text-base leading-tight text-accent-foreground">{fact.value}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null}
             </div>
 
-            {/* Description (scrollable) */}
+            {/* GALLERY — kept untouched (uses existing PropertyGallery for the property photos viewer) */}
+            <div className="mb-10 overflow-hidden rounded-3xl border border-[#eaddc4] bg-card p-3 shadow-2xl" style={{ height: 620 }}>
+              <PropertyGallery images={gallery} title={property.title} />
+            </div>
+
+            {/* Price + facts row */}
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-6 border-b-2 border-gray-200 pb-8">
+              <div>
+                <div className="mb-2 flex items-center gap-2 text-sm text-gray-500"><LandPlot className="h-5 w-5 text-[#c59441]" /> Цена</div>
+                <div className="font-serif-nadezhda mb-2 text-4xl font-bold text-[#600f1c]">{priceStr}</div>
+                {pricePerSqm ? <div className="text-sm font-bold text-gray-500">{pricePerSqm}</div> : null}
+              </div>
+              <div className="flex flex-wrap gap-8 divide-x divide-gray-200 text-center">
+                {[
+                  property.area_sqm != null ? { icon: Square, label: "Площ", value: `${property.area_sqm} м²` } : null,
+                  property.floor != null ? { icon: Building2, label: "Етаж", value: `${property.floor}${property.total_floors ? ` от ${property.total_floors}` : ""}` } : null,
+                  property.rooms != null ? { icon: House, label: "Стаи", value: String(property.rooms) } : null,
+                  property.bedrooms != null ? { icon: BedDouble, label: "Спални", value: String(property.bedrooms) } : null,
+                  property.bathrooms != null ? { icon: Bath, label: "Бани", value: String(property.bathrooms) } : null,
+                  property.year_built != null ? { icon: Compass, label: "Година", value: String(property.year_built) } : null,
+                ].filter(Boolean).map((f: any, i) => {
+                  const Icon = f.icon;
+                  return (
+                    <div key={f.label} className={i === 0 ? "first:pl-0" : "pl-8"}>
+                      <div className="mb-2 flex items-center justify-center gap-2 text-sm text-gray-500"><Icon className="h-5 w-5 text-[#c59441]" /> {f.label}</div>
+                      <div className="text-xl font-bold">{f.value}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Description */}
             {property.description ? (
-              <div className="min-h-0 flex-1 overflow-y-auto rounded-[24px] bg-card p-4 shadow-[0_18px_38px_rgba(139,26,43,0.12)] md:p-5">
-                <h2 className="font-display text-lg text-accent-foreground md:text-xl">Описание</h2>
-                <div className="mt-2 whitespace-pre-line text-sm leading-6 text-muted-foreground">{property.description}</div>
+              <div className="rounded-3xl border border-[#eaddc4] bg-[#fdfaf5] p-8 shadow-lg md:p-10">
+                <h3 className="font-serif-nadezhda mb-6 text-3xl font-bold text-[#600f1c]">Описание</h3>
+                <div className="mb-8 space-y-5 whitespace-pre-line text-lg leading-relaxed text-gray-700">
+                  {property.description}
+                </div>
                 {property.amenities && property.amenities.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-1.5 border-t border-primary/10 pt-3">
-                    {property.amenities.map((item) => (
-                      <span key={item} className="inline-flex items-center gap-1 rounded-full border border-primary/15 bg-background/40 px-2.5 py-1 text-xs text-accent-foreground">
-                        <Trees className="h-3 w-3 text-primary" />{item}
-                      </span>
+                  <div className="grid grid-cols-2 gap-4 border-t border-gray-200 pt-8 sm:grid-cols-3 md:grid-cols-5">
+                    {property.amenities.slice(0, 10).map((a) => (
+                      <div key={a} className="flex flex-col items-center gap-3 p-4 text-center">
+                        <Trees className="h-9 w-9 text-[#c59441]" />
+                        <div className="text-sm font-bold leading-tight text-gray-700">{a}</div>
+                      </div>
                     ))}
                   </div>
                 ) : null}
               </div>
             ) : null}
-
-            {/* CTA row */}
-            <div className="flex flex-shrink-0 gap-2">
-              <Button asChild className="gold-cta-button h-11 flex-1 rounded-[12px] text-sm">
-                <a href="#inquiry"><Mail className="mr-1.5 h-4 w-4" />Запитване</a>
-              </Button>
-              <Button asChild variant="outline" className="h-11 flex-1 rounded-[12px] border-primary/30 text-sm">
-                <a href="tel:+359881234567"><Phone className="mr-1.5 h-4 w-4" />Обади се</a>
-              </Button>
-            </div>
           </div>
-        </div>
-      </section>
 
-      {/* Off-screen anchor — inquiry form available via deeper nav; keep page within viewport */}
+          {/* RIGHT — sticky sidebar */}
+          <aside className="w-full flex-shrink-0 space-y-8 lg:w-[360px]">
+            {/* Broker card */}
+            <div className="nadezhda-dark-red-bg rounded-3xl border border-[#c59441] p-8 text-white shadow-2xl">
+              <div className="mb-8 flex items-center gap-5">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-[#c59441] bg-[#3a0010] shadow-lg">
+                  <User className="h-8 w-8 text-[#c59441]" />
+                </div>
+                <div>
+                  <div className="font-serif-nadezhda mb-1 text-xl font-bold text-[#ebd197]">Надежда Иванова</div>
+                  <div className="text-sm text-gray-300">Старши консултант</div>
+                </div>
+              </div>
+              <div className="mb-8 space-y-4 text-base">
+                <a href="tel:+359899620262" className="flex items-center gap-4 hover:text-[#f4d07d]"><Phone className="h-5 w-5 text-[#f4d07d]" /> 0899 620 262</a>
+                <a href="mailto:agenciq_nadejdi@abv.bg" className="flex items-center gap-4 break-all hover:text-[#f4d07d]"><Mail className="h-5 w-5 text-[#f4d07d]" /> agenciq_nadejdi@abv.bg</a>
+              </div>
+              <button className="nadezhda-gold-bg mb-4 flex w-full items-center justify-center gap-3 rounded-xl py-4 text-lg font-bold text-black shadow-xl transition hover:brightness-110">
+                Запази час за оглед
+              </button>
+              <a href="#inquiry" className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-[#c59441] bg-transparent py-4 text-lg font-bold text-white transition hover:bg-white/10">
+                <Mail className="h-5 w-5" /> Запитване
+              </a>
+            </div>
+
+            {/* Details card */}
+            <div className="nadezhda-dark-red-bg rounded-3xl border border-[#c59441] p-8 text-white shadow-2xl">
+              <h3 className="font-serif-nadezhda mb-6 text-2xl font-bold text-[#ebd197]">Детайли за имота</h3>
+              <div className="space-y-4 text-sm">
+                {[
+                  property.property_type ? ["Тип имот:", property.property_type] : null,
+                  property.year_built ? ["Година на строителство:", String(property.year_built)] : null,
+                  property.floor != null ? ["Етаж:", `${property.floor}${property.total_floors ? ` от ${property.total_floors}` : ""}`] : null,
+                  property.rooms != null ? ["Стаи:", String(property.rooms)] : null,
+                  property.bedrooms != null ? ["Спални:", String(property.bedrooms)] : null,
+                  property.bathrooms != null ? ["Бани:", String(property.bathrooms)] : null,
+                  property.area_sqm != null ? ["Площ:", `${property.area_sqm} м²`] : null,
+                  property.status ? ["Статус:", property.status] : null,
+                  property.address ? ["Адрес:", property.address] : null,
+                ].filter(Boolean).map((row: any) => (
+                  <div key={row[0]} className="flex justify-between border-b border-gray-600/30 pb-3">
+                    <span className="text-gray-400">{row[0]}</span>
+                    <span className="w-1/2 text-right font-bold leading-tight">{row[1]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Location card */}
+            <div className="nadezhda-marble-bg rounded-3xl border border-[#eaddc4] p-8 shadow-xl">
+              <h3 className="font-serif-nadezhda mb-2 text-2xl font-bold text-[#600f1c]">Локация</h3>
+              <div className="mb-6 text-base font-semibold text-gray-600">{quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}</div>
+              <div className="relative mb-6 h-56 overflow-hidden rounded-2xl border border-gray-300 shadow-inner">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#525252] via-[#737373] to-[#404040]" />
+                <div className="absolute inset-0 bg-blue-100/30 mix-blend-color-burn" />
+                <MapPin className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 text-red-700 drop-shadow-xl" />
+              </div>
+              <button className="nadezhda-dark-red-bg flex w-full items-center justify-center gap-3 rounded-xl py-4 text-lg font-bold text-white shadow-lg transition hover:brightness-125">
+                <MapPin className="h-5 w-5 text-[#f4d07d]" /> Виж на картата
+              </button>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      {/* Off-screen anchor — inquiry form & mortgage band kept for deep-link */}
       <div id="inquiry" className="sr-only">
         <InquiryForm propertyId={property.id} propertyTitle={property.title} />
         <MortgageRangeBand price={Number(property.price) || 0} currency={property.currency ?? "EUR"} propertyId={property.id} propertyTitle={property.title} />
