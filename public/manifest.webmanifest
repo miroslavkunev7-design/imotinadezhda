@@ -2,6 +2,7 @@
   "name": "Имоти Надежда",
   "short_name": "Надежда",
   "description": "Имоти Надежда — недвижими имоти в Североизточна България",
+  "id": "/login",
   "start_url": "/login",
   "scope": "/",
   "display": "fullscreen",
