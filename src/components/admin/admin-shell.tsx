@@ -112,7 +112,15 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const current = NAV.find((n) => (n.to === "/admin" ? path === "/admin" : path.startsWith(n.to)));
 
   return (
-    <div className="relative flex min-h-screen bg-[#1a0608]">
+    <div
+      data-crm-themed
+      className="relative flex min-h-screen"
+      style={{
+        ...crmThemeStyle(theme),
+        background: `linear-gradient(180deg, ${theme.surface} 0%, ${theme.surfaceTo} 100%)`,
+        color: theme.text,
+      }}
+    >
       {/* Mobile overlay */}
       {mobileOpen && (
         <button
