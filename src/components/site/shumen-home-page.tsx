@@ -253,15 +253,7 @@ export function ShumenHomePage() {
       <div className="relative">
         <TopFloatSearch />
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
-          <video
-            src={shumenHeroVideo.url}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            poster={shumenPanorama.url}
-          />
+          <HeroVideoOrImage videoUrl={shumenHeroVideo.url} posterUrl={shumenPanorama.url} alt="Шумен" />
           <div className="absolute inset-0 bg-black/30" />
           <LogoHeader />
           <HeaderNav />
