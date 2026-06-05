@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { CityPage } from "@/components/site/luxury-real-estate";
+import { ShumenHomePage } from "@/components/site/shumen-home-page";
 import { getCityBySlug } from "@/lib/catalog.functions";
 
 const fallbackCities: Record<string, { name: string; description: string; region: string }> = {
