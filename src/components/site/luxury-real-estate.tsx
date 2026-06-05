@@ -831,24 +831,28 @@ export function HomePage({
   const sectionNode = (id: string) => {
     switch (id) {
       case "hero-search-mobile":
-      case "hero-search-desktop":
         return (
           <div
             key={id}
-            data-section-id={id}
-            className="relative z-20 mx-auto w-full max-w-[640px] px-4 md:px-8"
+            data-section-id="hero-search-mobile"
+            className="relative z-20 mx-auto mt-4 w-full max-w-[560px] px-4 md:mt-7 md:px-8 lg:hidden"
           >
             <HomeFilterPanel cities={cityOpts} />
+          </div>
+
+        );
+      case "hero-search-desktop":
+        return (
+          <div key={id} data-section-id="hero-search-desktop" className="mb-4 hidden lg:block">
+            <div className="mx-auto w-full max-w-[640px]">
+              <HomeFilterPanel cities={cityOpts} />
+            </div>
           </div>
         );
 
       case "cities-grid":
         return (
-          <div
-            key={id}
-            data-section-id="cities-grid"
-            className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4"
-          >
+          <div key={id} data-section-id="cities-grid" className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:gap-4">
             {cityList.map((city) => (
               <CityCard
                 key={city.slug}
@@ -867,22 +871,18 @@ export function HomePage({
     }
   };
 
-  // Deduplicate paired hero-search-mobile / hero-search-desktop into a single section.
   const visible = sections.filter((s) => s.visible);
-  const seenIds = new Set<string>();
-  const unified = visible.filter((s) => {
-    const key = s.id === "hero-search-mobile" || s.id === "hero-search-desktop" ? "hero-search" : s.id;
-    if (seenIds.has(key)) return false;
-    seenIds.add(key);
-    return true;
-  });
+  const mobileSections = visible.filter((s) => s.id === "hero-search-mobile");
+  const desktopSections = visible.filter((s) => s.id !== "hero-search-mobile");
 
-  const heroSections = unified.filter((s) => s.id !== "trust-strip");
-  const belowSections = unified.filter((s) => s.id === "trust-strip");
+  const heroSections = desktopSections.filter((s) => s.id !== "trust-strip");
+  const belowSections = desktopSections.filter((s) => s.id === "trust-strip");
 
   return (
-    <main className="luxury-page flex min-h-screen flex-col bg-[#0f0a0b] text-foreground">
-      <section className="relative flex min-h-[100svh] flex-col pb-6 pt-0">
+    <main className="luxury-page flex h-screen flex-col overflow-hidden bg-[#0f0a0b] text-foreground">
+      <section
+        className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
+      >
         <AutoPlayVideo
           src={homeHeroVideo.url}
           preload="auto"
@@ -890,23 +890,24 @@ export function HomePage({
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/40" />
-        <div className="relative z-10 flex flex-1 flex-col">
+        <div className="relative z-10 flex flex-1 min-h-0 flex-col">
           <LuxuryHeader active="sale" />
 
+          {mobileSections.map((s) => sectionNode(s.id))}
+
           <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-3 md:px-8 md:pt-5">
-            <div className="flex flex-col gap-4 md:gap-5">
-              {heroSections.map((s) => sectionNode(s.id))}
-            </div>
+            {heroSections.map((s) => sectionNode(s.id))}
           </section>
         </div>
       </section>
 
-      <div className="flex-none">
+      <div className="hidden flex-none md:block">
         {belowSections.map((s) => sectionNode(s.id))}
       </div>
     </main>
   );
 }
+
 
 
 
