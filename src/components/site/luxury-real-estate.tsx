@@ -1792,9 +1792,38 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   const mainFact = facts[0];
   const restFacts = facts.slice(1);
 
+  const [propVideoFailed, setPropVideoFailed] = useReactState(false);
+  const propFallbackVideo = cityVideoFallbacks[citySlug];
+  const propHeroVideo = propVideoFailed ? null : propFallbackVideo;
+  const propHeroPoster = (citySlugImages as Record<string, string>)[citySlug] || property.cover_image_url || burgasHero;
+
   return (
-    <main className="luxury-page flex min-h-screen flex-col bg-background lg:h-screen lg:max-h-screen lg:overflow-hidden">
+    <main className="luxury-page flex min-h-screen flex-col bg-background">
       <LuxuryHeader active="sale" />
+
+      {/* CITY HERO VIDEO */}
+      <section className="relative h-[36vh] min-h-[240px] w-full overflow-hidden md:h-[44vh]">
+        {propHeroVideo ? (
+          <AutoPlayVideo
+            src={propHeroVideo}
+            fallbackSrc={propFallbackVideo}
+            onPermanentError={() => setPropVideoFailed(true)}
+            preload="auto"
+            poster={propHeroPoster}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <img src={propHeroPoster} alt={cityName} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+        )}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#5e0f1d]/50" />
+        <div className="absolute inset-x-0 bottom-0 z-10 px-4 pb-5 md:px-8 md:pb-8">
+          <div className="mx-auto max-w-[1460px]">
+            <div className="text-sm uppercase tracking-[0.18em] text-[#C9A84C] md:text-base">гр. {cityName}{quarterName ? ` · кв. ${quarterName}` : ""}</div>
+            <div className="font-display text-[1.5rem] leading-tight text-white drop-shadow md:text-[2.4rem]">{property.title}</div>
+          </div>
+        </div>
+      </section>
+
 
       <div className="mx-auto w-full max-w-[1460px] flex-shrink-0 px-4 pt-3 md:px-6">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
