@@ -167,6 +167,133 @@ function ProfilePage() {
           </Button>
         </div>
       </div>
+
+      <ThemeSection />
+    </div>
+  );
+}
+
+function ThemeSection() {
+  const { theme, setTheme, loaded } = useCrmTheme();
+  const [local, setLocal] = useState<CrmTheme>(theme);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (loaded) setLocal(theme);
+  }, [loaded, theme]);
+
+  const applyPreset = (key: string) => {
+    const p = CRM_THEME_PRESETS[key];
+    if (p) setLocal({ ...p });
+  };
+
+  const onSave = async () => {
+    setSaving(true);
+    try {
+      await setTheme(local);
+      toast.success("Темата е запазена");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при запис");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const Color = ({ label, k }: { label: string; k: keyof CrmTheme }) => (
+    <label className="block">
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-100/70">{label}</span>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={typeof local[k] === "string" && (local[k] as string).startsWith("#") ? (local[k] as string) : "#000000"}
+          onChange={(e) => setLocal({ ...local, [k]: e.target.value })}
+          className="h-10 w-14 cursor-pointer rounded border border-amber-500/30 bg-transparent"
+        />
+        <input
+          type="text"
+          value={String(local[k] ?? "")}
+          onChange={(e) => setLocal({ ...local, [k]: e.target.value })}
+          className="w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-2 text-sm text-amber-100"
+        />
+      </div>
+    </label>
+  );
+
+  return (
+    <div className="space-y-6 rounded-2xl border border-amber-500/20 bg-[rgba(20,4,8,0.55)] p-6 shadow-[0_18px_45px_rgba(139,26,43,0.35)]">
+      <header className="flex items-center gap-3">
+        <Palette className="h-5 w-5 text-amber-300" />
+        <div>
+          <h2 className="font-display text-2xl text-amber-100">Моята тема</h2>
+          <p className="text-xs text-amber-100/60">Всеки потребител има собствена тема и цветове за CRM панела</p>
+        </div>
+      </header>
+
+      <div>
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-100/70">Готови теми</div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {Object.entries(CRM_THEME_PRESETS).map(([key, p]) => {
+            const active = local.preset === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => applyPreset(key)}
+                className="group relative overflow-hidden rounded-xl border border-amber-500/25 p-3 text-left transition hover:scale-[1.02]"
+                style={{
+                  background: `linear-gradient(135deg, ${p.surface} 0%, ${p.surfaceTo} 100%)`,
+                  color: p.text,
+                  borderColor: active ? p.accent : undefined,
+                  boxShadow: active ? `0 0 0 2px ${p.accent}` : undefined,
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold capitalize">{key}</span>
+                  {active && <Check className="h-4 w-4" style={{ color: p.accent }} />}
+                </div>
+                <div className="mt-2 flex gap-1.5">
+                  <span className="h-4 w-4 rounded-full" style={{ background: p.accent }} />
+                  <span className="h-4 w-4 rounded-full" style={{ background: p.text }} />
+                  <span className="h-4 w-4 rounded-full border border-white/20" style={{ background: p.surface }} />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Color label="Фон (основен)" k="surface" />
+        <Color label="Фон (преливане)" k="surfaceTo" />
+        <Color label="Акцент" k="accent" />
+        <Color label="Текст" k="text" />
+      </div>
+
+      <div
+        className="rounded-xl border p-4"
+        style={{
+          background: `linear-gradient(180deg, ${local.surface}, ${local.surfaceTo})`,
+          color: local.text,
+          borderColor: local.border,
+        }}
+      >
+        <div className="text-xs uppercase tracking-wide" style={{ color: local.textMuted }}>Преглед</div>
+        <div className="mt-1 text-lg font-semibold">Имоти Надежда · CRM</div>
+        <button
+          type="button"
+          className="mt-3 rounded-lg px-3 py-1.5 text-xs font-semibold"
+          style={{ background: local.accent, color: local.surface }}
+        >
+          Акцентен бутон
+        </button>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={onSave} disabled={saving} className="gold-cta-button">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          Запази темата
+        </Button>
+      </div>
     </div>
   );
 }
