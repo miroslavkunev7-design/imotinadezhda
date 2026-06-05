@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { CityPage } from "@/components/site/luxury-real-estate";
+import { ShumenHomePage } from "@/components/site/shumen-home-page";
 import { getCityBySlug } from "@/lib/catalog.functions";
 
 const fallbackCities: Record<string, { name: string; description: string; region: string }> = {
@@ -12,6 +13,7 @@ const fallbackCities: Record<string, { name: string; description: string; region
 
 function CityFallbackRoute() {
   const { slug } = Route.useParams();
+  if (slug === "shumen") return <ShumenHomePage />;
   const fallback = fallbackCities[slug] ?? { name: "Град", description: "Имоти и квартали от Имоти Надежда.", region: "България" };
   return <CityPage data={{ city: { slug, ...fallback, hero_image_url: null, hero_video_url: null }, quarters: [], properties: [] }} />;
 }
@@ -56,6 +58,8 @@ export const Route = createFileRoute("/cities/$slug/")({
 });
 
 function CityRoute() {
+  const { slug } = Route.useParams();
   const data = Route.useLoaderData();
+  if (slug === "shumen") return <ShumenHomePage />;
   return <CityPage data={data} />;
 }
