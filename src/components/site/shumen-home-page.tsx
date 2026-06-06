@@ -229,11 +229,8 @@ function NeighborhoodCardShumen({ image, title, count, slug }: { image: string; 
         </div>
       </div>
 
-      {/* Marble content panel (bottom) */}
+      {/* Marble content panel (bottom) — no duplicated title; label is baked into the photo */}
       <div className="nadezhda-marble-bg px-4 py-3 md:px-5 md:py-4 border-t border-[#eaddc4] relative">
-        <h4 className="font-serif-nadezhda text-[#600f1c] text-base md:text-lg font-bold leading-tight mb-1">
-          {title}
-        </h4>
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-[#600f1c]/70 text-xs">
             <MapPin className="text-[#c59441] w-3.5 h-3.5" /> Шумен
