@@ -13,9 +13,17 @@ const fallbackCities: Record<string, { name: string; description: string; region
 
 function CityFallbackRoute() {
   const { slug } = Route.useParams();
-  if (slug === "shumen") return <ShumenHomePage />;
   const fallback = fallbackCities[slug] ?? { name: "Град", description: "Имоти и квартали от Имоти Надежда.", region: "България" };
-  return <CityPage data={{ city: { slug, ...fallback, hero_image_url: null, hero_video_url: null }, quarters: [], properties: [] }} />;
+  const cityData = { city: { slug, ...fallback, hero_image_url: null, hero_video_url: null }, quarters: [], properties: [] };
+  if (slug === "shumen") {
+    return (
+      <>
+        <div className="hidden md:block"><ShumenHomePage /></div>
+        <div className="md:hidden"><CityPage data={cityData} /></div>
+      </>
+    );
+  }
+  return <CityPage data={cityData} />;
 }
 
 export const Route = createFileRoute("/cities/$slug/")({
@@ -60,6 +68,13 @@ export const Route = createFileRoute("/cities/$slug/")({
 function CityRoute() {
   const { slug } = Route.useParams();
   const data = Route.useLoaderData();
-  if (slug === "shumen") return <ShumenHomePage />;
+  if (slug === "shumen") {
+    return (
+      <>
+        <div className="hidden md:block"><ShumenHomePage /></div>
+        <div className="md:hidden"><CityPage data={data} /></div>
+      </>
+    );
+  }
   return <CityPage data={data} />;
 }
