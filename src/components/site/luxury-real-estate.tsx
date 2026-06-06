@@ -1485,7 +1485,10 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                       }}
                     />
                     <div className="absolute inset-x-0 bottom-0 p-3">
-                      <div className="flex items-center justify-between">
+                      <h3 className="font-serif-nadezhda text-[15px] font-bold leading-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] sm:text-base">
+                        {q.name}
+                      </h3>
+                      <div className="mt-1 flex items-center justify-between">
                         <span className="inline-flex items-center gap-1 text-[11px] text-white/90">
                           <MapPin className="h-3 w-3 text-[#C9A84C]" />
                           {q.properties_count ?? 0} имота
