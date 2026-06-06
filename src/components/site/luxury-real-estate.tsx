@@ -1031,7 +1031,7 @@ function CityFilterPanel({
     "absolute inset-0 w-full h-full cursor-pointer opacity-0";
 
   return (
-    <div className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-black/25 backdrop-blur-md md:bg-transparent md:backdrop-blur-0 md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]">
+    <div className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-transparent md:bg-transparent md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]">
       <div className="grid grid-cols-3 gap-2">
         {/* Град (fixed to current city) */}
         <div className={fieldBase}>
@@ -1327,7 +1327,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
           ) : (
             <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
           )}
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-[#5e0f1d]/40" />
+          <div aria-hidden className="absolute inset-0 md:bg-gradient-to-b md:from-black/35 md:via-transparent md:to-[#5e0f1d]/40" />
 
           {/* Overlay navbar */}
           <div className="absolute inset-x-0 top-0 z-30">
@@ -1346,7 +1346,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
             {/* CITY INFO CARD */}
             <div
-              className="mt-auto overflow-hidden rounded-2xl text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:ring-1 md:ring-[#C9A84C]/25 bg-transparent backdrop-blur-md md:backdrop-blur-0 md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]"
+              className="mt-auto overflow-hidden rounded-2xl text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:ring-1 md:ring-[#C9A84C]/25 bg-transparent md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]"
             >
 
               <div className="flex gap-3 p-3.5 md:gap-4 md:p-4">
