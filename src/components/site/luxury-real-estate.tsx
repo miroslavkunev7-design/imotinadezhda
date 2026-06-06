@@ -117,6 +117,16 @@ import cityShumen from "@/assets/city-shumen.jpeg";
 import cityBurgas from "@/assets/city-burgas.jpeg";
 import cityVarna from "@/assets/city-varna.jpeg";
 import cityNoviPazar from "@/assets/city-novi-pazar.jpeg";
+import qTsentar from "@/assets/shumen-quarters/tsentar.jpeg.asset.json";
+import qTrakiya from "@/assets/shumen-quarters/trakiya.png.asset.json";
+import qBoyan1 from "@/assets/shumen-quarters/boyan-1.png.asset.json";
+import qBoyan2 from "@/assets/shumen-quarters/boyan-2.png.asset.json";
+import qBolnitsata from "@/assets/shumen-quarters/bolnitsata.png.asset.json";
+import qHerson from "@/assets/shumen-quarters/herson.png.asset.json";
+import qPazara from "@/assets/shumen-quarters/pazara.png.asset.json";
+import qDobrudzhanski from "@/assets/shumen-quarters/dobrudzhanski.png.asset.json";
+import qPozharnata from "@/assets/shumen-quarters/pozharnata.png.asset.json";
+import qVoenno from "@/assets/shumen-quarters/voenno.png.asset.json";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { Button } from "@/components/ui/button";
@@ -160,6 +170,23 @@ const cityVideoFallbacks: Record<string, string> = {
   shumen: shumenHeroVideo.url,
   varna: varnaHeroVideo.url,
 };
+
+const shumenQuarterCards = [
+  { name: "Център", slug: "tsentar", image_url: qTsentar.url, properties_count: 0 },
+  { name: "Тракия", slug: "trakiya", image_url: qTrakiya.url, properties_count: 0 },
+  { name: "Боян Българанов 1", slug: "boyan-balgaranov-1", image_url: qBoyan1.url, properties_count: 0 },
+  { name: "Боян Българанов 2", slug: "boyan-balgaranov-2", image_url: qBoyan2.url, properties_count: 0 },
+  { name: "Болницата", slug: "bolnitsata", image_url: qBolnitsata.url, properties_count: 0 },
+  { name: "Херсон", slug: "herson", image_url: qHerson.url, properties_count: 0 },
+  { name: "Пазара", slug: "pazara", image_url: qPazara.url, properties_count: 0 },
+  { name: "Добруджански", slug: "dobrudzhanski", image_url: qDobrudzhanski.url, properties_count: 0 },
+  { name: "Пожарната", slug: "pozharnata", image_url: qPozharnata.url, properties_count: 0 },
+  { name: "Военно училище", slug: "voenno-uchilishte", image_url: qVoenno.url, properties_count: 0 },
+];
+
+function normalizeQuarterName(name: string) {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
 
 const homeCities: Array<{ name: string; image: string; href: "/cities/$slug"; params: { slug: string } }> = [
   { name: "Шумен", image: cityShumen, href: "/cities/$slug", params: { slug: "shumen" } },
