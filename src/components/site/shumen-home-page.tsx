@@ -206,8 +206,6 @@ function Field({
 }
 
 /* ---------------- Neighborhood card — SHUMEN variant ---------------- */
-/* Distinct from Burgas: split layout (image top + marble content panel below),
-   gold ribbon counter, burgundy underline reveal on hover, image gentle zoom + lift. */
 function NeighborhoodCardShumen({ image, title, count, slug }: { image: string; title: string; count: number; slug: string }) {
   return (
     <Link
@@ -215,21 +213,23 @@ function NeighborhoodCardShumen({ image, title, count, slug }: { image: string; 
       params={{ slug: "shumen", district: slug } as never}
       className="group block rounded-2xl overflow-hidden bg-white border border-[#eaddc4] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 font-sans-nadezhda"
     >
-      {/* Image panel (top) */}
       <div className="relative h-28 md:h-32 overflow-hidden">
         <img
           src={image}
           alt={title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#4f0314]/40 to-transparent" />
-        {/* Gold ribbon with property count */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#4f0314]/78 via-[#4f0314]/50 to-[#4f0314]/18" />
+        <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-full bg-[#5e0f1d]/55 px-3 py-2 backdrop-blur-[1px]">
+          <h3 className="text-center font-serif-nadezhda text-[15px] font-bold leading-none text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)] md:text-[17px]">
+            {title}
+          </h3>
+        </div>
         <div className="absolute top-3 right-3 nadezhda-gold-bg text-[#260108] text-[11px] md:text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
           <HomeIcon className="w-3 h-3" /> {count}
         </div>
       </div>
 
-      {/* Marble content panel (bottom) — no duplicated title; label is baked into the photo */}
       <div className="nadezhda-marble-bg px-4 py-3 md:px-5 md:py-4 border-t border-[#eaddc4] relative">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-[#600f1c]/70 text-xs">
@@ -239,7 +239,6 @@ function NeighborhoodCardShumen({ image, title, count, slug }: { image: string; 
             Виж <ArrowRight className="w-3.5 h-3.5" />
           </span>
         </div>
-        {/* Burgundy underline reveal */}
         <span className="absolute left-4 right-4 bottom-0 h-[2px] bg-gradient-to-r from-[#600f1c] to-[#c59441] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500" />
       </div>
     </Link>
