@@ -123,7 +123,6 @@ function ShumenInfoBox() {
     <div className="absolute right-4 md:right-8 lg:right-12 top-28 md:top-40 lg:top-44 w-[92%] max-w-[420px] lg:max-w-[450px] p-6 md:p-7 lg:p-8 rounded-3xl text-white font-sans-nadezhda z-30">
       <div className="aspect-square md:aspect-auto md:h-36 lg:h-40 rounded-2xl overflow-hidden mb-5 md:mb-6 relative">
         <img src={shumenPanorama.url} alt="Шумен" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
       </div>
       <div className="text-yellow-500 text-[11px] tracking-[0.22em] mb-2 uppercase font-bold">За града</div>
       <h1 className="text-4xl md:text-5xl font-serif-nadezhda text-[#ebd197] mb-3 md:mb-4">Шумен</h1>
