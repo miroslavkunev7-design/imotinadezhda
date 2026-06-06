@@ -1279,15 +1279,26 @@ export function CityPage({ data }: { data?: CityData } = {}) {
     area_km2: 436,
   };
   const quarters =
-    data?.quarters && data.quarters.length
-      ? data.quarters
-      : burgasDistricts.map((d, i) => ({
-          id: String(i),
-          slug: d.name.toLowerCase(),
-          name: d.name,
-          image_url: d.image,
-          properties_count: d.count,
-        }));
+    city.slug === "shumen"
+      ? shumenQuarterCards.map((local, i) => {
+          const dbMatch = data?.quarters?.find(
+            (q) => q.slug === local.slug || normalizeQuarterName(q.name) === normalizeQuarterName(local.name),
+          );
+          return {
+            id: dbMatch?.id ?? `shumen-${i}`,
+            ...local,
+            properties_count: dbMatch?.properties_count ?? local.properties_count,
+          };
+        })
+      : data?.quarters && data.quarters.length
+        ? data.quarters
+        : burgasDistricts.map((d, i) => ({
+            id: String(i),
+            slug: d.name.toLowerCase(),
+            name: d.name,
+            image_url: d.image,
+            properties_count: d.count,
+          }));
   const properties = data?.properties ?? [];
 
   const heroImage =
@@ -1402,7 +1413,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 md:gap-4">
-            {quarters.slice(0, 5).map((q, i) => {
+            {quarters.map((q, i) => {
               const remote = q.image_url || "";
               const usesRemote = remote && !/^https?:/i.test(remote);
               const fallbacks = [cityShumen, cityBurgas, cityVarna, cityNoviPazar, heroImage];
