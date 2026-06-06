@@ -17,6 +17,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PropertiesPropertyIdRouteImport } from './routes/properties.$propertyId'
+import { Route as DebugQuartersRouteImport } from './routes/debug.quarters'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminQuartersRouteImport } from './routes/admin.quarters'
@@ -87,6 +88,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const PropertiesPropertyIdRoute = PropertiesPropertyIdRouteImport.update({
   id: '/properties/$propertyId',
   path: '/properties/$propertyId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DebugQuartersRoute = DebugQuartersRouteImport.update({
+  id: '/debug/quarters',
+  path: '/debug/quarters',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminTasksRoute = AdminTasksRouteImport.update({
@@ -278,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/admin/quarters': typeof AdminQuartersRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
+  '/debug/quarters': typeof DebugQuartersRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
@@ -318,6 +325,7 @@ export interface FileRoutesByTo {
   '/admin/quarters': typeof AdminQuartersRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
+  '/debug/quarters': typeof DebugQuartersRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
@@ -360,6 +368,7 @@ export interface FileRoutesById {
   '/admin/quarters': typeof AdminQuartersRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
+  '/debug/quarters': typeof DebugQuartersRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
@@ -403,6 +412,7 @@ export interface FileRouteTypes {
     | '/admin/quarters'
     | '/admin/settings'
     | '/admin/tasks'
+    | '/debug/quarters'
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/admin/quarters'
     | '/admin/settings'
     | '/admin/tasks'
+    | '/debug/quarters'
     | '/properties/$propertyId'
     | '/admin'
     | '/admin/audit/$id'
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/admin/quarters'
     | '/admin/settings'
     | '/admin/tasks'
+    | '/debug/quarters'
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
@@ -503,6 +515,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  DebugQuartersRoute: typeof DebugQuartersRoute
   PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
   ApiPublicCustomerChatRoute: typeof ApiPublicCustomerChatRoute
   CitiesSlugIndexRoute: typeof CitiesSlugIndexRoute
@@ -566,6 +579,13 @@ declare module '@tanstack/react-router' {
       path: '/properties/$propertyId'
       fullPath: '/properties/$propertyId'
       preLoaderRoute: typeof PropertiesPropertyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debug/quarters': {
+      id: '/debug/quarters'
+      path: '/debug/quarters'
+      fullPath: '/debug/quarters'
+      preLoaderRoute: typeof DebugQuartersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/tasks': {
@@ -879,6 +899,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  DebugQuartersRoute: DebugQuartersRoute,
   PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
   ApiPublicCustomerChatRoute: ApiPublicCustomerChatRoute,
   CitiesSlugIndexRoute: CitiesSlugIndexRoute,
@@ -888,13 +909,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
