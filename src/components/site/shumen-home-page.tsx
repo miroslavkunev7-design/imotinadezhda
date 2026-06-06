@@ -295,7 +295,7 @@ export function ShumenHomePage() {
       {/* HERO */}
 
       <div className="relative">
-        <TopFloatSearch />
+        <div className="hidden md:block"><TopFloatSearch /></div>
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
           <HeroVideoOrImage videoUrl={shumenHeroVideo.url} posterUrl={shumenPanorama.url} alt="Шумен" />
           <div className="absolute inset-0 bg-black/30" />
