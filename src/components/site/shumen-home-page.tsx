@@ -121,7 +121,7 @@ function TopFloatSearch() {
 function ShumenInfoBox() {
   return (
     <div className="absolute right-4 md:right-8 lg:right-12 top-28 md:top-40 lg:top-44 w-[92%] max-w-[420px] lg:max-w-[450px] p-6 md:p-7 lg:p-8 rounded-3xl text-white font-sans-nadezhda z-30">
-      <div className="h-32 md:h-36 lg:h-40 rounded-2xl overflow-hidden mb-5 md:mb-6 relative">
+      <div className="aspect-square md:aspect-auto md:h-36 lg:h-40 rounded-2xl overflow-hidden mb-5 md:mb-6 relative">
         <img src={shumenPanorama.url} alt="Шумен" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
       </div>
@@ -295,7 +295,7 @@ export function ShumenHomePage() {
       {/* HERO */}
 
       <div className="relative">
-        <TopFloatSearch />
+        <div className="hidden md:block"><TopFloatSearch /></div>
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
           <HeroVideoOrImage videoUrl={shumenHeroVideo.url} posterUrl={shumenPanorama.url} alt="Шумен" />
           <div className="absolute inset-0 bg-black/30" />
