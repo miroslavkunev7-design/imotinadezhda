@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState as useReactState, type VideoHTMLAttributes } from "react";
 
-// Auto-play helper: forces muted+playsInline DOM attrs and retries .play()
-// against browser/iframe autoplay policies. Works around React not always
-// reflecting the `muted` prop as an attribute before the autoplay attempt.
+// Auto-play helper with instant-poster + deferred video mount:
+// 1. Renders the poster image immediately as a full-cover background so first
+//    paint is effectively 0s (no waiting on the video network request).
+// 2. Defers mounting the actual <video> element until after first paint
+//    (requestIdleCallback / rAF fallback) so the hero image isn't blocked.
+// 3. Uses preload="metadata" so the browser streams the clip instead of
+//    fully buffering before playback can start.
+// 4. Fades the video in over the poster once enough data is loaded (no flash).
 function AutoPlayVideo(
   props: VideoHTMLAttributes<HTMLVideoElement> & {
     src?: string;
@@ -10,15 +15,37 @@ function AutoPlayVideo(
     onPermanentError?: () => void;
   },
 ) {
-  const { src, fallbackSrc, onPermanentError, onError, ...videoProps } = props;
+  const { src, fallbackSrc, onPermanentError, onError, poster, className, style, preload: _ignoredPreload, ...videoProps } = props;
   const ref = useRef<HTMLVideoElement | null>(null);
   const [activeSrc, setActiveSrc] = useReactState(src);
+  const [mountVideo, setMountVideo] = useReactState(false);
+  const [videoReady, setVideoReady] = useReactState(false);
 
   useEffect(() => {
     setActiveSrc(src);
-  }, [src, setActiveSrc]);
+    setVideoReady(false);
+  }, [src, setActiveSrc, setVideoReady]);
+
+  // Defer the <video> mount until after first paint so the poster shows instantly.
+  useEffect(() => {
+    if (!src) return;
+    let cancelled = false;
+    const schedule = (cb: () => void) => {
+      const ric = (window as any).requestIdleCallback as
+        | ((cb: () => void, opts?: { timeout: number }) => number)
+        | undefined;
+      if (typeof ric === "function") return ric(() => !cancelled && cb(), { timeout: 200 });
+      return window.setTimeout(() => !cancelled && cb(), 0);
+    };
+    const raf = requestAnimationFrame(() => schedule(() => setMountVideo(true)));
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
+  }, [src, setMountVideo]);
 
   useEffect(() => {
+    if (!mountVideo) return;
     const el = ref.current;
     if (!el || !activeSrc) return;
     el.muted = true;
@@ -41,7 +68,7 @@ function AutoPlayVideo(
     };
     if (el.readyState >= 2) tryPlay();
     else el.addEventListener("loadeddata", tryPlay, { once: true });
-  }, [activeSrc]);
+  }, [activeSrc, mountVideo]);
 
   const handleError: VideoHTMLAttributes<HTMLVideoElement>["onError"] = (event) => {
     onError?.(event);
@@ -53,25 +80,43 @@ function AutoPlayVideo(
   };
 
   return (
-    <video
-      key={activeSrc ?? "video"}
-      ref={ref}
-      {...videoProps}
-      autoPlay
-      loop
-      muted
-      playsInline
-      preload="auto"
-      src={activeSrc}
-      onError={handleError}
-      onEnded={(e) => {
-        const v = e.currentTarget;
-        try {
-          v.currentTime = 0;
-          void v.play();
-        } catch {}
-      }}
-    />
+    <div className={className} style={style}>
+      {poster ? (
+        <img
+          src={typeof poster === "string" ? poster : undefined}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+          decoding="async"
+          fetchPriority="high"
+        />
+      ) : null}
+      {mountVideo && activeSrc ? (
+        <video
+          key={activeSrc}
+          ref={ref}
+          {...videoProps}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster={typeof poster === "string" ? poster : undefined}
+          src={activeSrc}
+          onError={handleError}
+          onLoadedData={() => setVideoReady(true)}
+          onEnded={(e) => {
+            const v = e.currentTarget;
+            try {
+              v.currentTime = 0;
+              void v.play();
+            } catch {}
+          }}
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
+          style={{ opacity: videoReady ? 1 : 0 }}
+        />
+      ) : null}
+    </div>
   );
 }
 import { Link, useNavigate } from "@tanstack/react-router";
