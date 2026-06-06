@@ -68,6 +68,13 @@ export const Route = createFileRoute("/cities/$slug/")({
 function CityRoute() {
   const { slug } = Route.useParams();
   const data = Route.useLoaderData();
-  if (slug === "shumen") return <ShumenHomePage />;
+  if (slug === "shumen") {
+    return (
+      <>
+        <div className="hidden md:block"><ShumenHomePage /></div>
+        <div className="md:hidden"><CityPage data={data} /></div>
+      </>
+    );
+  }
   return <CityPage data={data} />;
 }
