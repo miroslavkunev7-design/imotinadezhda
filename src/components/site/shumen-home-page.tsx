@@ -24,6 +24,16 @@ import {
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
 import cityShumen from "@/assets/city-shumen.jpeg";
+import qTsentar from "@/assets/shumen-quarters/tsentar.jpeg.asset.json";
+import qTrakiya from "@/assets/shumen-quarters/trakiya.png.asset.json";
+import qBoyan1 from "@/assets/shumen-quarters/boyan-1.png.asset.json";
+import qBoyan2 from "@/assets/shumen-quarters/boyan-2.png.asset.json";
+import qBolnitsata from "@/assets/shumen-quarters/bolnitsata.png.asset.json";
+import qHerson from "@/assets/shumen-quarters/herson.png.asset.json";
+import qPazara from "@/assets/shumen-quarters/pazara.png.asset.json";
+import qDobrudzhanski from "@/assets/shumen-quarters/dobrudzhanski.png.asset.json";
+import qPozharnata from "@/assets/shumen-quarters/pozharnata.png.asset.json";
+import qVoenno from "@/assets/shumen-quarters/voenno.png.asset.json";
 import { SiteHeader } from "@/components/site/site-header";
 import { InstallCrmButton } from "@/components/site/install-crm-button";
 const shumenPanorama = { url: cityShumen };
@@ -31,18 +41,16 @@ const shumenPanorama = { url: cityShumen };
 
 /* ---------------- Шумен квартали ---------------- */
 const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image: string }> = [
-  { name: "Център",            slug: "tsentar",            count: 64, image: cityShumen },
-  { name: "Тракия",             slug: "trakiya",            count: 58, image: cityShumen },
-  { name: "Добруджански",       slug: "dobrudzhanski",      count: 43, image: cityShumen },
-  { name: "Боян Българанов 1",  slug: "boyan-balgaranov-1", count: 31, image: cityShumen },
-  { name: "Боян Българанов 2",  slug: "boyan-balgaranov-2", count: 28, image: cityShumen },
-  { name: "Херсон",             slug: "herson",             count: 25, image: cityShumen },
-  { name: "Гривица",            slug: "grivitsa",           count: 22, image: cityShumen },
-  { name: "Пазара",             slug: "pazara",             count: 19, image: cityShumen },
-  { name: "Топхане",            slug: "tophane",            count: 17, image: cityShumen },
-  { name: "Дивдядово",          slug: "divdyadovo",         count: 14, image: cityShumen },
-  { name: "Мътница",            slug: "matnitsa",           count: 11, image: cityShumen },
-  { name: "Еверест",            slug: "everest",            count: 9,  image: cityShumen },
+  { name: "Център",             slug: "tsentar",            count: 64, image: qTsentar.url },
+  { name: "Тракия",             slug: "trakiya",            count: 58, image: qTrakiya.url },
+  { name: "Боян Българанов 1",  slug: "boyan-balgaranov-1", count: 31, image: qBoyan1.url },
+  { name: "Боян Българанов 2",  slug: "boyan-balgaranov-2", count: 28, image: qBoyan2.url },
+  { name: "Болницата",          slug: "bolnitsata",         count: 22, image: qBolnitsata.url },
+  { name: "Херсон",             slug: "herson",             count: 25, image: qHerson.url },
+  { name: "Пазара",             slug: "pazara",             count: 19, image: qPazara.url },
+  { name: "Добруджански",       slug: "dobrudzhanski",      count: 43, image: qDobrudzhanski.url },
+  { name: "Пожарната",          slug: "pozharnata",         count: 14, image: qPozharnata.url },
+  { name: "Военно училище",     slug: "voenno-uchilishte",  count: 11, image: qVoenno.url },
 ];
 
 /* ---------------- Logo header (top-left) — desktop only ---------------- */
