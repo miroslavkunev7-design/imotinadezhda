@@ -183,18 +183,30 @@ async function runTool(name: string, args: any, userId: string): Promise<any> {
     const { data: profile } = await supabaseAdmin.from("profiles").select("crm_theme").eq("id", userId).maybeSingle();
     const current = (profile?.crm_theme ?? {}) as Record<string, any>;
     const starting = base ? { ...base, preset: args.preset } : current;
-    const fields = ["surface", "surfaceTo", "accent", "accentSoft", "text", "textMuted", "border"] as const;
+    const colorFields = ["surface", "surfaceTo", "accent", "accentSoft", "text", "textMuted", "border", "sidebar", "sidebarTo", "sidebarText", "sidebarBorder", "heading"] as const;
+    const freeFields = ["heroBg", "fontFamily"] as const;
     const overrides: Record<string, string> = {};
     const rejected: string[] = [];
-    for (const f of fields) {
+    for (const f of colorFields) {
       if (args[f] !== undefined) {
-        if (validColor(args[f])) overrides[f] = args[f].trim();
+        if (validColor(args[f])) overrides[f] = String(args[f]).trim();
         else rejected.push(f);
+      }
+    }
+    for (const f of freeFields) {
+      if (args[f] !== undefined) {
+        const v = String(args[f]).trim();
+        // лимит и забрана за url()/expression/опасни конструкции
+        if (v.length > 0 && v.length <= 300 && !/url\s*\(|expression\s*\(|javascript:|<|>/i.test(v)) {
+          overrides[f] = v;
+        } else {
+          rejected.push(f);
+        }
       }
     }
     const next = { ...starting, ...overrides };
     if (!base && Object.keys(overrides).length === 0) {
-      return { error: "Не са подадени валидни цветове или preset.", rejected };
+      return { error: "Не са подадени валидни стойности или preset.", rejected };
     }
     const { error } = await supabaseAdmin.from("profiles").update({ crm_theme: next as any }).eq("id", userId);
     if (error) return { error: error.message };
