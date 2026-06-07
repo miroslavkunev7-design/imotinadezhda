@@ -51,7 +51,7 @@ function Page() {
                 <ChevronRight className="h-4 w-4 text-amber-300/70 transition group-hover:translate-x-0.5" />
               </div>
               <p className="mt-1 text-xs text-amber-100/60">
-                Отвори страница и размествай секциите с мишката (drag & drop), скривай/показвай ги. Скоро: inline текст и AI.
+                Отвори страница и размествай секциите с мишката (drag & drop), скривай/показвай ги.
               </p>
             </div>
           </Link>
