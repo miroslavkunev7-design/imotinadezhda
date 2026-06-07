@@ -11,6 +11,14 @@ export type CrmTheme = {
   text: string;
   textMuted: string;
   border: string;
+  // Optional fine-grained tokens (AI-настройваеми)
+  sidebar?: string;
+  sidebarTo?: string;
+  sidebarText?: string;
+  sidebarBorder?: string;
+  heading?: string;
+  heroBg?: string;
+  fontFamily?: string;
 };
 
 export const CRM_THEME_PRESETS: Record<string, CrmTheme> = {
