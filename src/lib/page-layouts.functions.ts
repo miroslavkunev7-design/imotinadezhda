@@ -205,7 +205,7 @@ export const restorePageLayoutRevision = createServerFn({ method: "POST" })
 
     const { error } = await supabase.from("page_layouts").upsert({
       page_key: data.page_key,
-      sections: parsed.data,
+      sections: parsed.data as any,
       updated_by: userId,
       updated_at: new Date().toISOString(),
     });
