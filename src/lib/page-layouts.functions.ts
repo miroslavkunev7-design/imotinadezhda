@@ -6,12 +6,19 @@ const PAGE_KEYS = ["home", "sale", "rent", "about", "contacts"] as const;
 const pageKeySchema = z.enum(PAGE_KEYS);
 
 // Section schema: id + visible са задължителни; title/subtitle/props са опционални overrides.
+// props е JSON-safe речник от прости стойности (string/number/boolean/null).
+const propValueSchema: z.ZodType<string | number | boolean | null> = z.union([
+  z.string().max(2000),
+  z.number(),
+  z.boolean(),
+  z.null(),
+]);
 const sectionSchema = z.object({
   id: z.string().min(1).max(64).regex(/^[a-z0-9_-]+$/),
   visible: z.boolean(),
   title: z.string().max(200).optional(),
   subtitle: z.string().max(500).optional(),
-  props: z.record(z.string().max(64), z.unknown()).optional(),
+  props: z.record(z.string().max(64), propValueSchema).optional(),
 });
 const sectionsSchema = z.array(sectionSchema).max(64);
 
