@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -45,14 +46,14 @@ function QuartersAdmin() {
     if (p.display_order) p.display_order = Number(p.display_order);
     const op = id ? supabase.from("quarters").update(p).eq("id", id) : supabase.from("quarters").insert(p);
     const { error } = await op;
-    if (error) return alert(error.message);
+    if (error) return toast.error(error.message);
     setEditing(null); load();
   };
 
   const remove = async (id: string) => {
     if (!confirm("Изтриване на квартала?")) return;
     const { error } = await supabase.from("quarters").delete().eq("id", id);
-    if (error) return alert(error.message);
+    if (error) return toast.error(error.message);
     load();
   };
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { X, Check, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { updateClientDeal } from "@/lib/crm.functions";
@@ -69,7 +70,7 @@ export function MortgageStagesModal({
       onSaved?.();
       onClose();
     } catch (e: any) {
-      alert(e?.message ?? "Грешка");
+      toast.error(e?.message ?? "Грешка");
     } finally {
       setBusy(false);
     }

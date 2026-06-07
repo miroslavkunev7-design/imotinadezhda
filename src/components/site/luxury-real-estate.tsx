@@ -796,8 +796,8 @@ function AgentCard() {
         <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />+359 88 123 4567</div>
         <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />m.ivanova@ildja.bg</div>
       </div>
-      <Button className="gold-cta-button h-14 w-full rounded-[14px] text-lg">Запази час за оглед</Button>
-      <Button variant="outline" className="marble-action-button h-14 w-full rounded-[14px] border-primary/30 bg-transparent text-lg text-primary-foreground hover:bg-white/6">Запитване</Button>
+      <Button asChild className="gold-cta-button h-14 w-full rounded-[14px] text-lg"><a href="tel:+359899620262">Запази час за оглед</a></Button>
+      <Button asChild variant="outline" className="marble-action-button h-14 w-full rounded-[14px] border-primary/30 bg-transparent text-lg text-primary-foreground hover:bg-white/6"><a href="mailto:agenciq_nadejdi@abv.bg?subject=Запитване%20за%20имот">Запитване</a></Button>
     </aside>
   );
 }
@@ -838,7 +838,7 @@ function MapCard({ district = false }: { district?: boolean }) {
         {district ? <div className="absolute left-[48%] top-[58%] -translate-x-1/2 -translate-y-1/2 font-display text-[2.3rem] tracking-[0.12em] text-card-foreground/75">ЛАЗУР</div> : null}
       </div>
       <div className="p-4">
-        <Button className="marble-dark-panel h-14 w-full rounded-[14px] text-lg text-primary-foreground">Виж на картата</Button>
+        <Button asChild className="marble-dark-panel h-14 w-full rounded-[14px] text-lg text-primary-foreground"><a href="https://www.google.com/maps/search/?api=1&query=кв.+Лазур+Бургас" target="_blank" rel="noopener noreferrer">Виж на картата</a></Button>
       </div>
     </aside>
   );
@@ -1625,9 +1625,11 @@ function DistrictMapCard({ name }: { name: string }) {
         </div>
       </div>
       <div className="marble-dark-panel flex items-center justify-center px-4 py-5">
-        <Button className="h-12 rounded-[14px] border border-[var(--color-secondary)]/60 bg-transparent px-6 text-base text-primary-foreground hover:bg-white/5">
-          <MapPin className="mr-2 h-5 w-5 text-[var(--color-secondary)]" />
-          Виж на картата
+        <Button asChild className="h-12 rounded-[14px] border border-[var(--color-secondary)]/60 bg-transparent px-6 text-base text-primary-foreground hover:bg-white/5">
+          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " Шумен")}`} target="_blank" rel="noopener noreferrer">
+            <MapPin className="mr-2 h-5 w-5 text-[var(--color-secondary)]" />
+            Виж на картата
+          </a>
         </Button>
       </div>
     </aside>

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FileText, Download, CreditCard, MessageSquare } from "lucide-react";
@@ -65,7 +66,7 @@ function InquiriesAdmin() {
 
   const downloadFile = async (path: string, name: string) => {
     const { data, error } = await supabase.storage.from("mortgage-docs").createSignedUrl(path, 60 * 60);
-    if (error || !data) return alert(error?.message ?? "Грешка");
+    if (error || !data) return toast.error(error?.message ?? "Грешка");
     const a = document.createElement("a");
     a.href = data.signedUrl;
     a.download = name;

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ function OwnersAdmin() {
       supabase.from("owners").select("*, cities:city_id(name)").order("created_at", { ascending: false }),
       supabase.from("cities").select("id, name").order("display_order"),
     ]);
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     setRows((data as any) ?? []);
     setCities((cs as City[]) ?? []);
   };
@@ -51,7 +52,7 @@ function OwnersAdmin() {
       : supabase.from("owners").insert(payload);
     const { error } = await op;
     setBusy(false);
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     setEditing(null);
     load();
   };
@@ -59,7 +60,7 @@ function OwnersAdmin() {
   const remove = async (id: string) => {
     if (!confirm("Изтриване на собственика?")) return;
     const { error } = await supabase.from("owners").delete().eq("id", id);
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     load();
   };
 

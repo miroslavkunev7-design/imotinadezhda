@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ function CitiesAdmin() {
     if (payload.display_order) payload.display_order = Number(payload.display_order);
     const op = id ? supabase.from("cities").update(payload).eq("id", id) : supabase.from("cities").insert(payload);
     const { error } = await op;
-    if (error) return alert(error.message);
+    if (error) return toast.error(error.message);
     setEditing(null);
     load();
   };
@@ -50,7 +51,7 @@ function CitiesAdmin() {
   const remove = async (id: string) => {
     if (!confirm("Изтриване на града? Всички квартали и имоти, свързани с него, ще се повлияят.")) return;
     const { error } = await supabase.from("cities").delete().eq("id", id);
-    if (error) return alert(error.message);
+    if (error) return toast.error(error.message);
     load();
   };
 

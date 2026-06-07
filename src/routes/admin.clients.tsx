@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,13 +56,13 @@ function ClientsAdmin() {
       setEditing(null);
       await load();
     } catch (e: any) {
-      alert(e?.message ?? "Грешка");
+      toast.error(e?.message ?? "Грешка");
     } finally { setBusy(false); }
   };
 
   const remove = async (id: string) => {
     if (!confirm("Изтриване на клиента?")) return;
-    try { await deleteClient({ data: { id } }); await load(); } catch (e: any) { alert(e.message); }
+    try { await deleteClient({ data: { id } }); await load(); } catch (e: any) { toast.error(e.message); }
   };
 
   const newClient = () => setEditing({
@@ -273,7 +274,7 @@ function DocumentsModal({ client, onClose }: { client: any; onClose: () => void 
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    try { setDocs(await getClientDocuments({ data: { client_id: client.id } })); } catch (e: any) { alert(e.message); }
+    try { setDocs(await getClientDocuments({ data: { client_id: client.id } })); } catch (e: any) { toast.error(e.message); }
   };
   useEffect(() => { load(); }, [client.id]);
 
@@ -285,7 +286,7 @@ function DocumentsModal({ client, onClose }: { client: any; onClose: () => void 
         const ext = file.name.split(".").pop() ?? "bin";
         const path = `${client.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error: upErr } = await supabase.storage.from("client-documents").upload(path, file, { contentType: file.type });
-        if (upErr) { alert(upErr.message); continue; }
+        if (upErr) { toast.error(upErr.message); continue; }
         const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 60 * 60 * 24 * 365);
         await addClientDocument({ data: {
           client_id: client.id,
@@ -302,7 +303,7 @@ function DocumentsModal({ client, onClose }: { client: any; onClose: () => void 
 
   const remove = async (id: string) => {
     if (!confirm("Изтриване?")) return;
-    try { await deleteClientDocument({ data: { id } }); await load(); } catch (e: any) { alert(e.message); }
+    try { await deleteClientDocument({ data: { id } }); await load(); } catch (e: any) { toast.error(e.message); }
   };
 
   return (

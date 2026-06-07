@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { Heart, Phone, Mail, ExternalLink, Sparkles } from "lucide-react";
 import { listMatches, updateMatchStatus, triggerMatchForProperty } from "@/lib/crm.functions";
@@ -14,7 +15,7 @@ function MatchesAdmin() {
   const [filter, setFilter] = useState<"all" | "new" | "contacted" | "interested" | "rejected">("new");
 
   const load = async () => {
-    try { setRows(await listMatches()); } catch (e: any) { alert(e.message); }
+    try { setRows(await listMatches()); } catch (e: any) { toast.error(e.message); }
   };
   useEffect(() => { load(); }, []);
 
@@ -25,12 +26,12 @@ function MatchesAdmin() {
     for (const p of props) {
       try { const r = await triggerMatchForProperty({ data: { property_id: p.id } }); count += r.matches; } catch {}
     }
-    alert(`Готово. Намерени съвпадения: ${count}`);
+    toast.success(`Готово. Намерени съвпадения: ${count}`);
     await load();
   };
 
   const update = async (id: string, status: any) => {
-    try { await updateMatchStatus({ data: { id, status } }); await load(); } catch (e: any) { alert(e.message); }
+    try { await updateMatchStatus({ data: { id, status } }); await load(); } catch (e: any) { toast.error(e.message); }
   };
 
   const filtered = rows.filter((r) => filter === "all" || r.status === filter);

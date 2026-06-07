@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -95,7 +96,7 @@ export function ClientDetailsSheet({
       const { id, full_name, phone, email, client_type, status, currency } = client;
       await upsertClient({ data: { id, full_name, phone, email, client_type, status, currency, notes } });
       await onChanged();
-    } catch (e: any) { alert(e?.message ?? "Грешка"); }
+    } catch (e: any) { toast.error(e?.message ?? "Грешка"); }
     finally { setBusy(false); }
   };
 
@@ -106,7 +107,7 @@ export function ClientDetailsSheet({
         data: { id: client.id, deal_stage: key, deal_started_at: key ? new Date().toISOString() : null },
       });
       await onChanged();
-    } catch (e: any) { alert(e?.message ?? "Грешка"); }
+    } catch (e: any) { toast.error(e?.message ?? "Грешка"); }
     finally { setBusy(false); }
   };
 
@@ -120,7 +121,7 @@ export function ClientDetailsSheet({
         },
       });
       await onChanged();
-    } catch (e: any) { alert(e?.message ?? "Грешка при запис на поръчителите"); }
+    } catch (e: any) { toast.error(e?.message ?? "Грешка при запис на поръчителите"); }
   };
 
   const addGuarantor = () => {
@@ -154,7 +155,7 @@ export function ClientDetailsSheet({
       const ext = file.name.split(".").pop() ?? "bin";
       const path = `${client.id}/${docType.replace(/:/g, "_")}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error: upErr } = await supabase.storage.from("client-documents").upload(path, file, { contentType: file.type });
-      if (upErr) { alert(upErr.message); return; }
+      if (upErr) { toast.error(upErr.message); return; }
       const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 60 * 60 * 24 * 365);
       await addClientDocument({ data: {
         client_id: client.id,

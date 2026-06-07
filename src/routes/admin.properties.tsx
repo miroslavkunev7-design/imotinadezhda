@@ -70,7 +70,7 @@ function PropertiesAdmin() {
       const ext = file.name.split(".").pop() ?? "jpg";
       const path = `${propertyId}/${Date.now()}-${i}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error: upErr } = await supabase.storage.from("property-images").upload(path, file, { contentType: file.type });
-      if (upErr) { alert(upErr.message); continue; }
+      if (upErr) { toast.error(upErr.message); continue; }
       const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
       const isCover = !coverSet && i === 0;
       await supabase.from("property_images").insert({
@@ -112,7 +112,7 @@ function PropertiesAdmin() {
         await uploadImagesForProperty(propertyId, pendingImages);
       }
     } catch (err: any) {
-      alert(err?.message ?? "Грешка");
+      toast.error(err?.message ?? "Грешка");
       setBusy(false); setUploadingNew(false);
       return;
     }
@@ -125,7 +125,7 @@ function PropertiesAdmin() {
   const remove = async (id: string) => {
     if (!confirm("Изтриване на имота?")) return;
     const { error } = await supabase.from("properties").delete().eq("id", id);
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     load();
   };
 
@@ -133,11 +133,11 @@ function PropertiesAdmin() {
     if (!confirm(`Публикуване на "${r.title}" във всички сайтове (${CROSSPOST_SITES.map((s) => s.label).join(", ")})?`)) return;
     const rows = CROSSPOST_SITES.map((s) => ({ property_id: r.id, site: s.key, status: "queued" }));
     const { error } = await supabase.from("cross_post_queue" as any).insert(rows);
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     if (!r.is_published) {
       await supabase.from("properties").update({ is_published: true }).eq("id", r.id);
     }
-    alert(`Заявени са ${rows.length} публикации. Опашката се обработва от автоматизацията.`);
+    toast.success(`Заявени са ${rows.length} публикации. Опашката се обработва от автоматизацията.`);
     load();
   };
 
@@ -355,7 +355,7 @@ function ImagesModal({ property, onClose }: { property: Row; onClose: () => void
         const ext = file.name.split(".").pop() ?? "jpg";
         const path = `${property.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error: upErr } = await supabase.storage.from("property-images").upload(path, file, { contentType: file.type });
-        if (upErr) { alert(upErr.message); continue; }
+        if (upErr) { toast.error(upErr.message); continue; }
         const { data: pub } = supabase.storage.from("property-images").getPublicUrl(path);
         const isFirst = imgs.length === 0;
         await supabase.from("property_images").insert({
@@ -458,7 +458,7 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
       const { error: upErr } = await supabase.storage
         .from("property-documents")
         .upload(path, file, { contentType: file.type, upsert: true });
-      if (upErr) { alert(upErr.message); return; }
+      if (upErr) { toast.error(upErr.message); return; }
 
       const existing = byType(type);
       if (existing) {
@@ -476,14 +476,14 @@ function DocumentsModal({ property, onClose }: { property: Row; onClose: () => v
         mime_type: file.type,
         file_size: file.size,
       });
-      if (insErr) { alert(insErr.message); return; }
+      if (insErr) { toast.error(insErr.message); return; }
       await load();
     } finally { setUploadingType(null); }
   };
 
   const openDoc = async (d: DocRow) => {
     const { data, error } = await supabase.storage.from("property-documents").createSignedUrl(d.file_path, 60 * 10);
-    if (error || !data) { alert(error?.message ?? "Грешка"); return; }
+    if (error || !data) { toast.error(error?.message ?? "Грешка"); return; }
     window.open(data.signedUrl, "_blank");
   };
 
