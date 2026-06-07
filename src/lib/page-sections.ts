@@ -42,11 +42,18 @@ export const SECTION_REGISTRY: Record<PageKey, SectionDef[]> = {
   ],
 };
 
-export type SectionState = { id: string; visible: boolean };
+export type SectionState = {
+  id: string;
+  visible: boolean;
+  title?: string;
+  subtitle?: string;
+  props?: Record<string, string | number | boolean | null>;
+};
 
 /**
  * Merge saved layout with the registry defaults. Unknown saved IDs are
  * dropped; new registry sections are appended at the end (visible by default).
+ * Запазваме всякакви overrides (title/subtitle/props) от запазената версия.
  */
 export function resolveSections(
   page: PageKey,
@@ -58,7 +65,13 @@ export function resolveSections(
   const seen = new Set<string>();
   for (const s of saved ?? []) {
     if (registryIds.has(s.id) && !seen.has(s.id)) {
-      result.push({ id: s.id, visible: !!s.visible });
+      result.push({
+        id: s.id,
+        visible: !!s.visible,
+        ...(s.title !== undefined ? { title: s.title } : {}),
+        ...(s.subtitle !== undefined ? { subtitle: s.subtitle } : {}),
+        ...(s.props !== undefined ? { props: s.props } : {}),
+      });
       seen.add(s.id);
     }
   }
