@@ -1322,6 +1322,33 @@ export type Database = {
         }
         Relationships: []
       }
+      page_layout_revisions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          page_key: string
+          sections: Json
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          page_key: string
+          sections: Json
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          page_key?: string
+          sections?: Json
+        }
+        Relationships: []
+      }
       page_layouts: {
         Row: {
           page_key: string
