@@ -88,7 +88,7 @@ const TOOLS = [
     function: {
       name: "update_crm_theme",
       description:
-        "Променя CRM темата (цветовете на админ панела) на ТЕКУЩИЯ потребител. Промените са лични — виждат се само от него и не засягат другите. Извикай когато потребителят поиска промяна на стила/цветовете на CRM, например 'направи CRM жълто и зелено', 'смени темата на тъмносиньо', 'върни към burgundy'. Можеш да зададеш или preset (готова палитра), или индивидуални hex цветове, или комбинация (preset като база + overrides).",
+        "Променя CRM темата (цветовете и стила на админ панела) на ТЕКУЩИЯ потребител — лично за него, не засяга другите брокери. Извикай когато потребителят поиска промяна на цветовете, шрифта, фона, страничния панел или херо фона на CRM (напр. 'направи CRM жълто и зелено', 'смени сайдбара на тъмносиньо', 'промени шрифта на Inter', 'смени херо фона на градиент от лилаво към розово'). Можеш да зададеш preset, индивидуални hex/rgba/css цветове, или комбинация (preset като база + overrides). Можеш да настройваш отделно главния фон, акцента, текста, сайдбара (sidebar/sidebarTo/sidebarText/sidebarBorder), заглавията (heading), херо фона на основното работно пространство (heroBg — приема CSS background стойност, например linear-gradient(...) или цвят) и шрифта (fontFamily — име на CSS шрифт, без зареждане на нов файл).",
       parameters: {
         type: "object",
         properties: {
@@ -97,13 +97,20 @@ const TOOLS = [
             enum: ["burgundy", "midnight", "forest", "royal", "light", "graphite"],
             description: "Готова палитра като база. Опционално.",
           },
-          surface: { type: "string", description: "Основен фон, hex (#RRGGBB) или rgb()." },
-          surfaceTo: { type: "string", description: "Вторичен фон за градиент." },
+          surface: { type: "string", description: "Основен фон, hex/rgb()/oklch()." },
+          surfaceTo: { type: "string", description: "Вторичен фон за основния градиент." },
           accent: { type: "string", description: "Акцентен цвят (бутони, активни линкове)." },
-          accentSoft: { type: "string", description: "Полупрозрачен акцент за hover, rgba() препоръчително." },
+          accentSoft: { type: "string", description: "Полупрозрачен акцент за hover (rgba препоръчително)." },
           text: { type: "string", description: "Основен цвят на текста." },
-          textMuted: { type: "string", description: "Цвят на второстепенния текст, обикновено rgba()." },
+          textMuted: { type: "string", description: "Цвят на второстепенния текст (rgba)." },
           border: { type: "string", description: "Цвят на границите." },
+          sidebar: { type: "string", description: "Цвят/слой на страничния панел (sidebar). Препоръчително rgba за прозрачност." },
+          sidebarTo: { type: "string", description: "Втори стоп за градиент на сайдбара. Опционално." },
+          sidebarText: { type: "string", description: "Цвят на текста в сайдбара." },
+          sidebarBorder: { type: "string", description: "Цвят на дясната граница на сайдбара." },
+          heading: { type: "string", description: "Цвят на заглавията." },
+          heroBg: { type: "string", description: "CSS background за главното работно пространство (hex, rgba, linear-gradient(...))." },
+          fontFamily: { type: "string", description: "CSS font-family за целия CRM, например 'Inter, sans-serif'." },
         },
       },
     },
@@ -176,18 +183,30 @@ async function runTool(name: string, args: any, userId: string): Promise<any> {
     const { data: profile } = await supabaseAdmin.from("profiles").select("crm_theme").eq("id", userId).maybeSingle();
     const current = (profile?.crm_theme ?? {}) as Record<string, any>;
     const starting = base ? { ...base, preset: args.preset } : current;
-    const fields = ["surface", "surfaceTo", "accent", "accentSoft", "text", "textMuted", "border"] as const;
+    const colorFields = ["surface", "surfaceTo", "accent", "accentSoft", "text", "textMuted", "border", "sidebar", "sidebarTo", "sidebarText", "sidebarBorder", "heading"] as const;
+    const freeFields = ["heroBg", "fontFamily"] as const;
     const overrides: Record<string, string> = {};
     const rejected: string[] = [];
-    for (const f of fields) {
+    for (const f of colorFields) {
       if (args[f] !== undefined) {
-        if (validColor(args[f])) overrides[f] = args[f].trim();
+        if (validColor(args[f])) overrides[f] = String(args[f]).trim();
         else rejected.push(f);
+      }
+    }
+    for (const f of freeFields) {
+      if (args[f] !== undefined) {
+        const v = String(args[f]).trim();
+        // лимит и забрана за url()/expression/опасни конструкции
+        if (v.length > 0 && v.length <= 300 && !/url\s*\(|expression\s*\(|javascript:|<|>/i.test(v)) {
+          overrides[f] = v;
+        } else {
+          rejected.push(f);
+        }
       }
     }
     const next = { ...starting, ...overrides };
     if (!base && Object.keys(overrides).length === 0) {
-      return { error: "Не са подадени валидни цветове или preset.", rejected };
+      return { error: "Не са подадени валидни стойности или preset.", rejected };
     }
     const { error } = await supabaseAdmin.from("profiles").update({ crm_theme: next as any }).eq("id", userId);
     if (error) return { error: error.message };
@@ -234,7 +253,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 3. Отговаряй на запитвания, прави анализи, генерирай описания на имоти.
 4. Винаги попълвай в договорите: имена, ЕГН, документи за самоличност (от документите на клиента), точен адрес на имота, цена с думи, срокове, неустойки.
 5. Ако данни липсват — попитай преди да продължиш или маркирай с {ПОПЪЛНЕТЕ}.
-6. ДИЗАЙНЕР НА CRM: Когато потребителят поиска промяна на цветовете/стила на CRM (напр. "направи CRM жълто и зелено", "смени темата на синьо", "светъл режим", "върни към burgundy"), извикай update_crm_theme с подходящи hex цветове или preset. Промените са ЛИЧНИ — виждат се само от него и не засягат другите служители. Налични preset-и: burgundy, midnight, forest, royal, light, graphite. Можеш да комбинираш preset + конкретни overrides. След извикване винаги потвърди какво си променил и предложи как да върне ако не хареса.
+6. ДИЗАЙНЕР НА CRM: Когато потребителят (брокерът) поиска промяна на цветовете/стила на CRM (напр. "направи CRM жълто и зелено", "смени сайдбара на синьо", "промени шрифта", "смени херо фона на градиент", "светъл режим", "върни към burgundy"), извикай update_crm_theme с подходящи стойности. Промените са ЛИЧНИ — виждат се само от него и не засягат другите служители. Можеш да задаваш: surface/surfaceTo (главен фон), accent/accentSoft (акценти), text/textMuted/heading (текст), border, sidebar/sidebarTo/sidebarText/sidebarBorder (страничен панел), heroBg (фон на работното пространство — приема и градиенти), fontFamily (шрифт). Налични preset-и: burgundy, midnight, forest, royal, light, graphite. Можеш да комбинираш preset + конкретни overrides. След извикване винаги потвърди какво си променил и предложи как да върне ако не хареса.
 
 ТЕКУЩИ АГРЕГАТИ:
 • Клиенти: ${clientCount ?? 0}

@@ -119,6 +119,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         ...crmThemeStyle(theme),
         background: `linear-gradient(180deg, ${theme.surface} 0%, ${theme.surfaceTo} 100%)`,
         color: theme.text,
+        fontFamily: theme.fontFamily ?? undefined,
       }}
     >
       {/* Mobile overlay */}
@@ -133,16 +134,19 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
       {/* Sidebar — бял мрамор със златни жилки */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-amber-500/25 shadow-[8px_0_30px_rgba(139, 26, 43,0.45)] backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r shadow-[8px_0_30px_rgba(139, 26, 43,0.45)] backdrop-blur-xl transition-transform duration-300 lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
         style={{
+          borderRightColor: "var(--crm-sidebar-border, rgba(245,158,11,0.25))",
+          color: "var(--crm-sidebar-text, inherit)",
           backgroundImage: `
-            linear-gradient(180deg, rgba(26,6,8,0.55), rgba(26,6,8,0.65)),
+            linear-gradient(180deg, var(--crm-sidebar, rgba(26,6,8,0.55)), var(--crm-sidebar-to, var(--crm-sidebar, rgba(26,6,8,0.65)))),
             repeating-linear-gradient(115deg, transparent 0 80px, rgba(201,160,76,0.08) 80px 81px, transparent 81px 180px)
           `,
         }}
       >
+
 
         {/* Logo */}
         <div className="flex items-center justify-between gap-3 border-b border-amber-600/25 px-5 py-4">
@@ -270,7 +274,9 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
                 backgroundPosition: "center",
                 backgroundAttachment: "fixed",
               }
-            : undefined
+            : theme.heroBg
+              ? { background: theme.heroBg, backgroundSize: "cover", backgroundPosition: "center" }
+              : undefined
         }
       >
         {/* Ambient video clip (same as login hero) — clean, full screen, no overlay */}
