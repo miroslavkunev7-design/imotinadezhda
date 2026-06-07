@@ -171,6 +171,33 @@ async function runTool(name: string, args: any, userId: string): Promise<any> {
     if (error) return { error: error.message };
     return { ok: true, contract_id: data.id, message: "Договорът е запазен като чернова в /admin/contracts" };
   }
+  if (name === "update_crm_theme") {
+    const base = args.preset && THEME_PRESETS[args.preset] ? THEME_PRESETS[args.preset] : null;
+    const { data: profile } = await supabaseAdmin.from("profiles").select("crm_theme").eq("id", userId).maybeSingle();
+    const current = (profile?.crm_theme ?? {}) as Record<string, any>;
+    const starting = base ? { ...base, preset: args.preset } : current;
+    const fields = ["surface", "surfaceTo", "accent", "accentSoft", "text", "textMuted", "border"] as const;
+    const overrides: Record<string, string> = {};
+    const rejected: string[] = [];
+    for (const f of fields) {
+      if (args[f] !== undefined) {
+        if (validColor(args[f])) overrides[f] = args[f].trim();
+        else rejected.push(f);
+      }
+    }
+    const next = { ...starting, ...overrides };
+    if (!base && Object.keys(overrides).length === 0) {
+      return { error: "Не са подадени валидни цветове или preset.", rejected };
+    }
+    const { error } = await supabaseAdmin.from("profiles").update({ crm_theme: next as any }).eq("id", userId);
+    if (error) return { error: error.message };
+    return {
+      ok: true,
+      applied: next,
+      rejected: rejected.length ? rejected : undefined,
+      message: "Темата е обновена само за теб. [THEME_UPDATED]",
+    };
+  }
   return { error: "Непознат инструмент: " + name };
 }
 
