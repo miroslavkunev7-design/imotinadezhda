@@ -83,7 +83,46 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "update_crm_theme",
+      description:
+        "Променя CRM темата (цветовете на админ панела) на ТЕКУЩИЯ потребител. Промените са лични — виждат се само от него и не засягат другите. Извикай когато потребителят поиска промяна на стила/цветовете на CRM, например 'направи CRM жълто и зелено', 'смени темата на тъмносиньо', 'върни към burgundy'. Можеш да зададеш или preset (готова палитра), или индивидуални hex цветове, или комбинация (preset като база + overrides).",
+      parameters: {
+        type: "object",
+        properties: {
+          preset: {
+            type: "string",
+            enum: ["burgundy", "midnight", "forest", "royal", "light", "graphite"],
+            description: "Готова палитра като база. Опционално.",
+          },
+          surface: { type: "string", description: "Основен фон, hex (#RRGGBB) или rgb()." },
+          surfaceTo: { type: "string", description: "Вторичен фон за градиент." },
+          accent: { type: "string", description: "Акцентен цвят (бутони, активни линкове)." },
+          accentSoft: { type: "string", description: "Полупрозрачен акцент за hover, rgba() препоръчително." },
+          text: { type: "string", description: "Основен цвят на текста." },
+          textMuted: { type: "string", description: "Цвят на второстепенния текст, обикновено rgba()." },
+          border: { type: "string", description: "Цвят на границите." },
+        },
+      },
+    },
+  },
 ];
+
+const COLOR_RE = /^(#([0-9a-fA-F]{3}){1,2}|rgba?\([^)]+\)|hsla?\([^)]+\)|oklch\([^)]+\))$/;
+function validColor(v: unknown): v is string {
+  return typeof v === "string" && COLOR_RE.test(v.trim());
+}
+
+const THEME_PRESETS: Record<string, Record<string, string>> = {
+  burgundy: { surface: "#1a0608", surfaceTo: "#3a0a12", accent: "#c9a04c", accentSoft: "rgba(201,160,76,0.18)", text: "#fde7b3", textMuted: "rgba(253,231,179,0.7)", border: "rgba(201,160,76,0.25)" },
+  midnight: { surface: "#0b1220", surfaceTo: "#111e3a", accent: "#60a5fa", accentSoft: "rgba(96,165,250,0.18)", text: "#e2e8f0", textMuted: "rgba(226,232,240,0.7)", border: "rgba(96,165,250,0.25)" },
+  forest:   { surface: "#06160f", surfaceTo: "#0d2e20", accent: "#34d399", accentSoft: "rgba(52,211,153,0.18)", text: "#d1fae5", textMuted: "rgba(209,250,229,0.7)", border: "rgba(52,211,153,0.25)" },
+  royal:    { surface: "#140820", surfaceTo: "#2a1248", accent: "#c084fc", accentSoft: "rgba(192,132,252,0.18)", text: "#ede9fe", textMuted: "rgba(237,233,254,0.7)", border: "rgba(192,132,252,0.25)" },
+  light:    { surface: "#fdfaf5", surfaceTo: "#f5ede0", accent: "#8B1A2B", accentSoft: "rgba(139,26,43,0.12)", text: "#3a1a08", textMuted: "rgba(58,26,8,0.7)", border: "rgba(139,26,43,0.2)" },
+  graphite: { surface: "#111111", surfaceTo: "#2a2a2a", accent: "#f59e0b", accentSoft: "rgba(245,158,11,0.18)", text: "#fafafa", textMuted: "rgba(250,250,250,0.65)", border: "rgba(245,158,11,0.25)" },
+};
 
 async function runTool(name: string, args: any, userId: string): Promise<any> {
   if (name === "search_clients") {
