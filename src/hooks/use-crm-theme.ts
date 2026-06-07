@@ -133,14 +133,21 @@ export function useCrmTheme() {
 }
 
 export function crmThemeStyle(t: CrmTheme): React.CSSProperties {
-  return {
-    // Expose as CSS variables so any nested element can opt in
-    ["--crm-surface" as any]: t.surface,
-    ["--crm-surface-to" as any]: t.surfaceTo,
-    ["--crm-accent" as any]: t.accent,
-    ["--crm-accent-soft" as any]: t.accentSoft,
-    ["--crm-text" as any]: t.text,
-    ["--crm-text-muted" as any]: t.textMuted,
-    ["--crm-border" as any]: t.border,
+  const style: Record<string, string> = {
+    "--crm-surface": t.surface,
+    "--crm-surface-to": t.surfaceTo,
+    "--crm-accent": t.accent,
+    "--crm-accent-soft": t.accentSoft,
+    "--crm-text": t.text,
+    "--crm-text-muted": t.textMuted,
+    "--crm-border": t.border,
   };
+  if (t.sidebar) style["--crm-sidebar"] = t.sidebar;
+  if (t.sidebarTo) style["--crm-sidebar-to"] = t.sidebarTo;
+  if (t.sidebarText) style["--crm-sidebar-text"] = t.sidebarText;
+  if (t.sidebarBorder) style["--crm-sidebar-border"] = t.sidebarBorder;
+  if (t.heading) style["--crm-heading"] = t.heading;
+  if (t.heroBg) style["--crm-hero-bg"] = t.heroBg;
+  if (t.fontFamily) style["--crm-font-family"] = t.fontFamily;
+  return style as React.CSSProperties;
 }
