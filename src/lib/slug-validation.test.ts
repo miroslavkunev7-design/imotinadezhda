@@ -70,7 +70,7 @@ describe("Slug integrity: site ↔ database", () => {
       .select("id")
       .eq("slug", "shumen")
       .single();
-    expect(shumen, "Градът „Шумен" трябва да съществува").toBeTruthy();
+    expect(shumen, "Градът Шумен трябва да съществува").toBeTruthy();
 
     const { data: quarters } = await supabase
       .from("quarters")
