@@ -82,6 +82,7 @@ export function useCrmTheme() {
   const { user } = useAuth();
   const [theme, setTheme] = useState<CrmTheme>(DEFAULT_CRM_THEME);
   const [loaded, setLoaded] = useState(false);
+  const [reloadTick, setReloadTick] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -98,10 +99,18 @@ export function useCrmTheme() {
         if (raw && Object.keys(raw).length > 0) {
           const base = raw.preset && CRM_THEME_PRESETS[raw.preset] ? CRM_THEME_PRESETS[raw.preset] : DEFAULT_CRM_THEME;
           setTheme({ ...base, ...raw } as CrmTheme);
+        } else {
+          setTheme(DEFAULT_CRM_THEME);
         }
         setLoaded(true);
       });
-  }, [user]);
+  }, [user, reloadTick]);
+
+  useEffect(() => {
+    const handler = () => setReloadTick((t) => t + 1);
+    window.addEventListener("crm-theme-changed", handler);
+    return () => window.removeEventListener("crm-theme-changed", handler);
+  }, []);
 
   const save = useCallback(
     async (next: CrmTheme) => {

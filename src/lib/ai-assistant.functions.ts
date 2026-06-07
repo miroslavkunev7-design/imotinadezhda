@@ -83,7 +83,46 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "update_crm_theme",
+      description:
+        "Променя CRM темата (цветовете на админ панела) на ТЕКУЩИЯ потребител. Промените са лични — виждат се само от него и не засягат другите. Извикай когато потребителят поиска промяна на стила/цветовете на CRM, например 'направи CRM жълто и зелено', 'смени темата на тъмносиньо', 'върни към burgundy'. Можеш да зададеш или preset (готова палитра), или индивидуални hex цветове, или комбинация (preset като база + overrides).",
+      parameters: {
+        type: "object",
+        properties: {
+          preset: {
+            type: "string",
+            enum: ["burgundy", "midnight", "forest", "royal", "light", "graphite"],
+            description: "Готова палитра като база. Опционално.",
+          },
+          surface: { type: "string", description: "Основен фон, hex (#RRGGBB) или rgb()." },
+          surfaceTo: { type: "string", description: "Вторичен фон за градиент." },
+          accent: { type: "string", description: "Акцентен цвят (бутони, активни линкове)." },
+          accentSoft: { type: "string", description: "Полупрозрачен акцент за hover, rgba() препоръчително." },
+          text: { type: "string", description: "Основен цвят на текста." },
+          textMuted: { type: "string", description: "Цвят на второстепенния текст, обикновено rgba()." },
+          border: { type: "string", description: "Цвят на границите." },
+        },
+      },
+    },
+  },
 ];
+
+const COLOR_RE = /^(#([0-9a-fA-F]{3}){1,2}|rgba?\([^)]+\)|hsla?\([^)]+\)|oklch\([^)]+\))$/;
+function validColor(v: unknown): v is string {
+  return typeof v === "string" && COLOR_RE.test(v.trim());
+}
+
+const THEME_PRESETS: Record<string, Record<string, string>> = {
+  burgundy: { surface: "#1a0608", surfaceTo: "#3a0a12", accent: "#c9a04c", accentSoft: "rgba(201,160,76,0.18)", text: "#fde7b3", textMuted: "rgba(253,231,179,0.7)", border: "rgba(201,160,76,0.25)" },
+  midnight: { surface: "#0b1220", surfaceTo: "#111e3a", accent: "#60a5fa", accentSoft: "rgba(96,165,250,0.18)", text: "#e2e8f0", textMuted: "rgba(226,232,240,0.7)", border: "rgba(96,165,250,0.25)" },
+  forest:   { surface: "#06160f", surfaceTo: "#0d2e20", accent: "#34d399", accentSoft: "rgba(52,211,153,0.18)", text: "#d1fae5", textMuted: "rgba(209,250,229,0.7)", border: "rgba(52,211,153,0.25)" },
+  royal:    { surface: "#140820", surfaceTo: "#2a1248", accent: "#c084fc", accentSoft: "rgba(192,132,252,0.18)", text: "#ede9fe", textMuted: "rgba(237,233,254,0.7)", border: "rgba(192,132,252,0.25)" },
+  light:    { surface: "#fdfaf5", surfaceTo: "#f5ede0", accent: "#8B1A2B", accentSoft: "rgba(139,26,43,0.12)", text: "#3a1a08", textMuted: "rgba(58,26,8,0.7)", border: "rgba(139,26,43,0.2)" },
+  graphite: { surface: "#111111", surfaceTo: "#2a2a2a", accent: "#f59e0b", accentSoft: "rgba(245,158,11,0.18)", text: "#fafafa", textMuted: "rgba(250,250,250,0.65)", border: "rgba(245,158,11,0.25)" },
+};
 
 async function runTool(name: string, args: any, userId: string): Promise<any> {
   if (name === "search_clients") {
@@ -132,6 +171,33 @@ async function runTool(name: string, args: any, userId: string): Promise<any> {
     if (error) return { error: error.message };
     return { ok: true, contract_id: data.id, message: "Договорът е запазен като чернова в /admin/contracts" };
   }
+  if (name === "update_crm_theme") {
+    const base = args.preset && THEME_PRESETS[args.preset] ? THEME_PRESETS[args.preset] : null;
+    const { data: profile } = await supabaseAdmin.from("profiles").select("crm_theme").eq("id", userId).maybeSingle();
+    const current = (profile?.crm_theme ?? {}) as Record<string, any>;
+    const starting = base ? { ...base, preset: args.preset } : current;
+    const fields = ["surface", "surfaceTo", "accent", "accentSoft", "text", "textMuted", "border"] as const;
+    const overrides: Record<string, string> = {};
+    const rejected: string[] = [];
+    for (const f of fields) {
+      if (args[f] !== undefined) {
+        if (validColor(args[f])) overrides[f] = args[f].trim();
+        else rejected.push(f);
+      }
+    }
+    const next = { ...starting, ...overrides };
+    if (!base && Object.keys(overrides).length === 0) {
+      return { error: "Не са подадени валидни цветове или preset.", rejected };
+    }
+    const { error } = await supabaseAdmin.from("profiles").update({ crm_theme: next as any }).eq("id", userId);
+    if (error) return { error: error.message };
+    return {
+      ok: true,
+      applied: next,
+      rejected: rejected.length ? rejected : undefined,
+      message: "Темата е обновена само за теб. [THEME_UPDATED]",
+    };
+  }
   return { error: "Непознат инструмент: " + name };
 }
 
@@ -160,7 +226,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 
     const systemPrompt = `Ти си ИЛДЖ.ИА Юридически и CRM Асистент — експерт за луксозна имотна агенция "Недвижими имоти Надежда" в България.
 
-Имаш достъп до базата данни през tools (search_clients, get_client, search_properties, get_property, save_contract).
+Имаш достъп до базата данни през tools (search_clients, get_client, search_properties, get_property, save_contract, update_crm_theme).
 
 ТВОИТЕ ЗАДАЧИ:
 1. Подготвяй юридически документи (предварителен договор, договор за продажба, договор за наем, посреднически договор) според българското законодателство (ЗЗД, ЗС, ЗУТ).
@@ -168,6 +234,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 3. Отговаряй на запитвания, прави анализи, генерирай описания на имоти.
 4. Винаги попълвай в договорите: имена, ЕГН, документи за самоличност (от документите на клиента), точен адрес на имота, цена с думи, срокове, неустойки.
 5. Ако данни липсват — попитай преди да продължиш или маркирай с {ПОПЪЛНЕТЕ}.
+6. ДИЗАЙНЕР НА CRM: Когато потребителят поиска промяна на цветовете/стила на CRM (напр. "направи CRM жълто и зелено", "смени темата на синьо", "светъл режим", "върни към burgundy"), извикай update_crm_theme с подходящи hex цветове или preset. Промените са ЛИЧНИ — виждат се само от него и не засягат другите служители. Налични preset-и: burgundy, midnight, forest, royal, light, graphite. Можеш да комбинираш preset + конкретни overrides. След извикване винаги потвърди какво си променил и предложи как да върне ако не хареса.
 
 ТЕКУЩИ АГРЕГАТИ:
 • Клиенти: ${clientCount ?? 0}
