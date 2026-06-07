@@ -274,7 +274,9 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
                 backgroundPosition: "center",
                 backgroundAttachment: "fixed",
               }
-            : undefined
+            : theme.heroBg
+              ? { background: theme.heroBg, backgroundSize: "cover", backgroundPosition: "center" }
+              : undefined
         }
       >
         {/* Ambient video clip (same as login hero) — clean, full screen, no overlay */}
