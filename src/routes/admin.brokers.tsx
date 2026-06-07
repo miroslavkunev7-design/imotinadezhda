@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +23,7 @@ function BrokersAdmin() {
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    try { setRows(await listBrokers()); } catch (e: any) { alert(e.message); }
+    try { setRows(await listBrokers()); } catch (e: any) { toast.error(e.message); }
   };
   useEffect(() => { load(); }, []);
 
@@ -55,12 +56,12 @@ function BrokersAdmin() {
       }
       setEditing(null);
       await load();
-    } catch (e: any) { alert(e.message); } finally { setBusy(false); }
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
   };
 
   const remove = async (id: string) => {
     if (!confirm("Изтриване на брокера?")) return;
-    try { await deleteBroker({ data: { id } }); await load(); } catch (e: any) { alert(e.message); }
+    try { await deleteBroker({ data: { id } }); await load(); } catch (e: any) { toast.error(e.message); }
   };
 
   const newBroker = () => setEditing({ full_name: "", phone: "", email: "", is_active: true, _createAccount: true, _password: "", _confirmPassword: "" });
@@ -70,7 +71,7 @@ function BrokersAdmin() {
     const ext = file.name.split(".").pop() ?? "jpg";
     const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { error } = await supabase.storage.from("broker-photos").upload(path, file, { contentType: file.type });
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     const { data: pub } = supabase.storage.from("broker-photos").getPublicUrl(path);
     setEditing({ ...editing, photo_url: pub.publicUrl });
   };
@@ -108,7 +109,7 @@ function BrokersAdmin() {
             <div className="mt-4 flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setDetailFor(b)} className="flex-1 min-w-[120px] rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-200 hover:bg-amber-500/20"><ListChecks className="inline h-3.5 w-3.5 mr-1" />Задачи и клиенти</button>
               <button
-                onClick={() => b.user_id ? setRolesFor(b) : alert("Брокерът няма свързан акаунт. Свържи го с user_id първо.")}
+                onClick={() => b.user_id ? setRolesFor(b) : toast.error("Брокерът няма свързан акаунт. Свържи го с user_id първо.")}
                 title="Управление на роли"
                 className={`rounded-lg border px-3 py-1.5 text-xs ${b.user_id ? "border-[#C9A84C]/60 bg-[#C9A84C]/10 text-[#C9A84C] hover:bg-[#C9A84C]/20" : "border-white/10 text-white/30 cursor-not-allowed"}`}
               >
@@ -208,23 +209,23 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
     try {
       const d = await getBrokerDetails({ data: { broker_id: broker.id } });
       setData(d);
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { toast.error(e.message); }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [broker.id]);
 
   const openAssign = async () => {
-    try { setUnassigned(await listUnassignedClients()); setShowAssign(true); } catch (e: any) { alert(e.message); }
+    try { setUnassigned(await listUnassignedClients()); setShowAssign(true); } catch (e: any) { toast.error(e.message); }
   };
 
   const doAssign = async (clientId: string) => {
     setBusy(true);
     try { await assignClientToBroker({ data: { broker_id: broker.id, client_id: clientId } }); await load(); setShowAssign(false); }
-    catch (e: any) { alert(e.message); } finally { setBusy(false); }
+    catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
   };
 
   const doUnassign = async (clientId: string) => {
     if (!confirm("Премахни клиента от брокера?")) return;
-    try { await unassignClientFromBroker({ data: { client_id: clientId } }); await load(); } catch (e: any) { alert(e.message); }
+    try { await unassignClientFromBroker({ data: { client_id: clientId } }); await load(); } catch (e: any) { toast.error(e.message); }
   };
 
   const newTask = () => setTaskDraft({ broker_id: broker.id, title: "", task_type: "general", client_id: null });
@@ -234,17 +235,17 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
     if (!taskDraft || !taskDraft.title) return;
     setBusy(true);
     try { await upsertBrokerTask({ data: taskDraft }); setTaskDraft(null); await load(); }
-    catch (e: any) { alert(e.message); } finally { setBusy(false); }
+    catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
   };
 
   const toggle = async (t: any) => {
     try { await toggleBrokerTask({ data: { id: t.id, is_completed: !t.is_completed } }); await load(); }
-    catch (e: any) { alert(e.message); }
+    catch (e: any) { toast.error(e.message); }
   };
 
   const removeTask = async (id: string) => {
     if (!confirm("Изтриване на задачата?")) return;
-    try { await deleteBrokerTask({ data: { id } }); await load(); } catch (e: any) { alert(e.message); }
+    try { await deleteBrokerTask({ data: { id } }); await load(); } catch (e: any) { toast.error(e.message); }
   };
 
   return (

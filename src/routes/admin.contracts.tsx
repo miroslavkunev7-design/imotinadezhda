@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { FileText, Trash2, Eye, X, Printer } from "lucide-react";
 import { listContracts, deleteContract } from "@/lib/crm.functions";
@@ -12,13 +13,13 @@ function ContractsAdmin() {
   const [view, setView] = useState<any | null>(null);
 
   const load = async () => {
-    try { setRows(await listContracts()); } catch (e: any) { alert(e.message); }
+    try { setRows(await listContracts()); } catch (e: any) { toast.error(e.message); }
   };
   useEffect(() => { load(); }, []);
 
   const remove = async (id: string) => {
     if (!confirm("Изтриване?")) return;
-    try { await deleteContract({ data: { id } }); await load(); } catch (e: any) { alert(e.message); }
+    try { await deleteContract({ data: { id } }); await load(); } catch (e: any) { toast.error(e.message); }
   };
 
   return (
