@@ -34,6 +34,9 @@ function AIAssistant() {
     try {
       const result = await aiAssistantChat({ data: { messages: next } });
       setMessages([...next, { role: "assistant", content: result.reply }]);
+      if (result.reply?.includes("[THEME_UPDATED]") || /тема|theme|цвят|стил/i.test(text)) {
+        window.dispatchEvent(new Event("crm-theme-changed"));
+      }
       setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     } catch (e: any) {
       setError(e?.message ?? "Грешка");
