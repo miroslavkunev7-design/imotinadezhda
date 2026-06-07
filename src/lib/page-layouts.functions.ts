@@ -93,7 +93,7 @@ export const savePageLayout = createServerFn({ method: "POST" })
     // 2. Upsert новата подредба
     const { error } = await supabase.from("page_layouts").upsert({
       page_key: data.page_key,
-      sections: data.sections as unknown as Record<string, unknown>[],
+      sections: data.sections as any,
       updated_by: userId,
       updated_at: new Date().toISOString(),
     });
