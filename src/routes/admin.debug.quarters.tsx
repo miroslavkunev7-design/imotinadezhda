@@ -11,7 +11,7 @@ import qDobrudzhanski from "@/assets/shumen-quarters/dobrudzhanski.png.asset.jso
 import qPozharnata from "@/assets/shumen-quarters/pozharnata.png.asset.json";
 import qVoenno from "@/assets/shumen-quarters/voenno.png.asset.json";
 
-export const Route = createFileRoute("/debug/quarters")({
+export const Route = createFileRoute("/admin/debug/quarters")({
   component: DebugQuarters,
 });
 
