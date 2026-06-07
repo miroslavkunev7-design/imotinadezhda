@@ -79,7 +79,7 @@ export function MortgageSendModal({ client, onClose }: { client: ClientLite; onC
             ))}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            * Скоро ще се изпраща автоматично през сървърен имейл. Засега отваря Вашия имейл клиент с предварително попълнено съобщение.
+            * Отваря Вашия имейл клиент с предварително попълнено съобщение до банката.
           </p>
         </div>
       </div>

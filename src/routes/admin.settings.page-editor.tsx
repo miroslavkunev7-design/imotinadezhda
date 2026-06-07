@@ -281,7 +281,7 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
             </div>
 
             <div className="rounded-2xl border border-amber-500/15 bg-[rgba(20,4,8,0.4)] p-3 text-[11px] leading-relaxed text-amber-100/55">
-              <strong className="text-amber-200">Фаза 1</strong>: подредба и скриване/показване на цели секции. Скоро: inline редактор на текстове и снимки + AI помощ.
+              <strong className="text-amber-200">Подредба и видимост</strong>: размествай секциите или ги скривай/показвай. Промените се запазват автоматично.
             </div>
           </div>
 
