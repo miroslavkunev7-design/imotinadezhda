@@ -401,6 +401,87 @@ html, body, #root {
   max-width: 100vw;
 }
 
+/* CRM contrast layer — keeps records readable over video, images and every
+   user-selectable CRM theme without flattening the theme's accent color. */
+[data-crm-themed] .crm-content {
+  color: var(--crm-text);
+  text-shadow: none;
+}
+[data-crm-themed] .crm-content > * {
+  isolation: isolate;
+}
+[data-crm-themed] .crm-content table {
+  background: var(--crm-panel) !important;
+  color: var(--crm-text) !important;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+[data-crm-themed] .crm-content thead,
+[data-crm-themed] .crm-content thead tr {
+  background: var(--crm-panel-strong) !important;
+}
+[data-crm-themed] .crm-content th {
+  color: var(--crm-text) !important;
+  font-weight: 700;
+  border-bottom: 1px solid var(--crm-border) !important;
+}
+[data-crm-themed] .crm-content tbody tr {
+  background: var(--crm-panel) !important;
+}
+[data-crm-themed] .crm-content tbody tr:nth-child(even) {
+  background: var(--crm-row-alt) !important;
+}
+[data-crm-themed] .crm-content tbody tr:hover {
+  background: var(--crm-accent-soft) !important;
+  box-shadow: inset 3px 0 0 var(--crm-accent);
+}
+[data-crm-themed] .crm-content td {
+  color: var(--crm-text) !important;
+  border-color: var(--crm-border) !important;
+}
+[data-crm-themed] .crm-content input,
+[data-crm-themed] .crm-content select,
+[data-crm-themed] .crm-content textarea {
+  background: var(--crm-panel-strong) !important;
+  border-color: var(--crm-border) !important;
+  color: var(--crm-text) !important;
+  opacity: 1;
+}
+[data-crm-themed] .crm-content input::placeholder,
+[data-crm-themed] .crm-content textarea::placeholder {
+  color: var(--crm-text-muted) !important;
+  opacity: 1;
+}
+[data-crm-themed] .crm-content option {
+  background: var(--crm-surface);
+  color: var(--crm-text);
+}
+[data-crm-themed] .crm-content [class*="text-amber-100"] {
+  color: var(--crm-text) !important;
+}
+[data-crm-themed] .crm-content [class*="text-amber-200"],
+[data-crm-themed] .crm-content [class*="text-amber-300"] {
+  color: var(--crm-accent) !important;
+}
+[data-crm-themed] .crm-content [class*="border-amber-"] {
+  border-color: var(--crm-border) !important;
+}
+[data-crm-themed] .crm-content [class*="bg-[rgba(255,"] {
+  background: var(--crm-panel) !important;
+}
+[data-crm-themed] .crm-content :is(.text-muted-foreground, [class*="text-amber-100/"]) {
+  color: var(--crm-text-muted) !important;
+  opacity: 1;
+}
+[data-crm-themed] .crm-content a,
+[data-crm-themed] .crm-content button {
+  text-underline-offset: 3px;
+}
+[data-crm-themed] .crm-content :focus-visible {
+  outline: 2px solid var(--crm-accent);
+  outline-offset: 2px;
+}
+
 /* ============================================================
    Reference design helpers — "Имоти Надежда" luxury template.
    Used by ShumenHomePage and related public pages.
