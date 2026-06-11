@@ -141,6 +141,9 @@ export function crmThemeStyle(t: CrmTheme): React.CSSProperties {
     "--crm-text": t.text,
     "--crm-text-muted": t.textMuted,
     "--crm-border": t.border,
+    "--crm-panel": `color-mix(in oklab, ${t.surface} 88%, white 12%)`,
+    "--crm-panel-strong": `color-mix(in oklab, ${t.surfaceTo} 90%, black 10%)`,
+    "--crm-row-alt": `color-mix(in oklab, ${t.surfaceTo} 72%, ${t.surface} 28%)`,
   };
   if (t.sidebar) style["--crm-sidebar"] = t.sidebar;
   if (t.sidebarTo) style["--crm-sidebar-to"] = t.sidebarTo;
