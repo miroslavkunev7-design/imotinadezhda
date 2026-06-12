@@ -580,6 +580,34 @@ html, body, #root {
   [data-crm-themed] .crm-content .overflow-x-auto { -webkit-overflow-scrolling: touch; }
 }
 
+/* Mobile dialogs/sheets (rendered in Portal, outside .crm-content):
+   force readable dark labels on white surfaces — gold-on-white is invisible. */
+@media (max-width: 1024px) {
+  [role="dialog"] label,
+  [role="dialog"] .text-xs.uppercase,
+  [role="dialog"] [class*="text-amber-100"],
+  [role="dialog"] [class*="text-amber-200"],
+  [role="dialog"] [class*="text-amber-300"],
+  [role="dialog"] [class*="text-amber-400"],
+  [role="dialog"] [class*="text-yellow-"],
+  [role="dialog"] [class*="text-white/"] {
+    color: #4f0314 !important;
+    opacity: 1 !important;
+    font-weight: 600;
+  }
+  [role="dialog"] input,
+  [role="dialog"] textarea,
+  [role="dialog"] select {
+    color: #fdfaf5 !important;
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+  [role="dialog"] input::placeholder,
+  [role="dialog"] textarea::placeholder {
+    color: rgba(253,250,245,0.55) !important;
+  }
+}
+
 /* ============================================================
    Reference design helpers — "Имоти Надежда" luxury template.
    Used by ShumenHomePage and related public pages.
