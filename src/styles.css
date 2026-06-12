@@ -482,6 +482,63 @@ html, body, #root {
   outline-offset: 2px;
 }
 
+/* Mobile CRM contrast — cards, lists, sheets, dialogs become opaque
+   so records stay readable over the hero video / fixed background. */
+@media (max-width: 1024px) {
+  [data-crm-themed] .crm-content,
+  [data-crm-themed] .crm-content * {
+    text-shadow: none;
+  }
+  [data-crm-themed] .crm-content [class*="bg-white/"],
+  [data-crm-themed] .crm-content [class*="bg-black/"],
+  [data-crm-themed] .crm-content [class*="bg-amber-"],
+  [data-crm-themed] .crm-content [class*="bg-[rgba("],
+  [data-crm-themed] .crm-content .backdrop-blur,
+  [data-crm-themed] .crm-content .backdrop-blur-sm,
+  [data-crm-themed] .crm-content .backdrop-blur-md,
+  [data-crm-themed] .crm-content .backdrop-blur-xl {
+    background-color: var(--crm-panel) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  [data-crm-themed] .crm-content [role="dialog"],
+  [data-crm-themed] .crm-content [data-state] > [class*="bg-"] {
+    background-color: var(--crm-panel-strong) !important;
+  }
+  /* Repeating list rows / cards: alternate panel strengths */
+  [data-crm-themed] .crm-content ul > li,
+  [data-crm-themed] .crm-content [role="list"] > * {
+    background-color: var(--crm-panel) !important;
+    color: var(--crm-text) !important;
+    border-color: var(--crm-border) !important;
+  }
+  [data-crm-themed] .crm-content ul > li:nth-child(even),
+  [data-crm-themed] .crm-content [role="list"] > *:nth-child(even) {
+    background-color: var(--crm-row-alt) !important;
+  }
+  /* Force amber text variants to readable tokens */
+  [data-crm-themed] .crm-content [class*="text-amber-"]:not([class*="text-amber-300"]):not([class*="text-amber-400"]):not([class*="text-amber-500"]) {
+    color: var(--crm-text) !important;
+  }
+  [data-crm-themed] .crm-content [class*="text-white/"],
+  [data-crm-themed] .crm-content .text-white\/60,
+  [data-crm-themed] .crm-content .text-white\/70,
+  [data-crm-themed] .crm-content .text-white\/80 {
+    color: var(--crm-text) !important;
+    opacity: 1 !important;
+  }
+  /* Labels & secondary text */
+  [data-crm-themed] .crm-content label,
+  [data-crm-themed] .crm-content small {
+    color: var(--crm-text) !important;
+  }
+  /* Bottom mobile nav — opaque panel */
+  [data-crm-themed] nav.fixed.inset-x-0.bottom-0 {
+    background-color: var(--crm-panel-strong) !important;
+    border-top-color: var(--crm-border) !important;
+  }
+}
+
 /* ============================================================
    Reference design helpers — "Имоти Надежда" luxury template.
    Used by ShumenHomePage and related public pages.
