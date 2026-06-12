@@ -532,11 +532,52 @@ html, body, #root {
   [data-crm-themed] .crm-content small {
     color: var(--crm-text) !important;
   }
-  /* Bottom mobile nav — opaque panel */
+  /* Bottom mobile nav — opaque panel, larger tap targets */
   [data-crm-themed] nav.fixed.inset-x-0.bottom-0 {
     background-color: var(--crm-panel-strong) !important;
     border-top-color: var(--crm-border) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  [data-crm-themed] nav.fixed.inset-x-0.bottom-0 > a,
+  [data-crm-themed] nav.fixed.inset-x-0.bottom-0 > button {
+    min-height: 56px;
+    font-size: 11px !important;
+    color: var(--crm-text) !important;
+  }
+  [data-crm-themed] nav.fixed.inset-x-0.bottom-0 svg {
+    width: 22px !important;
+    height: 22px !important;
+    color: var(--crm-accent) !important;
+  }
+  /* Tap target minimums for CRM controls on mobile */
+  [data-crm-themed] .crm-content button,
+  [data-crm-themed] .crm-content a[role="button"],
+  [data-crm-themed] .crm-content [role="tab"],
+  [data-crm-themed] .crm-content select,
+  [data-crm-themed] .crm-content input:not([type="checkbox"]):not([type="radio"]) {
+    min-height: 44px;
+  }
+  /* Force amber accent text to high-contrast accent on mobile */
+  [data-crm-themed] .crm-content [class*="text-amber-300"],
+  [data-crm-themed] .crm-content [class*="text-amber-400"],
+  [data-crm-themed] .crm-content [class*="text-amber-500"],
+  [data-crm-themed] .crm-content [class*="text-yellow-"] {
+    color: var(--crm-accent) !important;
+    font-weight: 600;
+  }
+  /* Ensure content isn't hidden behind bottom nav */
+  [data-crm-themed] .crm-content {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  /* Compact but readable tables */
+  [data-crm-themed] .crm-content table { font-size: 13px; }
+  [data-crm-themed] .crm-content table th,
+  [data-crm-themed] .crm-content table td {
+    padding: 10px 8px !important;
+    white-space: nowrap;
+  }
+  /* Wrap wide tables in horizontal scroll containers */
+  [data-crm-themed] .crm-content .overflow-x-auto { -webkit-overflow-scrolling: touch; }
 }
 
 /* ============================================================
