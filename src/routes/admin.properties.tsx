@@ -216,8 +216,7 @@ function PropertiesAdmin() {
           <form
             onClick={(e) => e.stopPropagation()}
             onSubmit={save}
-            className="marble-light-panel relative flex w-full max-w-2xl flex-col text-slate-800 sm:rounded-2xl"
-            style={{ maxHeight: "100dvh", height: "100dvh" }}
+            className="marble-light-panel relative flex w-full max-w-2xl flex-col text-slate-800 h-[100dvh] max-h-[100dvh] sm:rounded-2xl sm:h-auto sm:max-h-[calc(100dvh-2rem)]"
           >
             <div className="shrink-0 flex items-center justify-between border-b border-amber-300/40 px-6 py-4">
               <h2 className="font-display text-2xl text-[#5a3a14]">{editing.id ? "Редакция" : "Нов имот"}</h2>
