@@ -234,10 +234,22 @@ export function AdminAIBubble() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Напиши съобщение…"
+            placeholder={listening ? "Слушам…" : "Напиши или говори…"}
             disabled={busy}
             className="flex-1 rounded-lg border border-primary/20 bg-white px-3 py-2 text-xs text-primary placeholder:text-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
+          <button
+            type="button"
+            onClick={toggleListen}
+            disabled={busy}
+            className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-lg transition disabled:opacity-50",
+              listening ? "bg-red-600 text-white animate-pulse" : "bg-primary/15 text-primary hover:bg-primary/25",
+            )}
+            aria-label={listening ? "Спри запис" : "Говори"}
+          >
+            {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </button>
           <button
             type="submit"
             disabled={busy || !input.trim()}
