@@ -1781,6 +1781,42 @@ export type Database = {
         }
         Relationships: []
       }
+      villages: {
+        Row: {
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          municipality_slug: string | null
+          name: string
+          oblast_slug: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          municipality_slug?: string | null
+          name: string
+          oblast_slug: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          municipality_slug?: string | null
+          name?: string
+          oblast_slug?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       brokers_public: {
