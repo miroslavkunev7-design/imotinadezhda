@@ -795,7 +795,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   max-width: 100%;
   aspect-ratio: 1367 / 307 !important;
   height: auto;
-  max-height: clamp(110px, 12vw, 230px);
+  max-height: clamp(88px, 8vw, 160px);
 }
 .site-header__art--mobile { display: none; max-width: 1400px; }
 
