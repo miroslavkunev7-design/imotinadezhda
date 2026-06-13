@@ -622,6 +622,16 @@ html, body, #root {
   --crm-readable-header: #600f1c;
   --crm-readable-header-text: #fffaf2;
 }
+body:has([data-crm-themed]) {
+  --crm-readable-bg: #fffaf2;
+  --crm-readable-bg-strong: #ffffff;
+  --crm-readable-bg-alt: #f6efe2;
+  --crm-readable-text: #2b1418;
+  --crm-readable-muted: #604149;
+  --crm-readable-border: rgba(96, 15, 28, 0.32);
+  --crm-readable-header: #600f1c;
+  --crm-readable-header-text: #fffaf2;
+}
 [data-crm-themed] .crm-content :is(table, form, [class*="bg-card"], [class*="bg-background"], [class*="bg-muted/"]) {
   color: var(--crm-readable-text) !important;
 }
@@ -661,7 +671,7 @@ html, body, #root {
   color: var(--crm-readable-text) !important;
   opacity: 1 !important;
 }
-[data-crm-themed] .crm-content :is(label > span, th, dt, .text-xs.uppercase, [class*="tracking-wide"]) {
+[data-crm-themed] .crm-content :is(label > span, dt, .text-xs.uppercase, [class*="tracking-wide"]) {
   color: var(--crm-readable-header) !important;
   font-weight: 800 !important;
 }
