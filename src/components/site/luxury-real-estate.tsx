@@ -1442,19 +1442,20 @@ export function CityPage({ data }: { data?: CityData } = {}) {
         </div>
       </section>
 
-      {/* NEIGHBORHOODS */}
-      <section className="bg-[#F5E6D3] px-4 py-10 md:px-8">
+      {/* NEIGHBORHOODS — overlaps the hero video */}
+      <section className="relative z-20 -mt-32 md:-mt-48 px-4 py-10 md:px-8 md:pt-14 md:pb-12 rounded-t-[28px] shadow-[0_-20px_60px_rgba(0,0,0,0.45)]" style={{ background: "linear-gradient(180deg, rgba(94,15,29,0.92) 0%, #5e0f1d 30%, #4a0c17 100%)" }}>
         <div className="mx-auto max-w-[1480px]">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display text-xl text-[#8B1A2B] md:text-2xl">
+            <h2 className="flex items-center gap-2 font-display text-xl text-white md:text-2xl">
               <Compass className="h-5 w-5 text-[#C9A84C]" />
               Квартали в {city.name}
             </h2>
             <Link
               to="/cities/$slug"
               params={{ slug: city.slug }}
-              className="text-sm text-[#8B1A2B] transition hover:underline"
+              className="text-sm text-[#C9A84C] transition hover:text-white hover:underline"
             >
+
               Виж всички квартали →
             </Link>
           </div>
