@@ -849,3 +849,93 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 [data-crm-themed] svg[class*="text-yellow-500"] {
   color: #8B1A2B !important;
 }
+
+/* === FINAL CONTRAST PASS (CRM): elimina всякакъв жълт/златен текст и налага четим контраст спрямо контейнера === */
+
+/* 1) Бели/светли повърхности (модални, диалози, popovers, бели карти, инпути) — тъмен текст */
+:where([role="dialog"], [role="alertdialog"], [data-radix-popper-content-wrapper], .bg-white, [class*="bg-card"], [class*="bg-popover"], [class*="bg-background"], [class*="bg-muted"])
+  :is(
+    [class*="text-amber-"],
+    [class*="text-yellow-"],
+    [class*="text-[#C9A84C]"],
+    [class*="text-[#c9a84c]"],
+    [class*="text-[#C9A04C]"],
+    [class*="text-gold"],
+    [style*="#C9A84C"],
+    [style*="#c9a84c"]
+  ) {
+  color: #1a0608 !important;
+  font-weight: 600;
+}
+:where([role="dialog"], [role="alertdialog"], [data-radix-popper-content-wrapper], .bg-white, [class*="bg-card"], [class*="bg-popover"], [class*="bg-background"], [class*="bg-muted"])
+  svg:is(
+    [class*="text-amber-"],
+    [class*="text-yellow-"],
+    [class*="text-[#C9A84C]"],
+    [class*="text-gold"]
+  ) {
+  color: #1a0608 !important;
+}
+
+/* 2) Полу-прозрачни / тъмни сайдбари / тъмни карти — БЯЛ текст */
+:where(
+  [data-sidebar],
+  aside[class*="bg-black"],
+  aside[class*="bg-neutral-9"],
+  aside[class*="bg-zinc-9"],
+  [class*="bg-black/"],
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-[#1a"],
+  [class*="bg-[#2a"],
+  [class*="bg-[#3a"],
+  [class*="bg-[#4f0"],
+  [class*="bg-[#600"]
+)
+  :is(
+    [class*="text-amber-"],
+    [class*="text-yellow-"],
+    [class*="text-[#C9A84C]"],
+    [class*="text-gold"]
+  ) {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* 3) Labels / placeholders / input-и в CRM модули — винаги четими */
+[data-crm-themed] :is([role="dialog"], [role="alertdialog"]) :is(label, .text-xs, .text-sm.text-muted-foreground, [class*="tracking-wide"], [class*="uppercase"]) {
+  color: #1a0608 !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] :is([role="dialog"], [role="alertdialog"]) :is(input, textarea, select)::placeholder {
+  color: #6b4a52 !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] :is([role="dialog"], [role="alertdialog"]) :is(input, textarea, select) {
+  color: #1a0608 !important;
+  background-color: #ffffff !important;
+  border-color: rgba(139,26,43,0.35) !important;
+}
+
+/* 4) Помощни / disabled надписи никога да не са под 60% контраст */
+[data-crm-themed] .text-muted-foreground {
+  color: #5b3038 !important;
+}
+[data-crm-themed] .bg-black .text-muted-foreground,
+[data-crm-themed] [class*="bg-neutral-9"] .text-muted-foreground,
+[data-crm-themed] [class*="bg-zinc-9"] .text-muted-foreground,
+[data-crm-themed] [data-sidebar] .text-muted-foreground {
+  color: rgba(255,255,255,0.78) !important;
+}
+
+/* 5) Универсална забрана за чист жълт цвят в CRM (като резервен предпазител) */
+[data-crm-themed] [style*="color: #ff"],
+[data-crm-themed] [style*="color:#ff"] {
+  /* не пипаме произволни inline стилове */
+}
+[data-crm-themed] [class~="text-yellow-200"],
+[data-crm-themed] [class~="text-yellow-100"],
+[data-crm-themed] [class~="text-amber-100"],
+[data-crm-themed] [class~="text-amber-200"] {
+  color: #1a0608 !important;
+}
