@@ -439,6 +439,16 @@ html, body, #root {
   color: var(--crm-text) !important;
   border-color: var(--crm-border) !important;
 }
+/* Force WHITE text in all CRM table rows (the burgundy/brown rows) — all viewports */
+[data-crm-themed] .crm-content table tbody tr,
+[data-crm-themed] .crm-content table tbody tr td,
+[data-crm-themed] .crm-content table tbody tr td * {
+  color: #ffffff !important;
+}
+[data-crm-themed] .crm-content table tbody tr td svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
 [data-crm-themed] .crm-content input,
 [data-crm-themed] .crm-content select,
 [data-crm-themed] .crm-content textarea {
