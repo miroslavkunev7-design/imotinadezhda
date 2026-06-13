@@ -1305,6 +1305,42 @@ body[data-crm-themed] [role="dialog"] [class*="badge"] {
   [class*="bg-[rgba(20"],
   [class*="bg-[rgba(26"],
   [class*="bg-[rgba(58"]
+) :is(table, tbody, tfoot, tbody tr, tfoot tr, tbody td, tfoot td, li) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"],
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(tbody tr:nth-child(even), li:nth-child(even)) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"],
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
 ) :is(table, thead, tbody, tfoot, tr, th, td, ul, li, p, span, label, small, time, button, a, div),
 [data-crm-themed] .crm-content :is(
   [class*="bg-black"],
