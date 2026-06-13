@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Sparkles, X, Send, User as UserIcon } from "lucide-react";
+import { Sparkles, X, Send, User as UserIcon, Mic, MicOff, Volume2, Square } from "lucide-react";
 import { aiAssistantChat } from "@/lib/ai-assistant.functions";
 import { cn } from "@/lib/utils";
 
