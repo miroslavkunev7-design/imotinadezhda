@@ -63,7 +63,7 @@ function Dashboard() {
   return (
     <div className="flex h-full flex-col gap-6 overflow-y-auto pr-1">
       <header>
-        <p className="font-display text-[11px] uppercase tracking-[0.32em] text-[#C9A84C]">Преглед</p>
+        <p className="font-display text-[11px] uppercase tracking-[0.32em] text-[#8B1A2B] font-semibold">Преглед</p>
         <h1 className="mt-1 font-display text-3xl text-[#8B1A2B] md:text-4xl">Дашборд</h1>
         <p className="mt-1 text-sm text-[#2b1418]/70">Ключови метрики на агенцията.</p>
       </header>
