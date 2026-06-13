@@ -281,6 +281,36 @@ async function runTool(name: string, args: any, userId: string): Promise<any> {
       message: "Темата е обновена само за теб. [THEME_UPDATED]",
     };
   }
+  if (name === "web_search") {
+    const q = String(args.query ?? "").trim();
+    if (!q) return { error: "Празна заявка" };
+    try {
+      const results = await duckDuckGoSearch(q);
+      if (results.length === 0) return { results: [], note: "Няма намерени резултати." };
+      return { results };
+    } catch (e: any) {
+      return { error: "Грешка при търсене: " + (e?.message ?? String(e)) };
+    }
+  }
+  if (name === "fetch_url") {
+    const url = String(args.url ?? "").trim();
+    if (!/^https?:\/\//i.test(url)) return { error: "Невалиден URL" };
+    try {
+      const res = await fetch(url, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; ILDJIA-Research/1.0)", "Accept-Language": "bg,en;q=0.8" },
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) return { error: "HTTP " + res.status };
+      const ct = res.headers.get("content-type") ?? "";
+      if (!/text\/html|text\/plain|application\/xhtml/i.test(ct)) return { error: "Неподдържан тип съдържание: " + ct };
+      const html = await res.text();
+      const titleM = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+      const text = stripHtml(html).slice(0, 6000);
+      return { url, title: titleM ? stripHtml(titleM[1]) : "", text };
+    } catch (e: any) {
+      return { error: "Грешка при изтегляне: " + (e?.message ?? String(e)) };
+    }
+  }
   return { error: "Непознат инструмент: " + name };
 }
 
