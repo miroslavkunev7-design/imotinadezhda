@@ -115,7 +115,71 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "web_search",
+      description: "Търси в интернет в реално време (DuckDuckGo). Използвай за проучване на инвеститори, фирми, хора, пазарни данни, новини, адреси и др. неща извън CRM базата. Връща до 6 резултата с заглавие, URL и кратко описание.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Заявка за търсене, на български или английски" },
+        },
+        required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "fetch_url",
+      description: "Изтегля и връща текстовото съдържание на конкретна уеб страница (по URL от web_search или директно). Използвай за дълбоко четене след търсене.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "Пълен URL, започващ с http(s)://" },
+        },
+        required: ["url"],
+      },
+    },
+  },
 ];
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function duckDuckGoSearch(query: string): Promise<Array<{ title: string; url: string; snippet: string }>> {
+  const res = await fetch("https://html.duckduckgo.com/html/?q=" + encodeURIComponent(query), {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; ILDJIA-Research/1.0)",
+      "Accept-Language": "bg,en;q=0.8",
+    },
+  });
+  if (!res.ok) throw new Error("Search failed: " + res.status);
+  const html = await res.text();
+  const results: Array<{ title: string; url: string; snippet: string }> = [];
+  const blockRe = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = blockRe.exec(html)) && results.length < 6) {
+    let url = m[1];
+    const uddg = url.match(/uddg=([^&]+)/);
+    if (uddg) url = decodeURIComponent(uddg[1]);
+    results.push({ title: stripHtml(m[2]), url, snippet: stripHtml(m[3]) });
+  }
+  return results;
+}
 
 const COLOR_RE = /^(#([0-9a-fA-F]{3}){1,2}|rgba?\([^)]+\)|hsla?\([^)]+\)|oklch\([^)]+\))$/;
 function validColor(v: unknown): v is string {
@@ -217,6 +281,36 @@ async function runTool(name: string, args: any, userId: string): Promise<any> {
       message: "Темата е обновена само за теб. [THEME_UPDATED]",
     };
   }
+  if (name === "web_search") {
+    const q = String(args.query ?? "").trim();
+    if (!q) return { error: "Празна заявка" };
+    try {
+      const results = await duckDuckGoSearch(q);
+      if (results.length === 0) return { results: [], note: "Няма намерени резултати." };
+      return { results };
+    } catch (e: any) {
+      return { error: "Грешка при търсене: " + (e?.message ?? String(e)) };
+    }
+  }
+  if (name === "fetch_url") {
+    const url = String(args.url ?? "").trim();
+    if (!/^https?:\/\//i.test(url)) return { error: "Невалиден URL" };
+    try {
+      const res = await fetch(url, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; ILDJIA-Research/1.0)", "Accept-Language": "bg,en;q=0.8" },
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) return { error: "HTTP " + res.status };
+      const ct = res.headers.get("content-type") ?? "";
+      if (!/text\/html|text\/plain|application\/xhtml/i.test(ct)) return { error: "Неподдържан тип съдържание: " + ct };
+      const html = await res.text();
+      const titleM = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+      const text = stripHtml(html).slice(0, 6000);
+      return { url, title: titleM ? stripHtml(titleM[1]) : "", text };
+    } catch (e: any) {
+      return { error: "Грешка при изтегляне: " + (e?.message ?? String(e)) };
+    }
+  }
   return { error: "Непознат инструмент: " + name };
 }
 
@@ -254,6 +348,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 4. Винаги попълвай в договорите: имена, ЕГН, документи за самоличност (от документите на клиента), точен адрес на имота, цена с думи, срокове, неустойки.
 5. Ако данни липсват — попитай преди да продължиш или маркирай с {ПОПЪЛНЕТЕ}.
 6. ДИЗАЙНЕР НА CRM: Когато потребителят (брокерът) поиска промяна на цветовете/стила на CRM (напр. "направи CRM жълто и зелено", "смени сайдбара на синьо", "промени шрифта", "смени херо фона на градиент", "светъл режим", "върни към burgundy"), извикай update_crm_theme с подходящи стойности. Промените са ЛИЧНИ — виждат се само от него и не засягат другите служители. Можеш да задаваш: surface/surfaceTo (главен фон), accent/accentSoft (акценти), text/textMuted/heading (текст), border, sidebar/sidebarTo/sidebarText/sidebarBorder (страничен панел), heroBg (фон на работното пространство — приема и градиенти), fontFamily (шрифт). Налични preset-и: burgundy, midnight, forest, royal, light, graphite. Можеш да комбинираш preset + конкретни overrides. След извикване винаги потвърди какво си променил и предложи как да върне ако не хареса.
+7. ПРОУЧВАНЕ В ИНТЕРНЕТ: Когато потребителят попита за информация която не е в CRM базата (напр. "кой е инвеститорът X в София", "коя фирма строи комплекс Y", "пазарни цени в кв. Z", "контакти на агенция W", новини, лица, компании) — извикай web_search със смислена заявка, прегледай резултатите и при нужда извикай fetch_url за по-задълбочено четене на най-релевантния линк. Винаги цитирай източниците като markdown линкове в отговора. Ако данните може да са остарели или противоречиви — кажи го честно.
 
 ТЕКУЩИ АГРЕГАТИ:
 • Клиенти: ${clientCount ?? 0}
@@ -266,7 +361,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
     const conversation: any[] = [{ role: "system", content: systemPrompt }, ...data.messages];
     let iterations = 0;
 
-    while (iterations < 6) {
+    while (iterations < 10) {
       iterations++;
       const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
