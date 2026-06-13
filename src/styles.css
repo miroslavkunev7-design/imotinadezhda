@@ -1222,3 +1222,156 @@ body[data-crm-themed] [role="dialog"] [class*="badge"] {
   }
 }
 
+/* =========================================================================
+   CRM FINAL CONTRAST — background-aware tables and panels.
+   Rule: light/white surfaces use near-black text; dark surfaces use white text.
+   This is intentionally last so it wins over older amber/burgundy theme classes.
+   ========================================================================= */
+
+[data-crm-themed] .crm-content :is(
+  table,
+  table *,
+  .overflow-x-auto:has(> table),
+  div:has(> table)
+) {
+  text-shadow: none !important;
+}
+
+/* Light/white CRM tables: solid readable surface + black text. */
+[data-crm-themed] .crm-content :is(
+  .bg-card,
+  .bg-white,
+  .bg-background,
+  .bg-muted,
+  .marble-light-panel,
+  .overflow-x-auto:has(> table),
+  div:has(> table)
+) :is(table, thead, tbody, tfoot, tr, th, td),
+[data-crm-themed] .crm-content :is(
+  .bg-card,
+  .bg-white,
+  .bg-background,
+  .bg-muted,
+  .marble-light-panel,
+  .overflow-x-auto:has(> table),
+  div:has(> table)
+) :is(table, th, td) * {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+[data-crm-themed] .crm-content :is(
+  .bg-card,
+  .bg-white,
+  .bg-background,
+  .bg-muted,
+  .marble-light-panel,
+  .overflow-x-auto:has(> table),
+  div:has(> table)
+) thead :is(tr, th) {
+  background: #f6ecda !important;
+  background-color: #f6ecda !important;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+
+/* Dark CRM tables/lists/cards: keep the dark surface and force white text. */
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"],
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) {
+  background-color: rgba(20, 4, 8, 0.94) !important;
+  color: #ffffff !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"],
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(table, thead, tbody, tfoot, tr, th, td, ul, li, p, span, label, small, time, button, a, div),
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"],
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(table, thead, tbody, tfoot, tr, th, td, ul, li, p, span, label, small, time, button, a, div) * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"],
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(thead, thead tr, thead th) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"],
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(tbody tr:hover, tbody tr:hover td, li:hover) {
+  background: rgba(255, 255, 255, 0.10) !important;
+  background-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Header/title text over CRM background video must stay readable on mobile. */
+[data-crm-themed] .crm-content > .space-y-6 > header :is(h1, p) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* CRM top/bottom navigation remains dark, therefore always white text. */
+[data-crm-themed] > div > header :is(a, span, button, svg),
+[data-crm-themed] > nav :is(a, span, button, svg),
+[data-crm-themed] aside :is(a, span, button, svg, div) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
