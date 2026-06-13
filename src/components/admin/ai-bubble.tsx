@@ -201,6 +201,17 @@ export function AdminAIBubble() {
                 )}
               >
                 {m.content}
+                {m.role === "assistant" && (
+                  <button
+                    type="button"
+                    onClick={() => speak(m.content, i)}
+                    className="mt-1.5 flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary hover:bg-primary/20"
+                    aria-label={speakingIdx === i ? "Спри" : "Чуй"}
+                  >
+                    {speakingIdx === i ? <Square className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                    {speakingIdx === i ? "Спри" : "Чуй"}
+                  </button>
+                )}
               </div>
               {m.role === "user" && (
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
