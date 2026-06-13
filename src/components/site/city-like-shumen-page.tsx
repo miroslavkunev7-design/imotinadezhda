@@ -239,9 +239,12 @@ export function CityLikeShumenPage(p: CityHomeProps) {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-12">
-          {p.quarters.map((q) => (
-            <NeighborhoodCard key={q.slug} image={q.image} title={q.name} count={q.count} slug={q.slug} citySlug={p.citySlug} cityLabel={p.cityLabel} />
-          ))}
+          {p.quarters.map((q) => {
+            const liveCount = p.quarterCounts?.[q.slug];
+            return (
+              <NeighborhoodCard key={q.slug} image={q.image} title={q.name} count={liveCount ?? q.count} slug={q.slug} citySlug={p.citySlug} cityLabel={p.cityLabel} />
+            );
+          })}
 
           <Link to="/cities/$slug/around" params={{ slug: p.citySlug } as never} className="group block rounded-2xl overflow-hidden border border-[#eaddc4] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 font-sans-nadezhda nadezhda-dark-red-bg">
             <div className="relative h-28 md:h-32 flex flex-col items-center justify-center text-center px-3">
@@ -249,7 +252,9 @@ export function CityLikeShumenPage(p: CityHomeProps) {
               <h3 className="font-serif-nadezhda text-[15px] md:text-[17px] font-bold text-white leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">
                 Около {p.cityLabel}
               </h3>
-              <span className="mt-1.5 text-[11px] md:text-xs text-[#f4d07d]/95">Села около {p.cityLabel}</span>
+              <span className="mt-1.5 text-[11px] md:text-xs text-[#f4d07d]/95">
+                {p.aroundCount != null ? `${p.aroundCount} имота в селата` : `Села около ${p.cityLabel}`}
+              </span>
             </div>
             <div className="nadezhda-marble-bg px-4 py-3 md:px-5 md:py-4 border-t border-[#eaddc4]">
               <div className="flex items-center justify-between text-xs">
