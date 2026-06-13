@@ -355,6 +355,8 @@ export type Database = {
           hero_video_url: string | null
           id: string
           is_published: boolean
+          lat: number | null
+          lng: number | null
           name: string
           name_en: string | null
           population: number | null
@@ -373,6 +375,8 @@ export type Database = {
           hero_video_url?: string | null
           id?: string
           is_published?: boolean
+          lat?: number | null
+          lng?: number | null
           name: string
           name_en?: string | null
           population?: number | null
@@ -391,6 +395,8 @@ export type Database = {
           hero_video_url?: string | null
           id?: string
           is_published?: boolean
+          lat?: number | null
+          lng?: number | null
           name?: string
           name_en?: string | null
           population?: number | null
@@ -1784,6 +1790,7 @@ export type Database = {
       villages: {
         Row: {
           created_at: string
+          distance_km: number | null
           id: string
           lat: number | null
           lng: number | null
@@ -1795,6 +1802,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          distance_km?: number | null
           id?: string
           lat?: number | null
           lng?: number | null
@@ -1806,6 +1814,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          distance_km?: number | null
           id?: string
           lat?: number | null
           lng?: number | null
