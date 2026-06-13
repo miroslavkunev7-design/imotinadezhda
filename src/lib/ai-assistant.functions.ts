@@ -361,7 +361,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
     const conversation: any[] = [{ role: "system", content: systemPrompt }, ...data.messages];
     let iterations = 0;
 
-    while (iterations < 6) {
+    while (iterations < 10) {
       iterations++;
       const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
