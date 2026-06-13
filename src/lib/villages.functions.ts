@@ -20,6 +20,7 @@ export type VillageRow = {
   oblast_slug: string;
   municipality_slug: string | null;
   distance_km: number | null;
+  property_count: number;
 };
 
 export const getVillagesAround = createServerFn({ method: "GET" })
@@ -39,11 +40,32 @@ export const getVillagesAround = createServerFn({ method: "GET" })
 
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
+
+    // Live property counts per village.
+    const villageIds = (rows ?? []).map((v) => v.id);
+    const countsByVillage = new Map<string, number>();
+    if (villageIds.length) {
+      const { data: props } = await supabaseAdmin
+        .from("properties")
+        .select("village_id")
+        .eq("is_published", true)
+        .in("village_id", villageIds);
+      for (const p of props ?? []) {
+        if (!p.village_id) continue;
+        countsByVillage.set(p.village_id, (countsByVillage.get(p.village_id) ?? 0) + 1);
+      }
+    }
+
+    const villages: VillageRow[] = (rows ?? []).map((v) => ({
+      ...v,
+      property_count: countsByVillage.get(v.id) ?? 0,
+    }));
+
     return {
       cityLabel: cfg.label,
       oblast: cfg.oblast,
       municipality: cfg.municipality ?? null,
-      villages: (rows ?? []) as VillageRow[],
+      villages,
     };
   });
 
