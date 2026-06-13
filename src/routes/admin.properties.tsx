@@ -175,6 +175,13 @@ function PropertiesAdmin() {
   };
 
   const filteredQuarters = editing?.city_id ? quarters.filter((q) => q.city_id === editing.city_id) : [];
+  const editingCity = editing?.city_id ? cities.find((c) => c.id === editing.city_id) : undefined;
+  const villageScope = editingCity ? CITY_OBLAST[editingCity.slug] : undefined;
+  const filteredVillages = villageScope
+    ? villages.filter(
+        (v) => v.oblast_slug === villageScope.oblast && (!villageScope.municipality || v.municipality_slug === villageScope.municipality),
+      )
+    : [];
 
   return (
     <div className="space-y-6">
