@@ -289,7 +289,17 @@ function HeroVideoOrImage({
   );
 }
 
-export function ShumenHomePage() {
+export type ShumenHomePageProps = {
+  quarterCounts?: Record<string, number>;
+  aroundCount?: number;
+  activePropertiesTotal?: number;
+};
+
+export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTotal }: ShumenHomePageProps = {}) {
+  const quartersWithLive = SHUMEN_QUARTERS.map((q) => ({
+    ...q,
+    count: quarterCounts?.[q.slug] ?? q.count,
+  }));
   return (
     <div className="min-h-screen relative nadezhda-marble-bg text-[#31020c] font-sans-nadezhda overflow-x-hidden">
       {/* Mobile-only navigation (restored SiteHeader) */}
