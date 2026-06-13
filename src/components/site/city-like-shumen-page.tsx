@@ -35,6 +35,8 @@ export type CityHomeProps = {
   panoramaUrl: string;
   stats: { population: string; area: string; activeProperties: string };
   quarters: Array<{ name: string; slug: string; count: number; image: string }>;
+  quarterCounts?: Record<string, number>;
+  aroundCount?: number;
 };
 
 function LogoHeader() {
