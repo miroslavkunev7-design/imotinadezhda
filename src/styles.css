@@ -675,6 +675,13 @@ body:has([data-crm-themed]) {
   color: var(--crm-readable-header) !important;
   opacity: 1 !important;
 }
+[data-crm-themed] .crm-content form :is([class*="text-amber-"], [class*="text-yellow-"]),
+[data-crm-themed] .crm-content [class*="bg-card"] :is([class*="text-amber-"], [class*="text-yellow-"]),
+[data-crm-themed] .crm-content [class*="bg-background"] :is([class*="text-amber-"], [class*="text-yellow-"]),
+[data-crm-themed] .crm-content [class*="bg-muted/"] :is([class*="text-amber-"], [class*="text-yellow-"]) {
+  color: var(--crm-readable-header) !important;
+  opacity: 1 !important;
+}
 [data-crm-themed] .crm-content :is(label > span, dt, .text-xs.uppercase, [class*="tracking-wide"]) {
   color: var(--crm-readable-header) !important;
   font-weight: 800 !important;
