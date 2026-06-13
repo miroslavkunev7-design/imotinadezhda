@@ -212,17 +212,19 @@ function PropertiesAdmin() {
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#8B1A2B]/55 p-4 backdrop-blur-sm sm:items-center" onClick={() => setEditing(null)}>
+        <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-[#8B1A2B]/55 backdrop-blur-sm p-0 sm:items-center sm:p-4" onClick={() => setEditing(null)}>
           <form
             onClick={(e) => e.stopPropagation()}
             onSubmit={save}
-            className="marble-light-panel relative my-4 w-full max-w-2xl overflow-y-auto rounded-2xl p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-slate-800 sm:max-h-[calc(100dvh-3rem)]"
+            className="marble-light-panel relative flex w-full max-w-2xl flex-col text-slate-800 sm:rounded-2xl"
+            style={{ maxHeight: "100dvh", height: "100dvh" }}
           >
-            <div className="mb-4 flex items-center justify-between border-b border-amber-300/40 pb-3">
+            <div className="shrink-0 flex items-center justify-between border-b border-amber-300/40 px-6 py-4">
               <h2 className="font-display text-2xl text-[#5a3a14]">{editing.id ? "Редакция" : "Нов имот"}</h2>
               <button type="button" onClick={() => setEditing(null)} className="text-[#5a3a14]/70 hover:text-[#5a3a14]"><X className="h-5 w-5" /></button>
             </div>
-            <div className="relative z-10 grid gap-3 md:grid-cols-2">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4">
+              <div className="grid gap-3 md:grid-cols-2">
               <Field label="Заглавие" className="md:col-span-2">
                 <input required value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
               </Field>
@@ -311,10 +313,11 @@ function PropertiesAdmin() {
               </Field>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editing.is_published} onChange={(e) => setEditing({ ...editing, is_published: e.target.checked })} /> Публикуван</label>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!editing.is_featured} onChange={(e) => setEditing({ ...editing, is_featured: e.target.checked })} /> Препоръчан</label>
+              </div>
             </div>
-            <div className="relative z-10 mt-6 flex justify-end gap-2">
+            <div className="shrink-0 flex justify-end gap-2 border-t border-amber-300/40 bg-white/85 px-6 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
               <Button type="button" variant="outline" onClick={() => setEditing(null)} className="border-amber-700/40 bg-white/80 text-[#5a3a14] hover:bg-white">Отказ</Button>
-              <Button type="submit" disabled={busy || uploadingNew} className="gold-cta-button">{busy || uploadingNew ? (pendingImages.length ? `Качване ${pendingImages.length} снимки…` : "Запис...") : "Запази"}</Button>
+              <Button type="submit" disabled={busy || uploadingNew} className="gold-cta-button">{busy || uploadingNew ? (pendingImages.length ? `Качване ${pendingImages.length} снимки…` : "Запис...") : (editing.id ? "Запази" : "Добави имота в сайта")}</Button>
             </div>
           </form>
         </div>
