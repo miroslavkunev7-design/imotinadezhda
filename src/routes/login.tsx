@@ -218,7 +218,7 @@ function LoginPage() {
 
           <button
             type="button"
-            className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-primary"
+            className="mt-4 w-full text-center text-sm text-[#8B1A2B] underline-offset-2 hover:underline"
             onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
           >
             {mode === "signin" ? "Нямаш профил? Регистрирай се" : "Имаш профил? Влез"}
