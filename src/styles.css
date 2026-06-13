@@ -1047,23 +1047,71 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 }
 [data-crm-themed] .crm-content :is(
   [class*="text-muted-foreground"],
+  [class*="text-amber-50"],
   [class*="text-amber-100"],
   [class*="text-amber-200"],
   [class*="text-amber-300"],
   [class*="text-amber-400"],
+  [class*="text-yellow-100"],
+  [class*="text-yellow-200"],
+  [class*="text-yellow-300"],
+  [class*="text-yellow-400"],
+  [class*="text-rose-100"],
+  [class*="text-rose-200"],
+  [class*="text-emerald-100"],
+  [class*="text-emerald-200"],
+  [class*="text-white"],
   [class*="text-white/"],
   [class*="text-zinc-"],
   [class*="text-gray-"],
-  [class*="text-slate-"]
+  [class*="text-slate-"],
+  [class*="text-stone-"],
+  [class*="text-neutral-"]
 ) {
   color: #5a3a3f !important;
+  -webkit-text-fill-color: #5a3a3f !important;
 }
 [data-crm-themed] .crm-content :is(
   [class*="text-primary"],
-  [class*="text-accent-foreground"]
+  [class*="text-accent-foreground"],
+  [class*="text-foreground"]
 ) {
-  color: #8B1A2B !important;
+  color: #3a0a13 !important;
+  -webkit-text-fill-color: #3a0a13 !important;
 }
+/* Same treatment inside Radix portals (dialog/menu/listbox/tooltip/sheet) */
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"], [role="menu"],
+  [role="listbox"], [role="tooltip"], [data-radix-popper-content-wrapper] > *
+) :is(
+  [class*="text-muted-foreground"],
+  [class*="text-amber-100"], [class*="text-amber-200"],
+  [class*="text-amber-300"], [class*="text-amber-400"],
+  [class*="text-yellow-100"], [class*="text-yellow-200"],
+  [class*="text-yellow-300"], [class*="text-yellow-400"],
+  [class*="text-white"], [class*="text-white/"],
+  [class*="text-zinc-"], [class*="text-gray-"],
+  [class*="text-slate-"], [class*="text-stone-"], [class*="text-neutral-"]
+) {
+  color: #5a3a3f !important;
+  -webkit-text-fill-color: #5a3a3f !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"], [role="menu"],
+  [role="listbox"], [role="tooltip"], [data-radix-popper-content-wrapper] > *
+) :is(
+  [class*="text-primary"], [class*="text-accent-foreground"],
+  [class*="text-foreground"]
+) {
+  color: #3a0a13 !important;
+  -webkit-text-fill-color: #3a0a13 !important;
+}
+/* Buttons inside CRM dialogs that use a transparent/light style — keep them
+   readable on white. Solid burgundy/gold buttons keep their own colors. */
+body[data-crm-themed] :is([role="dialog"], [role="alertdialog"]) button:not([class*="bg-"]) {
+  color: #3a0a13 !important;
+}
+
 
 /* --- Form inputs, selects, textareas inside CRM ------------------------- */
 [data-crm-themed] .crm-content :is(input, select, textarea) {
