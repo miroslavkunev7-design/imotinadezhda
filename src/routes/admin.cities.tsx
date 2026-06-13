@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Compass } from "lucide-react";
+import { backfillVillageCoords } from "@/lib/villages.functions";
 
 export const Route = createFileRoute("/admin/cities")({
   component: CitiesAdmin,
@@ -27,6 +29,30 @@ type City = {
 function CitiesAdmin() {
   const [rows, setRows] = useState<City[]>([]);
   const [editing, setEditing] = useState<City | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geoProgress, setGeoProgress] = useState<string>("");
+  const backfillFn = useServerFn(backfillVillageCoords);
+
+  const runBackfill = async () => {
+    if (geocoding) return;
+    setGeocoding(true);
+    setGeoProgress("Стартиране…");
+    try {
+      let total = 0;
+      // Loop until done; each call processes up to 40 villages (~45s with Nominatim rate limit).
+      for (let i = 0; i < 30; i++) {
+        const r = (await backfillFn({ data: { limit: 40 } } as never)) as { processed: number; geocoded: number; remaining: number };
+        total += r.geocoded;
+        setGeoProgress(`Обработени ${total}, остават ${r.remaining}`);
+        if (r.processed === 0 || r.remaining === 0) break;
+      }
+      toast.success(`Готово — геокодирани ${total} села.`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при геокодиране");
+    } finally {
+      setGeocoding(false);
+    }
+  };
 
   const load = async () => {
     const { data } = await supabase.from("cities").select("*").order("display_order");
@@ -62,7 +88,12 @@ function CitiesAdmin() {
           <h1 className="font-display text-4xl text-accent-foreground">Градове</h1>
           <p className="mt-1 text-sm text-muted-foreground">{rows.length} записа</p>
         </div>
-        <Button onClick={() => setEditing({ slug: "", name: "", display_order: rows.length, is_published: true })} className="gold-cta-button"><Plus className="h-4 w-4" /> Нов град</Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={runBackfill} disabled={geocoding} variant="outline" title="Геокодира селата чрез OpenStreetMap и изчислява разстояние до града">
+            <Compass className="h-4 w-4" /> {geocoding ? geoProgress || "Геокодиране…" : "Геокодирай селата"}
+          </Button>
+          <Button onClick={() => setEditing({ slug: "", name: "", display_order: rows.length, is_published: true })} className="gold-cta-button"><Plus className="h-4 w-4" /> Нов град</Button>
+        </div>
       </header>
 
       <div className="overflow-hidden rounded-xl border border-primary/15 bg-card">

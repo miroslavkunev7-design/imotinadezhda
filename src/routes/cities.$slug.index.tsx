@@ -1,29 +1,75 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
-import { CityPage } from "@/components/site/luxury-real-estate";
 import { ShumenHomePage } from "@/components/site/shumen-home-page";
+import { CityLikeShumenPage } from "@/components/site/city-like-shumen-page";
 import { getCityBySlug } from "@/lib/catalog.functions";
+import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
+import burgasHeroVideo from "@/assets/burgas-hero.mp4.asset.json";
+import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
+
+const CITY_MEDIA: Record<string, { videoUrl: string; description: string; stats: { population: string; area: string; activeProperties: string } }> = {
+  varna: {
+    videoUrl: varnaHeroVideo.url,
+    description: "Морската столица на България — динамичен пазар, развита инфраструктура и силен туристически потенциал.",
+    stats: { population: "≈ 335 000", area: "238 km²", activeProperties: "—" },
+  },
+  burgas: {
+    videoUrl: burgasHeroVideo.url,
+    description: "Втората морска столица — модерен град с богат избор на имоти, плажове и възможности за инвестиции.",
+    stats: { population: "≈ 200 000", area: "482 km²", activeProperties: "—" },
+  },
+  "novi-pazar": {
+    videoUrl: shumenHeroVideo.url,
+    description: "Спокоен град в област Шумен — практични жилища и достъпни инвестиционни възможности.",
+    stats: { population: "≈ 12 000", area: "247 km²", activeProperties: "—" },
+  },
+};
 
 const fallbackCities: Record<string, { name: string; description: string; region: string }> = {
-  burgas: { name: "Бургас", description: "Морски град с отлични възможности за живот и инвестиции.", region: "Черноморие" },
-  varna: { name: "Варна", description: "Морска столица с активен имотен пазар и силна градска инфраструктура.", region: "Черноморие" },
+  burgas: { name: "Бургас", description: CITY_MEDIA.burgas.description, region: "Черноморие" },
+  varna: { name: "Варна", description: CITY_MEDIA.varna.description, region: "Черноморие" },
   shumen: { name: "Шумен", description: "Исторически град с удобна локация и стабилна жилищна среда.", region: "Североизточна България" },
-  "novi-pazar": { name: "Нов пазар", description: "Спокоен град с практични жилищни възможности.", region: "Североизточна България" },
+  "novi-pazar": { name: "Нов пазар", description: CITY_MEDIA["novi-pazar"].description, region: "Североизточна България" },
 };
+
+function renderCity(slug: string, data: any) {
+  if (slug === "shumen") return <ShumenHomePage />;
+  const media = CITY_MEDIA[slug];
+  if (!media) {
+    // unknown slug — render Shumen-like with whatever data we have
+    return <ShumenHomePage />;
+  }
+  const cityLabel = data?.city?.name ?? fallbackCities[slug]?.name ?? slug;
+  const posterUrl = data?.city?.hero_image_url ?? "";
+  const quarters = (data?.quarters ?? []).map((q: any) => ({
+    name: q.name,
+    slug: q.slug,
+    count: q.properties_count ?? 0,
+    image: q.image_url ?? "",
+  }));
+  return (
+    <CityLikeShumenPage
+      citySlug={slug}
+      cityLabel={cityLabel}
+      cityDescription={data?.city?.description ?? media.description}
+      heroVideoUrl={media.videoUrl}
+      heroPosterUrl={posterUrl}
+      panoramaUrl={posterUrl}
+      stats={{
+        population: media.stats.population,
+        area: media.stats.area,
+        activeProperties: String((data?.properties?.length ?? 0) || media.stats.activeProperties),
+      }}
+      quarters={quarters}
+    />
+  );
+}
 
 function CityFallbackRoute() {
   const { slug } = Route.useParams();
   const fallback = fallbackCities[slug] ?? { name: "Град", description: "Имоти и квартали от Имоти Надежда.", region: "България" };
   const cityData = { city: { slug, ...fallback, hero_image_url: null, hero_video_url: null }, quarters: [], properties: [] };
-  if (slug === "shumen") {
-    return (
-      <>
-        <div className="hidden md:block"><ShumenHomePage /></div>
-        <div className="md:hidden"><CityPage data={cityData} /></div>
-      </>
-    );
-  }
-  return <CityPage data={cityData} />;
+  return renderCity(slug, cityData);
 }
 
 export const Route = createFileRoute("/cities/$slug/")({
@@ -34,7 +80,7 @@ export const Route = createFileRoute("/cities/$slug/")({
   },
   head: ({ loaderData, params }) => {
     const url = `https://imotinadezhda.lovable.app/cities/${params.slug}`;
-    const title = `${loaderData?.city.name ?? "Град"} | ИЛДЖ.ИА`;
+    const title = `${loaderData?.city.name ?? "Град"} | Имоти Надежда`;
     const desc = loaderData?.city.description ?? "Квартали, активни имоти и пазарна информация.";
     return {
       meta: [
@@ -46,18 +92,6 @@ export const Route = createFileRoute("/cities/$slug/")({
         ...(loaderData?.city.hero_image_url ? [{ property: "og:image", content: loaderData.city.hero_image_url }] : []),
       ],
       links: [{ rel: "canonical", href: url }],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
-            name: title,
-            description: desc,
-            url,
-          }),
-        },
-      ],
     };
   },
   component: CityRoute,
@@ -68,13 +102,5 @@ export const Route = createFileRoute("/cities/$slug/")({
 function CityRoute() {
   const { slug } = Route.useParams();
   const data = Route.useLoaderData();
-  if (slug === "shumen") {
-    return (
-      <>
-        <div className="hidden md:block"><ShumenHomePage /></div>
-        <div className="md:hidden"><CityPage data={data} /></div>
-      </>
-    );
-  }
-  return <CityPage data={data} />;
+  return renderCity(slug, data);
 }
