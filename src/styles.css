@@ -1013,3 +1013,164 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 ) {
   color: #2a0e05 !important;
 }
+
+/* =========================================================================
+   CRM READABILITY — UNIVERSAL (cards, dialogs, sheets, popovers, dropdowns,
+   inputs, forms, badges). Applies on every viewport: mobile, tablet,
+   desktop, PWA installed app, Windows desktop wrapper. Always solid white
+   surface + dark burgundy text + readable accents.
+   ========================================================================= */
+
+/* --- Page cards / panels inside the CRM content area --------------------- */
+[data-crm-themed] .crm-content :is(
+  .rounded-xl, .rounded-2xl, .rounded-3xl
+):is(
+  [class*="bg-card"], [class*="bg-background"], [class*="bg-white"],
+  [class*="bg-primary/"], [class*="bg-muted"], [class*="bg-accent"],
+  [class*="backdrop-blur"]
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  color: #2a0e05 !important;
+  border-color: rgba(139, 26, 43, 0.18) !important;
+}
+
+/* Headings, paragraphs, labels and metadata in CRM content */
+[data-crm-themed] .crm-content :is(h1, h2, h3, h4, h5, h6) {
+  color: #3a0a13 !important;
+  text-shadow: none !important;
+}
+[data-crm-themed] .crm-content :is(p, span, li, dt, dd, label, small, time, figcaption) {
+  color: #2a0e05 !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="text-muted-foreground"],
+  [class*="text-amber-100"],
+  [class*="text-amber-200"],
+  [class*="text-amber-300"],
+  [class*="text-amber-400"],
+  [class*="text-white/"],
+  [class*="text-zinc-"],
+  [class*="text-gray-"],
+  [class*="text-slate-"]
+) {
+  color: #5a3a3f !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="text-primary"],
+  [class*="text-accent-foreground"]
+) {
+  color: #8B1A2B !important;
+}
+
+/* --- Form inputs, selects, textareas inside CRM ------------------------- */
+[data-crm-themed] .crm-content :is(input, select, textarea) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #2a0e05 !important;
+  border-color: rgba(139, 26, 43, 0.25) !important;
+  -webkit-text-fill-color: #2a0e05 !important;
+}
+[data-crm-themed] .crm-content :is(input, textarea)::placeholder {
+  color: #8a6a6f !important;
+  opacity: 1 !important;
+}
+
+/* --- Radix overlays (Dialog / Sheet / Popover / DropdownMenu / Select) ---
+   These render in a portal at <body> root, so they aren't inside .crm-content.
+   Scope by data attributes from Radix + the global body[data-crm-themed]
+   marker so we still target only CRM-originated overlays. */
+body[data-crm-themed] :is(
+  [role="dialog"],
+  [role="alertdialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tooltip"],
+  [data-radix-popper-content-wrapper] > *,
+  [data-state][data-side]
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  color: #2a0e05 !important;
+  border-color: rgba(139, 26, 43, 0.2) !important;
+  box-shadow: 0 24px 60px -20px rgba(58, 10, 19, 0.35) !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"], [role="menu"],
+  [role="listbox"], [role="tooltip"]
+) :is(h1, h2, h3, h4, h5, h6) {
+  color: #3a0a13 !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"], [role="menu"],
+  [role="listbox"], [role="tooltip"]
+) :is(p, span, li, label, small, dt, dd) {
+  color: #2a0e05 !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"]
+) :is(input, select, textarea) {
+  background: #ffffff !important;
+  color: #2a0e05 !important;
+  border-color: rgba(139, 26, 43, 0.25) !important;
+  -webkit-text-fill-color: #2a0e05 !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"]
+) :is(input, textarea)::placeholder {
+  color: #8a6a6f !important;
+}
+body[data-crm-themed] :is([role="menuitem"], [role="option"]) {
+  color: #2a0e05 !important;
+}
+body[data-crm-themed] :is(
+  [role="menuitem"][data-highlighted],
+  [role="option"][data-highlighted],
+  [role="menuitem"]:hover,
+  [role="option"]:hover
+) {
+  background: rgba(139, 26, 43, 0.10) !important;
+  color: #3a0a13 !important;
+}
+
+/* Sheet (Radix Dialog with data-side) — same treatment */
+body[data-crm-themed] [data-state="open"][data-side] {
+  background: #ffffff !important;
+  color: #2a0e05 !important;
+}
+
+/* --- Badges / chips: keep colored pill background but ensure text contrast - */
+[data-crm-themed] .crm-content [class*="badge"],
+body[data-crm-themed] [role="dialog"] [class*="badge"] {
+  color: #3a0a13 !important;
+}
+
+/* --- Icons in CRM content default to burgundy when no explicit color set --- */
+[data-crm-themed] .crm-content svg:not([class*="text-"]):not([style*="color"]) {
+  color: #8B1A2B !important;
+}
+
+/* --- Small responsive bumps so dense tables stay readable on phones ------ */
+@media (max-width: 640px) {
+  [data-crm-themed] .crm-content :is(table th, table td) {
+    padding: 10px 8px !important;
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+  [data-crm-themed] .crm-content thead th {
+    font-size: 11px !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase;
+  }
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  [data-crm-themed] .crm-content :is(table th, table td) {
+    padding: 11px 10px !important;
+    font-size: 14px !important;
+  }
+}
+
