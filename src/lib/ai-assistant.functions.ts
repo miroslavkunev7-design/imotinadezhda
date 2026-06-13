@@ -115,7 +115,71 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "web_search",
+      description: "Търси в интернет в реално време (DuckDuckGo). Използвай за проучване на инвеститори, фирми, хора, пазарни данни, новини, адреси и др. неща извън CRM базата. Връща до 6 резултата с заглавие, URL и кратко описание.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Заявка за търсене, на български или английски" },
+        },
+        required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "fetch_url",
+      description: "Изтегля и връща текстовото съдържание на конкретна уеб страница (по URL от web_search или директно). Използвай за дълбоко четене след търсене.",
+      parameters: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "Пълен URL, започващ с http(s)://" },
+        },
+        required: ["url"],
+      },
+    },
+  },
 ];
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function duckDuckGoSearch(query: string): Promise<Array<{ title: string; url: string; snippet: string }>> {
+  const res = await fetch("https://html.duckduckgo.com/html/?q=" + encodeURIComponent(query), {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; ILDJIA-Research/1.0)",
+      "Accept-Language": "bg,en;q=0.8",
+    },
+  });
+  if (!res.ok) throw new Error("Search failed: " + res.status);
+  const html = await res.text();
+  const results: Array<{ title: string; url: string; snippet: string }> = [];
+  const blockRe = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = blockRe.exec(html)) && results.length < 6) {
+    let url = m[1];
+    const uddg = url.match(/uddg=([^&]+)/);
+    if (uddg) url = decodeURIComponent(uddg[1]);
+    results.push({ title: stripHtml(m[2]), url, snippet: stripHtml(m[3]) });
+  }
+  return results;
+}
 
 const COLOR_RE = /^(#([0-9a-fA-F]{3}){1,2}|rgba?\([^)]+\)|hsla?\([^)]+\)|oklch\([^)]+\))$/;
 function validColor(v: unknown): v is string {
