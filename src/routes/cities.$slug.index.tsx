@@ -33,12 +33,19 @@ const fallbackCities: Record<string, { name: string; description: string; region
 };
 
 function renderCity(slug: string, data: any) {
-  if (slug === "shumen") return <ShumenHomePage />;
-  const media = CITY_MEDIA[slug];
-  if (!media) {
-    // unknown slug — render Shumen-like with whatever data we have
-    return <ShumenHomePage />;
+  const quarterCounts: Record<string, number> = data?.quarterCounts ?? {};
+  const aroundCount: number = data?.aroundCount ?? 0;
+  if (slug === "shumen") {
+    return (
+      <ShumenHomePage
+        quarterCounts={quarterCounts}
+        aroundCount={aroundCount}
+        activePropertiesTotal={data?.activePropertiesTotal}
+      />
+    );
   }
+  const media = CITY_MEDIA[slug];
+  if (!media) return <ShumenHomePage quarterCounts={quarterCounts} aroundCount={aroundCount} />;
   const cityLabel = data?.city?.name ?? fallbackCities[slug]?.name ?? slug;
   const posterUrl = data?.city?.hero_image_url ?? "";
   const quarters = (data?.quarters ?? []).map((q: any) => ({
@@ -58,9 +65,11 @@ function renderCity(slug: string, data: any) {
       stats={{
         population: media.stats.population,
         area: media.stats.area,
-        activeProperties: String((data?.properties?.length ?? 0) || media.stats.activeProperties),
+        activeProperties: String(data?.activePropertiesTotal ?? media.stats.activeProperties),
       }}
       quarters={quarters}
+      quarterCounts={quarterCounts}
+      aroundCount={aroundCount}
     />
   );
 }
