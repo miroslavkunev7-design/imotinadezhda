@@ -389,8 +389,8 @@ function ImagesModal({ property, onClose }: { property: Row; onClose: () => void
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#8B1A2B]/50 p-4 sm:items-center" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="my-4 w-full max-w-3xl overflow-y-auto rounded-2xl bg-card p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-h-[calc(100dvh-3rem)]">
+    <div className="fixed inset-0 z-50 flex items-stretch justify-center bg-[#8B1A2B]/50 p-0 sm:items-center sm:p-4" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-3xl overflow-y-auto overscroll-contain bg-card p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl h-[100dvh] max-h-[100dvh] sm:rounded-2xl sm:h-auto sm:max-h-[calc(100dvh-2rem)]">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="font-display text-2xl text-accent-foreground">Снимки</h2>
