@@ -21,7 +21,65 @@ export function AdminAIBubble() {
     }
   });
   const [error, setError] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
+  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
+  const recognitionRef = useRef<any>(null);
   const endRef = useRef<HTMLDivElement>(null);
+
+  // Stop any ongoing speech when panel closes / unmounts
+  useEffect(() => {
+    return () => {
+      try { window.speechSynthesis?.cancel(); } catch {}
+      try { recognitionRef.current?.stop?.(); } catch {}
+    };
+  }, []);
+
+  const speak = (text: string, idx: number) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      setError("Браузърът ти не поддържа глас");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    if (speakingIdx === idx) { setSpeakingIdx(null); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "bg-BG";
+    const voices = window.speechSynthesis.getVoices();
+    const bg = voices.find(v => v.lang?.toLowerCase().startsWith("bg"));
+    if (bg) u.voice = bg;
+    u.onend = () => setSpeakingIdx(null);
+    u.onerror = () => setSpeakingIdx(null);
+    setSpeakingIdx(idx);
+    window.speechSynthesis.speak(u);
+  };
+
+  const toggleListen = () => {
+    if (typeof window === "undefined") return;
+    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setError("Браузърът ти не поддържа разпознаване на реч");
+      return;
+    }
+    if (listening) {
+      try { recognitionRef.current?.stop(); } catch {}
+      setListening(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "bg-BG";
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onresult = (e: any) => {
+      let transcript = "";
+      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+      setInput(transcript);
+    };
+    rec.onerror = (e: any) => { setError("Грешка при запис: " + (e.error || "")); setListening(false); };
+    rec.onend = () => setListening(false);
+    recognitionRef.current = rec;
+    setError(null);
+    setListening(true);
+    try { rec.start(); } catch { setListening(false); }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
