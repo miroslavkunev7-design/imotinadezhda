@@ -257,7 +257,7 @@ function PropertiesAdmin() {
                 </select>
               </Field>
               <Field label="Град">
-                <select required value={editing.city_id ?? ""} onChange={(e) => setEditing({ ...editing, city_id: e.target.value, quarter_id: null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
+                <select required value={editing.city_id ?? ""} onChange={(e) => setEditing({ ...editing, city_id: e.target.value, quarter_id: null, village_id: null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="">{cities.length ? "Избери град" : "Зареждане..."}</option>
                   {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
@@ -266,10 +266,20 @@ function PropertiesAdmin() {
                 )}
               </Field>
               <Field label="Квартал">
-                <select value={editing.quarter_id ?? ""} onChange={(e) => setEditing({ ...editing, quarter_id: e.target.value || null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
+                <select value={editing.quarter_id ?? ""} onChange={(e) => setEditing({ ...editing, quarter_id: e.target.value || null, village_id: e.target.value ? null : editing.village_id })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="">—</option>
                   {filteredQuarters.map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
                 </select>
+                <p className="mt-1 text-[11px] text-slate-500">Избери квартал ИЛИ село (по-долу).</p>
+              </Field>
+              <Field label={`Село (около ${editingCity?.name ?? "града"})`} className="md:col-span-2">
+                <select value={editing.village_id ?? ""} onChange={(e) => setEditing({ ...editing, village_id: e.target.value || null, quarter_id: e.target.value ? null : editing.quarter_id })} disabled={!filteredVillages.length} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2 disabled:opacity-60">
+                  <option value="">— без село —</option>
+                  {filteredVillages.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                </select>
+                {!filteredVillages.length && editingCity && (
+                  <p className="mt-1 text-[11px] text-slate-500">Няма заредени села за този град.</p>
+                )}
               </Field>
               <Field label="Тип">
                 <select value={editing.property_type ?? "apartment"} onChange={(e) => setEditing({ ...editing, property_type: e.target.value })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
