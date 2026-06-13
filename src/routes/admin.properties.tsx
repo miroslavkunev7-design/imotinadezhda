@@ -33,16 +33,27 @@ type Row = {
   is_featured: boolean;
   city_id: string;
   quarter_id: string | null;
-  cities?: { name: string } | null;
+  village_id: string | null;
+  cities?: { name: string; slug: string } | null;
 };
 
-type CityOpt = { id: string; name: string };
+type CityOpt = { id: string; name: string; slug: string };
 type QuarterOpt = { id: string; name: string; city_id: string };
+type VillageOpt = { id: string; name: string; oblast_slug: string; municipality_slug: string | null };
+
+// City slug → which oblast (+ optional municipality) its villages belong to.
+const CITY_OBLAST: Record<string, { oblast: string; municipality?: string }> = {
+  shumen: { oblast: "shumen" },
+  varna: { oblast: "varna" },
+  burgas: { oblast: "burgas" },
+  "novi-pazar": { oblast: "shumen", municipality: "novi-pazar" },
+};
 
 function PropertiesAdmin() {
   const [rows, setRows] = useState<Row[]>([]);
   const [cities, setCities] = useState<CityOpt[]>([]);
   const [quarters, setQuarters] = useState<QuarterOpt[]>([]);
+  const [villages, setVillages] = useState<VillageOpt[]>([]);
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [imagesFor, setImagesFor] = useState<Row | null>(null);
   const [docsFor, setDocsFor] = useState<Row | null>(null);
@@ -51,14 +62,16 @@ function PropertiesAdmin() {
   const [uploadingNew, setUploadingNew] = useState(false);
 
   const load = async () => {
-    const [{ data: ps }, { data: cs }, { data: qs }] = await Promise.all([
-      supabase.from("properties").select("id, title, price, currency, property_type, status, is_published, is_featured, city_id, quarter_id, cities:city_id(name)").order("created_at", { ascending: false }),
-      supabase.from("cities").select("id, name").order("display_order"),
+    const [{ data: ps }, { data: cs }, { data: qs }, { data: vs }] = await Promise.all([
+      supabase.from("properties").select("id, title, price, currency, property_type, status, is_published, is_featured, city_id, quarter_id, village_id, cities:city_id(name, slug)").order("created_at", { ascending: false }),
+      supabase.from("cities").select("id, name, slug").order("display_order"),
       supabase.from("quarters").select("id, name, city_id").order("display_order"),
+      supabase.from("villages").select("id, name, oblast_slug, municipality_slug").order("name"),
     ]);
     setRows((ps as Row[]) ?? []);
     setCities(cs ?? []);
     setQuarters(qs ?? []);
+    setVillages(vs ?? []);
   };
 
   useEffect(() => { load(); }, []);
