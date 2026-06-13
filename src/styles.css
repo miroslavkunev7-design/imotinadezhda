@@ -667,8 +667,12 @@ body:has([data-crm-themed]) {
 [data-crm-themed] .crm-content a,
 [data-crm-themed] .crm-content label,
 [data-crm-themed] .crm-content label > span,
-[data-crm-themed] .crm-content :is(.text-muted-foreground, [class*="text-amber-"], [class*="text-yellow-"], [class*="text-white/"]) {
+[data-crm-themed] .crm-content :is(.text-muted-foreground, [class*="text-white/"]) {
   color: var(--crm-readable-text) !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content table :is([class*="text-amber-"], [class*="text-yellow-"]) {
+  color: var(--crm-readable-header) !important;
   opacity: 1 !important;
 }
 [data-crm-themed] .crm-content :is(label > span, dt, .text-xs.uppercase, [class*="tracking-wide"]) {
