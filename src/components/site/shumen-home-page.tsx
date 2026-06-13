@@ -19,6 +19,7 @@ import {
   Award,
   Trophy,
   User,
+  Compass,
 } from "lucide-react";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
@@ -332,6 +333,29 @@ export function ShumenHomePage() {
           {SHUMEN_QUARTERS.map((q) => (
             <NeighborhoodCardShumen key={q.slug} image={q.image} title={q.name} count={q.count} slug={q.slug} />
           ))}
+
+          {/* Around Shumen — villages in the oblast */}
+          <Link
+            to="/cities/$slug/around"
+            params={{ slug: "shumen" } as never}
+            className="group block rounded-2xl overflow-hidden border border-[#eaddc4] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 font-sans-nadezhda nadezhda-dark-red-bg"
+          >
+            <div className="relative h-28 md:h-32 flex flex-col items-center justify-center text-center px-3">
+              <Compass className="w-8 h-8 md:w-9 md:h-9 text-[#f4d07d] mb-1.5 group-hover:scale-110 transition" />
+              <h3 className="font-serif-nadezhda text-[15px] md:text-[17px] font-bold text-white leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">
+                Около Шумен
+              </h3>
+              <span className="mt-1.5 text-[11px] md:text-xs text-[#f4d07d]/95">Села в област Шумен</span>
+            </div>
+            <div className="nadezhda-marble-bg px-4 py-3 md:px-5 md:py-4 border-t border-[#eaddc4]">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#600f1c]/70">Виж всички</span>
+                <span className="flex items-center gap-1 text-[#c59441] font-bold">
+                  Отвори <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </div>
+          </Link>
         </div>
 
         <div className="flex justify-center mb-12 md:mb-16">

@@ -1,78 +1,35 @@
-## Задача 1 — Анализ на изпратените CRM файлове
+# План: "Около [град]" — всички села в окръга
 
-CRM архивът (`crm-files.zip`, 44 файла) съдържа:
+## Какво искаш
+На страницата на всеки от 4-те града (Шумен, Варна, Бургас, Нови пазар) сред "квадратчетата с квартали" да се появи още едно квадратче с надпис **"Около [името на града]"**. Клик върху него → списък с всички села от съответната административна област.
 
-**Routes (`src/routes/admin.*.tsx`)** — 26 страници: dashboard (`admin.index`), `clients`, `properties`, `quarters`, `cities`, `brokers`, `inquiries`, `matches`, `tasks`, `calendar`, `chat`, `contracts`, `documents`, `extracted`, `finance`, `marketing`, `owners`, `contacts`, `audit` (+ `audit.$id`), `database`, `dns`, `profile`, `ai`, `settings` (+ `settings.images`, `settings.page-builder`, `settings.page-editor`).
+## Източник на данните
+Списъците със села по област са публична, статична информация от ГРАО / Wikipedia. Предлагам да ги вкарам **в базата данни като seed** (еднократно) — така е бързо, офлайн, без зависимост от външен API на всяко зареждане. Ако по-късно искаш да се "обогатява от интернет" — AI асистентът вече има `web_search` и може да добавя/коригира.
 
-**Admin компоненти (`src/components/admin/`)**: `admin-shell.tsx` (sidebar layout + theming wrapper), `ai-bubble.tsx`, `broker-roles-dialog`, `client-details-sheet`, `client-scan-modal`, `doc-scanner`, `mortgage-send-modal`, `mortgage-stages-modal`.
+Брой села по област (приблизително):
+- **Област Шумен** — ~150 населени места (вкл. община Нови пазар)
+- **Област Варна** — ~158
+- **Област Бургас** — ~250
 
-**Server logic (`src/lib/`)**: `crm.functions.ts`, `crm-scan.functions.ts` (+ test), `ai-assistant.functions.ts` (Gemini 2.5 Pro + tools: search_clients/get_client/search_properties/get_property/save_contract), `auth/assert-admin.ts` (+ test).
+За **Нови пазар** ще покажа само селата от община Нови пазар (по-логично от цялата област Шумен).
 
-**Theme system**: `use-crm-theme.ts` чете/пише `profiles.crm_theme` (JSON колона), 6 пресета (burgundy, midnight, forest, royal, light, graphite). `admin-shell` инжектира CSS променливи `--crm-surface`, `--crm-accent` и т.н. **Темата вече е персонална (per-user)** — идеална основа за задача 2.
+## Структура
+1. Нова таблица `villages`:
+   - `id, oblast_slug (shumen/varna/burgas), municipality_slug (опц., за Нови пазар), name, slug, lat, lng`
+   - публичен `SELECT` за всички (anon)
+2. Seed данните чрез `insert` инструмент след одобрение на миграцията.
+3. Нов route `cities.$slug.around.tsx` → страница "Около [Град]" с grid от селата (име, прост placeholder бутон "Виж имоти" → води към търсене с филтър по селото в бъдеще).
+4. В компонента на квадратчетата с квартали (и в `ShumenHomePage`, и в `CityPage`) добавям едно допълнително плочка **"Около [Град]"** с икона (Map/Compass), бургундско-златен стил, която линква към `/cities/$slug/around`.
 
-**Извод**: инфраструктурата за персонална тема съществува. Липсва само AI tool, който да я променя автоматично.
+## Какво НЕ правя без потвърждение
+- Не вкарвам всички ~558 села без да си потвърдил — кажи "давай" и пускам миграцията + seed.
+- Не променям съществуващите квартали.
+- Не добавям функционалност "имот в село X" към търсачката — само списък/връзка (можем след това).
 
----
+## Технически детайли
+- Миграция: `CREATE TABLE public.villages (...)` + GRANT-ове + RLS със SELECT за всички.
+- Seed: 3 INSERT batch-а по област.
+- Route: `cities.$slug.around.tsx` — SSR ready, head() с meta за SEO ("Села в област Шумен — Имоти Надежда").
+- UI плочка: реизползва стила на текущите quarter cards.
 
-## Задача 2 — AI редизайнер на CRM с персонални промени
-
-### Какво ще направя
-
-Добавям нов tool `update_crm_theme` в `ai-assistant.functions.ts`, който позволява на асистента да променя CRM темата на **текущо логнатия user** (никой друг не вижда промяната). Промените са моментални и trackvат се само за него чрез `profiles.crm_theme`.
-
-### Tool design
-
-```ts
-update_crm_theme({
-  surface?: string,        // hex/rgb за основен фон
-  surfaceTo?: string,      // вторичен фон (за градиент)
-  accent?: string,         // основен акцент (бутони, активни)
-  accentSoft?: string,     // полу-прозрачен акцент
-  text?: string,           // основен текст
-  textMuted?: string,      // вторичен текст
-  border?: string,         // граници
-  preset?: "burgundy"|"midnight"|"forest"|"royal"|"light"|"graphite"
-})
-```
-
-Handler логика:
-- Ако `preset` е даден → зарежда базата от `CRM_THEME_PRESETS`, после overlay-ва дадените цветове.
-- Иначе чете текущата тема от `profiles.crm_theme`, мерджва само дадените полета.
-- Записва обратно в `profiles.crm_theme` за `context.userId` (RLS-safe).
-- Валидира hex/rgb формат.
-
-### System prompt update
-
-Добавям секция:
-> "Можеш да променяш CRM темата на потребителя чрез `update_crm_theme`. Когато потребителят каже неща като 'направи целия CRM жълто и зелено' или 'смени темата на тъмно синьо', извикай tool-а с подходящи hex цветове. Промените са лични — виждат се само от него. Винаги потвърждавай след промяна и предлагай 'върни' ако не хареса."
-
-### Frontend reactivity
-
-`useCrmTheme` вече има `setTheme(next)` setter. За да видим промените веднага след AI отговор без refresh, ще добавя:
-- Експорт `refreshCrmTheme()` helper който re-fetch-ва от Supabase.
-- В `admin.ai.tsx` след успешен AI reply → `queryClient.invalidate` + trigger refresh на темата.
-
-Алтернатива (по-проста): след AI отговор, ако reply съдържа маркер `[THEME_UPDATED]`, презареждаме темата. AI tool result слага този маркер.
-
-Ще избера втория подход (по-малко промени в архитектурата).
-
-### Какво НЕ променям
-
-- Темата на публичния сайт (нерелевантно — заявката е за CRM).
-- Глобална тема за всички users (само персонална, както поиска).
-- Дизайн система на shadcn компонентите (само CSS променливите).
-
----
-
-## Файлове за промяна
-
-1. `src/lib/ai-assistant.functions.ts` — нов tool `update_crm_theme`, обновен system prompt, hex валидация.
-2. `src/hooks/use-crm-theme.ts` — експорт `refreshCrmTheme` функция (или event-based reload).
-3. `src/routes/admin.ai.tsx` — детекция на `[THEME_UPDATED]` маркер и trigger reload.
-4. `src/components/admin/admin-shell.tsx` — слуша за theme update events (ако трябва).
-
-Без миграция — `profiles.crm_theme` колоната вече съществува.
-
----
-
-Потвърди и започвам имплементация.
+Потвърди и пускам.

@@ -1502,6 +1502,23 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                 </Link>
               );
             })}
+
+            {/* Around-city tile: villages in the oblast/municipality */}
+            <Link
+              to="/cities/$slug/around"
+              params={{ slug: city.slug }}
+              className="group overflow-hidden rounded-xl border border-[#C9A84C]/60 bg-gradient-to-br from-[#8B1A2B] to-[#5e0f1d] shadow-[0_8px_24px_rgba(139,26,43,0.18)] transition hover:shadow-[0_14px_32px_rgba(139,26,43,0.28)]"
+            >
+              <div className="relative flex aspect-[1.25/1] flex-col items-center justify-center overflow-hidden p-3 text-center">
+                <Compass className="mb-2 h-8 w-8 text-[#f4d07d] transition group-hover:scale-110" />
+                <h3 className="font-serif-nadezhda text-[15px] font-bold leading-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] sm:text-base">
+                  Около {city.name}
+                </h3>
+                <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-[#f4d07d]/95">
+                  Села в района <ChevronRight className="h-3 w-3" />
+                </span>
+              </div>
+            </Link>
           </div>
 
           <Link

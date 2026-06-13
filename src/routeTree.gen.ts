@@ -41,6 +41,7 @@ import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugIndexRouteImport } from './routes/cities.$slug.index'
+import { Route as CitiesSlugAroundRouteImport } from './routes/cities.$slug.around'
 import { Route as ApiPublicCustomerChatRouteImport } from './routes/api/public/customer-chat'
 import { Route as AdminSettingsPageEditorRouteImport } from './routes/admin.settings.page-editor'
 import { Route as AdminSettingsPageBuilderRouteImport } from './routes/admin.settings.page-builder'
@@ -210,6 +211,11 @@ const CitiesSlugIndexRoute = CitiesSlugIndexRouteImport.update({
   path: '/cities/$slug/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CitiesSlugAroundRoute = CitiesSlugAroundRouteImport.update({
+  id: '/cities/$slug/around',
+  path: '/cities/$slug/around',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCustomerChatRoute = ApiPublicCustomerChatRouteImport.update({
   id: '/api/public/customer-chat',
   path: '/api/public/customer-chat',
@@ -292,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings/page-builder': typeof AdminSettingsPageBuilderRoute
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
+  '/cities/$slug/around': typeof CitiesSlugAroundRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -333,6 +340,7 @@ export interface FileRoutesByTo {
   '/admin/settings/page-builder': typeof AdminSettingsPageBuilderRoute
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
+  '/cities/$slug/around': typeof CitiesSlugAroundRoute
   '/cities/$slug': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -376,6 +384,7 @@ export interface FileRoutesById {
   '/admin/settings/page-builder': typeof AdminSettingsPageBuilderRoute
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
+  '/cities/$slug/around': typeof CitiesSlugAroundRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -420,6 +429,7 @@ export interface FileRouteTypes {
     | '/admin/settings/page-builder'
     | '/admin/settings/page-editor'
     | '/api/public/customer-chat'
+    | '/cities/$slug/around'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
     | '/lovable/email/queue/process'
@@ -461,6 +471,7 @@ export interface FileRouteTypes {
     | '/admin/settings/page-builder'
     | '/admin/settings/page-editor'
     | '/api/public/customer-chat'
+    | '/cities/$slug/around'
     | '/cities/$slug'
     | '/cities/$slug/districts/$district'
     | '/lovable/email/queue/process'
@@ -503,6 +514,7 @@ export interface FileRouteTypes {
     | '/admin/settings/page-builder'
     | '/admin/settings/page-editor'
     | '/api/public/customer-chat'
+    | '/cities/$slug/around'
     | '/cities/$slug/'
     | '/cities/$slug/districts/$district'
     | '/lovable/email/queue/process'
@@ -517,6 +529,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
   ApiPublicCustomerChatRoute: typeof ApiPublicCustomerChatRoute
+  CitiesSlugAroundRoute: typeof CitiesSlugAroundRoute
   CitiesSlugIndexRoute: typeof CitiesSlugIndexRoute
   CitiesSlugDistrictsDistrictRoute: typeof CitiesSlugDistrictsDistrictRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -748,6 +761,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CitiesSlugIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cities/$slug/around': {
+      id: '/cities/$slug/around'
+      path: '/cities/$slug/around'
+      fullPath: '/cities/$slug/around'
+      preLoaderRoute: typeof CitiesSlugAroundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/customer-chat': {
       id: '/api/public/customer-chat'
       path: '/api/public/customer-chat'
@@ -902,6 +922,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
   ApiPublicCustomerChatRoute: ApiPublicCustomerChatRoute,
+  CitiesSlugAroundRoute: CitiesSlugAroundRoute,
   CitiesSlugIndexRoute: CitiesSlugIndexRoute,
   CitiesSlugDistrictsDistrictRoute: CitiesSlugDistrictsDistrictRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
