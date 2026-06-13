@@ -110,6 +110,7 @@ function PropertiesAdmin() {
     if (payload.bathrooms) payload.bathrooms = Number(payload.bathrooms);
     if (payload.rooms) payload.rooms = Number(payload.rooms);
     if (!payload.quarter_id) payload.quarter_id = null;
+    if (!payload.village_id) payload.village_id = null;
     let propertyId = id;
     try {
       if (id) {
