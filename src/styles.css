@@ -610,6 +610,127 @@ html, body, #root {
   }
 }
 
+/* CRM high-contrast readable surfaces — applies to mobile, tablet, desktop
+   and installed/PWA windows. Gold remains decorative, never body/field text. */
+[data-crm-themed] {
+  --crm-readable-bg: #fffaf2;
+  --crm-readable-bg-strong: #ffffff;
+  --crm-readable-bg-alt: #f6efe2;
+  --crm-readable-text: #2b1418;
+  --crm-readable-muted: #604149;
+  --crm-readable-border: rgba(96, 15, 28, 0.32);
+  --crm-readable-header: #600f1c;
+  --crm-readable-header-text: #fffaf2;
+}
+body:has([data-crm-themed]) {
+  --crm-readable-bg: #fffaf2;
+  --crm-readable-bg-strong: #ffffff;
+  --crm-readable-bg-alt: #f6efe2;
+  --crm-readable-text: #2b1418;
+  --crm-readable-muted: #604149;
+  --crm-readable-border: rgba(96, 15, 28, 0.32);
+  --crm-readable-header: #600f1c;
+  --crm-readable-header-text: #fffaf2;
+}
+[data-crm-themed] .crm-content :is(table, form, [class*="bg-card"], [class*="bg-background"], [class*="bg-muted/"]) {
+  color: var(--crm-readable-text) !important;
+}
+[data-crm-themed] .crm-content table {
+  background: var(--crm-readable-bg-strong) !important;
+  color: var(--crm-readable-text) !important;
+  border: 1px solid var(--crm-readable-border) !important;
+}
+[data-crm-themed] .crm-content thead,
+[data-crm-themed] .crm-content thead tr {
+  background: var(--crm-readable-header) !important;
+}
+[data-crm-themed] .crm-content th {
+  color: var(--crm-readable-header-text) !important;
+  border-color: rgba(255, 250, 242, 0.24) !important;
+}
+[data-crm-themed] .crm-content tbody tr,
+[data-crm-themed] .crm-content ul > li,
+[data-crm-themed] .crm-content [role="list"] > * {
+  background: var(--crm-readable-bg) !important;
+  color: var(--crm-readable-text) !important;
+}
+[data-crm-themed] .crm-content tbody tr:nth-child(even),
+[data-crm-themed] .crm-content ul > li:nth-child(even),
+[data-crm-themed] .crm-content [role="list"] > *:nth-child(even) {
+  background: var(--crm-readable-bg-alt) !important;
+}
+[data-crm-themed] .crm-content tbody tr:hover {
+  background: #efe1cd !important;
+  box-shadow: inset 3px 0 0 var(--crm-readable-header);
+}
+[data-crm-themed] .crm-content td,
+[data-crm-themed] .crm-content a,
+[data-crm-themed] .crm-content label,
+[data-crm-themed] .crm-content label > span,
+[data-crm-themed] .crm-content :is(.text-muted-foreground, [class*="text-white/"]) {
+  color: var(--crm-readable-text) !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content table :is([class*="text-amber-"], [class*="text-yellow-"]) {
+  color: var(--crm-readable-header) !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content form :is([class*="text-amber-"], [class*="text-yellow-"]),
+[data-crm-themed] .crm-content [class*="bg-card"] :is([class*="text-amber-"], [class*="text-yellow-"]),
+[data-crm-themed] .crm-content [class*="bg-background"] :is([class*="text-amber-"], [class*="text-yellow-"]),
+[data-crm-themed] .crm-content [class*="bg-muted/"] :is([class*="text-amber-"], [class*="text-yellow-"]) {
+  color: var(--crm-readable-header) !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content :is(label > span, dt, .text-xs.uppercase, [class*="tracking-wide"]) {
+  color: var(--crm-readable-header) !important;
+  font-weight: 800 !important;
+}
+[data-crm-themed] .crm-content input,
+[data-crm-themed] .crm-content select,
+[data-crm-themed] .crm-content textarea {
+  background: var(--crm-readable-bg-strong) !important;
+  border-color: var(--crm-readable-border) !important;
+  color: var(--crm-readable-text) !important;
+  box-shadow: inset 0 0 0 1px rgba(96, 15, 28, 0.08);
+}
+[data-crm-themed] .crm-content input::placeholder,
+[data-crm-themed] .crm-content textarea::placeholder {
+  color: var(--crm-readable-muted) !important;
+  opacity: 0.85 !important;
+}
+[data-crm-themed] .crm-content option {
+  background: var(--crm-readable-bg-strong) !important;
+  color: var(--crm-readable-text) !important;
+}
+[data-crm-themed] .crm-content :is(button[class*="text-amber-"], a[class*="text-amber-"]) {
+  color: var(--crm-readable-header) !important;
+}
+body:has([data-crm-themed]) [role="dialog"] {
+  background: var(--crm-readable-bg-strong) !important;
+  color: var(--crm-readable-text) !important;
+}
+body:has([data-crm-themed]) [role="dialog"] :is(label, label > span, .text-xs.uppercase, [class*="tracking-wide"], [class*="text-amber-"], [class*="text-yellow-"]) {
+  color: var(--crm-readable-header) !important;
+  opacity: 1 !important;
+  font-weight: 800 !important;
+}
+body:has([data-crm-themed]) [role="dialog"] :is(.text-muted-foreground, p, dd, [class*="text-white/"]) {
+  color: var(--crm-readable-muted) !important;
+  opacity: 1 !important;
+}
+body:has([data-crm-themed]) [role="dialog"] :is(input, select, textarea) {
+  background: var(--crm-readable-bg-strong) !important;
+  border-color: var(--crm-readable-border) !important;
+  color: var(--crm-readable-text) !important;
+  font-size: 16px !important;
+  min-height: 44px;
+}
+body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
+  color: var(--crm-readable-muted) !important;
+  opacity: 0.85 !important;
+}
+
 /* ============================================================
    Reference design helpers — "Имоти Надежда" luxury template.
    Used by ShumenHomePage and related public pages.
