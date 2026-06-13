@@ -827,3 +827,25 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 }
 
 
+
+/* === Admin readability: yellow/gold text on light cream cards → burgundy === */
+[data-crm-themed] [class*="text-[#C9A84C]"],
+[data-crm-themed] [class*="text-amber-300"],
+[data-crm-themed] [class*="text-amber-400"],
+[data-crm-themed] [class*="text-amber-500"],
+[data-crm-themed] [class*="text-yellow-300"],
+[data-crm-themed] [class*="text-yellow-400"],
+[data-crm-themed] [class*="text-yellow-500"] {
+  color: #8B1A2B !important;
+  font-weight: 600;
+}
+/* Same for icons (lucide) using those tokens via currentColor */
+[data-crm-themed] svg[class*="text-[#C9A84C]"],
+[data-crm-themed] svg[class*="text-amber-300"],
+[data-crm-themed] svg[class*="text-amber-400"],
+[data-crm-themed] svg[class*="text-amber-500"],
+[data-crm-themed] svg[class*="text-yellow-300"],
+[data-crm-themed] svg[class*="text-yellow-400"],
+[data-crm-themed] svg[class*="text-yellow-500"] {
+  color: #8B1A2B !important;
+}

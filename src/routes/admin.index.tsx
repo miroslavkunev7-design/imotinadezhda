@@ -63,7 +63,7 @@ function Dashboard() {
   return (
     <div className="flex h-full flex-col gap-6 overflow-y-auto pr-1">
       <header>
-        <p className="font-display text-[11px] uppercase tracking-[0.32em] text-[#C9A84C]">Преглед</p>
+        <p className="font-display text-[11px] uppercase tracking-[0.32em] text-[#8B1A2B] font-semibold">Преглед</p>
         <h1 className="mt-1 font-display text-3xl text-[#8B1A2B] md:text-4xl">Дашборд</h1>
         <p className="mt-1 text-sm text-[#2b1418]/70">Ключови метрики на агенцията.</p>
       </header>
@@ -75,7 +75,7 @@ function Dashboard() {
           >
             <div className="flex items-center justify-between">
               <span className="font-display text-[10.5px] uppercase tracking-[0.22em] text-[#8B1A2B]">{c.label}</span>
-              <c.icon className="h-5 w-5 text-[#C9A84C]" />
+              <c.icon className="h-5 w-5 text-[#8B1A2B]" />
             </div>
             <div className="mt-3 font-display text-4xl text-[#8B1A2B]">{c.value ?? "—"}</div>
           </div>
