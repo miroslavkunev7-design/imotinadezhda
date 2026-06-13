@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ChevronRight, MapPin, Compass } from "lucide-react";
 
-import { getVillagesAround } from "@/lib/villages.functions";
+import { getVillagesAround, type VillageRow } from "@/lib/villages.functions";
 
 export const Route = createFileRoute("/cities/$slug/around")({
   loader: async ({ params }) => {
