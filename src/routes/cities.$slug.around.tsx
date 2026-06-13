@@ -72,7 +72,7 @@ function AroundCityPage() {
           <p className="text-center text-[#600f1c]/80">Все още няма добавени села за този град.</p>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {villages.map((v) => (
+            {villages.map((v: VillageRow) => (
               <Link
                 key={v.id}
                 to="/search"
