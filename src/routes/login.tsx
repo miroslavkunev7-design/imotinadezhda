@@ -141,15 +141,15 @@ function LoginPage() {
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-1 items-center justify-center gap-8 px-4 py-8">
-        {/* Login card — fully transparent */}
-        <div className="relative w-full max-w-md rounded-2xl p-7 md:p-8">
+      <div className="relative z-10 flex flex-1 items-center justify-center gap-8 px-4 pb-8 pt-24 md:pt-8">
+        {/* Login card — solid backing for readability */}
+        <div className="relative w-full max-w-md rounded-2xl border border-[#C9A84C]/40 bg-white/95 p-6 shadow-[0_30px_70px_-20px_rgba(139,26,43,0.45)] ring-1 ring-[#C9A84C]/30 backdrop-blur-md md:p-8">
           <div className="mb-6 text-center">
-            <Link to="/" className="font-display text-2xl text-primary">Имоти Надежда</Link>
-            <h1 className="mt-3 font-display text-3xl text-accent-foreground">
+            <Link to="/" className="font-display text-2xl text-[#8B1A2B]">Имоти Надежда</Link>
+            <h1 className="mt-3 font-display text-3xl text-[#2b1418]">
               {mode === "signin" ? "Вход" : "Регистрация"}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-[#5a3a3f]">
               {mode === "signin" ? "Влез в админ панела" : "Създай нов профил"}
             </p>
           </div>
