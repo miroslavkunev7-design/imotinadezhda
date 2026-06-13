@@ -1436,6 +1436,7 @@ export type Database = {
           total_floors: number | null
           updated_at: string
           views_count: number
+          village_id: string | null
           year_built: number | null
         }
         Insert: {
@@ -1464,6 +1465,7 @@ export type Database = {
           total_floors?: number | null
           updated_at?: string
           views_count?: number
+          village_id?: string | null
           year_built?: number | null
         }
         Update: {
@@ -1492,6 +1494,7 @@ export type Database = {
           total_floors?: number | null
           updated_at?: string
           views_count?: number
+          village_id?: string | null
           year_built?: number | null
         }
         Relationships: [
@@ -1514,6 +1517,13 @@ export type Database = {
             columns: ["quarter_id"]
             isOneToOne: false
             referencedRelation: "quarters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
             referencedColumns: ["id"]
           },
         ]

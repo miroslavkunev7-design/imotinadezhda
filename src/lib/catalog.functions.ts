@@ -12,6 +12,13 @@ export const getCities = createServerFn({ method: "GET" }).handler(async () => {
   return data ?? [];
 });
 
+const CITY_OBLAST: Record<string, { oblast: string; municipality?: string }> = {
+  shumen: { oblast: "shumen" },
+  varna: { oblast: "varna" },
+  burgas: { oblast: "burgas" },
+  "novi-pazar": { oblast: "shumen", municipality: "novi-pazar" },
+};
+
 export const getCityBySlug = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ slug: z.string().min(1).max(64) }).parse(d))
   .handler(async ({ data }) => {
@@ -24,7 +31,7 @@ export const getCityBySlug = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!city) return null;
 
-    const [{ data: quarters }, { data: properties }] = await Promise.all([
+    const [{ data: quarters }, { data: properties }, { data: liveProps }] = await Promise.all([
       supabaseAdmin
         .from("quarters")
         .select("id, slug, name, description, image_url, avg_price_per_sqm, properties_count, display_order")
@@ -38,9 +45,52 @@ export const getCityBySlug = createServerFn({ method: "GET" })
         .eq("is_published", true)
         .order("created_at", { ascending: false })
         .limit(12),
+      supabaseAdmin
+        .from("properties")
+        .select("quarter_id")
+        .eq("city_id", city.id)
+        .eq("is_published", true),
     ]);
-    return { city, quarters: quarters ?? [], properties: properties ?? [] };
+
+    // Live per-quarter counts
+    const countsByQuarterId = new Map<string, number>();
+    for (const p of liveProps ?? []) {
+      if (!p.quarter_id) continue;
+      countsByQuarterId.set(p.quarter_id, (countsByQuarterId.get(p.quarter_id) ?? 0) + 1);
+    }
+    const quarterCounts: Record<string, number> = {};
+    for (const q of quarters ?? []) {
+      quarterCounts[q.slug] = countsByQuarterId.get(q.id) ?? 0;
+    }
+
+    // Live "around" count — properties tied to a village in this city's oblast
+    let aroundCount = 0;
+    const cfg = CITY_OBLAST[data.slug];
+    if (cfg) {
+      let vq = supabaseAdmin.from("villages").select("id").eq("oblast_slug", cfg.oblast);
+      if (cfg.municipality) vq = vq.eq("municipality_slug", cfg.municipality);
+      const { data: villageRows } = await vq;
+      const villageIds = (villageRows ?? []).map((v) => v.id);
+      if (villageIds.length) {
+        const { count } = await supabaseAdmin
+          .from("properties")
+          .select("id", { count: "exact", head: true })
+          .eq("is_published", true)
+          .in("village_id", villageIds);
+        aroundCount = count ?? 0;
+      }
+    }
+
+    return {
+      city,
+      quarters: quarters ?? [],
+      properties: properties ?? [],
+      quarterCounts,
+      aroundCount,
+      activePropertiesTotal: (liveProps ?? []).length,
+    };
   });
+
 
 export const getFeaturedProperties = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin

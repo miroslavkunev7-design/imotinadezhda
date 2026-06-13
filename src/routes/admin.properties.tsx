@@ -33,16 +33,27 @@ type Row = {
   is_featured: boolean;
   city_id: string;
   quarter_id: string | null;
-  cities?: { name: string } | null;
+  village_id: string | null;
+  cities?: { name: string; slug: string } | null;
 };
 
-type CityOpt = { id: string; name: string };
+type CityOpt = { id: string; name: string; slug: string };
 type QuarterOpt = { id: string; name: string; city_id: string };
+type VillageOpt = { id: string; name: string; oblast_slug: string; municipality_slug: string | null };
+
+// City slug → which oblast (+ optional municipality) its villages belong to.
+const CITY_OBLAST: Record<string, { oblast: string; municipality?: string }> = {
+  shumen: { oblast: "shumen" },
+  varna: { oblast: "varna" },
+  burgas: { oblast: "burgas" },
+  "novi-pazar": { oblast: "shumen", municipality: "novi-pazar" },
+};
 
 function PropertiesAdmin() {
   const [rows, setRows] = useState<Row[]>([]);
   const [cities, setCities] = useState<CityOpt[]>([]);
   const [quarters, setQuarters] = useState<QuarterOpt[]>([]);
+  const [villages, setVillages] = useState<VillageOpt[]>([]);
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [imagesFor, setImagesFor] = useState<Row | null>(null);
   const [docsFor, setDocsFor] = useState<Row | null>(null);
@@ -51,14 +62,16 @@ function PropertiesAdmin() {
   const [uploadingNew, setUploadingNew] = useState(false);
 
   const load = async () => {
-    const [{ data: ps }, { data: cs }, { data: qs }] = await Promise.all([
-      supabase.from("properties").select("id, title, price, currency, property_type, status, is_published, is_featured, city_id, quarter_id, cities:city_id(name)").order("created_at", { ascending: false }),
-      supabase.from("cities").select("id, name").order("display_order"),
+    const [{ data: ps }, { data: cs }, { data: qs }, { data: vs }] = await Promise.all([
+      supabase.from("properties").select("id, title, price, currency, property_type, status, is_published, is_featured, city_id, quarter_id, village_id, cities:city_id(name, slug)").order("created_at", { ascending: false }),
+      supabase.from("cities").select("id, name, slug").order("display_order"),
       supabase.from("quarters").select("id, name, city_id").order("display_order"),
+      supabase.from("villages").select("id, name, oblast_slug, municipality_slug").order("name"),
     ]);
     setRows((ps as Row[]) ?? []);
     setCities(cs ?? []);
     setQuarters(qs ?? []);
+    setVillages(vs ?? []);
   };
 
   useEffect(() => { load(); }, []);
@@ -97,6 +110,7 @@ function PropertiesAdmin() {
     if (payload.bathrooms) payload.bathrooms = Number(payload.bathrooms);
     if (payload.rooms) payload.rooms = Number(payload.rooms);
     if (!payload.quarter_id) payload.quarter_id = null;
+    if (!payload.village_id) payload.village_id = null;
     let propertyId = id;
     try {
       if (id) {
@@ -145,7 +159,7 @@ function PropertiesAdmin() {
   const newProperty = async () => {
     // Re-load cities to avoid empty dropdown if user opens before initial load finished
     if (!cities.length) {
-      const { data: cs } = await supabase.from("cities").select("id, name").order("display_order");
+      const { data: cs } = await supabase.from("cities").select("id, name, slug").order("display_order");
       if (cs) setCities(cs);
     }
     setPendingImages([]);
@@ -161,6 +175,13 @@ function PropertiesAdmin() {
   };
 
   const filteredQuarters = editing?.city_id ? quarters.filter((q) => q.city_id === editing.city_id) : [];
+  const editingCity = editing?.city_id ? cities.find((c) => c.id === editing.city_id) : undefined;
+  const villageScope = editingCity ? CITY_OBLAST[editingCity.slug] : undefined;
+  const filteredVillages = villageScope
+    ? villages.filter(
+        (v) => v.oblast_slug === villageScope.oblast && (!villageScope.municipality || v.municipality_slug === villageScope.municipality),
+      )
+    : [];
 
   return (
     <div className="space-y-6">
@@ -236,7 +257,7 @@ function PropertiesAdmin() {
                 </select>
               </Field>
               <Field label="Град">
-                <select required value={editing.city_id ?? ""} onChange={(e) => setEditing({ ...editing, city_id: e.target.value, quarter_id: null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
+                <select required value={editing.city_id ?? ""} onChange={(e) => setEditing({ ...editing, city_id: e.target.value, quarter_id: null, village_id: null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="">{cities.length ? "Избери град" : "Зареждане..."}</option>
                   {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
@@ -245,10 +266,20 @@ function PropertiesAdmin() {
                 )}
               </Field>
               <Field label="Квартал">
-                <select value={editing.quarter_id ?? ""} onChange={(e) => setEditing({ ...editing, quarter_id: e.target.value || null })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
+                <select value={editing.quarter_id ?? ""} onChange={(e) => setEditing({ ...editing, quarter_id: e.target.value || null, village_id: e.target.value ? null : editing.village_id })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="">—</option>
                   {filteredQuarters.map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
                 </select>
+                <p className="mt-1 text-[11px] text-slate-500">Избери квартал ИЛИ село (по-долу).</p>
+              </Field>
+              <Field label={`Село (около ${editingCity?.name ?? "града"})`} className="md:col-span-2">
+                <select value={editing.village_id ?? ""} onChange={(e) => setEditing({ ...editing, village_id: e.target.value || null, quarter_id: e.target.value ? null : editing.quarter_id })} disabled={!filteredVillages.length} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2 disabled:opacity-60">
+                  <option value="">— без село —</option>
+                  {filteredVillages.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                </select>
+                {!filteredVillages.length && editingCity && (
+                  <p className="mt-1 text-[11px] text-slate-500">Няма заредени села за този град.</p>
+                )}
               </Field>
               <Field label="Тип">
                 <select value={editing.property_type ?? "apartment"} onChange={(e) => setEditing({ ...editing, property_type: e.target.value })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
