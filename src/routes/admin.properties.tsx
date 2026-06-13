@@ -158,7 +158,7 @@ function PropertiesAdmin() {
   const newProperty = async () => {
     // Re-load cities to avoid empty dropdown if user opens before initial load finished
     if (!cities.length) {
-      const { data: cs } = await supabase.from("cities").select("id, name").order("display_order");
+      const { data: cs } = await supabase.from("cities").select("id, name, slug").order("display_order");
       if (cs) setCities(cs);
     }
     setPendingImages([]);
