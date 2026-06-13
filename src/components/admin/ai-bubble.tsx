@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Sparkles, X, Send, User as UserIcon } from "lucide-react";
+import { Sparkles, X, Send, User as UserIcon, Mic, MicOff, Volume2, Square } from "lucide-react";
 import { aiAssistantChat } from "@/lib/ai-assistant.functions";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,65 @@ export function AdminAIBubble() {
     }
   });
   const [error, setError] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
+  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
+  const recognitionRef = useRef<any>(null);
   const endRef = useRef<HTMLDivElement>(null);
+
+  // Stop any ongoing speech when panel closes / unmounts
+  useEffect(() => {
+    return () => {
+      try { window.speechSynthesis?.cancel(); } catch {}
+      try { recognitionRef.current?.stop?.(); } catch {}
+    };
+  }, []);
+
+  const speak = (text: string, idx: number) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      setError("Браузърът ти не поддържа глас");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    if (speakingIdx === idx) { setSpeakingIdx(null); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "bg-BG";
+    const voices = window.speechSynthesis.getVoices();
+    const bg = voices.find(v => v.lang?.toLowerCase().startsWith("bg"));
+    if (bg) u.voice = bg;
+    u.onend = () => setSpeakingIdx(null);
+    u.onerror = () => setSpeakingIdx(null);
+    setSpeakingIdx(idx);
+    window.speechSynthesis.speak(u);
+  };
+
+  const toggleListen = () => {
+    if (typeof window === "undefined") return;
+    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setError("Браузърът ти не поддържа разпознаване на реч");
+      return;
+    }
+    if (listening) {
+      try { recognitionRef.current?.stop(); } catch {}
+      setListening(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "bg-BG";
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onresult = (e: any) => {
+      let transcript = "";
+      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+      setInput(transcript);
+    };
+    rec.onerror = (e: any) => { setError("Грешка при запис: " + (e.error || "")); setListening(false); };
+    rec.onend = () => setListening(false);
+    recognitionRef.current = rec;
+    setError(null);
+    setListening(true);
+    try { rec.start(); } catch { setListening(false); }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -143,6 +201,17 @@ export function AdminAIBubble() {
                 )}
               >
                 {m.content}
+                {m.role === "assistant" && (
+                  <button
+                    type="button"
+                    onClick={() => speak(m.content, i)}
+                    className="mt-1.5 flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary hover:bg-primary/20"
+                    aria-label={speakingIdx === i ? "Спри" : "Чуй"}
+                  >
+                    {speakingIdx === i ? <Square className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                    {speakingIdx === i ? "Спри" : "Чуй"}
+                  </button>
+                )}
               </div>
               {m.role === "user" && (
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
@@ -165,10 +234,22 @@ export function AdminAIBubble() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Напиши съобщение…"
+            placeholder={listening ? "Слушам…" : "Напиши или говори…"}
             disabled={busy}
             className="flex-1 rounded-lg border border-primary/20 bg-white px-3 py-2 text-xs text-primary placeholder:text-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
+          <button
+            type="button"
+            onClick={toggleListen}
+            disabled={busy}
+            className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-lg transition disabled:opacity-50",
+              listening ? "bg-red-600 text-white animate-pulse" : "bg-primary/15 text-primary hover:bg-primary/25",
+            )}
+            aria-label={listening ? "Спри запис" : "Говори"}
+          >
+            {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </button>
           <button
             type="submit"
             disabled={busy || !input.trim()}
