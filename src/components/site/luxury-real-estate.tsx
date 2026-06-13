@@ -1359,7 +1359,8 @@ export function CityPage({ data }: { data?: CityData } = {}) {
     <main className="min-h-screen bg-[#fbf6ea] text-[#2b1418]">
       {/* HERO with overlay navbar */}
       <section className="relative">
-        <div className="relative h-[68vh] min-h-[540px] w-full overflow-hidden md:h-[72vh]">
+        <div className="relative h-[100dvh] min-h-[640px] w-full overflow-hidden">
+
           {heroVideo ? (
             <AutoPlayVideo
               src={heroVideo}
