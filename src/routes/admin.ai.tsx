@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Send, User as UserIcon } from "lucide-react";
+import { Sparkles, Send, User as UserIcon, Mic, MicOff, Volume2, Square } from "lucide-react";
 import { aiAssistantChat } from "@/lib/ai-assistant.functions";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/ai")({
   component: AIAssistant,
@@ -22,7 +23,60 @@ function AIAssistant() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
+  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
+  const recognitionRef = useRef<any>(null);
   const endRef = useRef<HTMLDivElement>(null);
+
+  const speak = (text: string, idx: number) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      setError("Браузърът ти не поддържа глас");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    if (speakingIdx === idx) {
+      setSpeakingIdx(null);
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "bg-BG";
+    const voices = window.speechSynthesis.getVoices();
+    const bg = voices.find((v) => v.lang?.toLowerCase().startsWith("bg"));
+    if (bg) u.voice = bg;
+    u.onend = () => setSpeakingIdx(null);
+    u.onerror = () => setSpeakingIdx(null);
+    setSpeakingIdx(idx);
+    window.speechSynthesis.speak(u);
+  };
+
+  const toggleListen = () => {
+    if (typeof window === "undefined") return;
+    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setError("Браузърът ти не поддържа разпознаване на реч");
+      return;
+    }
+    if (listening) {
+      try { recognitionRef.current?.stop(); } catch {}
+      setListening(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "bg-BG";
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onresult = (e: any) => {
+      let transcript = "";
+      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+      setInput(transcript);
+    };
+    rec.onerror = (e: any) => { setError("Грешка при запис: " + (e.error || "")); setListening(false); };
+    rec.onend = () => setListening(false);
+    recognitionRef.current = rec;
+    setError(null);
+    setListening(true);
+    try { rec.start(); } catch { setListening(false); }
+  };
 
   const send = async (text: string) => {
     if (!text.trim() || busy) return;
@@ -76,6 +130,17 @@ function AIAssistant() {
             {m.role === "assistant" && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"><Sparkles className="h-4 w-4" /></div>}
             <div className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
               {m.content}
+              {m.role === "assistant" && (
+                <button
+                  type="button"
+                  onClick={() => speak(m.content, i)}
+                  className="mt-2 flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20"
+                  aria-label={speakingIdx === i ? "Спри" : "Чуй"}
+                >
+                  {speakingIdx === i ? <Square className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                  {speakingIdx === i ? "Спри" : "Чуй"}
+                </button>
+              )}
             </div>
             {m.role === "user" && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted"><UserIcon className="h-4 w-4" /></div>}
           </div>
@@ -89,10 +154,20 @@ function AIAssistant() {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Питай помощника..."
+          placeholder={listening ? "Слушам…" : "Питай помощника..."}
           disabled={busy}
           className="flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
+        <Button
+          type="button"
+          onClick={toggleListen}
+          disabled={busy}
+          variant="outline"
+          className={cn("px-4", listening && "bg-red-600 text-white hover:bg-red-700 animate-pulse")}
+          aria-label={listening ? "Спри запис" : "Говори"}
+        >
+          {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+        </Button>
         <Button type="submit" disabled={busy || !input.trim()} className="gold-cta-button px-5">
           <Send className="h-4 w-4" />
         </Button>
