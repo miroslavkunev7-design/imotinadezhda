@@ -112,6 +112,11 @@ function AroundCityPage() {
                     </span>
                   </span>
                   <span className="ml-2 flex flex-none items-center gap-1.5">
+                    {v.property_count > 0 && (
+                      <span className="rounded-full nadezhda-gold-bg px-1.5 py-0.5 text-[10px] font-bold text-[#260108]">
+                        {v.property_count}
+                      </span>
+                    )}
                     {distLabel && (
                       <span className="text-[10px] font-bold uppercase tracking-wide text-[#600f1c]/60">
                         {distLabel}
