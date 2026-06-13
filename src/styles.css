@@ -939,3 +939,77 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 [data-crm-themed] [class~="text-amber-200"] {
   color: #1a0608 !important;
 }
+
+/* =========================================================================
+   CRM READABILITY OVERRIDE — solid white tables, dark text on EVERY device.
+   Mirrors the readable "Нов имот" dialog style across all admin pages,
+   regardless of selected CRM theme. Highest specificity to win previous rules.
+   ========================================================================= */
+[data-crm-themed] .crm-content :is(table, thead, tbody, tfoot),
+[data-crm-themed] .crm-content :is(thead tr, tbody tr, tfoot tr),
+[data-crm-themed] .crm-content :is(tbody tr:nth-child(even)) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+}
+[data-crm-themed] .crm-content thead,
+[data-crm-themed] .crm-content thead tr,
+[data-crm-themed] .crm-content thead th {
+  background: #f6ecda !important;
+  background-color: #f6ecda !important;
+  color: #3a1a08 !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid rgba(139, 26, 43, 0.25) !important;
+}
+[data-crm-themed] .crm-content tbody tr {
+  border-top: 1px solid rgba(139, 26, 43, 0.12) !important;
+}
+[data-crm-themed] .crm-content tbody tr:nth-child(even) {
+  background: #fbf6ee !important;
+  background-color: #fbf6ee !important;
+}
+[data-crm-themed] .crm-content tbody tr:hover,
+[data-crm-themed] .crm-content tbody tr:hover td {
+  background: rgba(139, 26, 43, 0.08) !important;
+  background-color: rgba(139, 26, 43, 0.08) !important;
+}
+[data-crm-themed] .crm-content :is(table th, table td),
+[data-crm-themed] .crm-content :is(table th, table td) *,
+[data-crm-themed] .crm-content tbody tr,
+[data-crm-themed] .crm-content tbody tr * {
+  color: #2a0e05 !important;
+  text-shadow: none !important;
+}
+[data-crm-themed] .crm-content :is(table th, table td) svg {
+  color: #8B1A2B !important;
+  stroke: #8B1A2B !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content :is(table th, table td) a {
+  color: #8B1A2B !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* Table wrapper card: make scroll container opaque white so video/background
+   never bleeds through (covers the .overflow-x-auto + border-radius pattern
+   used by every admin page). */
+[data-crm-themed] .crm-content .overflow-x-auto:has(> table),
+[data-crm-themed] .crm-content div:has(> table) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  border-color: rgba(139, 26, 43, 0.18) !important;
+  box-shadow: 0 8px 24px -12px rgba(58, 26, 8, 0.25);
+}
+/* Soft amber-tinted small pills inside table cells should still be visible
+   on white — bump their text contrast. */
+[data-crm-themed] .crm-content :is(table th, table td) :is(
+  [class*="bg-amber-500/15"],
+  [class*="bg-amber-500/20"],
+  [class*="bg-emerald-500/20"],
+  [class*="bg-rose-500/20"]
+) {
+  color: #2a0e05 !important;
+}
