@@ -29,6 +29,30 @@ type City = {
 function CitiesAdmin() {
   const [rows, setRows] = useState<City[]>([]);
   const [editing, setEditing] = useState<City | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geoProgress, setGeoProgress] = useState<string>("");
+  const backfillFn = useServerFn(backfillVillageCoords);
+
+  const runBackfill = async () => {
+    if (geocoding) return;
+    setGeocoding(true);
+    setGeoProgress("Стартиране…");
+    try {
+      let total = 0;
+      // Loop until done; each call processes up to 40 villages (~45s with Nominatim rate limit).
+      for (let i = 0; i < 30; i++) {
+        const r = (await backfillFn({ data: { limit: 40 } } as never)) as { processed: number; geocoded: number; remaining: number };
+        total += r.geocoded;
+        setGeoProgress(`Обработени ${total}, остават ${r.remaining}`);
+        if (r.processed === 0 || r.remaining === 0) break;
+      }
+      toast.success(`Готово — геокодирани ${total} села.`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при геокодиране");
+    } finally {
+      setGeocoding(false);
+    }
+  };
 
   const load = async () => {
     const { data } = await supabase.from("cities").select("*").order("display_order");
