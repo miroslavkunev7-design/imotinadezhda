@@ -28,8 +28,8 @@ export const CRM_THEME_PRESETS: Record<string, CrmTheme> = {
     surfaceTo: "#3a0a12",
     accent: "#c9a04c",
     accentSoft: "rgba(201,160,76,0.18)",
-    text: "#fde7b3",
-    textMuted: "rgba(253,231,179,0.7)",
+    text: "#fffaf2",
+    textMuted: "rgba(255,250,242,0.78)",
     border: "rgba(201,160,76,0.25)",
   },
   midnight: {
