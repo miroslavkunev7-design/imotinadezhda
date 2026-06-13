@@ -340,7 +340,7 @@ export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTot
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-12">
-          {SHUMEN_QUARTERS.map((q) => (
+          {quartersWithLive.map((q) => (
             <NeighborhoodCardShumen key={q.slug} image={q.image} title={q.name} count={q.count} slug={q.slug} />
           ))}
 
@@ -355,7 +355,9 @@ export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTot
               <h3 className="font-serif-nadezhda text-[15px] md:text-[17px] font-bold text-white leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">
                 Около Шумен
               </h3>
-              <span className="mt-1.5 text-[11px] md:text-xs text-[#f4d07d]/95">Села в област Шумен</span>
+              <span className="mt-1.5 text-[11px] md:text-xs text-[#f4d07d]/95">
+                {aroundCount != null ? `${aroundCount} имота в селата` : "Села в област Шумен"}
+              </span>
             </div>
             <div className="nadezhda-marble-bg px-4 py-3 md:px-5 md:py-4 border-t border-[#eaddc4]">
               <div className="flex items-center justify-between text-xs">
