@@ -88,7 +88,12 @@ function CitiesAdmin() {
           <h1 className="font-display text-4xl text-accent-foreground">Градове</h1>
           <p className="mt-1 text-sm text-muted-foreground">{rows.length} записа</p>
         </div>
-        <Button onClick={() => setEditing({ slug: "", name: "", display_order: rows.length, is_published: true })} className="gold-cta-button"><Plus className="h-4 w-4" /> Нов град</Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={runBackfill} disabled={geocoding} variant="outline" title="Геокодира селата чрез OpenStreetMap и изчислява разстояние до града">
+            <Compass className="h-4 w-4" /> {geocoding ? geoProgress || "Геокодиране…" : "Геокодирай селата"}
+          </Button>
+          <Button onClick={() => setEditing({ slug: "", name: "", display_order: rows.length, is_published: true })} className="gold-cta-button"><Plus className="h-4 w-4" /> Нов град</Button>
+        </div>
       </header>
 
       <div className="overflow-hidden rounded-xl border border-primary/15 bg-card">
