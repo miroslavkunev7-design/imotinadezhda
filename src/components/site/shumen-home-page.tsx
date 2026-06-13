@@ -19,6 +19,7 @@ import {
   Award,
   Trophy,
   User,
+  Compass,
 } from "lucide-react";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
