@@ -291,10 +291,84 @@ function PropertiesAdmin() {
                   <option value="sale">Продажба</option><option value="rent">Наем</option>
                 </select>
               </Field>
-              <Field label="Площ (m²)"><input type="number" value={(editing as any).area_sqm ?? ""} onChange={(e) => setEditing({ ...editing, area_sqm: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
-              <Field label="Стаи"><input type="number" value={(editing as any).rooms ?? ""} onChange={(e) => setEditing({ ...editing, rooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
-              <Field label="Спални"><input type="number" value={(editing as any).bedrooms ?? ""} onChange={(e) => setEditing({ ...editing, bedrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
-              <Field label="Бани"><input type="number" value={(editing as any).bathrooms ?? ""} onChange={(e) => setEditing({ ...editing, bathrooms: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" /></Field>
+
+              {/* ====== ДИНАМИЧНИ ПОЛЕТА според типа имот ====== */}
+              {(() => {
+                const t = editing.property_type ?? "apartment";
+                const num = (k: string) => (
+                  <input type="number" value={(editing as any)[k] ?? ""} onChange={(e) => setEditing({ ...editing, [k]: e.target.value ? Number(e.target.value) : null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
+                );
+                const txt = (k: string, placeholder?: string) => (
+                  <input type="text" placeholder={placeholder} value={(editing as any)[k] ?? ""} onChange={(e) => setEditing({ ...editing, [k]: e.target.value || null } as any)} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2" />
+                );
+                const chk = (k: string, label: string) => (
+                  <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!(editing as any)[k]} onChange={(e) => setEditing({ ...editing, [k]: e.target.checked } as any)} /> {label}</label>
+                );
+
+                if (t === "apartment") return (
+                  <>
+                    <Field label="Площ (m²)">{num("area_sqm")}</Field>
+                    <Field label="Стаи">{num("rooms")}</Field>
+                    <Field label="Спални">{num("bedrooms")}</Field>
+                    <Field label="Бани">{num("bathrooms")}</Field>
+                    <Field label="Етаж">{num("floor")}</Field>
+                    <Field label="От етажи">{num("total_floors")}</Field>
+                    <Field label="Година на строеж">{num("year_built")}</Field>
+                    <Field label="Конструкция">{txt("construction_type", "тухла / панел / EPK")}</Field>
+                    <Field label="Отопление">{txt("heating", "ТЕЦ / климатик / газ")}</Field>
+                    <Field label="Паркоместа">{num("parking_spaces")}</Field>
+                  </>
+                );
+                if (t === "house") return (
+                  <>
+                    <Field label="Застроена площ (m²)">{num("built_up_area_sqm")}</Field>
+                    <Field label="РЗП / обща площ (m²)">{num("area_sqm")}</Field>
+                    <Field label="Двор (m²)">{num("yard_sqm")}</Field>
+                    <Field label="Стаи">{num("rooms")}</Field>
+                    <Field label="Спални">{num("bedrooms")}</Field>
+                    <Field label="Бани">{num("bathrooms")}</Field>
+                    <Field label="Етажи">{num("total_floors")}</Field>
+                    <Field label="Година на строеж">{num("year_built")}</Field>
+                    <Field label="Конструкция">{txt("construction_type", "тухла / греди / каменна")}</Field>
+                    <Field label="Отопление">{txt("heating", "котел / камина / газ")}</Field>
+                    <Field label="Паркоместа">{num("parking_spaces")}</Field>
+                    <Field label="Гараж">{chk("has_garage", "Има гараж")}</Field>
+                  </>
+                );
+                if (t === "land") return (
+                  <>
+                    <Field label="Площ на парцела (m²)">{num("area_sqm")}</Field>
+                    <Field label="Регулация / отреждане">{txt("land_regulation", "регулиран / земеделска / горска")}</Field>
+                    <Field label="Адрес / местност" className="md:col-span-2">{txt("address")}</Field>
+                  </>
+                );
+                if (t === "office") return (
+                  <>
+                    <Field label="Площ (m²)">{num("area_sqm")}</Field>
+                    <Field label="Стаи / помещения">{num("rooms")}</Field>
+                    <Field label="Санитарни възли">{num("bathrooms")}</Field>
+                    <Field label="Етаж">{num("floor")}</Field>
+                    <Field label="От етажи">{num("total_floors")}</Field>
+                    <Field label="Клас на офиса">{txt("office_class", "A / B / C")}</Field>
+                    <Field label="Година на строеж">{num("year_built")}</Field>
+                    <Field label="Отопление">{txt("heating")}</Field>
+                    <Field label="Паркоместа">{num("parking_spaces")}</Field>
+                  </>
+                );
+                // commercial
+                return (
+                  <>
+                    <Field label="Площ (m²)">{num("area_sqm")}</Field>
+                    <Field label="Витрина / помещения">{num("rooms")}</Field>
+                    <Field label="Санитарни възли">{num("bathrooms")}</Field>
+                    <Field label="Етаж">{num("floor")}</Field>
+                    <Field label="Конструкция">{txt("construction_type")}</Field>
+                    <Field label="Отопление">{txt("heating")}</Field>
+                    <Field label="Година на строеж">{num("year_built")}</Field>
+                    <Field label="Паркоместа">{num("parking_spaces")}</Field>
+                  </>
+                );
+              })()}
               <Field label="Снимки от галерия" className="md:col-span-2">
                 <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-amber-700/40 bg-white/70 px-4 py-4 text-sm text-[#5a3a14] hover:bg-white">
                   <Upload className="h-4 w-4" />
