@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Sparkles, X, Send, User as UserIcon, Mic, MicOff, Volume2, Square } from "lucide-react";
 import { aiAssistantChat } from "@/lib/ai-assistant.functions";
 import { cn } from "@/lib/utils";
+import { speakBG } from "@/lib/tts-utils";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
