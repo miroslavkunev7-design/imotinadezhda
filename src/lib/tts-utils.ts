@@ -44,14 +44,22 @@ export function speakBG(
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(clean);
   u.lang = "bg-BG";
-  u.rate = 1.25;   // по-бързо
+  u.rate = 1.05;   // нормална скорост, леко живо
   u.pitch = 1;
   u.volume = 1;
   const voices = window.speechSynthesis.getVoices();
-  const bg =
-    voices.find((v) => v.lang?.toLowerCase().startsWith("bg")) ||
-    voices.find((v) => /bulgarian/i.test(v.name));
-  if (bg) u.voice = bg;
+  const bgVoices = voices.filter(
+    (v) => v.lang?.toLowerCase().startsWith("bg") || /bulgarian/i.test(v.name),
+  );
+  // Prefer a male Bulgarian voice; common names: Daniel, Ivan, Georgi, "Microsoft Ivan"
+  const maleHint = /(daniel|ivan|georgi|nikolay|male|мъж|мъжки)/i;
+  const femaleHint = /(female|жена|дамски|elena|maria|ralitsa|kalina)/i;
+  const pick =
+    bgVoices.find((v) => maleHint.test(v.name)) ||
+    bgVoices.find((v) => !femaleHint.test(v.name)) ||
+    bgVoices[0] ||
+    voices.find((v) => maleHint.test(v.name));
+  if (pick) u.voice = pick;
   u.onend = () => opts.onEnd?.();
   u.onerror = () => opts.onError?.();
   window.speechSynthesis.speak(u);
