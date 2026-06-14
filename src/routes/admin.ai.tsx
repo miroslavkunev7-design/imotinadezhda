@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Send, User as UserIcon, Mic, MicOff, Volume2, Square } from "lucide-react";
 import { aiAssistantChat } from "@/lib/ai-assistant.functions";
 import { cn } from "@/lib/utils";
+import { speakBG } from "@/lib/tts-utils";
 
 export const Route = createFileRoute("/admin/ai")({
   component: AIAssistant,
@@ -33,20 +34,16 @@ function AIAssistant() {
       setError("Браузърът ти не поддържа глас");
       return;
     }
-    window.speechSynthesis.cancel();
     if (speakingIdx === idx) {
+      window.speechSynthesis.cancel();
       setSpeakingIdx(null);
       return;
     }
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "bg-BG";
-    const voices = window.speechSynthesis.getVoices();
-    const bg = voices.find((v) => v.lang?.toLowerCase().startsWith("bg"));
-    if (bg) u.voice = bg;
-    u.onend = () => setSpeakingIdx(null);
-    u.onerror = () => setSpeakingIdx(null);
     setSpeakingIdx(idx);
-    window.speechSynthesis.speak(u);
+    speakBG(text, {
+      onEnd: () => setSpeakingIdx(null),
+      onError: () => setSpeakingIdx(null),
+    });
   };
 
   const toggleListen = () => {

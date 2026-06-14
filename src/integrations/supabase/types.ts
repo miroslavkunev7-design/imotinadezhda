@@ -1416,17 +1416,24 @@ export type Database = {
           area_sqm: number | null
           bathrooms: number | null
           bedrooms: number | null
+          built_up_area_sqm: number | null
           city_id: string
+          construction_type: string | null
           cover_image_url: string | null
           created_at: string
           created_by: string | null
           currency: string
           description: string | null
           floor: number | null
+          has_garage: boolean | null
+          heating: string | null
           id: string
           is_featured: boolean
           is_published: boolean
+          land_regulation: string | null
+          office_class: string | null
           owner_id: string | null
+          parking_spaces: number | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
           quarter_id: string | null
@@ -1437,6 +1444,7 @@ export type Database = {
           updated_at: string
           views_count: number
           village_id: string | null
+          yard_sqm: number | null
           year_built: number | null
         }
         Insert: {
@@ -1445,17 +1453,24 @@ export type Database = {
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          built_up_area_sqm?: number | null
           city_id: string
+          construction_type?: string | null
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           description?: string | null
           floor?: number | null
+          has_garage?: boolean | null
+          heating?: string | null
           id?: string
           is_featured?: boolean
           is_published?: boolean
+          land_regulation?: string | null
+          office_class?: string | null
           owner_id?: string | null
+          parking_spaces?: number | null
           price: number
           property_type?: Database["public"]["Enums"]["property_type"]
           quarter_id?: string | null
@@ -1466,6 +1481,7 @@ export type Database = {
           updated_at?: string
           views_count?: number
           village_id?: string | null
+          yard_sqm?: number | null
           year_built?: number | null
         }
         Update: {
@@ -1474,17 +1490,24 @@ export type Database = {
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          built_up_area_sqm?: number | null
           city_id?: string
+          construction_type?: string | null
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           description?: string | null
           floor?: number | null
+          has_garage?: boolean | null
+          heating?: string | null
           id?: string
           is_featured?: boolean
           is_published?: boolean
+          land_regulation?: string | null
+          office_class?: string | null
           owner_id?: string | null
+          parking_spaces?: number | null
           price?: number
           property_type?: Database["public"]["Enums"]["property_type"]
           quarter_id?: string | null
@@ -1495,6 +1518,7 @@ export type Database = {
           updated_at?: string
           views_count?: number
           village_id?: string | null
+          yard_sqm?: number | null
           year_built?: number | null
         }
         Relationships: [
