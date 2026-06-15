@@ -780,11 +780,8 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   z-index: 1000;
   padding: 0;
   margin: 0;
-  /* Logo width token — larger than navbar so it slightly overlaps from above */
   --logo-w: clamp(140px, 22vw, 300px);
-  /* Logo poke above pill — visual only */
-  --logo-overhang: clamp(10px, 1.6vw, 24px);
-  padding-top: var(--logo-overhang);
+  --logo-overhang: 0px;
 }
 .site-header-v2__wrap {
   position: relative;
