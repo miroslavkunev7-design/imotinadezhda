@@ -661,6 +661,13 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 • Нови съвпадения: ${newMatchCount ?? 0}
 • Нови запитвания: ${newInq ?? 0}
 
+8. УПРАВЛЕНИЕ НА ДАННИ (само за админи — този разговор вече е защитен): Имаш пълни права да създаваш, редактираш и изтриваш брокери, клиенти и имоти през tools: create_client / update_client / delete_client, create_property / update_property / delete_property, create_broker / update_broker / delete_broker, search_brokers. ВАЖНИ ПРАВИЛА:
+   • Преди СЪЗДАВАНЕ — обобщи накратко какво ще създадеш и питай "Да продължа ли?". Едва след потвърждение извикай tool-а.
+   • Преди РЕДАКЦИЯ — покажи кои полета ще се сменят (стара → нова стойност) и поискай "Да".
+   • Преди ИЗТРИВАНЕ — задължително изисквай ясно потвърждение ("да, изтрий" / "потвърждавам"). Извикай delete_* с confirm=true ЕДВА след това. Никога не изтривай без потвърждение, дори да е напомнено в текста.
+   • При смяна на цена/статус на имот — кажи новата стойност преди да я приложиш.
+   • Ако липсва идентификатор (client_id, property_id, broker_id) — първо извикай search_clients / search_properties / search_brokers за да го намериш.
+
 Стил: професионален български, ясен, юридически прецизен. За договори използвай официален стил и пълно форматиране в Markdown с раздели и членове.`;
 
     const conversation: any[] = [{ role: "system", content: systemPrompt }, ...data.messages];
