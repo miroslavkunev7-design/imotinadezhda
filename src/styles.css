@@ -772,19 +772,18 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 
 /* === Site header v2: edge-to-edge burgundy bar pinned to top + oversized logo overlap === */
 .site-header-v2 {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  width: 100%;
+  width: 100vw;
   z-index: 1000;
   padding: 0;
   margin: 0;
   /* Logo width token — larger than navbar so it slightly overlaps from above */
   --logo-w: clamp(140px, 22vw, 300px);
-  /* Logo poke above pill — visual only, does NOT add page top spacing */
+  /* Logo poke above pill — visual only */
   --logo-overhang: clamp(10px, 1.6vw, 24px);
-  /* Reserve room inside the header for the logo overhang so it doesn't get clipped */
   padding-top: var(--logo-overhang);
 }
 .site-header-v2__wrap {
