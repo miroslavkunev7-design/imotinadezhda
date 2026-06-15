@@ -16,8 +16,17 @@ import {
   Phone, Mail, MapPin, FileText, Upload, Trash2, Pencil,
   CreditCard, Handshake, XCircle, Sparkles, Save,
   Check, AlertCircle, Loader2, IdCard, Briefcase, FileSignature, ChevronDown,
-  Users, UserPlus,
+  Users, UserPlus, MessageCircle,
 } from "lucide-react";
+
+function phoneTel(raw: string | null | undefined) {
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("359")) return `+${digits}`;
+  if (digits.startsWith("0")) return `+359${digits.slice(1)}`;
+  return `+${digits}`;
+}
 
 const BG_MONTHS = ["Януари", "Февруари", "Март", "Април", "Май", "Юни", "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември"];
 
