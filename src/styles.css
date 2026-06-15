@@ -778,10 +778,22 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   right: 0;
   width: 100vw;
   z-index: 1000;
-  padding: 0;
+  /* Fill iOS notch / status-bar area with burgundy so logo+pill сядат на самия връх */
+  padding-top: env(safe-area-inset-top, 0px);
+  background-color: transparent;
   margin: 0;
   --logo-w: clamp(140px, 22vw, 300px);
   --logo-overhang: 0px;
+}
+.site-header-v2::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: #4a0000;
+  pointer-events: none;
 }
 .site-header-v2__wrap {
   position: relative;
