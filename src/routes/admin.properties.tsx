@@ -116,12 +116,21 @@ function PropertiesAdmin() {
     if (payload.rooms) payload.rooms = Number(payload.rooms);
     if (!payload.quarter_id) payload.quarter_id = null;
     if (!payload.village_id) payload.village_id = null;
+    if (!payload.broker_id) payload.broker_id = null;
     let propertyId = id;
     try {
       if (id) {
         const { error } = await supabase.from("properties").update(payload).eq("id", id);
         if (error) throw error;
       } else {
+        // Auto-link the creating user so legacy broker fallback works
+        const { data: auth } = await supabase.auth.getUser();
+        if (auth?.user?.id) payload.created_by = auth.user.id;
+        // If no broker explicitly chosen, try to auto-pick the broker row of the current user
+        if (!payload.broker_id && auth?.user?.id) {
+          const mine = brokers.find((b) => b.user_id === auth.user!.id);
+          if (mine) payload.broker_id = mine.id;
+        }
         const { data, error } = await supabase.from("properties").insert(payload).select("id").single();
         if (error) throw error;
         propertyId = data!.id;
