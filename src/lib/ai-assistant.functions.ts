@@ -517,6 +517,105 @@ async function runTool(name: string, args: any, userId: string): Promise<any> {
       return { error: "Грешка при изтегляне: " + (e?.message ?? String(e)) };
     }
   }
+  // ===== WRITE TOOLS (admin-only — gated at handler entry) =====
+  const pickFields = (src: Record<string, unknown>, fields: string[]) => {
+    const out: Record<string, unknown> = {};
+    for (const f of fields) if (src[f] !== undefined && src[f] !== null && src[f] !== "") out[f] = src[f];
+    return out;
+  };
+
+  if (name === "create_client") {
+    if (!args.full_name) return { error: "full_name е задължително" };
+    const payload = pickFields(args, [
+      "full_name", "phone", "email", "client_type", "status",
+      "budget_min", "budget_max", "currency", "rooms_min", "rooms_max",
+      "area_min", "area_max", "search_property_type", "notes", "assigned_broker_id",
+    ]);
+    payload.created_by = userId;
+    const { data, error } = await supabaseAdmin.from("clients").insert(payload as never).select("id, full_name").single();
+    if (error) return { error: error.message };
+    return { ok: true, client: data, message: `Клиент "${data.full_name}" е създаден.` };
+  }
+  if (name === "update_client") {
+    if (!args.client_id) return { error: "client_id е задължително" };
+    const payload = pickFields(args, [
+      "full_name", "phone", "email", "client_type", "status",
+      "budget_min", "budget_max", "currency", "rooms_min", "rooms_max",
+      "area_min", "area_max", "notes", "assigned_broker_id",
+    ]);
+    if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
+    const { data, error } = await supabaseAdmin.from("clients").update(payload as never).eq("id", args.client_id).select("id, full_name").maybeSingle();
+    if (error) return { error: error.message };
+    if (!data) return { error: "Клиент не е намерен." };
+    return { ok: true, client: data, message: `Клиент "${data.full_name}" е обновен.` };
+  }
+  if (name === "delete_client") {
+    if (!args.confirm) return { error: "Изисква се confirm=true." };
+    const { error } = await supabaseAdmin.from("clients").delete().eq("id", args.client_id);
+    if (error) return { error: error.message };
+    return { ok: true, message: "Клиентът е изтрит." };
+  }
+
+  if (name === "create_property") {
+    if (!args.title || !args.city_id) return { error: "title и city_id са задължителни" };
+    const payload = pickFields(args, [
+      "title", "description", "city_id", "quarter_id", "property_type", "status",
+      "price", "currency", "area_sqm", "rooms", "floor", "address",
+      "is_published", "owner_id", "assigned_broker_id",
+    ]);
+    payload.created_by = userId;
+    const { data, error } = await supabaseAdmin.from("properties").insert(payload as never).select("id, title").single();
+    if (error) return { error: error.message };
+    return { ok: true, property: data, message: `Имот "${data.title}" е създаден.` };
+  }
+  if (name === "update_property") {
+    if (!args.property_id) return { error: "property_id е задължително" };
+    const payload = pickFields(args, [
+      "title", "description", "city_id", "quarter_id", "property_type", "status",
+      "price", "currency", "area_sqm", "rooms", "floor", "address",
+      "is_published", "assigned_broker_id",
+    ]);
+    if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
+    const { data, error } = await supabaseAdmin.from("properties").update(payload as never).eq("id", args.property_id).select("id, title").maybeSingle();
+    if (error) return { error: error.message };
+    if (!data) return { error: "Имотът не е намерен." };
+    return { ok: true, property: data, message: `Имот "${data.title}" е обновен.` };
+  }
+  if (name === "delete_property") {
+    if (!args.confirm) return { error: "Изисква се confirm=true." };
+    const { error } = await supabaseAdmin.from("properties").delete().eq("id", args.property_id);
+    if (error) return { error: error.message };
+    return { ok: true, message: "Имотът е изтрит." };
+  }
+
+  if (name === "create_broker") {
+    if (!args.full_name) return { error: "full_name е задължително" };
+    const payload = pickFields(args, ["full_name", "email", "phone", "license_number", "bio", "photo_url", "is_active"]);
+    const { data, error } = await supabaseAdmin.from("brokers").insert(payload as never).select("id, full_name").single();
+    if (error) return { error: error.message };
+    return { ok: true, broker: data, message: `Брокер "${data.full_name}" е създаден.` };
+  }
+  if (name === "update_broker") {
+    if (!args.broker_id) return { error: "broker_id е задължително" };
+    const payload = pickFields(args, ["full_name", "email", "phone", "license_number", "bio", "photo_url", "is_active"]);
+    if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
+    const { data, error } = await supabaseAdmin.from("brokers").update(payload as never).eq("id", args.broker_id).select("id, full_name").maybeSingle();
+    if (error) return { error: error.message };
+    if (!data) return { error: "Брокерът не е намерен." };
+    return { ok: true, broker: data, message: `Брокер "${data.full_name}" е обновен.` };
+  }
+  if (name === "delete_broker") {
+    if (!args.confirm) return { error: "Изисква се confirm=true." };
+    const { error } = await supabaseAdmin.from("brokers").delete().eq("id", args.broker_id);
+    if (error) return { error: error.message };
+    return { ok: true, message: "Брокерът е изтрит." };
+  }
+  if (name === "search_brokers") {
+    const { data, error } = await supabaseAdmin.from("brokers").select("id, full_name, email, phone, is_active, license_number").order("full_name");
+    if (error) return { error: error.message };
+    return { brokers: data ?? [] };
+  }
+
   return { error: "Непознат инструмент: " + name };
 }
 
