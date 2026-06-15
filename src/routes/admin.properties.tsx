@@ -56,6 +56,7 @@ function PropertiesAdmin() {
   const [cities, setCities] = useState<CityOpt[]>([]);
   const [quarters, setQuarters] = useState<QuarterOpt[]>([]);
   const [villages, setVillages] = useState<VillageOpt[]>([]);
+  const [brokers, setBrokers] = useState<BrokerOpt[]>([]);
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [imagesFor, setImagesFor] = useState<Row | null>(null);
   const [docsFor, setDocsFor] = useState<Row | null>(null);
@@ -64,16 +65,18 @@ function PropertiesAdmin() {
   const [uploadingNew, setUploadingNew] = useState(false);
 
   const load = async () => {
-    const [{ data: ps }, { data: cs }, { data: qs }, { data: vs }] = await Promise.all([
-      supabase.from("properties").select("id, title, price, currency, property_type, status, is_published, is_featured, city_id, quarter_id, village_id, cities:city_id(name, slug)").order("created_at", { ascending: false }),
+    const [{ data: ps }, { data: cs }, { data: qs }, { data: vs }, { data: bs }] = await Promise.all([
+      supabase.from("properties").select("id, title, price, currency, property_type, status, is_published, is_featured, city_id, quarter_id, village_id, broker_id, cities:city_id(name, slug)").order("created_at", { ascending: false }),
       supabase.from("cities").select("id, name, slug").order("display_order"),
       supabase.from("quarters").select("id, name, city_id").order("display_order"),
       supabase.from("villages").select("id, name, oblast_slug, municipality_slug").order("name"),
+      supabase.from("brokers").select("id, full_name, phone, user_id").eq("is_active", true).order("full_name"),
     ]);
     setRows((ps as Row[]) ?? []);
     setCities(cs ?? []);
     setQuarters(qs ?? []);
     setVillages(vs ?? []);
+    setBrokers((bs as BrokerOpt[]) ?? []);
   };
 
   useEffect(() => { load(); }, []);
