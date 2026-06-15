@@ -16,6 +16,7 @@ type Task = {
   task_type: string;
   is_completed: boolean;
   due_at: string | null;
+  reminder_minutes?: number | null;
   created_at: string;
 };
 type Broker = { id: string; full_name: string };
