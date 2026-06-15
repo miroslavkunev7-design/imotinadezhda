@@ -780,7 +780,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   z-index: 1000;
   /* Fill iOS notch / status-bar area with burgundy so logo+pill сядат на самия връх */
   padding-top: env(safe-area-inset-top, 0px);
-  background-color: #4a0000;
+  background-color: transparent;
   margin: 0;
   --logo-w: clamp(140px, 22vw, 300px);
   --logo-overhang: 0px;
