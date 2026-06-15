@@ -51,6 +51,7 @@ import { Route as AdminDebugQuartersRouteImport } from './routes/admin.debug.qua
 import { Route as AdminAuditIdRouteImport } from './routes/admin.audit.$id'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
+import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -265,6 +266,12 @@ const CitiesSlugDistrictsDistrictRoute =
     path: '/cities/$slug/districts/$district',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksTaskRemindersRoute =
+  ApiPublicHooksTaskRemindersRouteImport.update({
+    id: '/api/public/hooks/task-reminders',
+    path: '/api/public/hooks/task-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -307,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug/around': typeof CitiesSlugAroundRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
+  '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -350,6 +358,7 @@ export interface FileRoutesByTo {
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug/around': typeof CitiesSlugAroundRoute
   '/cities/$slug': typeof CitiesSlugIndexRoute
+  '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -395,6 +404,7 @@ export interface FileRoutesById {
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
   '/cities/$slug/around': typeof CitiesSlugAroundRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
+  '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -441,6 +451,7 @@ export interface FileRouteTypes {
     | '/api/public/customer-chat'
     | '/cities/$slug/around'
     | '/cities/$slug/'
+    | '/api/public/hooks/task-reminders'
     | '/cities/$slug/districts/$district'
     | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/api/public/customer-chat'
     | '/cities/$slug/around'
     | '/cities/$slug'
+    | '/api/public/hooks/task-reminders'
     | '/cities/$slug/districts/$district'
     | '/lovable/email/queue/process'
   id:
@@ -528,6 +540,7 @@ export interface FileRouteTypes {
     | '/api/public/customer-chat'
     | '/cities/$slug/around'
     | '/cities/$slug/'
+    | '/api/public/hooks/task-reminders'
     | '/cities/$slug/districts/$district'
     | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
@@ -543,6 +556,7 @@ export interface RootRouteChildren {
   ApiPublicCustomerChatRoute: typeof ApiPublicCustomerChatRoute
   CitiesSlugAroundRoute: typeof CitiesSlugAroundRoute
   CitiesSlugIndexRoute: typeof CitiesSlugIndexRoute
+  ApiPublicHooksTaskRemindersRoute: typeof ApiPublicHooksTaskRemindersRoute
   CitiesSlugDistrictsDistrictRoute: typeof CitiesSlugDistrictsDistrictRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
@@ -843,6 +857,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CitiesSlugDistrictsDistrictRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/task-reminders': {
+      id: '/api/public/hooks/task-reminders'
+      path: '/api/public/hooks/task-reminders'
+      fullPath: '/api/public/hooks/task-reminders'
+      preLoaderRoute: typeof ApiPublicHooksTaskRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -945,6 +966,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCustomerChatRoute: ApiPublicCustomerChatRoute,
   CitiesSlugAroundRoute: CitiesSlugAroundRoute,
   CitiesSlugIndexRoute: CitiesSlugIndexRoute,
+  ApiPublicHooksTaskRemindersRoute: ApiPublicHooksTaskRemindersRoute,
   CitiesSlugDistrictsDistrictRoute: CitiesSlugDistrictsDistrictRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
