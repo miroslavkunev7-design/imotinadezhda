@@ -1,42 +1,76 @@
-## Цел
-1. Всички градски страници (Варна, Бургас, Нови пазар) да изглеждат като страницата на Шумен — full-screen hero видео + същата структура с квартали/секции.
-2. Селата в "Около [Град]" да са подредени **по близост до града** (най-близкото първо), не по азбука.
-3. Страницата "Около [Град]" да има за hero фон **същото видео** като съответния град (Шумен → shumen-hero, Варна → varna-hero, Бургас → burgas-hero, Нови пазар → shumen-hero).
 
-## Подход
+# Блок 1 — CRM Theme Editor
 
-### A. Унифициран layout за градовете
-- Прехвърлям `ShumenHomePage` като общ компонент `CityHomePage`, който приема `citySlug`, `cityLabel`, hero video URL, списък квартали и hero opening text.
-- В `src/routes/cities.$slug.index.tsx` всеки слъг (`shumen`, `varna`, `burgas`, `novi-pazar`) рендира `CityHomePage` с правилните данни (видео, квартали от БД, име).
-- Премахвам разклонението "desktop = Shumen, mobile = CityPage" — всички ползват новия еднообразен layout, отзивчив на mobile/desktop (както е Шумен сега).
+Започваме с този блок. Останалите 6 блока (AI права, Scraper, Lightbox, счупени бутони, начален екран, Supabase финализация) идват след одобрение на този.
 
-### B. Сортиране по близост
-Имам нужда от координати на града + всяко село. В момента `villages.lat/lng` са `NULL` за всичките 518 записа, а `cities` няма lat/lng.
+## Какво ще има
 
-Решение:
-- Миграция: добавям `cities.lat NUMERIC`, `cities.lng NUMERIC` и сетвам стойностите за 4-те града.
-- Миграция: **UPDATE** на `villages.lat/lng` с публично известни координати (от ГРАО / OSM). Това е чист seed (518 записа, 4 групи).
-- В `getVillagesAround` сменям `ORDER BY name` с изчисление на дистанция (Haversine в SQL) спрямо координатите на града и сортиране по нея. Селата без координати → накрая (`NULLS LAST`).
-- В UI добавям малка плочка "~X км" до името.
+Нова страница **Settings → Дизайн на CRM** с три таба:
 
-### C. Hero видео за "Около [Град]"
-- Mapping в `cities.$slug.around.tsx`: city slug → asset URL (вече имам `shumen-hero.mp4`, `varna-hero.mp4`, `burgas-hero.mp4`; за Нови пазар ползвам `shumen-hero.mp4`).
-- Hero секцията става full-screen с `<video autoplay loop muted playsinline>` + тъмен burgundy overlay + заглавие "Около [Град]" отгоре.
-- Сетката със села остава отдолу на marble фон.
+### Таб 1: Цветове и шрифтове (глобална тема)
+Live color pickers за всеки токен, с моментален preview:
+- Фон (background) / Повърхност / Карта (cards) / Панел странична лента
+- Първичен (бутони) / Hover на първичен / Текст върху първичен
+- Вторичен / Accent / Border
+- Текст основен / Текст muted / Текст върху карта
+- Шрифт фамилия (headings) + шрифт фамилия (body) — dropdown с Google Fonts: Playfair, Inter, Open Sans, Montserrat, Roboto, Poppins, Manrope
+- Размер на основния шрифт (slider)
+- Цвят на бутоните + цвят на текста върху бутоните (отделно)
 
-## Какво НЕ правя
-- Не променям структурата на квартал-страниците.
-- Не пипам админ панелите.
-- Не местя данни — само добавям колони и попълвам координати.
+**Auto-contrast guard:** при всяка промяна на фонов цвят, ако contrast ratio с текста падне под 4.5, автоматично се коригира текстът към бяло или черно — гарантира че никога няма да има „невидим" текст.
 
-## Файлове, които ще се пипнат
-- `supabase/migrations/...` — нова миграция: `cities.lat/lng` + UPDATE-и за 4 града + UPDATE на координати за 518 села.
-- `src/lib/villages.functions.ts` — нова логика: JOIN с `cities`, изчисление на разстояние, сортиране.
-- `src/routes/cities.$slug.around.tsx` — hero видео секция.
-- `src/components/site/shumen-home-page.tsx` → рефакториран в `CityHomePage(props)` или нов компонент + Шумен го ползва.
-- `src/routes/cities.$slug.index.tsx` — рендирa `CityHomePage` за всички 4 града.
+### Таб 2: Дизайн пресети за компоненти
+Селектори (radio cards с миниатюрен preview) за:
+- **Карти с градове** — 4 варианта (класик / glass / минимал / с градиент)
+- **Navbar** — 3 варианта (бургундия pill / прозрачен / тъмен)
+- **Лого позиция** — 3 варианта (ляво над / ляво в линия / центрирано)
+- **Форми (input стил)** — 3 варианта (закръглени / класически / underline)
+- **Бутони** — 3 варианта (pill / закръглени / квадратни) + сила на сянка
 
-## Обем
-Голяма миграция (1 SQL файл, ~520 UPDATE-а). Ще използвам кратки batch INSERT-и с координати от публични източници.
+### Таб 3: Responsive Preview
+Toolbar с 5 device бутона, които сменят размера на preview iframe:
+- Mobile (375×667)
+- Tablet (768×1024)
+- Desktop (1440×900)
+- App Windows (1280×800)
+- App Mobile (414×896)
 
-Потвърди и започвам — първо миграцията, после кодa.
+Preview-ът показва началната страница на CRM с приложените цветове в реално време.
+
+## Технически детайли
+
+**Запазване**
+- Нова таблица `theme_settings` (workspace-level, един ред): JSON колона `tokens` (всички цветове, шрифтове, размери) + JSON колона `presets` (избрани варианти за компоненти).
+- RLS: само admin може да чете/пише.
+- При зареждане на CRM, `ThemeProvider` в `__root.tsx` чете реда и инжектира всичко като CSS variables на `:root` → всички съществуващи `bg-primary`, `text-foreground`, `border` и т.н. автоматично се пребоядисват без да пипаме отделните компоненти.
+
+**Auto-contrast**
+- Функция `ensureContrast(bg, fg)` използва WCAG luminance formula → ако ratio < 4.5, връща `#fff` или `#0a0a0a` според кой е по-четим.
+- Извиква се на всеки color change преди да се запише в state.
+
+**Презети за компоненти**
+- Всеки преsет = обект с CSS класове, които се добавят на `data-preset-cards="glass"` и т.н. на `<html>`.
+- В `styles.css` дефинираме съответните селектори: `[data-preset-cards="glass"] .city-card { ... }`.
+
+**Файлове които ще се променят/създадат**
+- НОВО: `src/routes/admin.settings.theme.tsx` — главната страница с табове
+- НОВО: `src/components/admin/theme/color-token-grid.tsx`
+- НОВО: `src/components/admin/theme/preset-picker.tsx`
+- НОВО: `src/components/admin/theme/device-preview.tsx`
+- НОВО: `src/lib/theme/contrast.ts` — WCAG contrast helpers
+- НОВО: `src/lib/theme/theme.functions.ts` — load/save server fns
+- НОВО: `src/components/theme-provider.tsx` — инжектира CSS vars
+- ПРОМЯНА: `src/routes/__root.tsx` — wrap с ThemeProvider
+- ПРОМЯНА: `src/styles.css` — добавяме preset селектори
+- НОВО: миграция `theme_settings` таблица + RLS + GRANT
+
+**Какво НЕ е в този блок**
+- AI права (Блок 2)
+- Scraper Бургас/Шумен/Варна + детекция на агенции (Блок 3)
+- Fullscreen галерии (Блок 4)
+- Поправка на счупени бутони (Блок 5)
+- Прозрачна търсачка + махане на Lovable badge + смяна на „Нови пазар" карта (Блок 6)
+- Финален тест навсякъде (Блок 7)
+
+## След одобрение
+Започвам с миграцията (одобряваш я), след това кодирам всичко горе и тествам — отварям /admin/settings/theme, сменям цвят, гледам че се прилага веднага и навсякъде.

@@ -74,6 +74,24 @@ function Page() {
               </p>
             </div>
           </Link>
+
+          <Link
+            to="/admin/settings/theme"
+            className="group flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-[rgba(20,4,8,0.55)] p-5 transition hover:border-amber-400/60 hover:bg-[rgba(20,4,8,0.7)]"
+          >
+            <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/30 to-amber-300/20 text-amber-200">
+              <Palette className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 font-display text-base text-amber-100">
+                Дизайн на CRM (цветове, шрифтове)
+                <ChevronRight className="h-4 w-4 text-amber-300/70 transition group-hover:translate-x-0.5" />
+              </div>
+              <p className="mt-1 text-xs text-amber-100/60">
+                Сменяй цветовете, шрифтовете и дизайн пресетите на целия CRM. Auto-contrast пази текста винаги четим. Responsive preview за всички устройства.
+              </p>
+            </div>
+          </Link>
         </div>
       </div>
     </AdminShell>
