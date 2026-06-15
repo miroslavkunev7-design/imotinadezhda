@@ -46,8 +46,8 @@ function SearchRoute() {
       <LuxuryHeader active={search.status === "rent" ? "rent" : "sale"} />
 
 
-      {/* Compact title bar */}
-      <header className="flex-none border-b border-[#C9A84C]/30 bg-white/80 px-4 py-3 backdrop-blur md:px-8">
+      {/* Compact title bar — offset for fixed header */}
+      <header className="flex-none border-b border-[#C9A84C]/30 bg-white/80 px-4 py-3 backdrop-blur md:px-8 mt-[64px] sm:mt-[80px] md:mt-[104px]">
         <div className="mx-auto flex max-w-[1420px] flex-wrap items-baseline justify-between gap-3">
           <h1 className="font-display text-2xl text-[#2b1418] md:text-3xl">
             Намерени имоти
@@ -70,6 +70,7 @@ function SearchRoute() {
             {results.map((p: any) => (
               <ListingCard
                 key={p.id}
+                id={p.id}
                 title={p.title ?? "Имот"}
                 price={`${p.currency === "BGN" ? "лв." : "€"} ${new Intl.NumberFormat("bg-BG").format(Number(p.price ?? 0))}`}
                 size={`${p.area_sqm ?? "—"} m²`}

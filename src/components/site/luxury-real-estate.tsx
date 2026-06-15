@@ -725,6 +725,7 @@ function MarblePropertyCard({
 }
 
 export function ListingCard({
+  id,
   title,
   price,
   size,
@@ -734,6 +735,7 @@ export function ListingCard({
   tag,
   location,
 }: {
+  id?: string;
   title: string;
   price: string;
   size: string;
@@ -743,12 +745,12 @@ export function ListingCard({
   tag: string;
   location?: string;
 }) {
-  return (
-    <article className="marble-hover-card group overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_20px_45px_rgba(139, 26, 43,0.16)]">
+  const card = (
+    <article className="marble-hover-card group overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_20px_45px_rgba(139, 26, 43,0.16)] cursor-pointer">
       <div className="relative aspect-[1.08/0.82] overflow-hidden">
         <img src={image} alt={title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
         {tag ? <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-[0.08em] text-primary-foreground">{tag}</span> : null}
-        <button type="button" aria-label="Добави в любими" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow">
+        <button type="button" aria-label="Добави в любими" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow">
           <Heart className="h-4 w-4" />
         </button>
         <button
@@ -776,6 +778,12 @@ export function ListingCard({
         <div className="font-display text-[1.9rem] text-accent-foreground">{price}</div>
       </div>
     </article>
+  );
+  if (!id) return card;
+  return (
+    <Link to="/properties/$propertyId" params={{ propertyId: id }} className="block">
+      {card}
+    </Link>
   );
 }
 
