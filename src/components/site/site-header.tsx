@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import scrollLogo from "@/assets/navbar-scroll.png.asset.json";
@@ -11,7 +11,7 @@ type NavItem = {
   label: string;
   to: string;
   search?: Record<string, string>;
-  icon: JSX.Element;
+  icon: ReactNode;
 };
 
 const NAV_ITEMS: NavItem[] = [
