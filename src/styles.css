@@ -783,6 +783,8 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   margin: 0;
   --logo-w: clamp(140px, 22vw, 300px);
   --logo-overhang: 0px;
+  --logo-crop-top: calc(var(--logo-w) * 0.917);
+  --logo-crop-height: calc(var(--logo-w) * 0.785);
 }
 .site-header-v2::before {
   content: "";
@@ -809,6 +811,8 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   display: block;
   flex-shrink: 0;
   width: var(--logo-w);
+  height: var(--logo-crop-height);
+  overflow: hidden;
   margin-top: 0 !important;
   margin-left: clamp(6px, 1.2vw, 18px);
   margin-right: calc(var(--logo-w) * -0.55);
@@ -816,7 +820,12 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.4));
 }
 .site-header-v2__logo:hover { transform: none; }
-.site-header-v2__logo-img { width: 100%; height: auto; display: block; }
+.site-header-v2__logo-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-top: calc(var(--logo-crop-top) * -1);
+}
 
 .site-header-v2__pill {
   position: relative;
