@@ -57,6 +57,9 @@ function TasksAdmin() {
         client_id: editing.client_id || null,
         due_at: editing.due_at || null,
         is_completed: editing.is_completed ?? false,
+        reminder_minutes: (editing as any).reminder_minutes ?? 180,
+        // Reset reminder so the new due_at can fire again
+        reminded_at: null,
       };
       if (editing.id) {
         const { error } = await supabase.from("broker_tasks").update(payload).eq("id", editing.id);
