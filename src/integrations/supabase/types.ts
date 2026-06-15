@@ -238,6 +238,8 @@ export type Database = {
           due_at: string | null
           id: string
           is_completed: boolean
+          reminded_at: string | null
+          reminder_minutes: number
           task_type: string
           title: string
           updated_at: string
@@ -253,6 +255,8 @@ export type Database = {
           due_at?: string | null
           id?: string
           is_completed?: boolean
+          reminded_at?: string | null
+          reminder_minutes?: number
           task_type?: string
           title: string
           updated_at?: string
@@ -268,6 +272,8 @@ export type Database = {
           due_at?: string | null
           id?: string
           is_completed?: boolean
+          reminded_at?: string | null
+          reminder_minutes?: number
           task_type?: string
           title?: string
           updated_at?: string
@@ -1814,6 +1820,30 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reason?: string
+        }
+        Relationships: []
+      }
+      team_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_name: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          sender_name?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_name?: string | null
         }
         Relationships: []
       }
