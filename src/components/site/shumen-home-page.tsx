@@ -302,19 +302,15 @@ export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTot
   }));
   return (
     <div className="min-h-screen relative nadezhda-marble-bg text-[#31020c] font-sans-nadezhda overflow-x-hidden">
-      {/* Mobile-only navigation (restored SiteHeader) */}
-      <div className="md:hidden">
-        <SiteHeader />
-      </div>
+      {/* Unified top header — all viewports */}
+      <SiteHeader />
       {/* HERO */}
 
       <div className="relative">
-        <div className="hidden md:block"><TopFloatSearch /></div>
+        <TopFloatSearch />
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
           <HeroVideoOrImage videoUrl={shumenHeroVideo.url} posterUrl={shumenPanorama.url} alt="Шумен" />
           <div className="absolute inset-0" />
-          <LogoHeader />
-          <HeaderNav />
           <ShumenInfoBox />
         </div>
 
