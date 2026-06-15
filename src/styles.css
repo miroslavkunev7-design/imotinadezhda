@@ -1484,3 +1484,61 @@ body[data-crm-themed] [role="dialog"] [class*="badge"] {
   -webkit-text-fill-color: #ffffff !important;
 }
 
+
+/* ============================================================
+   THEME EDITOR PRESETS
+   Applied via data-preset-* on <html> by ThemeProvider.
+   ============================================================ */
+
+/* --- Button shape presets --- */
+html[data-preset-buttons="pill"] button:not([data-no-preset]),
+html[data-preset-buttons="pill"] .btn { border-radius: 9999px !important; }
+html[data-preset-buttons="square"] button:not([data-no-preset]),
+html[data-preset-buttons="square"] .btn { border-radius: 0 !important; }
+/* "rounded" is the default — no override */
+
+/* --- Form input presets --- */
+html[data-preset-forms="rounded"] input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-preset-forms="rounded"] textarea,
+html[data-preset-forms="rounded"] select { border-radius: 0.75rem !important; }
+html[data-preset-forms="classic"] input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-preset-forms="classic"] textarea,
+html[data-preset-forms="classic"] select { border-radius: 0.25rem !important; }
+html[data-preset-forms="underline"] input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-preset-forms="underline"] textarea,
+html[data-preset-forms="underline"] select {
+  border-radius: 0 !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom-width: 2px !important;
+  background: transparent !important;
+}
+
+/* --- Navbar variants (applied on site-header) --- */
+html[data-preset-navbar="transparent"] .site-header-v2__pill {
+  background: transparent !important;
+  border: 1px solid color-mix(in oklab, var(--foreground) 30%, transparent) !important;
+}
+html[data-preset-navbar="dark"] .site-header-v2__pill {
+  background: #0b0b0b !important;
+  color: #fff !important;
+}
+
+/* --- City card variants (applied on city cards) --- */
+html[data-preset-cards="glass"] .city-card {
+  background: rgba(255,255,255,0.10) !important;
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.25) !important;
+}
+html[data-preset-cards="minimal"] .city-card {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+html[data-preset-cards="gradient"] .city-card {
+  background: linear-gradient(135deg, var(--primary), var(--accent)) !important;
+  color: var(--primary-foreground) !important;
+}
