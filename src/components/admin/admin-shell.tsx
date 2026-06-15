@@ -74,6 +74,7 @@ const NAV: NavItem[] = [
   { to: "/admin/marketing", label: "Маркетинг", icon: Megaphone },
   { to: "/admin/tasks", label: "Задачи", icon: CheckSquare },
   { to: "/admin/documents", label: "Документи", icon: FolderOpen },
+  { to: "/admin/rules", label: "Правила", icon: ScrollText, badge: "NEW" },
   { to: "/admin/settings", label: "Настройки", icon: Settings },
 ];
 
