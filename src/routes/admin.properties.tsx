@@ -35,11 +35,13 @@ type Row = {
   quarter_id: string | null;
   village_id: string | null;
   cities?: { name: string; slug: string } | null;
+  broker_id?: string | null;
 };
 
 type CityOpt = { id: string; name: string; slug: string };
 type QuarterOpt = { id: string; name: string; city_id: string };
 type VillageOpt = { id: string; name: string; oblast_slug: string; municipality_slug: string | null };
+type BrokerOpt = { id: string; full_name: string; phone: string | null; user_id: string | null };
 
 // City slug → which oblast (+ optional municipality) its villages belong to.
 const CITY_OBLAST: Record<string, { oblast: string; municipality?: string }> = {
