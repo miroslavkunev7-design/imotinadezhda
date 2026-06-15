@@ -1,10 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Settings, Image as ImageIcon, ChevronRight, LayoutTemplate, Palette } from "lucide-react";
 
 export const Route = createFileRoute("/admin/settings")({ component: Page });
 
 function Page() {
+  const path = useRouterState({ select: (state) => state.location.pathname });
+
+  if (path !== "/admin/settings") {
+    return <Outlet />;
+  }
+
   return (
     <AdminShell breadcrumb="Настройки">
       <div className="mx-auto w-full max-w-4xl space-y-6 p-2">

@@ -773,17 +773,18 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 /* === Site header v2: edge-to-edge burgundy bar pinned to top + oversized logo overlap === */
 .site-header-v2 {
   position: fixed;
-  top: 0;
+  top: 0 !important;
   left: 0;
   right: 0;
   width: 100vw;
   z-index: 1000;
-  /* Fill iOS notch / status-bar area with burgundy so logo+pill сядат на самия връх */
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: 0 !important;
   background-color: transparent;
   margin: 0;
   --logo-w: clamp(140px, 22vw, 300px);
   --logo-overhang: 0px;
+  --logo-crop-top: calc(var(--logo-w) * 0.917);
+  --logo-crop-height: calc(var(--logo-w) * 0.785);
 }
 .site-header-v2::before {
   content: "";
@@ -798,10 +799,11 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 .site-header-v2__wrap {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   max-width: 100%;
-  margin: 0;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 .site-header-v2__logo {
   position: relative;
@@ -809,21 +811,28 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   display: block;
   flex-shrink: 0;
   width: var(--logo-w);
-  /* Pull logo up so it overlaps the navbar slightly at the top */
-  margin-top: calc(var(--logo-overhang) * -1);
+  height: var(--logo-crop-height);
+  overflow: hidden;
+  margin-top: 0 !important;
   margin-left: clamp(6px, 1.2vw, 18px);
   margin-right: calc(var(--logo-w) * -0.55);
-  transition: transform 0.3s ease;
+  transition: none;
   filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.4));
 }
-.site-header-v2__logo:hover { transform: scale(1.02); }
-.site-header-v2__logo-img { width: 100%; height: auto; display: block; }
+.site-header-v2__logo:hover { transform: none; }
+.site-header-v2__logo-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-top: calc(var(--logo-crop-top) * -1);
+}
 
 .site-header-v2__pill {
   position: relative;
   z-index: 10;
   flex: 1 1 auto;
   min-width: 0;
+  margin-top: 0 !important;
   border-radius: 0;
   padding: 2px;
   background: linear-gradient(to bottom, #f8e7a3, #d4af37, #b8860b);

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertAdmin } from "@/lib/auth/assert-admin";
 
 // Mapping: city slug → which oblast / municipality to query.
 const CITY_TO_OBLAST: Record<string, { oblast: string; municipality?: string; label: string }> = {
@@ -105,8 +106,7 @@ export const backfillVillageCoords = createServerFn({ method: "POST" })
     z.object({ oblast: z.enum(["shumen", "varna", "burgas"]).optional(), limit: z.number().int().min(1).max(80).optional() }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (!isAdmin) throw new Error("Forbidden");
+    await assertAdmin(context.userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
