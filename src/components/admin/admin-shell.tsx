@@ -37,6 +37,7 @@ import { AdminAIBubble } from "@/components/admin/ai-bubble";
 import { onInstallAvailabilityChange, promptInstall } from "@/lib/pwa";
 import { useCrmTheme, crmThemeStyle } from "@/hooks/use-crm-theme";
 import { useTaskReminders } from "@/hooks/use-task-reminders";
+import { PushToggle } from "@/components/admin/push-toggle";
 import marbleBg from "@/assets/marble-bg.png";
 import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
 import brandLogoAsset from "@/assets/brand-logo-square.png.asset.json";
@@ -323,6 +324,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
                 <span className="sm:hidden">Инсталирай</span>
               </button>
             )}
+            <PushToggle />
             <Link to="/" className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-xs text-amber-100 transition hover:bg-amber-500/15">
               <ExternalLink className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Към сайта</span>
             </Link>
