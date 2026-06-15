@@ -35,11 +35,13 @@ type Row = {
   quarter_id: string | null;
   village_id: string | null;
   cities?: { name: string; slug: string } | null;
+  broker_id?: string | null;
 };
 
 type CityOpt = { id: string; name: string; slug: string };
 type QuarterOpt = { id: string; name: string; city_id: string };
 type VillageOpt = { id: string; name: string; oblast_slug: string; municipality_slug: string | null };
+type BrokerOpt = { id: string; full_name: string; phone: string | null; user_id: string | null };
 
 // City slug → which oblast (+ optional municipality) its villages belong to.
 const CITY_OBLAST: Record<string, { oblast: string; municipality?: string }> = {
@@ -54,6 +56,7 @@ function PropertiesAdmin() {
   const [cities, setCities] = useState<CityOpt[]>([]);
   const [quarters, setQuarters] = useState<QuarterOpt[]>([]);
   const [villages, setVillages] = useState<VillageOpt[]>([]);
+  const [brokers, setBrokers] = useState<BrokerOpt[]>([]);
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [imagesFor, setImagesFor] = useState<Row | null>(null);
   const [docsFor, setDocsFor] = useState<Row | null>(null);
@@ -62,16 +65,18 @@ function PropertiesAdmin() {
   const [uploadingNew, setUploadingNew] = useState(false);
 
   const load = async () => {
-    const [{ data: ps }, { data: cs }, { data: qs }, { data: vs }] = await Promise.all([
-      supabase.from("properties").select("id, title, price, currency, property_type, status, is_published, is_featured, city_id, quarter_id, village_id, cities:city_id(name, slug)").order("created_at", { ascending: false }),
+    const [{ data: ps }, { data: cs }, { data: qs }, { data: vs }, { data: bs }] = await Promise.all([
+      supabase.from("properties").select("id, title, price, currency, property_type, status, is_published, is_featured, city_id, quarter_id, village_id, broker_id, cities:city_id(name, slug)").order("created_at", { ascending: false }),
       supabase.from("cities").select("id, name, slug").order("display_order"),
       supabase.from("quarters").select("id, name, city_id").order("display_order"),
       supabase.from("villages").select("id, name, oblast_slug, municipality_slug").order("name"),
+      supabase.from("brokers").select("id, full_name, phone, user_id").eq("is_active", true).order("full_name"),
     ]);
     setRows((ps as Row[]) ?? []);
     setCities(cs ?? []);
     setQuarters(qs ?? []);
     setVillages(vs ?? []);
+    setBrokers((bs as BrokerOpt[]) ?? []);
   };
 
   useEffect(() => { load(); }, []);
@@ -111,12 +116,21 @@ function PropertiesAdmin() {
     if (payload.rooms) payload.rooms = Number(payload.rooms);
     if (!payload.quarter_id) payload.quarter_id = null;
     if (!payload.village_id) payload.village_id = null;
+    if (!payload.broker_id) payload.broker_id = null;
     let propertyId = id;
     try {
       if (id) {
         const { error } = await supabase.from("properties").update(payload).eq("id", id);
         if (error) throw error;
       } else {
+        // Auto-link the creating user so legacy broker fallback works
+        const { data: auth } = await supabase.auth.getUser();
+        if (auth?.user?.id) payload.created_by = auth.user.id;
+        // If no broker explicitly chosen, try to auto-pick the broker row of the current user
+        if (!payload.broker_id && auth?.user?.id) {
+          const mine = brokers.find((b) => b.user_id === auth.user!.id);
+          if (mine) payload.broker_id = mine.id;
+        }
         const { data, error } = await supabase.from("properties").insert(payload).select("id").single();
         if (error) throw error;
         propertyId = data!.id;
@@ -290,6 +304,21 @@ function PropertiesAdmin() {
                 <select value={editing.status ?? "sale"} onChange={(e) => setEditing({ ...editing, status: e.target.value })} className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2">
                   <option value="sale">Продажба</option><option value="rent">Наем</option>
                 </select>
+              </Field>
+              <Field label="Брокер (отговорник)" className="md:col-span-2">
+                <select
+                  value={editing.broker_id ?? ""}
+                  onChange={(e) => setEditing({ ...editing, broker_id: e.target.value || null })}
+                  className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2"
+                >
+                  <option value="">— автоматично (мен) —</option>
+                  {brokers.map((b) => (
+                    <option key={b.id} value={b.id}>{b.full_name}{b.phone ? ` · ${b.phone}` : ""}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-[#5a3a14]/70">
+                  Името и телефонът на този брокер ще се показват на страницата на имота.
+                </p>
               </Field>
 
               {/* ====== ДИНАМИЧНИ ПОЛЕТА според типа имот ====== */}

@@ -1416,6 +1416,7 @@ export type Database = {
           area_sqm: number | null
           bathrooms: number | null
           bedrooms: number | null
+          broker_id: string | null
           built_up_area_sqm: number | null
           city_id: string
           construction_type: string | null
@@ -1453,6 +1454,7 @@ export type Database = {
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          broker_id?: string | null
           built_up_area_sqm?: number | null
           city_id: string
           construction_type?: string | null
@@ -1490,6 +1492,7 @@ export type Database = {
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          broker_id?: string | null
           built_up_area_sqm?: number | null
           city_id?: string
           construction_type?: string | null
@@ -1522,6 +1525,20 @@ export type Database = {
           year_built?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "properties_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "properties_city_id_fkey"
             columns: ["city_id"]
