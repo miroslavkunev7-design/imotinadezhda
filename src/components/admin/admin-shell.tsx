@@ -26,6 +26,7 @@ import {
   Heart,
   ShieldCheck,
   Database,
+  ScrollText,
   Menu,
   X,
   Download as DownloadIcon,
