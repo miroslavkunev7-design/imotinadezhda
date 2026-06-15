@@ -1,16 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertAdmin } from "@/lib/auth/assert-admin";
 import type { ThemePresets, ThemeTokens } from "./tokens";
 
 export const saveTheme = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { tokens: ThemeTokens; presets: ThemePresets }) => data)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (roleErr || !isAdmin) throw new Error("Forbidden — only admins can change the theme.");
+    await assertAdmin(context.userId);
 
     const { error } = await context.supabase
       .from("theme_settings")
