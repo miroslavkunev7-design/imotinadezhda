@@ -770,18 +770,22 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 .font-sans-nadezhda { font-family: "Open Sans", "Manrope", sans-serif; }
 
 
-/* === Site header v2: edge-to-edge burgundy bar + oversized logo overlap === */
+/* === Site header v2: edge-to-edge burgundy bar pinned to top + oversized logo overlap === */
 .site-header-v2 {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
   z-index: 1000;
   padding: 0;
+  margin: 0;
   /* Logo width token — larger than navbar so it slightly overlaps from above */
   --logo-w: clamp(140px, 22vw, 300px);
-  /* How far the logo pokes above the navbar pill */
-  --logo-overhang: clamp(14px, 2.2vw, 36px);
-  /* Reserve vertical space so the protruding logo is not clipped at the top of the page */
-  margin-top: var(--logo-overhang);
+  /* Logo poke above pill — visual only, does NOT add page top spacing */
+  --logo-overhang: clamp(10px, 1.6vw, 24px);
+  /* Reserve room inside the header for the logo overhang so it doesn't get clipped */
+  padding-top: var(--logo-overhang);
 }
 .site-header-v2__wrap {
   position: relative;
