@@ -962,7 +962,7 @@ export function HomePage({
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/40" />
-        <div className="relative z-10 flex flex-1 min-h-0 flex-col pt-[88px] md:pt-[104px]">
+        <div className="relative z-10 flex flex-1 min-h-0 flex-col pt-[64px] sm:pt-[80px] md:pt-[104px]">
           <LuxuryHeader active="sale" />
 
           {mobileSections.map((s) => sectionNode(s.id))}
