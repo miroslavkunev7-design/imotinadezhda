@@ -1800,6 +1800,36 @@ export type Database = {
         }
         Relationships: []
       }
+      theme_settings: {
+        Row: {
+          created_at: string
+          id: string
+          presets: Json
+          singleton: boolean
+          tokens: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          presets?: Json
+          singleton?: boolean
+          tokens?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          presets?: Json
+          singleton?: boolean
+          tokens?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
