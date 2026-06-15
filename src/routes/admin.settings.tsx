@@ -100,6 +100,6 @@ function Page() {
           </Link>
         </div>
       </div>
-    </AdminShell>
+    </>
   );
 }
