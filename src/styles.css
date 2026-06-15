@@ -892,7 +892,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
     justify-content: center;
   }
   .site-header-v2__pill-inner {
-    padding-left: calc(clamp(90px, 14vw, 200px) * 0.55);
+    padding-left: calc(clamp(130px, 22vw, 280px) * 0.55);
   }
 }
 
