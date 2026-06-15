@@ -1931,7 +1931,9 @@ type PropertyData = {
     quarters?: { name: string; slug: string } | null;
   };
   images: Array<{ id: string; url: string; is_cover?: boolean; display_order?: number | null }>;
+  broker?: { id: string; full_name: string; email: string | null; phone: string | null; photo_url: string | null } | null;
 };
+
 
 export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   if (!data) {
