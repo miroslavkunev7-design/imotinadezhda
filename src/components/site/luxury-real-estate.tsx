@@ -2112,14 +2112,26 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
                   <div className="text-sm text-gray-300">{brokerRole}</div>
                 </div>
               </div>
-              <div className="mb-8 space-y-4 text-base">
+              <div className="mb-6 space-y-4 text-base">
                 <a href={`tel:${brokerPhoneTel}`} className="flex items-center gap-4 hover:text-[#f4d07d]"><Phone className="h-5 w-5 text-[#f4d07d]" /> {brokerPhoneDisplay}</a>
                 <a href={`mailto:${brokerEmail}`} className="flex items-center gap-4 break-all hover:text-[#f4d07d]"><Mail className="h-5 w-5 text-[#f4d07d]" /> {brokerEmail}</a>
               </div>
 
-              <button className="nadezhda-gold-bg mb-4 flex w-full items-center justify-center gap-3 rounded-xl py-4 text-lg font-bold text-black shadow-xl transition hover:brightness-110">
+              <div className="mb-4 grid grid-cols-3 gap-2">
+                <a href={`tel:${brokerPhoneTel}`} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-[#c59441]/60 bg-white/5 py-3 text-xs font-semibold text-white transition hover:bg-white/10" aria-label="Позвъни">
+                  <Phone className="h-5 w-5 text-[#f4d07d]" /> Позвъни
+                </a>
+                <a href={`https://wa.me/${brokerPhoneTel.replace(/\D/g, "")}?text=${encodeURIComponent(`Здравейте, интересувам се от имот: ${property.title}`)}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center gap-1 rounded-xl border border-[#25D366]/70 bg-[#25D366]/15 py-3 text-xs font-semibold text-white transition hover:bg-[#25D366]/25" aria-label="WhatsApp">
+                  <MessageCircle className="h-5 w-5 text-[#25D366]" /> WhatsApp
+                </a>
+                <a href={`viber://chat?number=%2B${brokerPhoneTel.replace(/\D/g, "")}`} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-[#7360f2]/70 bg-[#7360f2]/15 py-3 text-xs font-semibold text-white transition hover:bg-[#7360f2]/25" aria-label="Viber">
+                  <MessageCircle className="h-5 w-5 text-[#a594ff]" /> Viber
+                </a>
+              </div>
+
+              <a href="#inquiry" className="nadezhda-gold-bg mb-3 flex w-full items-center justify-center gap-3 rounded-xl py-4 text-lg font-bold text-black shadow-xl transition hover:brightness-110">
                 Запази час за оглед
-              </button>
+              </a>
               <a href="#inquiry" className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-[#c59441] bg-transparent py-4 text-lg font-bold text-white transition hover:bg-white/10">
                 <Mail className="h-5 w-5" /> Запитване
               </a>
