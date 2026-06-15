@@ -97,7 +97,6 @@ function fireReminder(opts: { title: string; body: string; audio: HTMLAudioEleme
   toast(opts.title, {
     description: opts.body,
     duration: 60_000,
-    important: true,
   });
 
   // 2) Native browser notification (works on Android Chrome + Desktop)
