@@ -37,8 +37,8 @@ const RULES: Rule[] = [
   },
   {
     id: "4",
-    title: "Без текст „ИЛДЖ.ИА" в hero секцията",
-    description: "Hero не съдържа никога низ „ИЛДЖ.ИА" или подобни placeholder надписи.",
+    title: 'Без текст „ИЛДЖ.ИА" в hero секцията',
+    description: 'Hero не съдържа никога низ „ИЛДЖ.ИА" или подобни placeholder надписи.',
     priority: "normal",
   },
   {
