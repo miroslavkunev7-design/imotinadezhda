@@ -19,6 +19,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PropertiesPropertyIdRouteImport } from './routes/properties.$propertyId'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminRulesRouteImport } from './routes/admin.rules'
 import { Route as AdminQuartersRouteImport } from './routes/admin.quarters'
 import { Route as AdminPropertiesRouteImport } from './routes/admin.properties'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
@@ -101,6 +102,11 @@ const AdminTasksRoute = AdminTasksRouteImport.update({
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRulesRoute = AdminRulesRouteImport.update({
+  id: '/rules',
+  path: '/rules',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminQuartersRoute = AdminQuartersRouteImport.update({
@@ -301,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
+  '/admin/rules': typeof AdminRulesRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
@@ -345,6 +352,7 @@ export interface FileRoutesByTo {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
+  '/admin/rules': typeof AdminRulesRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
@@ -391,6 +399,7 @@ export interface FileRoutesById {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
   '/admin/quarters': typeof AdminQuartersRoute
+  '/admin/rules': typeof AdminRulesRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
@@ -438,6 +447,7 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
+    | '/admin/rules'
     | '/admin/settings'
     | '/admin/tasks'
     | '/properties/$propertyId'
@@ -482,6 +492,7 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
+    | '/admin/rules'
     | '/admin/settings'
     | '/admin/tasks'
     | '/properties/$propertyId'
@@ -527,6 +538,7 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/properties'
     | '/admin/quarters'
+    | '/admin/rules'
     | '/admin/settings'
     | '/admin/tasks'
     | '/properties/$propertyId'
@@ -631,6 +643,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/rules': {
+      id: '/admin/rules'
+      path: '/rules'
+      fullPath: '/admin/rules'
+      preLoaderRoute: typeof AdminRulesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/quarters': {
@@ -919,6 +938,7 @@ interface AdminRouteChildren {
   AdminProfileRoute: typeof AdminProfileRoute
   AdminPropertiesRoute: typeof AdminPropertiesRoute
   AdminQuartersRoute: typeof AdminQuartersRoute
+  AdminRulesRoute: typeof AdminRulesRoute
   AdminSettingsRoute: typeof AdminSettingsRouteWithChildren
   AdminTasksRoute: typeof AdminTasksRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -947,6 +967,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProfileRoute: AdminProfileRoute,
   AdminPropertiesRoute: AdminPropertiesRoute,
   AdminQuartersRoute: AdminQuartersRoute,
+  AdminRulesRoute: AdminRulesRoute,
   AdminSettingsRoute: AdminSettingsRouteWithChildren,
   AdminTasksRoute: AdminTasksRoute,
   AdminIndexRoute: AdminIndexRoute,
