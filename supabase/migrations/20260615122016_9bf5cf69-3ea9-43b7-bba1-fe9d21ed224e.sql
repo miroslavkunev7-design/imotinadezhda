@@ -1,0 +1,2 @@
+ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS broker_id uuid REFERENCES public.brokers(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_properties_broker_id ON public.properties(broker_id);
