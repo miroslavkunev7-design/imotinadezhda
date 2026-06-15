@@ -790,8 +790,8 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   z-index: 20;
   display: block;
   flex-shrink: 0;
-  width: clamp(90px, 14vw, 200px);
-  margin-right: calc(clamp(90px, 14vw, 200px) * -0.55);
+  width: clamp(130px, 22vw, 280px);
+  margin-right: calc(clamp(130px, 22vw, 280px) * -0.55);
   transition: transform 0.3s ease;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
 }
