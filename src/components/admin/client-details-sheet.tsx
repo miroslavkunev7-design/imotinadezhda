@@ -330,6 +330,25 @@ export function ClientDetailsSheet({
           {client.cities?.name && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{client.cities.name}{client.quarters?.name ? `, ${client.quarters.name}` : ""}</span>}
         </div>
 
+        {client.phone && (() => {
+          const tel = phoneTel(client.phone);
+          const waDigits = tel.replace(/\D/g, "");
+          const greet = `Здравейте, ${client.full_name?.split(" ")[0] ?? ""}!`;
+          return (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <a href={`tel:${tel}`} className="flex items-center justify-center gap-1.5 rounded-lg border border-border bg-background py-2 text-xs font-semibold text-primary transition hover:bg-accent">
+                <Phone className="h-3.5 w-3.5" /> Позвъни
+              </a>
+              <a href={`https://wa.me/${waDigits}?text=${encodeURIComponent(greet)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 rounded-lg border border-[#25D366]/60 bg-[#25D366]/10 py-2 text-xs font-semibold text-[#128C7E] transition hover:bg-[#25D366]/20">
+                <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+              </a>
+              <a href={`viber://chat?number=%2B${waDigits}`} className="flex items-center justify-center gap-1.5 rounded-lg border border-[#7360f2]/60 bg-[#7360f2]/10 py-2 text-xs font-semibold text-[#5b46d6] transition hover:bg-[#7360f2]/20">
+                <MessageCircle className="h-3.5 w-3.5" /> Viber
+              </a>
+            </div>
+          );
+        })()}
+
         {/* Deal progress */}
         <div className="mt-5 rounded-xl border border-border bg-muted/30 p-4">
           <div className="mb-2 flex items-center justify-between">
