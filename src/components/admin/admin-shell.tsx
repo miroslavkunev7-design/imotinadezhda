@@ -84,6 +84,8 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const [crmBg, setCrmBg] = useState<string | null>(null);
   const { theme } = useCrmTheme();
 
+  useTaskReminders();
+
   useEffect(() => onInstallAvailabilityChange(setInstallAvailable), []);
 
   useEffect(() => {
