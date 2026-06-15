@@ -16,6 +16,7 @@ type Task = {
   task_type: string;
   is_completed: boolean;
   due_at: string | null;
+  reminder_minutes?: number | null;
   created_at: string;
 };
 type Broker = { id: string; full_name: string };
@@ -57,6 +58,9 @@ function TasksAdmin() {
         client_id: editing.client_id || null,
         due_at: editing.due_at || null,
         is_completed: editing.is_completed ?? false,
+        reminder_minutes: (editing as any).reminder_minutes ?? 180,
+        // Reset reminder so the new due_at can fire again
+        reminded_at: null,
       };
       if (editing.id) {
         const { error } = await supabase.from("broker_tasks").update(payload).eq("id", editing.id);
@@ -190,6 +194,22 @@ function TasksAdmin() {
               <Field label="Срок">
                 <input type="datetime-local" value={editing.due_at ? editing.due_at.slice(0, 16) : ""}
                   onChange={e => setEditing({ ...editing, due_at: e.target.value ? new Date(e.target.value).toISOString() : null })} className={inp} />
+              </Field>
+              <Field label="Напомняне (минути преди срока)">
+                <select
+                  value={String((editing as any).reminder_minutes ?? 180)}
+                  onChange={e => setEditing({ ...editing, reminder_minutes: Number(e.target.value) } as any)}
+                  className={inp}
+                >
+                  <option value="15">15 мин</option>
+                  <option value="30">30 мин</option>
+                  <option value="60">1 час</option>
+                  <option value="120">2 часа</option>
+                  <option value="180">3 часа</option>
+                  <option value="360">6 часа</option>
+                  <option value="720">12 часа</option>
+                  <option value="1440">1 ден</option>
+                </select>
               </Field>
             </div>
             <div className="flex justify-end gap-2 pt-2">

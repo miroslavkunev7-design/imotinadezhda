@@ -36,6 +36,7 @@ import { newMatchesCount } from "@/lib/crm.functions";
 import { AdminAIBubble } from "@/components/admin/ai-bubble";
 import { onInstallAvailabilityChange, promptInstall } from "@/lib/pwa";
 import { useCrmTheme, crmThemeStyle } from "@/hooks/use-crm-theme";
+import { useTaskReminders } from "@/hooks/use-task-reminders";
 import marbleBg from "@/assets/marble-bg.png";
 import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
 import brandLogoAsset from "@/assets/brand-logo-square.png.asset.json";
@@ -83,6 +84,8 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   const [installAvailable, setInstallAvailable] = useState(false);
   const [crmBg, setCrmBg] = useState<string | null>(null);
   const { theme } = useCrmTheme();
+
+  useTaskReminders();
 
   useEffect(() => onInstallAvailabilityChange(setInstallAvailable), []);
 
