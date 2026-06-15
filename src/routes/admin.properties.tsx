@@ -305,6 +305,21 @@ function PropertiesAdmin() {
                   <option value="sale">Продажба</option><option value="rent">Наем</option>
                 </select>
               </Field>
+              <Field label="Брокер (отговорник)" className="md:col-span-2">
+                <select
+                  value={editing.broker_id ?? ""}
+                  onChange={(e) => setEditing({ ...editing, broker_id: e.target.value || null })}
+                  className="w-full rounded border border-amber-700/30 bg-white/90 text-slate-800 px-3 py-2"
+                >
+                  <option value="">— автоматично (мен) —</option>
+                  {brokers.map((b) => (
+                    <option key={b.id} value={b.id}>{b.full_name}{b.phone ? ` · ${b.phone}` : ""}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-[#5a3a14]/70">
+                  Името и телефонът на този брокер ще се показват на страницата на имота.
+                </p>
+              </Field>
 
               {/* ====== ДИНАМИЧНИ ПОЛЕТА според типа имот ====== */}
               {(() => {
