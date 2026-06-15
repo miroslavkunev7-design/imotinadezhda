@@ -143,6 +143,212 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "create_client",
+      description: "Създава нов клиент в CRM. Подай името задължително; останалите полета са опционални. Преди да извикаш, потвърди намерението с потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          full_name: { type: "string" },
+          phone: { type: "string" },
+          email: { type: "string" },
+          client_type: { type: "string", enum: ["buyer", "seller", "tenant", "landlord"], description: "По подразбиране buyer" },
+          status: { type: "string", enum: ["active", "paused", "closed", "lost"] },
+          budget_min: { type: "number" },
+          budget_max: { type: "number" },
+          currency: { type: "string", enum: ["EUR", "BGN"] },
+          rooms_min: { type: "number" },
+          rooms_max: { type: "number" },
+          area_min: { type: "number" },
+          area_max: { type: "number" },
+          search_property_type: { type: "string" },
+          notes: { type: "string" },
+          assigned_broker_id: { type: "string" },
+        },
+        required: ["full_name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_client",
+      description: "Редактира съществуващ клиент. Подай client_id + само полетата, които сменяш. Преди да извикаш, потвърди с потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          client_id: { type: "string" },
+          full_name: { type: "string" },
+          phone: { type: "string" },
+          email: { type: "string" },
+          client_type: { type: "string", enum: ["buyer", "seller", "tenant", "landlord"] },
+          status: { type: "string", enum: ["active", "paused", "closed", "lost"] },
+          budget_min: { type: "number" },
+          budget_max: { type: "number" },
+          currency: { type: "string", enum: ["EUR", "BGN"] },
+          rooms_min: { type: "number" },
+          rooms_max: { type: "number" },
+          area_min: { type: "number" },
+          area_max: { type: "number" },
+          notes: { type: "string" },
+          assigned_broker_id: { type: "string" },
+        },
+        required: ["client_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_client",
+      description: "Изтрива клиент завинаги. ВИНАГИ изисквай явно потвърждение от потребителя преди да извикаш.",
+      parameters: {
+        type: "object",
+        properties: {
+          client_id: { type: "string" },
+          confirm: { type: "boolean", description: "Трябва да е true." },
+        },
+        required: ["client_id", "confirm"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_property",
+      description: "Създава нов имот. Подай title и city_id задължително. Преди да извикаш, потвърди с потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          description: { type: "string" },
+          city_id: { type: "string" },
+          quarter_id: { type: "string" },
+          property_type: { type: "string", description: "apartment, house, plot, office, commercial и т.н." },
+          status: { type: "string", enum: ["for_sale", "for_rent", "sold", "rented", "reserved"] },
+          price: { type: "number" },
+          currency: { type: "string", enum: ["EUR", "BGN"] },
+          area_sqm: { type: "number" },
+          rooms: { type: "number" },
+          floor: { type: "number" },
+          address: { type: "string" },
+          is_published: { type: "boolean" },
+          owner_id: { type: "string" },
+          assigned_broker_id: { type: "string" },
+        },
+        required: ["title", "city_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_property",
+      description: "Редактира съществуващ имот (вкл. смяна на цена, статус, описание). Подай property_id + полетата, които сменяш. Потвърди с потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          property_id: { type: "string" },
+          title: { type: "string" },
+          description: { type: "string" },
+          city_id: { type: "string" },
+          quarter_id: { type: "string" },
+          property_type: { type: "string" },
+          status: { type: "string", enum: ["for_sale", "for_rent", "sold", "rented", "reserved"] },
+          price: { type: "number" },
+          currency: { type: "string", enum: ["EUR", "BGN"] },
+          area_sqm: { type: "number" },
+          rooms: { type: "number" },
+          floor: { type: "number" },
+          address: { type: "string" },
+          is_published: { type: "boolean" },
+          assigned_broker_id: { type: "string" },
+        },
+        required: ["property_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_property",
+      description: "Изтрива имот завинаги. ВИНАГИ изисквай явно потвърждение от потребителя преди да извикаш.",
+      parameters: {
+        type: "object",
+        properties: {
+          property_id: { type: "string" },
+          confirm: { type: "boolean" },
+        },
+        required: ["property_id", "confirm"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_broker",
+      description: "Създава нов брокер. Изисква full_name. Може да се добавят email, телефон, лиценз и био.",
+      parameters: {
+        type: "object",
+        properties: {
+          full_name: { type: "string" },
+          email: { type: "string" },
+          phone: { type: "string" },
+          license_number: { type: "string" },
+          bio: { type: "string" },
+          photo_url: { type: "string" },
+          is_active: { type: "boolean" },
+        },
+        required: ["full_name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_broker",
+      description: "Редактира съществуващ брокер. Подай broker_id + полетата, които сменяш.",
+      parameters: {
+        type: "object",
+        properties: {
+          broker_id: { type: "string" },
+          full_name: { type: "string" },
+          email: { type: "string" },
+          phone: { type: "string" },
+          license_number: { type: "string" },
+          bio: { type: "string" },
+          photo_url: { type: "string" },
+          is_active: { type: "boolean" },
+        },
+        required: ["broker_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_broker",
+      description: "Изтрива брокер завинаги. ВИНАГИ изисквай явно потвърждение от потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          broker_id: { type: "string" },
+          confirm: { type: "boolean" },
+        },
+        required: ["broker_id", "confirm"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "search_brokers",
+      description: "Връща списък с всички брокери (id, име, email, телефон, активен).",
+      parameters: { type: "object", properties: {} },
+    },
+  },
 ];
 
 function stripHtml(html: string): string {
