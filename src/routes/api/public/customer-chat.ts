@@ -266,8 +266,15 @@ export const Route = createFileRoute("/api/public/customer-chat")({
           );
         } catch (e: any) {
           const msg = e?.message ?? "error";
+          console.error("[customer-chat] error:", msg, e);
           const status = msg === "RATE_LIMIT" ? 429 : msg === "PAYMENT_REQUIRED" ? 402 : 500;
-          return new Response(JSON.stringify({ error: msg }), {
+          const safe =
+            status === 429
+              ? "Моля, опитайте след малко."
+              : status === 402
+                ? "Услугата е временно недостъпна."
+                : "Възникна грешка. Моля, опитайте отново.";
+          return new Response(JSON.stringify({ error: safe }), {
             status,
             headers: { ...cors, "Content-Type": "application/json" },
           });
