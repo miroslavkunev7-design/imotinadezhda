@@ -1946,7 +1946,16 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
       </main>
     );
   }
-  const { property, images } = data;
+  const { property, images, broker } = data;
+  // Resolve broker contact: fall back to the agency owner defaults when the
+  // listing has no linked broker (legacy rows / direct admin uploads).
+  const brokerName = broker?.full_name?.trim() || "Надежда Иванова";
+  const brokerRole = broker ? "Брокер" : "Старши консултант";
+  const brokerPhoneDisplay = broker?.phone?.trim() || "0899 620 262";
+  const brokerPhoneTel = `+${brokerPhoneDisplay.replace(/[^\d]/g, "").replace(/^0/, "359")}`;
+  const brokerEmail = broker?.email?.trim() || "agenciq_nadejdi@abv.bg";
+  const brokerPhoto = broker?.photo_url?.trim() || "";
+
   const gallery = (images.length ? images.map((i) => i.url) : [property.cover_image_url || burgasHero]).filter(Boolean) as string[];
   const cityName = property.cities?.name ?? "—";
   const citySlug = property.cities?.slug ?? "";
