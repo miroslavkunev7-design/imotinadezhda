@@ -120,8 +120,21 @@ export const getPropertyById = createServerFn({ method: "GET" })
       .select("id, url, is_cover, display_order")
       .eq("property_id", property.id)
       .order("display_order");
-    return { property, images: images ?? [] };
+    // Resolve the broker who uploaded this listing (created_by → brokers.user_id).
+    let broker: { id: string; full_name: string; email: string | null; phone: string | null; photo_url: string | null } | null = null;
+    const createdBy = (property as any).created_by as string | null | undefined;
+    if (createdBy) {
+      const { data: b } = await supabaseAdmin
+        .from("brokers")
+        .select("id, full_name, email, phone, photo_url")
+        .eq("user_id", createdBy)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (b) broker = b;
+    }
+    return { property, images: images ?? [], broker };
   });
+
 
 export const submitInquiry = createServerFn({ method: "POST" })
   .inputValidator((d) =>

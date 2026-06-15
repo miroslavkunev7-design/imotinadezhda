@@ -1931,7 +1931,9 @@ type PropertyData = {
     quarters?: { name: string; slug: string } | null;
   };
   images: Array<{ id: string; url: string; is_cover?: boolean; display_order?: number | null }>;
+  broker?: { id: string; full_name: string; email: string | null; phone: string | null; photo_url: string | null } | null;
 };
+
 
 export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   if (!data) {
@@ -1944,7 +1946,16 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
       </main>
     );
   }
-  const { property, images } = data;
+  const { property, images, broker } = data;
+  // Resolve broker contact: fall back to the agency owner defaults when the
+  // listing has no linked broker (legacy rows / direct admin uploads).
+  const brokerName = broker?.full_name?.trim() || "Надежда Иванова";
+  const brokerRole = broker ? "Брокер" : "Старши консултант";
+  const brokerPhoneDisplay = broker?.phone?.trim() || "0899 620 262";
+  const brokerPhoneTel = `+${brokerPhoneDisplay.replace(/[^\d]/g, "").replace(/^0/, "359")}`;
+  const brokerEmail = broker?.email?.trim() || "agenciq_nadejdi@abv.bg";
+  const brokerPhoto = broker?.photo_url?.trim() || "";
+
   const gallery = (images.length ? images.map((i) => i.url) : [property.cover_image_url || burgasHero]).filter(Boolean) as string[];
   const cityName = property.cities?.name ?? "—";
   const citySlug = property.cities?.slug ?? "";
@@ -2081,18 +2092,23 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
             {/* Broker card */}
             <div className="nadezhda-dark-red-bg rounded-3xl border border-[#c59441] p-8 text-white shadow-2xl">
               <div className="mb-8 flex items-center gap-5">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-[#c59441] bg-[#3a0010] shadow-lg">
-                  <User className="h-8 w-8 text-[#c59441]" />
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-[#c59441] bg-[#3a0010] shadow-lg">
+                  {brokerPhoto ? (
+                    <img src={brokerPhoto} alt={brokerName} className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-8 w-8 text-[#c59441]" />
+                  )}
                 </div>
                 <div>
-                  <div className="font-serif-nadezhda mb-1 text-xl font-bold text-[#ebd197]">Надежда Иванова</div>
-                  <div className="text-sm text-gray-300">Старши консултант</div>
+                  <div className="font-serif-nadezhda mb-1 text-xl font-bold text-[#ebd197]">{brokerName}</div>
+                  <div className="text-sm text-gray-300">{brokerRole}</div>
                 </div>
               </div>
               <div className="mb-8 space-y-4 text-base">
-                <a href="tel:+359899620262" className="flex items-center gap-4 hover:text-[#f4d07d]"><Phone className="h-5 w-5 text-[#f4d07d]" /> 0899 620 262</a>
-                <a href="mailto:agenciq_nadejdi@abv.bg" className="flex items-center gap-4 break-all hover:text-[#f4d07d]"><Mail className="h-5 w-5 text-[#f4d07d]" /> agenciq_nadejdi@abv.bg</a>
+                <a href={`tel:${brokerPhoneTel}`} className="flex items-center gap-4 hover:text-[#f4d07d]"><Phone className="h-5 w-5 text-[#f4d07d]" /> {brokerPhoneDisplay}</a>
+                <a href={`mailto:${brokerEmail}`} className="flex items-center gap-4 break-all hover:text-[#f4d07d]"><Mail className="h-5 w-5 text-[#f4d07d]" /> {brokerEmail}</a>
               </div>
+
               <button className="nadezhda-gold-bg mb-4 flex w-full items-center justify-center gap-3 rounded-xl py-4 text-lg font-bold text-black shadow-xl transition hover:brightness-110">
                 Запази час за оглед
               </button>
