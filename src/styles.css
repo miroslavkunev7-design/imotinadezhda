@@ -776,6 +776,8 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   width: 100%;
   z-index: 1000;
   padding: clamp(8px, 1.5vw, 18px) clamp(8px, 2vw, 28px);
+  /* Logo width token — referenced everywhere so mobile matches the reference screenshot */
+  --logo-w: clamp(170px, 24vw, 320px);
 }
 .site-header-v2__wrap {
   position: relative;
@@ -790,8 +792,8 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   z-index: 20;
   display: block;
   flex-shrink: 0;
-  width: clamp(130px, 22vw, 280px);
-  margin-right: calc(clamp(130px, 22vw, 280px) * -0.55);
+  width: var(--logo-w);
+  margin-right: calc(var(--logo-w) * -0.55);
   transition: transform 0.3s ease;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
 }
@@ -821,7 +823,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   padding: clamp(6px, 1vw, 14px)
            clamp(8px, 1.5vw, 22px)
            clamp(6px, 1vw, 14px)
-           calc(clamp(130px, 22vw, 280px) * 0.6);
+           calc(var(--logo-w) * 0.6);
 }
 .site-header-v2__items {
   display: flex;
@@ -892,7 +894,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
     justify-content: center;
   }
   .site-header-v2__pill-inner {
-    padding-left: calc(clamp(130px, 22vw, 280px) * 0.55);
+    padding-left: calc(var(--logo-w) * 0.55);
   }
 }
 
