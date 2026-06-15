@@ -120,10 +120,20 @@ export const getPropertyById = createServerFn({ method: "GET" })
       .select("id, url, is_cover, display_order")
       .eq("property_id", property.id)
       .order("display_order");
-    // Resolve the broker who uploaded this listing (created_by → brokers.user_id).
+    // Resolve broker: prefer explicit broker_id, fall back to the uploader
+    // (created_by → brokers.user_id) for legacy rows.
     let broker: { id: string; full_name: string; email: string | null; phone: string | null; photo_url: string | null } | null = null;
+    const brokerId = (property as any).broker_id as string | null | undefined;
     const createdBy = (property as any).created_by as string | null | undefined;
-    if (createdBy) {
+    if (brokerId) {
+      const { data: b } = await supabaseAdmin
+        .from("brokers")
+        .select("id, full_name, email, phone, photo_url")
+        .eq("id", brokerId)
+        .maybeSingle();
+      if (b) broker = b;
+    }
+    if (!broker && createdBy) {
       const { data: b } = await supabaseAdmin
         .from("brokers")
         .select("id, full_name, email, phone, photo_url")
