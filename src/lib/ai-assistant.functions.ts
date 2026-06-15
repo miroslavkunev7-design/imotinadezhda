@@ -143,6 +143,212 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "create_client",
+      description: "Създава нов клиент в CRM. Подай името задължително; останалите полета са опционални. Преди да извикаш, потвърди намерението с потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          full_name: { type: "string" },
+          phone: { type: "string" },
+          email: { type: "string" },
+          client_type: { type: "string", enum: ["buyer", "seller", "tenant", "landlord"], description: "По подразбиране buyer" },
+          status: { type: "string", enum: ["active", "paused", "closed", "lost"] },
+          budget_min: { type: "number" },
+          budget_max: { type: "number" },
+          currency: { type: "string", enum: ["EUR", "BGN"] },
+          rooms_min: { type: "number" },
+          rooms_max: { type: "number" },
+          area_min: { type: "number" },
+          area_max: { type: "number" },
+          search_property_type: { type: "string" },
+          notes: { type: "string" },
+          assigned_broker_id: { type: "string" },
+        },
+        required: ["full_name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_client",
+      description: "Редактира съществуващ клиент. Подай client_id + само полетата, които сменяш. Преди да извикаш, потвърди с потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          client_id: { type: "string" },
+          full_name: { type: "string" },
+          phone: { type: "string" },
+          email: { type: "string" },
+          client_type: { type: "string", enum: ["buyer", "seller", "tenant", "landlord"] },
+          status: { type: "string", enum: ["active", "paused", "closed", "lost"] },
+          budget_min: { type: "number" },
+          budget_max: { type: "number" },
+          currency: { type: "string", enum: ["EUR", "BGN"] },
+          rooms_min: { type: "number" },
+          rooms_max: { type: "number" },
+          area_min: { type: "number" },
+          area_max: { type: "number" },
+          notes: { type: "string" },
+          assigned_broker_id: { type: "string" },
+        },
+        required: ["client_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_client",
+      description: "Изтрива клиент завинаги. ВИНАГИ изисквай явно потвърждение от потребителя преди да извикаш.",
+      parameters: {
+        type: "object",
+        properties: {
+          client_id: { type: "string" },
+          confirm: { type: "boolean", description: "Трябва да е true." },
+        },
+        required: ["client_id", "confirm"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_property",
+      description: "Създава нов имот. Подай title и city_id задължително. Преди да извикаш, потвърди с потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          description: { type: "string" },
+          city_id: { type: "string" },
+          quarter_id: { type: "string" },
+          property_type: { type: "string", description: "apartment, house, plot, office, commercial и т.н." },
+          status: { type: "string", enum: ["for_sale", "for_rent", "sold", "rented", "reserved"] },
+          price: { type: "number" },
+          currency: { type: "string", enum: ["EUR", "BGN"] },
+          area_sqm: { type: "number" },
+          rooms: { type: "number" },
+          floor: { type: "number" },
+          address: { type: "string" },
+          is_published: { type: "boolean" },
+          owner_id: { type: "string" },
+          assigned_broker_id: { type: "string" },
+        },
+        required: ["title", "city_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_property",
+      description: "Редактира съществуващ имот (вкл. смяна на цена, статус, описание). Подай property_id + полетата, които сменяш. Потвърди с потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          property_id: { type: "string" },
+          title: { type: "string" },
+          description: { type: "string" },
+          city_id: { type: "string" },
+          quarter_id: { type: "string" },
+          property_type: { type: "string" },
+          status: { type: "string", enum: ["for_sale", "for_rent", "sold", "rented", "reserved"] },
+          price: { type: "number" },
+          currency: { type: "string", enum: ["EUR", "BGN"] },
+          area_sqm: { type: "number" },
+          rooms: { type: "number" },
+          floor: { type: "number" },
+          address: { type: "string" },
+          is_published: { type: "boolean" },
+          assigned_broker_id: { type: "string" },
+        },
+        required: ["property_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_property",
+      description: "Изтрива имот завинаги. ВИНАГИ изисквай явно потвърждение от потребителя преди да извикаш.",
+      parameters: {
+        type: "object",
+        properties: {
+          property_id: { type: "string" },
+          confirm: { type: "boolean" },
+        },
+        required: ["property_id", "confirm"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_broker",
+      description: "Създава нов брокер. Изисква full_name. Може да се добавят email, телефон, лиценз и био.",
+      parameters: {
+        type: "object",
+        properties: {
+          full_name: { type: "string" },
+          email: { type: "string" },
+          phone: { type: "string" },
+          license_number: { type: "string" },
+          bio: { type: "string" },
+          photo_url: { type: "string" },
+          is_active: { type: "boolean" },
+        },
+        required: ["full_name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "update_broker",
+      description: "Редактира съществуващ брокер. Подай broker_id + полетата, които сменяш.",
+      parameters: {
+        type: "object",
+        properties: {
+          broker_id: { type: "string" },
+          full_name: { type: "string" },
+          email: { type: "string" },
+          phone: { type: "string" },
+          license_number: { type: "string" },
+          bio: { type: "string" },
+          photo_url: { type: "string" },
+          is_active: { type: "boolean" },
+        },
+        required: ["broker_id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_broker",
+      description: "Изтрива брокер завинаги. ВИНАГИ изисквай явно потвърждение от потребителя.",
+      parameters: {
+        type: "object",
+        properties: {
+          broker_id: { type: "string" },
+          confirm: { type: "boolean" },
+        },
+        required: ["broker_id", "confirm"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "search_brokers",
+      description: "Връща списък с всички брокери (id, име, email, телефон, активен).",
+      parameters: { type: "object", properties: {} },
+    },
+  },
 ];
 
 function stripHtml(html: string): string {
@@ -311,6 +517,105 @@ async function runTool(name: string, args: any, userId: string): Promise<any> {
       return { error: "Грешка при изтегляне: " + (e?.message ?? String(e)) };
     }
   }
+  // ===== WRITE TOOLS (admin-only — gated at handler entry) =====
+  const pickFields = (src: Record<string, unknown>, fields: string[]) => {
+    const out: Record<string, unknown> = {};
+    for (const f of fields) if (src[f] !== undefined && src[f] !== null && src[f] !== "") out[f] = src[f];
+    return out;
+  };
+
+  if (name === "create_client") {
+    if (!args.full_name) return { error: "full_name е задължително" };
+    const payload = pickFields(args, [
+      "full_name", "phone", "email", "client_type", "status",
+      "budget_min", "budget_max", "currency", "rooms_min", "rooms_max",
+      "area_min", "area_max", "search_property_type", "notes", "assigned_broker_id",
+    ]);
+    payload.created_by = userId;
+    const { data, error } = await supabaseAdmin.from("clients").insert(payload as never).select("id, full_name").single();
+    if (error) return { error: error.message };
+    return { ok: true, client: data, message: `Клиент "${data.full_name}" е създаден.` };
+  }
+  if (name === "update_client") {
+    if (!args.client_id) return { error: "client_id е задължително" };
+    const payload = pickFields(args, [
+      "full_name", "phone", "email", "client_type", "status",
+      "budget_min", "budget_max", "currency", "rooms_min", "rooms_max",
+      "area_min", "area_max", "notes", "assigned_broker_id",
+    ]);
+    if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
+    const { data, error } = await supabaseAdmin.from("clients").update(payload as never).eq("id", args.client_id).select("id, full_name").maybeSingle();
+    if (error) return { error: error.message };
+    if (!data) return { error: "Клиент не е намерен." };
+    return { ok: true, client: data, message: `Клиент "${data.full_name}" е обновен.` };
+  }
+  if (name === "delete_client") {
+    if (!args.confirm) return { error: "Изисква се confirm=true." };
+    const { error } = await supabaseAdmin.from("clients").delete().eq("id", args.client_id);
+    if (error) return { error: error.message };
+    return { ok: true, message: "Клиентът е изтрит." };
+  }
+
+  if (name === "create_property") {
+    if (!args.title || !args.city_id) return { error: "title и city_id са задължителни" };
+    const payload = pickFields(args, [
+      "title", "description", "city_id", "quarter_id", "property_type", "status",
+      "price", "currency", "area_sqm", "rooms", "floor", "address",
+      "is_published", "owner_id", "assigned_broker_id",
+    ]);
+    payload.created_by = userId;
+    const { data, error } = await supabaseAdmin.from("properties").insert(payload as never).select("id, title").single();
+    if (error) return { error: error.message };
+    return { ok: true, property: data, message: `Имот "${data.title}" е създаден.` };
+  }
+  if (name === "update_property") {
+    if (!args.property_id) return { error: "property_id е задължително" };
+    const payload = pickFields(args, [
+      "title", "description", "city_id", "quarter_id", "property_type", "status",
+      "price", "currency", "area_sqm", "rooms", "floor", "address",
+      "is_published", "assigned_broker_id",
+    ]);
+    if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
+    const { data, error } = await supabaseAdmin.from("properties").update(payload as never).eq("id", args.property_id).select("id, title").maybeSingle();
+    if (error) return { error: error.message };
+    if (!data) return { error: "Имотът не е намерен." };
+    return { ok: true, property: data, message: `Имот "${data.title}" е обновен.` };
+  }
+  if (name === "delete_property") {
+    if (!args.confirm) return { error: "Изисква се confirm=true." };
+    const { error } = await supabaseAdmin.from("properties").delete().eq("id", args.property_id);
+    if (error) return { error: error.message };
+    return { ok: true, message: "Имотът е изтрит." };
+  }
+
+  if (name === "create_broker") {
+    if (!args.full_name) return { error: "full_name е задължително" };
+    const payload = pickFields(args, ["full_name", "email", "phone", "license_number", "bio", "photo_url", "is_active"]);
+    const { data, error } = await supabaseAdmin.from("brokers").insert(payload as never).select("id, full_name").single();
+    if (error) return { error: error.message };
+    return { ok: true, broker: data, message: `Брокер "${data.full_name}" е създаден.` };
+  }
+  if (name === "update_broker") {
+    if (!args.broker_id) return { error: "broker_id е задължително" };
+    const payload = pickFields(args, ["full_name", "email", "phone", "license_number", "bio", "photo_url", "is_active"]);
+    if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
+    const { data, error } = await supabaseAdmin.from("brokers").update(payload as never).eq("id", args.broker_id).select("id, full_name").maybeSingle();
+    if (error) return { error: error.message };
+    if (!data) return { error: "Брокерът не е намерен." };
+    return { ok: true, broker: data, message: `Брокер "${data.full_name}" е обновен.` };
+  }
+  if (name === "delete_broker") {
+    if (!args.confirm) return { error: "Изисква се confirm=true." };
+    const { error } = await supabaseAdmin.from("brokers").delete().eq("id", args.broker_id);
+    if (error) return { error: error.message };
+    return { ok: true, message: "Брокерът е изтрит." };
+  }
+  if (name === "search_brokers") {
+    const { data, error } = await supabaseAdmin.from("brokers").select("id, full_name, email, phone, is_active, license_number").order("full_name");
+    if (error) return { error: error.message };
+    return { brokers: data ?? [] };
+  }
+
   return { error: "Непознат инструмент: " + name };
 }
 
@@ -355,6 +660,13 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 • Имоти: ${propCount ?? 0}
 • Нови съвпадения: ${newMatchCount ?? 0}
 • Нови запитвания: ${newInq ?? 0}
+
+8. УПРАВЛЕНИЕ НА ДАННИ (само за админи — този разговор вече е защитен): Имаш пълни права да създаваш, редактираш и изтриваш брокери, клиенти и имоти през tools: create_client / update_client / delete_client, create_property / update_property / delete_property, create_broker / update_broker / delete_broker, search_brokers. ВАЖНИ ПРАВИЛА:
+   • Преди СЪЗДАВАНЕ — обобщи накратко какво ще създадеш и питай "Да продължа ли?". Едва след потвърждение извикай tool-а.
+   • Преди РЕДАКЦИЯ — покажи кои полета ще се сменят (стара → нова стойност) и поискай "Да".
+   • Преди ИЗТРИВАНЕ — задължително изисквай ясно потвърждение ("да, изтрий" / "потвърждавам"). Извикай delete_* с confirm=true ЕДВА след това. Никога не изтривай без потвърждение, дори да е напомнено в текста.
+   • При смяна на цена/статус на имот — кажи новата стойност преди да я приложиш.
+   • Ако липсва идентификатор (client_id, property_id, broker_id) — първо извикай search_clients / search_properties / search_brokers за да го намериш.
 
 Стил: професионален български, ясен, юридически прецизен. За договори използвай официален стил и пълно форматиране в Markdown с раздели и членове.`;
 
