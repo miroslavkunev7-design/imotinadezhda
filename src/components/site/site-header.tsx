@@ -1,38 +1,54 @@
 import { useRef } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
-import navbarDesktop from "@/assets/navbar-desktop.png.asset.json";
-import navbarMobile from "@/assets/navbar-mobile.png.asset.json";
+import scrollLogo from "@/assets/navbar-scroll.png.asset.json";
 import { cn } from "@/lib/utils";
 
 export type SiteNavKey = "sale" | "rent" | "about";
 
-type Hotspot = {
-  key: SiteNavKey | "profile";
+type NavItem = {
+  key: SiteNavKey;
   label: string;
   to: string;
   search?: Record<string, string>;
-  left: number;
-  right: number;
+  icon: JSX.Element;
 };
 
-// Desktop image is 1367x307. Hotspots in % of that image.
-const DESKTOP_HOTSPOTS: Hotspot[] = [
-  { key: "sale",    label: "За продажба", to: "/search", search: { status: "sale" }, left: 37,  right: 51 },
-  { key: "rent",    label: "Под наем",    to: "/search", search: { status: "rent" }, left: 56,  right: 69.5 },
-  { key: "about",   label: "За нас",      to: "/about",                                left: 72,  right: 85 },
-  { key: "profile", label: "Профил",      to: "/login",  search: { redirect: "/admin" }, left: 92, right: 99 },
+const NAV_ITEMS: NavItem[] = [
+  {
+    key: "sale",
+    label: "За продажба",
+    to: "/search",
+    search: { status: "sale" },
+    icon: (
+      <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+  },
+  {
+    key: "rent",
+    label: "Под наем",
+    to: "/search",
+    search: { status: "rent" },
+    icon: (
+      <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <circle cx="7" cy="12" r="3.5" />
+        <path d="M10.5 12H21m0 0v3m-3-3v3m-3-3v3" />
+      </svg>
+    ),
+  },
+  {
+    key: "about",
+    label: "За нас",
+    to: "/about",
+    icon: (
+      <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path d="M13.5 4.5l6 6m-2-7l-7.5 7.5L7 15l1 1-2.5 1.5L4 14l1.5-2.5L6 13l7.5-7.5m6 6L13 19a2.121 2.121 0 01-3 0l-5-5a2.121 2.121 0 010-3l6-6a2.121 2.121 0 013 0l5 5a2.121 2.121 0 010 3z" />
+      </svg>
+    ),
+  },
 ];
-const DESKTOP_BAND = { top: 28, bottom: 70 };
-
-// Mobile image is 1024x301. Icons-only nav.
-const MOBILE_HOTSPOTS: Hotspot[] = [
-  { key: "sale",    label: "За продажба", to: "/search", search: { status: "sale" }, left: 50.5, right: 60.5 },
-  { key: "rent",    label: "Под наем",    to: "/search", search: { status: "rent" }, left: 63,   right: 73 },
-  { key: "about",   label: "За нас",      to: "/about",                                left: 75.5, right: 85.5 },
-  { key: "profile", label: "Профил",      to: "/login",  search: { redirect: "/admin" }, left: 88, right: 98 },
-];
-const MOBILE_BAND = { top: 33, bottom: 73 };
 
 export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const navigate = useNavigate();
@@ -40,9 +56,6 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleLogo = (_e: React.MouseEvent) => {
-    // Triple-click opens admin login. Single click still navigates to "/"
-    // via <Link to="/"> — do NOT preventDefault, so home navigation works
-    // on the very first click.
     clickCount.current += 1;
     if (clickTimer.current) clearTimeout(clickTimer.current);
     if (clickCount.current >= 3) {
@@ -55,49 +68,52 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
     }, 420);
   };
 
-  const renderArt = (
-    src: string,
-    aspect: string,
-    hotspots: Hotspot[],
-    band: { top: number; bottom: number },
-    logoRight: number,
-    className: string,
-  ) => (
-    <div
-      className={cn("site-header__art", className)}
-      style={{ aspectRatio: aspect, backgroundImage: `url(${src})` }}
-      role="navigation"
-      aria-label="Главно меню"
-    >
-      <Link
-        to="/"
-        onClick={handleLogo}
-        aria-label="Начало — Недвижими имоти Надежда"
-        className="site-header__hotspot"
-        style={{ left: "0%", right: `${100 - logoRight}%`, top: "5%", bottom: "5%" }}
-      />
-      {hotspots.map((item) => (
-        <Link
-          key={item.key}
-          to={item.to}
-          search={item.search as never}
-          aria-label={item.label}
-          className={cn("site-header__hotspot", active && active === item.key && "is-active")}
-          style={{
-            left: `${item.left}%`,
-            right: `${100 - item.right}%`,
-            top: `${band.top}%`,
-            bottom: `${100 - band.bottom}%`,
-          }}
-        />
-      ))}
-    </div>
-  );
-
   return (
-    <header className="site-header">
-      {renderArt(navbarDesktop.url, "1367 / 307", DESKTOP_HOTSPOTS, DESKTOP_BAND, 35, "site-header__art--desktop")}
-      {renderArt(navbarMobile.url, "1024 / 301", MOBILE_HOTSPOTS, MOBILE_BAND, 50, "site-header__art--mobile")}
+    <header className="site-header-v2">
+      <div className="site-header-v2__wrap">
+        {/* Scroll logo (left, overlapping) */}
+        <Link
+          to="/"
+          onClick={handleLogo}
+          aria-label="Начало — Недвижими имоти Надежда"
+          className="site-header-v2__logo"
+        >
+          <img src={scrollLogo.url} alt="Недвижими имоти Надежда" className="site-header-v2__logo-img" />
+        </Link>
+
+        {/* Navigation pill */}
+        <nav className="site-header-v2__pill" aria-label="Главно меню">
+          <div className="site-header-v2__pill-inner">
+            <div className="site-header-v2__items">
+              {NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.key}
+                  to={item.to}
+                  search={item.search as never}
+                  aria-label={item.label}
+                  className={cn(
+                    "site-header-v2__btn group",
+                    active === item.key && "site-header-v2__btn--active",
+                  )}
+                >
+                  <span className="site-header-v2__btn-icon">{item.icon}</span>
+                  <span className="site-header-v2__btn-label">{item.label}</span>
+                </Link>
+              ))}
+              <Link
+                to="/login"
+                search={{ redirect: "/admin" } as never}
+                aria-label="Профил"
+                className="site-header-v2__profile"
+              >
+                <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </nav>
+      </div>
     </header>
   );
 }
