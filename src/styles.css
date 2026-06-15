@@ -821,7 +821,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   padding: clamp(6px, 1vw, 14px)
            clamp(8px, 1.5vw, 22px)
            clamp(6px, 1vw, 14px)
-           calc(clamp(90px, 14vw, 200px) * 0.6);
+           calc(clamp(130px, 22vw, 280px) * 0.6);
 }
 .site-header-v2__items {
   display: flex;
