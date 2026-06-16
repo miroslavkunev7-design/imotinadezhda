@@ -781,7 +781,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   padding-top: 0 !important;
   background-color: transparent;
   margin: 0;
-  --logo-w: 160px;
+  --logo-w: 220px;
   --logo-overhang: 0px;
   --logo-crop-top: calc(var(--logo-w) * 0.917);
   --logo-crop-height: calc(var(--logo-w) * 0.785);
@@ -916,7 +916,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 
 @media (max-width: 720px) {
   .site-header-v2 {
-    --logo-w: 160px;
+    --logo-w: 220px;
     --logo-overhang: clamp(6px, 1.6vw, 10px);
   }
   .site-header-v2__logo {
@@ -955,7 +955,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 
 @media (max-width: 380px) {
   .site-header-v2 {
-    --logo-w: 160px;
+    --logo-w: 220px;
   }
   .site-header-v2__items { gap: 4px; }
   .site-header-v2__btn,
