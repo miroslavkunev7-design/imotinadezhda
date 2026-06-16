@@ -799,7 +799,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 .site-header-v2__wrap {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   max-width: 100%;
   margin: 0 !important;
@@ -920,36 +920,36 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
     --logo-overhang: clamp(6px, 1.6vw, 10px);
   }
   .site-header-v2__logo {
-    margin-left: 2px;
-    margin-right: calc(var(--logo-w) * -0.35);
+    margin-left: 6px;
+    margin-right: calc(var(--logo-w) * -0.5);
     filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
   }
   .site-header-v2__pill-inner {
-    padding: 8px 4px 8px calc(var(--logo-w) * 0.7);
+    padding: 8px 8px 8px calc(var(--logo-w) * 0.5);
   }
   .site-header-v2__items {
-    gap: 4px;
+    gap: 6px;
   }
   .site-header-v2__btn-label { display: none; }
   .site-header-v2__btn {
     padding: 0;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     justify-content: center;
     border-width: 1.5px;
   }
   .site-header-v2__btn-icon svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
   .site-header-v2__profile {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-width: 1.5px;
   }
   .site-header-v2__profile svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 }
 
