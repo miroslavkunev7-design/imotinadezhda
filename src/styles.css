@@ -814,7 +814,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   height: var(--logo-crop-height);
   overflow: hidden;
   margin-top: 0 !important;
-  margin-left: -5px;
+  margin-left: 0;
   margin-right: calc(var(--logo-w) * -0.5);
   transition: none;
   filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.4));
