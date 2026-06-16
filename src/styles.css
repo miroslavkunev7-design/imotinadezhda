@@ -921,11 +921,11 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   }
   .site-header-v2__logo {
     margin-left: 2px;
-    margin-right: calc(var(--logo-w) * -0.5);
+    margin-right: calc(var(--logo-w) * -0.35);
     filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
   }
   .site-header-v2__pill-inner {
-    padding: 8px 4px 8px calc(var(--logo-w) * 0.5);
+    padding: 8px 4px 8px calc(var(--logo-w) * 0.7);
   }
   .site-header-v2__items {
     gap: 4px;
