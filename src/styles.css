@@ -799,7 +799,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 .site-header-v2__wrap {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   width: 100%;
   max-width: 100%;
   margin: 0 !important;
@@ -814,7 +814,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   height: var(--logo-crop-height);
   overflow: hidden;
   margin-top: 0 !important;
-  margin-left: clamp(6px, 1.2vw, 18px);
+  margin-left: 0;
   margin-right: calc(var(--logo-w) * -0.55);
   transition: none;
   filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.4));
