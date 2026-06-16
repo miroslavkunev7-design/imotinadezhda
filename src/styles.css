@@ -815,7 +815,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   overflow: hidden;
   margin-top: 0 !important;
   margin-left: 0;
-  margin-right: calc(var(--logo-w) * -0.55);
+  margin-right: calc(var(--logo-w) * -0.5);
   transition: none;
   filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.4));
 }
@@ -832,7 +832,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   z-index: 10;
   flex: 1 1 auto;
   min-width: 0;
-  margin-top: 0 !important;
+  margin-top: -10px !important;
   border-radius: 0;
   padding: 2px;
   background: linear-gradient(to bottom, #f8e7a3, #d4af37, #b8860b);
