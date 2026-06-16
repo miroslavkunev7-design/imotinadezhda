@@ -799,7 +799,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 .site-header-v2__wrap {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   width: 100%;
   max-width: 100%;
   margin: 0 !important;
