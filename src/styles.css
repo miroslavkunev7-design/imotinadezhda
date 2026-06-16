@@ -832,7 +832,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   z-index: 10;
   flex: 1 1 auto;
   min-width: 0;
-  margin-top: -10px !important;
+  margin-top: -20px !important;
   border-radius: 0;
   padding: 2px;
   background: linear-gradient(to bottom, #f8e7a3, #d4af37, #b8860b);
