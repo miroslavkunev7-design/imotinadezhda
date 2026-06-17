@@ -64,6 +64,16 @@ function InquiriesAdmin() {
     load();
   };
 
+  const saveNotes = async (
+    table: "inquiries" | "mortgage_applications",
+    id: string,
+    notes: string,
+  ) => {
+    const { error } = await supabase.from(table).update({ notes }).eq("id", id);
+    if (error) toast.error(error.message);
+    else toast.success("Бележките са запазени");
+  };
+
   const downloadFile = async (path: string, name: string) => {
     const { data, error } = await supabase.storage.from("mortgage-docs").createSignedUrl(path, 60 * 60);
     if (error || !data) return toast.error(error?.message ?? "Грешка");
