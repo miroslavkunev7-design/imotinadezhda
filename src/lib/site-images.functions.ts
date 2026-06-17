@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertAdmin } from "@/lib/auth/assert-admin";
 
 // ---------------- Page backgrounds (admin-managed, global) ----------------
 
@@ -30,6 +31,7 @@ export const setPageBackground = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("page_backgrounds")
@@ -95,6 +97,7 @@ export const updateCityCard = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     const patch: { hero_image_url?: string; is_published?: boolean } = {};
     if (data.hero_image_url !== undefined) patch.hero_image_url = data.hero_image_url;
@@ -116,6 +119,7 @@ export const updateQuarterCard = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     const patch: { image_url?: string; is_published?: boolean } = {};
     if (data.image_url !== undefined) patch.image_url = data.image_url;
