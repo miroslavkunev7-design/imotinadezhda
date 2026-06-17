@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import { X, Check, AlertCircle, Upload, FileText, Loader2, CreditCard, Briefcase, IdCard, FileSignature } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { submitMortgageApplication } from "@/lib/mortgage.functions";
+import { submitMortgageApplication, uploadMortgageDocument } from "@/lib/mortgage.functions";
 import { toast } from "sonner";
 
 type UploadedFile = {
@@ -24,6 +23,16 @@ function lastTwelveMonths(): { key: string; label: string }[] {
     out.push({ key, label: `${BG_MONTHS[d.getMonth()]} ${d.getFullYear()}` });
   }
   return out;
+}
+
+async function fileToBase64(file: File) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
 }
 
 const SINGLE_DOCS = [
@@ -63,16 +72,19 @@ export function MortgageApplyModal({
     const key = `${category}-${month ?? "single"}-${file.name}`;
     setUploading(key);
     try {
-      const ext = file.name.split(".").pop() ?? "bin";
-      const path = `${crypto.randomUUID()}/${category}${month ? `-${month}` : ""}-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("mortgage-docs").upload(path, file, {
-        contentType: file.type || undefined,
-        upsert: false,
+      const uploaded = await uploadMortgageDocument({
+        data: {
+          category,
+          month: month ?? null,
+          fileName: file.name,
+          contentType: file.type || null,
+          size: file.size,
+          base64: await fileToBase64(file),
+        },
       });
-      if (error) throw error;
       setFiles((prev) => [
         ...prev,
-        { category, month, path, file_name: file.name, size: file.size },
+        { category, month, path: uploaded.path, file_name: uploaded.file_name, size: uploaded.size },
       ]);
       toast.success("Файлът е качен");
     } catch (e: any) {
