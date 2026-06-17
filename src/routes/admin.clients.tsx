@@ -30,6 +30,9 @@ function ClientsAdmin() {
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
   const [scanOpen, setScanOpen] = useState(false);
+  const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterBroker, setFilterBroker] = useState("");
 
   const load = async () => {
     const [clientsData, { data: cs }, { data: qs }, { data: bs }] = await Promise.all([
