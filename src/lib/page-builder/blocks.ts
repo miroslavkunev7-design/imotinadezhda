@@ -482,7 +482,7 @@ export const BLOCK_REGISTRY: BlockDef[] = [
     defaults: {
       brand: "Имоти Надежда",
       col1: "Меню | Начало, Имоти, За нас, Контакти",
-      col2: "Контакти | София, бул. Витоша 100; +359 88 123 4567",
+      col2: "Контакти | гр. Шумен; 0899 620 262",
       col3: "Социални | Facebook, Instagram, YouTube",
       bg: "#8B1A2B",
       fg: "#ffffff",
