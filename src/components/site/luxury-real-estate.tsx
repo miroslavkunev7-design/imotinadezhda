@@ -121,6 +121,8 @@ function AutoPlayVideo(
 }
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AGENCY } from "@/lib/contact-config";
+import { useFavorites, shareProperty } from "@/hooks/use-favorites";
+import { toast } from "sonner";
 
 import {
   Award,
