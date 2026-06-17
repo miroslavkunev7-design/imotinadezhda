@@ -212,3 +212,56 @@ function labelCategory(c: string) {
     employer_note: "Служебна бележка",
   } as Record<string, string>)[c] ?? c;
 }
+
+function NotesEditor({ initial, onSave }: { initial: string; onSave: (v: string) => void | Promise<void> }) {
+  const [value, setValue] = useState(initial);
+  const [editing, setEditing] = useState(false);
+  if (!editing) {
+    return (
+      <div className="mt-3">
+        {value ? (
+          <p className="whitespace-pre-wrap text-sm text-amber-100/90">{value}</p>
+        ) : (
+          <p className="text-xs italic text-amber-100/40">Няма бележки</p>
+        )}
+        <button
+          onClick={() => setEditing(true)}
+          className="mt-1 text-xs text-amber-300 underline-offset-2 hover:underline"
+        >
+          {value ? "Редактирай бележки" : "Добави бележки"}
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 space-y-2">
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        rows={3}
+        className="w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-2 text-sm text-amber-100 placeholder:text-amber-100/30"
+        placeholder="Вътрешни бележки за този запис..."
+      />
+      <div className="flex gap-2">
+        <button
+          onClick={async () => {
+            await onSave(value);
+            setEditing(false);
+          }}
+          className="rounded-lg bg-gradient-to-r from-primary to-[#7a0d22] px-3 py-1.5 text-xs font-semibold text-amber-100"
+        >
+          Запази
+        </button>
+        <button
+          onClick={() => {
+            setValue(initial);
+            setEditing(false);
+          }}
+          className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs text-amber-100/70"
+        >
+          Отказ
+        </button>
+      </div>
+    </div>
+  );
+}
