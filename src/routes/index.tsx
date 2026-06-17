@@ -1,9 +1,13 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
 
 import { HomePage } from "@/components/site/luxury-real-estate";
 import { HomeSkeleton, PageErrorRetry } from "@/components/site/page-skeleton";
+import { getPublicPageLayout } from "@/lib/page-layouts.functions";
 
 const SITE_URL = "https://imotinadezhda.lovable.app";
+
 
 
 export const Route = createFileRoute("/")({
@@ -65,5 +69,14 @@ function HomeErrorRoute({ error }: { error: Error }) {
 }
 
 function HomeRoute() {
-  return <HomePage />;
+  const fetchLayout = useServerFn(getPublicPageLayout);
+  const [layout, setLayout] = useState<Awaited<ReturnType<typeof getPublicPageLayout>> | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchLayout({ data: { page_key: "home" } })
+      .then((res) => { if (!cancelled) setLayout(res); })
+      .catch(() => { /* fallback to defaults */ });
+    return () => { cancelled = true; };
+  }, [fetchLayout]);
+  return <HomePage layout={layout ?? undefined} />;
 }

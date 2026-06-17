@@ -126,22 +126,47 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
     function onMessage(e: MessageEvent) {
       const data = e.data;
       if (!data || typeof data !== "object") return;
-      if (data.type !== "page-editor:reorder" || !Array.isArray(data.order)) return;
-      setSections((prev) => {
-        const byId = new Map(prev.map((s) => [s.id, s]));
-        const next: SectionState[] = [];
-        for (const id of data.order as string[]) {
-          const s = byId.get(id);
-          if (s) {
-            next.push(s);
-            byId.delete(id);
+
+      // 1. Пренареждане на секции
+      if (data.type === "page-editor:reorder" && Array.isArray(data.order)) {
+        setSections((prev) => {
+          const byId = new Map(prev.map((s) => [s.id, s]));
+          const next: SectionState[] = [];
+          for (const id of data.order as string[]) {
+            const s = byId.get(id);
+            if (s) { next.push(s); byId.delete(id); }
           }
-        }
-        // Запази секции, които не са в iframe-а (напр. скрити или нерендирани)
-        for (const s of byId.values()) next.push(s);
-        return next;
-      });
-      toast.success('Преместено. Натисни „Запази" за да приложиш.');
+          for (const s of byId.values()) next.push(s);
+          return next;
+        });
+        toast.success('Преместено. Натисни „Запази" за да приложиш.');
+        return;
+      }
+
+      // 2. Промяна на размер / дизайн на конкретна секция (props.sv_*)
+      if (
+        data.type === "page-editor:section-update" &&
+        typeof data.section_id === "string" &&
+        data.patch && typeof data.patch === "object"
+      ) {
+        const patch = data.patch as Record<string, string | null>;
+        setSections((prev) =>
+          prev.map((s) => {
+            if (s.id !== data.section_id) return s;
+            const nextProps: Record<string, string | number | boolean | null> = { ...(s.props ?? {}) };
+            for (const [k, v] of Object.entries(patch)) {
+              if (v === null || v === "") delete nextProps[k];
+              else nextProps[k] = v;
+            }
+            const next: SectionState = { ...s };
+            if (Object.keys(nextProps).length > 0) next.props = nextProps;
+            else delete next.props;
+            return next;
+          }),
+        );
+        toast.success('Приложено. Натисни „Запази" за финален запис.');
+        return;
+      }
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);

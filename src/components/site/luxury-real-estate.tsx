@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState as useReactState, type VideoHTMLAttributes } from "react";
+import { cloneElement, useEffect, useRef, useState as useReactState, type ReactElement, type CSSProperties, type VideoHTMLAttributes } from "react";
 
 // Auto-play helper with instant-poster + deferred video mount:
 // 1. Renders the poster image immediately as a full-cover background so first
@@ -852,6 +852,29 @@ function formatPrice(p: number | string, currency = "EUR") {
   return `${sym} ${new Intl.NumberFormat("bg-BG").format(num)}`;
 }
 
+type LayoutSection = {
+  id: string;
+  visible: boolean;
+  props?: Record<string, string | number | boolean | null>;
+};
+
+function applySectionOverrides(node: ReactElement | null, props?: LayoutSection["props"]) {
+  if (!node || !props) return node;
+  const variantId = typeof props.sv_variant === "string" ? props.sv_variant : null;
+  const w = typeof props.sv_width === "string" ? props.sv_width : undefined;
+  const h = typeof props.sv_height === "string" ? props.sv_height : undefined;
+  if (!variantId && !w && !h) return node;
+  const existing = node.props as { className?: string; style?: CSSProperties };
+  return cloneElement(node as ReactElement<{ className?: string; style?: CSSProperties }>, {
+    className: [existing.className, variantId ? `sv-${variantId}` : ""].filter(Boolean).join(" "),
+    style: {
+      ...(existing.style ?? {}),
+      ...(w ? { width: w, marginLeft: "auto", marginRight: "auto" } : {}),
+      ...(h ? { height: h } : {}),
+    },
+  });
+}
+
 export function HomePage({
   cities,
   featured,
@@ -859,27 +882,27 @@ export function HomePage({
 }: {
   cities?: HomeCity[];
   featured?: FeaturedListing[];
-  layout?: Array<{ id: string; visible: boolean }> | null;
+  layout?: LayoutSection[] | null;
 } = {}) {
   const cityList = (cities && cities.length ? cities : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug })))
     .map((c) => ({ ...c, image: citySlugImages[c.slug] || c.image || burgasHero }));
   const cityOpts = cityList.map((c) => ({ slug: c.slug, name: c.name }));
 
   // Default order if no saved layout
-  const defaults: Array<{ id: string; visible: boolean }> = [
+  const defaults: LayoutSection[] = [
     { id: "hero-search-mobile", visible: true },
     { id: "hero-search-desktop", visible: true },
     { id: "cities-grid", visible: true },
     { id: "trust-strip", visible: true },
   ];
   const known = new Set(defaults.map((d) => d.id));
-  const sections = (() => {
+  const sections: LayoutSection[] = (() => {
     if (!layout || !Array.isArray(layout)) return defaults;
     const seen = new Set<string>();
-    const out: Array<{ id: string; visible: boolean }> = [];
+    const out: LayoutSection[] = [];
     for (const s of layout) {
       if (known.has(s.id) && !seen.has(s.id)) {
-        out.push({ id: s.id, visible: !!s.visible });
+        out.push({ id: s.id, visible: !!s.visible, props: s.props });
         seen.add(s.id);
       }
     }
@@ -887,7 +910,7 @@ export function HomePage({
     return out;
   })();
 
-  const sectionNode = (id: string) => {
+  const sectionNode = (id: string): ReactElement | null => {
     switch (id) {
       case "hero-search-mobile":
         return (
@@ -930,6 +953,8 @@ export function HomePage({
     }
   };
 
+  const renderSection = (s: LayoutSection) => applySectionOverrides(sectionNode(s.id), s.props);
+
   const visible = sections.filter((s) => s.visible);
   const mobileSections = visible.filter((s) => s.id === "hero-search-mobile");
   const desktopSections = visible.filter((s) => s.id !== "hero-search-mobile");
@@ -952,16 +977,16 @@ export function HomePage({
         <div className="relative z-10 flex flex-1 min-h-0 flex-col pt-[64px] sm:pt-[80px] md:pt-[104px]">
           <LuxuryHeader active="sale" />
 
-          {mobileSections.map((s) => sectionNode(s.id))}
+          {mobileSections.map((s) => renderSection(s))}
 
           <section className="relative z-10 mx-auto mt-auto w-full max-w-[1420px] px-4 pt-3 md:px-8 md:pt-5">
-            {heroSections.map((s) => sectionNode(s.id))}
+            {heroSections.map((s) => renderSection(s))}
           </section>
         </div>
       </section>
 
       <div className="hidden flex-none md:block">
-        {belowSections.map((s) => sectionNode(s.id))}
+        {belowSections.map((s) => renderSection(s))}
       </div>
     </main>
   );

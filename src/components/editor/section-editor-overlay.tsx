@@ -127,37 +127,36 @@ export function SectionEditorOverlay() {
       .__ed-gallery .__ed-apply { background: linear-gradient(90deg,#f5c46e,#c59441); color: #260108; }
       .__ed-gallery .__ed-cancel { background: transparent; color: #f4d07d; border: 1px solid rgba(245,196,110,.4); }
 
-      /* ===== Дизайн варианти (12 стила) ===== */
-      .__ed-v-classic { border: 2px solid #c59441; border-radius: 0 !important; box-shadow: none !important; }
-      .__ed-v-rounded { border-radius: 28px !important; overflow: hidden; }
-      .__ed-v-shadow-xl { box-shadow: 0 30px 80px rgba(0,0,0,.45) !important; border-radius: 16px !important; }
-      .__ed-v-glow { box-shadow: 0 0 60px rgba(245,196,110,.45) !important; border-radius: 14px !important; }
-      .__ed-v-frame-gold { border: 4px solid #c59441 !important; border-radius: 10px !important; padding: 6px !important; background: #1a0508 !important; }
-      .__ed-v-minimal { border: 0 !important; box-shadow: none !important; background: transparent !important; padding: 4px !important; }
-      .__ed-v-dark-red { background: linear-gradient(135deg,#4f0314,#260108) !important; color: #f4d07d !important; padding: 16px !important; border-radius: 14px !important; }
-      .__ed-v-gold { background: linear-gradient(135deg,#f4d07d,#c59441) !important; color: #260108 !important; padding: 16px !important; border-radius: 14px !important; }
-      .__ed-v-cream { background: #fdfaf5 !important; color: #260108 !important; padding: 16px !important; border-radius: 12px !important; }
-      .__ed-v-tight { padding: 4px !important; margin: 4px 0 !important; }
-      .__ed-v-spacious { padding: 32px !important; margin: 24px 0 !important; }
-      .__ed-v-card { background: rgba(255,255,255,.04); border: 1px solid rgba(245,196,110,.3) !important; border-radius: 16px !important; padding: 18px !important; backdrop-filter: blur(8px); }
+      /* Дизайн вариантите .sv-* се дефинират глобално в src/styles.css,
+         за да важат и на публичния сайт. */
     `;
     document.head.appendChild(style);
 
     const VARIANTS: { id: string; label: string; cls: string }[] = [
-      { id: "classic", label: "Класически", cls: "__ed-v-classic" },
-      { id: "rounded", label: "Заоблени ъгли", cls: "__ed-v-rounded" },
-      { id: "shadow-xl", label: "Голяма сянка", cls: "__ed-v-shadow-xl" },
-      { id: "glow", label: "Златен блясък", cls: "__ed-v-glow" },
-      { id: "frame-gold", label: "Златна рамка", cls: "__ed-v-frame-gold" },
-      { id: "minimal", label: "Минимал", cls: "__ed-v-minimal" },
-      { id: "dark-red", label: "Тъмно червено", cls: "__ed-v-dark-red" },
-      { id: "gold", label: "Златен фон", cls: "__ed-v-gold" },
-      { id: "cream", label: "Кремав фон", cls: "__ed-v-cream" },
-      { id: "tight", label: "Компактно", cls: "__ed-v-tight" },
-      { id: "spacious", label: "Просторно", cls: "__ed-v-spacious" },
-      { id: "card", label: "Карта стил", cls: "__ed-v-card" },
+      { id: "classic", label: "Класически", cls: "sv-classic" },
+      { id: "rounded", label: "Заоблени ъгли", cls: "sv-rounded" },
+      { id: "shadow-xl", label: "Голяма сянка", cls: "sv-shadow-xl" },
+      { id: "glow", label: "Златен блясък", cls: "sv-glow" },
+      { id: "frame-gold", label: "Златна рамка", cls: "sv-frame-gold" },
+      { id: "minimal", label: "Минимал", cls: "sv-minimal" },
+      { id: "dark-red", label: "Тъмно червено", cls: "sv-dark-red" },
+      { id: "gold", label: "Златен фон", cls: "sv-gold" },
+      { id: "cream", label: "Кремав фон", cls: "sv-cream" },
+      { id: "tight", label: "Компактно", cls: "sv-tight" },
+      { id: "spacious", label: "Просторно", cls: "sv-spacious" },
+      { id: "card", label: "Карта стил", cls: "sv-card" },
     ];
     const ALL_VARIANT_CLASSES = VARIANTS.map((v) => v.cls);
+    const VARIANT_ID_BY_CLS = new Map(VARIANTS.map((v) => [v.cls, v.id]));
+
+    function sendUpdate(el: HTMLElement, patch: Record<string, string | null>) {
+      const id = el.getAttribute("data-section-id");
+      if (!id) return;
+      window.parent?.postMessage(
+        { type: "page-editor:section-update", section_id: id, patch },
+        "*",
+      );
+    }
 
     // ---------------- банер ----------------
     const banner = document.createElement("div");
@@ -364,11 +363,12 @@ export function SectionEditorOverlay() {
       });
       bubbleEl.querySelector("[data-ed-apply]")!.addEventListener("click", (e) => {
         e.stopPropagation();
+        const w = wInput.value === "100" ? null : wInput.value + "%";
+        const h = hInput.value;
+        sendUpdate(el, { sv_width: w, sv_height: h ? h + "px" : null });
         setBanner('Размерът е приложен. Натисни „Запази" в горния банер за финален запис.');
         setTimeout(() => setBanner(null), 2200);
         clearActive();
-        // уведоми редактора че има промяна
-        window.parent?.postMessage({ type: "page-editor:dirty" }, "*");
       });
     }
 
@@ -441,10 +441,11 @@ export function SectionEditorOverlay() {
       });
       galleryEl.querySelector("[data-ed-apply]")!.addEventListener("click", (e) => {
         e.stopPropagation();
+        const variantId = selectedCls ? VARIANT_ID_BY_CLS.get(selectedCls) ?? null : null;
+        sendUpdate(el, { sv_variant: variantId });
         setBanner('Дизайнът е приложен локално. Натисни „Запази" в горния банер за финален запис.');
         setTimeout(() => setBanner(null), 2200);
         clearActive();
-        window.parent?.postMessage({ type: "page-editor:dirty" }, "*");
       });
     }
 
