@@ -1958,11 +1958,11 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   const { property, images, broker } = data;
   // Resolve broker contact: fall back to the agency owner defaults when the
   // listing has no linked broker (legacy rows / direct admin uploads).
-  const brokerName = broker?.full_name?.trim() || "Надежда Иванова";
+  const brokerName = broker?.full_name?.trim() || AGENCY.name;
   const brokerRole = broker ? "Брокер" : "Старши консултант";
-  const brokerPhoneDisplay = broker?.phone?.trim() || "0899 620 262";
+  const brokerPhoneDisplay = broker?.phone?.trim() || AGENCY.phoneDisplay;
   const brokerPhoneTel = `+${brokerPhoneDisplay.replace(/[^\d]/g, "").replace(/^0/, "359")}`;
-  const brokerEmail = broker?.email?.trim() || "agenciq_nadejdi@abv.bg";
+  const brokerEmail = broker?.email?.trim() || AGENCY.email;
   const brokerPhoto = broker?.photo_url?.trim() || "";
 
   const gallery = (images.length ? images.map((i) => i.url) : [property.cover_image_url || burgasHero]).filter(Boolean) as string[];
