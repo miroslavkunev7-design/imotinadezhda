@@ -44,7 +44,7 @@ export const sendMarketingEmail = createServerFn({ method: "POST" })
         subject: data.subject,
         template_name: data.template_name,
         status: "queued",
-        error: "RESEND_API_KEY not configured",
+        error_message: "RESEND_API_KEY not configured",
       }));
       if (rows.length) await supabaseAdmin.from("email_send_log").insert(rows);
       return {
@@ -78,15 +78,15 @@ export const sendMarketingEmail = createServerFn({ method: "POST" })
         });
         if (res.ok) {
           sent++;
-          logRows.push({ recipient_email: r.email, subject: data.subject, template_name: data.template_name, status: "sent" });
+          logRows.push({ recipient_email: r.email, template_name: data.template_name, status: "sent" });
         } else {
           failed++;
           const text = await res.text();
-          logRows.push({ recipient_email: r.email, subject: data.subject, template_name: data.template_name, status: "failed", error: text.slice(0, 500) });
+          logRows.push({ recipient_email: r.email, template_name: data.template_name, status: "failed", error_message: text.slice(0, 500) });
         }
       } catch (e: any) {
         failed++;
-        logRows.push({ recipient_email: r.email, subject: data.subject, template_name: data.template_name, status: "failed", error: String(e?.message ?? e).slice(0, 500) });
+        logRows.push({ recipient_email: r.email, template_name: data.template_name, status: "failed", error_message: String(e?.message ?? e).slice(0, 500) });
       }
     }
 
