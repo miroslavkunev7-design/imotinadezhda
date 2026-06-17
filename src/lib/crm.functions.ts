@@ -249,8 +249,33 @@ export const assignBrokerRole = createServerFn({ method: "POST" })
   });
 
 // ============ BROKER ROLES MANAGEMENT ============
-const ROLE_VALUES = ["admin", "boss", "head_broker", "broker", "consultant", "rental_dept", "agent", "user"] as const;
+const ROLE_VALUES = ["admin", "boss", "head_broker", "secretary", "broker", "consultant", "rental_dept", "agent", "user"] as const;
 export type BrokerRole = typeof ROLE_VALUES[number];
+
+// ============ ADMIN: RESET BROKER PASSWORD (without old) ============
+export const resetBrokerPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    broker_id: z.string().uuid(),
+    new_password: z.string().min(8).max(200),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    // 1) Validate password complexity
+    const p = data.new_password;
+    if (!/[a-z]/.test(p) || !/[A-Z]/.test(p) || !/[0-9]/.test(p)) {
+      throw new Error("Паролата трябва да съдържа малка, главна буква и цифра");
+    }
+    // 2) Find the broker's auth user_id
+    const { data: broker, error: bErr } = await supabaseAdmin
+      .from("brokers").select("user_id, full_name, email").eq("id", data.broker_id).maybeSingle();
+    if (bErr) throw new Error(bErr.message);
+    if (!broker?.user_id) throw new Error("Брокерът няма свързан акаунт за вход");
+    // 3) Update via Auth Admin API (no old password required)
+    const { error: upErr } = await supabaseAdmin.auth.admin.updateUserById(broker.user_id, { password: p });
+    if (upErr) throw new Error(upErr.message);
+    return { ok: true, email: broker.email };
+  });
 
 export const getBrokerRoles = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
