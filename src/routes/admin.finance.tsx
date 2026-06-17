@@ -52,7 +52,7 @@ function FinanceAdmin() {
         const p = c.property_id ? propMap.get(c.property_id) : null;
         if (p?.price) {
           contractsValue += Number(p.price);
-          commissionTotal += Number(p.price) * COMMISSION_RATE;
+          commissionTotal += Number(p.price) * commissionRate;
         }
       }
     }
@@ -82,7 +82,7 @@ function FinanceAdmin() {
         <>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <Stat icon={<TrendingUp className="h-5 w-5" />} label="Стойност договори" value={fmt(stats.contractsValue)} />
-            <Stat icon={<Coins className="h-5 w-5" />} label={`Комисионни (${(COMMISSION_RATE * 100).toFixed(0)}%)`} value={fmt(stats.commissionTotal)} accent />
+            <Stat icon={<Coins className="h-5 w-5" />} label={`Комисионни (${(commissionRate * 100).toFixed(0)}%)`} value={fmt(stats.commissionTotal)} accent />
             <Stat icon={<FileText className="h-5 w-5" />} label="Активни / Чернови" value={`${stats.contractsActive} / ${stats.contractsDraft}`} />
             <Stat icon={<Wallet className="h-5 w-5" />} label="Ипотечни заявки" value={String(stats.mortgageCount)} />
           </div>
