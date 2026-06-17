@@ -243,34 +243,10 @@ const homeCities: Array<{ name: string; image: string; href: "/cities/$slug"; pa
   { name: "Нов пазар", image: cityNoviPazar, href: "/cities/$slug", params: { slug: "novi-pazar" } },
 ];
 
-const burgasDistricts = [
-  { name: "Лазур", count: 312, image: burgasHero },
-  { name: "Славейков", count: 278, image: homeHero },
-  { name: "Изгрев", count: 185, image: burgasHero },
-  { name: "Възраждане", count: 246, image: homeHero },
-  { name: "Център", count: 164, image: burgasHero },
-];
-
-const listingCards = [
-  { title: "Тристаен апартамент", price: "€ 245 000", size: "110 m²", beds: 3, baths: 2, image: burgasHero, tag: "НОВО" },
-  { title: "Четиристаен апартамент", price: "€ 310 000", size: "140 m²", beds: 3, baths: 2, image: homeHero, tag: "ТОП ОФЕРТА" },
-  { title: "Двустаен апартамент", price: "€ 168 000", size: "75 m²", beds: 1, baths: 1, image: burgasHero, tag: "" },
-  { title: "Многостаен апартамент", price: "€ 420 000", size: "178 m²", beds: 4, baths: 3, image: homeHero, tag: "" },
-];
-
-const propertyThumbs = [burgasHero, homeHero, burgasHero, homeHero, burgasHero, homeHero];
-
-const propertyFacts = [
-  { icon: LandPlot, label: "Цена", value: "€ 245 000", sub: "€ 2 450 / м²" },
-  { icon: Square, label: "Площ", value: "100 m²" },
-  { icon: Building2, label: "Етаж", value: "8 от 9" },
-  { icon: House, label: "Стаи", value: "3" },
-  { icon: BedDouble, label: "Спални", value: "2" },
-  { icon: Bath, label: "Бани", value: "1" },
-  { icon: Sparkles, label: "Изложение", value: "Юг/Изток" },
-];
-
-const amenityList = ["Панорамна гледка", "Тераса", "Климатик", "Обзаведен", "СОТ", "Контролиран достъп"];
+// NOTE: removed mock arrays (burgasDistricts, listingCards, propertyThumbs,
+// propertyFacts, amenityList) — replaced by live DB data via quarterCounts /
+// catalog server fns.
+const burgasDistricts: Array<{ name: string; count: number; image: string }> = [];
 
 
 /**
