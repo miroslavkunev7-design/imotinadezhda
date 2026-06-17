@@ -109,7 +109,6 @@ export function SectionEditorOverlay() {
       if (!picked) return;
       const y = e.clientY;
       // Визуално следване
-      const r = picked.getBoundingClientRect();
       // Преместване между съседи: намери секцията под/над курсора и
       // вмъкни преди/след нея.
       const all = getSections();
@@ -117,13 +116,14 @@ export function SectionEditorOverlay() {
         if (other === picked) continue;
         const or = other.getBoundingClientRect();
         const mid = or.top + or.height / 2;
-        if (y < mid && picked.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_PRECEDING === 0) {
-          // курсорът е над средата на 'other' и 'other' е след 'picked' → вмъкни преди other
+        const rel = picked.compareDocumentPosition(other);
+        const otherIsAfter = (rel & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+        const otherIsBefore = (rel & Node.DOCUMENT_POSITION_PRECEDING) !== 0;
+        if (y < mid && otherIsAfter) {
           other.parentNode?.insertBefore(picked, other);
           break;
         }
-        if (y > mid && (picked.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING)) {
-          // курсорът е под средата на 'other' и 'other' е преди 'picked' → вмъкни след other
+        if (y > mid && otherIsBefore) {
           other.parentNode?.insertBefore(picked, other.nextSibling);
           break;
         }
