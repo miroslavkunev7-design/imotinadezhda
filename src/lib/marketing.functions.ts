@@ -41,10 +41,10 @@ export const sendMarketingEmail = createServerFn({ method: "POST" })
       // No provider configured — log every recipient as "queued" so user sees what would have been sent
       const rows = filtered.map((r) => ({
         recipient_email: r.email,
-        subject: data.subject,
         template_name: data.template_name,
         status: "queued",
         error_message: "RESEND_API_KEY not configured",
+        metadata: { subject: data.subject } as any,
       }));
       if (rows.length) await supabaseAdmin.from("email_send_log").insert(rows);
       return {
