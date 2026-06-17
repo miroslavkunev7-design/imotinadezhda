@@ -141,7 +141,7 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
         for (const s of byId.values()) next.push(s);
         return next;
       });
-      toast.success("Преместено. Натисни „Запази" за да приложиш.");
+      toast.success('Преместено. Натисни „Запази" за да приложиш.');
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
