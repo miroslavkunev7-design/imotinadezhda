@@ -2004,6 +2004,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
     );
   }
   const { property, images, broker } = data;
+  const favs = useFavorites();
   // Resolve broker contact: fall back to the agency owner defaults when the
   // listing has no linked broker (legacy rows / direct admin uploads).
   const brokerName = broker?.full_name?.trim() || AGENCY.name;
