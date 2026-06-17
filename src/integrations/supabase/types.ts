@@ -47,6 +47,39 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_settings: {
+        Row: {
+          commission_rate: number
+          default_currency: string
+          id: string
+          rent_commission_rate: number
+          singleton: boolean
+          updated_at: string
+          updated_by: string | null
+          vat_rate: number
+        }
+        Insert: {
+          commission_rate?: number
+          default_currency?: string
+          id?: string
+          rent_commission_rate?: number
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          vat_rate?: number
+        }
+        Update: {
+          commission_rate?: number
+          default_currency?: string
+          id?: string
+          rent_commission_rate?: number
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          vat_rate?: number
+        }
+        Relationships: []
+      }
       ai_conversations: {
         Row: {
           created_at: string

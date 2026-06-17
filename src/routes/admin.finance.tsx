@@ -10,30 +10,38 @@ type Contract = { id: string; title: string; contract_type: string; status: stri
 type Mortgage = { id: string; full_name: string; phone: string; email: string | null; monthly_income: number | null; status: string; created_at: string };
 type Property = { id: string; price: number | null; currency: string | null };
 
-const COMMISSION_RATE = 0.03; // 3% default
-
 function FinanceAdmin() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [mortgages, setMortgages] = useState<Mortgage[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [commissionRate, setCommissionRate] = useState<number>(0.03);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [c, m, p] = await Promise.all([
+      const [c, m, p, s] = await Promise.all([
         supabase.from("generated_contracts").select("id,title,contract_type,status,client_id,property_id,created_at").order("created_at", { ascending: false }).limit(100),
         supabase.from("mortgage_applications").select("id,full_name,phone,email,monthly_income,status,created_at").order("created_at", { ascending: false }).limit(100),
         supabase.from("properties").select("id,price,currency"),
+        supabase.from("agency_settings").select("commission_rate").eq("singleton", true).maybeSingle(),
       ]);
       if (c.error) toast.error(c.error.message);
       if (m.error) toast.error(m.error.message);
       setContracts((c.data as Contract[]) ?? []);
       setMortgages((m.data as Mortgage[]) ?? []);
       setProperties((p.data as Property[]) ?? []);
+      if (s.data?.commission_rate != null) setCommissionRate(Number(s.data.commission_rate));
       setLoading(false);
     })();
   }, []);
+
+  const saveCommission = async (next: number) => {
+    const { error } = await supabase.from("agency_settings").update({ commission_rate: next }).eq("singleton", true);
+    if (error) return toast.error(error.message);
+    setCommissionRate(next);
+    toast.success(`Комисионата е обновена на ${(next * 100).toFixed(2)}%`);
+  };
 
   const stats = useMemo(() => {
     const propMap = new Map(properties.map(p => [p.id, p]));
@@ -44,7 +52,7 @@ function FinanceAdmin() {
         const p = c.property_id ? propMap.get(c.property_id) : null;
         if (p?.price) {
           contractsValue += Number(p.price);
-          commissionTotal += Number(p.price) * COMMISSION_RATE;
+          commissionTotal += Number(p.price) * commissionRate;
         }
       }
     }
@@ -74,10 +82,31 @@ function FinanceAdmin() {
         <>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <Stat icon={<TrendingUp className="h-5 w-5" />} label="Стойност договори" value={fmt(stats.contractsValue)} />
-            <Stat icon={<Coins className="h-5 w-5" />} label={`Комисионни (${(COMMISSION_RATE * 100).toFixed(0)}%)`} value={fmt(stats.commissionTotal)} accent />
+            <Stat icon={<Coins className="h-5 w-5" />} label={`Комисионни (${(commissionRate * 100).toFixed(0)}%)`} value={fmt(stats.commissionTotal)} accent />
             <Stat icon={<FileText className="h-5 w-5" />} label="Активни / Чернови" value={`${stats.contractsActive} / ${stats.contractsDraft}`} />
             <Stat icon={<Wallet className="h-5 w-5" />} label="Ипотечни заявки" value={String(stats.mortgageCount)} />
           </div>
+
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-500/20 bg-[rgba(255,255,255,0.05)] p-4">
+            <Coins className="h-4 w-4 text-amber-300" />
+            <label className="text-sm text-amber-100">Комисиона за продажба (%):</label>
+            <input
+              type="number"
+              step="0.1"
+              min={0}
+              max={100}
+              defaultValue={(commissionRate * 100).toFixed(2)}
+              onBlur={(e) => {
+                const v = Number(e.target.value);
+                if (!Number.isFinite(v) || v < 0 || v > 100) return;
+                const next = Math.round((v / 100) * 10000) / 10000;
+                if (Math.abs(next - commissionRate) > 1e-6) saveCommission(next);
+              }}
+              className="w-24 rounded border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-2 py-1 text-sm text-amber-100"
+            />
+            <span className="text-xs text-amber-100/60">(запазва се при загуба на фокус — само админи)</span>
+          </div>
+
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Panel title="Последни договори">

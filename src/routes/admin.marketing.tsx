@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Megaphone, Mail, Users, Send, Copy, CheckCircle2 } from "lucide-react";
+import { sendMarketingEmail } from "@/lib/marketing.functions";
 
 export const Route = createFileRoute("/admin/marketing")({ component: MarketingAdmin });
 
@@ -17,6 +18,7 @@ function MarketingAdmin() {
   const [emailLog, setEmailLog] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const loadAudience = async (a: Audience) => {
     let q;
@@ -114,16 +116,35 @@ function MarketingAdmin() {
           </label>
 
           <div className="flex flex-wrap gap-2">
-            <Button asChild disabled={recipients.length === 0}>
-              <a href={mailtoUrl}><Send className="h-4 w-4" /> Отвори в имейл клиент</a>
+            <Button
+              disabled={recipients.length === 0 || sending}
+              onClick={async () => {
+                setSending(true);
+                try {
+                  const html = body.split("\n").map((l) => `<p>${l.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!))}</p>`).join("");
+                  const res = await sendMarketingEmail({ data: { recipients, subject, html, template_name: "newsletter" } });
+                  if (res.ok) toast.success(res.message);
+                  else toast.error(res.message);
+                  const { data } = await supabase.from("email_send_log").select("*").order("created_at", { ascending: false }).limit(50);
+                  setEmailLog(data ?? []);
+                } catch (e: any) {
+                  toast.error(e?.message ?? "Грешка");
+                } finally { setSending(false); }
+              }}
+            >
+              <Send className="h-4 w-4" /> {sending ? "Изпращане..." : `Изпрати реално (${recipients.length})`}
+            </Button>
+            <Button asChild variant="outline" disabled={recipients.length === 0}>
+              <a href={mailtoUrl}><Mail className="h-4 w-4" /> Mailto</a>
             </Button>
             <Button variant="outline" onClick={copyEmails} disabled={recipients.length === 0}>
-              <Copy className="h-4 w-4" /> {copied ? "Копирани!" : "Копирай имейлите"}
+              <Copy className="h-4 w-4" /> {copied ? "Копирани!" : "Копирай"}
             </Button>
           </div>
           <p className="mt-2 text-[11px] text-amber-100/50">
-            Mailto работи с до ~50 BCC адреса. За по-големи кампании използвай копираните имейли в имейл инструмент.
+            Реалното изпращане използва Resend (RESEND_API_KEY + MARKETING_FROM_EMAIL). Без тях получателите се записват в лога като „queued".
           </p>
+
         </section>
 
         <section className="rounded-2xl border border-amber-500/20 bg-[rgba(20,4,8,0.6)] p-4 backdrop-blur">

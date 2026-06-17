@@ -39,6 +39,7 @@ function InquiriesAdmin() {
   const [tab, setTab] = useState<"inquiries" | "mortgages">("inquiries");
   const [rows, setRows] = useState<Row[]>([]);
   const [mortgages, setMortgages] = useState<MortgageRow[]>([]);
+  const [statusFilter, setStatusFilter] = useState("");
 
   const load = () => {
     supabase
@@ -62,6 +63,16 @@ function InquiriesAdmin() {
   const setMortgageStatus = async (id: string, status: string) => {
     await supabase.from("mortgage_applications").update({ status }).eq("id", id);
     load();
+  };
+
+  const saveNotes = async (
+    table: "inquiries" | "mortgage_applications",
+    id: string,
+    notes: string,
+  ) => {
+    const { error } = await supabase.from(table).update({ notes }).eq("id", id);
+    if (error) toast.error(error.message);
+    else toast.success("Бележките са запазени");
   };
 
   const downloadFile = async (path: string, name: string) => {
@@ -104,7 +115,16 @@ function InquiriesAdmin() {
 
       {tab === "inquiries" && (
         <div className="space-y-3">
-          {rows.map((r) => (
+          <div className="flex flex-wrap items-center gap-2">
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-1.5 text-sm text-amber-100">
+              <option value="">Статус: всички</option>
+              <option value="new">Ново</option>
+              <option value="in_progress">В процес</option>
+              <option value="closed">Затворено</option>
+            </select>
+            {statusFilter && <button onClick={() => setStatusFilter("")} className="text-xs text-amber-100/60 underline">Изчисти</button>}
+          </div>
+          {rows.filter((r) => !statusFilter || r.status === statusFilter).map((r) => (
             <article key={r.id} className="rounded-2xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)] p-5 text-amber-100">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -120,6 +140,7 @@ function InquiriesAdmin() {
                 </select>
               </div>
               {r.message && <p className="mt-3 whitespace-pre-wrap text-sm">{r.message}</p>}
+              <NotesEditor initial={r.notes ?? ""} onSave={(v) => saveNotes("inquiries", r.id, v)} />
             </article>
           ))}
           {!rows.length && <p className="text-center text-amber-100/40">Няма запитвания</p>}
@@ -155,7 +176,7 @@ function InquiriesAdmin() {
                 </select>
               </div>
 
-              {m.notes && <p className="mt-3 whitespace-pre-wrap text-sm">{m.notes}</p>}
+              <NotesEditor initial={m.notes ?? ""} onSave={(v) => saveNotes("mortgage_applications", m.id, v)} />
 
               {m.files?.length > 0 && (
                 <div className="mt-4">
@@ -200,4 +221,57 @@ function labelCategory(c: string) {
     id_back: "Лична карта (гръб)",
     employer_note: "Служебна бележка",
   } as Record<string, string>)[c] ?? c;
+}
+
+function NotesEditor({ initial, onSave }: { initial: string; onSave: (v: string) => void | Promise<void> }) {
+  const [value, setValue] = useState(initial);
+  const [editing, setEditing] = useState(false);
+  if (!editing) {
+    return (
+      <div className="mt-3">
+        {value ? (
+          <p className="whitespace-pre-wrap text-sm text-amber-100/90">{value}</p>
+        ) : (
+          <p className="text-xs italic text-amber-100/40">Няма бележки</p>
+        )}
+        <button
+          onClick={() => setEditing(true)}
+          className="mt-1 text-xs text-amber-300 underline-offset-2 hover:underline"
+        >
+          {value ? "Редактирай бележки" : "Добави бележки"}
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 space-y-2">
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        rows={3}
+        className="w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-2 text-sm text-amber-100 placeholder:text-amber-100/30"
+        placeholder="Вътрешни бележки за този запис..."
+      />
+      <div className="flex gap-2">
+        <button
+          onClick={async () => {
+            await onSave(value);
+            setEditing(false);
+          }}
+          className="rounded-lg bg-gradient-to-r from-primary to-[#7a0d22] px-3 py-1.5 text-xs font-semibold text-amber-100"
+        >
+          Запази
+        </button>
+        <button
+          onClick={() => {
+            setValue(initial);
+            setEditing(false);
+          }}
+          className="rounded-lg border border-amber-500/30 px-3 py-1.5 text-xs text-amber-100/70"
+        >
+          Отказ
+        </button>
+      </div>
+    </div>
+  );
 }

@@ -30,6 +30,9 @@ function ClientsAdmin() {
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
   const [scanOpen, setScanOpen] = useState(false);
+  const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterBroker, setFilterBroker] = useState("");
 
   const load = async () => {
     const [clientsData, { data: cs }, { data: qs }, { data: bs }] = await Promise.all([
@@ -70,7 +73,13 @@ function ClientsAdmin() {
   });
 
   const filteredQuarters = editing?.search_city_id ? quarters.filter((q) => q.city_id === editing.search_city_id) : [];
-  const filtered = rows.filter((r) => !search.trim() || (r.full_name + " " + (r.phone ?? "") + " " + (r.email ?? "")).toLowerCase().includes(search.toLowerCase()));
+  const filtered = rows.filter((r) => {
+    if (search.trim() && !(r.full_name + " " + (r.phone ?? "") + " " + (r.email ?? "")).toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterType && r.client_type !== filterType) return false;
+    if (filterStatus && r.status !== filterStatus) return false;
+    if (filterBroker && (r.assigned_broker_id ?? "") !== filterBroker) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -87,6 +96,30 @@ function ClientsAdmin() {
           <Button onClick={newClient} className="gold-cta-button"><Plus className="h-4 w-4" /> Нов клиент</Button>
         </div>
       </header>
+
+      <div className="flex flex-wrap gap-2 rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.6)] p-3">
+        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
+          <option value="">Тип: всички</option>
+          <option value="buyer">Купувач</option>
+          <option value="seller">Продавач</option>
+          <option value="tenant">Наемател</option>
+          <option value="landlord">Наемодател</option>
+        </select>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
+          <option value="">Статус: всички</option>
+          <option value="active">Активен</option>
+          <option value="paused">Пауза</option>
+          <option value="closed">Затворен</option>
+        </select>
+        <select value={filterBroker} onChange={(e) => setFilterBroker(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
+          <option value="">Брокер: всички</option>
+          {brokers.map((b) => <option key={b.id} value={b.id}>{b.full_name}</option>)}
+        </select>
+        {(filterType || filterStatus || filterBroker) && (
+          <button onClick={() => { setFilterType(""); setFilterStatus(""); setFilterBroker(""); }} className="text-xs text-amber-100/60 underline">Изчисти</button>
+        )}
+        <span className="ml-auto text-xs text-amber-100/50 self-center">{filtered.length} / {rows.length}</span>
+      </div>
 
       <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)]">
         <table className="w-full min-w-[760px] text-sm text-amber-100">
