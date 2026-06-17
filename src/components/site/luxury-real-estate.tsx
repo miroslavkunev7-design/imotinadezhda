@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState as useReactState, type VideoHTMLAttributes } from "react";
+import { cloneElement, useEffect, useRef, useState as useReactState, type ReactElement, type CSSProperties, type VideoHTMLAttributes } from "react";
 
 // Auto-play helper with instant-poster + deferred video mount:
 // 1. Renders the poster image immediately as a full-cover background so first
@@ -858,14 +858,14 @@ type LayoutSection = {
   props?: Record<string, string | number | boolean | null>;
 };
 
-function applySectionOverrides(node: React.ReactElement | null, props?: LayoutSection["props"]) {
+function applySectionOverrides(node: ReactElement | null, props?: LayoutSection["props"]) {
   if (!node || !props) return node;
   const variantId = typeof props.sv_variant === "string" ? props.sv_variant : null;
   const w = typeof props.sv_width === "string" ? props.sv_width : undefined;
   const h = typeof props.sv_height === "string" ? props.sv_height : undefined;
   if (!variantId && !w && !h) return node;
-  const existing = node.props as { className?: string; style?: React.CSSProperties };
-  return React.cloneElement(node, {
+  const existing = node.props as { className?: string; style?: CSSProperties };
+  return cloneElement(node as ReactElement<{ className?: string; style?: CSSProperties }>, {
     className: [existing.className, variantId ? `sv-${variantId}` : ""].filter(Boolean).join(" "),
     style: {
       ...(existing.style ?? {}),
