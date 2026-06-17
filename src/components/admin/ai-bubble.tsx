@@ -122,7 +122,7 @@ export function AdminAIBubble() {
         onClick={() => setOpen((v) => !v)}
         aria-label="AI Асистент"
         className={cn(
-          "fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full",
+          "fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom,0px))] right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full md:bottom-5 md:right-5 md:h-14 md:w-14",
           "bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 text-amber-950 shadow-[0_12px_32px_rgba(180,120,20,0.55)]",
           "transition hover:scale-105 hover:shadow-[0_18px_40px_rgba(180,120,20,0.7)]",
           open && "scale-95",
@@ -140,10 +140,10 @@ export function AdminAIBubble() {
       {/* Slide-in panel */}
       <div
         className={cn(
-          "fixed bottom-24 right-5 z-50 flex w-[min(96vw,400px)] flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[0_28px_60px_rgba(139, 26, 43,0.45)] transition-all duration-300",
+          "fixed inset-x-3 bottom-[calc(9.25rem+env(safe-area-inset-bottom,0px))] z-50 flex max-h-[calc(100dvh-11rem-env(safe-area-inset-bottom,0px))] flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[0_28px_60px_rgba(139, 26, 43,0.45)] transition-all duration-300 md:inset-x-auto md:bottom-24 md:right-5 md:w-[min(96vw,400px)]",
           open ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0",
         )}
-        style={{ maxHeight: "min(70vh, 600px)" }}
+        style={{ maxHeight: "min(70dvh, 600px)" }}
       >
         {/* Header */}
         <div className="flex items-center gap-2 border-b border-amber-500/20 bg-gradient-to-r from-[#66081c] to-[#4a0613] px-4 py-3 text-amber-100">
