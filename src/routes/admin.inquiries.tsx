@@ -39,6 +39,7 @@ function InquiriesAdmin() {
   const [tab, setTab] = useState<"inquiries" | "mortgages">("inquiries");
   const [rows, setRows] = useState<Row[]>([]);
   const [mortgages, setMortgages] = useState<MortgageRow[]>([]);
+  const [statusFilter, setStatusFilter] = useState("");
 
   const load = () => {
     supabase
