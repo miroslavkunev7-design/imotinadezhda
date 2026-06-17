@@ -166,7 +166,7 @@ function InquiriesAdmin() {
                 </select>
               </div>
 
-              {m.notes && <p className="mt-3 whitespace-pre-wrap text-sm">{m.notes}</p>}
+              <NotesEditor initial={m.notes ?? ""} onSave={(v) => saveNotes("mortgage_applications", m.id, v)} />
 
               {m.files?.length > 0 && (
                 <div className="mt-4">
