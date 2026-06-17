@@ -263,7 +263,7 @@ function PropertiesAdmin() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {filteredRows.map((r) => (
               <tr key={r.id} className="border-t border-border">
                 <td className="px-4 py-2">{r.title}</td>
                 <td className="px-4 py-2">{r.cities?.name ?? "—"}</td>
