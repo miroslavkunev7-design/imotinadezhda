@@ -12,7 +12,7 @@ export const Route = createFileRoute("/properties/$propertyId")({
   head: ({ loaderData, params }) => {
     const url = `https://imotinadezhda.lovable.app/properties/${params.propertyId}`;
     const p: any = loaderData?.property;
-    const title = `${p?.title ?? "Имот"} | ИЛДЖ.ИА`;
+    const title = `${p?.title ?? "Имот"} | Имоти Надежда`;
     const desc = (p?.description ?? "Детайли за имот, галерия и запитване.").slice(0, 160);
     return {
       meta: [

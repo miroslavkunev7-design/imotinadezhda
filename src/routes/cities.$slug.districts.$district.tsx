@@ -11,7 +11,7 @@ export const Route = createFileRoute("/cities/$slug/districts/$district")({
   },
   head: ({ loaderData, params }) => {
     const url = `https://imotinadezhda.lovable.app/cities/${params.slug}/districts/${params.district}`;
-    const title = `${loaderData?.quarter.name ?? params.district} | ${loaderData?.city.name ?? params.slug} | ИЛДЖ.ИА`;
+    const title = `${loaderData?.quarter.name ?? params.district} | ${loaderData?.city.name ?? params.slug} | Имоти Надежда`;
     const desc = loaderData?.quarter.description ?? "Имоти, филтри и информация за квартала.";
     return {
       meta: [

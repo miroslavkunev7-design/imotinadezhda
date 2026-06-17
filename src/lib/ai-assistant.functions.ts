@@ -642,7 +642,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
       supabaseAdmin.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "new"),
     ]);
 
-    const systemPrompt = `Ти си ИЛДЖ.ИА Юридически и CRM Асистент — експерт за луксозна имотна агенция "Недвижими имоти Надежда" в България.
+    const systemPrompt = `Ти си Юридически и CRM Асистент — експерт за имотна агенция "Имоти Надежда" в България.
 
 Имаш достъп до базата данни през tools (search_clients, get_client, search_properties, get_property, save_contract, update_crm_theme).
 

@@ -24,9 +24,9 @@ export const Route = createFileRoute("/search")({
   },
   head: () => ({
     meta: [
-      { title: "Търсене на имоти | ИЛДЖ.ИА" },
+      { title: "Търсене на имоти | Имоти Надежда" },
       { name: "description", content: "Търсене на луксозни имоти в България — филтри по град, квартал, цена и площ." },
-      { property: "og:title", content: "Търсене на имоти | ИЛДЖ.ИА" },
+      { property: "og:title", content: "Търсене на имоти | Имоти Надежда" },
       { property: "og:description", content: "Търсене на луксозни имоти в България." },
       { property: "og:url", content: "https://imotinadezhda.lovable.app/search" },
       { name: "robots", content: "noindex,follow" },

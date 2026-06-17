@@ -120,6 +120,9 @@ function AutoPlayVideo(
   );
 }
 import { Link, useNavigate } from "@tanstack/react-router";
+import { AGENCY } from "@/lib/contact-config";
+import { useFavorites, shareProperty } from "@/hooks/use-favorites";
+import { toast } from "sonner";
 
 import {
   Award,
@@ -801,11 +804,11 @@ function AgentCard() {
         </div>
       </div>
       <div className="space-y-3 text-lg">
-        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />+359 88 123 4567</div>
-        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />m.ivanova@ildja.bg</div>
+        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />{AGENCY.phoneDisplay}</div>
+        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />{AGENCY.email}</div>
       </div>
-      <Button asChild className="gold-cta-button h-14 w-full rounded-[14px] text-lg"><a href="tel:+359899620262">Запази час за оглед</a></Button>
-      <Button asChild variant="outline" className="marble-action-button h-14 w-full rounded-[14px] border-primary/30 bg-transparent text-lg text-primary-foreground hover:bg-white/6"><a href="mailto:agenciq_nadejdi@abv.bg?subject=Запитване%20за%20имот">Запитване</a></Button>
+      <Button asChild className="gold-cta-button h-14 w-full rounded-[14px] text-lg"><a href={`tel:${AGENCY.phone}`}>Запази час за оглед</a></Button>
+      <Button asChild variant="outline" className="marble-action-button h-14 w-full rounded-[14px] border-primary/30 bg-transparent text-lg text-primary-foreground hover:bg-white/6"><a href={`mailto:${AGENCY.email}?subject=Запитване%20за%20имот`}>Запитване</a></Button>
     </aside>
   );
 }
@@ -1744,7 +1747,7 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
 
       {/* Main content */}
       <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-8 px-4 pb-24 lg:flex-row">
-        <DistrictFilterSidebar />
+        <DistrictFilterSidebar citySlug={city.slug} quarterSlug={quarter.slug} />
 
         <div className="flex-1">
           {/* Breadcrumb */}
@@ -1877,19 +1880,45 @@ function DistrictSearchBar({ cityName }: { cityName: string }) {
   );
 }
 
-function DistrictFilterSidebar() {
+function DistrictFilterSidebar({ citySlug, quarterSlug }: { citySlug?: string; quarterSlug?: string }) {
+  const navigate = useNavigate();
+  const [selectedType, setSelectedType] = useReactState<string>("");
+  const [priceMin, setPriceMin] = useReactState("");
+  const [priceMax, setPriceMax] = useReactState("");
+  const types: Array<{ label: string; value: string }> = [
+    { label: "Апартамент", value: "apartment" },
+    { label: "Многостаен", value: "multiroom" },
+    { label: "Къща", value: "house" },
+    { label: "Парцел", value: "land" },
+    { label: "Офис", value: "office" },
+    { label: "Магазин", value: "shop" },
+  ];
+  const apply = () => {
+    const params: Record<string, string> = {};
+    if (citySlug) params.city_slug = citySlug;
+    if (quarterSlug) params.quarter_slug = quarterSlug;
+    if (selectedType) params.property_type = selectedType;
+    if (priceMin) params.price_min = priceMin;
+    if (priceMax) params.price_max = priceMax;
+    navigate({ to: "/search", search: params as never });
+  };
   return (
     <aside className="nadezhda-dark-red-bg w-full flex-shrink-0 rounded-3xl border border-[#c59441] p-6 text-white shadow-xl lg:w-72">
       <h3 className="font-serif-nadezhda mb-4 text-2xl font-bold">Бързи филтри</h3>
       <hr className="mb-6 border-gray-600/50" />
       <div className="mb-8">
         <div className="mb-3 text-lg text-gray-300">Тип имот</div>
-        {["Апартамент", "Многостаен", "Къща", "Парцел", "Офис", "Магазин"].map((t) => (
-          <label key={t} className="mb-3 flex cursor-pointer items-center gap-3 transition hover:text-yellow-400">
-            <span className="flex h-5 w-5 items-center justify-center rounded border border-gray-400">
-              {t === "Апартамент" ? <span className="h-3 w-3 rounded-sm bg-[#f4d07d]" /> : null}
-            </span>
-            <span className="text-sm">{t}</span>
+        {types.map((t) => (
+          <label key={t.value} className="mb-3 flex cursor-pointer items-center gap-3 transition hover:text-yellow-400">
+            <input
+              type="radio"
+              name="ptype"
+              value={t.value}
+              checked={selectedType === t.value}
+              onChange={() => setSelectedType(t.value === selectedType ? "" : t.value)}
+              className="h-4 w-4 accent-[#f4d07d]"
+            />
+            <span className="text-sm">{t.label}</span>
           </label>
         ))}
       </div>
@@ -1897,14 +1926,34 @@ function DistrictFilterSidebar() {
         <div className="mb-3 text-lg text-gray-300">Цена</div>
         <div className="mb-3 flex items-center gap-3">
           <span className="w-6 text-sm">От</span>
-          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2"><span className="ml-1 text-gray-400">€</span></div>
+          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2">
+            <input
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              placeholder="€"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-gray-400"
+            />
+          </div>
         </div>
         <div className="mb-4 flex items-center gap-3">
           <span className="w-6 text-sm">До</span>
-          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2"><span className="ml-1 text-gray-400">€</span></div>
+          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2">
+            <input
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              placeholder="€"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-gray-400"
+            />
+          </div>
         </div>
       </div>
-      <button className="nadezhda-gold-bg mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-3 text-lg font-bold text-black shadow-lg transition hover:brightness-110">
+      <button
+        type="button"
+        onClick={apply}
+        className="nadezhda-gold-bg mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-3 text-lg font-bold text-black shadow-lg transition hover:brightness-110"
+      >
         Приложи филтрите <SlidersHorizontal className="h-4 w-4" />
       </button>
     </aside>
@@ -1955,13 +2004,14 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
     );
   }
   const { property, images, broker } = data;
+  const favs = useFavorites();
   // Resolve broker contact: fall back to the agency owner defaults when the
   // listing has no linked broker (legacy rows / direct admin uploads).
-  const brokerName = broker?.full_name?.trim() || "Надежда Иванова";
+  const brokerName = broker?.full_name?.trim() || AGENCY.name;
   const brokerRole = broker ? "Брокер" : "Старши консултант";
-  const brokerPhoneDisplay = broker?.phone?.trim() || "0899 620 262";
+  const brokerPhoneDisplay = broker?.phone?.trim() || AGENCY.phoneDisplay;
   const brokerPhoneTel = `+${brokerPhoneDisplay.replace(/[^\d]/g, "").replace(/^0/, "359")}`;
-  const brokerEmail = broker?.email?.trim() || "agenciq_nadejdi@abv.bg";
+  const brokerEmail = broker?.email?.trim() || AGENCY.email;
   const brokerPhoto = broker?.photo_url?.trim() || "";
 
   const gallery = (images.length ? images.map((i) => i.url) : [property.cover_image_url || burgasHero]).filter(Boolean) as string[];
@@ -2030,11 +2080,27 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
                   <div className="text-lg text-gray-600">{quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}</div>
                 </div>
                 <div className="flex gap-6">
-                  <button className="flex items-center gap-2 text-gray-500 transition hover:text-red-500">
-                    <Heart className="h-6 w-6 text-[#c59441]" />
-                    <span className="text-left text-sm">Добави<br />в любими</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const added = favs.toggle(property.id);
+                      toast.success(added ? "Добавено в любими" : "Премахнато от любими");
+                    }}
+                    className={`flex items-center gap-2 transition ${favs.has(property.id) ? "text-red-500" : "text-gray-500 hover:text-red-500"}`}
+                  >
+                    <Heart className={`h-6 w-6 ${favs.has(property.id) ? "fill-red-500 text-red-500" : "text-[#c59441]"}`} />
+                    <span className="text-left text-sm">{favs.has(property.id) ? "Премахни\nот любими" : "Добави\nв любими"}</span>
                   </button>
-                  <button className="flex items-center gap-2 text-gray-500 transition hover:text-blue-500">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const url = typeof window !== "undefined" ? window.location.href : "";
+                      const r = await shareProperty({ title: property.title, url, text: `${property.title} — ${cityName}` });
+                      if (r === "copied") toast.success("Линкът е копиран");
+                      else if (r === "failed") toast.error("Споделянето не е възможно");
+                    }}
+                    className="flex items-center gap-2 text-gray-500 transition hover:text-blue-500"
+                  >
                     <Share2 className="h-6 w-6 text-[#c59441]" />
                     <span className="text-sm">Сподели</span>
                   </button>
@@ -2262,8 +2328,8 @@ function InquiryForm({ propertyId, propertyTitle }: { propertyId?: string; prope
         </form>
       )}
       <div className="space-y-2 border-t border-primary/15 pt-3 text-base">
-        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />+359 88 123 4567</div>
-        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />office@imotinadezhda.bg</div>
+        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />{AGENCY.phoneDisplay}</div>
+        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />{AGENCY.email}</div>
       </div>
     </aside>
   );

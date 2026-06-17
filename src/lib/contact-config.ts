@@ -10,15 +10,15 @@ export const AGENCY_PHONES: AgencyPhone[] = [
 ];
 
 export const AGENCY = {
-  name: "Недвижими имоти ИЛДЖ.ИА",
-  shortName: "ИЛДЖ.ИА",
+  name: "Имоти Надежда",
+  shortName: "Надежда",
   phones: AGENCY_PHONES,
   // Основен телефон за бутони / tel: линкове
   phone: AGENCY_PHONES[0].tel,
   phoneDisplay: AGENCY_PHONES[0].display,
   whatsapp: AGENCY_PHONES[0].whatsapp,
-  email: "office@imotinadezhda.bg",
-  address: "гр. Бургас, България",
+  email: "agenciq_nadejdi@abv.bg",
+  address: "гр. Шумен, България",
   // Партньорска препратка за ипотечен кредит
   mortgagePartnerUrl: "https://www.creditcenter.bg/calculator/",
 };

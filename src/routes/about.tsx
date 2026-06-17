@@ -21,14 +21,14 @@ import {
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "За нас — Недвижими имоти ИЛДЖ.ИА" },
+      { title: "За нас — Недвижими имоти Имоти Надежда" },
       {
         name: "description",
         content:
-          "Доверен партньор за недвижими имоти в Бургас и региона. Професионализъм, сигурност и индивидуален подход при всяка сделка.",
+          "Доверен партньор за недвижими имоти в Шумен и региона. Професионализъм, сигурност и индивидуален подход при всяка сделка.",
       },
-      { property: "og:title", content: "За нас — ИЛДЖ.ИА" },
-      { property: "og:description", content: "Доверен партньор за недвижими имоти в Бургас и региона." },
+      { property: "og:title", content: "За нас — Имоти Надежда" },
+      { property: "og:description", content: "Доверен партньор за недвижими имоти в Шумен и региона." },
       { property: "og:url", content: "https://imotinadezhda.lovable.app/about" },
     ],
     links: [
@@ -89,8 +89,8 @@ function AboutPage() {
               <h1 className="mt-1 font-display text-3xl text-[#C9A84C] md:text-4xl">За нас</h1>
               <div className="mt-3 h-px w-24 bg-gradient-to-r from-[#C9A84C] to-transparent" />
               <p className="mt-4 max-w-prose text-sm leading-relaxed text-[#fdf6e3]/90 md:text-[15px]">
-                Недвижими имоти <span className="text-[#C9A84C]">ИЛДЖ.ИА</span> е доверен партньор в
-                сферата на недвижимите имоти в Бургас и региона. Работим с мисията да предоставяме
+                Недвижими имоти <span className="text-[#C9A84C]">Имоти Надежда</span> е доверен партньор в
+                сферата на недвижимите имоти в Шумен и региона. Работим с мисията да предоставяме
                 най-доброто обслужване, лоялност и сигурност при всяка сделка.
               </p>
 
@@ -148,14 +148,14 @@ function AboutPage() {
           <div className="relative overflow-hidden rounded-3xl ring-1 ring-[#C9A84C]/40 shadow-[0_30px_80px_-30px_rgba(139,26,43,0.45)]">
             <img
               src={aboutSofa}
-              alt="Луксозен интериор ИЛДЖ.ИА"
+              alt="Луксозен интериор Имоти Надежда"
               className="h-full w-full object-cover"
               loading="lazy"
               width={1280}
               height={896}
             />
             <div className="absolute right-4 top-4 rounded-xl bg-white/90 px-3 py-2 ring-1 ring-[#C9A84C]/50 backdrop-blur md:right-6 md:top-6">
-              <img src={logoNadezhda} alt="ИЛДЖ.ИА" className="h-10 w-auto md:h-12" loading="lazy" decoding="async" />
+              <img src={logoNadezhda} alt="Имоти Надежда" className="h-10 w-auto md:h-12" loading="lazy" decoding="async" />
             </div>
           </div>
         </div>
