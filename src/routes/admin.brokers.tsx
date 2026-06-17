@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Pencil, X, Upload, UserCog, Phone, Mail, Shield, CheckSquare, Square, ListChecks, UserPlus, MessageSquare, PhoneCall, CalendarClock, ClipboardList } from "lucide-react";
 import {
-  listBrokers, upsertBroker, deleteBroker, createBrokerAccount,
+  listBrokers, upsertBroker, deleteBroker, createBrokerAccount, resetBrokerPassword,
   getBrokerDetails, upsertBrokerTask, toggleBrokerTask, deleteBrokerTask,
   assignClientToBroker, unassignClientFromBroker, listUnassignedClients,
 } from "@/lib/crm.functions";
 import { BrokerRolesDialog } from "@/components/admin/broker-roles-dialog";
+import { KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/admin/brokers")({
   component: BrokersAdmin,
