@@ -282,7 +282,7 @@ function PropertiesAdmin() {
 
               </tr>
             ))}
-            {!rows.length && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Няма имоти</td></tr>}
+            {!filteredRows.length && <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">{rows.length ? "Няма имоти по тези филтри" : "Няма имоти"}</td></tr>}
           </tbody>
         </table>
       </div>
