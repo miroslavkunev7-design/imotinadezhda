@@ -711,7 +711,55 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
         continue;
       }
 
-      return { reply: msg.content ?? "" };
+      // Persist conversation + new user message + assistant reply
+      let convId = data.conversation_id ?? null;
+      try {
+        const lastUser = [...data.messages].reverse().find((m) => m.role === "user");
+        if (!convId) {
+          const title = (lastUser?.content ?? "Нов разговор").slice(0, 80);
+          const { data: conv } = await supabaseAdmin
+            .from("ai_conversations")
+            .insert({ user_id: context.userId, title })
+            .select("id")
+            .single();
+          convId = conv?.id ?? null;
+        }
+        if (convId) {
+          const toInsert: Array<{ conversation_id: string; role: string; content: string }> = [];
+          if (lastUser) toInsert.push({ conversation_id: convId, role: "user", content: lastUser.content });
+          if (msg.content) toInsert.push({ conversation_id: convId, role: "assistant", content: msg.content });
+          if (toInsert.length) await supabaseAdmin.from("ai_messages").insert(toInsert);
+          await supabaseAdmin.from("ai_conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
+        }
+      } catch (e) {
+        console.error("ai persist failed", e);
+      }
+
+      return { reply: msg.content ?? "", conversation_id: convId };
     }
-    return { reply: "Прекалено много стъпки. Опитайте по-конкретен въпрос." };
+    return { reply: "Прекалено много стъпки. Опитайте по-конкретен въпрос.", conversation_id: data.conversation_id ?? null };
+  });
+
+export const listAiConversations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await supabaseAdmin
+      .from("ai_conversations")
+      .select("id, title, updated_at")
+      .eq("user_id", context.userId)
+      .order("updated_at", { ascending: false })
+      .limit(50);
+    return data ?? [];
+  });
+
+export const getAiConversation = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: conv } = await supabaseAdmin
+      .from("ai_conversations").select("id, title").eq("id", data.id).eq("user_id", context.userId).maybeSingle();
+    if (!conv) throw new Error("Not found");
+    const { data: msgs } = await supabaseAdmin
+      .from("ai_messages").select("role, content").eq("conversation_id", data.id).order("created_at");
+    return { conv, messages: msgs ?? [] };
   });
