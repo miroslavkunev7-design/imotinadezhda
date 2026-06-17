@@ -97,6 +97,30 @@ function ClientsAdmin() {
         </div>
       </header>
 
+      <div className="flex flex-wrap gap-2 rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.6)] p-3">
+        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
+          <option value="">Тип: всички</option>
+          <option value="buyer">Купувач</option>
+          <option value="seller">Продавач</option>
+          <option value="tenant">Наемател</option>
+          <option value="landlord">Наемодател</option>
+        </select>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
+          <option value="">Статус: всички</option>
+          <option value="active">Активен</option>
+          <option value="paused">Пауза</option>
+          <option value="closed">Затворен</option>
+        </select>
+        <select value={filterBroker} onChange={(e) => setFilterBroker(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
+          <option value="">Брокер: всички</option>
+          {brokers.map((b) => <option key={b.id} value={b.id}>{b.full_name}</option>)}
+        </select>
+        {(filterType || filterStatus || filterBroker) && (
+          <button onClick={() => { setFilterType(""); setFilterStatus(""); setFilterBroker(""); }} className="text-xs text-amber-100/60 underline">Изчисти</button>
+        )}
+        <span className="ml-auto text-xs text-amber-100/50 self-center">{filtered.length} / {rows.length}</span>
+      </div>
+
       <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)]">
         <table className="w-full min-w-[760px] text-sm text-amber-100">
           <thead className="bg-[rgba(40,8,16,0.7)] text-left text-amber-100/80">
