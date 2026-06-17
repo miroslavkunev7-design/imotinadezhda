@@ -130,6 +130,7 @@ function InquiriesAdmin() {
                 </select>
               </div>
               {r.message && <p className="mt-3 whitespace-pre-wrap text-sm">{r.message}</p>}
+              <NotesEditor initial={r.notes ?? ""} onSave={(v) => saveNotes("inquiries", r.id, v)} />
             </article>
           ))}
           {!rows.length && <p className="text-center text-amber-100/40">Няма запитвания</p>}
