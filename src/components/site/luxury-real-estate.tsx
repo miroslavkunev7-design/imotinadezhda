@@ -1745,7 +1745,7 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
 
       {/* Main content */}
       <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-8 px-4 pb-24 lg:flex-row">
-        <DistrictFilterSidebar />
+        <DistrictFilterSidebar citySlug={city.slug} quarterSlug={quarter.slug} />
 
         <div className="flex-1">
           {/* Breadcrumb */}
