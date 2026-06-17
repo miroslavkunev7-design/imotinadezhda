@@ -1878,19 +1878,45 @@ function DistrictSearchBar({ cityName }: { cityName: string }) {
   );
 }
 
-function DistrictFilterSidebar() {
+function DistrictFilterSidebar({ citySlug, quarterSlug }: { citySlug?: string; quarterSlug?: string }) {
+  const navigate = useNavigate();
+  const [selectedType, setSelectedType] = useReactState<string>("");
+  const [priceMin, setPriceMin] = useReactState("");
+  const [priceMax, setPriceMax] = useReactState("");
+  const types: Array<{ label: string; value: string }> = [
+    { label: "Апартамент", value: "apartment" },
+    { label: "Многостаен", value: "multiroom" },
+    { label: "Къща", value: "house" },
+    { label: "Парцел", value: "land" },
+    { label: "Офис", value: "office" },
+    { label: "Магазин", value: "shop" },
+  ];
+  const apply = () => {
+    const params: Record<string, string> = {};
+    if (citySlug) params.city_slug = citySlug;
+    if (quarterSlug) params.quarter_slug = quarterSlug;
+    if (selectedType) params.property_type = selectedType;
+    if (priceMin) params.price_min = priceMin;
+    if (priceMax) params.price_max = priceMax;
+    navigate({ to: "/search", search: params as never });
+  };
   return (
     <aside className="nadezhda-dark-red-bg w-full flex-shrink-0 rounded-3xl border border-[#c59441] p-6 text-white shadow-xl lg:w-72">
       <h3 className="font-serif-nadezhda mb-4 text-2xl font-bold">Бързи филтри</h3>
       <hr className="mb-6 border-gray-600/50" />
       <div className="mb-8">
         <div className="mb-3 text-lg text-gray-300">Тип имот</div>
-        {["Апартамент", "Многостаен", "Къща", "Парцел", "Офис", "Магазин"].map((t) => (
-          <label key={t} className="mb-3 flex cursor-pointer items-center gap-3 transition hover:text-yellow-400">
-            <span className="flex h-5 w-5 items-center justify-center rounded border border-gray-400">
-              {t === "Апартамент" ? <span className="h-3 w-3 rounded-sm bg-[#f4d07d]" /> : null}
-            </span>
-            <span className="text-sm">{t}</span>
+        {types.map((t) => (
+          <label key={t.value} className="mb-3 flex cursor-pointer items-center gap-3 transition hover:text-yellow-400">
+            <input
+              type="radio"
+              name="ptype"
+              value={t.value}
+              checked={selectedType === t.value}
+              onChange={() => setSelectedType(t.value === selectedType ? "" : t.value)}
+              className="h-4 w-4 accent-[#f4d07d]"
+            />
+            <span className="text-sm">{t.label}</span>
           </label>
         ))}
       </div>
@@ -1898,14 +1924,34 @@ function DistrictFilterSidebar() {
         <div className="mb-3 text-lg text-gray-300">Цена</div>
         <div className="mb-3 flex items-center gap-3">
           <span className="w-6 text-sm">От</span>
-          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2"><span className="ml-1 text-gray-400">€</span></div>
+          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2">
+            <input
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              placeholder="€"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-gray-400"
+            />
+          </div>
         </div>
         <div className="mb-4 flex items-center gap-3">
           <span className="w-6 text-sm">До</span>
-          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2"><span className="ml-1 text-gray-400">€</span></div>
+          <div className="flex flex-1 items-center rounded-lg border border-gray-500 bg-black/20 p-2">
+            <input
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value.replace(/\D/g, ""))}
+              inputMode="numeric"
+              placeholder="€"
+              className="w-full bg-transparent text-sm text-white outline-none placeholder:text-gray-400"
+            />
+          </div>
         </div>
       </div>
-      <button className="nadezhda-gold-bg mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-3 text-lg font-bold text-black shadow-lg transition hover:brightness-110">
+      <button
+        type="button"
+        onClick={apply}
+        className="nadezhda-gold-bg mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-3 text-lg font-bold text-black shadow-lg transition hover:brightness-110"
+      >
         Приложи филтрите <SlidersHorizontal className="h-4 w-4" />
       </button>
     </aside>
