@@ -87,6 +87,27 @@ function FinanceAdmin() {
             <Stat icon={<Wallet className="h-5 w-5" />} label="Ипотечни заявки" value={String(stats.mortgageCount)} />
           </div>
 
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-500/20 bg-[rgba(255,255,255,0.05)] p-4">
+            <Coins className="h-4 w-4 text-amber-300" />
+            <label className="text-sm text-amber-100">Комисиона за продажба (%):</label>
+            <input
+              type="number"
+              step="0.1"
+              min={0}
+              max={100}
+              defaultValue={(commissionRate * 100).toFixed(2)}
+              onBlur={(e) => {
+                const v = Number(e.target.value);
+                if (!Number.isFinite(v) || v < 0 || v > 100) return;
+                const next = Math.round((v / 100) * 10000) / 10000;
+                if (Math.abs(next - commissionRate) > 1e-6) saveCommission(next);
+              }}
+              className="w-24 rounded border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-2 py-1 text-sm text-amber-100"
+            />
+            <span className="text-xs text-amber-100/60">(запазва се при загуба на фокус — само админи)</span>
+          </div>
+
+
           <div className="grid gap-4 lg:grid-cols-2">
             <Panel title="Последни договори">
               {contracts.length === 0 ? <Empty>Все още няма договори.</Empty> : (
