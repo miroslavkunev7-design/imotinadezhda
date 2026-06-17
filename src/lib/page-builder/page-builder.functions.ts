@@ -79,6 +79,7 @@ export const saveDesign = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase, userId } = context;
 
     if (data.id) {
@@ -131,6 +132,7 @@ export const publishDesign = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid(), publish: z.boolean() }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     if (data.publish) {
       // unpublish other designs for the same page
@@ -160,6 +162,7 @@ export const deleteDesign = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { error } = await context.supabase
       .from("page_designs")
       .delete()
