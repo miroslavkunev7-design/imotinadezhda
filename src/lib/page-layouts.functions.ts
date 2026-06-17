@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertAdmin } from "@/lib/auth/assert-admin";
 
 const PAGE_KEYS = ["home", "sale", "rent", "about", "contacts"] as const;
 const pageKeySchema = z.enum(PAGE_KEYS);
@@ -72,6 +73,7 @@ export const savePageLayout = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase, userId } = context;
 
     // 1. Snapshot the current value (ако има) преди да го заменим
@@ -130,6 +132,7 @@ export const resetPageLayout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ page_key: pageKeySchema }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase, userId } = context;
     const { data: current } = await supabase
       .from("page_layouts")
@@ -157,6 +160,7 @@ export const listPageLayoutRevisions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ page_key: pageKeySchema }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     const { data: rows, error } = await supabase
       .from("page_layout_revisions")
@@ -175,6 +179,7 @@ export const restorePageLayoutRevision = createServerFn({ method: "POST" })
     z.object({ page_key: pageKeySchema, revision_id: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase, userId } = context;
     const { data: rev, error: revErr } = await supabase
       .from("page_layout_revisions")
