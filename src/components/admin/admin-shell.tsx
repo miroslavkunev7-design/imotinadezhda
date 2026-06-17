@@ -120,7 +120,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
   return (
     <div
       data-crm-themed
-      className="relative flex min-h-screen"
+      className="relative flex min-h-[100dvh] overflow-x-hidden"
       style={{
         ...crmThemeStyle(theme),
         background: `linear-gradient(180deg, ${theme.surface} 0%, ${theme.surfaceTo} 100%)`,
@@ -269,7 +269,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
       {/* Main — херо фон */}
       <div
         className={cn(
-          "relative flex min-w-0 flex-1 flex-col overflow-hidden",
+          "relative flex min-w-0 flex-1 flex-col overflow-hidden lg:min-h-screen",
           crmBg ? "bg-[#1a0608]" : "bg-transparent",
         )}
         style={
@@ -300,7 +300,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         )}
 
         {/* Header */}
-        <header className="relative z-10 flex items-center justify-between gap-2 border-b border-amber-500/20 px-4 py-3 backdrop-blur-sm md:px-6">
+        <header className="relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-amber-500/20 px-3 py-3 backdrop-blur-sm md:px-6">
 
           <div className="flex min-w-0 items-center gap-2 text-sm text-amber-100/70">
             <button
@@ -314,7 +314,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
             <ChevronRight className="h-3.5 w-3.5 flex-none" />
             <span className="truncate text-amber-100">{breadcrumb ?? current?.label ?? "Admin"}</span>
           </div>
-          <div className="flex flex-none items-center gap-2">
+          <div className="flex min-w-0 flex-none items-center justify-end gap-1.5 sm:gap-2">
             {installAvailable && (
               <button
                 onClick={() => promptInstall()}
@@ -340,13 +340,13 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         </header>
 
         {/* Content */}
-        <main className="crm-content relative z-10 flex-1 overflow-auto p-4 pb-24 md:p-6 lg:p-8 lg:pb-8">
+        <main className="crm-content relative z-10 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain p-3 pb-[calc(6.75rem+env(safe-area-inset-bottom,0px))] md:p-6 lg:p-8 lg:pb-8">
           {children}
         </main>
       </div>
 
       {/* Mobile bottom navigation */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-amber-500/25 bg-[rgba(20,4,8,0.95)] backdrop-blur-md lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid h-[calc(4.75rem+env(safe-area-inset-bottom,0px))] grid-cols-5 border-t border-amber-500/25 bg-[rgba(20,4,8,0.96)] pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-14px_32px_rgba(20,4,8,0.35)] backdrop-blur-md lg:hidden">
         {[
           { to: "/admin/properties", label: "Имоти", icon: Building2 },
           { to: "/admin/clients", label: "Клиенти", icon: Users },
@@ -359,22 +359,22 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
               key={item.to}
               to={item.to}
               className={cn(
-                "flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition",
+                "flex min-w-0 flex-col items-center justify-center gap-1 px-0.5 text-[10px] transition",
                 active ? "text-amber-300" : "text-amber-100/70",
               )}
             >
-              <item.icon className={cn("h-5 w-5", active && "text-amber-300")} />
-              <span className="leading-none">{item.label}</span>
+              <item.icon className={cn("h-5 w-5 shrink-0", active && "text-amber-300")} />
+              <span className="max-w-full truncate leading-none">{item.label}</span>
             </Link>
           );
         })}
         <button
           onClick={() => setMobileOpen(true)}
-          className="flex flex-col items-center gap-0.5 py-2.5 text-[10px] text-amber-100/70 transition hover:text-amber-200"
+          className="flex min-w-0 flex-col items-center justify-center gap-1 px-0.5 text-[10px] text-amber-100/70 transition hover:text-amber-200"
           aria-label="Още"
         >
-          <Menu className="h-5 w-5" />
-          <span className="leading-none">Още</span>
+          <Menu className="h-5 w-5 shrink-0" />
+          <span className="max-w-full truncate leading-none">Още</span>
         </button>
       </nav>
 
