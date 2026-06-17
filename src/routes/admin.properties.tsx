@@ -63,6 +63,10 @@ function PropertiesAdmin() {
   const [busy, setBusy] = useState(false);
   const [pendingImages, setPendingImages] = useState<File[]>([]);
   const [uploadingNew, setUploadingNew] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [filterType, setFilterType] = useState<string>("");
+  const [filterBroker, setFilterBroker] = useState<string>("");
+  const [filterPublished, setFilterPublished] = useState<string>("");
 
   const load = async () => {
     const [{ data: ps }, { data: cs }, { data: qs }, { data: vs }, { data: bs }] = await Promise.all([
