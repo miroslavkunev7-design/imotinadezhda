@@ -2079,11 +2079,27 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
                   <div className="text-lg text-gray-600">{quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}</div>
                 </div>
                 <div className="flex gap-6">
-                  <button className="flex items-center gap-2 text-gray-500 transition hover:text-red-500">
-                    <Heart className="h-6 w-6 text-[#c59441]" />
-                    <span className="text-left text-sm">Добави<br />в любими</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const added = favs.toggle(property.id);
+                      toast.success(added ? "Добавено в любими" : "Премахнато от любими");
+                    }}
+                    className={`flex items-center gap-2 transition ${favs.has(property.id) ? "text-red-500" : "text-gray-500 hover:text-red-500"}`}
+                  >
+                    <Heart className={`h-6 w-6 ${favs.has(property.id) ? "fill-red-500 text-red-500" : "text-[#c59441]"}`} />
+                    <span className="text-left text-sm">{favs.has(property.id) ? "Премахни\nот любими" : "Добави\nв любими"}</span>
                   </button>
-                  <button className="flex items-center gap-2 text-gray-500 transition hover:text-blue-500">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const url = typeof window !== "undefined" ? window.location.href : "";
+                      const r = await shareProperty({ title: property.title, url, text: `${property.title} — ${cityName}` });
+                      if (r === "copied") toast.success("Линкът е копиран");
+                      else if (r === "failed") toast.error("Споделянето не е възможно");
+                    }}
+                    className="flex items-center gap-2 text-gray-500 transition hover:text-blue-500"
+                  >
                     <Share2 className="h-6 w-6 text-[#c59441]" />
                     <span className="text-sm">Сподели</span>
                   </button>
