@@ -73,7 +73,13 @@ function ClientsAdmin() {
   });
 
   const filteredQuarters = editing?.search_city_id ? quarters.filter((q) => q.city_id === editing.search_city_id) : [];
-  const filtered = rows.filter((r) => !search.trim() || (r.full_name + " " + (r.phone ?? "") + " " + (r.email ?? "")).toLowerCase().includes(search.toLowerCase()));
+  const filtered = rows.filter((r) => {
+    if (search.trim() && !(r.full_name + " " + (r.phone ?? "") + " " + (r.email ?? "")).toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterType && r.client_type !== filterType) return false;
+    if (filterStatus && r.status !== filterStatus) return false;
+    if (filterBroker && (r.assigned_broker_id ?? "") !== filterBroker) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
