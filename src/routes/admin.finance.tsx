@@ -10,30 +10,38 @@ type Contract = { id: string; title: string; contract_type: string; status: stri
 type Mortgage = { id: string; full_name: string; phone: string; email: string | null; monthly_income: number | null; status: string; created_at: string };
 type Property = { id: string; price: number | null; currency: string | null };
 
-const COMMISSION_RATE = 0.03; // 3% default
-
 function FinanceAdmin() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [mortgages, setMortgages] = useState<Mortgage[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [commissionRate, setCommissionRate] = useState<number>(0.03);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [c, m, p] = await Promise.all([
+      const [c, m, p, s] = await Promise.all([
         supabase.from("generated_contracts").select("id,title,contract_type,status,client_id,property_id,created_at").order("created_at", { ascending: false }).limit(100),
         supabase.from("mortgage_applications").select("id,full_name,phone,email,monthly_income,status,created_at").order("created_at", { ascending: false }).limit(100),
         supabase.from("properties").select("id,price,currency"),
+        supabase.from("agency_settings").select("commission_rate").eq("singleton", true).maybeSingle(),
       ]);
       if (c.error) toast.error(c.error.message);
       if (m.error) toast.error(m.error.message);
       setContracts((c.data as Contract[]) ?? []);
       setMortgages((m.data as Mortgage[]) ?? []);
       setProperties((p.data as Property[]) ?? []);
+      if (s.data?.commission_rate != null) setCommissionRate(Number(s.data.commission_rate));
       setLoading(false);
     })();
   }, []);
+
+  const saveCommission = async (next: number) => {
+    const { error } = await supabase.from("agency_settings").update({ commission_rate: next }).eq("singleton", true);
+    if (error) return toast.error(error.message);
+    setCommissionRate(next);
+    toast.success(`Комисионата е обновена на ${(next * 100).toFixed(2)}%`);
+  };
 
   const stats = useMemo(() => {
     const propMap = new Map(properties.map(p => [p.id, p]));
