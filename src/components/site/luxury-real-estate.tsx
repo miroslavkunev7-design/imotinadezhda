@@ -910,7 +910,7 @@ export function HomePage({
     return out;
   })();
 
-  const sectionNode = (id: string): React.ReactElement | null => {
+  const sectionNode = (id: string): ReactElement | null => {
     switch (id) {
       case "hero-search-mobile":
         return (
