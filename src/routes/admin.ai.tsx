@@ -84,7 +84,8 @@ function AIAssistant() {
     setInput("");
     setBusy(true);
     try {
-      const result = await aiAssistantChat({ data: { messages: next } });
+      const result = await aiAssistantChat({ data: { messages: next, conversation_id: conversationId } });
+      if (result.conversation_id) setConversationId(result.conversation_id);
       setMessages([...next, { role: "assistant", content: result.reply }]);
       if (result.reply?.includes("[THEME_UPDATED]") || /тема|theme|цвят|стил/i.test(text)) {
         window.dispatchEvent(new Event("crm-theme-changed"));
