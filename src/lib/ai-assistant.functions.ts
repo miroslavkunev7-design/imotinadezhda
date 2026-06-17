@@ -688,9 +688,10 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
       });
       if (!res.ok) {
         const text = await res.text();
-        if (res.status === 429) throw new Error("Достигнат е лимитът на заявките. Опитайте по-късно.");
-        if (res.status === 402) throw new Error("AI Асистентът временно не е наличен. Опитайте по-късно.");
-        throw new Error(`AI грешка: ${res.status} ${text.slice(0, 200)}`);
+        console.error("AI gateway error", res.status, text.slice(0, 300));
+        if (res.status === 429) return { reply: "⏳ Прекалено много заявки в момента. Опитайте отново след минута.", conversation_id: data.conversation_id ?? null };
+        if (res.status === 402) return { reply: "AI Асистентът временно не е наличен. Опитайте по-късно.", conversation_id: data.conversation_id ?? null };
+        return { reply: "Възникна временен проблем с AI услугата. Опитайте отново.", conversation_id: data.conversation_id ?? null };
       }
       const json = await res.json();
       const msg = json?.choices?.[0]?.message;
