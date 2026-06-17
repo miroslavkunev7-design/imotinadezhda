@@ -802,11 +802,11 @@ function AgentCard() {
         </div>
       </div>
       <div className="space-y-3 text-lg">
-        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />+359 88 123 4567</div>
-        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />m.ivanova@ildja.bg</div>
+        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />{AGENCY.phoneDisplay}</div>
+        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />{AGENCY.email}</div>
       </div>
-      <Button asChild className="gold-cta-button h-14 w-full rounded-[14px] text-lg"><a href="tel:+359899620262">Запази час за оглед</a></Button>
-      <Button asChild variant="outline" className="marble-action-button h-14 w-full rounded-[14px] border-primary/30 bg-transparent text-lg text-primary-foreground hover:bg-white/6"><a href="mailto:agenciq_nadejdi@abv.bg?subject=Запитване%20за%20имот">Запитване</a></Button>
+      <Button asChild className="gold-cta-button h-14 w-full rounded-[14px] text-lg"><a href={`tel:${AGENCY.phone}`}>Запази час за оглед</a></Button>
+      <Button asChild variant="outline" className="marble-action-button h-14 w-full rounded-[14px] border-primary/30 bg-transparent text-lg text-primary-foreground hover:bg-white/6"><a href={`mailto:${AGENCY.email}?subject=Запитване%20за%20имот`}>Запитване</a></Button>
     </aside>
   );
 }
