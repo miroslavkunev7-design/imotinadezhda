@@ -133,6 +133,7 @@ export const deleteCityCard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     const { error } = await supabase.from("cities").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -143,6 +144,7 @@ export const deleteQuarterCard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     const { error } = await supabase.from("quarters").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -161,6 +163,7 @@ export const createCityCard = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     const { error } = await supabase
       .from("cities")
