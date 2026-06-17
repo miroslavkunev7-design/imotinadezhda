@@ -115,7 +115,16 @@ function InquiriesAdmin() {
 
       {tab === "inquiries" && (
         <div className="space-y-3">
-          {rows.map((r) => (
+          <div className="flex flex-wrap items-center gap-2">
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-1.5 text-sm text-amber-100">
+              <option value="">Статус: всички</option>
+              <option value="new">Ново</option>
+              <option value="in_progress">В процес</option>
+              <option value="closed">Затворено</option>
+            </select>
+            {statusFilter && <button onClick={() => setStatusFilter("")} className="text-xs text-amber-100/60 underline">Изчисти</button>}
+          </div>
+          {rows.filter((r) => !statusFilter || r.status === statusFilter).map((r) => (
             <article key={r.id} className="rounded-2xl border border-amber-500/15 bg-[rgba(255, 255, 255,0.85)] p-5 text-amber-100">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
