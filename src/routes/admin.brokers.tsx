@@ -146,7 +146,12 @@ function BrokersAdmin() {
               <label className="block"><span className="text-xs uppercase text-muted-foreground">Телефон</span><input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} className={iC} /></label>
               <label className="block"><span className="text-xs uppercase text-muted-foreground">Имейл</span><input type="email" value={editing.email ?? ""} onChange={(e) => setEditing({ ...editing, email: e.target.value })} className={iC} /></label>
               {editing.id ? (
-                <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">User ID (за достъп)</span><input value={editing.user_id ?? ""} onChange={(e) => setEditing({ ...editing, user_id: e.target.value || null })} placeholder="UUID на регистриран потребител" className={iC} /></label>
+                <div className="md:col-span-2 space-y-3">
+                  <label className="block"><span className="text-xs uppercase text-muted-foreground">User ID (за достъп)</span><input value={editing.user_id ?? ""} onChange={(e) => setEditing({ ...editing, user_id: e.target.value || null })} placeholder="UUID на регистриран потребител" className={iC} /></label>
+                  {editing.user_id && (
+                    <PasswordResetPanel brokerId={editing.id} brokerName={editing.full_name} />
+                  )}
+                </div>
               ) : (
                 <div className="md:col-span-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 space-y-3">
                   <label className="flex items-center gap-2 text-sm font-semibold">
