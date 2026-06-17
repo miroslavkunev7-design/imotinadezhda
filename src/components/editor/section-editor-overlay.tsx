@@ -130,10 +130,32 @@ export function SectionEditorOverlay() {
       }
     }
 
+    function reposition(y: number) {
+      if (!picked) return;
+      const all = getSections();
+      for (const other of all) {
+        if (other === picked) continue;
+        const or = other.getBoundingClientRect();
+        const mid = or.top + or.height / 2;
+        const rel = picked.compareDocumentPosition(other);
+        const otherIsAfter = (rel & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+        const otherIsBefore = (rel & Node.DOCUMENT_POSITION_PRECEDING) !== 0;
+        if (y < mid && otherIsAfter) {
+          other.parentNode?.insertBefore(picked, other);
+          break;
+        }
+        if (y > mid && otherIsBefore) {
+          other.parentNode?.insertBefore(picked, other.nextSibling);
+          break;
+        }
+      }
+    }
+
     function onClick(e: MouseEvent) {
       if (!picked) return;
       e.preventDefault();
       e.stopPropagation();
+      reposition(e.clientY);
       drop();
     }
 
@@ -143,10 +165,58 @@ export function SectionEditorOverlay() {
       }
     }
 
+    // --- Touch: ръчно засичане на двоен тап + движение с пръст ---
+    let lastTapAt = 0;
+    let lastTapY = 0;
+    let lastTapX = 0;
+
+    function onTouchStart(e: TouchEvent) {
+      const t = e.touches[0];
+      if (!t) return;
+      const now = Date.now();
+      const dt = now - lastTapAt;
+      const dy = Math.abs(t.clientY - lastTapY);
+      const dx = Math.abs(t.clientX - lastTapX);
+
+      if (picked) {
+        // вече има избрана секция → този тап я пуска на новата позиция
+        e.preventDefault();
+        reposition(t.clientY);
+        drop();
+        lastTapAt = 0;
+        return;
+      }
+
+      if (dt < 400 && dy < 40 && dx < 40) {
+        // двоен тап
+        const target = (e.target as HTMLElement)?.closest<HTMLElement>(
+          "[data-section-id]",
+        );
+        if (target) {
+          e.preventDefault();
+          pickup(target);
+          lastTapAt = 0;
+          return;
+        }
+      }
+      lastTapAt = now;
+      lastTapY = t.clientY;
+      lastTapX = t.clientX;
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      if (!picked) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      if (t) reposition(t.clientY);
+    }
+
     document.addEventListener("dblclick", onDblClick, true);
     document.addEventListener("pointermove", onPointerMove, true);
     document.addEventListener("click", onClick, true);
     document.addEventListener("keydown", onKey, true);
+    document.addEventListener("touchstart", onTouchStart, { capture: true, passive: false });
+    document.addEventListener("touchmove", onTouchMove, { capture: true, passive: false });
 
     // Кажи на родителя че сме готови
     window.parent?.postMessage({ type: "page-editor:ready" }, "*");
@@ -156,6 +226,8 @@ export function SectionEditorOverlay() {
       document.removeEventListener("pointermove", onPointerMove, true);
       document.removeEventListener("click", onClick, true);
       document.removeEventListener("keydown", onKey, true);
+      document.removeEventListener("touchstart", onTouchStart, true);
+      document.removeEventListener("touchmove", onTouchMove, true);
       style.remove();
       banner.remove();
     };
