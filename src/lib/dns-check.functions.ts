@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertAdmin } from "@/lib/auth/assert-admin";
 
 const EXPECTED_A = "185.158.133.1";
 const DOMAINS = ["imotinadezhda.bg", "www.imotinadezhda.bg"];
@@ -32,7 +34,10 @@ export type DnsCheckResult = {
   allOk: boolean;
 };
 
-export const checkDns = createServerFn({ method: "GET" }).handler(async (): Promise<DnsCheckResult> => {
+export const checkDns = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<DnsCheckResult> => {
+  await assertAdmin(context.userId);
   const records: DnsCheckResult["records"] = [];
 
   for (const domain of DOMAINS) {
