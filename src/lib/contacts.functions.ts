@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertAdmin } from "@/lib/auth/assert-admin";
 
 const entrySchema = z.object({
   id: z.string().uuid().optional(),
@@ -51,6 +52,7 @@ export const saveContact = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => entrySchema.parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const payload = { ...data, created_by: context.userId };
     if (data.id) {
       const { error } = await context.supabase
@@ -73,6 +75,7 @@ export const deleteContact = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { error } = await context.supabase
       .from("contact_entries")
       .delete()
@@ -85,6 +88,7 @@ export const saveContactGroup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => groupSchema.parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     if (data.id) {
       const { error } = await context.supabase
         .from("contact_groups")
@@ -106,6 +110,7 @@ export const deleteContactGroup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { error } = await context.supabase
       .from("contact_groups")
       .delete()
