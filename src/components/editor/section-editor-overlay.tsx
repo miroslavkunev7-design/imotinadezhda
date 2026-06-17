@@ -363,11 +363,12 @@ export function SectionEditorOverlay() {
       });
       bubbleEl.querySelector("[data-ed-apply]")!.addEventListener("click", (e) => {
         e.stopPropagation();
+        const w = wInput.value === "100" ? null : wInput.value + "%";
+        const h = hInput.value;
+        sendUpdate(el, { sv_width: w, sv_height: h ? h + "px" : null });
         setBanner('Размерът е приложен. Натисни „Запази" в горния банер за финален запис.');
         setTimeout(() => setBanner(null), 2200);
         clearActive();
-        // уведоми редактора че има промяна
-        window.parent?.postMessage({ type: "page-editor:dirty" }, "*");
       });
     }
 
@@ -440,10 +441,11 @@ export function SectionEditorOverlay() {
       });
       galleryEl.querySelector("[data-ed-apply]")!.addEventListener("click", (e) => {
         e.stopPropagation();
+        const variantId = selectedCls ? VARIANT_ID_BY_CLS.get(selectedCls) ?? null : null;
+        sendUpdate(el, { sv_variant: variantId });
         setBanner('Дизайнът е приложен локално. Натисни „Запази" в горния банер за финален запис.');
         setTimeout(() => setBanner(null), 2200);
         clearActive();
-        window.parent?.postMessage({ type: "page-editor:dirty" }, "*");
       });
     }
 
