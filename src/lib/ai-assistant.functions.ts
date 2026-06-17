@@ -624,6 +624,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z.object({
       messages: z.array(messageSchema).min(1).max(60),
+      conversation_id: z.string().uuid().optional().nullable(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
