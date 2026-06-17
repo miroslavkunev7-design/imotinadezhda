@@ -121,6 +121,38 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [historyOpen, pageKey]);
 
+  // Слушай за reorder от iframe-а (двоен клик → местене → клик за пускане)
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      const data = e.data;
+      if (!data || typeof data !== "object") return;
+      if (data.type !== "page-editor:reorder" || !Array.isArray(data.order)) return;
+      setSections((prev) => {
+        const byId = new Map(prev.map((s) => [s.id, s]));
+        const next: SectionState[] = [];
+        for (const id of data.order as string[]) {
+          const s = byId.get(id);
+          if (s) {
+            next.push(s);
+            byId.delete(id);
+          }
+        }
+        // Запази секции, които не са в iframe-а (напр. скрити или нерендирани)
+        for (const s of byId.values()) next.push(s);
+        return next;
+      });
+      toast.success("Преместено. Натисни „Запази" за да приложиш.");
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+
+  function onCancel() {
+    setSections(initial);
+    setReloadKey((k) => k + 1);
+    toast.info("Отказани промени.");
+  }
+
   const isDirty = JSON.stringify(sections) !== JSON.stringify(initial);
 
   function move(from: number, to: number) {
@@ -240,6 +272,31 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
 
   return (
     <AdminShell breadcrumb="Редактор на страници">
+      {/* Sticky Save/Cancel банер при неприложени промени */}
+      {isDirty && (
+        <div className="sticky top-0 z-40 -mx-4 mb-3 flex items-center justify-between gap-3 border-b border-amber-400/60 bg-gradient-to-r from-[#4f0314] to-[#260108] px-4 py-2.5 shadow-lg">
+          <div className="text-sm font-semibold text-amber-100">
+            Имаш непотвърдени промени по подредбата
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onCancel}
+              disabled={saving}
+              className="rounded-lg border border-amber-300/40 bg-transparent px-3 py-1.5 text-xs text-amber-100 hover:bg-amber-500/15 disabled:opacity-50"
+            >
+              Откажи
+            </button>
+            <button
+              onClick={onSave}
+              disabled={saving}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 px-4 py-1.5 text-sm font-semibold text-amber-950 shadow-md disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Запази
+            </button>
+          </div>
+        </div>
+      )}
       <div className="mx-auto w-full max-w-[1600px] space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
