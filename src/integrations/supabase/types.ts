@@ -458,6 +458,7 @@ export type Database = {
           mime_type: string | null
           notes: string | null
           uploaded_by: string | null
+          version: number
         }
         Insert: {
           client_id: string
@@ -470,6 +471,7 @@ export type Database = {
           mime_type?: string | null
           notes?: string | null
           uploaded_by?: string | null
+          version?: number
         }
         Update: {
           client_id?: string
@@ -482,6 +484,7 @@ export type Database = {
           mime_type?: string | null
           notes?: string | null
           uploaded_by?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -1118,6 +1121,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          pdf_url: string | null
           property_id: string | null
           status: string
           template_id: string | null
@@ -1131,6 +1135,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          pdf_url?: string | null
           property_id?: string | null
           status?: string
           template_id?: string | null
@@ -1144,6 +1149,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          pdf_url?: string | null
           property_id?: string | null
           status?: string
           template_id?: string | null
@@ -1620,6 +1626,7 @@ export type Database = {
           mime_type: string | null
           property_id: string
           uploaded_by: string | null
+          version: number
         }
         Insert: {
           created_at?: string
@@ -1632,6 +1639,7 @@ export type Database = {
           mime_type?: string | null
           property_id: string
           uploaded_by?: string | null
+          version?: number
         }
         Update: {
           created_at?: string
@@ -1644,6 +1652,7 @@ export type Database = {
           mime_type?: string | null
           property_id?: string
           uploaded_by?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -1698,6 +1707,7 @@ export type Database = {
           match_reasons: Json | null
           notes: string | null
           notified: boolean
+          notified_at: string | null
           property_id: string
           score: number
           status: string
@@ -1710,6 +1720,7 @@ export type Database = {
           match_reasons?: Json | null
           notes?: string | null
           notified?: boolean
+          notified_at?: string | null
           property_id: string
           score?: number
           status?: string
@@ -1722,6 +1733,7 @@ export type Database = {
           match_reasons?: Json | null
           notes?: string | null
           notified?: boolean
+          notified_at?: string | null
           property_id?: string
           score?: number
           status?: string
@@ -2043,6 +2055,7 @@ export type Database = {
       }
     }
     Functions: {
+      current_broker_id: { Args: { _user_id: string }; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2058,6 +2071,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_full_access: { Args: { _user_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
