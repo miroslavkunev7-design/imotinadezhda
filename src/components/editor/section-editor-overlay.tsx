@@ -364,7 +364,7 @@ export function SectionEditorOverlay() {
       });
       bubbleEl.querySelector("[data-ed-apply]")!.addEventListener("click", (e) => {
         e.stopPropagation();
-        setBanner("Размерът е приложен. Натисни „Запази" в горния банер за финален запис.");
+        setBanner('Размерът е приложен. Натисни „Запази" в горния банер за финален запис.');
         setTimeout(() => setBanner(null), 2200);
         clearActive();
         // уведоми редактора че има промяна
@@ -441,7 +441,7 @@ export function SectionEditorOverlay() {
       });
       galleryEl.querySelector("[data-ed-apply]")!.addEventListener("click", (e) => {
         e.stopPropagation();
-        setBanner("Дизайнът е приложен локално. Натисни „Запази" в горния банер за финален запис.");
+        setBanner('Дизайнът е приложен локално. Натисни „Запази" в горния банер за финален запис.');
         setTimeout(() => setBanner(null), 2200);
         clearActive();
         window.parent?.postMessage({ type: "page-editor:dirty" }, "*");
