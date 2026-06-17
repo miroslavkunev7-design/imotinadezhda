@@ -2263,8 +2263,8 @@ function InquiryForm({ propertyId, propertyTitle }: { propertyId?: string; prope
         </form>
       )}
       <div className="space-y-2 border-t border-primary/15 pt-3 text-base">
-        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />+359 88 123 4567</div>
-        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />office@imotinadezhda.bg</div>
+        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />{AGENCY.phoneDisplay}</div>
+        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />{AGENCY.email}</div>
       </div>
     </aside>
   );
