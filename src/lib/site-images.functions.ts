@@ -185,6 +185,7 @@ export const createQuarterCard = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const { supabase } = context;
     const { error } = await supabase
       .from("quarters")
