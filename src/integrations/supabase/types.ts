@@ -2086,6 +2086,7 @@ export type Database = {
         | "consultant"
         | "rental_dept"
         | "boss"
+        | "secretary"
       extracted_source:
         | "realistimo"
         | "imoti_bg"
@@ -2236,6 +2237,7 @@ export const Constants = {
         "consultant",
         "rental_dept",
         "boss",
+        "secretary",
       ],
       extracted_source: [
         "realistimo",
