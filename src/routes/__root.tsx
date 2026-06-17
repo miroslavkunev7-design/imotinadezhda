@@ -18,6 +18,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { initPwa } from "@/lib/pwa";
 import { enforceRememberMePolicy } from "@/lib/remember-me";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SectionEditorOverlay } from "@/components/editor/section-editor-overlay";
 
 function NotFoundComponent() {
   return (
@@ -154,6 +155,7 @@ function RootComponent() {
           <Outlet />
           <Toaster />
           {!hideChat && <CustomerChat propertyId={propertyId} />}
+          <SectionEditorOverlay />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
