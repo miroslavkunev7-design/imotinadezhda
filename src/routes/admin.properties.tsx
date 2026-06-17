@@ -201,15 +201,52 @@ function PropertiesAdmin() {
       )
     : [];
 
+  const filteredRows = rows.filter((r) => {
+    if (filterStatus && r.status !== filterStatus) return false;
+    if (filterType && r.property_type !== filterType) return false;
+    if (filterBroker && (r.broker_id ?? "") !== filterBroker) return false;
+    if (filterPublished === "yes" && !r.is_published) return false;
+    if (filterPublished === "no" && r.is_published) return false;
+    return true;
+  });
+
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-4xl text-accent-foreground">Имоти</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{rows.length} записа</p>
+          <p className="mt-1 text-sm text-muted-foreground">{filteredRows.length} от {rows.length} записа</p>
         </div>
         <Button onClick={newProperty} className="gold-cta-button"><Plus className="h-4 w-4" /> Нов имот</Button>
       </header>
+
+      <div className="flex flex-wrap gap-2 rounded-xl border border-primary/15 bg-card p-3">
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded border border-primary/20 bg-background px-3 py-1.5 text-sm">
+          <option value="">Всички статуси</option>
+          <option value="sale">Продажба</option>
+          <option value="rent">Наем</option>
+        </select>
+        <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="rounded border border-primary/20 bg-background px-3 py-1.5 text-sm">
+          <option value="">Всички типове</option>
+          <option value="apartment">Апартамент</option>
+          <option value="house">Къща</option>
+          <option value="land">Парцел</option>
+          <option value="office">Офис</option>
+          <option value="commercial">Магазин/Търговски</option>
+        </select>
+        <select value={filterBroker} onChange={(e) => setFilterBroker(e.target.value)} className="rounded border border-primary/20 bg-background px-3 py-1.5 text-sm">
+          <option value="">Всички брокери</option>
+          {brokers.map((b) => <option key={b.id} value={b.id}>{b.full_name}</option>)}
+        </select>
+        <select value={filterPublished} onChange={(e) => setFilterPublished(e.target.value)} className="rounded border border-primary/20 bg-background px-3 py-1.5 text-sm">
+          <option value="">Публ.: всички</option>
+          <option value="yes">Само публикувани</option>
+          <option value="no">Само скрити</option>
+        </select>
+        {(filterStatus || filterType || filterBroker || filterPublished) && (
+          <button onClick={() => { setFilterStatus(""); setFilterType(""); setFilterBroker(""); setFilterPublished(""); }} className="text-xs text-muted-foreground underline">Изчисти филтрите</button>
+        )}
+      </div>
 
       <div className="overflow-hidden rounded-xl border border-primary/15 bg-card">
         <table className="w-full text-sm">
