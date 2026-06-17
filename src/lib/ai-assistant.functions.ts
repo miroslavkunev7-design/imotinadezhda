@@ -689,7 +689,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
       if (!res.ok) {
         const text = await res.text();
         if (res.status === 429) throw new Error("Достигнат е лимитът на заявките. Опитайте по-късно.");
-        if (res.status === 402) throw new Error("Изчерпан кредит за AI. Добавете средства в Lovable AI.");
+        if (res.status === 402) throw new Error("AI Асистентът временно не е наличен. Опитайте по-късно.");
         throw new Error(`AI грешка: ${res.status} ${text.slice(0, 200)}`);
       }
       const json = await res.json();
