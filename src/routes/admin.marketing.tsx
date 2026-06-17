@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Megaphone, Mail, Users, Send, Copy, CheckCircle2 } from "lucide-react";
+import { sendMarketingEmail } from "@/lib/marketing.functions";
 
 export const Route = createFileRoute("/admin/marketing")({ component: MarketingAdmin });
 
@@ -17,6 +18,7 @@ function MarketingAdmin() {
   const [emailLog, setEmailLog] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const loadAudience = async (a: Audience) => {
     let q;
