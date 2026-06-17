@@ -415,3 +415,44 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
 }
 
 function labelType(t: string) { return ({ buyer: "Купувач", seller: "Продавач", tenant: "Наемател", landlord: "Наемодател" } as any)[t] ?? t; }
+
+function PasswordResetPanel({ brokerId, brokerName }: { brokerId: string; brokerName: string }) {
+  const [open, setOpen] = useState(false);
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    if (pw.length < 8) return toast.error("Паролата трябва да е поне 8 символа");
+    if (!/[a-z]/.test(pw) || !/[A-Z]/.test(pw) || !/[0-9]/.test(pw)) return toast.error("Изисква малка, главна буква и цифра");
+    if (pw !== pw2) return toast.error("Паролите не съвпадат");
+    setBusy(true);
+    try {
+      await resetBrokerPassword({ data: { broker_id: brokerId, new_password: pw } });
+      toast.success(`Паролата на ${brokerName} е сменена`);
+      setOpen(false); setPw(""); setPw2("");
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
+  };
+
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-500/20">
+        <KeyRound className="h-4 w-4" /> Смени парола (без стара)
+      </button>
+    );
+  }
+  return (
+    <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 space-y-2">
+      <div className="flex items-center gap-2 text-sm font-semibold text-amber-200">
+        <KeyRound className="h-4 w-4" /> Нова парола за {brokerName}
+      </div>
+      <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Нова парола (мин. 8, главна, малка, цифра)" className={iC} autoComplete="new-password" />
+      <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} placeholder="Потвърди паролата" className={iC} autoComplete="new-password" />
+      <div className="flex gap-2">
+        <Button type="button" onClick={submit} disabled={busy} className="gold-cta-button">{busy ? "Смяна..." : "Запази новата парола"}</Button>
+        <Button type="button" variant="outline" onClick={() => { setOpen(false); setPw(""); setPw2(""); }}>Отказ</Button>
+      </div>
+      <p className="text-[11px] text-muted-foreground">Старата парола не е нужна. Брокерът трябва да влезе с новата.</p>
+    </div>
+  );
+}
