@@ -893,7 +893,6 @@ export function HomePage({
     { id: "hero-search-mobile", visible: true },
     { id: "hero-search-desktop", visible: true },
     { id: "cities-grid", visible: true },
-    { id: "trust-strip", visible: true },
   ];
   const known = new Set(defaults.map((d) => d.id));
   const sections: LayoutSection[] = (() => {
@@ -959,8 +958,7 @@ export function HomePage({
   const mobileSections = visible.filter((s) => s.id === "hero-search-mobile");
   const desktopSections = visible.filter((s) => s.id !== "hero-search-mobile");
 
-  const heroSections = desktopSections.filter((s) => s.id !== "trust-strip");
-  const belowSections = desktopSections.filter((s) => s.id === "trust-strip");
+  const heroSections = desktopSections;
 
   return (
     <main className="luxury-page flex h-screen flex-col overflow-hidden bg-[#0f0a0b] text-foreground">
@@ -974,7 +972,7 @@ export function HomePage({
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/40" />
-        <div className="relative z-10 flex flex-1 min-h-0 flex-col pt-[64px] sm:pt-[80px] md:pt-[104px]">
+        <div className="relative z-10 flex flex-1 min-h-0 flex-col pt-[72px] sm:pt-[88px] md:pt-[120px]">
           <LuxuryHeader active="sale" />
 
           {mobileSections.map((s) => renderSection(s))}
@@ -984,10 +982,6 @@ export function HomePage({
           </section>
         </div>
       </section>
-
-      <div className="hidden flex-none md:block">
-        {belowSections.map((s) => renderSection(s))}
-      </div>
     </main>
   );
 }
@@ -996,7 +990,7 @@ export function HomePage({
 
 
 
-function TrustStrip() {
+export function TrustStrip() {
   const items = [
     { Icon: Shield, title: "Сигурност", desc: "Вашата сделка е на сигурно място" },
     { Icon: Award, title: "Коректност", desc: "Работим честно и прозрачно" },
