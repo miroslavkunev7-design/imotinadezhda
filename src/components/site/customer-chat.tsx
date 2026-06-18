@@ -41,7 +41,7 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
           {
             role: "assistant",
             content:
-              "Здравейте! 👋 Аз съм Надежда — виртуален консултант на агенция **Имоти Надежда**.\n\nАгентите ни в момента не са онлайн, но мога да Ви помогна с информация за имотите и да Ви предложа варианти. Какво търсите?",
+              "Здравейте! 👋 Аз съм **Надежда** — вашият виртуален консултант.\n\nМожем да си говорим свободно — за имоти, правни въпроси, или да проуча нещо в интернет. Как мога да помогна?",
           },
         ]);
       }
@@ -79,6 +79,10 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
           property_id: propertyId ?? null,
           page_url: typeof window !== "undefined" ? window.location.href : undefined,
           message: text,
+          history: messages
+            .filter((m) => m.role === "user" || m.role === "assistant")
+            .slice(-38)
+            .map((m) => ({ role: m.role, content: m.content })),
         }),
       });
       const json = await res.json();
@@ -160,7 +164,7 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
 
           <div className="border-t border-amber-500/20 bg-white/60 px-3 py-2">
             <div className="mb-2 flex items-center justify-between text-[10px] text-primary/50">
-              <span>Извън работно време отговаря AI асистент.</span>
+              <span>Безплатен AI консултант — без лимити и регистрация.</span>
               <a href="tel:+359885774863" className="inline-flex items-center gap-1 text-primary hover:underline">
                 <Phone className="h-3 w-3" /> Обади се
               </a>
