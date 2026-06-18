@@ -1337,7 +1337,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
           return {
             id: dbMatch?.id ?? `shumen-${i}`,
             ...local,
-            properties_count: dbMatch?.properties_count ?? local.properties_count,
+            properties_count: dbMatch?.properties_count ?? 0,
           };
         })
       : data?.quarters && data.quarters.length

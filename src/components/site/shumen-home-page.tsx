@@ -41,17 +41,17 @@ const shumenPanorama = { url: cityShumen };
 
 
 /* ---------------- Шумен квартали ---------------- */
-const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image: string }> = [
-  { name: "Център",             slug: "tsentar",            count: 64, image: qTsentar.url },
-  { name: "Тракия",             slug: "trakiya",            count: 58, image: qTrakiya.url },
-  { name: "Боян Българанов 1",  slug: "boyan-balgaranov-1", count: 31, image: qBoyan1.url },
-  { name: "Боян Българанов 2",  slug: "boyan-balgaranov-2", count: 28, image: qBoyan2.url },
-  { name: "Болницата",          slug: "bolnitsata",         count: 22, image: qBolnitsata.url },
-  { name: "Херсон",             slug: "herson",             count: 25, image: qHerson.url },
-  { name: "Пазара",             slug: "pazara",             count: 19, image: qPazara.url },
-  { name: "Добруджански",       slug: "dobrudzhanski",      count: 43, image: qDobrudzhanski.url },
-  { name: "Пожарната",          slug: "pozharnata",         count: 14, image: qPozharnata.url },
-  { name: "Военно училище",     slug: "voenno-uchilishte",  count: 11, image: qVoenno.url },
+const SHUMEN_QUARTERS: Array<{ name: string; slug: string; image: string }> = [
+  { name: "Център",             slug: "tsentar",            image: qTsentar.url },
+  { name: "Тракия",             slug: "trakiya",            image: qTrakiya.url },
+  { name: "Боян Българанов 1",  slug: "boyan-balgaranov-1", image: qBoyan1.url },
+  { name: "Боян Българанов 2",  slug: "boyan-balgaranov-2", image: qBoyan2.url },
+  { name: "Болницата",          slug: "bolnitsata",         image: qBolnitsata.url },
+  { name: "Херсон",             slug: "herson",             image: qHerson.url },
+  { name: "Пазара",             slug: "pazara",             image: qPazara.url },
+  { name: "Добруджански",       slug: "dobrudzhanski",      image: qDobrudzhanski.url },
+  { name: "Пожарната",          slug: "pozharnata",         image: qPozharnata.url },
+  { name: "Военно училище",     slug: "voenno-uchilishte",  image: qVoenno.url },
 ];
 
 /* ---------------- Logo header (top-left) — desktop only ---------------- */
@@ -127,7 +127,9 @@ function TopFloatSearch() {
 }
 
 /* ---------------- Shumen info box (overlay on hero, right side) ---------------- */
-function ShumenInfoBox() {
+function ShumenInfoBox({ activePropertiesTotal }: { activePropertiesTotal?: number }) {
+  const activeLabel =
+    activePropertiesTotal != null ? String(activePropertiesTotal) : "—";
   return (
     <div className="absolute right-4 md:right-8 lg:right-12 top-28 md:top-40 lg:top-44 w-[92%] max-w-[420px] lg:max-w-[450px] p-6 md:p-7 lg:p-8 rounded-3xl text-white font-sans-nadezhda z-30">
       <div className="aspect-square md:aspect-auto md:h-36 lg:h-40 rounded-2xl overflow-hidden mb-5 md:mb-6 relative">
@@ -142,7 +144,7 @@ function ShumenInfoBox() {
         <Stat icon={<UserCheck className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />} value="≈ 85 000" label="жители" />
         <Stat icon={<Square className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />} value="436 km²" label="площ" />
         <Stat icon={<MapPin className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />} value="Стратегическо" label="местоположение" />
-        <Stat icon={<HomeIcon className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />} value="327" label="активни имота" />
+        <Stat icon={<HomeIcon className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />} value={activeLabel} label="активни имота" />
       </div>
       <Link
         to="/cities/$slug"
@@ -298,7 +300,7 @@ export type ShumenHomePageProps = {
 export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTotal }: ShumenHomePageProps = {}) {
   const quartersWithLive = SHUMEN_QUARTERS.map((q) => ({
     ...q,
-    count: quarterCounts?.[q.slug] ?? q.count,
+    count: quarterCounts?.[q.slug] ?? 0,
   }));
   return (
     <div className="min-h-screen relative nadezhda-marble-bg text-[#31020c] font-sans-nadezhda overflow-x-hidden">
@@ -311,7 +313,7 @@ export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTot
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
           <HeroVideoOrImage videoUrl={shumenHeroVideo.url} posterUrl={shumenPanorama.url} alt="Шумен" />
           <div className="absolute inset-0" />
-          <ShumenInfoBox />
+          <ShumenInfoBox activePropertiesTotal={activePropertiesTotal} />
         </div>
 
         {/* Main search bar (overlapping hero bottom, right-aligned) */}

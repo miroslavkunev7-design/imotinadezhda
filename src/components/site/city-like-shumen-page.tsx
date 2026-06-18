@@ -240,9 +240,9 @@ export function CityLikeShumenPage(p: CityHomeProps) {
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-12">
           {p.quarters.map((q) => {
-            const liveCount = p.quarterCounts?.[q.slug];
+            const liveCount = p.quarterCounts?.[q.slug] ?? 0;
             return (
-              <NeighborhoodCard key={q.slug} image={q.image} title={q.name} count={liveCount ?? q.count} slug={q.slug} citySlug={p.citySlug} cityLabel={p.cityLabel} />
+              <NeighborhoodCard key={q.slug} image={q.image} title={q.name} count={liveCount} slug={q.slug} citySlug={p.citySlug} cityLabel={p.cityLabel} />
             );
           })}
 

@@ -46,13 +46,13 @@ function renderCity(slug: string, data: any) {
     );
   }
   const media = CITY_MEDIA[slug];
-  if (!media) return <ShumenHomePage quarterCounts={quarterCounts} aroundCount={aroundCount} />;
+  if (!media) return <ShumenHomePage quarterCounts={quarterCounts} aroundCount={aroundCount} activePropertiesTotal={data?.activePropertiesTotal} />;
   const cityLabel = data?.city?.name ?? fallbackCities[slug]?.name ?? slug;
   const posterUrl = data?.city?.hero_image_url ?? "";
   const quarters = (data?.quarters ?? []).map((q: any) => ({
     name: q.name,
     slug: q.slug,
-    count: q.properties_count ?? 0,
+    count: quarterCounts[q.slug] ?? 0,
     image: q.image_url ?? "",
   }));
   return (
