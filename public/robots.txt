@@ -4,4 +4,4 @@ Disallow: /admin
 Disallow: /login
 Disallow: /api/
 
-Sitemap: https://imotinadezhda.lovable.app/sitemap.xml
+Sitemap: https://imotinadezhda.bg/sitemap.xml

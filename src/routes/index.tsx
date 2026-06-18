@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import { HomePage } from "@/components/site/luxury-real-estate";
 import { HomeSkeleton, PageErrorRetry } from "@/components/site/page-skeleton";
 import { getPublicPageLayout } from "@/lib/page-layouts.functions";
-
-const SITE_URL = "https://imotinadezhda.lovable.app";
+import { SITE_URL, siteUrl } from "@/lib/site-config";
 
 
 
@@ -17,10 +16,10 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Имоти Надежда — водеща агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар." },
       { property: "og:title", content: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
       { property: "og:description", content: "Имоти Надежда — водеща агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар." },
-      { property: "og:url", content: `${SITE_URL}/` },
+      { property: "og:url", content: siteUrl("/") },
     ],
     links: [
-      { rel: "canonical", href: `${SITE_URL}/` },
+      { rel: "canonical", href: siteUrl("/") },
     ],
     scripts: [
       {
@@ -29,7 +28,7 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "RealEstateAgent",
           name: "Имоти Надежда",
-          alternateName: ["Imoti Nadezhda", "Nadezhda Imoti"],
+          alternateName: ["Imoti Nadezhda", "imoti nadezhda", "imotinadezhda"],
           url: SITE_URL,
           description: "Агенция за недвижими имоти Имоти Надежда — апартаменти, къщи, парцели и офиси в Бургас, Варна, Шумен и Нови пазар.",
           areaServed: ["Бургас", "Варна", "Шумен", "Нови пазар", "България"],
@@ -42,7 +41,7 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "WebSite",
           name: "Имоти Надежда",
-          alternateName: "Imoti Nadezhda",
+          alternateName: ["Imoti Nadezhda", "imoti nadezhda", "imotinadezhda.bg"],
           url: SITE_URL,
           inLanguage: "bg-BG",
           potentialAction: {

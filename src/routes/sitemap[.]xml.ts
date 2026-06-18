@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-const BASE_URL = "https://imotinadezhda.lovable.app";
+import { safeAdmin } from "@/integrations/supabase/safe-admin";
+import { siteUrl } from "@/lib/site-config";
 
 interface SitemapEntry {
   path: string;
@@ -12,18 +11,46 @@ interface SitemapEntry {
   priority?: string;
 }
 
+const STATIC_ENTRIES: SitemapEntry[] = [
+  { path: "/", changefreq: "daily", priority: "1.0" },
+  { path: "/about", changefreq: "monthly", priority: "0.7" },
+  { path: "/search", changefreq: "daily", priority: "0.8" },
+  { path: "/cities/shumen", changefreq: "daily", priority: "0.9" },
+  { path: "/cities/varna", changefreq: "daily", priority: "0.9" },
+  { path: "/cities/burgas", changefreq: "daily", priority: "0.9" },
+  { path: "/cities/nov-pazar", changefreq: "daily", priority: "0.9" },
+];
+
+function buildSitemapXml(entries: SitemapEntry[]) {
+  const urls = entries.map((e) =>
+    [
+      `  <url>`,
+      `    <loc>${siteUrl(e.path)}</loc>`,
+      e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
+      e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
+      e.priority ? `    <priority>${e.priority}</priority>` : null,
+      `  </url>`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
+
+  return [
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+    ...urls,
+    `</urlset>`,
+  ].join("\n");
+}
+
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const entries: SitemapEntry[] = [
-          { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/about", changefreq: "monthly", priority: "0.6" },
-          { path: "/search", changefreq: "weekly", priority: "0.5" },
-        ];
+        const entries: SitemapEntry[] = [...STATIC_ENTRIES];
 
         try {
-          const { data: cities } = await supabaseAdmin
+          const { data: cities } = await safeAdmin
             .from("cities")
             .select("slug, updated_at")
             .eq("is_published", true);
@@ -36,7 +63,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             });
           }
 
-          const { data: quarters } = await supabaseAdmin
+          const { data: quarters } = await safeAdmin
             .from("quarters")
             .select("slug, updated_at, cities:city_id(slug, is_published)")
             .eq("is_published", true);
@@ -51,7 +78,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             });
           }
 
-          const { data: properties } = await supabaseAdmin
+          const { data: properties } = await safeAdmin
             .from("properties")
             .select("id, updated_at")
             .eq("is_published", true);
@@ -63,33 +90,20 @@ export const Route = createFileRoute("/sitemap.xml")({
               priority: "0.6",
             });
           }
-        } catch {
-          // Fall back to static entries on DB error
+        } catch (error) {
+          console.error("[sitemap] DB lookup failed, returning static entries:", error);
         }
 
-        const urls = entries.map((e) =>
-          [
-            `  <url>`,
-            `    <loc>${BASE_URL}${e.path}</loc>`,
-            e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
-            e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
-            e.priority ? `    <priority>${e.priority}</priority>` : null,
-            `  </url>`,
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        );
+        const seen = new Set<string>();
+        const unique = entries.filter((e) => {
+          if (seen.has(e.path)) return false;
+          seen.add(e.path);
+          return true;
+        });
 
-        const xml = [
-          `<?xml version="1.0" encoding="UTF-8"?>`,
-          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-          ...urls,
-          `</urlset>`,
-        ].join("\n");
-
-        return new Response(xml, {
+        return new Response(buildSitemapXml(unique), {
           headers: {
-            "Content-Type": "application/xml",
+            "Content-Type": "application/xml; charset=utf-8",
             "Cache-Control": "public, max-age=3600",
           },
         });

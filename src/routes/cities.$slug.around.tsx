@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ChevronRight, MapPin, Compass } from "lucide-react";
 
 import { getVillagesAround, type VillageRow } from "@/lib/villages.functions";
+import { siteUrl } from "@/lib/site-config";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
 import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
 import burgasHeroVideo from "@/assets/burgas-hero.mp4.asset.json";
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/cities/$slug/around")({
   },
   head: ({ loaderData, params }) => {
     const label = loaderData?.cityLabel ?? params.slug;
-    const url = `https://imotinadezhda.lovable.app/cities/${params.slug}/around`;
+    const url = siteUrl(`/cities/${params.slug}/around`);
     const title = `Села около ${label} | Имоти Надежда`;
     const desc = `Пълен списък на селата${loaderData?.municipality ? ` в община ${label}` : ` в област ${label}`}, подредени по близост. Намерете имот в селата около ${label}.`;
     return {

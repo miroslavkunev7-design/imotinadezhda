@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { PropertyPage } from "@/components/site/luxury-real-estate";
 import { getPropertyById } from "@/lib/catalog.functions";
+import { siteUrl } from "@/lib/site-config";
 
 export const Route = createFileRoute("/properties/$propertyId")({
   loader: async ({ params }) => {
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/properties/$propertyId")({
     return data;
   },
   head: ({ loaderData, params }) => {
-    const url = `https://imotinadezhda.lovable.app/properties/${params.propertyId}`;
+    const url = siteUrl(`/properties/${params.propertyId}`);
     const p: any = loaderData?.property;
     const title = `${p?.title ?? "Имот"} | Имоти Надежда`;
     const desc = (p?.description ?? "Детайли за имот, галерия и запитване.").slice(0, 160);

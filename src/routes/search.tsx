@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { LuxuryHeader, ListingCard } from "@/components/site/luxury-real-estate";
 import { searchProperties } from "@/lib/catalog.functions";
+import { siteUrl } from "@/lib/site-config";
 
 const searchSchema = z.object({
   city_slug: z.string().optional(),
@@ -28,12 +29,9 @@ export const Route = createFileRoute("/search")({
       { name: "description", content: "Търсене на луксозни имоти в България — филтри по град, квартал, цена и площ." },
       { property: "og:title", content: "Търсене на имоти | Имоти Надежда" },
       { property: "og:description", content: "Търсене на луксозни имоти в България." },
-      { property: "og:url", content: "https://imotinadezhda.lovable.app/search" },
-      { name: "robots", content: "noindex,follow" },
+      { property: "og:url", content: siteUrl("/search") },
     ],
-    links: [
-      { rel: "canonical", href: "https://imotinadezhda.lovable.app/search" },
-    ],
+    links: [{ rel: "canonical", href: siteUrl("/search") }],
   }),
   component: SearchRoute,
 });

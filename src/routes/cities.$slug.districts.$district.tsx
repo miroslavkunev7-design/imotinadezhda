@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { DistrictPage } from "@/components/site/luxury-real-estate";
 import { getQuarterBySlug } from "@/lib/catalog.functions";
+import { siteUrl } from "@/lib/site-config";
 
 export const Route = createFileRoute("/cities/$slug/districts/$district")({
   loader: async ({ params }) => {
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/cities/$slug/districts/$district")({
     return data;
   },
   head: ({ loaderData, params }) => {
-    const url = `https://imotinadezhda.lovable.app/cities/${params.slug}/districts/${params.district}`;
+    const url = siteUrl(`/cities/${params.slug}/districts/${params.district}`);
     const title = `${loaderData?.quarter.name ?? params.district} | ${loaderData?.city.name ?? params.slug} | Имоти Надежда`;
     const desc = loaderData?.quarter.description ?? "Имоти, филтри и информация за квартала.";
     return {

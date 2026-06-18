@@ -3,6 +3,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ShumenHomePage } from "@/components/site/shumen-home-page";
 import { CityLikeShumenPage } from "@/components/site/city-like-shumen-page";
 import { getCityBySlug } from "@/lib/catalog.functions";
+import { citySeo, siteUrl } from "@/lib/site-config";
 import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
 import burgasHeroVideo from "@/assets/burgas-hero.mp4.asset.json";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
@@ -88,15 +89,14 @@ export const Route = createFileRoute("/cities/$slug/")({
     return data;
   },
   head: ({ loaderData, params }) => {
-    const url = `https://imotinadezhda.lovable.app/cities/${params.slug}`;
-    const title = `${loaderData?.city.name ?? "Град"} | Имоти Надежда`;
-    const desc = loaderData?.city.description ?? "Квартали, активни имоти и пазарна информация.";
+    const seo = citySeo(params.slug, loaderData?.city.name);
+    const url = siteUrl(`/cities/${params.slug}`);
     return {
       meta: [
-        { title },
-        { name: "description", content: desc },
-        { property: "og:title", content: title },
-        { property: "og:description", content: desc },
+        { title: seo.title },
+        { name: "description", content: seo.description },
+        { property: "og:title", content: seo.title },
+        { property: "og:description", content: seo.description },
         { property: "og:url", content: url },
         ...(loaderData?.city.hero_image_url ? [{ property: "og:image", content: loaderData.city.hero_image_url }] : []),
       ],

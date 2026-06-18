@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LuxuryHeader } from "@/components/site/luxury-real-estate";
 import { AGENCY, AGENCY_PHONES, buildTelUrl, buildWhatsAppUrl } from "@/lib/contact-config";
+import { siteUrl } from "@/lib/site-config";
 import aboutSofa from "@/assets/about-sofa.jpeg";
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 
@@ -29,11 +30,9 @@ export const Route = createFileRoute("/about")({
       },
       { property: "og:title", content: "За нас — Имоти Надежда" },
       { property: "og:description", content: "Доверен партньор за недвижими имоти в Шумен и региона." },
-      { property: "og:url", content: "https://imotinadezhda.lovable.app/about" },
+      { property: "og:url", content: siteUrl("/about") },
     ],
-    links: [
-      { rel: "canonical", href: "https://imotinadezhda.lovable.app/about" },
-    ],
+    links: [{ rel: "canonical", href: siteUrl("/about") }],
   }),
   component: AboutPage,
   errorComponent: ({ error }) => (
