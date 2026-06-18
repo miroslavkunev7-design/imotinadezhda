@@ -294,7 +294,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
             loop
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             aria-hidden="true"
           />
         )}

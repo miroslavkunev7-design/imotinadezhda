@@ -185,6 +185,20 @@
     opacity: 0.7;
     z-index: 0;
   }
+  /* Hero search strip: transparent shell, burgundy fields float over the video */
+  .hero-filter-shell {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .hero-filter-field {
+    touch-action: manipulation;
+  }
+  .hero-filter-submit {
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+
   .luxury-page > * { position: relative; z-index: 1; }
 
   /* ============================================================

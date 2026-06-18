@@ -34,7 +34,7 @@ function AutoPlayVideo(
       const ric = (window as any).requestIdleCallback as
         | ((cb: () => void, opts?: { timeout: number }) => number)
         | undefined;
-      if (typeof ric === "function") return ric(() => !cancelled && cb(), { timeout: 200 });
+      if (typeof ric === "function") return ric(() => !cancelled && cb(), { timeout: 50 });
       return window.setTimeout(() => !cancelled && cb(), 0);
     };
     const raf = requestAnimationFrame(() => schedule(() => setMountVideo(true)));
@@ -967,11 +967,10 @@ export function HomePage({
       >
         <AutoPlayVideo
           src={homeHeroVideo.url}
-          preload="auto"
           poster={homeHero}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/40" />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/25" />
         <div className="relative z-10 flex flex-1 min-h-0 flex-col pt-[72px] sm:pt-[88px] md:pt-[120px]">
           <LuxuryHeader active="sale" />
 
@@ -1077,12 +1076,12 @@ function CityFilterPanel({
   };
 
   const fieldBase =
-    "flex items-center gap-1.5 rounded-xl bg-[#5e0f1d]/80 px-2.5 py-2 text-left ring-1 ring-[#C9A84C]/20 transition hover:bg-[#5e0f1d] relative";
+    "hero-filter-field flex items-center gap-1.5 rounded-xl bg-[#5e0f1d]/85 px-2.5 py-2 text-left ring-1 ring-[#C9A84C]/30 transition hover:bg-[#5e0f1d] relative backdrop-blur-[2px]";
   const selectBase =
     "absolute inset-0 w-full h-full cursor-pointer opacity-0";
 
   return (
-    <div className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-transparent md:bg-transparent md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]">
+    <div className="hero-filter-shell rounded-2xl p-3.5 text-white">
       <div className="grid grid-cols-3 gap-2">
         {/* Град (fixed to current city) */}
         <div className={fieldBase}>
@@ -1169,7 +1168,7 @@ function CityFilterPanel({
         <button
           type="button"
           onClick={submit}
-          className="flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold text-[#5e0f1d] transition hover:brightness-105"
+          className="hero-filter-submit flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold text-[#5e0f1d] transition hover:brightness-105 active:scale-[0.98]"
           style={{
             background: "linear-gradient(180deg,#E8C766 0%,#C9A84C 100%)",
             boxShadow: "0 6px 16px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.45)",
@@ -1219,11 +1218,11 @@ function HomeFilterPanel({
   };
 
   const fieldBase =
-    "flex items-center gap-1.5 rounded-xl bg-[#5e0f1d]/80 px-2.5 py-2 text-left ring-1 ring-[#C9A84C]/20 transition hover:bg-[#5e0f1d] relative";
+    "hero-filter-field flex items-center gap-1.5 rounded-xl bg-[#5e0f1d]/85 px-2.5 py-2 text-left ring-1 ring-[#C9A84C]/30 transition hover:bg-[#5e0f1d] relative backdrop-blur-[2px]";
   const selectBase = "absolute inset-0 w-full h-full cursor-pointer opacity-0";
 
   return (
-    <div className="rounded-2xl p-3.5 text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] bg-transparent md:bg-none md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)] md:ring-1 md:ring-[#C9A84C]/25">
+    <div className="hero-filter-shell rounded-2xl p-3.5 text-white">
       <div className="grid grid-cols-3 gap-2">
         {/* Град */}
         <label className={fieldBase}>
@@ -1301,7 +1300,7 @@ function HomeFilterPanel({
         <button
           type="button"
           onClick={submit}
-          className="col-span-2 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold text-[#5e0f1d] transition hover:brightness-105"
+          className="hero-filter-submit col-span-2 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[12px] font-semibold text-[#5e0f1d] transition hover:brightness-105 active:scale-[0.98]"
           style={{
             background: "linear-gradient(180deg,#E8C766 0%,#C9A84C 100%)",
             boxShadow: "0 6px 16px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.45)",
@@ -1372,7 +1371,6 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               src={heroVideo}
               fallbackSrc={fallbackVideo}
               onPermanentError={() => setVideoFailed(true)}
-              preload="auto"
               poster={typeof heroImage === "string" ? heroImage : undefined}
               className="absolute inset-0 h-full w-full object-cover"
             />
@@ -1725,7 +1723,6 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
             src={districtHeroVideo}
             fallbackSrc={districtFallbackVideo}
             onPermanentError={() => setDistrictVideoFailed(true)}
-            preload="auto"
             poster={districtHeroPoster}
             className="h-full w-full object-cover"
           />
@@ -2033,7 +2030,6 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
             src={propHeroVideo}
             fallbackSrc={propFallbackVideo}
             onPermanentError={() => setPropVideoFailed(true)}
-            preload="auto"
             poster={propHeroPoster}
             className="h-full w-full object-cover"
           />

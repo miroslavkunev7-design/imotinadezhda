@@ -285,7 +285,7 @@ function LoginVideo({ src, quality }: { src: string; quality: string }) {
       loop
       muted
       playsInline
-      preload="auto"
+      preload="metadata"
       onEnded={(e) => {
         const v = e.currentTarget;
         try {
