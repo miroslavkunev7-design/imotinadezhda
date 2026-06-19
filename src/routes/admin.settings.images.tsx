@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useRef, type ChangeEvent } from "react";
-import { AdminShell } from "@/components/admin/admin-shell";
 import { Image as ImageIcon, Upload, Loader2, Eye, EyeOff, Trash2, Plus, Check, X, ArrowLeft } from "lucide-react";
 import { uploadPublicImage } from "@/lib/upload-public-image";
 import {
@@ -32,8 +31,7 @@ const PAGES: { key: string; label: string }[] = [
 
 function Page() {
   return (
-    <AdminShell breadcrumb="Промяна на снимки">
-      <div className="mx-auto w-full max-w-6xl space-y-8">
+    <div className="mx-auto w-full max-w-6xl space-y-8">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl text-amber-100">Промяна на снимки</h1>
@@ -53,8 +51,7 @@ function Page() {
         <CrmBackgroundSection />
         <CityCardsSection />
         <QuarterCardsSection />
-      </div>
-    </AdminShell>
+    </div>
   );
 }
 

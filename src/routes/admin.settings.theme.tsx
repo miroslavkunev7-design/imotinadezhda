@@ -5,7 +5,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Palette, Save, RotateCcw, Loader2 } from "lucide-react";
 
-import { AdminShell } from "@/components/admin/admin-shell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -81,8 +80,7 @@ function Page() {
   }
 
   return (
-    <AdminShell breadcrumb="Настройки › Дизайн на CRM">
-      <div className="mx-auto w-full max-w-6xl space-y-6 p-2">
+    <div className="mx-auto w-full max-w-6xl space-y-6 p-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-200">
@@ -199,7 +197,6 @@ function Page() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
-    </AdminShell>
+    </div>
   );
 }

@@ -16,6 +16,10 @@ dist-ssr
 .nitro
 *.local
 .env.vercel
+.env.vercel.check
+scripts/.data-export/
+scripts/.migration-batches/
+scripts/.migration-batches-remaining/
 
 # Wrangler / Cloudflare
 .wrangler/

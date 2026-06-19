@@ -116,7 +116,7 @@ function LoginPage() {
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-black">
       <LoginVideo src={videoSources[quality]} quality={quality} />
-      <SiteHeader />
+      <SiteHeader overlay />
       <div
         className="absolute inset-0"
         style={{
@@ -143,7 +143,7 @@ function LoginPage() {
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-1 items-center justify-center gap-8 px-4 pb-8 pt-24 md:pt-8">
+      <div className="relative z-10 flex flex-1 items-center justify-center gap-8 px-4 pb-8 pt-28 site-header-overlay-pad md:pt-8">
         {/* Login card — solid backing for readability */}
         <div className="relative w-full max-w-md rounded-2xl border border-[#C9A84C]/40 bg-white/95 p-6 shadow-[0_30px_70px_-20px_rgba(139,26,43,0.45)] ring-1 ring-[#C9A84C]/30 backdrop-blur-md md:p-8">
           <div className="mb-6 text-center">

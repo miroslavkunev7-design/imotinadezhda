@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { AdminShell, MarbleCard } from "@/components/admin/admin-shell";
+import { MarbleCard } from "@/components/admin/admin-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -129,8 +129,7 @@ function Page() {
   };
 
   return (
-    <AdminShell breadcrumb="Контакти">
-      <div className="space-y-5">
+    <div className="space-y-5">
         {/* Tabs */}
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -238,7 +237,6 @@ function Page() {
             })}
           </div>
         )}
-      </div>
 
       {/* Editor dialog */}
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
@@ -306,7 +304,7 @@ function Page() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminShell>
+    </div>
   );
 }
 

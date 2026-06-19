@@ -50,7 +50,14 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
+export function SiteHeader({
+  active,
+  overlay = false,
+}: {
+  active?: SiteNavKey;
+  /** When true, header floats over hero media (no layout spacer). */
+  overlay?: boolean;
+} = {}) {
   const navigate = useNavigate();
   const clickCount = useRef(0);
   const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -69,6 +76,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   };
 
   return (
+    <>
     <header className="site-header-v2">
       <div className="site-header-v2__wrap">
         {/* Scroll logo — marble plaque + gold edges; swap image when final logo arrives */}
@@ -78,9 +86,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
           aria-label="Начало — Недвижими имоти Надежда"
           className="site-header-v2__logo"
         >
-          <div className="site-header-v2__logo-plaque nadezhda-marble-bg">
-            <img src={scrollLogo} alt="Недвижими имоти Надежда" className="site-header-v2__logo-img" />
-          </div>
+          <img src={scrollLogo} alt="Недвижими имоти Надежда" className="site-header-v2__logo-img" />
         </Link>
 
         {/* Navigation pill */}
@@ -117,6 +123,8 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
         </nav>
       </div>
     </header>
+    {!overlay ? <div className="site-header-v2__spacer" aria-hidden="true" /> : null}
+    </>
   );
 }
 

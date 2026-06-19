@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { AdminShell } from "@/components/admin/admin-shell";
 import {
   getPageLayout,
   savePageLayout,
@@ -296,7 +295,7 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
   const iframeSrc = `${PAGE_PATHS[pageKey]}${PAGE_PATHS[pageKey].includes("?") ? "&" : "?"}__editor=1&_=${reloadKey}`;
 
   return (
-    <AdminShell breadcrumb="Редактор на страници">
+    <>
       {/* Sticky Save/Cancel банер при неприложени промени */}
       {isDirty && (
         <div className="sticky top-0 z-40 -mx-4 mb-3 flex items-center justify-between gap-3 border-b border-amber-400/60 bg-gradient-to-r from-[#4f0314] to-[#260108] px-4 py-2.5 shadow-lg">
@@ -623,7 +622,7 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
           </div>
         </div>
       </div>
-    </AdminShell>
+    </>
   );
 }
 

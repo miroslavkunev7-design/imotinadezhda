@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, Mail, MapPin, AlertTriangle, Sparkles, CreditCard, Camera } from "lucide-react";
-import { listClients, upsertClient, deleteClient, getClientDocuments, addClientDocument, deleteClientDocument } from "@/lib/crm.functions";
+import { listClients, listBrokers, upsertClient, deleteClient, getClientDocuments, addClientDocument, deleteClientDocument } from "@/lib/crm.functions";
 import { MortgageSendModal } from "@/components/admin/mortgage-send-modal";
 import { MortgageStagesModal } from "@/components/admin/mortgage-stages-modal";
 import { ClientDetailsSheet } from "@/components/admin/client-details-sheet";
@@ -35,16 +35,20 @@ function ClientsAdmin() {
   const [filterBroker, setFilterBroker] = useState("");
 
   const load = async () => {
-    const [clientsData, { data: cs }, { data: qs }, { data: bs }] = await Promise.all([
-      listClients(),
-      supabase.from("cities").select("id, name").order("display_order"),
-      supabase.from("quarters").select("id, name, city_id").order("display_order"),
-      supabase.from("brokers").select("id, full_name, user_id").order("full_name"),
-    ]);
-    setRows(clientsData ?? []);
-    setCities(cs ?? []);
-    setQuarters(qs ?? []);
-    setBrokers(bs ?? []);
+    try {
+      const [clientsData, { data: cs }, { data: qs }, brokersData] = await Promise.all([
+        listClients(),
+        supabase.from("cities").select("id, name").order("display_order"),
+        supabase.from("quarters").select("id, name, city_id").order("display_order"),
+        listBrokers(),
+      ]);
+      setRows(clientsData ?? []);
+      setCities(cs ?? []);
+      setQuarters(qs ?? []);
+      setBrokers((brokersData ?? []).map((b: any) => ({ id: b.id, full_name: b.full_name, user_id: b.user_id ?? null })));
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при зареждане на клиенти");
+    }
   };
 
   useEffect(() => { load(); }, []);

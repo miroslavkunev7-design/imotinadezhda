@@ -6,49 +6,59 @@ export type AiChatRequest = {
 };
 
 export type AiProviderConfig = {
+  id: string;
   url: string;
   key: string;
   model: string;
 };
 
-export function resolveAiProvider(): AiProviderConfig | null {
+const FALLBACK_STATUSES = new Set([401, 402, 403, 429, 500, 502, 503, 504]);
+
+/** All configured providers in priority order (gateway first — avoids Gemini free-tier 429). */
+export function listAiProviders(): AiProviderConfig[] {
+  const providers: AiProviderConfig[] = [];
+
+  const gatewayKey =
+    process.env.AI_GATEWAY_KEY ??
+    process.env.VERCEL_AI_GATEWAY_KEY ??
+    process.env.AI_GATEWAY_API_KEY;
+  if (gatewayKey) {
+    providers.push({
+      id: "vercel-gateway",
+      url: process.env.AI_GATEWAY_URL ?? "https://ai-gateway.vercel.sh/v1/chat/completions",
+      key: gatewayKey,
+      model: process.env.AI_GATEWAY_MODEL ?? "openai/gpt-4o-mini",
+    });
+  }
+
   const openai = process.env.OPENAI_API_KEY;
   if (openai) {
-    return {
+    providers.push({
+      id: "openai",
       url: "https://api.openai.com/v1/chat/completions",
       key: openai,
       model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    };
+    });
   }
 
-  const gemini = process.env.GEMINI_API_KEY;
+  const gemini = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (gemini) {
-    return {
-      url: `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`,
+    providers.push({
+      id: "gemini",
+      url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
       key: gemini,
       model: process.env.GEMINI_MODEL ?? "gemini-2.0-flash",
-    };
+    });
   }
 
-  const gateway = process.env.AI_GATEWAY_URL ?? "https://ai-gateway.vercel.sh/v1/chat/completions";
-  const gatewayKey = process.env.AI_GATEWAY_KEY ?? process.env.VERCEL_AI_GATEWAY_KEY;
-  if (gateway && gatewayKey) {
-    return {
-      url: gateway,
-      key: gatewayKey,
-      model: process.env.AI_GATEWAY_MODEL ?? "gpt-4o-mini",
-    };
-  }
-
-  return null;
+  return providers;
 }
 
-export async function aiChatCompletions(body: AiChatRequest): Promise<Response> {
-  const provider = resolveAiProvider();
-  if (!provider) {
-    throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY, GEMINI_API_KEY или AI_GATEWAY_KEY в Vercel.");
-  }
+export function resolveAiProvider(): AiProviderConfig | null {
+  return listAiProviders()[0] ?? null;
+}
 
+async function callProvider(provider: AiProviderConfig, body: AiChatRequest): Promise<Response> {
   return fetch(provider.url, {
     method: "POST",
     headers: {
@@ -62,4 +72,29 @@ export async function aiChatCompletions(body: AiChatRequest): Promise<Response> 
       temperature: body.temperature ?? 0.4,
     }),
   });
+}
+
+export async function aiChatCompletions(body: AiChatRequest): Promise<Response> {
+  const providers = listAiProviders();
+  if (providers.length === 0) {
+    throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY, GEMINI_API_KEY или AI_GATEWAY_KEY в Vercel.");
+  }
+
+  let last: Response | null = null;
+  for (let i = 0; i < providers.length; i++) {
+    const provider = providers[i];
+    const res = await callProvider(provider, body);
+    if (res.ok) return res;
+
+    const text = await res.text();
+    last = new Response(text, { status: res.status, statusText: res.statusText });
+
+    const hasFallback = i < providers.length - 1;
+    if (hasFallback && FALLBACK_STATUSES.has(res.status)) {
+      console.warn(`[ai-provider] ${provider.id} HTTP ${res.status}, trying fallback`);
+      continue;
+    }
+    return last;
+  }
+  return last!;
 }

@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import {
   ArrowLeft, Save, Eye, Trash2, Plus, Upload, Undo2, Redo2, Loader2, ChevronUp, ChevronDown,
 } from "lucide-react";
-import { AdminShell } from "@/components/admin/admin-shell";
 import {
   getDesign, saveDesign, publishDesign,
   scrapeReference, generateFromReference,
@@ -95,8 +94,7 @@ function Builder({ slug }: { slug: (typeof PAGES)[number]["slug"] }) {
   const selectedDef = selected ? getBlockDef(selected.type) : null;
 
   return (
-    <AdminShell breadcrumb="Дизайн на страница">
-      <div className="mx-auto w-full max-w-[1800px] space-y-3">
+    <div className="mx-auto w-full max-w-[1800px] space-y-3">
         {/* Top bar */}
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-500/25 bg-[rgba(20,4,8,0.65)] p-3">
           <div className="flex items-center gap-2">
@@ -204,7 +202,6 @@ function Builder({ slug }: { slug: (typeof PAGES)[number]["slug"] }) {
             )}
           </div>
         </div>
-      </div>
 
       {showRef && (
         <RefModal
@@ -219,7 +216,7 @@ function Builder({ slug }: { slug: (typeof PAGES)[number]["slug"] }) {
           generate={generate}
         />
       )}
-    </AdminShell>
+    </div>
   );
 }
 

@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AdminShell } from "@/components/admin/admin-shell";
 import { AlertTriangle, ScrollText, CheckCircle2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/admin/rules")({ component: RulesPage });
@@ -70,8 +69,7 @@ const PRIORITY_STYLES: Record<Rule["priority"], { label: string; ring: string; c
 
 function RulesPage() {
   return (
-    <AdminShell breadcrumb="Правила">
-      <div className="mx-auto w-full max-w-5xl space-y-6 p-2">
+    <div className="mx-auto w-full max-w-5xl space-y-6 p-2">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/60 bg-red-600/15 text-red-300">
@@ -179,7 +177,6 @@ function RulesPage() {
             нов разговор. За промяна на правило — кажи на агента и той ще обнови записа.
           </p>
         </div>
-      </div>
-    </AdminShell>
+    </div>
   );
 }

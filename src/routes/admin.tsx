@@ -78,7 +78,7 @@ function AdminLayout() {
         return;
       }
       try {
-        const accessResult = await withTimeout(checkAdminAccess());
+        const accessResult = await checkAdminAccess();
         if (cancelled) return;
         const ok = !!accessResult?.hasCrmAccess;
         const isAdmin = !!accessResult?.isAdmin;

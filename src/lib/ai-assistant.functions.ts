@@ -631,8 +631,12 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const db = resolveServerDb(context.supabase);
-    const access = await loadUserAccess(context.userId, context.supabase);
-    if (!access.isAdmin) throw new Error("Forbidden");
+    const email =
+      typeof (context.claims as { email?: unknown })?.email === "string"
+        ? (context.claims as { email: string }).email
+        : null;
+    const access = await loadUserAccess(context.userId, context.supabase, email);
+    if (!access.hasCrmAccess) throw new Error("Forbidden");
 
     if (!resolveAiProvider()) throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
 

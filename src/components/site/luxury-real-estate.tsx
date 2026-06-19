@@ -254,8 +254,15 @@ const burgasDistricts: Array<{ name: string; count: number; image: string }> = [
  * Backwards-compatible alias for the old per-section LuxuryHeader. Every page
  * now renders the unified <SiteHeader />, but existing imports keep working.
  */
-export function LuxuryHeader({ active = "sale" }: { active?: NavKey; dark?: boolean }) {
-  return <SiteHeader active={active} />;
+export function LuxuryHeader({
+  active = "sale",
+  overlay = false,
+}: {
+  active?: NavKey;
+  dark?: boolean;
+  overlay?: boolean;
+}) {
+  return <SiteHeader active={active} overlay={overlay} />;
 }
 
 
@@ -972,8 +979,8 @@ export function HomePage({
           className="absolute inset-0 h-full w-full object-cover"
         />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/25" />
-        <div className="relative z-10 flex flex-1 min-h-0 flex-col pt-[72px] sm:pt-[88px] md:pt-[120px]">
-          <LuxuryHeader active="sale" />
+        <div className="relative z-10 flex flex-1 min-h-0 flex-col site-header-overlay-pad">
+          <LuxuryHeader active="sale" overlay />
 
           {mobileSections.map((s) => renderSection(s))}
 
@@ -1048,6 +1055,77 @@ type CityData = {
   properties: Array<{ id: string; title: string; price: number | string; currency?: string | null; area_sqm?: number | null; bedrooms?: number | null; bathrooms?: number | null; cover_image_url?: string | null }>;
 };
 
+const HERO_FILTER_FIELD =
+  "hero-filter-field flex items-center gap-1.5 rounded-xl bg-[#5e0f1d]/85 px-2.5 py-2 text-left ring-1 ring-[#C9A84C]/30 transition hover:bg-[#5e0f1d] relative backdrop-blur-[2px]";
+
+function HeroFilterSelect({
+  icon: Icon,
+  label,
+  value,
+  onChange,
+  options,
+  ariaLabel,
+}: {
+  icon: typeof MapPin;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: SearchOption[];
+  ariaLabel: string;
+}) {
+  const [open, setOpen] = useReactState(false);
+  const selected = options.find((o) => o.value === value) ?? options[0];
+
+  return (
+    <div
+      className={HERO_FILTER_FIELD}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
+      <Icon className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
+      <div className="min-w-0 flex-1">
+        <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">{label}</div>
+        <button
+          type="button"
+          aria-label={ariaLabel}
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+          className="mt-0.5 flex w-full items-center justify-between gap-1 bg-transparent text-left outline-none"
+        >
+          <span className="truncate text-[11px] text-white">{selected?.label ?? "—"}</span>
+          <ChevronDown className={cn("h-3 w-3 flex-none text-[#C9A84C]/80 transition", open && "rotate-180")} />
+        </button>
+      </div>
+      {open && (
+        <div
+          role="listbox"
+          className="absolute left-0 right-0 top-[calc(100%+8px)] z-[120] overflow-hidden rounded-2xl border border-[#C9A84C]/50 bg-[#fff9f0] py-1.5 text-[#2b1418] shadow-[0_18px_45px_rgba(0,0,0,0.38)]"
+        >
+          {options.map((option) => (
+            <button
+              key={option.value || "__all"}
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              className={cn(
+                "block w-full px-3 py-2.5 text-left text-[13px] font-medium text-[#3a1520] transition hover:bg-[#f5e6c8]",
+                option.value === value && "bg-[#f0dcc0] font-semibold text-[#5e0f1d]",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CityFilterPanel({
   citySlug,
   cityName,
@@ -1076,13 +1154,10 @@ function CityFilterPanel({
     navigate({ to: "/search", search: params as never });
   };
 
-  const fieldBase =
-    "hero-filter-field flex items-center gap-1.5 rounded-xl bg-[#5e0f1d]/85 px-2.5 py-2 text-left ring-1 ring-[#C9A84C]/30 transition hover:bg-[#5e0f1d] relative backdrop-blur-[2px]";
-  const selectBase =
-    "absolute inset-0 w-full h-full cursor-pointer opacity-0";
+  const fieldBase = HERO_FILTER_FIELD;
 
   return (
-    <div className="hero-filter-shell rounded-2xl p-3.5 text-white">
+    <div className="hero-filter-shell overflow-visible rounded-2xl p-3.5 text-white">
       <div className="grid grid-cols-3 gap-2">
         {/* Град (fixed to current city) */}
         <div className={fieldBase}>
@@ -1092,50 +1167,22 @@ function CityFilterPanel({
             <div className="truncate text-[11px] text-white">{cityName}</div>
           </div>
         </div>
-        {/* Квартал */}
-        <label className={fieldBase}>
-          <House className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
-          <div className="min-w-0 flex-1">
-            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Квартал</div>
-            <div className="truncate text-[11px] text-white">
-              {quarters.find((q) => q.slug === quarter)?.name ?? "Всички"}
-            </div>
-          </div>
-          <ChevronDown className="h-3 w-3 flex-none text-[#C9A84C]/80" />
-          <select
-            value={quarter}
-            onChange={(e) => setQuarter(e.target.value)}
-            className={selectBase}
-            aria-label="Квартал"
-          >
-            <option value="">Всички</option>
-            {quarters.map((q) => (
-              <option key={q.slug} value={q.slug}>{q.name}</option>
-            ))}
-          </select>
-        </label>
-        {/* Вид имот */}
-        <label className={fieldBase}>
-          <LandPlot className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
-          <div className="min-w-0 flex-1">
-            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Вид имот</div>
-            <div className="truncate text-[11px] text-white">
-              {propertyTypeOptions.find((o) => o.value === ptype)?.label ?? "Всички"}
-            </div>
-          </div>
-          <ChevronDown className="h-3 w-3 flex-none text-[#C9A84C]/80" />
-          <select
-            value={ptype}
-            onChange={(e) => setPtype(e.target.value)}
-            className={selectBase}
-            aria-label="Вид имот"
-          >
-            <option value="">Всички</option>
-            {propertyTypeOptions.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-        </label>
+        <HeroFilterSelect
+          icon={House}
+          label="Квартал"
+          value={quarter}
+          onChange={setQuarter}
+          ariaLabel="Квартал"
+          options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]}
+        />
+        <HeroFilterSelect
+          icon={LandPlot}
+          label="Вид имот"
+          value={ptype}
+          onChange={setPtype}
+          ariaLabel="Вид имот"
+          options={propertyTypeOptions}
+        />
       </div>
       <div className="mt-2 grid grid-cols-3 gap-2">
         {/* Цена до */}
@@ -1218,56 +1265,27 @@ function HomeFilterPanel({
     navigate({ to: "/search", search: params as never });
   };
 
-  const fieldBase =
-    "hero-filter-field flex items-center gap-1.5 rounded-xl bg-[#5e0f1d]/85 px-2.5 py-2 text-left ring-1 ring-[#C9A84C]/30 transition hover:bg-[#5e0f1d] relative backdrop-blur-[2px]";
-  const selectBase = "absolute inset-0 w-full h-full cursor-pointer opacity-0";
+  const fieldBase = HERO_FILTER_FIELD;
 
   return (
-    <div className="hero-filter-shell rounded-2xl p-3.5 text-white">
+    <div className="hero-filter-shell overflow-visible rounded-2xl p-3.5 text-white">
       <div className="grid grid-cols-3 gap-2">
-        {/* Град */}
-        <label className={fieldBase}>
-          <MapPin className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
-          <div className="min-w-0 flex-1">
-            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Град</div>
-            <div className="truncate text-[11px] text-white">
-              {cityOptions.find((c) => c.slug === city)?.name ?? "Избери"}
-            </div>
-          </div>
-          <ChevronDown className="h-3 w-3 flex-none text-[#C9A84C]/80" />
-          <select
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className={selectBase}
-            aria-label="Град"
-          >
-            {cityOptions.map((c) => (
-              <option key={c.slug} value={c.slug}>{c.name}</option>
-            ))}
-          </select>
-        </label>
-        {/* Вид имот */}
-        <label className={fieldBase}>
-          <LandPlot className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
-          <div className="min-w-0 flex-1">
-            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Вид имот</div>
-            <div className="truncate text-[11px] text-white">
-              {propertyTypeOptions.find((o) => o.value === ptype)?.label ?? "Всички"}
-            </div>
-          </div>
-          <ChevronDown className="h-3 w-3 flex-none text-[#C9A84C]/80" />
-          <select
-            value={ptype}
-            onChange={(e) => setPtype(e.target.value)}
-            className={selectBase}
-            aria-label="Вид имот"
-          >
-            <option value="">Всички</option>
-            {propertyTypeOptions.filter((o) => o.value).map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-        </label>
+        <HeroFilterSelect
+          icon={MapPin}
+          label="Град"
+          value={city}
+          onChange={setCity}
+          ariaLabel="Град"
+          options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))}
+        />
+        <HeroFilterSelect
+          icon={LandPlot}
+          label="Вид имот"
+          value={ptype}
+          onChange={setPtype}
+          ariaLabel="Вид имот"
+          options={propertyTypeOptions}
+        />
         {/* Цена до */}
         <label className={fieldBase}>
           <Building2 className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
@@ -1382,7 +1400,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
 
           {/* Overlay navbar */}
           <div className="absolute inset-x-0 top-0 z-30">
-            <LuxuryHeader active="sale" />
+            <LuxuryHeader active="sale" overlay />
           </div>
 
 
@@ -2045,7 +2063,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
         <DistrictSearchBar cityName={cityName} />
       </div>
 
-      <div className="mx-auto mt-12 max-w-7xl px-4 pb-24">
+      <div className="site-main-below-header mx-auto mt-12 max-w-7xl px-4 pb-24">
         {/* Breadcrumb */}
         <div className="mb-8 flex flex-wrap items-center gap-3 text-sm text-gray-500">
           <Link to="/" className="hover:text-black">Начало</Link>

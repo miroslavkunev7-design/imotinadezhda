@@ -3,13 +3,33 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertAdmin, assertAdminOrOwnBroker, assertCrmAccess } from "@/lib/auth/crm-access";
+import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
+import { resolveSupabaseServiceKey } from "@/lib/supabase-env";
+
+function authEmail(claims: unknown): string | null {
+  return (claims as { email?: string } | undefined)?.email ?? null;
+}
+
+type CrmCtx = { userId: string; supabase: ServerDb; claims: unknown };
+
+function crmDb(ctx: CrmCtx) {
+  return resolveServerDb(ctx.supabase);
+}
+
+function serviceAdmin() {
+  if (!resolveSupabaseServiceKey()) {
+    throw new Error("Липсва SUPABASE_SERVICE_ROLE_KEY — service role key е нужен за тази операция.");
+  }
+  return supabaseAdmin;
+}
 
 // ============ CLIENTS ============
 export const listClients = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.userId);
-    const { data, error } = await supabaseAdmin
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { data, error } = await db
       .from("clients")
       .select("*, cities:search_city_id(name, slug), quarters:search_quarter_id(name), brokers:assigned_broker_id(full_name)")
       .order("created_at", { ascending: false });
@@ -43,18 +63,19 @@ export const upsertClient = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => clientSchema.parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
     const { id, ...payload } = data;
     if (payload.email === "") payload.email = null;
     const op = id
-      ? supabaseAdmin.from("clients").update(payload).eq("id", id).select().single()
-      : supabaseAdmin.from("clients").insert({ ...payload, created_by: context.userId }).select().single();
+      ? db.from("clients").update(payload).eq("id", id).select().single()
+      : db.from("clients").insert({ ...payload, created_by: context.userId }).select().single();
     const { data: row, error } = await op;
     if (error) throw new Error(error.message);
 
     // Auto-match if buyer with search criteria
     if (row && row.client_type === "buyer") {
-      await runMatchForClient(row.id);
+      await runMatchForClient(row.id, db);
     }
     return row;
   });
@@ -70,9 +91,10 @@ export const updateClientDeal = createServerFn({ method: "POST" })
     }).parse(d)
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
     const { id, ...payload } = data;
-    const { data: row, error } = await supabaseAdmin
+    const { data: row, error } = await db
       .from("clients").update(payload).eq("id", id).select().single();
     if (error) throw new Error(error.message);
     return row;
@@ -82,8 +104,9 @@ export const deleteClient = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { error } = await supabaseAdmin.from("clients").delete().eq("id", data.id);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { error } = await db.from("clients").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -92,8 +115,9 @@ export const getClientDocuments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ client_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { data: rows, error } = await supabaseAdmin
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { data: rows, error } = await db
       .from("client_documents").select("*").eq("client_id", data.client_id).order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return rows ?? [];
@@ -111,8 +135,9 @@ export const addClientDocument = createServerFn({ method: "POST" })
     notes: z.string().max(1000).optional().nullable(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { error } = await supabaseAdmin.from("client_documents").insert({ ...data, uploaded_by: context.userId });
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { error } = await db.from("client_documents").insert({ ...data, uploaded_by: context.userId });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -121,8 +146,9 @@ export const deleteClientDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { error } = await supabaseAdmin.from("client_documents").delete().eq("id", data.id);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { error } = await db.from("client_documents").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -131,8 +157,9 @@ export const deleteClientDocument = createServerFn({ method: "POST" })
 export const listBrokers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const access = await assertCrmAccess(context.userId);
-    let q = supabaseAdmin.from("brokers").select("*").order("created_at", { ascending: false });
+    const db = crmDb(context);
+    const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
+    let q = db.from("brokers").select("*").order("created_at", { ascending: false });
     if (!access.isAdmin) {
       if (!access.brokerId) throw new Error("Forbidden — admin only");
       q = q.eq("id", access.brokerId);
@@ -167,13 +194,14 @@ export const upsertBroker = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => brokerSchema.parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
     const { id, ...payload } = data;
     if (payload.email === "") payload.email = null;
     if (payload.photo_url === "") payload.photo_url = null;
     const op = id
-      ? supabaseAdmin.from("brokers").update(payload).eq("id", id).select().single()
-      : supabaseAdmin.from("brokers").insert(payload).select().single();
+      ? db.from("brokers").update(payload).eq("id", id).select().single()
+      : db.from("brokers").insert(payload).select().single();
     const { data: row, error } = await op;
     if (error) throw new Error(error.message);
     return row;
@@ -192,12 +220,13 @@ export const createBrokerAccount = createServerFn({ method: "POST" })
     is_active: z.boolean().default(true),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
 
     // 1) Create auth user (email confirmed so the broker can sign in immediately)
     const cleanEmail = data.email.trim().toLowerCase();
     const cleanPassword = data.password.trim();
-    const { data: created, error: authErr } = await supabaseAdmin.auth.admin.createUser({
+    const { data: created, error: authErr } = await serviceAdmin().auth.admin.createUser({
       email: cleanEmail,
       password: cleanPassword,
       email_confirm: true,
@@ -208,7 +237,7 @@ export const createBrokerAccount = createServerFn({ method: "POST" })
 
 
     // 2) Insert broker row linked to the new auth user
-    const { data: row, error } = await supabaseAdmin.from("brokers").insert({
+    const { data: row, error } = await db.from("brokers").insert({
       user_id: newUserId,
       full_name: data.full_name,
       email: data.email,
@@ -221,11 +250,11 @@ export const createBrokerAccount = createServerFn({ method: "POST" })
 
     if (error) {
       // Rollback the auth user if broker insert fails
-      await supabaseAdmin.auth.admin.deleteUser(newUserId).catch(() => {});
+      await serviceAdmin().auth.admin.deleteUser(newUserId).catch(() => {});
       throw new Error(error.message);
     }
 
-    const { error: roleErr } = await supabaseAdmin
+    const { error: roleErr } = await db
       .from("user_roles")
       .insert({ user_id: newUserId, role: "broker" as any });
     if (roleErr && !roleErr.message.includes("duplicate")) {
@@ -239,8 +268,9 @@ export const deleteBroker = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { error } = await supabaseAdmin.from("brokers").delete().eq("id", data.id);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { error } = await db.from("brokers").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -249,8 +279,9 @@ export const assignBrokerRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ user_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { error } = await supabaseAdmin.from("user_roles").insert({ user_id: data.user_id, role: "broker" as any });
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { error } = await db.from("user_roles").insert({ user_id: data.user_id, role: "broker" as any });
     if (error && !error.message.includes("duplicate")) throw new Error(error.message);
     return { ok: true };
   });
@@ -267,19 +298,20 @@ export const resetBrokerPassword = createServerFn({ method: "POST" })
     new_password: z.string().min(8).max(200),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
     // 1) Validate password complexity
     const p = data.new_password;
     if (!/[a-z]/.test(p) || !/[A-Z]/.test(p) || !/[0-9]/.test(p)) {
       throw new Error("Паролата трябва да съдържа малка, главна буква и цифра");
     }
     // 2) Find the broker's auth user_id
-    const { data: broker, error: bErr } = await supabaseAdmin
+    const { data: broker, error: bErr } = await db
       .from("brokers").select("user_id, full_name, email").eq("id", data.broker_id).maybeSingle();
     if (bErr) throw new Error(bErr.message);
     if (!broker?.user_id) throw new Error("Брокерът няма свързан акаунт за вход");
     // 3) Update via Auth Admin API (no old password required)
-    const { error: upErr } = await supabaseAdmin.auth.admin.updateUserById(broker.user_id, { password: p });
+    const { error: upErr } = await serviceAdmin().auth.admin.updateUserById(broker.user_id, { password: p });
     if (upErr) throw new Error(upErr.message);
     return { ok: true, email: broker.email };
   });
@@ -288,8 +320,9 @@ export const getBrokerRoles = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ user_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { data: rows, error } = await supabaseAdmin
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { data: rows, error } = await db
       .from("user_roles").select("role").eq("user_id", data.user_id);
     if (error) throw new Error(error.message);
     return (rows ?? []).map((r) => r.role as BrokerRole);
@@ -302,23 +335,24 @@ export const setBrokerRoles = createServerFn({ method: "POST" })
     roles: z.array(z.enum(ROLE_VALUES)).min(0).max(8),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
     // Replace all roles for this user atomically
-    const { error: delErr } = await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
+    const { error: delErr } = await db.from("user_roles").delete().eq("user_id", data.user_id);
     if (delErr) throw new Error(delErr.message);
     if (data.roles.length > 0) {
       const rows = data.roles.map((role) => ({ user_id: data.user_id, role: role as any }));
-      const { error: insErr } = await supabaseAdmin.from("user_roles").insert(rows);
+      const { error: insErr } = await db.from("user_roles").insert(rows);
       if (insErr) throw new Error(insErr.message);
     }
     return { ok: true, roles: data.roles };
   });
 
 // ============ MATCHING ============
-async function runMatchForClient(clientId: string) {
-  const { data: client } = await supabaseAdmin.from("clients").select("*").eq("id", clientId).maybeSingle();
+async function runMatchForClient(clientId: string, db: ServerDb) {
+  const { data: client } = await db.from("clients").select("*").eq("id", clientId).maybeSingle();
   if (!client || client.client_type !== "buyer") return [];
-  let q = supabaseAdmin.from("properties").select("id, price, area_sqm, rooms, city_id, quarter_id, property_type, status, title")
+  let q = db.from("properties").select("id, price, area_sqm, rooms, city_id, quarter_id, property_type, status, title")
     .eq("is_published", true);
   if (client.search_city_id) q = q.eq("city_id", client.search_city_id);
   if (client.search_quarter_id) q = q.eq("quarter_id", client.search_quarter_id);
@@ -332,15 +366,15 @@ async function runMatchForClient(clientId: string) {
     if (m.score >= 50) matches.push({ property_id: p.id, client_id: clientId, score: m.score, match_reasons: m.reasons });
   }
   if (matches.length) {
-    await supabaseAdmin.from("property_matches").upsert(matches, { onConflict: "property_id,client_id" });
+    await db.from("property_matches").upsert(matches, { onConflict: "property_id,client_id" });
   }
   return matches;
 }
 
-async function runMatchForProperty(propertyId: string) {
-  const { data: prop } = await supabaseAdmin.from("properties").select("*").eq("id", propertyId).maybeSingle();
+async function runMatchForProperty(propertyId: string, db: ServerDb) {
+  const { data: prop } = await db.from("properties").select("*").eq("id", propertyId).maybeSingle();
   if (!prop) return [];
-  let q = supabaseAdmin.from("clients").select("*").eq("client_type", "buyer").eq("status", "active");
+  let q = db.from("clients").select("*").eq("client_type", "buyer").eq("status", "active");
   const { data: clients } = await q;
   if (!clients) return [];
   const matches: any[] = [];
@@ -353,7 +387,7 @@ async function runMatchForProperty(propertyId: string) {
     if (m.score >= 50) matches.push({ property_id: propertyId, client_id: c.id, score: m.score, match_reasons: m.reasons });
   }
   if (matches.length) {
-    await supabaseAdmin.from("property_matches").upsert(matches, { onConflict: "property_id,client_id" });
+    await db.from("property_matches").upsert(matches, { onConflict: "property_id,client_id" });
   }
   return matches;
 }
@@ -385,16 +419,18 @@ export const triggerMatchForProperty = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ property_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const matches = await runMatchForProperty(data.property_id);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const matches = await runMatchForProperty(data.property_id, db);
     return { matches: matches.length };
   });
 
 export const listMatches = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.userId);
-    const { data, error } = await supabaseAdmin
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { data, error } = await db
       .from("property_matches")
       .select("*, properties:property_id(title, price, currency, cover_image_url, cities:city_id(name)), clients:client_id(full_name, phone, email)")
       .order("score", { ascending: false })
@@ -407,8 +443,9 @@ export const listMatches = createServerFn({ method: "GET" })
 export const newMatchesCount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.userId);
-    const { count } = await supabaseAdmin
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { count } = await db
       .from("property_matches").select("id", { count: "exact", head: true }).eq("status", "new");
     return { count: count ?? 0 };
   });
@@ -417,8 +454,9 @@ export const updateMatchStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid(), status: z.enum(["new", "contacted", "interested", "rejected"]) }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { error } = await supabaseAdmin.from("property_matches").update({ status: data.status, notified: true }).eq("id", data.id);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { error } = await db.from("property_matches").update({ status: data.status, notified: true }).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -427,8 +465,9 @@ export const updateMatchStatus = createServerFn({ method: "POST" })
 export const listContracts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.userId);
-    const { data, error } = await supabaseAdmin
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { data, error } = await db
       .from("generated_contracts")
       .select("*, clients:client_id(full_name), properties:property_id(title)")
       .order("created_at", { ascending: false });
@@ -440,8 +479,9 @@ export const deleteContract = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { error } = await supabaseAdmin.from("generated_contracts").delete().eq("id", data.id);
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { error } = await db.from("generated_contracts").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -451,15 +491,16 @@ export const getBrokerDetails = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ broker_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdminOrOwnBroker(context.userId, data.broker_id);
+    const db = crmDb(context);
+    await assertAdminOrOwnBroker(context.userId, data.broker_id, context.supabase, authEmail(context.claims));
     const [{ data: broker }, { data: clients }, { data: tasks }] = await Promise.all([
-      supabaseAdmin.from("brokers").select("*").eq("id", data.broker_id).maybeSingle(),
-      supabaseAdmin
+      db.from("brokers").select("*").eq("id", data.broker_id).maybeSingle(),
+      db
         .from("clients")
         .select("id, full_name, phone, email, client_type, status, cities:search_city_id(name)")
         .eq("assigned_broker_id", data.broker_id)
         .order("created_at", { ascending: false }),
-      supabaseAdmin
+      db
         .from("broker_tasks")
         .select("*, clients:client_id(full_name, phone, email)")
         .eq("broker_id", data.broker_id)
@@ -485,11 +526,12 @@ export const upsertBrokerTask = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => taskSchema.parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdminOrOwnBroker(context.userId, data.broker_id);
+    const db = crmDb(context);
+    await assertAdminOrOwnBroker(context.userId, data.broker_id, context.supabase, authEmail(context.claims));
     const { id, ...payload } = data;
     const op = id
-      ? supabaseAdmin.from("broker_tasks").update(payload).eq("id", id).select().single()
-      : supabaseAdmin.from("broker_tasks").insert({ ...payload, created_by: context.userId }).select().single();
+      ? db.from("broker_tasks").update(payload).eq("id", id).select().single()
+      : db.from("broker_tasks").insert({ ...payload, created_by: context.userId }).select().single();
     const { data: row, error } = await op;
     if (error) throw new Error(error.message);
     return row;
@@ -499,19 +541,20 @@ export const toggleBrokerTask = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid(), is_completed: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: taskRow } = await supabaseAdmin
+    const db = crmDb(context);
+    const { data: taskRow } = await db
       .from("broker_tasks")
       .select("broker_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!taskRow?.broker_id) throw new Error("Задачата не е намерена");
-    await assertAdminOrOwnBroker(context.userId, taskRow.broker_id);
+    await assertAdminOrOwnBroker(context.userId, taskRow.broker_id, context.supabase, authEmail(context.claims));
     const patch: any = {
       is_completed: data.is_completed,
       completed_at: data.is_completed ? new Date().toISOString() : null,
     };
     if (data.is_completed) {
-      const { data: task } = await supabaseAdmin
+      const { data: task } = await db
         .from("broker_tasks")
         .select("*, clients:client_id(full_name)")
         .eq("id", data.id)
@@ -527,7 +570,7 @@ export const toggleBrokerTask = createServerFn({ method: "POST" })
         };
       }
     }
-    const { error } = await supabaseAdmin.from("broker_tasks").update(patch).eq("id", data.id);
+    const { error } = await db.from("broker_tasks").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -536,14 +579,15 @@ export const deleteBrokerTask = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: taskRow } = await supabaseAdmin
+    const db = crmDb(context);
+    const { data: taskRow } = await db
       .from("broker_tasks")
       .select("broker_id")
       .eq("id", data.id)
       .maybeSingle();
     if (!taskRow?.broker_id) throw new Error("Задачата не е намерена");
-    await assertAdminOrOwnBroker(context.userId, taskRow.broker_id);
-    const { error } = await supabaseAdmin.from("broker_tasks").delete().eq("id", data.id);
+    await assertAdminOrOwnBroker(context.userId, taskRow.broker_id, context.supabase, authEmail(context.claims));
+    const { error } = await db.from("broker_tasks").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -552,8 +596,9 @@ export const assignClientToBroker = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ broker_id: z.string().uuid(), client_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    await assertAdminOrOwnBroker(context.userId, data.broker_id);
-    const { error } = await supabaseAdmin
+    const db = crmDb(context);
+    await assertAdminOrOwnBroker(context.userId, data.broker_id, context.supabase, authEmail(context.claims));
+    const { error } = await db
       .from("clients")
       .update({ assigned_broker_id: data.broker_id })
       .eq("id", data.client_id);
@@ -565,14 +610,15 @@ export const unassignClientFromBroker = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ client_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: client } = await supabaseAdmin
+    const db = crmDb(context);
+    const { data: client } = await db
       .from("clients")
       .select("assigned_broker_id")
       .eq("id", data.client_id)
       .maybeSingle();
     if (!client?.assigned_broker_id) throw new Error("Клиентът не е намерен");
-    await assertAdminOrOwnBroker(context.userId, client.assigned_broker_id);
-    const { error } = await supabaseAdmin
+    await assertAdminOrOwnBroker(context.userId, client.assigned_broker_id, context.supabase, authEmail(context.claims));
+    const { error } = await db
       .from("clients")
       .update({ assigned_broker_id: null })
       .eq("id", data.client_id);
@@ -583,8 +629,9 @@ export const unassignClientFromBroker = createServerFn({ method: "POST" })
 export const listUnassignedClients = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.userId);
-    const { data, error } = await supabaseAdmin
+    const db = crmDb(context);
+    await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { data, error } = await db
       .from("clients")
       .select("id, full_name, phone, email, client_type, cities:search_city_id(name)")
       .is("assigned_broker_id", null)
