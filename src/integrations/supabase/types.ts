@@ -2055,39 +2055,6 @@ export type Database = {
       }
     }
     Functions: {
-      customer_chat_append_message: {
-        Args: {
-          p_chat_id: string
-          p_content: string
-          p_role: string
-          p_visitor_token: string
-        }
-        Returns: undefined
-      }
-      customer_chat_list_messages: {
-        Args: {
-          p_chat_id: string
-          p_limit?: number
-          p_visitor_token: string
-        }
-        Returns: {
-          content: string
-          created_at: string
-          role: string
-        }[]
-      }
-      customer_chat_open: {
-        Args: {
-          p_chat_id?: string | null
-          p_page_url?: string | null
-          p_property_id?: string | null
-          p_visitor_email?: string | null
-          p_visitor_name?: string | null
-          p_visitor_phone?: string | null
-          p_visitor_token: string
-        }
-        Returns: string
-      }
       current_broker_id: { Args: { _user_id: string }; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -2121,27 +2088,6 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
-      }
-      visitor_prepare_customer_chat: {
-        Args: {
-          p_chat_id?: string | null
-          p_message?: string | null
-          p_page_url?: string | null
-          p_property_id?: string | null
-          p_visitor_email?: string | null
-          p_visitor_name?: string | null
-          p_visitor_phone?: string | null
-          p_visitor_token: string
-        }
-        Returns: Json
-      }
-      visitor_save_customer_reply: {
-        Args: {
-          p_chat_id: string
-          p_reply: string
-          p_visitor_token: string
-        }
-        Returns: undefined
       }
     }
     Enums: {
