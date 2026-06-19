@@ -79,6 +79,10 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
           property_id: propertyId ?? null,
           page_url: typeof window !== "undefined" ? window.location.href : undefined,
           message: text,
+          history: messages
+            .filter((m) => m.role === "user" || m.role === "assistant")
+            .slice(-40)
+            .map((m) => ({ role: m.role, content: m.content })),
         }),
       });
       const json = await res.json();

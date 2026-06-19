@@ -3,25 +3,25 @@ import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { loadUserAccess } from "@/lib/auth/crm-access";
 
 const ALLOWED_ADMIN_PATHS = /^\/admin(\/[a-zA-Z0-9._\-\/]*)?$/;
 
 export const checkAdminAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (error) {
+    try {
+      const access = await loadUserAccess(context.userId);
+      return {
+        isAdmin: access.isAdmin,
+        hasCrmAccess: access.hasCrmAccess,
+        roles: access.roles,
+        brokerId: access.brokerId,
+      };
+    } catch (error) {
       console.error("admin access check failed", error);
-      return { isAdmin: false };
+      return { isAdmin: false, hasCrmAccess: false, roles: [], brokerId: null };
     }
-
-    return { isAdmin: !!data };
   });
 
 export const logAdminAccess = createServerFn({ method: "POST" })

@@ -225,12 +225,7 @@ export const createBrokerAccount = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
 
-    const { error: roleErr } = await supabaseAdmin
-      .from("user_roles")
-      .insert({ user_id: newUserId, role: "broker" as any });
-    if (roleErr && !roleErr.message.includes("duplicate")) {
-      console.warn("[createBrokerAccount] broker role insert:", roleErr.message);
-    }
+    await supabaseAdmin.from("user_roles").insert({ user_id: newUserId, role: "broker" as any }).catch(() => {});
 
     return row;
   });

@@ -61,7 +61,7 @@ async function ensureFreshSession(): Promise<string | null> {
 function AdminLayout() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [crmAccess, setCrmAccess] = useState<{ ok: boolean; isAdmin: boolean } | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -78,16 +78,17 @@ function AdminLayout() {
         return;
       }
       try {
-        const adminResult = await withTimeout(checkAdminAccess());
+        const accessResult = await withTimeout(checkAdminAccess());
         if (cancelled) return;
-        const isAdmin = !!adminResult?.isAdmin;
-        setIsAdmin(isAdmin);
-        if (isAdmin) {
+        const ok = !!accessResult?.hasCrmAccess;
+        const isAdmin = !!accessResult?.isAdmin;
+        setCrmAccess({ ok, isAdmin });
+        if (ok) {
           logAdminAccess({ data: { path: "/admin" } }).catch(() => {});
         }
       } catch (error) {
         console.error("admin access check failed", error);
-        if (!cancelled) setIsAdmin(false);
+        if (!cancelled) setCrmAccess({ ok: false, isAdmin: false });
       }
     })();
     return () => {
@@ -95,7 +96,7 @@ function AdminLayout() {
     };
   }, [user, loading, navigate]);
 
-  if (loading || isAdmin === null) {
+  if (loading || crmAccess === null) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#5e0f1d] text-amber-100/70">
         Зареждане...
@@ -103,12 +104,14 @@ function AdminLayout() {
     );
   }
   if (!user) return null;
-  if (!isAdmin) {
+  if (!crmAccess.ok) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#5e0f1d] px-4">
         <div className="max-w-md text-center">
           <h1 className="font-display text-3xl text-amber-100">Нямате достъп</h1>
-          <p className="mt-2 text-sm text-amber-100/60">Този раздел е само за администратори.</p>
+          <p className="mt-2 text-sm text-amber-100/60">
+            Този раздел е за екипа на агенцията (администратори и брокери). Свържете се с администратор, ако трябва достъп.
+          </p>
           <button
             onClick={() => signOut().then(() => navigate({ to: "/login" }))}
             className="mt-4 text-sm text-amber-300 underline"

@@ -232,10 +232,7 @@ async function appendCustomerChatMessage(
   throw new Error(rpcErr.message);
 }
 
-async function listCustomerChatMessages(
-  chatId: string,
-  visitorToken: string,
-): Promise<ChatHistoryRow[]> {
+async function listCustomerChatMessages(chatId: string, visitorToken: string) {
   if (resolveSupabaseServiceKey()) {
     const { data, error } = await supabaseAdmin
       .from("customer_chat_messages")
@@ -244,7 +241,7 @@ async function listCustomerChatMessages(
       .order("created_at", { ascending: true })
       .limit(40);
     if (error) throw new Error(error.message);
-    return (data ?? []) as ChatHistoryRow[];
+    return data ?? [];
   }
 
   const { data: history, error: histErr } = await supabaseAdmin.rpc("customer_chat_list_messages", {
@@ -252,7 +249,7 @@ async function listCustomerChatMessages(
     p_visitor_token: visitorToken,
     p_limit: 40,
   });
-  if (!histErr) return (history ?? []) as ChatHistoryRow[];
+  if (!histErr) return history ?? [];
   throw new Error(histErr.message);
 }
 

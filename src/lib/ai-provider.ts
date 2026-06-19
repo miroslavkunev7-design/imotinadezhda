@@ -30,8 +30,8 @@ export function resolveAiProvider(): AiProviderConfig | null {
     };
   }
 
-  const gateway = process.env.AI_GATEWAY_URL;
-  const gatewayKey = process.env.AI_GATEWAY_KEY;
+  const gateway = process.env.AI_GATEWAY_URL ?? "https://ai-gateway.vercel.sh/v1/chat/completions";
+  const gatewayKey = process.env.AI_GATEWAY_KEY ?? process.env.VERCEL_AI_GATEWAY_KEY;
   if (gateway && gatewayKey) {
     return {
       url: gateway,

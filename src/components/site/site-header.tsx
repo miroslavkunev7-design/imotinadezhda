@@ -71,14 +71,16 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
   return (
     <header className="site-header-v2">
       <div className="site-header-v2__wrap">
-        {/* Scroll logo (left, overlapping) */}
+        {/* Scroll logo — marble plaque + gold edges; swap image when final logo arrives */}
         <Link
           to="/"
           onClick={handleLogo}
           aria-label="Начало — Недвижими имоти Надежда"
           className="site-header-v2__logo"
         >
-          <img src={scrollLogo} alt="Недвижими имоти Надежда" className="site-header-v2__logo-img" />
+          <div className="site-header-v2__logo-plaque nadezhda-marble-bg">
+            <img src={scrollLogo} alt="Недвижими имоти Надежда" className="site-header-v2__logo-img" />
+          </div>
         </Link>
 
         {/* Navigation pill */}

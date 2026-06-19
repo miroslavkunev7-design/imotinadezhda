@@ -207,7 +207,7 @@
     pointer-events: none;
   }
 
-  /* Deep burgundy panel — for hero / about / contact dark sections */
+  /* Deep burgundy panel � for hero / about / contact dark sections */
   .marble-dark-panel {
     background: linear-gradient(135deg, #8b1a2b 0%, #5e0f1d 100%);
     border: 1px solid rgba(201, 168, 76, 0.45);
@@ -229,7 +229,7 @@
     pointer-events: none;
   }
 
-  /* Light cream/white panel — for cards & filter bars */
+  /* Light cream/white panel � for cards & filter bars */
   .marble-light-panel {
     background: linear-gradient(180deg, #ffffff 0%, #fbf6ea 100%);
     border: 1px solid rgba(201, 168, 76, 0.45);
@@ -285,7 +285,7 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
-  /* Burgundy search bar variant — matches logo panel red exactly */
+  /* Burgundy search bar variant � matches logo panel red exactly */
   .search-burgundy .text-primary { color: #fdf6e3 !important; }
   .search-burgundy [class*="text-primary/"] { color: rgba(253, 246, 227, 0.78) !important; }
   .search-burgundy [class*="border-primary/"] { border-color: rgba(201, 168, 76, 0.35) !important; }
@@ -401,7 +401,7 @@ html, body, #root {
   max-width: 100vw;
 }
 
-/* CRM contrast layer — keeps records readable over video, images and every
+/* CRM contrast layer � keeps records readable over video, images and every
    user-selectable CRM theme without flattening the theme's accent color. */
 [data-crm-themed] .crm-content {
   color: var(--crm-text);
@@ -439,7 +439,7 @@ html, body, #root {
   color: var(--crm-text) !important;
   border-color: var(--crm-border) !important;
 }
-/* Force WHITE text in all CRM table rows (the burgundy/brown rows) — all viewports */
+/* Force WHITE text in all CRM table rows (the burgundy/brown rows) � all viewports */
 [data-crm-themed] .crm-content table tbody tr,
 [data-crm-themed] .crm-content table tbody tr td,
 [data-crm-themed] .crm-content table tbody tr td * {
@@ -496,7 +496,7 @@ html, body, #root {
   outline-offset: 2px;
 }
 
-/* Mobile CRM contrast — cards, lists, sheets, dialogs become opaque
+/* Mobile CRM contrast � cards, lists, sheets, dialogs become opaque
    so records stay readable over the hero video / fixed background. */
 @media (max-width: 1024px) {
   [data-crm-themed] .crm-content,
@@ -546,7 +546,7 @@ html, body, #root {
   [data-crm-themed] .crm-content small {
     color: var(--crm-text) !important;
   }
-  /* Bottom mobile nav — opaque panel, larger tap targets */
+  /* Bottom mobile nav � opaque panel, larger tap targets */
   [data-crm-themed] nav.fixed.inset-x-0.bottom-0 {
     background-color: var(--crm-panel-strong) !important;
     border-top-color: var(--crm-border) !important;
@@ -593,7 +593,7 @@ html, body, #root {
 }
 
 /* Mobile dialogs/sheets (rendered in Portal, outside .crm-content):
-   force readable dark labels on white surfaces — gold-on-white is invisible. */
+   force readable dark labels on white surfaces � gold-on-white is invisible. */
 @media (max-width: 1024px) {
   [role="dialog"] label,
   [role="dialog"] .text-xs.uppercase,
@@ -620,7 +620,7 @@ html, body, #root {
   }
 }
 
-/* CRM high-contrast readable surfaces — applies to mobile, tablet, desktop
+/* CRM high-contrast readable surfaces � applies to mobile, tablet, desktop
    and installed/PWA windows. Gold remains decorative, never body/field text. */
 [data-crm-themed] {
   --crm-readable-bg: #fffaf2;
@@ -742,7 +742,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 }
 
 /* ============================================================
-   Reference design helpers — "Имоти Надежда" luxury template.
+   Reference design helpers � "????? ???????" luxury template.
    Used by ShumenHomePage and related public pages.
    ============================================================ */
 .nadezhda-marble-bg {
@@ -770,7 +770,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 .font-sans-nadezhda { font-family: "Open Sans", "Manrope", sans-serif; }
 
 
-/* === Site header v2: edge-to-edge burgundy bar pinned to top + oversized logo overlap === */
+/* === Site header v2: burgundy bar + marble logo plaque with gold edges === */
 .site-header-v2 {
   position: fixed;
   top: 0 !important;
@@ -781,10 +781,8 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   padding-top: 0 !important;
   background-color: transparent;
   margin: 0;
-  --logo-w: 220px;
-  --logo-overhang: 0px;
-  --logo-crop-top: calc(var(--logo-w) * 0.917);
-  --logo-crop-height: calc(var(--logo-w) * 0.785);
+  --logo-plaque-w: clamp(148px, 16vw, 210px);
+  --header-bar-h: clamp(52px, 7vw, 72px);
 }
 .site-header-v2::before {
   content: "";
@@ -807,24 +805,34 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 }
 .site-header-v2__logo {
   position: relative;
-  z-index: 20;
+  z-index: 25;
   display: block;
   flex-shrink: 0;
-  width: var(--logo-w);
-  height: var(--logo-crop-height);
-  overflow: hidden;
-  margin-top: 0 !important;
-  margin-left: clamp(6px, 1.2vw, 18px);
-  margin-right: calc(var(--logo-w) * -0.55);
-  transition: none;
-  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.4));
+  align-self: flex-start;
+  margin-left: clamp(0px, 0.6vw, 10px);
+  margin-right: calc(var(--logo-plaque-w) * -0.34);
+  text-decoration: none;
+  transition: filter 0.25s ease;
 }
-.site-header-v2__logo:hover { transform: none; }
+.site-header-v2__logo:hover {
+  filter: brightness(1.04);
+}
+.site-header-v2__logo-plaque {
+  padding: clamp(8px, 1vw, 12px) clamp(10px, 1.2vw, 14px) clamp(12px, 1.4vw, 16px);
+  border-bottom: 4px solid #c59441;
+  border-right: 4px solid #c59441;
+  border-bottom-right-radius: 3.5rem;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.38),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  outline: 1px solid rgba(212, 175, 55, 0.4);
+  outline-offset: -6px;
+}
 .site-header-v2__logo-img {
-  width: 100%;
+  width: var(--logo-plaque-w);
   height: auto;
   display: block;
-  margin-top: calc(var(--logo-crop-top) * -1);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
 }
 
 .site-header-v2__pill {
@@ -832,27 +840,33 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   z-index: 10;
   flex: 1 1 auto;
   min-width: 0;
+  min-height: var(--header-bar-h);
   margin-top: 0 !important;
   border-radius: 0;
-  padding: 2px;
-  background: linear-gradient(to bottom, #f8e7a3, #d4af37, #b8860b);
+  padding: 3px;
+  background: linear-gradient(180deg, #f8e7a3 0%, #d4af37 48%, #b8860b 100%);
   box-shadow:
     0 0 0 1px #f8e7a3,
-    0 4px 0 0 #b8860b,
+    0 4px 0 0 #9a7209,
     0 10px 28px rgba(0, 0, 0, 0.45);
 }
 .site-header-v2__pill-inner {
+  display: flex;
+  align-items: center;
+  min-height: calc(var(--header-bar-h) - 6px);
   border-radius: 0;
   background: #4a0000;
   border-top: 2px solid #f0d878;
   border-bottom: 2px solid #f0d878;
   box-shadow:
-    inset 0 0 0 2px rgba(184, 134, 11, 0.6),
-    inset 0 2px 8px rgba(255, 215, 0, 0.15);
-  padding: clamp(8px, 1.2vw, 16px)
+    inset 0 0 0 1px rgba(248, 231, 163, 0.55),
+    inset 0 0 0 3px #4a0000,
+    inset 0 0 0 4px rgba(184, 134, 11, 0.5),
+    inset 0 2px 8px rgba(255, 215, 0, 0.12);
+  padding: clamp(6px, 1vw, 12px)
            clamp(10px, 1.8vw, 24px)
-           clamp(8px, 1.2vw, 16px)
-           calc(var(--logo-w) * 0.55);
+           clamp(6px, 1vw, 12px)
+           calc(var(--logo-plaque-w) * 0.36);
 }
 .site-header-v2__items {
   display: flex;
@@ -916,16 +930,21 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 
 @media (max-width: 720px) {
   .site-header-v2 {
-    --logo-w: 220px;
-    --logo-overhang: clamp(6px, 1.6vw, 10px);
+    --logo-plaque-w: clamp(132px, 34vw, 168px);
+    --header-bar-h: 56px;
   }
   .site-header-v2__logo {
-    margin-left: 6px;
-    margin-right: calc(var(--logo-w) * -0.5);
-    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
+    margin-left: 0;
+    margin-right: calc(var(--logo-plaque-w) * -0.28);
+  }
+  .site-header-v2__logo-plaque {
+    padding: 6px 8px 10px;
+    border-bottom-width: 3px;
+    border-right-width: 3px;
+    border-bottom-right-radius: 2.5rem;
   }
   .site-header-v2__pill-inner {
-    padding: 8px 8px 8px calc(var(--logo-w) * 0.5);
+    padding: 6px 8px 6px calc(var(--logo-plaque-w) * 0.3);
   }
   .site-header-v2__items {
     gap: 6px;
@@ -955,7 +974,8 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 
 @media (max-width: 380px) {
   .site-header-v2 {
-    --logo-w: 220px;
+    --logo-plaque-w: 128px;
+    --header-bar-h: 52px;
   }
   .site-header-v2__items { gap: 4px; }
   .site-header-v2__btn,
@@ -975,7 +995,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 
 
 
-/* === Admin readability: yellow/gold text on light cream cards → burgundy === */
+/* === Admin readability: yellow/gold text on light cream cards ? burgundy === */
 [data-crm-themed] [class*="text-[#C9A84C]"],
 [data-crm-themed] [class*="text-amber-300"],
 [data-crm-themed] [class*="text-amber-400"],
@@ -997,9 +1017,9 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   color: #8B1A2B !important;
 }
 
-/* === FINAL CONTRAST PASS (CRM): elimina всякакъв жълт/златен текст и налага четим контраст спрямо контейнера === */
+/* === FINAL CONTRAST PASS (CRM): elimina ???????? ????/?????? ????? ? ?????? ????? ???????? ?????? ?????????? === */
 
-/* 1) Бели/светли повърхности (модални, диалози, popovers, бели карти, инпути) — тъмен текст */
+/* 1) ????/?????? ??????????? (???????, ???????, popovers, ???? ?????, ??????) � ????? ????? */
 :where([role="dialog"], [role="alertdialog"], [data-radix-popper-content-wrapper], .bg-white, [class*="bg-card"], [class*="bg-popover"], [class*="bg-background"], [class*="bg-muted"])
   :is(
     [class*="text-amber-"],
@@ -1024,7 +1044,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   color: #1a0608 !important;
 }
 
-/* 2) Полу-прозрачни / тъмни сайдбари / тъмни карти — БЯЛ текст */
+/* 2) ????-????????? / ????? ???????? / ????? ????? � ??? ????? */
 :where(
   [data-sidebar],
   aside[class*="bg-black"],
@@ -1049,7 +1069,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   font-weight: 600;
 }
 
-/* 3) Labels / placeholders / input-и в CRM модули — винаги четими */
+/* 3) Labels / placeholders / input-? ? CRM ?????? � ?????? ?????? */
 [data-crm-themed] :is([role="dialog"], [role="alertdialog"]) :is(label, .text-xs, .text-sm.text-muted-foreground, [class*="tracking-wide"], [class*="uppercase"]) {
   color: #1a0608 !important;
   opacity: 1 !important;
@@ -1064,7 +1084,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   border-color: rgba(139,26,43,0.35) !important;
 }
 
-/* 4) Помощни / disabled надписи никога да не са под 60% контраст */
+/* 4) ??????? / disabled ??????? ?????? ?? ?? ?? ??? 60% ???????? */
 [data-crm-themed] .text-muted-foreground {
   color: #5b3038 !important;
 }
@@ -1075,10 +1095,10 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   color: rgba(255,255,255,0.78) !important;
 }
 
-/* 5) Универсална забрана за чист жълт цвят в CRM (като резервен предпазител) */
+/* 5) ??????????? ??????? ?? ???? ???? ???? ? CRM (???? ???????? ???????????) */
 [data-crm-themed] [style*="color: #ff"],
 [data-crm-themed] [style*="color:#ff"] {
-  /* не пипаме произволни inline стилове */
+  /* ?? ?????? ?????????? inline ??????? */
 }
 [data-crm-themed] [class~="text-yellow-200"],
 [data-crm-themed] [class~="text-yellow-100"],
@@ -1088,8 +1108,8 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 }
 
 /* =========================================================================
-   CRM READABILITY OVERRIDE — solid white tables, dark text on EVERY device.
-   Mirrors the readable "Нов имот" dialog style across all admin pages,
+   CRM READABILITY OVERRIDE � solid white tables, dark text on EVERY device.
+   Mirrors the readable "??? ????" dialog style across all admin pages,
    regardless of selected CRM theme. Highest specificity to win previous rules.
    ========================================================================= */
 [data-crm-themed] .crm-content :is(table, thead, tbody, tfoot),
@@ -1151,7 +1171,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   box-shadow: 0 8px 24px -12px rgba(58, 26, 8, 0.25);
 }
 /* Soft amber-tinted small pills inside table cells should still be visible
-   on white — bump their text contrast. */
+   on white � bump their text contrast. */
 [data-crm-themed] .crm-content :is(table th, table td) :is(
   [class*="bg-amber-500/15"],
   [class*="bg-amber-500/20"],
@@ -1162,7 +1182,7 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
 }
 
 /* =========================================================================
-   CRM READABILITY — UNIVERSAL (cards, dialogs, sheets, popovers, dropdowns,
+   CRM READABILITY � UNIVERSAL (cards, dialogs, sheets, popovers, dropdowns,
    inputs, forms, badges). Applies on every viewport: mobile, tablet,
    desktop, PWA installed app, Windows desktop wrapper. Always solid white
    surface + dark burgundy text + readable accents.
@@ -1253,7 +1273,7 @@ body[data-crm-themed] :is(
   color: #3a0a13 !important;
   -webkit-text-fill-color: #3a0a13 !important;
 }
-/* Buttons inside CRM dialogs that use a transparent/light style — keep them
+/* Buttons inside CRM dialogs that use a transparent/light style � keep them
    readable on white. Solid burgundy/gold buttons keep their own colors. */
 body[data-crm-themed] :is([role="dialog"], [role="alertdialog"]) button:not([class*="bg-"]) {
   color: #3a0a13 !important;
@@ -1332,7 +1352,7 @@ body[data-crm-themed] :is(
   color: #3a0a13 !important;
 }
 
-/* Sheet (Radix Dialog with data-side) — same treatment */
+/* Sheet (Radix Dialog with data-side) � same treatment */
 body[data-crm-themed] [data-state="open"][data-side] {
   background: #ffffff !important;
   color: #2a0e05 !important;
@@ -1370,7 +1390,7 @@ body[data-crm-themed] [role="dialog"] [class*="badge"] {
 }
 
 /* =========================================================================
-   CRM FINAL CONTRAST — background-aware tables and panels.
+   CRM FINAL CONTRAST � background-aware tables and panels.
    Rule: light/white surfaces use near-black text; dark surfaces use white text.
    This is intentionally last so it wins over older amber/burgundy theme classes.
    ========================================================================= */
@@ -1569,7 +1589,7 @@ html[data-preset-buttons="pill"] button:not([data-no-preset]),
 html[data-preset-buttons="pill"] .btn { border-radius: 9999px !important; }
 html[data-preset-buttons="square"] button:not([data-no-preset]),
 html[data-preset-buttons="square"] .btn { border-radius: 0 !important; }
-/* "rounded" is the default — no override */
+/* "rounded" is the default � no override */
 
 /* --- Form input presets --- */
 html[data-preset-forms="rounded"] input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
@@ -1619,7 +1639,7 @@ html[data-preset-cards="gradient"] .city-card {
 
 /* ============================================================
    Section visual variants (page-editor + public site)
-   Прилага се чрез CSS клас на data-section-id обвивката.
+   ??????? ?? ???? CSS ???? ?? data-section-id ?????????.
    ============================================================ */
 .sv-classic { border: 2px solid #c59441; border-radius: 0 !important; box-shadow: none !important; }
 .sv-rounded { border-radius: 28px !important; overflow: hidden; }
