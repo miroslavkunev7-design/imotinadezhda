@@ -7,19 +7,22 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, lazy, Suspense, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportAppError } from "../lib/error-reporting";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
-import { CustomerChat } from "@/components/site/customer-chat";
 import { useRouterState } from "@tanstack/react-router";
 import { initPwa } from "@/lib/pwa";
 import { enforceRememberMePolicy } from "@/lib/remember-me";
 import { SEO_KEYWORDS, siteUrl } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SectionEditorOverlay } from "@/components/editor/section-editor-overlay";
+
+const CustomerChat = lazy(() =>
+  import("@/components/site/customer-chat").then((m) => ({ default: m.CustomerChat })),
+);
 
 function NotFoundComponent() {
   return (
@@ -157,7 +160,11 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <Toaster />
-          {!hideChat && <CustomerChat propertyId={propertyId} />}
+          {!hideChat && (
+            <Suspense fallback={null}>
+              <CustomerChat propertyId={propertyId} />
+            </Suspense>
+          )}
           <SectionEditorOverlay />
         </AuthProvider>
       </ThemeProvider>

@@ -36,6 +36,7 @@ import qDobrudzhanski from "@/assets/shumen-quarters/dobrudzhanski.png.asset.jso
 import qPozharnata from "@/assets/shumen-quarters/pozharnata.png.asset.json";
 import qVoenno from "@/assets/shumen-quarters/voenno.png.asset.json";
 import { SiteHeader } from "@/components/site/site-header";
+import { AutoPlayVideo } from "@/components/site/auto-play-video";
 import { resolveAssetUrl } from "@/lib/asset-url";
 import { InstallCrmButton } from "@/components/site/install-crm-button";
 const shumenPanorama = { url: cityShumen };
@@ -274,18 +275,14 @@ function HeroVideoOrImage({
 }) {
   const [failed, setFailed] = useState(false);
   if (failed || !videoUrl) {
-    return <img src={posterUrl} alt={alt} className="absolute inset-0 w-full h-full object-cover" />;
+    return <img src={posterUrl} alt={alt} className="absolute inset-0 w-full h-full object-cover" loading="eager" decoding="async" />;
   }
   return (
-    <video
+    <AutoPlayVideo
       src={videoUrl}
-      autoPlay
-      muted
-      loop
-      playsInline
-      className="absolute inset-0 w-full h-full object-cover"
       poster={posterUrl}
-      onError={() => setFailed(true)}
+      onPermanentError={() => setFailed(true)}
+      className="absolute inset-0 h-full w-full"
     />
   );
 }

@@ -1,125 +1,6 @@
-import { cloneElement, useEffect, useRef, useState as useReactState, type ReactElement, type CSSProperties, type VideoHTMLAttributes } from "react";
-
-// Auto-play helper with instant-poster + deferred video mount:
-// 1. Renders the poster image immediately as a full-cover background so first
-//    paint is effectively 0s (no waiting on the video network request).
-// 2. Defers mounting the actual <video> element until after first paint
-//    (requestIdleCallback / rAF fallback) so the hero image isn't blocked.
-// 3. Uses preload="metadata" so the browser streams the clip instead of
-//    fully buffering before playback can start.
-// 4. Fades the video in over the poster once enough data is loaded (no flash).
-function AutoPlayVideo(
-  props: VideoHTMLAttributes<HTMLVideoElement> & {
-    src?: string;
-    fallbackSrc?: string;
-    onPermanentError?: () => void;
-  },
-) {
-  const { src, fallbackSrc, onPermanentError, onError, poster, className, style, preload: _ignoredPreload, ...videoProps } = props;
-  const ref = useRef<HTMLVideoElement | null>(null);
-  const [activeSrc, setActiveSrc] = useReactState(src);
-  const [mountVideo, setMountVideo] = useReactState(false);
-  const [videoReady, setVideoReady] = useReactState(false);
-
-  useEffect(() => {
-    setActiveSrc(src);
-    setVideoReady(false);
-  }, [src, setActiveSrc, setVideoReady]);
-
-  // Defer the <video> mount until after first paint so the poster shows instantly.
-  useEffect(() => {
-    if (!src) return;
-    let cancelled = false;
-    const schedule = (cb: () => void) => {
-      const ric = (window as any).requestIdleCallback as
-        | ((cb: () => void, opts?: { timeout: number }) => number)
-        | undefined;
-      if (typeof ric === "function") return ric(() => !cancelled && cb(), { timeout: 200 });
-      return window.setTimeout(() => !cancelled && cb(), 0);
-    };
-    const raf = requestAnimationFrame(() => schedule(() => setMountVideo(true)));
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(raf);
-    };
-  }, [src, setMountVideo]);
-
-  useEffect(() => {
-    if (!mountVideo) return;
-    const el = ref.current;
-    if (!el || !activeSrc) return;
-    el.muted = true;
-    el.defaultMuted = true;
-    el.setAttribute("muted", "");
-    el.setAttribute("playsinline", "");
-    const tryPlay = () => {
-      const p = el.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {
-          const resume = () => {
-            el.play().catch(() => {});
-            window.removeEventListener("touchstart", resume);
-            window.removeEventListener("click", resume);
-          };
-          window.addEventListener("touchstart", resume, { once: true, passive: true });
-          window.addEventListener("click", resume, { once: true });
-        });
-      }
-    };
-    if (el.readyState >= 2) tryPlay();
-    else el.addEventListener("loadeddata", tryPlay, { once: true });
-  }, [activeSrc, mountVideo]);
-
-  const handleError: VideoHTMLAttributes<HTMLVideoElement>["onError"] = (event) => {
-    onError?.(event);
-    if (fallbackSrc && activeSrc !== fallbackSrc) {
-      setActiveSrc(fallbackSrc);
-      return;
-    }
-    onPermanentError?.();
-  };
-
-  return (
-    <div className={className} style={style}>
-      {poster ? (
-        <img
-          src={typeof poster === "string" ? poster : undefined}
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
-          decoding="async"
-          fetchPriority="high"
-        />
-      ) : null}
-      {mountVideo && activeSrc ? (
-        <video
-          key={activeSrc}
-          ref={ref}
-          {...videoProps}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          poster={typeof poster === "string" ? poster : undefined}
-          src={activeSrc}
-          onError={handleError}
-          onLoadedData={() => setVideoReady(true)}
-          onEnded={(e) => {
-            const v = e.currentTarget;
-            try {
-              v.currentTime = 0;
-              void v.play();
-            } catch {}
-          }}
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
-          style={{ opacity: videoReady ? 1 : 0 }}
-        />
-      ) : null}
-    </div>
-  );
-}
+import { cloneElement, useEffect, useState as useReactState, type ReactElement, type CSSProperties } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { AutoPlayVideo } from "@/components/site/auto-play-video";
 import { AGENCY } from "@/lib/contact-config";
 import { resolveAssetUrl } from "@/lib/asset-url";
 import { useFavorites, shareProperty } from "@/hooks/use-favorites";
@@ -970,7 +851,6 @@ export function HomePage({
       >
         <AutoPlayVideo
           src={resolveAssetUrl(homeHeroVideo) || homeHero}
-          preload="auto"
           poster={homeHero}
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -1364,7 +1244,8 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       ? city.hero_image_url
       : citySlugImages[city.slug]) || cityShumen;
   const fallbackVideo = cityVideoFallbacks[city.slug];
-  const heroVideo = videoFailed ? null : (city.hero_video_url || fallbackVideo);
+  const dbHeroVideo = city.hero_video_url ? resolveAssetUrl(city.hero_video_url) : "";
+  const heroVideo = videoFailed ? null : dbHeroVideo || fallbackVideo;
 
   const fmt = (n: number) => new Intl.NumberFormat("bg-BG").format(n);
 
@@ -1379,7 +1260,6 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               src={heroVideo}
               fallbackSrc={fallbackVideo}
               onPermanentError={() => setVideoFailed(true)}
-              preload="auto"
               poster={typeof heroImage === "string" ? heroImage : undefined}
               className="absolute inset-0 h-full w-full object-cover"
             />
@@ -1732,7 +1612,6 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
             src={districtHeroVideo}
             fallbackSrc={districtFallbackVideo}
             onPermanentError={() => setDistrictVideoFailed(true)}
-            preload="auto"
             poster={districtHeroPoster}
             className="h-full w-full object-cover"
           />
@@ -2040,7 +1919,6 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
             src={propHeroVideo}
             fallbackSrc={propFallbackVideo}
             onPermanentError={() => setPropVideoFailed(true)}
-            preload="auto"
             poster={propHeroPoster}
             className="h-full w-full object-cover"
           />

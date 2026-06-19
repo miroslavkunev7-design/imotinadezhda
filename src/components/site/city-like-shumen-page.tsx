@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
+import { AutoPlayVideo } from "@/components/site/auto-play-video";
 import { SiteHeader } from "@/components/site/site-header";
 import { InstallCrmButton } from "@/components/site/install-crm-button";
 
@@ -201,10 +202,15 @@ function FeatureIcon({ Icon, title, desc }: { Icon: React.ComponentType<{ classN
 function HeroVideoOrImage({ videoUrl, posterUrl, alt }: { videoUrl: string; posterUrl: string; alt: string }) {
   const [failed, setFailed] = useState(false);
   if (failed || !videoUrl) {
-    return <img src={posterUrl} alt={alt} className="absolute inset-0 w-full h-full object-cover" />;
+    return <img src={posterUrl} alt={alt} className="absolute inset-0 w-full h-full object-cover" loading="eager" decoding="async" />;
   }
   return (
-    <video src={videoUrl} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" poster={posterUrl} onError={() => setFailed(true)} />
+    <AutoPlayVideo
+      src={videoUrl}
+      poster={posterUrl}
+      onPermanentError={() => setFailed(true)}
+      className="absolute inset-0 h-full w-full"
+    />
   );
 }
 

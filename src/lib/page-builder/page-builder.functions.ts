@@ -217,7 +217,7 @@ export const scrapeReference = createServerFn({ method: "POST" })
     scrapeReferenceHandler(data, { userId: context.userId }),
   );
 
-// ADMIN — call Lovable AI to convert scraped reference into a layout_json
+// ADMIN — call AI provider to convert scraped reference into a layout_json
 const generateFromReferenceInput = z.object({
   mode: z.enum(["similar", "clone"]),
   page_slug: pageSlugSchema,

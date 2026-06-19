@@ -43,7 +43,7 @@ const SYSTEM = `Ти си асистент за разпознаване на к
 
 export type ScanInput = z.infer<typeof inputSchema>;
 
-// Exported for unit testing. Performs admin gate, then calls Lovable AI.
+// Exported for unit testing. Performs admin gate, then calls the configured AI provider.
 export async function scanClientFromImageHandler(
   data: ScanInput,
   context: { userId: string },
