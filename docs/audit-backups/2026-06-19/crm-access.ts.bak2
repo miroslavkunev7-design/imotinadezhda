@@ -19,18 +19,12 @@ export type UserAccess = {
   brokerId: string | null;
 };
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { resolveServerDb } from "@/lib/supabase-server-db";
-
-export async function loadUserAccess(
-  userId: string,
-  userClient?: SupabaseClient<import("@/integrations/supabase/types").Database>,
-): Promise<UserAccess> {
-  const db = resolveServerDb(userClient);
+export async function loadUserAccess(userId: string): Promise<UserAccess> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const [{ data: roleRows, error: roleErr }, { data: broker, error: brokerErr }] = await Promise.all([
-    db.from("user_roles").select("role").eq("user_id", userId),
-    db.from("brokers").select("id").eq("user_id", userId).maybeSingle(),
+    supabaseAdmin.from("user_roles").select("role").eq("user_id", userId),
+    supabaseAdmin.from("brokers").select("id").eq("user_id", userId).maybeSingle(),
   ]);
 
   if (roleErr) console.error("loadUserAccess roles failed", roleErr);

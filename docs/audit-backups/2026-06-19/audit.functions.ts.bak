@@ -11,7 +11,7 @@ export const checkAdminAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     try {
-      const access = await loadUserAccess(context.userId, context.supabase);
+      const access = await loadUserAccess(context.userId);
       return {
         isAdmin: access.isAdmin,
         hasCrmAccess: access.hasCrmAccess,

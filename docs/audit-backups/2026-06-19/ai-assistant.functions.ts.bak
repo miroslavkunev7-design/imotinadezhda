@@ -2,8 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { aiChatCompletions, resolveAiProvider } from "@/lib/ai-provider";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { loadUserAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const messageSchema = z.object({
   role: z.enum(["user", "assistant", "system", "tool"]),
@@ -403,26 +402,26 @@ const THEME_PRESETS: Record<string, Record<string, string>> = {
   graphite: { surface: "#111111", surfaceTo: "#2a2a2a", accent: "#f59e0b", accentSoft: "rgba(245,158,11,0.18)", text: "#fafafa", textMuted: "rgba(250,250,250,0.65)", border: "rgba(245,158,11,0.25)" },
 };
 
-async function runTool(name: string, args: any, userId: string, db: ServerDb): Promise<any> {
+async function runTool(name: string, args: any, userId: string): Promise<any> {
   if (name === "search_clients") {
     const q = String(args.query ?? "").trim();
-    let query = db.from("clients").select("id, full_name, phone, email, client_type, status, budget_min, budget_max, search_property_type, search_status, notes, cities:search_city_id(name), quarters:search_quarter_id(name)").limit(20);
+    let query = supabaseAdmin.from("clients").select("id, full_name, phone, email, client_type, status, budget_min, budget_max, search_property_type, search_status, notes, cities:search_city_id(name), quarters:search_quarter_id(name)").limit(20);
     if (q) query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`);
     const { data, error } = await query;
     if (error) return { error: error.message };
     return { clients: data ?? [] };
   }
   if (name === "get_client") {
-    const { data: client } = await db.from("clients").select("*, cities:search_city_id(name), quarters:search_quarter_id(name)").eq("id", args.client_id).maybeSingle();
+    const { data: client } = await supabaseAdmin.from("clients").select("*, cities:search_city_id(name), quarters:search_quarter_id(name)").eq("id", args.client_id).maybeSingle();
     if (!client) return { error: "Клиент не е намерен" };
     const [{ data: docs }, { data: matches }] = await Promise.all([
-      db.from("client_documents").select("document_type, file_name, notes, created_at").eq("client_id", args.client_id),
-      db.from("property_matches").select("score, status, properties:property_id(id, title, price, currency)").eq("client_id", args.client_id).order("score", { ascending: false }).limit(5),
+      supabaseAdmin.from("client_documents").select("document_type, file_name, notes, created_at").eq("client_id", args.client_id),
+      supabaseAdmin.from("property_matches").select("score, status, properties:property_id(id, title, price, currency)").eq("client_id", args.client_id).order("score", { ascending: false }).limit(5),
     ]);
     return { client, documents: docs ?? [], top_matches: matches ?? [] };
   }
   if (name === "search_properties") {
-    let query = db.from("properties").select("id, title, price, currency, area_sqm, rooms, property_type, status, cities:city_id(name, slug), quarters:quarter_id(name)").eq("is_published", true).limit(20);
+    let query = supabaseAdmin.from("properties").select("id, title, price, currency, area_sqm, rooms, property_type, status, cities:city_id(name, slug), quarters:quarter_id(name)").eq("is_published", true).limit(20);
     if (args.query) query = query.ilike("title", `%${args.query}%`);
     if (args.max_price) query = query.lte("price", args.max_price);
     const { data, error } = await query;
@@ -432,13 +431,13 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
     return { properties: rows };
   }
   if (name === "get_property") {
-    const { data: prop } = await db.from("properties").select("*, cities:city_id(name, slug), quarters:quarter_id(name)").eq("id", args.property_id).maybeSingle();
+    const { data: prop } = await supabaseAdmin.from("properties").select("*, cities:city_id(name, slug), quarters:quarter_id(name)").eq("id", args.property_id).maybeSingle();
     if (!prop) return { error: "Имотът не е намерен" };
-    const { data: images } = await db.from("property_images").select("url").eq("property_id", args.property_id);
+    const { data: images } = await supabaseAdmin.from("property_images").select("url").eq("property_id", args.property_id);
     return { property: prop, images: images ?? [] };
   }
   if (name === "save_contract") {
-    const { data, error } = await db.from("generated_contracts").insert({
+    const { data, error } = await supabaseAdmin.from("generated_contracts").insert({
       title: args.title,
       contract_type: args.contract_type,
       content: args.content,
@@ -452,7 +451,7 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
   }
   if (name === "update_crm_theme") {
     const base = args.preset && THEME_PRESETS[args.preset] ? THEME_PRESETS[args.preset] : null;
-    const { data: profile } = await db.from("profiles").select("crm_theme").eq("id", userId).maybeSingle();
+    const { data: profile } = await supabaseAdmin.from("profiles").select("crm_theme").eq("id", userId).maybeSingle();
     const current = (profile?.crm_theme ?? {}) as Record<string, any>;
     const starting = base ? { ...base, preset: args.preset } : current;
     const colorFields = ["surface", "surfaceTo", "accent", "accentSoft", "text", "textMuted", "border", "sidebar", "sidebarTo", "sidebarText", "sidebarBorder", "heading"] as const;
@@ -480,7 +479,7 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
     if (!base && Object.keys(overrides).length === 0) {
       return { error: "Не са подадени валидни стойности или preset.", rejected };
     }
-    const { error } = await db.from("profiles").update({ crm_theme: next as any }).eq("id", userId);
+    const { error } = await supabaseAdmin.from("profiles").update({ crm_theme: next as any }).eq("id", userId);
     if (error) return { error: error.message };
     return {
       ok: true,
@@ -534,7 +533,7 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
       "area_min", "area_max", "search_property_type", "notes", "assigned_broker_id",
     ]);
     payload.created_by = userId;
-    const { data, error } = await db.from("clients").insert(payload as never).select("id, full_name").single();
+    const { data, error } = await supabaseAdmin.from("clients").insert(payload as never).select("id, full_name").single();
     if (error) return { error: error.message };
     return { ok: true, client: data, message: `Клиент "${data.full_name}" е създаден.` };
   }
@@ -546,14 +545,14 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
       "area_min", "area_max", "notes", "assigned_broker_id",
     ]);
     if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
-    const { data, error } = await db.from("clients").update(payload as never).eq("id", args.client_id).select("id, full_name").maybeSingle();
+    const { data, error } = await supabaseAdmin.from("clients").update(payload as never).eq("id", args.client_id).select("id, full_name").maybeSingle();
     if (error) return { error: error.message };
     if (!data) return { error: "Клиент не е намерен." };
     return { ok: true, client: data, message: `Клиент "${data.full_name}" е обновен.` };
   }
   if (name === "delete_client") {
     if (!args.confirm) return { error: "Изисква се confirm=true." };
-    const { error } = await db.from("clients").delete().eq("id", args.client_id);
+    const { error } = await supabaseAdmin.from("clients").delete().eq("id", args.client_id);
     if (error) return { error: error.message };
     return { ok: true, message: "Клиентът е изтрит." };
   }
@@ -566,7 +565,7 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
       "is_published", "owner_id", "assigned_broker_id",
     ]);
     payload.created_by = userId;
-    const { data, error } = await db.from("properties").insert(payload as never).select("id, title").single();
+    const { data, error } = await supabaseAdmin.from("properties").insert(payload as never).select("id, title").single();
     if (error) return { error: error.message };
     return { ok: true, property: data, message: `Имот "${data.title}" е създаден.` };
   }
@@ -578,14 +577,14 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
       "is_published", "assigned_broker_id",
     ]);
     if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
-    const { data, error } = await db.from("properties").update(payload as never).eq("id", args.property_id).select("id, title").maybeSingle();
+    const { data, error } = await supabaseAdmin.from("properties").update(payload as never).eq("id", args.property_id).select("id, title").maybeSingle();
     if (error) return { error: error.message };
     if (!data) return { error: "Имотът не е намерен." };
     return { ok: true, property: data, message: `Имот "${data.title}" е обновен.` };
   }
   if (name === "delete_property") {
     if (!args.confirm) return { error: "Изисква се confirm=true." };
-    const { error } = await db.from("properties").delete().eq("id", args.property_id);
+    const { error } = await supabaseAdmin.from("properties").delete().eq("id", args.property_id);
     if (error) return { error: error.message };
     return { ok: true, message: "Имотът е изтрит." };
   }
@@ -593,7 +592,7 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
   if (name === "create_broker") {
     if (!args.full_name) return { error: "full_name е задължително" };
     const payload = pickFields(args, ["full_name", "email", "phone", "license_number", "bio", "photo_url", "is_active"]);
-    const { data, error } = await db.from("brokers").insert(payload as never).select("id, full_name").single();
+    const { data, error } = await supabaseAdmin.from("brokers").insert(payload as never).select("id, full_name").single();
     if (error) return { error: error.message };
     return { ok: true, broker: data, message: `Брокер "${data.full_name}" е създаден.` };
   }
@@ -601,19 +600,19 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
     if (!args.broker_id) return { error: "broker_id е задължително" };
     const payload = pickFields(args, ["full_name", "email", "phone", "license_number", "bio", "photo_url", "is_active"]);
     if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
-    const { data, error } = await db.from("brokers").update(payload as never).eq("id", args.broker_id).select("id, full_name").maybeSingle();
+    const { data, error } = await supabaseAdmin.from("brokers").update(payload as never).eq("id", args.broker_id).select("id, full_name").maybeSingle();
     if (error) return { error: error.message };
     if (!data) return { error: "Брокерът не е намерен." };
     return { ok: true, broker: data, message: `Брокер "${data.full_name}" е обновен.` };
   }
   if (name === "delete_broker") {
     if (!args.confirm) return { error: "Изисква се confirm=true." };
-    const { error } = await db.from("brokers").delete().eq("id", args.broker_id);
+    const { error } = await supabaseAdmin.from("brokers").delete().eq("id", args.broker_id);
     if (error) return { error: error.message };
     return { ok: true, message: "Брокерът е изтрит." };
   }
   if (name === "search_brokers") {
-    const { data, error } = await db.from("brokers").select("id, full_name, email, phone, is_active, license_number").order("full_name");
+    const { data, error } = await supabaseAdmin.from("brokers").select("id, full_name, email, phone, is_active, license_number").order("full_name");
     if (error) return { error: error.message };
     return { brokers: data ?? [] };
   }
@@ -630,18 +629,18 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase);
-    const access = await loadUserAccess(context.userId, context.supabase);
-    if (!access.isAdmin) throw new Error("Forbidden");
+    const { data: roleRow } = await supabaseAdmin
+      .from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    if (!roleRow) throw new Error("Forbidden");
 
     if (!resolveAiProvider()) throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
 
     // Лек контекст с агрегати
     const [{ count: clientCount }, { count: propCount }, { count: newMatchCount }, { count: newInq }] = await Promise.all([
-      db.from("clients").select("id", { count: "exact", head: true }),
-      db.from("properties").select("id", { count: "exact", head: true }),
-      db.from("property_matches").select("id", { count: "exact", head: true }).eq("status", "new"),
-      db.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "new"),
+      supabaseAdmin.from("clients").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("properties").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("property_matches").select("id", { count: "exact", head: true }).eq("status", "new"),
+      supabaseAdmin.from("inquiries").select("id", { count: "exact", head: true }).eq("status", "new"),
     ]);
 
     const systemPrompt = `Ти си Юридически и CRM Асистент — експерт за имотна агенция "Имоти Надежда" в България.
@@ -698,7 +697,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
         for (const call of msg.tool_calls) {
           let args: any = {};
           try { args = JSON.parse(call.function.arguments ?? "{}"); } catch {}
-          const result = await runTool(call.function.name, args, context.userId, db);
+          const result = await runTool(call.function.name, args, context.userId);
           conversation.push({
             role: "tool",
             tool_call_id: call.id,
@@ -714,7 +713,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
         const lastUser = [...data.messages].reverse().find((m) => m.role === "user");
         if (!convId) {
           const title = (lastUser?.content ?? "Нов разговор").slice(0, 80);
-          const { data: conv } = await db
+          const { data: conv } = await supabaseAdmin
             .from("ai_conversations")
             .insert({ user_id: context.userId, title })
             .select("id")
@@ -725,8 +724,8 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
           const toInsert: Array<{ conversation_id: string; role: string; content: string }> = [];
           if (lastUser) toInsert.push({ conversation_id: convId, role: "user", content: lastUser.content });
           if (msg.content) toInsert.push({ conversation_id: convId, role: "assistant", content: msg.content });
-          if (toInsert.length) await db.from("ai_messages").insert(toInsert);
-          await db.from("ai_conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
+          if (toInsert.length) await supabaseAdmin.from("ai_messages").insert(toInsert);
+          await supabaseAdmin.from("ai_conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
         }
       } catch (e) {
         console.error("ai persist failed", e);
@@ -740,8 +739,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 export const listAiConversations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const db = resolveServerDb(context.supabase);
-    const { data } = await db
+    const { data } = await supabaseAdmin
       .from("ai_conversations")
       .select("id, title, updated_at")
       .eq("user_id", context.userId)
@@ -754,11 +752,10 @@ export const getAiConversation = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase);
-    const { data: conv } = await db
+    const { data: conv } = await supabaseAdmin
       .from("ai_conversations").select("id, title").eq("id", data.id).eq("user_id", context.userId).maybeSingle();
     if (!conv) throw new Error("Not found");
-    const { data: msgs } = await db
+    const { data: msgs } = await supabaseAdmin
       .from("ai_messages").select("role, content").eq("conversation_id", data.id).order("created_at");
     return { conv, messages: msgs ?? [] };
   });
