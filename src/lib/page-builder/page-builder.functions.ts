@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { aiChatCompletions, resolveAiProvider } from "@/lib/ai-provider";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdmin } from "@/lib/auth/assert-admin";
@@ -235,8 +236,7 @@ export async function generateFromReferenceHandler(
   context: { userId: string },
 ) {
   await assertAdmin(context.userId);
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("LOVABLE_API_KEY не е конфигуриран.");
+  if (!resolveAiProvider()) throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
 
   // import block registry definitions for the prompt
   const { BLOCK_REGISTRY } = await import("./blocks");
@@ -286,24 +286,15 @@ ${JSON.stringify(blockCatalog, null, 2)}
 - Минимум 4 блока, максимум 12.
 `.trim();
 
-  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Връщаш САМО валиден JSON. Никакъв друг текст. Никакви markdown code fences.",
-        },
-        { role: "user", content: userPrompt },
-      ],
-      response_format: { type: "json_object" },
-    }),
+  const aiRes = await aiChatCompletions({
+    messages: [
+      {
+        role: "system",
+        content: "Връщаш САМО валиден JSON. Никакъв друг текст. Никакви markdown code fences.",
+      },
+      { role: "user", content: userPrompt },
+    ],
+    temperature: 0.3,
   });
 
   if (!aiRes.ok) {

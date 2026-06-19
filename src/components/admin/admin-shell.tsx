@@ -43,6 +43,8 @@ import marbleBg from "@/assets/marble-bg.png";
 import heroBg from "@/assets/burgundy-terrace-hero.jpeg";
 import brandLogoAsset from "@/assets/brand-logo-square.png.asset.json";
 import loginHeroVideo from "@/assets/login-hero.mp4.asset.json";
+import loginHeroPoster from "@/assets/login-hero.jpeg";
+import { resolveAssetUrl } from "@/lib/asset-url";
 
 type NavItem = {
   to: string;
@@ -158,7 +160,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         <div className="flex items-center justify-between gap-3 border-b border-amber-600/25 px-5 py-4">
           <Link to="/" className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl ring-1 ring-amber-400/40 shadow-md">
-              <img src={brandLogoAsset.url} alt="Имоти Надежда" className="h-full w-full object-cover" />
+              <img src={resolveAssetUrl(brandLogoAsset)} alt="Имоти Надежда" className="h-full w-full object-cover" />
             </div>
             <div>
               <div className="font-display text-base leading-tight text-amber-100">Имоти</div>
@@ -289,7 +291,7 @@ export function AdminShell({ children, breadcrumb }: { children: ReactNode; brea
         {!crmBg && (!theme.preset || theme.preset === "burgundy") && (
           <video
             className="pointer-events-none fixed inset-0 z-0 h-screen w-screen object-cover"
-            src={loginHeroVideo.url}
+            src={resolveAssetUrl(loginHeroVideo) || loginHeroPoster}
             autoPlay
             loop
             muted

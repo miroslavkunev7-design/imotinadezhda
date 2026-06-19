@@ -43,7 +43,7 @@ import {
 beforeEach(() => {
   isAdmin = false;
   process.env.FIRECRAWL_API_KEY = "test-firecrawl";
-  process.env.LOVABLE_API_KEY = "test-lovable";
+  process.env.OPENAI_API_KEY = "test-openai";
   firecrawlScrape.mockClear();
 });
 

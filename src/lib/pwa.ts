@@ -20,8 +20,7 @@ function isPreviewOrIframe(): boolean {
   const host = window.location.hostname;
   const isPreviewHost =
     host.includes("id-preview--") ||
-    host.includes("lovableproject.com") ||
-    host.includes("lovable.dev");
+    host.includes("vercel.app");
   return inIframe || isPreviewHost;
 }
 

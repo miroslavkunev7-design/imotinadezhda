@@ -1,23 +1,62 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - tanstackStart, viteReact, tailwindcss, tsConfigPaths, nitro (build-only using cloudflare as a default target),
-//     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
-//     error logger plugins, and sandbox detection (port/host/strictPort).
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import path from "node:path";
+import { defineConfig, loadEnv } from "vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+import { nitro } from "nitro/vite";
 
-// On Vercel, force-enable Nitro with the `vercel` preset so the deploy plugin
-// activates. On Lovable / Cloudflare, leave nitro on its auto default.
 const isVercel = process.env.VERCEL === "1" || process.env.DEPLOY_TARGET === "vercel";
 
-export default defineConfig({
-  tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    server: { entry: "server" },
-  },
-  nitro: isVercel ? { preset: "vercel" } : undefined,
-  // On Vercel, lightningcss tries to resolve Tailwind v4's `@import "tailwindcss"`
-  // before the Tailwind plugin can intercept it, causing ENOENT. Fall back to
-  // the default PostCSS-based CSS pipeline there. CSS options must live under
-  // `vite` — they are not a top-level option of the Lovable config wrapper.
-  vite: isVercel ? { css: { transformer: "postcss" } } : undefined,
+export default defineConfig(({ command, mode }) => {
+  const plugins = [
+    tailwindcss(),
+    tsconfigPaths({ projects: ["./tsconfig.json"] }),
+    tanstackStart({
+      importProtection: {
+        behavior: "error",
+        client: {
+          files: ["**/server/**"],
+          specifiers: ["server-only"],
+        },
+      },
+      server: { entry: "server" },
+    }),
+  ];
+
+  if (command === "build" && isVercel) {
+    plugins.push(nitro({ preset: "vercel" }));
+  }
+
+  plugins.push(viteReact());
+
+  const viteEnv = loadEnv(mode, process.cwd(), "VITE_");
+  const envDefine = Object.fromEntries(
+    Object.entries(viteEnv).map(([key, value]) => [`import.meta.env.${key}`, JSON.stringify(value)]),
+  );
+
+  return {
+    define: envDefine,
+    css: {
+      transformer: isVercel ? "postcss" : "lightningcss",
+    },
+    resolve: {
+      alias: {
+        "@": path.resolve(import.meta.dirname, "src"),
+      },
+      dedupe: [
+        "react",
+        "react-dom",
+        "react/jsx-runtime",
+        "react/jsx-dev-runtime",
+        "@tanstack/react-query",
+        "@tanstack/query-core",
+      ],
+    },
+    server: {
+      host: "::",
+      port: 8080,
+    },
+    plugins,
+  };
 });

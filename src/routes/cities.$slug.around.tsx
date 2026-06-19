@@ -3,15 +3,16 @@ import { ChevronRight, MapPin, Compass } from "lucide-react";
 
 import { getVillagesAround, type VillageRow } from "@/lib/villages.functions";
 import { siteUrl } from "@/lib/site-config";
+import { resolveAssetUrl } from "@/lib/asset-url";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
 import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
 import burgasHeroVideo from "@/assets/burgas-hero.mp4.asset.json";
 
 const HERO_VIDEOS: Record<string, string> = {
-  shumen: shumenHeroVideo.url,
-  varna: varnaHeroVideo.url,
-  burgas: burgasHeroVideo.url,
-  "novi-pazar": shumenHeroVideo.url,
+  shumen: resolveAssetUrl(shumenHeroVideo),
+  varna: resolveAssetUrl(varnaHeroVideo),
+  burgas: resolveAssetUrl(burgasHeroVideo),
+  "novi-pazar": resolveAssetUrl(shumenHeroVideo),
 };
 
 export const Route = createFileRoute("/cities/$slug/around")({
@@ -56,7 +57,7 @@ function AroundCityPage() {
   const { slug } = Route.useParams();
   const { cityLabel, municipality, villages } = Route.useLoaderData();
   const scopeText = municipality ? `община ${cityLabel}` : `област ${cityLabel}`;
-  const videoUrl = HERO_VIDEOS[slug] ?? shumenHeroVideo.url;
+  const videoUrl = HERO_VIDEOS[slug] ?? resolveAssetUrl(shumenHeroVideo);
 
   return (
     <main className="min-h-screen nadezhda-marble-bg">

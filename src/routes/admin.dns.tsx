@@ -83,7 +83,7 @@ function DnsPage() {
             <CardContent className="text-sm text-muted-foreground space-y-1">
               <p>1. В регистратора добави A запис @ → 185.158.133.1</p>
               <p>2. Добави A запис www → 185.158.133.1</p>
-              <p>3. Добави TXT запис _lovable със стойност от Lovable (Project Settings → Domains)</p>
+              <p>3. Добави TXT запис _vercel със стойност от Vercel (Project Settings → Domains)</p>
               <p>4. Изчакай разпространението — обикновено до 1 час, максимум 72 часа</p>
             </CardContent>
           </Card>

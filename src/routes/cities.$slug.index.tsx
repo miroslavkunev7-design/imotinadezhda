@@ -4,23 +4,24 @@ import { ShumenHomePage } from "@/components/site/shumen-home-page";
 import { CityLikeShumenPage } from "@/components/site/city-like-shumen-page";
 import { getCityBySlug } from "@/lib/catalog.functions";
 import { citySeo, siteUrl } from "@/lib/site-config";
+import { resolveAssetUrl } from "@/lib/asset-url";
 import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
 import burgasHeroVideo from "@/assets/burgas-hero.mp4.asset.json";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
 
 const CITY_MEDIA: Record<string, { videoUrl: string; description: string; stats: { population: string; area: string; activeProperties: string } }> = {
   varna: {
-    videoUrl: varnaHeroVideo.url,
+    videoUrl: resolveAssetUrl(varnaHeroVideo),
     description: "Морската столица на България — динамичен пазар, развита инфраструктура и силен туристически потенциал.",
     stats: { population: "≈ 335 000", area: "238 km²", activeProperties: "—" },
   },
   burgas: {
-    videoUrl: burgasHeroVideo.url,
+    videoUrl: resolveAssetUrl(burgasHeroVideo),
     description: "Втората морска столица — модерен град с богат избор на имоти, плажове и възможности за инвестиции.",
     stats: { population: "≈ 200 000", area: "482 km²", activeProperties: "—" },
   },
   "novi-pazar": {
-    videoUrl: shumenHeroVideo.url,
+    videoUrl: resolveAssetUrl(shumenHeroVideo),
     description: "Спокоен град в област Шумен — практични жилища и достъпни инвестиционни възможности.",
     stats: { population: "≈ 12 000", area: "247 km²", activeProperties: "—" },
   },

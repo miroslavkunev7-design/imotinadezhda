@@ -32,3 +32,4 @@ dist-ssr
 *.sw?
 tests/visual/current/
 tests/visual/diff/
+.vercel

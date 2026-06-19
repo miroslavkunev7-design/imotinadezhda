@@ -121,6 +121,7 @@ function AutoPlayVideo(
 }
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AGENCY } from "@/lib/contact-config";
+import { resolveAssetUrl } from "@/lib/asset-url";
 import { useFavorites, shareProperty } from "@/hooks/use-favorites";
 import { toast } from "sonner";
 
@@ -214,22 +215,22 @@ export const citySlugImages: Record<string, string> = {
 };
 
 const cityVideoFallbacks: Record<string, string> = {
-  burgas: burgasHeroVideo.url,
-  shumen: shumenHeroVideo.url,
-  varna: varnaHeroVideo.url,
+  burgas: resolveAssetUrl(burgasHeroVideo),
+  shumen: resolveAssetUrl(shumenHeroVideo),
+  varna: resolveAssetUrl(varnaHeroVideo),
 };
 
 const shumenQuarterCards = [
-  { name: "Център", slug: "tsentar", image_url: qTsentar.url, properties_count: 0 },
-  { name: "Тракия", slug: "trakiya", image_url: qTrakiya.url, properties_count: 0 },
-  { name: "Боян Българанов 1", slug: "boyan-balgaranov-1", image_url: qBoyan1.url, properties_count: 0 },
-  { name: "Боян Българанов 2", slug: "boyan-balgaranov-2", image_url: qBoyan2.url, properties_count: 0 },
-  { name: "Болницата", slug: "bolnitsata", image_url: qBolnitsata.url, properties_count: 0 },
-  { name: "Херсон", slug: "herson", image_url: qHerson.url, properties_count: 0 },
-  { name: "Пазара", slug: "pazara", image_url: qPazara.url, properties_count: 0 },
-  { name: "Добруджански", slug: "dobrudzhanski", image_url: qDobrudzhanski.url, properties_count: 0 },
-  { name: "Пожарната", slug: "pozharnata", image_url: qPozharnata.url, properties_count: 0 },
-  { name: "Военно училище", slug: "voenno-uchilishte", image_url: qVoenno.url, properties_count: 0 },
+  { name: "Център", slug: "tsentar", image_url: resolveAssetUrl(qTsentar), properties_count: 0 },
+  { name: "Тракия", slug: "trakiya", image_url: resolveAssetUrl(qTrakiya), properties_count: 0 },
+  { name: "Боян Българанов 1", slug: "boyan-balgaranov-1", image_url: resolveAssetUrl(qBoyan1), properties_count: 0 },
+  { name: "Боян Българанов 2", slug: "boyan-balgaranov-2", image_url: resolveAssetUrl(qBoyan2), properties_count: 0 },
+  { name: "Болницата", slug: "bolnitsata", image_url: resolveAssetUrl(qBolnitsata), properties_count: 0 },
+  { name: "Херсон", slug: "herson", image_url: resolveAssetUrl(qHerson), properties_count: 0 },
+  { name: "Пазара", slug: "pazara", image_url: resolveAssetUrl(qPazara), properties_count: 0 },
+  { name: "Добруджански", slug: "dobrudzhanski", image_url: resolveAssetUrl(qDobrudzhanski), properties_count: 0 },
+  { name: "Пожарната", slug: "pozharnata", image_url: resolveAssetUrl(qPozharnata), properties_count: 0 },
+  { name: "Военно училище", slug: "voenno-uchilishte", image_url: resolveAssetUrl(qVoenno), properties_count: 0 },
 ];
 
 function normalizeQuarterName(name: string) {
@@ -968,7 +969,7 @@ export function HomePage({
         className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
       >
         <AutoPlayVideo
-          src={homeHeroVideo.url}
+          src={resolveAssetUrl(homeHeroVideo) || homeHero}
           preload="auto"
           poster={homeHero}
           className="absolute inset-0 h-full w-full object-cover"

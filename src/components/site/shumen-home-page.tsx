@@ -36,22 +36,23 @@ import qDobrudzhanski from "@/assets/shumen-quarters/dobrudzhanski.png.asset.jso
 import qPozharnata from "@/assets/shumen-quarters/pozharnata.png.asset.json";
 import qVoenno from "@/assets/shumen-quarters/voenno.png.asset.json";
 import { SiteHeader } from "@/components/site/site-header";
+import { resolveAssetUrl } from "@/lib/asset-url";
 import { InstallCrmButton } from "@/components/site/install-crm-button";
 const shumenPanorama = { url: cityShumen };
 
 
 /* ---------------- Шумен квартали ---------------- */
 const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image: string }> = [
-  { name: "Център",             slug: "tsentar",            count: 64, image: qTsentar.url },
-  { name: "Тракия",             slug: "trakiya",            count: 58, image: qTrakiya.url },
-  { name: "Боян Българанов 1",  slug: "boyan-balgaranov-1", count: 31, image: qBoyan1.url },
-  { name: "Боян Българанов 2",  slug: "boyan-balgaranov-2", count: 28, image: qBoyan2.url },
-  { name: "Болницата",          slug: "bolnitsata",         count: 22, image: qBolnitsata.url },
-  { name: "Херсон",             slug: "herson",             count: 25, image: qHerson.url },
-  { name: "Пазара",             slug: "pazara",             count: 19, image: qPazara.url },
-  { name: "Добруджански",       slug: "dobrudzhanski",      count: 43, image: qDobrudzhanski.url },
-  { name: "Пожарната",          slug: "pozharnata",         count: 14, image: qPozharnata.url },
-  { name: "Военно училище",     slug: "voenno-uchilishte",  count: 11, image: qVoenno.url },
+  { name: "Център",             slug: "tsentar",            count: 64, image: resolveAssetUrl(qTsentar) },
+  { name: "Тракия",             slug: "trakiya",            count: 58, image: resolveAssetUrl(qTrakiya) },
+  { name: "Боян Българанов 1",  slug: "boyan-balgaranov-1", count: 31, image: resolveAssetUrl(qBoyan1) },
+  { name: "Боян Българанов 2",  slug: "boyan-balgaranov-2", count: 28, image: resolveAssetUrl(qBoyan2) },
+  { name: "Болницата",          slug: "bolnitsata",         count: 22, image: resolveAssetUrl(qBolnitsata) },
+  { name: "Херсон",             slug: "herson",             count: 25, image: resolveAssetUrl(qHerson) },
+  { name: "Пазара",             slug: "pazara",             count: 19, image: resolveAssetUrl(qPazara) },
+  { name: "Добруджански",       slug: "dobrudzhanski",      count: 43, image: resolveAssetUrl(qDobrudzhanski) },
+  { name: "Пожарната",          slug: "pozharnata",         count: 14, image: resolveAssetUrl(qPozharnata) },
+  { name: "Военно училище",     slug: "voenno-uchilishte",  count: 11, image: resolveAssetUrl(qVoenno) },
 ];
 
 /* ---------------- Logo header (top-left) — desktop only ---------------- */
@@ -309,7 +310,7 @@ export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTot
       <div className="relative">
         <TopFloatSearch />
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
-          <HeroVideoOrImage videoUrl={shumenHeroVideo.url} posterUrl={shumenPanorama.url} alt="Шумен" />
+          <HeroVideoOrImage videoUrl={resolveAssetUrl(shumenHeroVideo)} posterUrl={shumenPanorama.url} alt="Шумен" />
           <div className="absolute inset-0" />
           <ShumenInfoBox />
         </div>

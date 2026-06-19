@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { aiChatCompletions, resolveAiProvider } from "@/lib/ai-provider";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const InputSchema = z.object({
@@ -137,18 +138,9 @@ async function searchProperties(args: any) {
   };
 }
 
-async function callLovableAI(messages: any[]) {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("LOVABLE_API_KEY missing");
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages,
-      tools: TOOLS,
-    }),
-  });
+async function callCustomerAI(messages: any[]) {
+  if (!resolveAiProvider()) throw new Error("AI_NOT_CONFIGURED");
+  const res = await aiChatCompletions({ messages, tools: TOOLS, temperature: 0.5 });
   if (res.status === 429) throw new Error("RATE_LIMIT");
   if (res.status === 402) throw new Error("PAYMENT_REQUIRED");
   if (!res.ok) throw new Error(`AI ${res.status}: ${await res.text()}`);
@@ -216,7 +208,7 @@ export const Route = createFileRoute("/api/public/customer-chat")({
           // Tool loop (max 3 iterations)
           let finalContent = "";
           for (let i = 0; i < 3; i++) {
-            const json = await callLovableAI(messages);
+            const json = await callCustomerAI(messages);
             const choice = json.choices?.[0];
             const msg = choice?.message;
             if (!msg) break;

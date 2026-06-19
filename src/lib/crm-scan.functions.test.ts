@@ -23,7 +23,7 @@ const validInput = {
 
 beforeEach(() => {
   isAdmin = false;
-  process.env.LOVABLE_API_KEY = "test-key";
+  process.env.OPENAI_API_KEY = "test-key";
 });
 
 afterEach(() => {

@@ -1,7 +1,7 @@
 import { useRef, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
-import scrollLogo from "@/assets/navbar-scroll.png.asset.json";
+import scrollLogo from "@/assets/logo-scroll-banner.png";
 import { cn } from "@/lib/utils";
 
 export type SiteNavKey = "sale" | "rent" | "about";
@@ -78,7 +78,7 @@ export function SiteHeader({ active }: { active?: SiteNavKey } = {}) {
           aria-label="Начало — Недвижими имоти Надежда"
           className="site-header-v2__logo"
         >
-          <img src={scrollLogo.url} alt="Недвижими имоти Надежда" className="site-header-v2__logo-img" />
+          <img src={scrollLogo} alt="Недвижими имоти Надежда" className="site-header-v2__logo-img" />
         </Link>
 
         {/* Navigation pill */}

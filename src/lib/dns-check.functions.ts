@@ -4,7 +4,7 @@ import { assertAdmin } from "@/lib/auth/assert-admin";
 
 const EXPECTED_A = "185.158.133.1";
 const DOMAINS = ["imotinadezhda.bg", "www.imotinadezhda.bg"];
-const TXT_NAME = "_lovable.imotinadezhda.bg";
+const TXT_NAME = "_vercel.imotinadezhda.bg";
 
 type DoHAnswer = { name: string; type: number; TTL: number; data: string };
 type DoHResponse = { Status: number; Answer?: DoHAnswer[] };
@@ -60,10 +60,10 @@ export const checkDns = createServerFn({ method: "GET" })
   records.push({
     name: TXT_NAME,
     type: "TXT",
-    expected: "lovable_verify=...",
+    expected: "vercel-dns-...",
     cloudflare: cfTxtVals,
     google: ggTxtVals,
-    ok: cfTxtVals.some((v) => v.startsWith("lovable_verify=")) && ggTxtVals.some((v) => v.startsWith("lovable_verify=")),
+    ok: cfTxtVals.some((v) => v.startsWith("vercel-dns-")) && ggTxtVals.some((v) => v.startsWith("vercel-dns-")),
   });
 
   return {

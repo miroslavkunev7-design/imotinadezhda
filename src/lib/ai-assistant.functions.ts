@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { aiChatCompletions, resolveAiProvider } from "@/lib/ai-provider";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
@@ -632,8 +633,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
       .from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
     if (!roleRow) throw new Error("Forbidden");
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY не е конфигуриран");
+    if (!resolveAiProvider()) throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
 
     // Лек контекст с агрегати
     const [{ count: clientCount }, { count: propCount }, { count: newMatchCount }, { count: newInq }] = await Promise.all([
@@ -676,15 +676,10 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 
     while (iterations < 10) {
       iterations++;
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-pro",
-          messages: conversation,
-          tools: TOOLS,
-          temperature: 0.4,
-        }),
+      const res = await aiChatCompletions({
+        messages: conversation,
+        tools: TOOLS,
+        temperature: 0.4,
       });
       if (!res.ok) {
         const text = await res.text();

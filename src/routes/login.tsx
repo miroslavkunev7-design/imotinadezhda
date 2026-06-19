@@ -2,12 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { signInWithOAuth } from "@/integrations/app-auth";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
 import { SiteHeader } from "@/components/site/site-header";
 import { setRememberMe } from "@/lib/remember-me";
+import loginHeroPoster from "@/assets/login-hero.jpeg";
+import { resolveAssetUrl } from "@/lib/asset-url";
 import loginHeroVideo from "@/assets/login-hero.mp4.asset.json";
 
 export const Route = createFileRoute("/login")({
@@ -30,8 +32,8 @@ function LoginPage() {
   // Video quality sources. Both currently point to the same uploaded clip;
   // replace the 8K entry when a true 8K master is uploaded.
   const videoSources: Record<"4k" | "8k", string> = {
-    "4k": loginHeroVideo.url,
-    "8k": loginHeroVideo.url,
+    "4k": resolveAssetUrl(loginHeroVideo) || loginHeroPoster,
+    "8k": resolveAssetUrl(loginHeroVideo) || loginHeroPoster,
   };
 
   useEffect(() => {
@@ -94,7 +96,7 @@ function LoginPage() {
     setError(null);
     try {
       setRememberMe(remember);
-      const result = await lovable.auth.signInWithOAuth("google", {
+      const result = await signInWithOAuth("google", {
         redirect_uri: `${window.location.origin}/admin`,
       });
       if (result.error) {
