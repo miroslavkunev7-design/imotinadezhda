@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { LuxuryHeader } from "@/components/site/luxury-real-estate";
+import { LuxuryHeader, TrustStrip } from "@/components/site/luxury-real-estate";
 import { AGENCY, AGENCY_PHONES, buildTelUrl, buildWhatsAppUrl } from "@/lib/contact-config";
 import { siteUrl } from "@/lib/site-config";
 import aboutSofa from "@/assets/about-sofa.jpeg";
@@ -174,6 +174,10 @@ function AboutPage() {
           ))}
         </section>
       </main>
+
+      <div className="hidden flex-none md:block">
+        <TrustStrip />
+      </div>
     </div>
   );
 }

@@ -967,7 +967,7 @@ export function HomePage({
         className="relative flex flex-1 min-h-0 flex-col pb-3 pt-0"
       >
         <AutoPlayVideo
-          src={resolveAssetUrl(homeHeroVideo) || homeHero}
+          src={homeHeroVideo.url}
           poster={homeHero}
           className="absolute inset-0 h-full w-full object-cover"
         />

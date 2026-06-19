@@ -1,11 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { safeAdmin } from "@/integrations/supabase/safe-admin";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const getCities = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await safeAdmin
     .from("cities")
-    .select("id, slug, name, name_en, description, hero_image_url, region, population, area_km2, stats, display_order")
+    .select("*")
     .eq("is_published", true)
     .order("display_order", { ascending: true });
   if (error) throw new Error(error.message);
@@ -22,7 +23,7 @@ const CITY_OBLAST: Record<string, { oblast: string; municipality?: string }> = {
 export const getCityBySlug = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ slug: z.string().min(1).max(64) }).parse(d))
   .handler(async ({ data }) => {
-    const { data: city, error } = await supabaseAdmin
+    const { data: city, error } = await safeAdmin
       .from("cities")
       .select("*")
       .eq("slug", data.slug)
@@ -32,20 +33,20 @@ export const getCityBySlug = createServerFn({ method: "GET" })
     if (!city) return null;
 
     const [{ data: quarters }, { data: properties }, { data: liveProps }] = await Promise.all([
-      supabaseAdmin
+      safeAdmin
         .from("quarters")
         .select("id, slug, name, description, image_url, avg_price_per_sqm, properties_count, display_order")
         .eq("city_id", city.id)
         .eq("is_published", true)
         .order("display_order"),
-      supabaseAdmin
+      safeAdmin
         .from("properties")
         .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, is_featured, property_type, status, quarter_id")
         .eq("city_id", city.id)
         .eq("is_published", true)
         .order("created_at", { ascending: false })
         .limit(12),
-      supabaseAdmin
+      safeAdmin
         .from("properties")
         .select("quarter_id")
         .eq("city_id", city.id)
@@ -67,12 +68,12 @@ export const getCityBySlug = createServerFn({ method: "GET" })
     let aroundCount = 0;
     const cfg = CITY_OBLAST[data.slug];
     if (cfg) {
-      let vq = supabaseAdmin.from("villages").select("id").eq("oblast_slug", cfg.oblast);
+      let vq = safeAdmin.from("villages").select("id").eq("oblast_slug", cfg.oblast);
       if (cfg.municipality) vq = vq.eq("municipality_slug", cfg.municipality);
       const { data: villageRows } = await vq;
       const villageIds = (villageRows ?? []).map((v) => v.id);
       if (villageIds.length) {
-        const { count } = await supabaseAdmin
+        const { count } = await safeAdmin
           .from("properties")
           .select("id", { count: "exact", head: true })
           .eq("is_published", true)
@@ -81,9 +82,14 @@ export const getCityBySlug = createServerFn({ method: "GET" })
       }
     }
 
+    const quartersWithLiveCounts = (quarters ?? []).map((q) => ({
+      ...q,
+      properties_count: quarterCounts[q.slug] ?? 0,
+    }));
+
     return {
       city,
-      quarters: quarters ?? [],
+      quarters: quartersWithLiveCounts,
       properties: properties ?? [],
       quarterCounts,
       aroundCount,
@@ -93,7 +99,7 @@ export const getCityBySlug = createServerFn({ method: "GET" })
 
 
 export const getFeaturedProperties = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await safeAdmin
     .from("properties")
     .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, city_id, cities:city_id(name, slug)")
     .eq("is_published", true)

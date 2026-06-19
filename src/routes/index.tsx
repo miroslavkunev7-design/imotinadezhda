@@ -9,6 +9,8 @@ import { SITE_URL, siteUrl } from "@/lib/site-config";
 
 
 
+import homeHeroPoster from "@/assets/home-hero-living.jpeg";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: siteUrl("/") },
+      { rel: "preload", as: "image", href: homeHeroPoster, fetchPriority: "high" },
     ],
     scripts: [
       {

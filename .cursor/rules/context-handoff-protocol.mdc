@@ -1,0 +1,43 @@
+---
+description: Предаване на контекст към следващ чат при ~85–90% запълване (до 20 пъти)
+alwaysApply: true
+---
+
+# Протокол за предаване на контекст (Handoff 1→20)
+
+## Кога
+
+Когато контекстът на разговора достигне **~85–90%**, СПРИ новата работа и подготви предаване.
+
+## Задължителни стъпки
+
+1. **Прочети** последния файл `docs/handoffs/HANDOFF-XX-OF-20.md` (ако съществува).
+2. **Увеличи брояча**: следващият файл е `HANDOFF-(XX+1)-OF-20.md`.
+3. **Запиши пълен handoff** с:
+   - номер: `Предаване X/20`
+   - проект: `C:\Users\Agenciq\Desktop\IM\imotinadezhda-temp`
+   - GitHub: `miroslavkunev7-design/imotinadezhda` (branch `main`)
+   - Git author email: `286549693+miroslavkunev7-design@users.noreply.github.com`
+   - Vercel team: `nadq-jeleva-s-projects`, проекти `imotinadezhda` + `imotinadezhda-lovable-vercel`
+   - Supabase: `zcrzxgzyptqibsajoece` (Lovable Cloud)
+   - домейни: `imotinadezhda.bg`, `www.imotinadezhda.bg`
+   - какво е **готово**, какво **остава**, последен commit hash
+   - точни комandi/файлове за следващата стъпка
+4. **Кажи на потребителя** в края на отговора:
+   > „Отворете нов чат и напишете: `Продължи от HANDOFF-X/20`“
+5. **Не пропускай номерацията** — винаги X/20, без пропуски.
+
+## Правомощия на следващия чат
+
+Следващият агент има пълно право да:
+- commit/push (само когато потребителят поиска или handoff го изисква)
+- Vercel CLI (`vercel env`, `vercel deploy`, `vercel ls`)
+- Supabase MCP и локален `.env`
+- продължава задачите от handoff без да пита отначало
+
+## Текуща главна задача (не губи)
+
+1. GitHub ↔ Vercel ↔ Supabase — пълна връзка и env променливи
+2. Домейн `imotinadezhda.bg` → production от GitHub проект `imotinadezhda`
+3. SEO + стабилен deploy (undici, sitemap, canonical URLs)
+4. `SUPABASE_SERVICE_ROLE_KEY` в Vercel (от Lovable Cloud dashboard)

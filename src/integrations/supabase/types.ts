@@ -2122,6 +2122,27 @@ export type Database = {
           read_ct: number
         }[]
       }
+      visitor_prepare_customer_chat: {
+        Args: {
+          p_chat_id?: string | null
+          p_message?: string | null
+          p_page_url?: string | null
+          p_property_id?: string | null
+          p_visitor_email?: string | null
+          p_visitor_name?: string | null
+          p_visitor_phone?: string | null
+          p_visitor_token: string
+        }
+        Returns: Json
+      }
+      visitor_save_customer_reply: {
+        Args: {
+          p_chat_id: string
+          p_reply: string
+          p_visitor_token: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
