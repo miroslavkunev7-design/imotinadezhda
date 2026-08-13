@@ -1,0 +1,35 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "DEPLOY_TARGET=vercel vite build",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/media/:path*",
+      "destination": "https://imotinadezhda.lovable.app/__l5e/:path*"
+    },
+    {
+      "source": "/__l5e/:path*",
+      "destination": "https://imotinadezhda.lovable.app/__l5e/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/media/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/__l5e/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}

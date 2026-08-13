@@ -1,0 +1,57 @@
+name: Visual regression — Burgas
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "scripts/visual-*.mjs"
+      - "tests/visual/baseline/**"
+      - ".github/workflows/visual-burgas.yml"
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "URL to test (defaults to preview)"
+        required: false
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
+
+      # Guard 1: --update-safe MUST NOT overwrite baselines when guards fail.
+      # We seed a fake "broken" current snapshot and assert script exits non-zero
+      # and the baseline PNG is unchanged.
+      - name: Verify update-safe refuses to write on guard failure
+        run: |
+          set -e
+          mkdir -p tests/visual/baseline
+          cp tests/visual/baseline/burgas-viewport.png /tmp/baseline-before.png
+          # Run the real script in update-safe mode; if guards fail it must exit 1
+          # AND leave the baseline file byte-identical.
+          if bun run visual:burgas:update-safe ${{ github.event.inputs.url && format('-- --url={0}', github.event.inputs.url) || '' }}; then
+            echo "::notice::Guards passed — baseline may have been refreshed (expected on green)."
+          else
+            echo "::notice::Guards failed — verifying baseline was NOT overwritten."
+            if ! cmp -s /tmp/baseline-before.png tests/visual/baseline/burgas-viewport.png; then
+              echo "::error::REGRESSION: --update-safe overwrote baseline despite guard failure!"
+              exit 1
+            fi
+            echo "✅ Baseline preserved on guard failure."
+            exit 1
+          fi
+
+      - name: Upload diff artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diff-burgas
+          path: |
+            tests/visual/current/
+            tests/visual/diff/

@@ -1,0 +1,3101 @@
+/* Fonts loaded via <link> in src/routes/__root.tsx (Lightning CSS can't fetch remote @import). */
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Paint-splashed torn edge (mobile only) — matches the logo brush style. */
+@media (max-width: 767px) {
+  .paint-splash-edge {
+    filter: url(#paintSplashEdge) drop-shadow(0 12px 24px rgba(0,0,0,0.35));
+  }
+}
+
+/* CRM folder-shaped card (used for city cards in /admin/properties) */
+@utility crm-folder-card {
+  position: relative;
+  margin-top: 18px;
+  border-radius: 6px 22px 22px 22px;
+  background:
+    linear-gradient(180deg, #f4d989 0%, #d9a94a 22%, #b6832f 100%);
+  box-shadow:
+    0 14px 26px -12px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.35),
+    inset 0 -6px 14px rgba(90,45,10,0.25);
+  border: 1px solid rgba(201,168,76,0.55);
+  padding: 8px 8px 10px 8px;
+}
+@utility crm-folder-card {
+  &::before {
+    content: "";
+    position: absolute;
+    top: -16px;
+    left: 14px;
+    width: 46%;
+    max-width: 210px;
+    height: 22px;
+    border-radius: 10px 18px 0 0;
+    background: linear-gradient(180deg, #e8c26a 0%, #c9a04a 100%);
+    border: 1px solid rgba(201,168,76,0.55);
+    border-bottom: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
+    border-radius: 6px 22px 0 0;
+    pointer-events: none;
+  }
+}
+
+@theme inline {
+  --font-sans: "Open Sans", "Manrope", sans-serif;
+  --font-display: "Playfair Display", "Cormorant Garamond", serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Luxury palette: burgundy primary, gold accent, white background. */
+:root {
+  --radius: 0.75rem;
+  --background: oklch(1 0 0);                   /* pure white */
+  --foreground: oklch(0.25 0.04 20);            /* deep burgundy-tinted charcoal */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.25 0.04 20);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.25 0.04 20);
+  --primary: oklch(0.38 0.13 18);               /* burgundy #8B1A2B */
+  --primary-foreground: oklch(0.99 0.005 80);
+  --secondary: oklch(0.96 0.01 80);             /* warm cream */
+  --secondary-foreground: oklch(0.38 0.13 18);
+  --muted: oklch(0.97 0.008 80);
+  --muted-foreground: oklch(0.45 0.03 20);
+  --accent: oklch(0.78 0.13 85);                /* gold #C9A84C */
+  --accent-foreground: oklch(0.25 0.04 20);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.78 0.13 85 / 0.35);         /* gold-tinted borders */
+  --input: oklch(0.85 0.02 80 / 0.6);
+  --ring: oklch(0.78 0.13 85 / 0.6);
+  --chart-1: oklch(0.38 0.13 18);
+  --chart-2: oklch(0.78 0.13 85);
+  --chart-3: oklch(0.55 0.13 25);
+  --chart-4: oklch(0.7 0.08 80);
+  --chart-5: oklch(0.32 0.08 20);
+  --sidebar: oklch(0.98 0.005 80);
+  --sidebar-foreground: oklch(0.25 0.04 20);
+  --sidebar-primary: oklch(0.38 0.13 18);
+  --sidebar-primary-foreground: oklch(0.99 0.005 80);
+  --sidebar-accent: oklch(0.96 0.01 80);
+  --sidebar-accent-foreground: oklch(0.38 0.13 18);
+  --sidebar-border: oklch(0.78 0.13 85 / 0.35);
+  --sidebar-ring: oklch(0.78 0.13 85 / 0.6);
+}
+
+.dark {
+  --background: oklch(0.22 0.04 20);            /* deep burgundy-black */
+  --foreground: oklch(0.97 0.01 80);
+  --card: oklch(0.28 0.06 20 / 0.98);
+  --card-foreground: oklch(0.97 0.01 80);
+  --popover: oklch(0.25 0.05 20);
+  --popover-foreground: oklch(0.97 0.01 80);
+  --primary: oklch(0.78 0.13 85);               /* gold for dark surfaces */
+  --primary-foreground: oklch(0.22 0.04 20);
+  --secondary: oklch(0.32 0.06 20);
+  --secondary-foreground: oklch(0.97 0.01 80);
+  --muted: oklch(0.32 0.06 20);
+  --muted-foreground: oklch(0.82 0.02 80);
+  --accent: oklch(0.78 0.13 85);
+  --accent-foreground: oklch(0.22 0.04 20);
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.78 0.13 85 / 0.3);
+  --input: oklch(0.78 0.13 85 / 0.2);
+  --ring: oklch(0.78 0.13 85 / 0.7);
+  --chart-1: oklch(0.78 0.13 85);
+  --chart-2: oklch(0.5 0.13 18);
+  --chart-3: oklch(0.6 0.13 25);
+  --chart-4: oklch(0.7 0.08 80);
+  --chart-5: oklch(0.4 0.06 20);
+  --sidebar: oklch(0.25 0.05 20);
+  --sidebar-foreground: oklch(0.97 0.01 80);
+  --sidebar-primary: oklch(0.78 0.13 85);
+  --sidebar-primary-foreground: oklch(0.22 0.04 20);
+  --sidebar-accent: oklch(0.32 0.06 20);
+  --sidebar-accent-foreground: oklch(0.97 0.01 80);
+  --sidebar-border: oklch(0.78 0.13 85 / 0.3);
+  --sidebar-ring: oklch(0.78 0.13 85 / 0.7);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    text-rendering: optimizeLegibility;
+  }
+
+  img {
+    display: block;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+  }
+
+  .luxury-page {
+    min-height: 100vh;
+    background-color: #ffffff;
+    background-image:
+      /* glowing red ribbon - diagonal sweep top-right */
+      linear-gradient(115deg, transparent 38%, rgba(139, 26, 43, 0.07) 50%, transparent 62%),
+      /* secondary softer ribbon bottom-left */
+      linear-gradient(295deg, transparent 42%, rgba(139, 26, 43, 0.05) 54%, transparent 66%),
+      /* warm red glow top-left and bottom-right */
+      radial-gradient(ellipse at 12% 0%, rgba(139, 26, 43, 0.10), transparent 50%),
+      radial-gradient(ellipse at 90% 100%, rgba(139, 26, 43, 0.09), transparent 55%),
+      /* subtle gold dust top */
+      radial-gradient(ellipse at 50% -5%, rgba(201, 168, 76, 0.06), transparent 60%);
+    background-repeat: no-repeat;
+    background-position: center top;
+    color: #2b1418;
+    position: relative;
+  }
+  /* Floating red particles / dust across the page */
+  .luxury-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 8% 18%, rgba(139, 26, 43, 0.55) 0, rgba(139, 26, 43, 0) 2px),
+      radial-gradient(circle at 22% 72%, rgba(139, 26, 43, 0.45) 0, rgba(139, 26, 43, 0) 1.5px),
+      radial-gradient(circle at 58% 12%, rgba(139, 26, 43, 0.55) 0, rgba(139, 26, 43, 0) 2px),
+      radial-gradient(circle at 78% 34%, rgba(139, 26, 43, 0.45) 0, rgba(139, 26, 43, 0) 1.5px),
+      radial-gradient(circle at 92% 78%, rgba(139, 26, 43, 0.5) 0, rgba(139, 26, 43, 0) 2px),
+      radial-gradient(circle at 38% 88%, rgba(139, 26, 43, 0.4) 0, rgba(139, 26, 43, 0) 1.5px),
+      radial-gradient(circle at 66% 58%, rgba(139, 26, 43, 0.4) 0, rgba(139, 26, 43, 0) 1.5px);
+    background-size: 100% 100%;
+    opacity: 0.7;
+    z-index: 0;
+  }
+  .luxury-page > *:not(.site-header-v2):not(.site-header-v2__spacer):not(.nadezhda-nav-root):not(.nadezhda-nav-spacer) { position: relative; z-index: 1; }
+
+  /* ============================================================
+     Luxury burgundy/gold panel utilities.
+     ============================================================ */
+
+  .gold-wave-frame {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(201, 168, 76, 0.55);
+    border-radius: 0 0 28px 0;
+    background: linear-gradient(180deg, #ffffff 0%, #faf6ec 100%);
+    box-shadow: 0 18px 45px rgba(139, 26, 43, 0.12);
+  }
+  .gold-wave-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 38%, rgba(201, 168, 76, 0.35) 50%, transparent 62%);
+    pointer-events: none;
+  }
+
+  /* Deep burgundy panel � for hero / about / contact dark sections */
+  .marble-dark-panel {
+    background: linear-gradient(135deg, #8b1a2b 0%, #5e0f1d 100%);
+    border: 1px solid rgba(201, 168, 76, 0.45);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 18px 44px rgba(94, 15, 29, 0.35);
+    position: relative;
+    overflow: hidden;
+    color: #fdf6e3;
+  }
+  .marble-dark-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(201, 168, 76, 0.25), transparent 55%),
+      linear-gradient(135deg, transparent 60%, rgba(201, 168, 76, 0.1) 100%);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  /* Light cream/white panel � for cards & filter bars */
+  .marble-light-panel {
+    background: linear-gradient(180deg, #ffffff 0%, #fbf6ea 100%);
+    border: 1px solid rgba(201, 168, 76, 0.45);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      0 22px 50px rgba(139, 26, 43, 0.12);
+    position: relative;
+    overflow: hidden;
+    color: #2b1418;
+  }
+  .marble-light-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 40%, rgba(201, 168, 76, 0.18) 52%, transparent 64%);
+    pointer-events: none;
+  }
+
+  .marble-burgundy-bottom {
+    background: linear-gradient(180deg, #8b1a2b 0%, #5e0f1d 100%);
+    border-top: 2px solid rgba(201, 168, 76, 0.6);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      inset 0 -1px 0 rgba(139, 26, 43, 0.25);
+    position: relative;
+    isolation: isolate;
+    color: #fdf6e3;
+  }
+  .marble-burgundy-bottom::before,
+  .marble-burgundy-bottom::after {
+    content: none;
+  }
+
+  /* Gold CTA button */
+  .gold-cta-button {
+    background: linear-gradient(180deg, #d4b65a, #b8923a);
+    color: #3a1f12;
+    border: 1px solid rgba(201, 168, 76, 0.7);
+    box-shadow:
+      0 10px 28px rgba(184, 146, 58, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
+  }
+  .gold-cta-button:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 16px 36px rgba(184, 146, 58, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    filter: saturate(1.08);
+  }
+
+  .marble-action-button {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  /* Burgundy search bar variant � matches logo panel red exactly */
+  .search-burgundy .text-primary { color: #fdf6e3 !important; }
+  .search-burgundy [class*="text-primary/"] { color: rgba(253, 246, 227, 0.78) !important; }
+  .search-burgundy [class*="border-primary/"] { border-color: rgba(201, 168, 76, 0.35) !important; }
+  .search-burgundy [class*="bg-primary/"] { background-color: rgba(255, 255, 255, 0.08) !important; }
+  /* Deepen search bar gradient to match the logo splash, and kill the gold sheen overlay */
+  .search-burgundy .marble-dark-panel {
+    background: linear-gradient(135deg, #7a1426 0%, #4a0b18 100%) !important;
+    border-color: rgba(201, 168, 76, 0.35);
+  }
+  .search-burgundy .marble-dark-panel::before { display: none !important; }
+
+
+  /* Card with luxury hover: scale + gold glow */
+  .marble-city-card,
+  .marble-hover-card {
+    position: relative;
+    isolation: isolate;
+    transition:
+      transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 480ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 480ms ease;
+    will-change: transform;
+  }
+
+  .marble-wave-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      ellipse at 50% 100%,
+      rgba(139, 26, 43, 0.65) 0%,
+      rgba(139, 26, 43, 0.28) 35%,
+      transparent 65%
+    );
+    opacity: 0;
+    transform: translateY(20%) scale(0.9);
+    transition: opacity 360ms ease, transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    z-index: 2;
+    mix-blend-mode: screen;
+  }
+
+  .marble-hover-card::before,
+  .marble-city-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(139, 26, 43, 0);
+    box-shadow: 0 0 0 rgba(139, 26, 43, 0);
+    transition: border-color 320ms ease, box-shadow 320ms ease;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .marble-hover-card:hover::before,
+  .marble-city-card:hover::before {
+    border-color: rgba(139, 26, 43, 0.75);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+      0 0 0 1px rgba(139, 26, 43, 0.35),
+      0 0 42px rgba(139, 26, 43, 0.45),
+      0 22px 48px rgba(94, 15, 29, 0.28);
+  }
+
+  .marble-hover-card:hover .marble-wave-glow,
+  .marble-city-card:hover .marble-wave-glow {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .marble-hover-card:hover,
+  .marble-city-card:hover {
+    transform: translateY(-8px) scale(1.015);
+    filter: saturate(1.05);
+  }
+
+  .marble-hover-card:hover {
+    box-shadow: 0 32px 60px rgba(139, 26, 43, 0.18);
+  }
+
+  .cinematic-parallax {
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marble-city-card,
+  .marble-hover-card,
+  .marble-wave-glow,
+  .marble-hover-card::before,
+  .marble-city-card::before {
+    transition: none;
+  }
+  .cinematic-parallax {
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 768px) {
+  .gold-wave-frame {
+    max-width: 220px;
+    border-radius: 0 0 20px 0;
+  }
+  .cinematic-parallax {
+    background-attachment: scroll;
+  }
+}
+
+html, body, #root {
+  max-width: 100vw;
+}
+
+/* CRM contrast layer � keeps records readable over video, images and every
+   user-selectable CRM theme without flattening the theme's accent color. */
+[data-crm-themed] {
+  /* Brand palette: burgundy #8B1A2B + ivory/gold. */
+  --crm-text: #2a0a12;
+  --crm-text-muted: rgba(42, 10, 18, 0.68);
+  --crm-panel: #fbf6ec;
+  --crm-panel-strong: #f2e6c8;
+  --crm-row-alt: #f5ecd7;
+  --crm-border: rgba(139, 26, 43, 0.18);
+  --crm-accent: #8B1A2B;
+  --crm-accent-soft: rgba(139, 26, 43, 0.10);
+  --crm-surface: #ffffff;
+}
+[data-crm-themed] .crm-content {
+  color: var(--crm-text);
+  text-shadow: none;
+}
+[data-crm-themed] .crm-content > * {
+  isolation: isolate;
+}
+[data-crm-themed] .crm-content table {
+  background: var(--crm-panel) !important;
+  color: var(--crm-text) !important;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+[data-crm-themed] .crm-content thead,
+[data-crm-themed] .crm-content thead tr {
+  background: var(--crm-panel-strong) !important;
+}
+[data-crm-themed] .crm-content th {
+  color: var(--crm-text) !important;
+  font-weight: 700;
+  border-bottom: 1px solid var(--crm-border) !important;
+}
+[data-crm-themed] .crm-content tbody tr {
+  background: var(--crm-panel) !important;
+}
+[data-crm-themed] .crm-content tbody tr:nth-child(even) {
+  background: var(--crm-row-alt) !important;
+}
+[data-crm-themed] .crm-content tbody tr:hover {
+  background: var(--crm-accent-soft) !important;
+  box-shadow: inset 3px 0 0 var(--crm-accent);
+}
+[data-crm-themed] .crm-content td {
+  color: var(--crm-text) !important;
+  border-color: var(--crm-border) !important;
+}
+[data-crm-themed] .crm-content input,
+[data-crm-themed] .crm-content select,
+[data-crm-themed] .crm-content textarea {
+  background: var(--crm-panel-strong) !important;
+  border-color: var(--crm-border) !important;
+  color: var(--crm-text) !important;
+  opacity: 1;
+}
+[data-crm-themed] .crm-content input::placeholder,
+[data-crm-themed] .crm-content textarea::placeholder {
+  color: var(--crm-text-muted) !important;
+  opacity: 1;
+}
+[data-crm-themed] .crm-content option {
+  background: var(--crm-surface);
+  color: var(--crm-text);
+}
+[data-crm-themed] .crm-content [class*="text-amber-100"] {
+  color: var(--crm-text) !important;
+}
+[data-crm-themed] .crm-content [class*="text-amber-200"],
+[data-crm-themed] .crm-content [class*="text-amber-300"],
+[data-crm-themed] .crm-content [class*="text-amber-400"],
+[data-crm-themed] .crm-content [class*="text-amber-500"],
+[data-crm-themed] .crm-content [class*="text-yellow-"] {
+  color: var(--crm-text) !important;
+  font-weight: 600;
+}
+[data-crm-themed] .crm-content [class*="border-amber-"] {
+  border-color: var(--crm-border) !important;
+}
+/* Amber buttons/badges → gold (readable) */
+[data-crm-themed] .crm-content button[class*="bg-amber-"],
+[data-crm-themed] .crm-content a[class*="bg-amber-"],
+[data-crm-themed] .crm-content [class*="bg-amber-500/15"],
+[data-crm-themed] .crm-content [class*="bg-amber-500/10"],
+[data-crm-themed] .crm-content [class*="bg-amber-500/20"],
+[data-crm-themed] .crm-content [class*="bg-amber-500/30"],
+[data-crm-themed] .crm-content [class*="bg-amber-400"],
+[data-crm-themed] .crm-content [class*="bg-amber-500"],
+[data-crm-themed] .crm-content [class*="bg-amber-600"] {
+  background-color: #C9A84C !important;
+  background-image: linear-gradient(180deg, #D9B95E 0%, #C9A84C 100%) !important;
+  color: #2a0a12 !important;
+  border-color: #b4922f !important;
+}
+[data-crm-themed] .crm-content button[class*="bg-amber-"]:hover,
+[data-crm-themed] .crm-content a[class*="bg-amber-"]:hover {
+  background-image: linear-gradient(180deg, #E4C878 0%, #D0B052 100%) !important;
+}
+[data-crm-themed] .crm-content button[class*="bg-amber-"] *,
+[data-crm-themed] .crm-content a[class*="bg-amber-"] *,
+[data-crm-themed] .crm-content button[class*="bg-amber-"] svg,
+[data-crm-themed] .crm-content a[class*="bg-amber-"] svg {
+  color: #2a0a12 !important;
+  stroke: #2a0a12 !important;
+}
+[data-crm-themed] .crm-content [class*="bg-[rgba(255,"] {
+  background: var(--crm-panel) !important;
+}
+[data-crm-themed] .crm-content :is(.text-muted-foreground, [class*="text-amber-100/"]) {
+  color: var(--crm-text-muted) !important;
+  opacity: 1;
+}
+[data-crm-themed] .crm-content a,
+[data-crm-themed] .crm-content button {
+  text-underline-offset: 3px;
+}
+[data-crm-themed] .crm-content :focus-visible {
+  outline: 2px solid var(--crm-accent);
+  outline-offset: 2px;
+}
+
+/* Mobile CRM contrast � cards, lists, sheets, dialogs become opaque
+   so records stay readable over the hero video / fixed background. */
+@media (max-width: 1024px) {
+  [data-crm-themed] .crm-content,
+  [data-crm-themed] .crm-content * {
+    text-shadow: none;
+  }
+  [data-crm-themed] .crm-content [class*="bg-white/"],
+  [data-crm-themed] .crm-content [class*="bg-black/"],
+  [data-crm-themed] .crm-content [class*="bg-amber-"],
+  [data-crm-themed] .crm-content [class*="bg-[rgba("],
+  [data-crm-themed] .crm-content .backdrop-blur,
+  [data-crm-themed] .crm-content .backdrop-blur-sm,
+  [data-crm-themed] .crm-content .backdrop-blur-md,
+  [data-crm-themed] .crm-content .backdrop-blur-xl {
+    background-color: var(--crm-panel) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  /* Keep amber buttons gold on mobile (override the panel flatten above) */
+  [data-crm-themed] .crm-content button[class*="bg-amber-"],
+  [data-crm-themed] .crm-content a[class*="bg-amber-"] {
+    background-color: #C9A84C !important;
+    background-image: linear-gradient(180deg, #D9B95E 0%, #C9A84C 100%) !important;
+    color: #2a0a12 !important;
+    border-color: #b4922f !important;
+  }
+  [data-crm-themed] .crm-content button[class*="bg-amber-"] *,
+  [data-crm-themed] .crm-content a[class*="bg-amber-"] * {
+    color: #2a0a12 !important;
+  }
+  [data-crm-themed] .crm-content [role="dialog"],
+  [data-crm-themed] .crm-content [data-state] > [class*="bg-"] {
+    background-color: var(--crm-panel-strong) !important;
+  }
+  /* Repeating list rows / cards: alternate panel strengths */
+  [data-crm-themed] .crm-content ul > li,
+  [data-crm-themed] .crm-content [role="list"] > * {
+    background-color: var(--crm-panel) !important;
+    color: var(--crm-text) !important;
+    border-color: var(--crm-border) !important;
+  }
+  [data-crm-themed] .crm-content ul > li:nth-child(even),
+  [data-crm-themed] .crm-content [role="list"] > *:nth-child(even) {
+    background-color: var(--crm-row-alt) !important;
+  }
+  /* Force amber text variants to readable tokens */
+  [data-crm-themed] .crm-content [class*="text-amber-"]:not([class*="text-amber-300"]):not([class*="text-amber-400"]):not([class*="text-amber-500"]) {
+    color: var(--crm-text) !important;
+  }
+  [data-crm-themed] .crm-content [class*="text-white/"],
+  [data-crm-themed] .crm-content .text-white\/60,
+  [data-crm-themed] .crm-content .text-white\/70,
+  [data-crm-themed] .crm-content .text-white\/80 {
+    color: var(--crm-text) !important;
+    opacity: 1 !important;
+  }
+  /* Labels & secondary text */
+  [data-crm-themed] .crm-content label,
+  [data-crm-themed] .crm-content small {
+    color: var(--crm-text) !important;
+  }
+  /* Bottom mobile nav � opaque panel, larger tap targets */
+  [data-crm-themed] nav.fixed.inset-x-0.bottom-0 {
+    background-color: var(--crm-panel-strong) !important;
+    border-top-color: var(--crm-border) !important;
+    touch-action: manipulation;
+  }
+  [data-crm-themed] nav.fixed.inset-x-0.bottom-0 > a,
+  [data-crm-themed] nav.fixed.inset-x-0.bottom-0 > button {
+    min-height: 64px;
+    font-size: 11px !important;
+    color: var(--crm-text) !important;
+  }
+  [data-crm-themed] nav.fixed.inset-x-0.bottom-0 svg {
+    width: 22px !important;
+    height: 22px !important;
+    color: var(--crm-accent) !important;
+  }
+  /* Tap target minimums for CRM controls on mobile */
+  [data-crm-themed] .crm-content button,
+  [data-crm-themed] .crm-content a[role="button"],
+  [data-crm-themed] .crm-content [role="tab"],
+  [data-crm-themed] .crm-content select,
+  [data-crm-themed] .crm-content input:not([type="checkbox"]):not([type="radio"]) {
+    min-height: 44px;
+  }
+  /* Force amber/yellow text to high-contrast text color on mobile */
+  [data-crm-themed] .crm-content [class*="text-amber-"],
+  [data-crm-themed] .crm-content [class*="text-yellow-"] {
+    color: var(--crm-text) !important;
+    font-weight: 600;
+  }
+  /* Ensure content isn't hidden behind bottom nav */
+  [data-crm-themed] .crm-content {
+    padding-bottom: calc(116px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  /* Compact but readable tables */
+  [data-crm-themed] .crm-content table { font-size: 13px; }
+  [data-crm-themed] .crm-content table th,
+  [data-crm-themed] .crm-content table td {
+    padding: 10px 8px !important;
+    white-space: nowrap;
+  }
+  /* Wrap wide tables in horizontal scroll containers */
+  [data-crm-themed] .crm-content .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+}
+
+/* Mobile dialogs/sheets (rendered in Portal, outside .crm-content):
+   force readable dark labels on white surfaces � gold-on-white is invisible. */
+@media (max-width: 1024px) {
+  [role="dialog"] label,
+  [role="dialog"] .text-xs.uppercase,
+  [role="dialog"] [class*="text-amber-100"],
+  [role="dialog"] [class*="text-amber-200"],
+  [role="dialog"] [class*="text-amber-300"],
+  [role="dialog"] [class*="text-amber-400"],
+  [role="dialog"] [class*="text-yellow-"],
+  [role="dialog"] [class*="text-white/"] {
+    color: #4f0314 !important;
+    opacity: 1 !important;
+    font-weight: 600;
+  }
+  [role="dialog"] input,
+  [role="dialog"] textarea,
+  [role="dialog"] select {
+    color: #fdfaf5 !important;
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+  [role="dialog"] input::placeholder,
+  [role="dialog"] textarea::placeholder {
+    color: rgba(253,250,245,0.55) !important;
+  }
+}
+
+/* CRM high-contrast readable surfaces � applies to mobile, tablet, desktop
+   and installed/PWA windows. Gold remains decorative, never body/field text. */
+[data-crm-themed] {
+  --crm-readable-bg: #fffaf2;
+  --crm-readable-bg-strong: #ffffff;
+  --crm-readable-bg-alt: #f6efe2;
+  --crm-readable-text: #2b1418;
+  --crm-readable-muted: #604149;
+  --crm-readable-border: rgba(96, 15, 28, 0.32);
+  --crm-readable-header: #600f1c;
+  --crm-readable-header-text: #fffaf2;
+}
+body:has([data-crm-themed]) {
+  --crm-readable-bg: #fffaf2;
+  --crm-readable-bg-strong: #ffffff;
+  --crm-readable-bg-alt: #f6efe2;
+  --crm-readable-text: #2b1418;
+  --crm-readable-muted: #604149;
+  --crm-readable-border: rgba(96, 15, 28, 0.32);
+  --crm-readable-header: #600f1c;
+  --crm-readable-header-text: #fffaf2;
+}
+[data-crm-themed] .crm-content :is(table, form, [class*="bg-card"], [class*="bg-background"], [class*="bg-muted/"]) {
+  color: var(--crm-readable-text) !important;
+}
+[data-crm-themed] .crm-content table {
+  background: var(--crm-readable-bg-strong) !important;
+  color: var(--crm-readable-text) !important;
+  border: 1px solid var(--crm-readable-border) !important;
+}
+[data-crm-themed] .crm-content thead,
+[data-crm-themed] .crm-content thead tr {
+  background: var(--crm-readable-header) !important;
+}
+[data-crm-themed] .crm-content th {
+  color: var(--crm-readable-header-text) !important;
+  border-color: rgba(255, 250, 242, 0.24) !important;
+}
+[data-crm-themed] .crm-content tbody tr,
+[data-crm-themed] .crm-content ul > li,
+[data-crm-themed] .crm-content [role="list"] > * {
+  background: var(--crm-readable-bg) !important;
+  color: var(--crm-readable-text) !important;
+}
+[data-crm-themed] .crm-content tbody tr:nth-child(even),
+[data-crm-themed] .crm-content ul > li:nth-child(even),
+[data-crm-themed] .crm-content [role="list"] > *:nth-child(even) {
+  background: var(--crm-readable-bg-alt) !important;
+}
+[data-crm-themed] .crm-content tbody tr:hover {
+  background: #efe1cd !important;
+  box-shadow: inset 3px 0 0 var(--crm-readable-header);
+}
+[data-crm-themed] .crm-content td,
+[data-crm-themed] .crm-content a,
+[data-crm-themed] .crm-content label,
+[data-crm-themed] .crm-content label > span,
+[data-crm-themed] .crm-content :is(.text-muted-foreground, [class*="text-white/"]) {
+  color: var(--crm-readable-text) !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content table :is([class*="text-amber-"], [class*="text-yellow-"]) {
+  color: var(--crm-readable-header) !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content form :is([class*="text-amber-"], [class*="text-yellow-"]),
+[data-crm-themed] .crm-content [class*="bg-card"] :is([class*="text-amber-"], [class*="text-yellow-"]),
+[data-crm-themed] .crm-content [class*="bg-background"] :is([class*="text-amber-"], [class*="text-yellow-"]),
+[data-crm-themed] .crm-content [class*="bg-muted/"] :is([class*="text-amber-"], [class*="text-yellow-"]) {
+  color: var(--crm-readable-header) !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content :is(label > span, dt, .text-xs.uppercase, [class*="tracking-wide"]) {
+  color: var(--crm-readable-header) !important;
+  font-weight: 800 !important;
+}
+[data-crm-themed] .crm-content input,
+[data-crm-themed] .crm-content select,
+[data-crm-themed] .crm-content textarea {
+  background: var(--crm-readable-bg-strong) !important;
+  border-color: var(--crm-readable-border) !important;
+  color: var(--crm-readable-text) !important;
+  box-shadow: inset 0 0 0 1px rgba(96, 15, 28, 0.08);
+}
+[data-crm-themed] .crm-content input::placeholder,
+[data-crm-themed] .crm-content textarea::placeholder {
+  color: var(--crm-readable-muted) !important;
+  opacity: 0.85 !important;
+}
+[data-crm-themed] .crm-content option {
+  background: var(--crm-readable-bg-strong) !important;
+  color: var(--crm-readable-text) !important;
+}
+[data-crm-themed] .crm-content :is(button[class*="text-amber-"], a[class*="text-amber-"]) {
+  color: var(--crm-readable-header) !important;
+}
+body:has([data-crm-themed]) [role="dialog"] {
+  background: var(--crm-readable-bg-strong) !important;
+  color: var(--crm-readable-text) !important;
+}
+body:has([data-crm-themed]) [role="dialog"] :is(label, label > span, .text-xs.uppercase, [class*="tracking-wide"], [class*="text-amber-"], [class*="text-yellow-"]) {
+  color: var(--crm-readable-header) !important;
+  opacity: 1 !important;
+  font-weight: 800 !important;
+}
+body:has([data-crm-themed]) [role="dialog"] :is(.text-muted-foreground, p, dd, [class*="text-white/"]) {
+  color: var(--crm-readable-muted) !important;
+  opacity: 1 !important;
+}
+body:has([data-crm-themed]) [role="dialog"] :is(input, select, textarea) {
+  background: var(--crm-readable-bg-strong) !important;
+  border-color: var(--crm-readable-border) !important;
+  color: var(--crm-readable-text) !important;
+  font-size: 16px !important;
+  min-height: 44px;
+}
+body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
+  color: var(--crm-readable-muted) !important;
+  opacity: 0.85 !important;
+}
+
+/* ============================================================
+   Reference design helpers � "????? ???????" luxury template.
+   Used by ShumenHomePage and related public pages.
+   ============================================================ */
+.nadezhda-marble-bg {
+  background-color: #fdfaf5;
+  background-image: url("https://www.transparenttextures.com/patterns/white-marble.png");
+}
+.nadezhda-dark-red-bg {
+  background: linear-gradient(to bottom, #4f0314, #260108);
+}
+.nadezhda-gold-bg {
+  background: linear-gradient(to right, #f4d07d, #c59441, #f4d07d);
+}
+.nadezhda-gold-text {
+  background: linear-gradient(to right, #e8c678, #b68535);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.nadezhda-top-logo-curve {
+  border-bottom-right-radius: 5rem;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.font-serif-nadezhda { font-family: "Playfair Display", "Cormorant Garamond", serif; }
+.font-sans-nadezhda { font-family: "Open Sans", "Manrope", sans-serif; }
+
+:root {
+  --logo-scroll-w: clamp(188px, 17.2vw, 226px);
+  --header-bar-h: clamp(74px, 8.8vw, 112px);
+  --site-header-offset: max(
+    var(--header-bar-h),
+    calc(var(--logo-scroll-w) * 848 / 1264)
+  );
+}
+html {
+  scroll-padding-top: calc(var(--site-header-offset) + env(safe-area-inset-top, 0px));
+}
+@media (max-width: 720px) {
+  :root {
+    --logo-scroll-w: clamp(148px, 38vw, 188px);
+    --header-bar-h: 56px;
+  }
+}
+@media (max-width: 380px) {
+  :root {
+    --logo-scroll-w: 144px;
+    --header-bar-h: 52px;
+  }
+}
+
+/* Official brush navbar — 1:1 from Компоненти Файлове!/imnad-main.zip */
+.nadezhda-nav-root {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  pointer-events: none;
+  padding-right: 2.2vw;
+}
+.nadezhda-nav-logo {
+  pointer-events: auto;
+  position: relative;
+  z-index: 20;
+  flex: none;
+  margin-right: -7.2%;
+  transform: translateY(-6%);
+  text-decoration: none;
+}
+.nadezhda-nav-logo__img {
+  display: block;
+  height: clamp(118px, 13.6vw, 188px);
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.4));
+}
+.nav-wrap {
+  position: relative;
+  pointer-events: auto;
+  width: min(72.5vw, 916px);
+  height: auto;
+  flex: none;
+  filter: drop-shadow(0 10px 14px rgba(20, 0, 5, 0.45));
+  animation: navDrop 0.75s cubic-bezier(0.18, 0.82, 0.24, 1) both;
+}
+.nav-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+.hotspots {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 27.5% 20.5% 20.2% 20% 11.8%;
+}
+.hotspots a {
+  display: block;
+  cursor: pointer;
+}
+.hotspots a:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transition: background 0.3s;
+}
+.hotspots a:first-child:hover {
+  border-top-left-radius: 42px;
+  border-bottom-left-radius: 42px;
+}
+.hotspots a:last-child:hover {
+  border-top-right-radius: 42px;
+  border-bottom-right-radius: 42px;
+}
+@keyframes navDrop {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+.nadezhda-nav-spacer {
+  display: block;
+  width: 100%;
+  height: clamp(96px, 12.8vw, 168px);
+  pointer-events: none;
+}
+@media (max-width: 700px) {
+  .nadezhda-nav-root {
+    justify-content: center;
+    padding-right: 0;
+  }
+  .nadezhda-nav-logo {
+    margin-right: -18%;
+  }
+  .nadezhda-nav-logo__img {
+    height: clamp(86px, 22vw, 120px);
+  }
+  .nav-wrap {
+    width: min(92vw, 916px);
+  }
+}
+
+/* === Site header v2: burgundy bar + scroll logo aligned with navbar === */
+.site-header-v2 {
+  position: fixed;
+  top: 0 !important;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  z-index: 1000;
+  padding-top: 0 !important;
+  background: transparent;
+  border-bottom: none;
+  box-shadow: none;
+  margin: 0;
+  overflow: visible;
+  --logo-scroll-w: clamp(188px, 17.2vw, 226px);
+  --header-bar-h: clamp(74px, 8.8vw, 112px);
+  --site-header-offset: max(
+    var(--header-bar-h),
+    calc(var(--logo-scroll-w) * 848 / 1264)
+  );
+}
+.site-header-v2__spacer {
+  display: block;
+  width: 100%;
+  height: var(--site-header-offset);
+  flex: none;
+  pointer-events: none;
+}
+.site-main-below-header > * {
+  scroll-margin-top: calc(var(--site-header-offset) + 8px);
+}
+/* Overlay heroes: keep header over media but pad in-flow content below it */
+.site-header-overlay-pad {
+  padding-top: var(--site-header-offset);
+}
+@media (max-width: 720px) {
+  .site-header-overlay-pad {
+    padding-top: var(--site-header-offset);
+  }
+}
+.site-header-v2::before { content: none; }
+.site-header-v2__wrap {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: var(--header-bar-h);
+}
+.site-header-v2__logo {
+  position: relative;
+  z-index: 25;
+  display: block;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-left: clamp(0px, 0.6vw, 10px);
+  margin-right: calc(var(--logo-scroll-w) * -0.22);
+  text-decoration: none;
+  transition: filter 0.25s ease;
+  transform: translateY(-18%);
+}
+.site-header-v2__logo:hover {
+  filter: brightness(1.04);
+}
+.site-header-v2__logo-img {
+  width: var(--logo-scroll-w);
+  height: auto;
+  aspect-ratio: 1264 / 848;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+  filter:
+    contrast(1.12)
+    saturate(1.08)
+    drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+.site-header-v2__pill {
+  position: relative;
+  z-index: 10;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--header-bar-h);
+  /* Pin the navbar to the very top edge; the scroll extends downward and stays merged with it */
+  margin-top: 0 !important;
+  border-radius: 0;
+  padding: 3px;
+  overflow: hidden;
+  background: #8b1a2b;
+  box-shadow:
+    0 0 0 1px #f0d878,
+    0 4px 0 0 #4a0000,
+    0 10px 28px rgba(0, 0, 0, 0.45);
+}
+.site-header-v2__pill-inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: calc(var(--header-bar-h) - 6px);
+  border-radius: 0;
+  background: #8b1a2b;
+  border-top: 2px solid #f0d878;
+  border-bottom: 2px solid #f0d878;
+  box-shadow:
+    inset 0 0 0 1px rgba(248, 231, 163, 0.55),
+    inset 0 0 0 3px #4a0000,
+    inset 0 0 0 4px rgba(184, 134, 11, 0.5),
+    inset 0 2px 8px rgba(255, 215, 0, 0.12);
+  padding: clamp(6px, 1vw, 12px)
+           clamp(8px, 1.2vw, 16px)
+           clamp(6px, 1vw, 12px)
+           calc(var(--logo-scroll-w) * 0.28);
+  overflow: hidden;
+}
+/* Crumpled parchment noise overlay */
+.site-header-v2__pill-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.05  0 0 0 0 0.02  0 0 0 0 0.03  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 320px 120px;
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+}
+/* Diagonal crease lines faintly across the "unrolled" fabric */
+.site-header-v2__pill-inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(102deg,
+      rgba(255, 220, 160, 0.045) 0px,
+      rgba(255, 220, 160, 0.045) 1px,
+      rgba(0,0,0,0) 1px,
+      rgba(0,0,0,0) 22px),
+    repeating-linear-gradient(78deg,
+      rgba(0, 0, 0, 0.06) 0px,
+      rgba(0, 0, 0, 0.06) 1px,
+      rgba(0,0,0,0) 1px,
+      rgba(0,0,0,0) 31px);
+  mix-blend-mode: overlay;
+  opacity: 0.55;
+}
+/* Rolled ends of the navbar strip — real cylindrical scroll rollers */
+.site-header-v2__pill::before,
+.site-header-v2__pill::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 34px;
+  pointer-events: none;
+  z-index: 6;
+  border-radius: 6px;
+  /* Cylindrical roller: dark burgundy core, warm gold highlight band, dark rim */
+  background:
+    /* top cap shading */
+    linear-gradient(180deg,
+      rgba(0,0,0,0.55) 0%,
+      rgba(0,0,0,0) 14%,
+      rgba(0,0,0,0) 86%,
+      rgba(0,0,0,0.55) 100%),
+    /* horizontal cylinder body: dark rim → burgundy → gold highlight → burgundy → dark rim */
+    linear-gradient(90deg,
+      #3a0a14 0%,
+      #6a1220 14%,
+      #8b1a2b 34%,
+      #8b1a2b 50%,
+      #8b1a2b 66%,
+      #6a1220 86%,
+      #3a0a14 100%);
+  box-shadow:
+    /* outer contour matching the gold pill frame */
+    0 0 0 1px #f0d878,
+    /* deep drop shadow onto the parchment */
+    0 6px 14px rgba(0, 0, 0, 0.55),
+    /* inner sculpting: dark inner rim + gold specular */
+    inset 0 0 0 1px rgba(255, 232, 170, 0.35),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.6),
+    inset 0 3px 4px rgba(255, 220, 160, 0.35);
+}
+.site-header-v2__pill::before { left: -6px; }
+.site-header-v2__pill::after  { right: -6px; }
+/* Keep menu content above the texture layers */
+.site-header-v2__items,
+.site-header-v2__profile { position: relative; z-index: 2; }
+.site-header-v2__items {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: clamp(14px, 2.4vw, 44px);
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+}
+.site-header-v2__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(6px, 0.7vw, 12px);
+  padding: 4px 2px;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #ffffff;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+.site-header-v2__btn:hover,
+.site-header-v2__btn--active {
+  color: #f9e5a1;
+  background: transparent;
+  border: 0;
+}
+.site-header-v2__btn-icon {
+  color: #d4af37;
+  display: inline-flex;
+  transition: transform 0.3s ease;
+}
+.site-header-v2__btn:hover .site-header-v2__btn-icon { transform: scale(1.1); }
+.site-header-v2__btn-label {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(0.95rem, 1.15vw, 1.35rem);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.site-header-v2__profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(36px, 3.2vw, 56px);
+  height: clamp(36px, 3.2vw, 56px);
+  border-radius: 9999px;
+  background: #2f0000;
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #d4af37;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+.site-header-v2__profile:hover {
+  border-color: #f9e5a1;
+  background: #5a0000;
+  color: #ffffff;
+}
+
+@media (max-width: 720px) {
+  .site-header-v2 {
+    --logo-scroll-w: clamp(168px, 43vw, 212px);
+    --header-bar-h: 56px;
+  }
+  .site-header-v2__logo {
+    margin-left: 0;
+    margin-right: calc(var(--logo-scroll-w) * -0.18);
+  }
+  .site-header-v2__pill-inner {
+    padding: 6px 8px 6px calc(var(--logo-scroll-w) * 0.24);
+  }
+  .site-header-v2__pill-inner::before { opacity: 0.24; }
+  .site-header-v2__pill-inner::after { opacity: 0.4; }
+  .site-header-v2__pill::before,
+  .site-header-v2__pill::after { width: 24px; }
+  .site-header-v2__btn-label { display: none; }
+  .site-header-v2__btn {
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+    border-width: 1.5px;
+  }
+  .site-header-v2__btn-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .site-header-v2__profile {
+    width: 36px;
+    height: 36px;
+    border-width: 1.5px;
+  }
+  .site-header-v2__profile svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .site-header-v2 {
+    --logo-scroll-w: 162px;
+    --header-bar-h: 52px;
+  }
+  .site-header-v2__items { gap: 4px; }
+  .site-header-v2__btn,
+  .site-header-v2__profile {
+    width: 32px;
+    height: 32px;
+  }
+  .site-header-v2__btn-icon svg,
+  .site-header-v2__profile svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+
+
+
+
+
+/* === Admin readability: yellow/gold text on light cream cards ? burgundy === */
+[data-crm-themed] [class*="text-[#C9A84C]"],
+[data-crm-themed] [class*="text-amber-300"],
+[data-crm-themed] [class*="text-amber-400"],
+[data-crm-themed] [class*="text-amber-500"],
+[data-crm-themed] [class*="text-yellow-300"],
+[data-crm-themed] [class*="text-yellow-400"],
+[data-crm-themed] [class*="text-yellow-500"] {
+  color: #8B1A2B !important;
+  font-weight: 600;
+}
+/* Same for icons (lucide) using those tokens via currentColor */
+[data-crm-themed] svg[class*="text-[#C9A84C]"],
+[data-crm-themed] svg[class*="text-amber-300"],
+[data-crm-themed] svg[class*="text-amber-400"],
+[data-crm-themed] svg[class*="text-amber-500"],
+[data-crm-themed] svg[class*="text-yellow-300"],
+[data-crm-themed] svg[class*="text-yellow-400"],
+[data-crm-themed] svg[class*="text-yellow-500"] {
+  color: #8B1A2B !important;
+}
+
+/* === FINAL CONTRAST PASS (CRM): elimina ???????? ????/?????? ????? ? ?????? ????? ???????? ?????? ?????????? === */
+
+/* 1) ????/?????? ??????????? (???????, ???????, popovers, ???? ?????, ??????) � ????? ????? */
+:where([role="dialog"], [role="alertdialog"], [data-radix-popper-content-wrapper], .bg-white, [class*="bg-card"], [class*="bg-popover"], [class*="bg-background"], [class*="bg-muted"])
+  :is(
+    [class*="text-amber-"],
+    [class*="text-yellow-"],
+    [class*="text-[#C9A84C]"],
+    [class*="text-[#c9a84c]"],
+    [class*="text-[#C9A04C]"],
+    [class*="text-gold"],
+    [style*="#C9A84C"],
+    [style*="#c9a84c"]
+  ) {
+  color: #1a0608 !important;
+  font-weight: 600;
+}
+:where([role="dialog"], [role="alertdialog"], [data-radix-popper-content-wrapper], .bg-white, [class*="bg-card"], [class*="bg-popover"], [class*="bg-background"], [class*="bg-muted"])
+  svg:is(
+    [class*="text-amber-"],
+    [class*="text-yellow-"],
+    [class*="text-[#C9A84C]"],
+    [class*="text-gold"]
+  ) {
+  color: #1a0608 !important;
+}
+
+/* 2) ????-????????? / ????? ???????? / ????? ????? � ??? ????? */
+:where(
+  [data-sidebar],
+  aside[class*="bg-black"],
+  aside[class*="bg-neutral-9"],
+  aside[class*="bg-zinc-9"],
+  [class*="bg-black/"],
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-[#1a"],
+  [class*="bg-[#2a"],
+  [class*="bg-[#3a"],
+  [class*="bg-[#4f0"],
+  [class*="bg-[#600"]
+)
+  :is(
+    [class*="text-amber-"],
+    [class*="text-yellow-"],
+    [class*="text-[#C9A84C]"],
+    [class*="text-gold"]
+  ) {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* 3) Labels / placeholders / input-? ? CRM ?????? � ?????? ?????? */
+[data-crm-themed] :is([role="dialog"], [role="alertdialog"]) :is(label, .text-xs, .text-sm.text-muted-foreground, [class*="tracking-wide"], [class*="uppercase"]) {
+  color: #1a0608 !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] :is([role="dialog"], [role="alertdialog"]) :is(input, textarea, select)::placeholder {
+  color: #6b4a52 !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] :is([role="dialog"], [role="alertdialog"]) :is(input, textarea, select) {
+  color: #1a0608 !important;
+  background-color: #ffffff !important;
+  border-color: rgba(139,26,43,0.35) !important;
+}
+
+/* 4) ??????? / disabled ??????? ?????? ?? ?? ?? ??? 60% ???????? */
+[data-crm-themed] .text-muted-foreground {
+  color: #5b3038 !important;
+}
+[data-crm-themed] .bg-black .text-muted-foreground,
+[data-crm-themed] [class*="bg-neutral-9"] .text-muted-foreground,
+[data-crm-themed] [class*="bg-zinc-9"] .text-muted-foreground,
+[data-crm-themed] [data-sidebar] .text-muted-foreground {
+  color: rgba(255,255,255,0.78) !important;
+}
+
+/* 5) ??????????? ??????? ?? ???? ???? ???? ? CRM (???? ???????? ???????????) */
+[data-crm-themed] [style*="color: #ff"],
+[data-crm-themed] [style*="color:#ff"] {
+  /* ?? ?????? ?????????? inline ??????? */
+}
+[data-crm-themed] [class~="text-yellow-200"],
+[data-crm-themed] [class~="text-yellow-100"] {
+  color: #1a0608 !important;
+}
+
+/* =========================================================================
+   CRM READABILITY FIX 2026-06 � wins over all prior conflicting rules.
+   Light panels = dark text. Dark panels = light text. Hero chrome = light text.
+   ========================================================================= */
+
+/* --- Opaque light panels (tables, cards, filters, marble) ---------------- */
+[data-crm-themed] .crm-content :is(
+  [class*="bg-[rgba(255"],
+  [class*="bg-white"],
+  .overflow-x-auto.rounded-xl,
+  .overflow-x-auto.rounded-2xl,
+  .grid.gap-4 > .rounded-2xl,
+  .grid.gap-4 > .rounded-2xl[class*="border"]
+) {
+  background: #fffaf2 !important;
+  background-color: #fffaf2 !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: rgba(139, 26, 43, 0.2) !important;
+  color: #2a0e05 !important;
+}
+
+[data-crm-themed] .crm-content :is(
+  [class*="bg-[rgba(255"],
+  [class*="bg-white"],
+  .overflow-x-auto.rounded-xl,
+  .overflow-x-auto.rounded-2xl,
+  .grid.gap-4 > .rounded-2xl,
+  .grid.gap-4 > .rounded-2xl[class*="border"]
+) :is(table, thead, tbody, tr, th, td, p, span, div, a, button, label, small, li, h2, h3, h4),
+[data-crm-themed] .crm-content :is(
+  [class*="bg-[rgba(255"],
+  [class*="bg-white"],
+  .overflow-x-auto.rounded-xl,
+  .overflow-x-auto.rounded-2xl,
+  .grid.gap-4 > .rounded-2xl,
+  .grid.gap-4 > .rounded-2xl[class*="border"]
+) :is(table, thead, tbody, tr, th, td, p, span, div, a, button, label, small, li, h2, h3, h4) *:not(.gold-cta-button):not([class*="gold-cta"]) {
+  color: #2a0e05 !important;
+  -webkit-text-fill-color: #2a0e05 !important;
+  text-shadow: none !important;
+}
+
+[data-crm-themed] .crm-content table thead,
+[data-crm-themed] .crm-content table thead tr,
+[data-crm-themed] .crm-content table thead th {
+  background: #f6ecda !important;
+  background-color: #f6ecda !important;
+  color: #3a1a08 !important;
+  -webkit-text-fill-color: #3a1a08 !important;
+  border-bottom: 1px solid rgba(139, 26, 43, 0.22) !important;
+}
+
+[data-crm-themed] .crm-content table tbody tr:nth-child(even) {
+  background: #fbf6ee !important;
+  background-color: #fbf6ee !important;
+}
+
+[data-crm-themed] .crm-content :is(
+  [class*="bg-[rgba(255"],
+  .overflow-x-auto.rounded-xl,
+  .overflow-x-auto.rounded-2xl
+) :is(input, select, textarea) {
+  background: #ffffff !important;
+  color: #2a0e05 !important;
+  border-color: rgba(139, 26, 43, 0.28) !important;
+  -webkit-text-fill-color: #2a0e05 !important;
+}
+
+/* --- Dark glass panels (task lists, etc.) -------------------------------- */
+[data-crm-themed] .crm-content :is(
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[#1a"]
+) {
+  background: rgba(26, 6, 8, 0.93) !important;
+  background-color: rgba(26, 6, 8, 0.93) !important;
+  backdrop-filter: blur(8px) !important;
+  color: #fffaf2 !important;
+}
+
+[data-crm-themed] .crm-content :is(
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[#1a"]
+) :is(p, span, li, label, small, time, button, a, div, h2, h3),
+[data-crm-themed] .crm-content :is(
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[#1a"]
+) :is(p, span, li, label, small, time, button, a, div, h2, h3) *:not([class*="bg-amber-4"]):not(.gold-cta-button) {
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+  text-shadow: none !important;
+}
+
+/* Chips/badges on dark panels must stay dark-on-gold, not white-on-gold */
+[data-crm-themed] .crm-content :is(
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[#1a"]
+) :is(
+  [class*="bg-amber-500/"],
+  [class*="bg-emerald-500/"],
+  [class*="bg-rose-500/"],
+  [class*="bg-sky-500/"]
+) {
+  background: rgba(251, 211, 141, 0.42) !important;
+  color: #2a0e05 !important;
+  -webkit-text-fill-color: #2a0e05 !important;
+}
+
+/* --- Hero chrome over background video ----------------------------------- */
+[data-crm-themed] .crm-content > :is(.space-y-5, .space-y-6) > header,
+[data-crm-themed] .crm-content > :is(.space-y-5, .space-y-6) > header :is(h1, h2, p, span, div) {
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55) !important;
+}
+
+[data-crm-themed] .crm-content > :is(.space-y-5, .space-y-6) > :is(
+  .border-dashed,
+  [class*="border-dashed"]
+) {
+  background: rgba(26, 6, 8, 0.9) !important;
+  color: rgba(255, 250, 242, 0.88) !important;
+  -webkit-text-fill-color: rgba(255, 250, 242, 0.88) !important;
+  text-shadow: none !important;
+}
+
+/* Filter/tab pills over hero (inactive state) */
+[data-crm-themed] .crm-content .flex.flex-wrap.items-center.gap-2 > button.rounded-full:not([class*="bg-amber-400"]) {
+  background: rgba(26, 6, 8, 0.82) !important;
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+  border-color: rgba(251, 191, 36, 0.45) !important;
+  text-shadow: none !important;
+}
+
+[data-crm-themed] .crm-content .flex.flex-wrap.items-center.gap-2 > button.rounded-full[class*="bg-amber-400"] {
+  color: #4a1217 !important;
+  -webkit-text-fill-color: #4a1217 !important;
+  text-shadow: none !important;
+}
+
+/* Task filter toggle group over hero */
+[data-crm-themed] .crm-content .flex.rounded-lg.border.border-amber-500\/30 > button {
+  text-shadow: none !important;
+}
+[data-crm-themed] .crm-content .flex.rounded-lg.border.border-amber-500\/30 > button[class*="bg-amber-500/25"] {
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+}
+[data-crm-themed] .crm-content .flex.rounded-lg.border.border-amber-500\/30 > button:not([class*="bg-amber-500/25"]) {
+  color: rgba(255, 250, 242, 0.72) !important;
+  -webkit-text-fill-color: rgba(255, 250, 242, 0.72) !important;
+}
+
+/* =========================================================================
+   CRM READABILITY OVERRIDE � solid white tables, dark text on EVERY device.
+   Mirrors the readable "??? ????" dialog style across all admin pages,
+   regardless of selected CRM theme. Highest specificity to win previous rules.
+   ========================================================================= */
+[data-crm-themed] .crm-content :is(table, thead, tbody, tfoot),
+[data-crm-themed] .crm-content :is(thead tr, tbody tr, tfoot tr),
+[data-crm-themed] .crm-content :is(tbody tr:nth-child(even)) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+}
+[data-crm-themed] .crm-content thead,
+[data-crm-themed] .crm-content thead tr,
+[data-crm-themed] .crm-content thead th {
+  background: #f6ecda !important;
+  background-color: #f6ecda !important;
+  color: #3a1a08 !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid rgba(139, 26, 43, 0.25) !important;
+}
+[data-crm-themed] .crm-content tbody tr {
+  border-top: 1px solid rgba(139, 26, 43, 0.12) !important;
+}
+[data-crm-themed] .crm-content tbody tr:nth-child(even) {
+  background: #fbf6ee !important;
+  background-color: #fbf6ee !important;
+}
+[data-crm-themed] .crm-content tbody tr:hover,
+[data-crm-themed] .crm-content tbody tr:hover td {
+  background: rgba(139, 26, 43, 0.08) !important;
+  background-color: rgba(139, 26, 43, 0.08) !important;
+}
+[data-crm-themed] .crm-content :is(table th, table td),
+[data-crm-themed] .crm-content :is(table th, table td) *,
+[data-crm-themed] .crm-content tbody tr,
+[data-crm-themed] .crm-content tbody tr * {
+  color: #2a0e05 !important;
+  text-shadow: none !important;
+}
+[data-crm-themed] .crm-content :is(table th, table td) svg {
+  color: #8B1A2B !important;
+  stroke: #8B1A2B !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content :is(table th, table td) a {
+  color: #8B1A2B !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* Table wrapper card: make scroll container opaque white so video/background
+   never bleeds through (covers the .overflow-x-auto + border-radius pattern
+   used by every admin page). */
+[data-crm-themed] .crm-content .overflow-x-auto:has(> table),
+[data-crm-themed] .crm-content div:has(> table) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  border-color: rgba(139, 26, 43, 0.18) !important;
+  box-shadow: 0 8px 24px -12px rgba(58, 26, 8, 0.25);
+}
+/* Soft amber-tinted small pills inside table cells should still be visible
+   on white � bump their text contrast. */
+[data-crm-themed] .crm-content :is(table th, table td) :is(
+  [class*="bg-amber-500/15"],
+  [class*="bg-amber-500/20"],
+  [class*="bg-emerald-500/20"],
+  [class*="bg-rose-500/20"]
+) {
+  color: #2a0e05 !important;
+}
+
+/* =========================================================================
+   CRM READABILITY � UNIVERSAL (cards, dialogs, sheets, popovers, dropdowns,
+   inputs, forms, badges). Applies on every viewport: mobile, tablet,
+   desktop, PWA installed app, Windows desktop wrapper. Always solid white
+   surface + dark burgundy text + readable accents.
+   ========================================================================= */
+
+/* --- Page cards / panels inside the CRM content area --------------------- */
+[data-crm-themed] .crm-content :is(
+  .rounded-xl, .rounded-2xl, .rounded-3xl
+):is(
+  [class*="bg-card"], [class*="bg-background"], [class*="bg-white"],
+  [class*="bg-primary/"], [class*="bg-muted"], [class*="bg-accent"],
+  [class*="backdrop-blur"]
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  color: #2a0e05 !important;
+  border-color: rgba(139, 26, 43, 0.18) !important;
+}
+
+/* Headings, paragraphs, labels and metadata in CRM content */
+[data-crm-themed] .crm-content :is(h1, h2, h3, h4, h5, h6) {
+  color: #3a0a13 !important;
+  text-shadow: none !important;
+}
+[data-crm-themed] .crm-content :is(p, span, li, dt, dd, label, small, time, figcaption) {
+  color: #2a0e05 !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="text-muted-foreground"],
+  [class*="text-amber-50"],
+  [class*="text-amber-100"],
+  [class*="text-amber-200"],
+  [class*="text-amber-300"],
+  [class*="text-amber-400"],
+  [class*="text-yellow-100"],
+  [class*="text-yellow-200"],
+  [class*="text-yellow-300"],
+  [class*="text-yellow-400"],
+  [class*="text-rose-100"],
+  [class*="text-rose-200"],
+  [class*="text-emerald-100"],
+  [class*="text-emerald-200"],
+  [class*="text-white"],
+  [class*="text-white/"],
+  [class*="text-zinc-"],
+  [class*="text-gray-"],
+  [class*="text-slate-"],
+  [class*="text-stone-"],
+  [class*="text-neutral-"]
+) {
+  color: #5a3a3f !important;
+  -webkit-text-fill-color: #5a3a3f !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="text-primary"],
+  [class*="text-accent-foreground"],
+  [class*="text-foreground"]
+) {
+  color: #3a0a13 !important;
+  -webkit-text-fill-color: #3a0a13 !important;
+}
+/* Same treatment inside Radix portals (dialog/menu/listbox/tooltip/sheet) */
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"], [role="menu"],
+  [role="listbox"], [role="tooltip"], [data-radix-popper-content-wrapper] > *
+) :is(
+  [class*="text-muted-foreground"],
+  [class*="text-amber-100"], [class*="text-amber-200"],
+  [class*="text-amber-300"], [class*="text-amber-400"],
+  [class*="text-yellow-100"], [class*="text-yellow-200"],
+  [class*="text-yellow-300"], [class*="text-yellow-400"],
+  [class*="text-white"], [class*="text-white/"],
+  [class*="text-zinc-"], [class*="text-gray-"],
+  [class*="text-slate-"], [class*="text-stone-"], [class*="text-neutral-"]
+) {
+  color: #5a3a3f !important;
+  -webkit-text-fill-color: #5a3a3f !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"], [role="menu"],
+  [role="listbox"], [role="tooltip"], [data-radix-popper-content-wrapper] > *
+) :is(
+  [class*="text-primary"], [class*="text-accent-foreground"],
+  [class*="text-foreground"]
+) {
+  color: #3a0a13 !important;
+  -webkit-text-fill-color: #3a0a13 !important;
+}
+/* Buttons inside CRM dialogs that use a transparent/light style � keep them
+   readable on white. Solid burgundy/gold buttons keep their own colors. */
+body[data-crm-themed] :is([role="dialog"], [role="alertdialog"]) button:not([class*="bg-"]) {
+  color: #3a0a13 !important;
+}
+
+
+/* --- Form inputs, selects, textareas inside CRM ------------------------- */
+[data-crm-themed] .crm-content :is(input, select, textarea) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #2a0e05 !important;
+  border-color: rgba(139, 26, 43, 0.25) !important;
+  -webkit-text-fill-color: #2a0e05 !important;
+}
+[data-crm-themed] .crm-content :is(input, textarea)::placeholder {
+  color: #8a6a6f !important;
+  opacity: 1 !important;
+}
+
+/* --- Radix overlays (Dialog / Sheet / Popover / DropdownMenu / Select) ---
+   These render in a portal at <body> root, so they aren't inside .crm-content.
+   Scope by data attributes from Radix + the global body[data-crm-themed]
+   marker so we still target only CRM-originated overlays. */
+body[data-crm-themed] :is(
+  [role="dialog"],
+  [role="alertdialog"],
+  [role="menu"],
+  [role="listbox"],
+  [role="tooltip"],
+  [data-radix-popper-content-wrapper] > *,
+  [data-state][data-side]
+) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  color: #2a0e05 !important;
+  border-color: rgba(139, 26, 43, 0.2) !important;
+  box-shadow: 0 24px 60px -20px rgba(58, 10, 19, 0.35) !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"], [role="menu"],
+  [role="listbox"], [role="tooltip"]
+) :is(h1, h2, h3, h4, h5, h6) {
+  color: #3a0a13 !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"], [role="menu"],
+  [role="listbox"], [role="tooltip"]
+) :is(p, span, li, label, small, dt, dd) {
+  color: #2a0e05 !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"]
+) :is(input, select, textarea) {
+  background: #ffffff !important;
+  color: #2a0e05 !important;
+  border-color: rgba(139, 26, 43, 0.25) !important;
+  -webkit-text-fill-color: #2a0e05 !important;
+}
+body[data-crm-themed] :is(
+  [role="dialog"], [role="alertdialog"]
+) :is(input, textarea)::placeholder {
+  color: #8a6a6f !important;
+}
+body[data-crm-themed] :is([role="menuitem"], [role="option"]) {
+  color: #2a0e05 !important;
+}
+body[data-crm-themed] :is(
+  [role="menuitem"][data-highlighted],
+  [role="option"][data-highlighted],
+  [role="menuitem"]:hover,
+  [role="option"]:hover
+) {
+  background: rgba(139, 26, 43, 0.10) !important;
+  color: #3a0a13 !important;
+}
+
+/* Sheet (Radix Dialog with data-side) � same treatment */
+body[data-crm-themed] [data-state="open"][data-side] {
+  background: #ffffff !important;
+  color: #2a0e05 !important;
+}
+
+/* --- Badges / chips: keep colored pill background but ensure text contrast - */
+[data-crm-themed] .crm-content [class*="badge"],
+body[data-crm-themed] [role="dialog"] [class*="badge"] {
+  color: #3a0a13 !important;
+}
+
+/* --- Icons in CRM content default to burgundy when no explicit color set --- */
+[data-crm-themed] .crm-content svg:not([class*="text-"]):not([style*="color"]) {
+  color: #8B1A2B !important;
+}
+
+/* --- Small responsive bumps so dense tables stay readable on phones ------ */
+@media (max-width: 640px) {
+  [data-crm-themed] .crm-content :is(table th, table td) {
+    padding: 10px 8px !important;
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+  [data-crm-themed] .crm-content thead th {
+    font-size: 11px !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase;
+  }
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  [data-crm-themed] .crm-content :is(table th, table td) {
+    padding: 11px 10px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* =========================================================================
+   CRM FINAL CONTRAST � background-aware tables and panels.
+   Rule: light/white surfaces use near-black text; dark surfaces use white text.
+   This is intentionally last so it wins over older amber/burgundy theme classes.
+   ========================================================================= */
+
+[data-crm-themed] .crm-content :is(
+  table,
+  table *,
+  .overflow-x-auto:has(> table),
+  div:has(> table)
+) {
+  text-shadow: none !important;
+}
+
+/* Light/white CRM tables: solid readable surface + black text. */
+[data-crm-themed] .crm-content :is(
+  .bg-card,
+  .bg-white,
+  .bg-background,
+  .bg-muted,
+  .marble-light-panel,
+  .overflow-x-auto:has(> table),
+  div:has(> table)
+) :is(table, thead, tbody, tfoot, tr, th, td),
+[data-crm-themed] .crm-content :is(
+  .bg-card,
+  .bg-white,
+  .bg-background,
+  .bg-muted,
+  .marble-light-panel,
+  .overflow-x-auto:has(> table),
+  div:has(> table)
+) :is(table, th, td) * {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+[data-crm-themed] .crm-content :is(
+  .bg-card,
+  .bg-white,
+  .bg-background,
+  .bg-muted,
+  .marble-light-panel,
+  .overflow-x-auto:has(> table),
+  div:has(> table)
+) thead :is(tr, th) {
+  background: #f6ecda !important;
+  background-color: #f6ecda !important;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+
+/* Dark CRM tables/lists/cards: keep the dark surface and force white text. */
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"]:not(.fixed),
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) {
+  background-color: rgba(20, 4, 8, 0.94) !important;
+  color: #ffffff !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"]:not(.fixed),
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(table, tbody, tfoot, tbody tr, tfoot tr, tbody td, tfoot td, li) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"]:not(.fixed),
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(tbody tr:nth-child(even), li:nth-child(even)) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"]:not(.fixed),
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(table, thead, tbody, tfoot, tr, th, td, ul, li, p, span, label, small, time, button, a, div),
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"]:not(.fixed),
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(table, thead, tbody, tfoot, tr, th, td, ul, li, p, span, label, small, time, button, a, div) * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"]:not(.fixed),
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(thead, thead tr, thead th) {
+  background: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-black"]:not(.fixed),
+  [class*="bg-neutral-9"],
+  [class*="bg-zinc-9"],
+  [class*="bg-slate-9"],
+  [class*="bg-[#0"],
+  [class*="bg-[#1"],
+  [class*="bg-[#2"],
+  [class*="bg-[#3"],
+  [class*="bg-[rgba(0"],
+  [class*="bg-[rgba(20"],
+  [class*="bg-[rgba(26"],
+  [class*="bg-[rgba(58"]
+) :is(tbody tr:hover, tbody tr:hover td, li:hover) {
+  background: rgba(255, 255, 255, 0.10) !important;
+  background-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Header/title text over CRM background video must stay readable on mobile. */
+[data-crm-themed] .crm-content > .space-y-6 > header :is(h1, p) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* CRM top/bottom navigation remains dark, therefore always white text. */
+[data-crm-themed] > div > header :is(a, span, button, svg),
+[data-crm-themed] > nav :is(a, span, button, svg),
+[data-crm-themed] aside :is(a, span, button, svg, div) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+
+/* ============================================================
+   THEME EDITOR PRESETS
+   Applied via data-preset-* on <html> by ThemeProvider.
+   ============================================================ */
+
+/* --- Button shape presets --- */
+html[data-preset-buttons="pill"] button:not([data-no-preset]),
+html[data-preset-buttons="pill"] .btn { border-radius: 9999px !important; }
+html[data-preset-buttons="square"] button:not([data-no-preset]),
+html[data-preset-buttons="square"] .btn { border-radius: 0 !important; }
+/* "rounded" is the default � no override */
+
+/* --- Form input presets --- */
+html[data-preset-forms="rounded"] input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-preset-forms="rounded"] textarea,
+html[data-preset-forms="rounded"] select { border-radius: 0.75rem !important; }
+html[data-preset-forms="classic"] input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-preset-forms="classic"] textarea,
+html[data-preset-forms="classic"] select { border-radius: 0.25rem !important; }
+html[data-preset-forms="underline"] input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-preset-forms="underline"] textarea,
+html[data-preset-forms="underline"] select {
+  border-radius: 0 !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom-width: 2px !important;
+  background: transparent !important;
+}
+
+/* --- Navbar variants (applied on site-header) --- */
+html[data-preset-navbar="transparent"] .site-header-v2__pill {
+  background: transparent !important;
+  border: 1px solid color-mix(in oklab, var(--foreground) 30%, transparent) !important;
+}
+html[data-preset-navbar="dark"] .site-header-v2__pill {
+  background: #0b0b0b !important;
+  color: #fff !important;
+}
+
+/* --- City card variants (applied on city cards) --- */
+html[data-preset-cards="glass"] .city-card {
+  background: rgba(255,255,255,0.10) !important;
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.25) !important;
+}
+html[data-preset-cards="minimal"] .city-card {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+html[data-preset-cards="gradient"] .city-card {
+  background: linear-gradient(135deg, var(--primary), var(--accent)) !important;
+  color: var(--primary-foreground) !important;
+}
+
+/* ============================================================
+   Section visual variants (page-editor + public site)
+   ??????? ?? ???? CSS ???? ?? data-section-id ?????????.
+   ============================================================ */
+.sv-classic { border: 2px solid #c59441; border-radius: 0 !important; box-shadow: none !important; }
+.sv-rounded { border-radius: 28px !important; overflow: hidden; }
+.sv-shadow-xl { box-shadow: 0 30px 80px rgba(0,0,0,.45) !important; border-radius: 16px !important; }
+.sv-glow { box-shadow: 0 0 60px rgba(245,196,110,.45) !important; border-radius: 14px !important; }
+.sv-frame-gold { border: 4px solid #c59441 !important; border-radius: 10px !important; padding: 6px !important; background: #1a0508 !important; }
+.sv-minimal { border: 0 !important; box-shadow: none !important; background: transparent !important; padding: 4px !important; }
+.sv-dark-red { background: linear-gradient(135deg,#4f0314,#260108) !important; color: #f4d07d !important; padding: 16px !important; border-radius: 14px !important; }
+.sv-gold { background: linear-gradient(135deg,#f4d07d,#c59441) !important; color: #260108 !important; padding: 16px !important; border-radius: 14px !important; }
+.sv-cream { background: #fdfaf5 !important; color: #260108 !important; padding: 16px !important; border-radius: 12px !important; }
+.sv-tight { padding: 4px !important; margin: 4px 0 !important; }
+.sv-spacious { padding: 32px !important; margin: 24px 0 !important; }
+.sv-card { background: rgba(255,255,255,.04); border: 1px solid rgba(245,196,110,.3) !important; border-radius: 16px !important; padding: 18px !important; backdrop-filter: blur(8px); }
+
+/* Page titles over hero video — only the page header, not titles inside modals. */
+[data-crm-themed] .crm-content > :is(.space-y-5, .space-y-6) > header :is(h1, .font-display) {
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55) !important;
+}
+[data-crm-themed] .crm-content :is(
+  [class*="bg-[rgba(255"],
+  [class*="bg-white"],
+  .overflow-x-auto,
+  table,
+  .grid.gap-4 > .rounded-2xl,
+  [role="dialog"]
+) :is(h1, h2, h3, .font-display) {
+  color: #2a0e05 !important;
+  -webkit-text-fill-color: #2a0e05 !important;
+  text-shadow: none !important;
+}
+[data-crm-themed] .crm-content > :is(.space-y-5, .space-y-6) > header + * ~ *,
+[data-crm-themed] .crm-content > :is(.space-y-5, .space-y-6) > header ~ p,
+[data-crm-themed] .crm-content > :is(.space-y-5, .space-y-6) > header p {
+  color: rgba(255, 250, 242, 0.82) !important;
+  -webkit-text-fill-color: rgba(255, 250, 242, 0.82) !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* === Admin CRM: readable text on cream/white panels ================== */
+/* Rule: any panel with a light background (rgba starting with 255,...) inside
+   the CRM must render text in dark burgundy ink � like the reference
+   screenshot: light surface + dark text. Applies to every table, card,
+   list, form, dialog and popover in the admin. */
+
+/* 1) Every descendant text inside a light-cream panel goes dark burgundy. */
+[data-crm-themed] [class*="bg-[rgba(255,"],
+[data-crm-themed] [class*="bg-[rgba(255,"] *:not(svg):not(path):not(circle):not(rect):not(line):not(polygon):not(polyline) {
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  text-shadow: none !important;
+}
+/* 2) Muted / secondary text keeps hierarchy at 72% opacity. */
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="text-amber-100/40"],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="text-amber-100/50"],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="text-amber-100/60"],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="text-amber-100/70"],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="text-amber-100/80"],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="text-amber-200/"],
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-amber-200 {
+  color: rgba(42, 10, 18, 0.72) !important;
+  -webkit-text-fill-color: rgba(42, 10, 18, 0.72) !important;
+}
+/* 3) Table structure inside light panels. */
+[data-crm-themed] [class*="bg-[rgba(255,"] tr {
+  border-color: rgba(139, 26, 43, 0.14) !important;
+}
+[data-crm-themed] [class*="bg-[rgba(255,"] tbody tr:hover {
+  background-color: rgba(139, 26, 43, 0.06) !important;
+}
+/* 4) Dark header strip inside light panel keeps its gold/cream text. */
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="bg-[rgba(40,"],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="bg-[rgba(40,"] *,
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="bg-[rgba(20,"],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="bg-[rgba(20,"] *,
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="bg-[rgba(26,"],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="bg-[rgba(26,"] * {
+  color: #f8e7a3 !important;
+  -webkit-text-fill-color: #f8e7a3 !important;
+}
+/* 5) Form controls inside light panels: dark ink on white with burgundy border. */
+[data-crm-themed] [class*="bg-[rgba(255,"] :is(input, textarea, select) {
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  background-color: #ffffff !important;
+  border-color: rgba(139, 26, 43, 0.28) !important;
+}
+[data-crm-themed] [class*="bg-[rgba(255,"] :is(input, textarea)::placeholder {
+  color: rgba(42, 10, 18, 0.7) !important;
+  -webkit-text-fill-color: rgba(42, 10, 18, 0.7) !important;
+  opacity: 1 !important;
+}
+/* 6b) Labels, small, helper text inside light panels: strong burgundy. */
+[data-crm-themed] [class*="bg-[rgba(255,"] :is(label, small, legend, caption, figcaption),
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-xs,
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-\[10px\],
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-\[11px\],
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-\[12px\],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="text-muted"],
+[data-crm-themed] [class*="bg-[rgba(255,"] [class*="text-white/"] {
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  opacity: 1 !important;
+}
+/* 6c) Same treatment for mobile-forced light panels (crm-content mobile block
+   flattens dark rgba to --crm-panel). Cover placeholders, labels, secondaries. */
+[data-crm-themed] .crm-content :is(input, textarea, select)::placeholder,
+[data-crm-themed] .crm-content [class*="placeholder:text-amber"]::placeholder {
+  color: rgba(42, 10, 18, 0.7) !important;
+  -webkit-text-fill-color: rgba(42, 10, 18, 0.7) !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content :is(label, small, legend, caption) {
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content :is(input, textarea, select) {
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+}
+/* 6) Preserve intent colors (delete = rose, accent CTA = burgundy). */
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-rose-400,
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-rose-400 *,
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-rose-500,
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-rose-500 * {
+  color: #b91c47 !important;
+  -webkit-text-fill-color: #b91c47 !important;
+}
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-emerald-400,
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-emerald-400 *,
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-emerald-500,
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-emerald-500 * {
+  color: #047857 !important;
+  -webkit-text-fill-color: #047857 !important;
+}
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-amber-300,
+[data-crm-themed] [class*="bg-[rgba(255,"] .text-amber-300 * {
+  color: #8B1A2B !important;
+  -webkit-text-fill-color: #8B1A2B !important;
+}
+
+/* =========================================================================
+   Scroll Card — city / neighborhood / property cards themed with the logo
+   & navbar (gold border, dark burgundy fabric, curled bottom corners, fleur).
+   ========================================================================= */
+.scroll-card {
+  position: relative;
+  border-radius: 18px;
+  padding: 1.5px; /* thin gold frame */
+  background:
+    linear-gradient(140deg, #e8c974 0%, #b8912e 45%, #8a6a1c 55%, #b8912e 65%, #e8c974 100%);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.45),
+    0 4px 10px rgba(0, 0, 0, 0.35);
+  isolation: isolate;
+  overflow: visible;
+}
+.scroll-card__inner {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0d0508;
+}
+/* Fleur-de-lis ornament at bottom-center */
+.scroll-card__inner::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 90px;
+  height: 10px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 6;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.85) 25%, transparent 42%, transparent 58%, rgba(201,168,76,0.85) 75%, transparent 100%) center 5px / 100% 1px no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e8c974'><path d='M12 2c-.6 1.3-1.8 2-1.8 3.4 0 .9.8 1.6 1.8 1.6s1.8-.7 1.8-1.6C13.8 4 12.6 3.3 12 2zM8.5 7c-1.3.3-2.5 1.3-2.5 2.6 0 1 .9 1.7 2 1.7 1 0 1.8-.5 2.2-1.2L12 8l1.8 2.1c.4.7 1.2 1.2 2.2 1.2 1.1 0 2-.7 2-1.7 0-1.3-1.2-2.3-2.5-2.6L14 8.4 12 6.5 10 8.4 8.5 7zM11 10v6h2v-6h-2zM8 17h8v1H8v-1z'/></svg>") center bottom / 12px 10px no-repeat;
+  opacity: 0.9;
+}
+/* Curled paper corners (bottom-left & bottom-right) */
+.scroll-card__curl {
+  position: absolute;
+  bottom: -2px;
+  width: 42px;
+  height: 28px;
+  pointer-events: none;
+  z-index: 8;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.55));
+}
+.scroll-card__curl--left {
+  left: -2px;
+  background:
+    linear-gradient(135deg, #f4e3a3 0%, #d9b95e 40%, #a07d24 75%, #6a4d10 100%);
+  clip-path: polygon(0 100%, 100% 100%, 0 0);
+  border-bottom-left-radius: 16px;
+  transform: rotate(-3deg);
+}
+.scroll-card__curl--right {
+  right: -2px;
+  background:
+    linear-gradient(225deg, #f4e3a3 0%, #d9b95e 40%, #a07d24 75%, #6a4d10 100%);
+  clip-path: polygon(100% 100%, 0 100%, 100% 0);
+  border-bottom-right-radius: 16px;
+  transform: rotate(3deg);
+}
+/* Pill badge "ВИЖ ГРАДА" style */
+.scroll-card__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(15, 5, 8, 0.78);
+  border: 1px solid rgba(232, 201, 116, 0.55);
+  color: #f5ecc8;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  font-weight: 600;
+  text-transform: uppercase;
+  backdrop-filter: blur(3px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+/* Circular arrow button (dark burgundy w/ gold ring) */
+.scroll-card__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 32% 28%, #7a1224 0%, #4a0512 60%, #2a0008 100%);
+  border: 1px solid #c9a84c;
+  color: #ffffff;
+  box-shadow:
+    0 6px 14px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 220, 160, 0.25),
+    0 0 0 3px rgba(0,0,0,0.15);
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+.group:hover .scroll-card__arrow { transform: translateX(2px); filter: brightness(1.15); }
+.scroll-card__title {
+  font-family: var(--font-display), serif;
+  color: #ffffff;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.85),
+    0 0 28px rgba(0, 0, 0, 0.5);
+  line-height: 0.95;
+}
+
+/* =========================================================================
+   City page 1:1 layout — burgundy hero panel + quarter cards
+   ========================================================================= */
+.city-hero-panel {
+  position: relative;
+  background:
+    radial-gradient(ellipse at 85% 25%, rgba(139, 26, 43, 0.55) 0%, transparent 55%),
+    linear-gradient(135deg, #3a0a17 0%, #2a0810 55%, #1e0509 100%);
+  border-bottom-right-radius: 42px;
+  box-shadow:
+    inset 0 -1px 0 rgba(232, 201, 116, 0.25),
+    0 24px 48px -20px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  isolation: isolate;
+}
+.city-hero-panel::after {
+  /* subtle sparkle particles */
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(232, 201, 116, 0.55) 0.5px, transparent 1px),
+    radial-gradient(circle, rgba(232, 201, 116, 0.35) 0.5px, transparent 1px);
+  background-size: 220px 220px, 340px 340px;
+  background-position: 20px 40px, 120px 180px;
+  opacity: 0.6;
+  z-index: 0;
+}
+.city-hero-photo {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+@media (min-width: 1024px) {
+  .city-hero-photo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0%,
+      #000 50%,
+      rgba(0, 0, 0, 0.55) 62%,
+      transparent 72%
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0%,
+      #000 50%,
+      rgba(0, 0, 0, 0.55) 62%,
+      transparent 72%
+    );
+  }
+}
+.city-hero-photo img,
+.city-hero-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+@media (max-width: 1023px) {
+  .city-hero-photo img,
+  .city-hero-video { object-position: center center; }
+}
+
+@media (max-width: 767px) {
+  .city-page--video-hero .city-hero-panel--with-video {
+    border-bottom-right-radius: 0;
+  }
+  /* Video is the top background — covers from the very top down to just above the stats/filter line; text sits on top */
+  .city-page--video-hero .city-hero-photo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    height: calc(100% - 170px);
+    width: 100%;
+    aspect-ratio: auto;
+    z-index: 0;
+  }
+  .city-page--video-hero .city-hero-video {
+    object-fit: cover;
+    object-position: center center;
+    background: #2a0810;
+  }
+  /* Dark overlay for text legibility + soft fade at the bottom into the burgundy panel */
+  .city-page--video-hero .city-hero-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(20, 4, 8, 0.35) 0%,
+      rgba(20, 4, 8, 0.35) 55%,
+      rgba(20, 4, 8, 0.55) 80%,
+      rgba(42, 8, 16, 0.85) 94%,
+      #2a0810 100%
+    );
+    pointer-events: none;
+  }
+  /* Description sits ON the video; only stats drop below the video area */
+  .city-page--video-hero .city-hero-panel--with-video > .relative.z-10 {
+    position: relative;
+    z-index: 3;
+  }
+}
+
+/* Horizontal scroll arrows for quarter carousel */
+.city-scroll-wrap { position: relative; }
+.city-scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 30% 30%, #8b1a2b 0%, #5a0d1b 70%, #3a0812 100%);
+  border: 1.5px solid #c9a84c;
+  color: #f0d78c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+  z-index: 20;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.city-scroll-btn:hover { filter: brightness(1.15); transform: translateY(-50%) scale(1.06); }
+.city-scroll-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.city-scroll-btn--left { left: 4px; }
+.city-scroll-btn--right { right: 4px; }
+.city-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  color: #f5ecc8;
+  min-width: 0;
+}
+.city-stat__icon {
+  color: #e8c974;
+  width: 26px;
+  height: 26px;
+}
+.city-stat__value {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  min-height: 1.15em;
+}
+.city-stat__label {
+  color: rgba(245, 236, 200, 0.7);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+.city-search-bar {
+  background: linear-gradient(180deg, #3a0a17 0%, #2a0810 100%);
+  border: 1px solid rgba(232, 201, 116, 0.35);
+  border-radius: 999px;
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 220, 160, 0.08);
+  color: #f5ecc8;
+}
+@media (max-width: 767px) {
+  .city-search-bar {
+    border-radius: 22px;
+    padding: 10px 12px;
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .city-search-field { padding: 8px 10px; }
+  .city-search-field + .city-search-field { border-left: 0; }
+  .city-search-field__value { font-size: 13px; }
+  .city-search-btn { padding: 10px 14px; font-size: 13px; flex: 1; justify-content: center; }
+}
+.city-search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  min-width: 0;
+  color: #f5ecc8;
+}
+.city-search-field + .city-search-field {
+  border-left: 1px solid rgba(232, 201, 116, 0.22);
+}
+.city-search-field__label {
+  font-size: 11px;
+  color: rgba(245, 236, 200, 0.65);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.city-search-field__value {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: 600;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+.city-search-field__value option { color: #2a0810; }
+.city-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #e8c974;
+  border: 1px solid rgba(232, 201, 116, 0.5);
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.city-search-btn:hover { background: rgba(232, 201, 116, 0.12); }
+.city-search-btn--gold {
+  color: #2a0810;
+  background: linear-gradient(135deg, #f0d78c 0%, #c9a84c 100%);
+  border-color: transparent;
+}
+.city-search-btn--gold:hover { filter: brightness(1.08); }
+
+/* ============================================================
+   Card 1:1 with reference (IMG_6319): dark full-bleed image card
+   with gold hairline border, gold "ВИЖ ГРАДА" pill top-left,
+   large white serif title bottom-left, deep-red circular arrow
+   bottom-right, gold fleur-de-lis + dotted line ornament center-
+   bottom, and paper-curl folds in both bottom corners.
+   ============================================================ */
+.quarter-card {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 22px;
+  border: 1.5px solid rgba(201, 168, 76, 0.55);
+  background: #120508;
+  box-shadow:
+    0 20px 44px -18px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 240, 200, 0.04);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.quarter-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(201, 168, 76, 0.9);
+  box-shadow:
+    0 26px 50px -18px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 240, 200, 0.08);
+}
+.quarter-card__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.55 / 1;
+  overflow: hidden;
+  background: #2a0810;
+}
+.quarter-card__image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s ease;
+}
+.quarter-card:hover .quarter-card__image img { transform: scale(1.05); }
+/* dark gradient overlay so overlaid text stays legible */
+.quarter-card__image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg,
+      rgba(10, 4, 7, 0.55) 0%,
+      rgba(10, 4, 7, 0.18) 32%,
+      rgba(10, 4, 7, 0.35) 60%,
+      rgba(10, 4, 7, 0.85) 100%);
+  pointer-events: none;
+}
+.quarter-card__pill {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  background: rgba(18, 6, 10, 0.72);
+  border: 1px solid rgba(201, 168, 76, 0.55);
+  color: #e6cf8a;
+  font-family: var(--font-sans-nadezhda), var(--font-display), sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.quarter-card__pill svg { color: #c9a84c; width: 12px; height: 12px; }
+.quarter-card__title {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 42px;
+  z-index: 3;
+  margin: 0;
+  font-family: "Playfair Display", var(--font-display), serif;
+  color: #ffffff;
+  font-size: clamp(13px, 1.35vw, 20px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.75),
+    0 1px 2px rgba(0, 0, 0, 0.6);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.quarter-card__arrow {
+  position: absolute;
+  right: 18px;
+  bottom: 20px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 25%, #a52237 0%, #7a1425 55%, #4c0a17 100%);
+  border: 1.5px solid rgba(201, 168, 76, 0.75);
+  color: #ffffff;
+  box-shadow:
+    0 8px 16px -4px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.quarter-card:hover .quarter-card__arrow {
+  transform: translateX(2px);
+  border-color: #c9a84c;
+}
+/* Gold dotted line + fleur-de-lis ornament, center-bottom */
+.quarter-card__ornament {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 44%;
+  pointer-events: none;
+  color: #c9a84c;
+}
+.quarter-card__ornament::before,
+.quarter-card__ornament::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-image: linear-gradient(to right, rgba(201, 168, 76, 0.85) 50%, transparent 50%);
+  background-size: 5px 1px;
+  background-repeat: repeat-x;
+}
+.quarter-card__ornament svg { width: 14px; height: 16px; flex: 0 0 auto; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5)); }
+/* Paper curl — bottom-left */
+.quarter-card::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  bottom: -1px;
+  width: 34px;
+  height: 34px;
+  z-index: 5;
+  background:
+    linear-gradient(135deg, transparent 50%, #efd88a 50%, #c9a84c 78%, #7a5f22 100%);
+  clip-path: polygon(0 100%, 100% 100%, 0 0);
+  border-bottom-left-radius: 22px;
+  box-shadow: 2px -2px 6px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+/* Paper curl — bottom-right */
+.quarter-card::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 34px;
+  height: 34px;
+  z-index: 5;
+  background:
+    linear-gradient(225deg, transparent 50%, #efd88a 50%, #c9a84c 78%, #7a5f22 100%);
+  clip-path: polygon(100% 100%, 100% 0, 0 100%);
+  border-bottom-right-radius: 22px;
+  box-shadow: -2px -2px 6px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+/* Legacy body/count layout kept as no-op safety for any stragglers */
+.quarter-card__body { display: none; }
+.quarter-card__count { display: none; }
+
+/* Photo-label variant: image already contains the quarter name baked in.
+   Fill the tile with the full image, never crop, hide the overlaid title. */
+.quarter-card--photo-label .quarter-card__image {
+  aspect-ratio: 1 / 1;
+  background: #8b1a2b;
+}
+.quarter-card--photo-label .quarter-card__image img {
+  object-fit: contain;
+  object-position: center;
+}
+.quarter-card--photo-label .quarter-card__image::after {
+  background: linear-gradient(180deg, rgba(10,4,7,0) 0%, rgba(10,4,7,0) 70%, rgba(10,4,7,0.55) 100%);
+}
+.quarter-card--photo-label.quarter-card--has-image .quarter-card__title { display: block; }
+
+/* Fill variant: image covers entire card (no letterbox) — used when the image
+   is a real photo without baked-in framing (e.g. Център). */
+.quarter-card--fill .quarter-card__image img {
+  object-fit: cover;
+  object-position: center;
+}
+.quarter-card--photo-label.quarter-card--fill .quarter-card__title { display: block; }
+
+/* =========================================================================
+   Task dialog (calendar) – guaranteed readable inside CRM shell.
+   ========================================================================= */
+[data-task-dialog] .task-dialog-form,
+[data-task-dialog] .task-dialog-form * {
+  text-shadow: none !important;
+}
+[data-task-dialog] .task-dialog-form {
+  background: #8B1A2B !important;
+  color: #ffffff !important;
+}
+[data-task-dialog] .task-dialog-form :is(h3, label, span, div, p):not(.task-field):not(.task-field *) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+[data-task-dialog] .task-dialog-form :is(h3, h3 span) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+[data-task-dialog] .task-dialog-form label > span:not(.task-field-label) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+[data-task-dialog] .task-dialog-form :is(input, textarea, select) {
+  background: #ffffff !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  border-color: #C9A84C !important;
+  opacity: 1 !important;
+}
+[data-task-dialog] .task-dialog-form :is(input, textarea)::placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.5) !important;
+  opacity: 1 !important;
+}
+[data-task-dialog] .task-dialog-form option {
+  background: #ffffff !important;
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  font-weight: 600 !important;
+}
+[data-task-dialog] .task-dialog-form select {
+  -webkit-text-fill-color: #000000 !important;
+}
+[data-task-dialog] .task-dialog-form button[type="button"]:not(.task-hl):not([aria-label="Затвори"]) {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  background: #ffffff !important;
+}
+[data-task-dialog] .task-dialog-form button[type="submit"] {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  background-image: linear-gradient(180deg, #d4b866 0%, #b8942e 100%) !important;
+}
+
+/* Validation / error styling inside the task dialog */
+[data-task-dialog] .task-dialog-form :is(input, textarea, select):is([aria-invalid="true"], .is-invalid, :user-invalid) {
+  border-color: #FFD166 !important;
+  background: #FFF4D6 !important;
+  box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.45) !important;
+}
+[data-task-dialog] .task-dialog-form .task-error,
+[data-task-dialog] .task-dialog-form [role="alert"],
+[data-task-dialog] .task-dialog-form .field-error {
+  display: block;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #FFE08A !important;
+  color: #4A0710 !important;
+  -webkit-text-fill-color: #4A0710 !important;
+  border: 1px solid #C9A84C !important;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.nadezhda-price-pin-wrap {
+  background: transparent !important;
+  border: none !important;
+}
+.nadezhda-price-pin {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid #f0d878;
+  border-radius: 4px 4px 4px 0;
+  background: #8b1a2b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
+  white-space: nowrap;
+}
+.nadezhda-price-pin::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0;
+  height: 0;
+  border-left: 7px solid #8b1a2b;
+  border-bottom: 7px solid transparent;
+}
+.nadezhda-price-pin:hover {
+  background: #600f1c;
+  transform: translateY(-1px);
+}
+.nadezhda-quarter-label-wrap {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none !important;
+}
+.nadezhda-quarter-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(253, 250, 245, 0.92);
+  color: #600f1c;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  border: 1px solid #c59441;
+}
+
+[data-task-dialog] .task-dialog-form .task-banner-error {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #FFFFFF !important;
+  color: #8B1A2B !important;
+  -webkit-text-fill-color: #8B1A2B !important;
+  border: 2px solid #FFD166 !important;
+  font-weight: 800;
+  font-size: 13px;
+}
+[data-task-dialog] .task-dialog-form .task-required-star,
+[data-task-dialog] .task-dialog-form label > span > .req {
+  color: #FFD166 !important;
+  -webkit-text-fill-color: #FFD166 !important;
+  margin-left: 2px;
+}
+
+/* =========================================================================
+   Readability override (MK request) — force high-contrast dark burgundy text
+   on any card/textarea that ended up light-on-light. Applies to task list
+   cards on /admin/tasks and property description textareas in the property
+   modal (screenshots IMG_9554 / IMG_9555).
+   ========================================================================= */
+[data-crm-themed] .crm-content ul[class*="divide-"] > li,
+[data-crm-themed] .crm-content ul[class*="divide-"] > li * {
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] .crm-content ul[class*="divide-"] > li [class*="line-through"] {
+  color: rgba(42, 10, 18, 0.55) !important;
+  -webkit-text-fill-color: rgba(42, 10, 18, 0.55) !important;
+}
+[data-crm-themed] .crm-content textarea,
+[data-crm-themed] .crm-content textarea * {
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  background: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+[data-crm-themed] .crm-content textarea::placeholder {
+  color: rgba(42, 10, 18, 0.55) !important;
+  -webkit-text-fill-color: rgba(42, 10, 18, 0.55) !important;
+}
+
+/* =========================================================================
+   Task dialog (calendar) – FINAL readability guard. Beats every CRM
+   light-panel/textarea override defined above.
+   Covers both view (white cards) and edit (inputs).
+   ========================================================================= */
+html body [data-task-dialog][data-task-dialog] :is(input, textarea, select),
+html body [data-task-dialog][data-task-dialog] :is(input, textarea, select) * {
+  background-color: #ffffff !important;
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  caret-color: #8B1A2B !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  font-weight: 600 !important;
+}
+html body [data-task-dialog][data-task-dialog] :is(input, textarea)::placeholder {
+  color: rgba(42, 10, 18, 0.55) !important;
+  -webkit-text-fill-color: rgba(42, 10, 18, 0.55) !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+html body [data-task-dialog][data-task-dialog] option {
+  background-color: #ffffff !important;
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+}
+html body [data-task-dialog][data-task-dialog] .task-dialog-card,
+html body [data-task-dialog][data-task-dialog] .task-dialog-form {
+  background-color: #8B1A2B !important;
+  opacity: 1 !important;
+}
+html body [data-task-dialog][data-task-dialog] .task-field {
+  background-color: #ffffff !important;
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+}
+html body [data-task-dialog][data-task-dialog] .task-field :is(p, span, div, dt, dd, label, small) {
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  opacity: 1 !important;
+}
+html body [data-task-dialog][data-task-dialog] .task-field dt,
+html body [data-task-dialog][data-task-dialog] .task-field .task-field-label {
+  color: #8B1A2B !important;
+  -webkit-text-fill-color: #8B1A2B !important;
+  background-color: transparent !important;
+}
+html body [data-task-dialog][data-task-dialog] button.bg-white:not(.task-hl) {
+  color: #8B1A2B !important;
+  -webkit-text-fill-color: #8B1A2B !important;
+}
+
+/* Weekly schedule: stay inside the content column, grow with tasks, no clip. */
+.week-schedule {
+  min-width: 0;
+  max-width: 100%;
+}
+.week-schedule .week-grid-scroll {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+.week-schedule .week-cell {
+  overflow: visible !important;
+  min-height: 76px;
+}
+
+/* Light CRM windows (property folder, mortgage stages): dark ink on cream.
+   Must beat the dark-overlay cascade that was painting white text on white. */
+[data-crm-themed] [data-crm-light-modal],
+[data-crm-themed] [data-crm-light-modal] :is(
+  h1, h2, h3, h4, p, span, div, label, small, a, li, legend, button
+):not([class*="bg-primary"]):not([class*="bg-emerald-6"]):not(.gold-cta-button) {
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  text-shadow: none !important;
+}
+[data-crm-themed] [data-crm-light-modal] :is(input, textarea, select) {
+  background-color: #ffffff !important;
+  color: #2a0a12 !important;
+  -webkit-text-fill-color: #2a0a12 !important;
+  border-color: rgba(139, 26, 43, 0.28) !important;
+  caret-color: #8B1A2B !important;
+}
+[data-crm-themed] [data-crm-light-modal] :is(input, textarea)::placeholder {
+  color: rgba(42, 10, 18, 0.55) !important;
+  -webkit-text-fill-color: rgba(42, 10, 18, 0.55) !important;
+  opacity: 1 !important;
+}
+[data-crm-themed] [data-crm-light-modal] :is(
+  [class*="bg-primary"],
+  [class*="bg-emerald-6"],
+  .gold-cta-button
+),
+[data-crm-themed] [data-crm-light-modal] :is(
+  [class*="bg-primary"],
+  [class*="bg-emerald-6"],
+  .gold-cta-button
+) * {
+  color: #fffaf2 !important;
+  -webkit-text-fill-color: #fffaf2 !important;
+}

@@ -1,0 +1,1 @@
+UPDATE public.cities SET hero_video_url='/__l5e/assets-v1/7ce07196-c19d-48e1-bb40-d19f1f5c24a0/shumen-hero.mp4' WHERE slug='shumen';

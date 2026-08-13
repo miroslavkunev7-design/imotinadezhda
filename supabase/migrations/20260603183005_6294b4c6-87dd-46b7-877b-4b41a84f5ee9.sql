@@ -1,0 +1,1 @@
+ALTER TABLE public.cities ADD COLUMN IF NOT EXISTS hero_video_url text;
