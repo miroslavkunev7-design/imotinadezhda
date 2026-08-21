@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { exchangeFacebookCode, readFacebookState } from "@/lib/distribute.functions";
+import { exchangeFacebookCode, readFacebookState } from "@/lib/facebook-oauth.server";
 
 function redirectTo(path: string) {
   return new Response(null, { status: 302, headers: { Location: path } });
