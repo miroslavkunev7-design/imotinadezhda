@@ -6,6 +6,15 @@ export type DayBankRate = {
   live: boolean;
   product: string | null;
   note: string;
+  /** Оферта за доходи от чужбина / граждани на ЕС — днешна сверка. */
+  abroadRate?: number | null;
+  abroadLive?: boolean;
+  abroadProduct?: string | null;
+  abroadNote?: string | null;
+  /** Ограничена отговорност — публикувана до договорената лихва. */
+  limitedRate?: number | null;
+  limitedNote?: string | null;
+  updatedOn?: string | null;
 };
 
 export type DayBankRatesResult = {
@@ -147,6 +156,34 @@ export function parseInterestSection(html: string): { rate: number; product: str
   return { rate, product: title };
 }
 
+function matchPctNear(text: string, re: RegExp): number | null {
+  const m = text.match(re);
+  return m ? parseBgPct(m[1]) : null;
+}
+
+export function parseLabeledMortgageRates(html: string): {
+  full: number | null;
+  limited: number | null;
+  abroad: number | null;
+  product: string | null;
+  updatedOn: string | null;
+} {
+  const text = htmlToText(html);
+  const updated = text.match(/последна промяна:\s*(\d{1,2}\.\d{1,2}\.\d{4})/i);
+  return {
+    full: matchPctNear(text, /при пълна отговорност[^\d]{0,48}(\d{1,2}[,.]\d{1,4})\s*%/i),
+    limited: matchPctNear(text, /при ограничена отговорност[^\d]{0,48}(\d{1,2}[,.]\d{1,4})\s*%/i),
+    abroad: matchPctNear(text, /доходи от чужбина[^\d]{0,96}(\d{1,2}[,.]\d{1,4})\s*%/i),
+    product: extractProductTitle(html),
+    updatedOn: updated?.[1] ?? null,
+  };
+}
+
+function isAbroadProduct(slugOrTitle: string) {
+  const s = slugOrTitle.toLowerCase();
+  return /(grajdani|durjavi-ot-es|-es-|chuzhd|chujbin|evropejsk|чужден|чужбин|граждани на)/i.test(s);
+}
+
 function scoreProductSlug(slug: string) {
   const s = slug.toLowerCase();
   let n = 0;
@@ -156,6 +193,7 @@ function scoreProductSlug(slug: string) {
   if (s.includes("fiksirana")) n -= 10;
   if (/(tekushti|potrebitelski|refinans)/.test(s)) n -= 6;
   if (s.includes("-bgn")) n -= 1;
+  if (isAbroadProduct(s)) n += 12;
   return n;
 }
 
@@ -199,6 +237,10 @@ async function rateFromUrls(urls: string[]): Promise<{ rate: number; product: st
   return parsed[0];
 }
 
+function isExpiredPromo(title: string | null) {
+  return /30\.11\.2023|преференциални условия до/i.test(title ?? "");
+}
+
 async function fetchBankRate(bankId: string): Promise<DayBankRate> {
   const bank = SHUMEN_BANKS.find((b) => b.id === bankId);
   const fallback: DayBankRate = {
@@ -207,53 +249,102 @@ async function fetchBankRate(bankId: string): Promise<DayBankRate> {
     live: false,
     product: null,
     note: "няма нова публикация днес — показан е последният стикер",
+    abroadRate: bank?.rateAbroadToday ?? null,
+    abroadLive: false,
+    abroadNote: bank?.rateAbroadNote ?? null,
+    limitedRate: bank?.rateLimitedToday ?? null,
+    limitedNote: bank?.rateLimitedToday != null
+      ? "стикер при ограничена отговорност"
+      : null,
   };
   const src = SOURCES[bankId];
   if (!src) return fallback;
 
-  const fromSeed = await rateFromUrls(src.seedUrls);
-  if (fromSeed) {
-    return {
-      bankId,
-      rate: fromSeed.rate,
-      live: true,
-      product: fromSeed.product,
-      note: fromSeed.product
-        ? `взета автоматично днес · ${fromSeed.product.replace(/\s+/g, " ").slice(0, 90)}`
-        : "взета автоматично днес от публичната оферта",
-    };
-  }
-
-  const extra: string[] = [];
+  const urls = [...src.seedUrls];
   if (src.listingUrl) {
     const listing = await fetchHtml(src.listingUrl);
     if (listing) {
-      extra.push(
+      urls.push(
         ...productLinks(listing)
           .map((url) => ({ url, score: scoreProductSlug(url) }))
           .sort((a, b) => b.score - a.score)
-          .slice(0, 2)
+          .slice(0, 4)
           .map((x) => x.url),
       );
     }
   }
 
-  const hit = await rateFromUrls(extra);
-  if (!hit) return fallback;
+  const unique = [...new Set(urls)].slice(0, 6);
+  let bestStandard: { rate: number; product: string | null; updatedOn: string | null } | null = null;
+  let bestAbroad: { rate: number; product: string | null; updatedOn: string | null } | null = null;
+  let limited: { rate: number; product: string | null } | null = null;
+
+  for (const url of unique) {
+    const html = await fetchHtml(url);
+    if (!html) continue;
+    const labeled = parseLabeledMortgageRates(html);
+    const generic = parseInterestSection(html);
+    const title = labeled.product ?? generic?.product ?? null;
+    if (isExpiredPromo(title) || /30-11-2023/.test(url)) continue;
+    const full = labeled.full ?? generic?.rate ?? null;
+    if (full == null) continue;
+
+    const abroadish = isAbroadProduct(url) || isAbroadProduct(title ?? "") || labeled.abroad != null;
+    const row = { rate: labeled.abroad ?? full, product: title, updatedOn: labeled.updatedOn };
+    if (abroadish) {
+      if (!bestAbroad || row.rate < bestAbroad.rate) bestAbroad = row;
+    } else if (!bestStandard || full < bestStandard.rate) {
+      bestStandard = { rate: full, product: title, updatedOn: labeled.updatedOn };
+    }
+    if (labeled.limited != null && (!limited || labeled.limited > limited.rate)) {
+      limited = { rate: labeled.limited, product: title };
+    }
+  }
+
+  if (!bestStandard && !bestAbroad) return fallback;
+
+  const main = bestStandard ?? bestAbroad!;
+  const abroad = bestAbroad ?? (labeledAbroadFromMain(bestStandard, bankId) ? bestStandard : null);
+
   return {
     bankId,
-    rate: hit.rate,
+    rate: main.rate,
     live: true,
-    product: hit.product,
-    note: hit.product
-      ? `взета автоматично днес · ${hit.product.replace(/\s+/g, " ").slice(0, 90)}`
-      : "взета автоматично днес от публичната оферта",
+    product: main.product,
+    note: liveNote(main.product, main.updatedOn),
+    updatedOn: main.updatedOn,
+    abroadRate: abroad?.rate ?? bank?.rateAbroadToday ?? null,
+    abroadLive: Boolean(abroad),
+    abroadProduct: abroad?.product ?? null,
+    abroadNote: abroad
+      ? liveNote(abroad.product, abroad.updatedOn, "доходи от чужбина / граждани на ЕС")
+      : (bank?.rateAbroadNote ?? null),
+    limitedRate: limited?.rate ?? bank?.rateLimitedToday ?? null,
+    limitedNote: limited
+      ? `ограничена отговорност · ${limited.product?.replace(/\s+/g, " ").slice(0, 70) ?? "публична оферта"}`
+      : (bank?.rateLimitedToday != null ? "стикер при ограничена отговорност" : null),
   };
+}
+
+function labeledAbroadFromMain(
+  main: { product: string | null } | null,
+  bankId: string,
+) {
+  if (bankId !== "investbank") return false;
+  return isAbroadProduct(main?.product ?? "");
+}
+
+function liveNote(product: string | null, updatedOn: string | null, kind?: string) {
+  const head = kind ? `взета автоматично днес · ${kind}` : "взета автоматично днес";
+  const prod = product ? ` · ${product.replace(/\s+/g, " ").slice(0, 80)}` : " от публичната оферта";
+  const when = updatedOn ? ` · обновена ${updatedOn}` : "";
+  return `${head}${prod}${when}`;
 }
 
 export async function fetchAllDayBankRates(): Promise<DayBankRatesResult> {
   const date = sofiaToday();
-  if (cache && cache.key === date && Date.now() - cache.at < CACHE_MS) return cache.value;
+  const cacheKey = `${date}:v2`;
+  if (cache && cache.key === cacheKey && Date.now() - cache.at < CACHE_MS) return cache.value;
 
   const settled = await Promise.allSettled(SHUMEN_BANKS.map((b) => fetchBankRate(b.id)));
   const rates: Record<string, DayBankRate> = {};
@@ -268,6 +359,11 @@ export async function fetchAllDayBankRates(): Promise<DayBankRatesResult> {
             live: false,
             product: null,
             note: "няма нова публикация днес — показан е последният стикер",
+            abroadRate: b.rateAbroadToday ?? null,
+            abroadLive: false,
+            abroadNote: b.rateAbroadNote ?? null,
+            limitedRate: b.rateLimitedToday ?? null,
+            limitedNote: b.rateLimitedToday != null ? "стикер при ограничена отговорност" : null,
           };
   });
 
@@ -276,6 +372,6 @@ export async function fetchAllDayBankRates(): Promise<DayBankRatesResult> {
     asOf: new Date().toISOString(),
     rates,
   };
-  cache = { key: date, value, at: Date.now() };
+  cache = { key: cacheKey, value, at: Date.now() };
   return value;
 }

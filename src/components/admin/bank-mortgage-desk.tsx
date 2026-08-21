@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
@@ -614,6 +614,33 @@ function BankCkrPanel({
   );
 }
 
+function RatePickChip({
+  active,
+  onClick,
+  color,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  color: string;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-full px-2.5 py-1 text-[10px] font-semibold"
+      style={
+        active
+          ? { background: color, color: "#fff" }
+          : { background: `${color}14`, color, border: `1px solid ${color}55` }
+      }
+    >
+      {children}
+    </button>
+  );
+}
+
 function dealNumbers(form: Record<string, string>, rateToday: number) {
   const loan = Number(form.amount) || 0;
   const own = Number(form.own_funds) || 0;
@@ -635,7 +662,18 @@ function BankCalcBoard({
 }) {
   const [fx, setFx] = useState<DayFx | null>(null);
   const [notary, setNotary] = useState<NotaryBreakdown | null>(null);
+  const [ratePick, setRatePick] = useState<"standard" | "abroad" | "limited">("standard");
   const rateToday = dayRate?.rate ?? bank.rateToday;
+  const abroadRate = dayRate?.abroadRate ?? bank.rateAbroadToday ?? null;
+  const limitedRate = dayRate?.limitedRate ?? bank.rateLimitedToday ?? null;
+  const rateUsed =
+    ratePick === "abroad" && abroadRate != null ? abroadRate
+    : ratePick === "limited" && limitedRate != null ? limitedRate
+    : rateToday;
+  const rateUsedLabel =
+    ratePick === "abroad" ? "доходи от чужбина"
+    : ratePick === "limited" ? "ограничена отговорност"
+    : "пълна отговорност";
 
   useEffect(() => {
     fetchDayFx().then(setFx);
@@ -643,9 +681,9 @@ function BankCalcBoard({
 
   useEffect(() => {
     setNotary(null);
-  }, [rateToday]);
+  }, [rateUsed]);
 
-  const nums = dealNumbers(form, rateToday);
+  const nums = dealNumbers(form, rateUsed);
 
   const runLoan = () => {
     if (!nums.loan) {
@@ -673,7 +711,7 @@ function BankCalcBoard({
     });
     setNotary(n);
     if (!form.price && nums.price) setForm({ ...form, price: String(nums.price) });
-    toast.success("Нотариусът е сметнат по тарифа т. 8 + ДДС, вписване и 3% данък Шумен.");
+    toast.success(`Нотариусът е сметнат по ${rateUsedLabel} ${fmtBg(rateUsed, 2)}% — тарифа т. 8 + ДДС, вписване и 3% данък Шумен.`);
   };
 
   const today = fx?.date ?? new Date().toISOString().slice(0, 10);
@@ -685,13 +723,30 @@ function BankCalcBoard({
         <div className="rounded-xl border p-3" style={{ borderColor: `${bank.color}55`, background: "#fff" }}>
           <div className="font-display text-base" style={{ color: bank.color2 }}>Кредитен калкулатор</div>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Взима сума, срок и цена от ипотечната карта. Лихвата е днешната на {bank.short}: {fmtBg(rateToday, 2)}%.
+            Взима сума, срок и цена от ипотечната карта. Смята се по избраната лихва на {bank.short}: {fmtBg(rateUsed, 2)}% ({rateUsedLabel}).
           </p>
+          {(abroadRate != null || limitedRate != null) && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <RatePickChip active={ratePick === "standard"} onClick={() => setRatePick("standard")} color={bank.color}>
+                Пълна отг. {fmtBg(rateToday, 2)}%
+              </RatePickChip>
+              {abroadRate != null && (
+                <RatePickChip active={ratePick === "abroad"} onClick={() => setRatePick("abroad")} color={bank.color}>
+                  Доходи от чужбина {fmtBg(abroadRate, 2)}%
+                </RatePickChip>
+              )}
+              {limitedRate != null && (
+                <RatePickChip active={ratePick === "limited"} onClick={() => setRatePick("limited")} color={bank.color}>
+                  Ограничена отг. {fmtBg(limitedRate, 2)}%
+                </RatePickChip>
+              )}
+            </div>
+          )}
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
             <div>Сума: <b>{nums.loan ? `${fmtBg(nums.loan, 0)} €` : "—"}</b></div>
             <div>Срок: <b>{nums.years} г.</b></div>
             <div>Цена имот: <b>{nums.price ? `${fmtBg(nums.price, 0)} €` : "—"}</b></div>
-            <div>Лихва: <b>{fmtBg(rateToday, 2)}%</b></div>
+            <div>Лихва: <b>{fmtBg(rateUsed, 2)}%</b></div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" className="rounded-full text-white" style={{ background: bank.color }} onClick={runLoan}>Изчисли вноска</Button>
@@ -699,6 +754,7 @@ function BankCalcBoard({
           </div>
           {notary && (
             <div className="mt-3 space-y-1 rounded-lg bg-[#faf6ee] p-2 text-xs text-[#31020c]">
+              <div>Сметнато по: <b>{rateUsedLabel} {fmtBg(rateUsed, 2)}%</b></div>
               <div>Месечна вноска: <b>{fmtBg(notary.monthlyEur)} €</b> ({fmtBg(notary.monthlyEur * 1.95583)} лв.)</div>
               <div>Общо лихва за срока: <b>{fmtBg(notary.totalInterestEur)} €</b></div>
               <div className="border-t border-accent/30 pt-1 font-semibold">При нотариуса (Шумен)</div>
@@ -726,6 +782,23 @@ function BankCalcBoard({
               </div>
               <div className="text-[10px] opacity-80">{bank.rateNote}</div>
             </div>
+            {abroadRate != null && (
+              <div className="mt-2 border-t border-[#e0c45a] pt-2">
+                Доходи от чужбина:
+                <div className="font-display text-xl">{fmtBg(abroadRate, 2)}%</div>
+                <div className="text-[10px] opacity-80">
+                  {dayRate?.abroadLive
+                    ? (dayRate.abroadNote ?? "взета автоматично днес")
+                    : (dayRate?.abroadNote ?? bank.rateAbroadNote ?? "стикер — граждани на ЕС / чужденци")}
+                </div>
+                {limitedRate != null && (
+                  <div className="mt-1 text-[11px]">
+                    Ограничена отговорност: <b>{fmtBg(limitedRate, 2)}%</b>
+                    {dayRate?.limitedNote ? <span className="block text-[10px] opacity-80">{dayRate.limitedNote}</span> : null}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

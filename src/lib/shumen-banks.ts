@@ -31,6 +31,11 @@ export type ShumenBank = {
   /** Резервна стикерна лихва, ако дневната оферта не се върне. */
   rateToday: number;
   rateNote: string;
+  /** Резерв за оферта „доходи от чужбина / граждани на ЕС“, ако няма днешна публикация. */
+  rateAbroadToday?: number;
+  rateAbroadNote?: string;
+  /** Резерв при ограничена отговорност. */
+  rateLimitedToday?: number;
   docsBg: string[];
   docsAbroad: string[];
 };
@@ -300,6 +305,9 @@ export const SHUMEN_BANKS: ShumenBank[] = [
     branchBoard: "Клон Шумен",
     rateToday: 5.50,
     rateNote: "стикер при пълна отговорност; с бонуси (заплата / пакет / карта) може по-ниско",
+    rateAbroadToday: 5.50,
+    rateAbroadNote: "MoitePari · граждани на ЕС / валиден за чужденци · пълна отговорност (ibank.bg не публикува отделно число)",
+    rateLimitedToday: 10.20,
     docsBg: DOCS_BG,
     docsAbroad: DOCS_ABROAD,
     samples: [
