@@ -2346,10 +2346,13 @@ type PropertyData = {
 export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   if (!data) {
     return (
-      <main className="luxury-page nadezhda-marble-bg flex min-h-screen items-center justify-center">
+      <main className="luxury-page nadezhda-marble-bg flex min-h-screen flex-col">
+        <LuxuryHeader active="sale" />
+        <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
           <h1 className="font-serif-nadezhda text-3xl text-[#600f1c]">Имотът не е намерен</h1>
           <Link to="/" className="mt-4 inline-block text-[#600f1c] underline">Към началната страница</Link>
+        </div>
         </div>
       </main>
     );

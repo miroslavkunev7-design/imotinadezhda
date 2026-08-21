@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { DistrictPage } from "@/components/site/luxury-real-estate";
+import { SiteHeader } from "@/components/site/site-header";
 import { SiteSeoFooter } from "@/components/site/site-seo-footer";
 import { getQuarterBySlug } from "@/lib/catalog.functions";
 import { breadcrumbJsonLd, siteUrl, SITE_NAME } from "@/lib/site-config";
@@ -53,8 +54,18 @@ export const Route = createFileRoute("/cities/$slug/districts/$district")({
     };
   },
   component: DistrictRoute,
-  errorComponent: ({ error }) => <div role="alert" className="p-10">Грешка: {error.message}</div>,
-  notFoundComponent: () => <div className="p-10">Кварталът не е намерен.</div>,
+  errorComponent: ({ error }) => (
+    <div>
+      <SiteHeader />
+      <div role="alert" className="p-10">Грешка: {error.message}</div>
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div>
+      <SiteHeader />
+      <div className="p-10">Кварталът не е намерен.</div>
+    </div>
+  ),
 });
 
 function DistrictRoute() {

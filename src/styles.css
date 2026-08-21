@@ -234,7 +234,11 @@
     opacity: 0.7;
     z-index: 0;
   }
-  .luxury-page > *:not(.site-header-v2):not(.site-header-v2__spacer):not(.nadezhda-nav-root):not(.nadezhda-nav-spacer) { position: relative; z-index: 1; }
+  .luxury-page > *:not(.site-header-v2):not(.site-header-v2__spacer):not(.nadezhda-nav-root):not(.nadezhda-nav-spacer):not(.nadezhda-nav-slot) { position: relative; z-index: 1; }
+  .luxury-page > .nadezhda-nav-slot {
+    position: relative;
+    z-index: 80;
+  }
 
   /* ============================================================
      Luxury burgundy/gold panel utilities.
