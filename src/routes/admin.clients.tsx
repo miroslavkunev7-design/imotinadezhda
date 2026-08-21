@@ -680,44 +680,44 @@ function ClientsAdmin() {
             return (
               <div
                 key={r.id}
-                className="flex flex-col rounded-2xl border border-[#C9A84C]/45 bg-[#faf6ee] p-4 text-left shadow-sm transition hover:border-[#C9A84C] hover:shadow-md"
+                className="client-card flex flex-col rounded-2xl border border-[#C9A84C]/70 bg-[#f7efe0] p-4 text-left text-[#31020c] shadow-sm transition hover:border-[#C9A84C] hover:shadow-md"
               >
-                <button type="button" className="min-w-0 flex-1 text-left" onClick={() => guard(r, () => setDetailsFor(r))}>
+                <button type="button" className="min-w-0 flex-1 text-left text-[#31020c]" onClick={() => guard(r, () => setDetailsFor(r))}>
                   <div className="flex items-start justify-between gap-2">
-                    <span className="rounded-full bg-[#8B1A2B]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#8B1A2B]">
+                    <span className="client-card-badge rounded-full bg-[#8B1A2B] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#fffaf2]">
                       {labelType(r.client_type)}
                     </span>
                     <LeadScoreBadge score={r.lead_score} tier={r.lead_tier} compact tone="light" />
                   </div>
-                  <div className="mt-2 font-display text-xl leading-tight text-[#8B1A2B]">{r.full_name}</div>
+                  <div className="mt-2 font-display text-xl leading-tight text-[#31020c]">{r.full_name}</div>
                   {r.phone ? (
-                    <div className="mt-1 flex items-center gap-1.5 text-sm text-[#8B1A2B]/80">
-                      <Phone className="h-3.5 w-3.5" />{r.phone}
+                    <div className="client-card-muted mt-1 flex items-center gap-1.5 text-sm text-[#5c2a32]">
+                      <Phone className="h-3.5 w-3.5 shrink-0" />{r.phone}
                     </div>
                   ) : (
-                    <div className="mt-1 text-sm text-[#8B1A2B]/40">Няма телефон</div>
+                    <div className="client-card-muted mt-1 text-sm text-[#5c2a32]">Няма телефон</div>
                   )}
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
                     {r.deal_stage === "mortgage" && (
                       <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800">ипотека</span>
                     )}
                     {r.deal_stage === "started" && (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-900">сделка</span>
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-950">сделка</span>
                     )}
                     {r.cities?.name && (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-[#8B1A2B]/70">
+                      <span className="client-card-muted inline-flex items-center gap-1 text-[11px] text-[#5c2a32]">
                         <MapPin className="h-3 w-3" />{r.cities.name}{r.quarters?.name ? `, ${r.quarters.name}` : ""}
                       </span>
                     )}
                   </div>
-                  <div className="mt-2 text-xs text-[#8B1A2B]/70">
+                  <div className="client-card-muted mt-2 text-xs text-[#5c2a32]">
                     {budget} · {r.brokers?.full_name ?? "без брокер"}
                   </div>
                 </button>
-                <div className="mt-3 flex justify-end gap-1 border-t border-[#C9A84C]/25 pt-2">
-                  <button type="button" className="rounded-lg p-1.5 text-[#8B1A2B]/70 hover:bg-amber-100" title="Документи" onClick={() => guard(r, () => setDocsFor(r))}><FileText className="h-4 w-4" /></button>
-                  <button type="button" className="rounded-lg p-1.5 text-[#8B1A2B]/70 hover:bg-amber-100" title="Редакция" onClick={() => guard(r, () => setEditing(r))}><Pencil className="h-4 w-4" /></button>
-                  <button type="button" className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-50" title="Изтриване" onClick={() => guard(r, () => remove(r.id))}><Trash2 className="h-4 w-4" /></button>
+                <div className="mt-3 flex justify-end gap-1 border-t border-[#C9A84C]/40 pt-2">
+                  <button type="button" className="rounded-lg p-1.5 text-[#31020c] hover:bg-[#efe2c4]" title="Документи" onClick={() => guard(r, () => setDocsFor(r))}><FileText className="h-4 w-4" /></button>
+                  <button type="button" className="rounded-lg p-1.5 text-[#31020c] hover:bg-[#efe2c4]" title="Редакция" onClick={() => guard(r, () => setEditing(r))}><Pencil className="h-4 w-4" /></button>
+                  <button type="button" className="client-card-danger rounded-lg p-1.5 text-rose-600 hover:bg-rose-50" title="Изтриване" onClick={() => guard(r, () => remove(r.id))}><Trash2 className="h-4 w-4" /></button>
                 </div>
               </div>
             );

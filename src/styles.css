@@ -685,6 +685,32 @@ html, body, #root {
   [data-crm-themed] .crm-content .overflow-x-auto { -webkit-overflow-scrolling: touch; }
 }
 
+/* Client cards: cream panel + dark ink. Theme --crm-text is cream on burgundy,
+   so inherited color is invisible on #faf6ee without this override. */
+[data-crm-themed] .crm-content .client-card {
+  background-color: #f7efe0 !important;
+  color: #31020c !important;
+  border-color: rgba(201, 168, 76, 0.55) !important;
+}
+[data-crm-themed] .crm-content .client-card,
+[data-crm-themed] .crm-content .client-card button,
+[data-crm-themed] .crm-content .client-card span,
+[data-crm-themed] .crm-content .client-card div {
+  color: #31020c !important;
+}
+[data-crm-themed] .crm-content .client-card .client-card-badge {
+  background-color: #8B1A2B !important;
+  color: #fffaf2 !important;
+}
+[data-crm-themed] .crm-content .client-card .client-card-muted {
+  color: #5c2a32 !important;
+}
+[data-crm-themed] .crm-content .client-card .client-card-danger,
+[data-crm-themed] .crm-content .client-card .client-card-danger svg {
+  color: #be123c !important;
+  stroke: #be123c !important;
+}
+
 /* Mobile dialogs/sheets (rendered in Portal, outside .crm-content):
    force readable dark labels on white surfaces � gold-on-white is invisible. */
 @media (max-width: 1024px) {
