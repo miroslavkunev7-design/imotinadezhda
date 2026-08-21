@@ -517,9 +517,27 @@ html, body, #root {
   color: var(--crm-text-muted) !important;
   opacity: 1;
 }
-[data-crm-themed] .crm-content option {
-  background: var(--crm-surface);
-  color: var(--crm-text);
+/* Native <option> popups are OS-white on Windows. Burgundy theme sets
+   --crm-text to cream #fffaf2 and --crm-surface may be light — never let
+   cream text inherit onto that white list (visible only on :hover). */
+[data-crm-themed] .crm-content option,
+[data-crm-themed] .crm-content select option,
+[data-crm-themed] option {
+  background: #faf6ee !important;
+  background-color: #faf6ee !important;
+  color: #8B1A2B !important;
+}
+[data-crm-themed] .crm-content option:hover,
+[data-crm-themed] .crm-content option:checked,
+[data-crm-themed] .crm-content option:focus,
+[data-crm-themed] .crm-content select option:hover,
+[data-crm-themed] .crm-content select option:checked,
+[data-crm-themed] option:hover,
+[data-crm-themed] option:checked,
+[data-crm-themed] option:focus {
+  background: #C9A84C !important;
+  background-color: #C9A84C !important;
+  color: #8B1A2B !important;
 }
 [data-crm-themed] .crm-content [class*="text-amber-100"] {
   color: var(--crm-text) !important;
@@ -821,9 +839,10 @@ body:has([data-crm-themed]) {
 [data-crm-themed] .crm-content input,
 [data-crm-themed] .crm-content select,
 [data-crm-themed] .crm-content textarea {
+  color-scheme: light;
   background: var(--crm-readable-bg-strong) !important;
   border-color: var(--crm-readable-border) !important;
-  color: var(--crm-readable-text) !important;
+  color: #8B1A2B !important;
   box-shadow: inset 0 0 0 1px rgba(96, 15, 28, 0.08);
 }
 [data-crm-themed] .crm-content input::placeholder,
@@ -831,9 +850,26 @@ body:has([data-crm-themed]) {
   color: var(--crm-readable-muted) !important;
   opacity: 0.85 !important;
 }
-[data-crm-themed] .crm-content option {
-  background: var(--crm-readable-bg-strong) !important;
-  color: var(--crm-readable-text) !important;
+/* Hardcoded: native <option> lists are OS-white. Do not use --crm-text
+   (burgundy theme = cream #fffaf2) or any token that can resolve light-on-white. */
+[data-crm-themed] .crm-content option,
+[data-crm-themed] .crm-content select option,
+[data-crm-themed] option {
+  background: #faf6ee !important;
+  background-color: #faf6ee !important;
+  color: #8B1A2B !important;
+}
+[data-crm-themed] .crm-content option:hover,
+[data-crm-themed] .crm-content option:checked,
+[data-crm-themed] .crm-content option:focus,
+[data-crm-themed] .crm-content select option:hover,
+[data-crm-themed] .crm-content select option:checked,
+[data-crm-themed] option:hover,
+[data-crm-themed] option:checked,
+[data-crm-themed] option:focus {
+  background: #C9A84C !important;
+  background-color: #C9A84C !important;
+  color: #8B1A2B !important;
 }
 [data-crm-themed] .crm-content :is(button[class*="text-amber-"], a[class*="text-amber-"]) {
   color: var(--crm-readable-header) !important;
@@ -861,6 +897,69 @@ body:has([data-crm-themed]) [role="dialog"] :is(input, select, textarea) {
 body:has([data-crm-themed]) [role="dialog"] :is(input, textarea)::placeholder {
   color: var(--crm-readable-muted) !important;
   opacity: 0.85 !important;
+}
+
+/* Distribute / „Пусни обява“: cream/white surfaces must use burgundy text.
+   Theme --crm-text is cream (#fffaf2) and would vanish on #faf6ee / white.
+   Placed after the readable layer so tokens cannot override these hex values. */
+[data-crm-themed] .crm-content .distribute-desk .distribute-select,
+[data-crm-themed] .crm-content .distribute-desk select {
+  color-scheme: light;
+  background: #faf6ee !important;
+  background-color: #faf6ee !important;
+  color: #8B1A2B !important;
+  border-color: rgba(201, 168, 76, 0.45) !important;
+}
+[data-crm-themed] .crm-content .distribute-desk .distribute-select option,
+[data-crm-themed] .crm-content .distribute-desk select option {
+  background: #faf6ee !important;
+  background-color: #faf6ee !important;
+  color: #8B1A2B !important;
+}
+[data-crm-themed] .crm-content .distribute-desk .distribute-select option:hover,
+[data-crm-themed] .crm-content .distribute-desk .distribute-select option:checked,
+[data-crm-themed] .crm-content .distribute-desk select option:hover,
+[data-crm-themed] .crm-content .distribute-desk select option:checked {
+  background: #C9A84C !important;
+  background-color: #C9A84C !important;
+  color: #8B1A2B !important;
+}
+[data-crm-themed] .crm-content .distribute-desk .channel-chip-off {
+  background: #faf6ee !important;
+  background-color: #faf6ee !important;
+  background-image: none !important;
+  color: #8B1A2B !important;
+  border-color: rgba(201, 168, 76, 0.45) !important;
+}
+[data-crm-themed] .crm-content .distribute-desk .channel-chip-on {
+  background: #C9A84C !important;
+  background-color: #C9A84C !important;
+  background-image: linear-gradient(180deg, #D9B95E 0%, #C9A84C 100%) !important;
+  color: #8B1A2B !important;
+  border-color: #b4922f !important;
+}
+[data-crm-themed] .crm-content .distribute-desk .portal-card-light-btn,
+[data-crm-themed] .crm-content .distribute-desk .portal-card button[class*="bg-background"] {
+  background: #faf6ee !important;
+  background-color: #faf6ee !important;
+  background-image: none !important;
+  color: #8B1A2B !important;
+  border-color: rgba(201, 168, 76, 0.45) !important;
+}
+[data-crm-themed] .crm-content .distribute-desk .portal-card-light-btn *,
+[data-crm-themed] .crm-content .distribute-desk .portal-card button[class*="bg-background"] * {
+  color: #8B1A2B !important;
+  stroke: #8B1A2B;
+}
+[data-crm-themed] .crm-content .distribute-desk .portal-card input {
+  background: #faf6ee !important;
+  background-color: #faf6ee !important;
+  color: #8B1A2B !important;
+  border-color: rgba(201, 168, 76, 0.45) !important;
+}
+[data-crm-themed] .crm-content .distribute-desk .portal-card input::placeholder {
+  color: #8B1A2B !important;
+  opacity: 0.65;
 }
 
 /* ============================================================

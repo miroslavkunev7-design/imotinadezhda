@@ -183,7 +183,7 @@ function DistributePage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="distribute-desk space-y-8">
       <header>
         <h1 className="flex items-center gap-2 font-display text-2xl text-amber-100">
           <Share2 className="h-6 w-6" /> Разпръскване на обяви
@@ -236,7 +236,7 @@ function DistributePage() {
             <select
               value={propertyId}
               onChange={(e) => setPropertyId(e.target.value)}
-              className="w-full rounded-xl border border-amber-200/20 bg-black/40 px-3 py-2.5 text-sm text-amber-50"
+              className="distribute-select w-full rounded-xl border border-amber-200/20 bg-[#faf6ee] px-3 py-2.5 text-sm text-[#8B1A2B]"
             >
               <option value="">— избери имот —</option>
               {(desk?.properties ?? []).map((p: any) => (
@@ -267,8 +267,8 @@ function DistributePage() {
               onClick={() => toggleChannel(p.key)}
               className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
                 channels.includes(p.key)
-                  ? "border-amber-300 bg-amber-300 text-[#2a0a12]"
-                  : "border-amber-200/25 bg-transparent text-amber-100/70"
+                  ? "channel-chip-on border-amber-300 bg-amber-300 text-[#8B1A2B]"
+                  : "channel-chip-off border-amber-200/25 bg-[#faf6ee] text-[#8B1A2B]"
               }`}
             >
               {p.label}
@@ -282,7 +282,7 @@ function DistributePage() {
             {busy === "scatter" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             Разпръсни
           </Button>
-          <Button variant="outline" onClick={shareManual} className="border-amber-200/30 text-amber-100">
+          <Button variant="outline" onClick={shareManual} className="portal-card-light-btn border-amber-200/30 bg-[#faf6ee] text-[#8B1A2B]">
             <ExternalLink className="h-4 w-4" /> Сподели ръчно във Facebook
           </Button>
         </div>
@@ -388,7 +388,7 @@ function PortalCard({
 }) {
   const oauth = portal.key === "facebook" || portal.key === "instagram";
   return (
-    <div className="rounded-2xl border border-amber-200/15 bg-black/25 p-4">
+    <div className="portal-card rounded-2xl border border-amber-200/15 bg-black/25 p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="font-semibold text-amber-50">{portal.label}</div>
@@ -419,33 +419,33 @@ function PortalCard({
             value={username}
             onChange={(e) => onUsername(e.target.value)}
             placeholder="Име / потребител"
-            className="w-full rounded-lg border border-amber-200/20 bg-black/40 px-3 py-2 text-sm text-amber-50"
+            className="w-full rounded-lg border border-amber-200/20 bg-[#faf6ee] px-3 py-2 text-sm text-[#8B1A2B]"
           />
           <input
             value={email}
             onChange={(e) => onEmail(e.target.value)}
             placeholder="Имейл за вход"
-            className="w-full rounded-lg border border-amber-200/20 bg-black/40 px-3 py-2 text-sm text-amber-50"
+            className="w-full rounded-lg border border-amber-200/20 bg-[#faf6ee] px-3 py-2 text-sm text-[#8B1A2B]"
           />
           <input
             type="password"
             value={password}
             onChange={(e) => onPassword(e.target.value)}
             placeholder="Парола"
-            className="w-full rounded-lg border border-amber-200/20 bg-black/40 px-3 py-2 text-sm text-amber-50"
+            className="w-full rounded-lg border border-amber-200/20 bg-[#faf6ee] px-3 py-2 text-sm text-[#8B1A2B]"
           />
           <input
             value={profileUrl}
             onChange={(e) => onProfileUrl(e.target.value)}
             placeholder="Линк към профила (по желание)"
-            className="w-full rounded-lg border border-amber-200/20 bg-black/40 px-3 py-2 text-sm text-amber-50"
+            className="w-full rounded-lg border border-amber-200/20 bg-[#faf6ee] px-3 py-2 text-sm text-[#8B1A2B]"
           />
           <div className="flex gap-2">
             <Button size="sm" onClick={onSave} disabled={busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
               Запиши
             </Button>
-            <Button size="sm" variant="ghost" onClick={onCloseForm}>
+            <Button size="sm" variant="ghost" onClick={onCloseForm} className="portal-card-light-btn text-[#8B1A2B]">
               Отказ
             </Button>
           </div>
@@ -473,7 +473,7 @@ function PortalCard({
             </p>
           ) : null}
           {portal.kind === "login" || portal.key === "facebook" ? (
-            <Button size="sm" variant="outline" onClick={onOpenForm} className="border-amber-200/25 text-amber-100">
+            <Button size="sm" variant="outline" onClick={onOpenForm} className="portal-card-light-btn border-amber-200/25 bg-[#faf6ee] text-[#8B1A2B]">
               {portal.connected ? "Обнови вход" : "Запиши профил"}
             </Button>
           ) : null}
