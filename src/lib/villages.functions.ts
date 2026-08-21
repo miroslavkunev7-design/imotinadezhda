@@ -22,27 +22,33 @@ export type VillageRow = {
   municipality_slug: string | null;
   distance_km: number | null;
   property_count: number;
+  kind: "village" | "resort";
 };
 
 export const getVillagesAround = createServerFn({ method: "GET" })
-  .inputValidator((d) => z.object({ citySlug: z.string().min(1).max(60) }).parse(d))
+  .inputValidator((d) =>
+    z.object({
+      citySlug: z.string().min(1).max(60),
+      kind: z.enum(["village", "resort"]).optional(),
+    }).parse(d),
+  )
   .handler(async ({ data }) => {
     const cfg = CITY_TO_OBLAST[data.citySlug];
-    if (!cfg) return { cityLabel: data.citySlug, oblast: null, municipality: null, villages: [] as VillageRow[] };
+    if (!cfg) return { cityLabel: data.citySlug, oblast: null, municipality: null, villages: [] as VillageRow[], resortCount: 0, villageCount: 0 };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let q = supabaseAdmin
       .from("villages")
-      .select("id, name, slug, oblast_slug, municipality_slug, distance_km")
+      .select("id, name, slug, oblast_slug, municipality_slug, distance_km, kind")
       .eq("oblast_slug", cfg.oblast)
       .order("distance_km", { ascending: true, nullsFirst: false })
       .order("name", { ascending: true });
     if (cfg.municipality) q = q.eq("municipality_slug", cfg.municipality);
+    if (data.kind) q = q.eq("kind", data.kind);
 
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
 
-    // Live property counts per village.
     const villageIds = (rows ?? []).map((v) => v.id);
     const countsByVillage = new Map<string, number>();
     if (villageIds.length) {
@@ -58,15 +64,32 @@ export const getVillagesAround = createServerFn({ method: "GET" })
     }
 
     const villages: VillageRow[] = (rows ?? []).map((v) => ({
-      ...v,
+      id: v.id,
+      name: v.name,
+      slug: v.slug,
+      oblast_slug: v.oblast_slug,
+      municipality_slug: v.municipality_slug,
+      distance_km: v.distance_km,
+      kind: v.kind === "resort" ? "resort" : "village",
       property_count: countsByVillage.get(v.id) ?? 0,
     }));
+
+    let countQ = supabaseAdmin
+      .from("villages")
+      .select("kind")
+      .eq("oblast_slug", cfg.oblast);
+    if (cfg.municipality) countQ = countQ.eq("municipality_slug", cfg.municipality);
+    const { data: kinds } = await countQ;
+    const resortCount = (kinds ?? []).filter((r) => r.kind === "resort").length;
+    const villageCount = (kinds ?? []).length - resortCount;
 
     return {
       cityLabel: cfg.label,
       oblast: cfg.oblast,
       municipality: cfg.municipality ?? null,
       villages,
+      resortCount,
+      villageCount,
     };
   });
 

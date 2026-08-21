@@ -92,6 +92,10 @@ export const upsertClient = createServerFn({ method: "POST" })
     if (row && row.client_type === "buyer") {
       await runMatchForClient(row.id, db);
     }
+    if (row?.id) {
+      const { rescoreClientHeuristic } = await import("@/lib/qualify.functions");
+      await rescoreClientHeuristic(db, row.id);
+    }
     return row;
   });
 

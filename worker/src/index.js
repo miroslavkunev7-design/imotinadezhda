@@ -29,6 +29,27 @@ await fs.mkdir(SCREENSHOTS_DIR, { recursive: true });
 const headless = HEADLESS !== 'false';
 const pollMs = parseInt(POLL_INTERVAL_MS, 10);
 
+const SITE_TO_PLATFORM = {
+  'imot.bg': 'imoti_bg',
+  'imoti.net': 'imoti_net',
+  'olx.bg': 'olx_bg',
+  'bazar.bg': 'bazar_bg',
+  'alo.bg': 'alo_bg',
+  'home.bg': 'home_bg',
+};
+
+async function fetchDbCredentials(siteKey) {
+  const platform = SITE_TO_PLATFORM[siteKey];
+  if (!platform) return null;
+  const { data } = await supabase
+    .from('platform_connections')
+    .select('email, username, password_secret, is_connected')
+    .eq('platform_key', platform)
+    .maybeSingle();
+  if (!data?.is_connected || !data.password_secret) return null;
+  return { email: data.email || data.username, password: data.password_secret };
+}
+
 let isRunning = false;
 
 async function fetchProperty(propertyId) {
@@ -49,9 +70,9 @@ async function processJob(job, browser) {
     return { ok: false, error: `Няма публикатор за сайт "${siteKey}"` };
   }
 
-  const credentials = publisher.getCredentials();
+  const credentials = publisher.getCredentials() || (await fetchDbCredentials(siteKey));
   if (!credentials) {
-    return { ok: false, error: `Липсват credentials за ${siteKey} в .env (скип)` };
+    return { ok: false, error: `Липсват credentials за ${siteKey} — запишете профила в CRM → Разпръскване` };
   }
 
   const property = await fetchProperty(job.property_id);

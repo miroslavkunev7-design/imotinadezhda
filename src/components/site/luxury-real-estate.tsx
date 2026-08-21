@@ -290,8 +290,27 @@ const homeCities: Array<{ name: string; image: string; href: "/cities/$slug"; pa
   { name: "Бургас", image: cityBurgas, href: "/cities/$slug", params: { slug: "burgas" } },
   { name: "Варна", image: cityVarna, href: "/cities/$slug", params: { slug: "varna" } },
   { name: "Шумен", image: cityShumen, href: "/cities/$slug", params: { slug: "shumen" } },
-  { name: "Нов пазар", image: cityNoviPazar, href: "/cities/$slug", params: { slug: "novi-pazar" } },
+  { name: "Нови пазар", image: cityNoviPazar, href: "/cities/$slug", params: { slug: "novi-pazar" } },
 ];
+
+const HOME_CITY_ORDER = ["burgas", "varna", "shumen", "novi-pazar"] as const;
+const HOME_CITY_NAMES: Record<(typeof HOME_CITY_ORDER)[number], string> = {
+  burgas: "Бургас",
+  varna: "Варна",
+  shumen: "Шумен",
+  "novi-pazar": "Нови пазар",
+};
+
+function orderedCityOptions(cities: Array<{ slug: string; name: string }>) {
+  const source = cities.length
+    ? cities
+    : HOME_CITY_ORDER.map((slug) => ({ slug, name: HOME_CITY_NAMES[slug] }));
+  return [...source].sort((a, b) => {
+    const ia = HOME_CITY_ORDER.indexOf(a.slug as (typeof HOME_CITY_ORDER)[number]);
+    const ib = HOME_CITY_ORDER.indexOf(b.slug as (typeof HOME_CITY_ORDER)[number]);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  });
+}
 
 // NOTE: removed mock arrays (burgasDistricts, listingCards, propertyThumbs,
 // propertyFacts, amenityList) — replaced by live DB data via quarterCounts /
@@ -366,12 +385,7 @@ function SearchBar({
     navigate({ to: "/search", search: params as never });
   };
 
-  const cityOptions = cities.length ? cities : [
-    { slug: "burgas", name: "Бургас" },
-    { slug: "varna", name: "Варна" },
-    { slug: "shumen", name: "Шумен" },
-    { slug: "novi-pazar", name: "Нов пазар" },
-  ];
+  const cityOptions = orderedCityOptions(cities);
 
   const isBurgundy = variant === "burgundy";
 
@@ -442,12 +456,7 @@ function QuickSearchCard({
 }: {
   cities?: Array<{ slug: string; name: string }>;
 }) {
-  const cityOptions = cities.length ? cities : [
-    { slug: "burgas", name: "Бургас" },
-    { slug: "varna", name: "Варна" },
-    { slug: "shumen", name: "Шумен" },
-    { slug: "novi-pazar", name: "Нов пазар" },
-  ];
+  const cityOptions = orderedCityOptions(cities);
   const [city, setCity] = useReactState(cityOptions[0]?.slug ?? "burgas");
   const [quarter, setQuarter] = useReactState("");
   const [ptype, setPtype] = useReactState("apartment");
@@ -936,7 +945,7 @@ function CityCardImpl({ name, image, href, params }: { name: string; image: stri
     >
       <img
         src={image}
-        alt={name}
+        alt={`Имоти в ${name} — Имоти Надежда`}
         loading="lazy"
         className="h-[108px] md:h-[230px] w-full object-cover transition duration-500 md:group-hover:scale-110"
       />
@@ -1199,8 +1208,14 @@ export function HomePage({
   featured?: FeaturedListing[];
   layout?: LayoutSection[] | null;
 } = {}) {
-  const cityList = (cities && cities.length ? cities : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug })))
-    .map((c) => ({ ...c, image: citySlugImages[c.slug] || c.image || burgasHero }));
+  const cityList = HOME_CITY_ORDER.map((slug) => {
+    const found = (cities && cities.length ? cities : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug }))).find((c) => c.slug === slug);
+    return {
+      slug,
+      name: found?.name || HOME_CITY_NAMES[slug],
+      image: citySlugImages[slug] || found?.image || burgasHero,
+    };
+  });
   const cityOpts = cityList.map((c) => ({ slug: c.slug, name: c.name }));
 
   // Default order if no saved layout
@@ -1251,7 +1266,8 @@ export function HomePage({
 
       case "cities-grid":
         return (
-          <div key={id} data-section-id="cities-grid" className="grid grid-cols-1 gap-2 md:grid-cols-4 md:gap-4">
+          <div key={id} data-section-id="cities-grid">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:gap-4">
             {cityList.map((city) => (
               <CityCard
                 key={city.slug}
@@ -1261,6 +1277,10 @@ export function HomePage({
                 params={{ slug: city.slug }}
               />
             ))}
+            </div>
+            <p className="mt-2 text-center text-[11px] tracking-[0.16em] text-white/70">
+              Имоти Надежда · <span lang="en">imoti nadezhda</span>
+            </p>
           </div>
         );
       case "trust-strip":
@@ -1309,7 +1329,7 @@ export function HomePage({
         <div className="relative z-10 flex flex-1 min-h-0 flex-col">
           <LuxuryHeader active="sale" overlay />
 
-          <h1 className="sr-only">Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен и Нови пазар</h1>
+          <h1 className="sr-only">Имоти Надежда — недвижими имоти в Шумен, Варна, Бургас и Нови пазар</h1>
           <section className="relative z-10 mx-auto flex w-full max-w-[1420px] flex-col gap-[14px] px-4 md:mt-auto md:gap-0 md:px-8 md:pt-5">
             {heroSections.map((s) => renderSection(s))}
           </section>
@@ -1575,12 +1595,7 @@ function HomeFilterPanel({
   const [areaMin, setAreaMin] = useReactState("");
   const navigate = useNavigate();
 
-  const cityOptions = cities.length ? cities : [
-    { slug: "burgas", name: "Бургас" },
-    { slug: "varna", name: "Варна" },
-    { slug: "shumen", name: "Шумен" },
-    { slug: "novi-pazar", name: "Нов пазар" },
-  ];
+  const cityOptions = orderedCityOptions(cities);
 
   const submit = () => {
     const params: Record<string, string> = {};
@@ -2095,9 +2110,9 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
             <span className="font-semibold text-[#f4d07d]">{quarter.name}</span>
           </div>
           <h1 className="max-w-4xl break-words font-serif-nadezhda text-3xl font-bold leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] md:text-5xl">
-            {quarter.name}
+            Имоти в {quarter.name}
           </h1>
-          <p className="mt-1 text-base font-semibold text-white/90 md:text-lg">гр. {city.name}</p>
+          <p className="mt-1 text-base font-semibold text-white/90 md:text-lg">гр. {city.name} — Имоти Надежда</p>
         </div>
       </div>
 
@@ -2111,7 +2126,7 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
         <div className="min-w-0 flex-1">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <p className="max-w-2xl text-base leading-relaxed text-[#3a1418]/80">
-              {quarter.description || `Един от предпочитаните квартали в гр. ${city.name} – с отлична инфраструктура, удобства и възможности за съвременен начин на живот.`}
+              {quarter.description || `Имоти Надежда предлага апартаменти и къщи в квартал ${quarter.name}, ${city.name} — продажба и под наем.`}
             </p>
             <div className="flex items-center gap-4 rounded-2xl border border-[#eaddc4] bg-white px-5 py-3 shadow-sm">
               <House className="h-7 w-7 text-[#c59441]" />
@@ -2742,12 +2757,13 @@ function InquiryForm({ propertyId, propertyTitle }: { propertyId?: string; prope
   const [status, setStatus] = useReactState<"idle" | "sending" | "ok" | "error">("idle");
   const [err, setErr] = useReactState<string | null>(null);
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus("sending"); setErr(null);
     try {
+      const hp = String(new FormData(e.currentTarget).get("website") ?? "");
       const { submitInquiry } = await import("@/lib/catalog.functions");
-      await submitInquiry({ data: { property_id: propertyId ?? null, name, email, phone: phone || undefined, message: message || undefined } });
+      await submitInquiry({ data: { property_id: propertyId ?? null, name, email, phone: phone || undefined, message: message || undefined, honeypot: hp } });
       setStatus("ok");
       setName(""); setEmail(""); setPhone(""); setMessage("");
     } catch (e: any) {
@@ -2764,10 +2780,11 @@ function InquiryForm({ propertyId, propertyTitle }: { propertyId?: string; prope
       {status === "ok" ? (
         <div className="rounded-[14px] bg-primary-foreground/10 p-4 text-base">Благодарим! Получихме запитването ви.</div>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form onSubmit={onSubmit} className="relative space-y-3">
           <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Име" className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60" />
           <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Имейл" className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60" />
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Телефон (по избор)" className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60" />
+          <input type="text" name="website" tabIndex={-1} autoComplete="off" className="absolute -left-[9999px] h-0 w-0 opacity-0" aria-hidden="true" />
           <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Съобщение" rows={4} className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60" />
           {err ? <div className="text-sm text-destructive-foreground">{err}</div> : null}
           <Button type="submit" disabled={status === "sending"} className="gold-cta-button h-14 w-full rounded-[14px] text-lg">{status === "sending" ? "Изпращане…" : "Изпрати запитване"}</Button>

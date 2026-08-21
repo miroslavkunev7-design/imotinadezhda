@@ -64,7 +64,15 @@ export const Route = createFileRoute("/api/public/hooks/task-reminders")({
           }
         }
 
-        return Response.json({ ok: true, fired, pushed, removedDeadSubs: removed });
+        let viewings = { fired: 0, emails: 0, pushed: 0 };
+        try {
+          const { runViewingReminders } = await import("@/lib/viewings-reminders.server");
+          viewings = await runViewingReminders();
+        } catch {
+          /* viewing reminders are optional if the table is missing */
+        }
+
+        return Response.json({ ok: true, fired, pushed, removedDeadSubs: removed, viewings });
       },
     },
   },

@@ -25,6 +25,7 @@ import {
   type ShumenBank,
 } from "@/lib/shumen-banks";
 import { BANK_BRANCH_PHOTOS } from "@/lib/bank-branch-photos";
+import { getDayBankRates, type DayBankRate } from "@/lib/bank-rates.functions";
 
 type ClientLite = {
   id: string;
@@ -49,9 +50,30 @@ export function BankMortgageDesk({
   onSaved?: () => void;
 }) {
   const [bank, setBank] = useState<ShumenBank | null>(null);
+  const [dayRates, setDayRates] = useState<Record<string, DayBankRate>>({});
+  const [ratesLoading, setRatesLoading] = useState(false);
 
   useEffect(() => {
     if (!open) setBank(null);
+  }, [open, client.id]);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setRatesLoading(true);
+    getDayBankRates()
+      .then((res) => {
+        if (!cancelled) setDayRates(res.rates);
+      })
+      .catch(() => {
+        if (!cancelled) setDayRates({});
+      })
+      .finally(() => {
+        if (!cancelled) setRatesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open, client.id]);
 
   return (
@@ -73,6 +95,7 @@ export function BankMortgageDesk({
           {bank ? (
             <BankWindow
               bank={bank}
+              dayRate={dayRates[bank.id]}
               client={client}
               onBack={() => setBank(null)}
               onClose={onClose}
@@ -83,7 +106,10 @@ export function BankMortgageDesk({
               <div className="flex items-center justify-between px-5 py-4">
                 <div>
                   <div className="font-display text-2xl text-[#31020c]">Банки в Шумен</div>
-                  <div className="text-xs text-muted-foreground">Ипотека за {client.full_name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Ипотека за {client.full_name}
+                    {ratesLoading ? " · взимам лихвите за днес…" : " · лихвата се взема автоматично за деня"}
+                  </div>
                 </div>
                 <button type="button" onClick={onClose} className="rounded-full p-1 hover:bg-accent/30">
                   <X className="h-5 w-5" />
@@ -112,6 +138,11 @@ export function BankMortgageDesk({
                         <span className="block text-[9px] font-bold uppercase tracking-[0.28em] opacity-90">{b.branchBoard}</span>
                         <span className="block font-display text-lg leading-tight">{b.name}</span>
                         <span className="block text-[10px] opacity-90">{b.address}</span>
+                        <span className="mt-0.5 block text-[11px] font-semibold">
+                          {ratesLoading && !dayRates[b.id]
+                            ? "лихва днес…"
+                            : `лихва днес ${fmtBg(dayRates[b.id]?.rate ?? b.rateToday, 2)}%`}
+                        </span>
                       </span>
                     </span>
                   </button>
@@ -128,12 +159,14 @@ export function BankMortgageDesk({
 
 function BankWindow({
   bank,
+  dayRate,
   client,
   onBack,
   onClose,
   onSaved,
 }: {
   bank: ShumenBank;
+  dayRate?: DayBankRate;
   client: ClientLite;
   onBack: () => void;
   onClose: () => void;
@@ -274,7 +307,7 @@ function BankWindow({
           onSaved={onSaved}
         />
 
-        <BankCalcBoard bank={bank} form={form} setForm={setForm} />
+        <BankCalcBoard bank={bank} dayRate={dayRate} form={form} setForm={setForm} />
 
         <section className="rounded-2xl border border-white/50 bg-white/92 p-3 shadow-md backdrop-blur-[2px]">
           <h3 className="mb-2 font-display text-lg" style={{ color: bank.color2 }}>Графи за ипотечен кредит</h3>
@@ -591,21 +624,28 @@ function dealNumbers(form: Record<string, string>, rateToday: number) {
 
 function BankCalcBoard({
   bank,
+  dayRate,
   form,
   setForm,
 }: {
   bank: ShumenBank;
+  dayRate?: DayBankRate;
   form: Record<string, string>;
   setForm: (next: Record<string, string>) => void;
 }) {
   const [fx, setFx] = useState<DayFx | null>(null);
   const [notary, setNotary] = useState<NotaryBreakdown | null>(null);
+  const rateToday = dayRate?.rate ?? bank.rateToday;
 
   useEffect(() => {
     fetchDayFx().then(setFx);
   }, []);
 
-  const nums = dealNumbers(form, bank.rateToday);
+  useEffect(() => {
+    setNotary(null);
+  }, [rateToday]);
+
+  const nums = dealNumbers(form, rateToday);
 
   const runLoan = () => {
     if (!nums.loan) {
@@ -645,13 +685,13 @@ function BankCalcBoard({
         <div className="rounded-xl border p-3" style={{ borderColor: `${bank.color}55`, background: "#fff" }}>
           <div className="font-display text-base" style={{ color: bank.color2 }}>Кредитен калкулатор</div>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Взима сума, срок и цена от ипотечната карта. Лихвата е днешната на {bank.short}: {fmtBg(bank.rateToday, 2)}%.
+            Взима сума, срок и цена от ипотечната карта. Лихвата е днешната на {bank.short}: {fmtBg(rateToday, 2)}%.
           </p>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
             <div>Сума: <b>{nums.loan ? `${fmtBg(nums.loan, 0)} €` : "—"}</b></div>
             <div>Срок: <b>{nums.years} г.</b></div>
             <div>Цена имот: <b>{nums.price ? `${fmtBg(nums.price, 0)} €` : "—"}</b></div>
-            <div>Лихва: <b>{fmtBg(bank.rateToday, 2)}%</b></div>
+            <div>Лихва: <b>{fmtBg(rateToday, 2)}%</b></div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" className="rounded-full text-white" style={{ background: bank.color }} onClick={runLoan}>Изчисли вноска</Button>
@@ -680,7 +720,10 @@ function BankCalcBoard({
             <div>GBP → BGN: <b>{fx?.gbpBgn ? fmtBg(fx.gbpBgn, 4) : "…"}</b></div>
             <div className="mt-2 border-t border-[#e0c45a] pt-2">
               Лихва {bank.short} днес:
-              <div className="font-display text-xl">{fmtBg(bank.rateToday, 2)}%</div>
+              <div className="font-display text-xl">{fmtBg(rateToday, 2)}%</div>
+              <div className="text-[10px] opacity-80">
+                {dayRate?.live ? dayRate.note : dayRate?.note ?? "взимам лихвата за деня…"}
+              </div>
               <div className="text-[10px] opacity-80">{bank.rateNote}</div>
             </div>
           </div>

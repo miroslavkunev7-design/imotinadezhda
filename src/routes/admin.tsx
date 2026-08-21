@@ -5,7 +5,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { checkAdminAccess, logAdminAccess } from "@/lib/audit.functions";
 import { supabase } from "@/integrations/supabase/client";
 
-const withTimeout = <T,>(promise: Promise<T>, ms = 6000): Promise<T | null> =>
+const withTimeout = <T,>(promise: Promise<T>, ms = 12000): Promise<T | null> =>
   Promise.race([
     promise,
     new Promise<null>((resolve) => window.setTimeout(() => resolve(null), ms)),
@@ -15,43 +15,50 @@ export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
+function hasOAuthReturn() {
+  if (typeof window === "undefined") return false;
+  const q = new URLSearchParams(window.location.search);
+  if (q.has("code") || q.has("error")) return true;
+  const hash = window.location.hash;
+  return hash.includes("access_token") || hash.includes("error_description");
+}
+
 /**
  * Връща валидна сесия с access_token. Ако токенът е изтекъл или близо до изтичане
  * (по-малко от 60s), прави refresh. Ако няма сесия или refresh се провали - връща null.
  */
 async function ensureFreshSession(): Promise<string | null> {
   try {
-    // 1) Вземи текущата сесия от storage
     const sessData = await withTimeout(supabase.auth.getSession());
-    if (!sessData) return null;
-    let session = sessData.data.session;
+    let session = sessData?.data.session ?? null;
 
     const nowSec = () => Math.floor(Date.now() / 1000);
     const isExpiring = (s: typeof session) =>
       !s?.access_token || (s.expires_at ?? 0) - nowSec() < 60;
 
-    // 2) Ако липсва/изтекла/близо до изтичане - опитай refresh
     if (isExpiring(session)) {
       const { data: refreshed, error: refreshErr } =
         await supabase.auth.refreshSession();
       if (refreshErr || !refreshed.session?.access_token) {
-        // refresh token е невалиден -> излез чисто
+        if (session?.access_token) return session.access_token;
         await supabase.auth.signOut().catch(() => {});
         return null;
       }
       session = refreshed.session;
     }
 
-    // 3) Финална ре-валидация срещу Auth сървъра
+    if (!session?.access_token) return null;
+
     const userResult = await withTimeout(supabase.auth.getUser());
-    if (!userResult) return null;
-    const { data: userData, error: userErr } = userResult;
-    if (userErr || !userData.user) {
-      await supabase.auth.signOut().catch(() => {});
-      return null;
+    if (userResult) {
+      const { data: userData, error: userErr } = userResult;
+      if (userErr || !userData.user) {
+        await supabase.auth.signOut().catch(() => {});
+        return null;
+      }
     }
 
-    return session?.access_token ?? null;
+    return session.access_token;
   } catch (e) {
     console.error("ensureFreshSession failed", e);
     return null;
@@ -65,6 +72,7 @@ function AdminLayout() {
 
   useEffect(() => {
     if (loading) return;
+    if (hasOAuthReturn()) return;
     if (!user) {
       navigate({ to: "/login", replace: true });
       return;

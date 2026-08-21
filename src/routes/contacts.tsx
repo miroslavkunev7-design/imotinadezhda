@@ -3,15 +3,16 @@ import { useState } from "react";
 import { SiteHeader } from "@/components/site/site-header";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { siteUrl } from "@/lib/site-config";
+import { PAGE_SEO, siteUrl } from "@/lib/site-config";
+import { SiteSeoFooter } from "@/components/site/site-seo-footer";
 
 export const Route = createFileRoute("/contacts")({
   head: () => ({
     meta: [
-      { title: "Контакти — Имоти Надежда" },
-      { name: "description", content: "Свържете се с Имоти Надежда — телефон, имейл и офиси в Шумен, Варна и Бургас." },
-      { property: "og:title", content: "Контакти — Имоти Надежда" },
-      { property: "og:description", content: "Свържете се с нашия екип." },
+      { title: PAGE_SEO.contacts.title },
+      { name: "description", content: PAGE_SEO.contacts.description },
+      { property: "og:title", content: PAGE_SEO.contacts.title },
+      { property: "og:description", content: PAGE_SEO.contacts.description },
       { property: "og:url", content: siteUrl("/contacts") },
     ],
     links: [{ rel: "canonical", href: siteUrl("/contacts") }],
@@ -30,16 +31,21 @@ function ContactsPage() {
       return;
     }
     setSending(true);
-    const { error } = await supabase.from("inquiries").insert({
-      name: form.name,
-      email: form.email || null,
-      phone: form.phone || null,
-      message: form.message,
-      source: "contacts_page",
-      status: "new",
-    } as never);
+    const res = await fetch("/api/public/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email || undefined,
+        phone: form.phone || undefined,
+        message: form.message,
+        source: "contacts",
+        channel: "web",
+        page_url: "/contacts",
+      }),
+    });
     setSending(false);
-    if (error) {
+    if (!res.ok) {
       toast.error("Грешка при изпращане. Опитайте отново.");
       return;
     }
@@ -51,8 +57,10 @@ function ContactsPage() {
     <div className="relative min-h-screen bg-gradient-to-b from-[#fbf6ea] to-white">
       <SiteHeader />
       <div className="mx-auto max-w-5xl px-4 pb-16 pt-8 md:px-8">
-        <h1 className="font-display text-4xl text-[#8B1A2B] md:text-5xl">Контакти</h1>
-        <p className="mt-2 text-[15px] text-[#2b1418]/80">Пишете ни, обадете се или заповядайте в офиса.</p>
+        <h1 className="font-display text-4xl text-[#8B1A2B] md:text-5xl">Контакти — Имоти Надежда</h1>
+        <p className="mt-2 text-[15px] text-[#2b1418]/80">
+          Пишете ни, обадете се или заповядайте в офиса в Шумен. Помагаме при покупка, продажба и наем в Шумен, Варна, Бургас и Нови пазар.
+        </p>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <div className="space-y-4 rounded-2xl border border-[#C9A84C]/40 bg-white p-6">
@@ -78,6 +86,7 @@ function ContactsPage() {
             <h2 className="font-display text-lg text-[#8B1A2B]">Изпратете съобщение</h2>
             <input required placeholder="Име" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="w-full rounded-lg border border-[#C9A84C]/40 bg-[#fbf6ea] px-3 py-2 text-sm text-[#2b1418] outline-none focus:border-[#8B1A2B]" />
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" className="absolute h-0 w-0 opacity-0" aria-hidden="true" />
             <input type="email" placeholder="Имейл" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
               className="w-full rounded-lg border border-[#C9A84C]/40 bg-[#fbf6ea] px-3 py-2 text-sm text-[#2b1418] outline-none focus:border-[#8B1A2B]" />
             <input placeholder="Телефон" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -91,6 +100,7 @@ function ContactsPage() {
           </form>
         </div>
       </div>
+      <SiteSeoFooter />
     </div>
   );
 }

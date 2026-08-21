@@ -3,7 +3,8 @@ import { z } from "zod";
 
 import { LuxuryHeader, ListingCard } from "@/components/site/luxury-real-estate";
 import { searchProperties } from "@/lib/catalog.functions";
-import { siteUrl } from "@/lib/site-config";
+import { searchCanonicalPath, searchPageSeo, siteUrl } from "@/lib/site-config";
+import { cityBySlug } from "@/lib/seo-keywords";
 
 const searchSchema = z.object({
   city_slug: z.string().optional(),
@@ -21,24 +22,41 @@ export const Route = createFileRoute("/search")({
   loaderDeps: ({ search }) => search,
   loader: async ({ deps }) => {
     const rows = await searchProperties({ data: deps as any });
-    return { results: rows ?? [] };
+    return { results: rows ?? [], seo: searchPageSeo(deps) };
   },
-  head: () => ({
-    meta: [
-      { title: "Търсене на имоти | Имоти Надежда" },
-      { name: "description", content: "Търсене на луксозни имоти в България — филтри по град, квартал, цена и площ." },
-      { property: "og:title", content: "Търсене на имоти | Имоти Надежда" },
-      { property: "og:description", content: "Търсене на луксозни имоти в България." },
-      { property: "og:url", content: siteUrl("/search") },
-    ],
-    links: [{ rel: "canonical", href: siteUrl("/search") }],
-  }),
+  head: ({ loaderData, match }) => {
+    const seo = loaderData?.seo ?? searchPageSeo(match.search);
+    const canonical = siteUrl(searchCanonicalPath(match.search));
+    return {
+      meta: [
+        { title: seo.title },
+        { name: "description", content: seo.description },
+        { property: "og:title", content: seo.title },
+        { property: "og:description", content: seo.description },
+        { property: "og:url", content: canonical },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+    };
+  },
   component: SearchRoute,
 });
 
 function SearchRoute() {
   const { results } = Route.useLoaderData();
   const search = Route.useSearch();
+  const cityName = search.city_slug ? cityBySlug(search.city_slug)?.name : undefined;
+  const heading =
+    search.status === "rent" && cityName
+      ? `Наеми в ${cityName}`
+      : search.status === "rent"
+        ? "Имоти под наем"
+        : search.status === "sale" && cityName
+          ? `Имоти за продажба в ${cityName}`
+          : search.status === "sale"
+            ? "Купи имот"
+            : cityName
+              ? `Имоти в ${cityName}`
+              : "Намерени имоти";
   return (
     <main className="luxury-page flex h-screen max-h-screen flex-col overflow-hidden bg-background">
       <LuxuryHeader active={search.status === "rent" ? "rent" : "sale"} />
@@ -48,7 +66,7 @@ function SearchRoute() {
       <header className="flex-none border-b border-[#C9A84C]/30 bg-white/80 px-4 py-3 backdrop-blur md:px-8">
         <div className="mx-auto flex max-w-[1420px] flex-wrap items-baseline justify-between gap-3">
           <h1 className="font-display text-2xl text-[#2b1418] md:text-3xl">
-            Намерени имоти
+            {heading}
           </h1>
           <span className="font-display text-sm uppercase tracking-[0.18em] text-[#8B1A2B]">
             {results.length} резултата

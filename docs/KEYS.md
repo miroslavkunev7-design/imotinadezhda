@@ -30,3 +30,10 @@
 | WHATSAPP_VERIFY_TOKEN | Webhook verify | `.env` + Vercel | Ще се сложи от мен |
 | AGENCY_PORTAL_EMAIL | Имейл за профили в институции | `.env` само | Да |
 | AGENCY_PORTAL_PASSWORD | Парола за същите профили | `.env` само | Да |
+| META_APP_ID | Facebook Login — свързване на страница за разпръскване | `.env` + Vercel | Ще се сложи от мен |
+| META_APP_SECRET | Facebook Login secret | `.env` + Vercel | Ще се сложи от мен |
+| FACEBOOK_VERIFY_TOKEN | Messenger webhook verify (ако липсва — ползва WHATSAPP_VERIFY_TOKEN) | `.env` + Vercel | Ще се сложи от мен |
+| FACEBOOK_PAGE_ACCESS_TOKEN | Изходящи Messenger съобщения (алтернатива: свързана страница) | `.env` + Vercel | Ще се сложи от мен |
+| VIBER_AUTH_TOKEN | Viber Public Account — входящи/изходящи | `.env` + Vercel | Ще се сложи от мен |
+| ASSISTANT_QUIET_HOURS_START | Тихи часове за жив брокер (default 17:30) | `.env` | Не (има default) |
+| ASSISTANT_QUIET_HOURS_END | Край на тихите часове (default 08:30) | `.env` | Не (има default) |

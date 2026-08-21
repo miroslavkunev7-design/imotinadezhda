@@ -3,8 +3,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { getArchiveDetail, updateArchive } from "@/lib/archive.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { X, Upload, FileText, Loader2, Send, CheckCircle2, Download, Trash2, Folder } from "lucide-react";
+import { X, Upload, FileText, Loader2, Send, CheckCircle2, Download, Trash2, Folder, Share2, CalendarPlus } from "lucide-react";
 import { downloadPropertyZip } from "@/lib/download-archive";
+import { ScheduleViewingDialog } from "@/components/admin/schedule-viewing-dialog";
 
 type Props = { id: string; onClose: () => void; onDeleted?: (id: string) => void; onChanged?: () => void };
 
@@ -26,6 +27,7 @@ export function PropertyDetailModal({ id, onClose, onDeleted, onChanged }: Props
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [viewingOpen, setViewingOpen] = useState(false);
 
   const fetchRow = async () => {
     try {
@@ -182,13 +184,21 @@ export function PropertyDetailModal({ id, onClose, onDeleted, onChanged }: Props
 
             {/* Images */}
             <section>
-              <div className="mb-2 flex items-center justify-between">
+              <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="text-sm font-semibold uppercase tracking-wider text-[#5a3a3f]">Снимки</div>
+                <div className="flex items-center gap-2">
+                <a
+                  href={`/admin/photos?property=${id}`}
+                  className="text-xs font-semibold text-amber-800 underline underline-offset-2"
+                >
+                  Обработи снимка
+                </a>
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#8B1A2B]/25 bg-white px-3 py-1.5 text-xs font-semibold text-[#8B1A2B] hover:bg-[#8B1A2B]/5">
                   {uploadingImages ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
                   Добави снимки
                   <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => e.target.files && uploadImages(e.target.files)} />
                 </label>
+                </div>
               </div>
               {(row.images ?? []).length ? (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
@@ -295,7 +305,20 @@ export function PropertyDetailModal({ id, onClose, onDeleted, onChanged }: Props
                 className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold shadow disabled:opacity-50 ${row.is_published ? "bg-emerald-600 text-white" : "bg-amber-500 text-primary hover:bg-amber-400"}`}
               >
                 {row.is_published ? <CheckCircle2 className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-                {row.is_published ? "Вече публикуван" : "Публикувай във всички сайтове"}
+                {row.is_published ? "На сайта" : "Публикувай на сайта"}
+              </button>
+              <a
+                href={`/admin/distribute?property=${id}`}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#1877F2] px-4 py-2.5 text-sm font-bold text-white shadow hover:brightness-110"
+              >
+                <Share2 className="h-4 w-4" /> Разпръсни
+              </a>
+              <button
+                type="button"
+                onClick={() => setViewingOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl border border-amber-600/40 bg-amber-500/15 px-4 py-2.5 text-sm font-bold text-[#8B1A2B] hover:bg-amber-500/25"
+              >
+                <CalendarPlus className="h-4 w-4" /> Насрочи оглед
               </button>
               <button
                 onClick={onZip}
@@ -316,6 +339,15 @@ export function PropertyDetailModal({ id, onClose, onDeleted, onChanged }: Props
           </div>
         )}
       </div>
+      <ScheduleViewingDialog
+        open={viewingOpen}
+        onClose={() => setViewingOpen(false)}
+        defaults={{
+          archived_property_id: id,
+          property_title: row?.title ?? null,
+          location: row?.address ?? null,
+        }}
+      />
     </div>
   );
 }

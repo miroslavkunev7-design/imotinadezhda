@@ -83,6 +83,16 @@ export function useTaskReminders() {
           /* ignore */
         }
       }
+
+      try {
+        const { processViewingReminders } = await import("@/lib/viewings.functions");
+        const viewing = await processViewingReminders();
+        for (const n of viewing.notifications ?? []) {
+          fireReminder({ title: n.title, body: n.body, audio: audioRef.current });
+        }
+      } catch {
+        /* viewings table or auth not ready */
+      }
     };
 
     // First check shortly after mount, then every 60s

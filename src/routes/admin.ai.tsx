@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Send, User as UserIcon, Mic, MicOff, Volume2, Square, Paperclip, FileText, X, Loader2, CheckCircle2, Plus, MessageSquare, Trash2, PanelLeftClose, PanelLeft, Camera, Image as ImageIcon, ScrollText, Download, Copy, Wand2 } from "lucide-react";
+import { Sparkles, Send, User as UserIcon, Mic, MicOff, Volume2, Square, Paperclip, FileText, X, Loader2, CheckCircle2, Plus, MessageSquare, Trash2, PanelLeftClose, PanelLeft, Camera, Image as ImageIcon, ScrollText, Download, Copy, Wand2, Search } from "lucide-react";
 import {
   aiAssistantChat,
   listAiConversations,
@@ -45,8 +45,10 @@ type ReviewFile = {
   reasoning: string;
 };
 
+type ImageSize = "1024x1024" | "1536x1024" | "1024x1536";
+
 type Msg =
-  | { role: "user" | "assistant"; content: string }
+  | { role: "user" | "assistant"; content: string; images?: string[] }
   | { role: "review"; batch_id: string; files: ReviewFile[]; committed?: boolean }
   | { role: "image"; prompt: string; url: string }
   | {
@@ -59,11 +61,41 @@ type Msg =
     };
 
 const SUGGESTIONS = [
+  "Проучи в интернет актуалните ипотечни лихви в България",
   "Дай ми резюме на статистиката от платформата",
   "Кои нови запитвания са с най-висок приоритет?",
   "Напиши примерно описание за луксозен тристаен в Лазур, Бургас",
-  "Кои квартали имат най-висока средна цена?",
 ];
+
+function fileToChatDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Не мога да прочета файла"));
+    reader.onload = () => {
+      const raw = String(reader.result ?? "");
+      const img = new Image();
+      img.onload = () => {
+        const max = 1280;
+        let { width, height } = img;
+        if (width > max || height > max) {
+          const scale = Math.min(max / width, max / height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { resolve(raw); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.onerror = () => resolve(raw);
+      img.src = raw;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 function AIAssistant() {
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -82,6 +114,9 @@ function AIAssistant() {
   const notaryInputRef = useRef<HTMLInputElement>(null);
   const [attachMenu, setAttachMenu] = useState(false);
   const [uploading, setUploading] = useState<{ done: number; total: number; label: string } | null>(null);
+  const [imageSize, setImageSize] = useState<ImageSize>("1024x1024");
+  const [pendingImages, setPendingImages] = useState<string[]>([]);
+  const chatImageInputRef = useRef<HTMLInputElement>(null);
 
   const refreshSessions = async () => {
     try {
@@ -167,7 +202,7 @@ function AIAssistant() {
     setBusy(true);
     setUploading({ done: 0, total: 1, label: "Генерирам изображение…" });
     try {
-      const res = await generateAiImage({ data: { prompt: clean, size: "1024x1024" } });
+      const res = await generateAiImage({ data: { prompt: clean, size: imageSize } });
       setMessages((prev) => [...prev, { role: "image", prompt: clean, url: res.image }]);
       setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     } catch (e: any) {
@@ -184,15 +219,30 @@ function AIAssistant() {
       await makeImage(imgMatch[1]);
       return;
     }
-    if (!text.trim() || busy) return;
+    const attached = pendingImages;
+    if ((!text.trim() && !attached.length) || busy) return;
 
     setError(null);
-    const next = [...messages, { role: "user" as const, content: text.trim() }];
+    const next = [...messages, {
+      role: "user" as const,
+      content: text.trim() || "Разгледай прикачената снимка.",
+      images: attached.length ? attached : undefined,
+    }];
     setMessages(next);
     setInput("");
+    setPendingImages([]);
     setBusy(true);
+    const chatMessages = next
+      .filter((m): m is Extract<Msg, { role: "user" | "assistant" }> => m.role === "user" || m.role === "assistant")
+      .map((m) => ({ role: m.role, content: m.content }));
     try {
-      const result = await aiAssistantChat({ data: { messages: next, conversation_id: conversationId } });
+      const result = await aiAssistantChat({
+        data: {
+          messages: chatMessages,
+          conversation_id: conversationId,
+          images: attached.length ? attached : undefined,
+        },
+      });
       if (result.conversation_id) setConversationId(result.conversation_id);
       setMessages([...next, { role: "assistant", content: result.reply }]);
       if (result.reply?.includes("[THEME_UPDATED]") || /тема|theme|цвят|стил/i.test(text)) {
@@ -211,6 +261,22 @@ function AIAssistant() {
 
   /* ---------- Document ingest ---------- */
   const onAttachClick = () => fileInputRef.current?.click();
+
+  const handleChatImages = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const next = [...pendingImages];
+    for (const f of Array.from(files).slice(0, 4 - next.length)) {
+      if (!f.type.startsWith("image/")) continue;
+      try {
+        next.push(await fileToChatDataUrl(f));
+      } catch {
+        /* skip broken files */
+      }
+    }
+    setPendingImages(next.slice(0, 4));
+    setAttachMenu(false);
+    if (chatImageInputRef.current) chatImageInputRef.current.value = "";
+  };
 
   /** Нотариален акт → извличане на данни + договор/разписка */
   const handleNotaryFile = async (files: FileList | null) => {
@@ -516,6 +582,13 @@ function AIAssistant() {
           <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
             {m.role === "assistant" && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"><Sparkles className="h-4 w-4" /></div>}
             <div className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+              {m.role === "user" && m.images?.length ? (
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {m.images.map((src) => (
+                    <img key={src.slice(0, 40)} src={src} alt="" className="h-16 w-16 rounded-md object-cover" />
+                  ))}
+                </div>
+              ) : null}
               {m.content}
               {m.role === "assistant" && (
                 <button
@@ -544,6 +617,24 @@ function AIAssistant() {
         {error && <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>}
         <div ref={endRef} />
       </div>
+
+      {pendingImages.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {pendingImages.map((src, i) => (
+            <div key={`${i}-${src.slice(-12)}`} className="relative">
+              <img src={src} alt="" className="h-16 w-16 rounded-lg object-cover ring-1 ring-primary/30" />
+              <button
+                type="button"
+                onClick={() => setPendingImages((prev) => prev.filter((_, j) => j !== i))}
+                className="absolute -right-1.5 -top-1.5 rounded-full bg-background p-0.5 text-muted-foreground ring-1 ring-border hover:text-foreground"
+                aria-label="Премахни снимката"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <form onSubmit={onSubmit} className="mt-4 flex gap-2">
         <input
@@ -577,6 +668,14 @@ function AIAssistant() {
           onChange={(e) => handleNotaryFile(e.target.files)}
           className="hidden"
         />
+        <input
+          ref={chatImageInputRef}
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={(e) => handleChatImages(e.target.files)}
+          className="hidden"
+        />
         <div className="relative">
           <Button
             type="button"
@@ -590,13 +689,18 @@ function AIAssistant() {
             <Plus className={cn("h-4 w-4 transition-transform", attachMenu && "rotate-45")} />
           </Button>
           {attachMenu && (
-            <div className="absolute bottom-full left-0 z-30 mb-2 w-64 overflow-hidden rounded-xl border border-primary/20 bg-popover shadow-xl">
+            <div className="absolute bottom-full left-0 z-30 mb-2 w-72 overflow-hidden rounded-xl border border-primary/20 bg-popover shadow-xl">
               {[
+                { icon: Search, label: "Проучи в интернет", hint: "търсене + източници", onClick: () => {
+                    setAttachMenu(false);
+                    const q = input.trim() || window.prompt("Какво да проуча?") || "";
+                    if (q.trim()) void send(`Проучи в интернет (използвай web_search и fetch_url): ${q.trim()}`);
+                  } },
+                { icon: ImageIcon, label: "Снимка към чата", hint: "AI я вижда и анализира", onClick: () => { setAttachMenu(false); chatImageInputRef.current?.click(); } },
                 { icon: Paperclip, label: "Документи или ZIP", hint: "PDF, снимки, архив", onClick: () => { setAttachMenu(false); onAttachClick(); } },
-                { icon: ImageIcon, label: "Снимки от галерия", hint: "автоматично изчистване", onClick: () => { setAttachMenu(false); galleryInputRef.current?.click(); } },
-                { icon: Camera, label: "Снимка с камера", hint: "сканирай на момента", onClick: () => { setAttachMenu(false); cameraInputRef.current?.click(); } },
+                { icon: Camera, label: "Снимка с камера", hint: "сканирай към документите", onClick: () => { setAttachMenu(false); cameraInputRef.current?.click(); } },
                 { icon: ScrollText, label: "Нотариален акт → договор", hint: "и разписка за депозит", onClick: () => { setAttachMenu(false); notaryInputRef.current?.click(); } },
-                { icon: Wand2, label: "Генерирай изображение", hint: "по твое описание", onClick: () => {
+                { icon: Wand2, label: "Генерирай изображение", hint: `резолюция ${imageSize}`, onClick: () => {
                     setAttachMenu(false);
                     const p = input.trim() || window.prompt("Опиши изображението, което да генерирам:") || "";
                     if (p.trim()) void makeImage(p);
@@ -615,13 +719,35 @@ function AIAssistant() {
                   </span>
                 </button>
               ))}
+              <div className="border-t border-primary/15 px-3 py-2">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Резолюция</p>
+                <div className="flex gap-1.5">
+                  {([
+                    ["1024x1024", "1:1"],
+                    ["1536x1024", "хоризонт"],
+                    ["1024x1536", "портрет"],
+                  ] as const).map(([size, label]) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => setImageSize(size)}
+                      className={cn(
+                        "rounded-md border px-2 py-1 text-[11px]",
+                        imageSize === size ? "border-primary bg-primary text-primary-foreground" : "border-primary/20 hover:border-primary",
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={listening ? "Слушам…" : "Питай помощника..."}
+          placeholder={listening ? "Слушам…" : pendingImages.length ? "Добави въпрос към снимката…" : "Питай помощника..."}
           disabled={busy}
           className="flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm"
         />
@@ -635,7 +761,7 @@ function AIAssistant() {
         >
           {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </Button>
-        <Button type="submit" disabled={busy || !input.trim()} className="gold-cta-button px-5">
+        <Button type="submit" disabled={busy || (!input.trim() && !pendingImages.length)} className="gold-cta-button px-5">
           <Send className="h-4 w-4" />
         </Button>
       </form>

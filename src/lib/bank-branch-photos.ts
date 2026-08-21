@@ -6,6 +6,7 @@ import postbank from "@/assets/crm/banks/bank-postbank-branch.png";
 import allianz from "@/assets/crm/banks/bank-allianz-branch.png";
 import ccb from "@/assets/crm/banks/bank-ccb-branch.png";
 import tbi from "@/assets/crm/banks/bank-tbi-branch.png";
+import investbank from "@/assets/crm/banks/bank-investbank-branch.png";
 
 export const BANK_BRANCH_PHOTOS: Record<string, string> = {
   dsk,
@@ -16,4 +17,5 @@ export const BANK_BRANCH_PHOTOS: Record<string, string> = {
   allianz,
   ccb,
   tbi,
+  investbank,
 };

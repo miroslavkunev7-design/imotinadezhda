@@ -170,19 +170,24 @@ export const submitInquiry = createServerFn({ method: "POST" })
         email: z.string().email().max(200),
         phone: z.string().max(40).optional(),
         message: z.string().max(2000).optional(),
+        honeypot: z.string().max(120).optional(),
       })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin.from("inquiries").insert({
+    const { ingestLead } = await import("@/lib/lead-capture");
+    const result = await ingestLead({
       property_id: data.property_id ?? null,
       name: data.name,
       email: data.email,
       phone: data.phone ?? null,
       message: data.message ?? null,
+      source: data.property_id ? "property" : "website",
+      channel: "web",
+      honeypot: data.honeypot,
     });
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    if (!result.ok) throw new Error("Невалидно запитване");
+    return { ok: true, id: result.id, duplicate: result.duplicate };
   });
 
 export const getQuarterBySlug = createServerFn({ method: "GET" })

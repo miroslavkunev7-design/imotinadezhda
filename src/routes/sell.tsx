@@ -3,15 +3,16 @@ import { useState } from "react";
 import { SiteHeader } from "@/components/site/site-header";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { siteUrl } from "@/lib/site-config";
+import { PAGE_SEO, siteUrl } from "@/lib/site-config";
+import { SiteSeoFooter } from "@/components/site/site-seo-footer";
 
 export const Route = createFileRoute("/sell")({
   head: () => ({
     meta: [
-      { title: "Продай имот — Имоти Надежда" },
-      { name: "description", content: "Продайте имота си чрез Имоти Надежда — безплатна оценка и професионална обработка." },
-      { property: "og:title", content: "Продай имот — Имоти Надежда" },
-      { property: "og:description", content: "Безплатна оценка и професионална обработка на обявата." },
+      { title: PAGE_SEO.sell.title },
+      { name: "description", content: PAGE_SEO.sell.description },
+      { property: "og:title", content: PAGE_SEO.sell.title },
+      { property: "og:description", content: PAGE_SEO.sell.description },
       { property: "og:url", content: siteUrl("/sell") },
     ],
     links: [{ rel: "canonical", href: siteUrl("/sell") }],
@@ -43,16 +44,21 @@ function SellPage() {
       form.price && `Очаквана цена: ${form.price} €`,
       form.description && `Описание: ${form.description}`,
     ].filter(Boolean).join("\n");
-    const { error } = await supabase.from("inquiries").insert({
-      name: form.name,
-      phone: form.phone,
-      email: form.email || null,
-      message,
-      source: "sell_form",
-      status: "new",
-    } as never);
+    const res = await fetch("/api/public/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name,
+        phone: form.phone,
+        email: form.email || undefined,
+        message,
+        source: "sell",
+        channel: "web",
+        page_url: "/sell",
+      }),
+    });
     setSending(false);
-    if (error) {
+    if (!res.ok) {
       toast.error("Грешка при изпращане. Опитайте отново.");
       return;
     }
@@ -66,8 +72,10 @@ function SellPage() {
     <div className="relative min-h-screen bg-gradient-to-b from-[#fbf6ea] to-white">
       <SiteHeader />
       <div className="mx-auto max-w-3xl px-4 pb-16 pt-8 md:px-8">
-        <h1 className="font-display text-4xl text-[#8B1A2B] md:text-5xl">Продай имот</h1>
-        <p className="mt-2 text-[15px] text-[#2b1418]/80">Попълнете формата и нашият екип ще се свърже с Вас за безплатна оценка и публикуване на обявата.</p>
+        <h1 className="font-display text-4xl text-[#8B1A2B] md:text-5xl">Продай имот с Имоти Надежда</h1>
+        <p className="mt-2 text-[15px] text-[#2b1418]/80">
+          Попълнете формата — екипът на Имоти Надежда ще се свърже с Вас за безплатна оценка и публикуване на обявата в Шумен, Варна, Бургас или Нови пазар.
+        </p>
 
         <form onSubmit={submit} className="mt-8 grid gap-3 rounded-2xl border border-[#C9A84C]/40 bg-white p-6 sm:grid-cols-2">
           <input required placeholder="Име *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
@@ -92,6 +100,7 @@ function SellPage() {
           </button>
         </form>
       </div>
+      <SiteSeoFooter />
     </div>
   );
 }

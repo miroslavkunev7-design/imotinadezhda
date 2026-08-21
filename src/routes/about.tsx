@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site/site-header";
-import { siteUrl } from "@/lib/site-config";
+import { PAGE_SEO, siteUrl } from "@/lib/site-config";
+import { SiteSeoFooter } from "@/components/site/site-seo-footer";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "За нас — Имоти Надежда" },
-      { name: "description", content: "Имоти Надежда — луксозна агенция за недвижими имоти в Шумен, Варна, Бургас и Нови пазар." },
-      { property: "og:title", content: "За нас — Имоти Надежда" },
-      { property: "og:description", content: "Водеща агенция за недвижими имоти с 15+ години опит." },
+      { title: PAGE_SEO.about.title },
+      { name: "description", content: PAGE_SEO.about.description },
+      { property: "og:title", content: PAGE_SEO.about.title },
+      { property: "og:description", content: PAGE_SEO.about.description },
       { property: "og:url", content: siteUrl("/about") },
     ],
     links: [{ rel: "canonical", href: siteUrl("/about") }],
@@ -38,7 +39,7 @@ function AboutPage() {
         <section className="grid gap-8 md:grid-cols-2 md:items-center">
           <div>
             <p className="font-display text-xs uppercase tracking-[0.32em] text-[#C9A84C]">Имоти Надежда</p>
-            <h1 className="mt-2 font-display text-4xl text-[#8B1A2B] md:text-5xl">За нас</h1>
+            <h1 className="mt-2 font-display text-4xl text-[#8B1A2B] md:text-5xl">За нас — Имоти Надежда</h1>
             <p className="mt-4 text-[15px] leading-relaxed text-[#2b1418]/85">
               Имоти Надежда е водеща агенция за недвижими имоти в Шумен, Варна, Бургас и Нови пазар.
               Предлагаме пълно съдействие при покупка, продажба и наем на имоти с индивидуален
@@ -92,6 +93,7 @@ function AboutPage() {
           </div>
         </section>
       </div>
+      <SiteSeoFooter />
     </div>
   );
 }

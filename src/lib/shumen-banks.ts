@@ -28,7 +28,7 @@ export type ShumenBank = {
   branchBoard: string;
   samples: string[];
   formFields: { key: string; label: string; type?: "text" | "number" | "textarea" }[];
-  /** Индикативна стикерна лихва по жилищен кредит, % годишно. */
+  /** Резервна стикерна лихва, ако дневната оферта не се върне. */
   rateToday: number;
   rateNote: string;
   docsBg: string[];
@@ -284,6 +284,35 @@ export const SHUMEN_BANKS: ShumenBank[] = [
       { key: "amount", label: "Желана сума (EUR)", type: "number" },
       { key: "years", label: "Срок (години)", type: "number" },
       { key: "income", label: "Месечен доход (EUR)", type: "number" },
+      { key: "property", label: "Имот / адрес" },
+      { key: "note", label: "Бележка към банката", type: "textarea" },
+    ],
+  },
+  {
+    id: "investbank",
+    name: "Инвестбанк",
+    short: "Инвестбанк",
+    city: "Шумен",
+    color: "#0B3A6E",
+    color2: "#062544",
+    textOn: "#f4f8ff",
+    address: "Шумен — ул. Панайот Волов 19",
+    branchBoard: "Клон Шумен",
+    rateToday: 5.50,
+    rateNote: "стикер при пълна отговорност; с бонуси (заплата / пакет / карта) може по-ниско",
+    docsBg: DOCS_BG,
+    docsAbroad: DOCS_ABROAD,
+    samples: [
+      "Заявление за ипотечен кредит",
+      "Декларация за семейно и имотно състояние",
+      "Съгласие за ЦКР и GDPR",
+      "Декларация ЗМИП",
+    ],
+    formFields: [
+      { key: "amount", label: "Желана сума (EUR)", type: "number" },
+      { key: "years", label: "Срок (години)", type: "number" },
+      { key: "income", label: "Месечен доход (EUR)", type: "number" },
+      { key: "employer", label: "Работодател" },
       { key: "property", label: "Имот / адрес" },
       { key: "note", label: "Бележка към банката", type: "textarea" },
     ],

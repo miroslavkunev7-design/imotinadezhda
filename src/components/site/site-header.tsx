@@ -36,7 +36,7 @@ export function SiteHeader({
       <Link
         to="/"
         onClick={handleLogo}
-        aria-label="Начало — Недвижими имоти Надежда"
+        aria-label="Начало — Имоти Надежда"
         className="nadezhda-nav-logo"
       >
         <NadezhdaLogo className="nadezhda-nav-logo__img" />

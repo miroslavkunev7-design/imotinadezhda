@@ -2,7 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { PropertyPage } from "@/components/site/luxury-real-estate";
 import { getPropertyById } from "@/lib/catalog.functions";
-import { siteUrl } from "@/lib/site-config";
+import { breadcrumbJsonLd, siteUrl, SITE_NAME } from "@/lib/site-config";
 
 export const Route = createFileRoute("/properties/$propertyId")({
   loader: async ({ params }) => {
@@ -13,8 +13,11 @@ export const Route = createFileRoute("/properties/$propertyId")({
   head: ({ loaderData, params }) => {
     const url = siteUrl(`/properties/${params.propertyId}`);
     const p: any = loaderData?.property;
-    const title = `${p?.title ?? "Имот"} | Имоти Надежда`;
-    const desc = (p?.description ?? "Детайли за имот, галерия и запитване.").slice(0, 160);
+    const cityName = p?.cities?.name as string | undefined;
+    const title = cityName
+      ? `${p?.title ?? "Имот"} — ${cityName} | ${SITE_NAME}`
+      : `${p?.title ?? "Имот"} | ${SITE_NAME}`;
+    const desc = (p?.description ?? `${p?.title ?? "Имот"} от ${SITE_NAME}${cityName ? ` в ${cityName}` : ""}.`).slice(0, 160);
     return {
       meta: [
         { title },
@@ -32,21 +35,40 @@ export const Route = createFileRoute("/properties/$propertyId")({
               type: "application/ld+json",
               children: JSON.stringify({
                 "@context": "https://schema.org",
-                "@type": "Product",
+                "@type": ["Product", "RealEstateListing"],
                 name: p.title,
                 description: p.description ?? undefined,
                 image: p.cover_image_url ?? undefined,
                 url,
+                brand: { "@id": "https://imotinadezhda.bg/#organization", name: SITE_NAME },
                 offers: p.price
                   ? {
                       "@type": "Offer",
                       price: String(p.price),
                       priceCurrency: p.currency ?? "EUR",
                       availability: "https://schema.org/InStock",
+                      businessFunction: p.status === "rent"
+                        ? "https://purl.org/goodrelations/v1#LeaseOut"
+                        : "https://purl.org/goodrelations/v1#Sell",
                       url,
                     }
                   : undefined,
+                ...(cityName
+                  ? { areaServed: { "@type": "City", name: cityName } }
+                  : {}),
               }),
+            },
+            {
+              type: "application/ld+json",
+              children: JSON.stringify(
+                breadcrumbJsonLd([
+                  { name: "Начало", path: "/" },
+                  ...(p?.cities?.slug
+                    ? [{ name: `Имоти в ${cityName}`, path: `/cities/${p.cities.slug}` }]
+                    : []),
+                  { name: p.title ?? "Имот", path: `/properties/${params.propertyId}` },
+                ]),
+              ),
             },
           ]
         : [],

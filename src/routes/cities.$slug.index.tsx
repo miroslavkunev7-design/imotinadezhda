@@ -2,7 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { CityLikeShumenPage } from "@/components/site/city-like-shumen-page";
 import { getCityBySlug } from "@/lib/catalog.functions";
-import { citySeo, siteUrl, SITE_NAME, SITE_URL } from "@/lib/site-config";
+import { breadcrumbJsonLd, cityKeywords, citySeo, siteUrl, SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { resolveAssetUrl } from "@/lib/asset-url";
 import shumenPanorama from "@/assets/city-photos/shumen.jpeg.asset.json";
 import varnaPanorama from "@/assets/city-photos/varna.jpeg.asset.json";
@@ -156,7 +156,7 @@ export const Route = createFileRoute("/cities/$slug/")({
       meta: [
         { title: seo.title },
         { name: "description", content: liveDescription },
-        { name: "keywords", content: `имоти ${cityName}, недвижими имоти ${cityName}, апартаменти ${cityName}, къщи ${cityName}, ${SITE_NAME}` },
+        { name: "keywords", content: cityKeywords(params.slug, cityName) },
         { property: "og:title", content: seo.title },
         { property: "og:description", content: liveDescription },
         { property: "og:url", content: url },
@@ -166,7 +166,7 @@ export const Route = createFileRoute("/cities/$slug/")({
         ...(ogImage
           ? [
               { property: "og:image", content: ogImage },
-              { property: "og:image:alt", content: `Панорама на ${cityName}` },
+              { property: "og:image:alt", content: `Имоти в ${cityName} — панорама от ${SITE_NAME}` },
               { name: "twitter:image", content: ogImage },
             ]
           : []),
@@ -178,15 +178,12 @@ export const Route = createFileRoute("/cities/$slug/")({
       scripts: [
         {
           type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Начало", item: SITE_URL },
-              { "@type": "ListItem", position: 2, name: "Градове", item: siteUrl("/cities") },
-              { "@type": "ListItem", position: 3, name: cityName, item: url },
-            ],
-          }),
+          children: JSON.stringify(
+            breadcrumbJsonLd([
+              { name: "Начало", path: "/" },
+              { name: `Имоти в ${cityName}`, path: `/cities/${params.slug}` },
+            ]),
+          ),
         },
         {
           type: "application/ld+json",
@@ -194,9 +191,12 @@ export const Route = createFileRoute("/cities/$slug/")({
             "@context": "https://schema.org",
             "@type": "RealEstateAgent",
             name: `${SITE_NAME} — ${cityName}`,
+            alternateName: ["Imoti Nadezhda", "imoti nadezhda"],
             description: liveDescription,
             url,
+            parentOrganization: { "@id": `${SITE_URL}/#organization` },
             areaServed: { "@type": "City", name: cityName },
+            knowsAbout: cityKeywords(params.slug, cityName).split(", ").slice(0, 12),
             ...(ogImage ? { image: ogImage } : {}),
           }),
         },

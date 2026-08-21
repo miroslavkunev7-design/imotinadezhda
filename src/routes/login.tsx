@@ -60,6 +60,9 @@ function LoginPage() {
   const [loginUrl, setLoginUrl] = useState<string | null>(null);
   useEffect(() => {
     setLoginUrl(`${window.location.origin}/login`);
+    const q = new URLSearchParams(window.location.search);
+    const oauthErr = q.get("error_description") || q.get("error");
+    if (oauthErr) setError(decodeURIComponent(oauthErr.replace(/\+/g, " ")));
   }, []);
 
 
@@ -82,8 +85,12 @@ function LoginPage() {
         });
         if (err) throw err;
       } else {
-        const { error: err } = await supabase.auth.signInWithPassword({ email: normEmail, password: normPassword });
+        const { data: signed, error: err } = await supabase.auth.signInWithPassword({
+          email: normEmail,
+          password: normPassword,
+        });
         if (err) throw err;
+        if (!signed.session) throw new Error("Входът мина, но сесията не се записа. Опитай пак.");
       }
 
       window.location.replace("/admin");
@@ -97,6 +104,8 @@ function LoginPage() {
         ? "Имейлът не е потвърден"
         : msg.includes("rate limit")
         ? "Твърде много опити — изчакай малко"
+        : msg.includes("redirect") || msg.includes("Redirect")
+        ? "Google не връща към локала. Опитай с имейл и парола на тази страница."
         : msg;
       setError(translated);
     } finally {
@@ -110,7 +119,7 @@ function LoginPage() {
     try {
       setRememberMe(remember);
       const result = await signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/admin`,
+        redirect_uri: `${window.location.origin}/login`,
       });
       if (result.error) {
         const msg = result.error instanceof Error ? result.error.message : String(result.error);
@@ -165,7 +174,7 @@ function LoginPage() {
               {mode === "signin" ? "Вход" : "Регистрация"}
             </h1>
             <p className="mt-1 text-sm text-[#5a3a3f]">
-              {mode === "signin" ? "Влез в админ панела" : "Създай нов профил"}
+              {mode === "signin" ? "Влез в админ панела с имейл и парола" : "Създай нов профил"}
             </p>
           </div>
 

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, Mail, MapPin, AlertTr
 import { listClients, listBrokers, upsertClient, deleteClient, getClientDocuments, addClientDocument, deleteClientDocument, updateClientDeal } from "@/lib/crm.functions";
 import { MortgageStagesModal } from "@/components/admin/mortgage-stages-modal";
 import { ClientDetailsSheet } from "@/components/admin/client-details-sheet";
+import { LeadScoreBadge } from "@/components/admin/lead-score-badge";
 import { ClientScanModal } from "@/components/admin/client-scan-modal";
 import { BankMortgageDesk } from "@/components/admin/bank-mortgage-desk";
 import { isStartedDeal, DEAL_SUBS, docBucket, bankFileLabel } from "@/lib/started-deals";
@@ -264,6 +265,12 @@ function ClientsAdmin() {
           <Button onClick={() => setScanOpen(true)} variant="outline" className="border-amber-500/50 text-amber-100 hover:bg-amber-500/15">
             <Camera className="h-4 w-4" /> Сканирай
           </Button>
+          <Link
+            to="/admin/qualify"
+            className="inline-flex items-center gap-2 rounded-md border border-amber-500/50 px-3 py-2 text-sm text-amber-100 hover:bg-amber-500/15"
+          >
+            <Sparkles className="h-4 w-4" /> Квалификация
+          </Link>
           <Button onClick={newClient} className="gold-cta-button"><Plus className="h-4 w-4" /> Нов клиент</Button>
         </div>
       </header>
@@ -581,6 +588,7 @@ function ClientsAdmin() {
           <thead className="bg-[rgba(40,8,16,0.7)] text-left text-amber-100/80">
             <tr>
               <th className="px-4 py-3">Име</th>
+              <th className="px-4 py-3">Оценка</th>
               <th className="px-4 py-3">Контакт</th>
               <th className="px-4 py-3">Тип</th>
               <th className="px-4 py-3">Търси</th>
@@ -606,6 +614,9 @@ function ClientsAdmin() {
                     )}
                   </button>
                 </td>
+                <td className="px-4 py-2">
+                  <LeadScoreBadge score={r.lead_score} tier={r.lead_tier} compact tone="light" />
+                </td>
 
                 <td className="px-4 py-2 text-xs">
                   {r.phone && <div className="flex items-center gap-1"><Phone className="h-3 w-3" />{r.phone}</div>}
@@ -628,7 +639,7 @@ function ClientsAdmin() {
                 </td>
               </tr>
             ))}
-            {!filtered.length && <tr><td colSpan={7} className="px-4 py-10 text-center text-amber-100/40">Няма клиенти. Добави нов.</td></tr>}
+            {!filtered.length && <tr><td colSpan={8} className="px-4 py-10 text-center text-amber-100/40">Няма клиенти. Добави нов.</td></tr>}
           </tbody>
         </table>
       </div>

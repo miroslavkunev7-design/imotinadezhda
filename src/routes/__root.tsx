@@ -16,7 +16,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useRouterState } from "@tanstack/react-router";
 import { initPwa } from "@/lib/pwa";
 import { enforceRememberMePolicy } from "@/lib/remember-me";
-import { SEO_KEYWORDS, siteUrl } from "@/lib/site-config";
+import { HOME_DESCRIPTION, HOME_TITLE, SEO_KEYWORDS, siteUrl } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SectionEditorOverlay } from "@/components/editor/section-editor-overlay";
 import { SupabaseConfigBanner } from "@/components/site/supabase-config-banner";
@@ -91,9 +91,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
-      { name: "description", content: "Имоти Надежда — агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар." },
+      { title: HOME_TITLE },
+      { name: "description", content: HOME_DESCRIPTION },
       { name: "keywords", content: SEO_KEYWORDS },
+      { name: "robots", content: "index, follow" },
       { name: "author", content: "Имоти Надежда" },
       { name: "theme-color", content: "#8B1A2B" },
       { name: "application-name", content: "Имоти Надежда" },
@@ -101,14 +102,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Имоти Надежда" },
       { property: "og:site_name", content: "Имоти Надежда" },
-      { property: "og:title", content: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
-      { property: "og:description", content: "Агенция Имоти Надежда. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар." },
+      { property: "og:title", content: HOME_TITLE },
+      { property: "og:description", content: HOME_DESCRIPTION },
       { property: "og:type", content: "website" },
       { property: "og:url", content: siteUrl("/") },
       { property: "og:locale", content: "bg_BG" },
+      { property: "og:image", content: siteUrl("/icon-512.png") },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
-      { name: "twitter:description", content: "Агенция Имоти Надежда. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар." },
+      { name: "twitter:title", content: HOME_TITLE },
+      { name: "twitter:description", content: HOME_DESCRIPTION },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

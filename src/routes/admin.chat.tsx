@@ -3,12 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, MessageCircle, User, Bot, UserCog, RefreshCw, Users, Trash2 } from "lucide-react";
+import { Send, MessageCircle, User, Bot, UserCog, RefreshCw, Users, Trash2, BarChart3, UserPlus } from "lucide-react";
 import officeBg from "@/assets/office-glass-tower.jpg";
+import { AssistantAnalytics } from "@/components/admin/assistant-analytics";
+import { convertChatToClient, setChatHandoff } from "@/lib/customer-assistant.functions";
 
 export const Route = createFileRoute("/admin/chat")({ component: ChatAdmin });
 
-type Tab = "team" | "customers";
+type Tab = "team" | "customers" | "analytics";
+type ChannelFilter = "all" | "site" | "whatsapp" | "messenger" | "viber" | "unanswered" | "handoff";
 
 type Chat = {
   id: string;
@@ -20,6 +23,11 @@ type Chat = {
   is_handed_off: boolean;
   last_message_at: string;
   created_at: string;
+  channel?: string | null;
+  unanswered?: boolean;
+  lead_captured?: boolean;
+  client_id?: string | null;
+  visitor_city?: string | null;
 };
 type Msg = { id: string; chat_id: string; role: string; content: string; created_at: string };
 
@@ -48,8 +56,14 @@ function ChatAdmin() {
         >
           <MessageCircle className="h-4 w-4" /> Чат с клиенти
         </button>
+        <button
+          onClick={() => setTab("analytics")}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${tab === "analytics" ? "bg-amber-500/25 text-amber-100" : "border border-amber-500/20 text-amber-100/60 hover:text-amber-100"}`}
+        >
+          <BarChart3 className="h-4 w-4" /> Аналитика 24/7
+        </button>
       </div>
-      {tab === "team" ? <TeamChat /> : <CustomerChat />}
+      {tab === "team" ? <TeamChat /> : tab === "analytics" ? <AssistantAnalytics /> : <CustomerChat />}
     </div>
   );
 }
@@ -175,6 +189,13 @@ function TeamChat() {
   );
 }
 
+const CHANNEL_SHORT: Record<string, string> = {
+  site: "Сайт",
+  whatsapp: "WA",
+  messenger: "FB",
+  viber: "Viber",
+};
+
 /* ===================== CUSTOMER CHAT (existing) ===================== */
 
 function CustomerChat() {
@@ -183,6 +204,7 @@ function CustomerChat() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [reply, setReply] = useState("");
   const [busy, setBusy] = useState(false);
+  const [filter, setFilter] = useState<ChannelFilter>("all");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const loadChats = async () => {
@@ -227,15 +249,48 @@ function CustomerChat() {
         chat_id: active.id, role: "agent", content: reply.trim(), metadata: {},
       });
       if (error) throw error;
-      if (!active.is_handed_off) {
-        await supabase.from("customer_chats").update({ is_handed_off: true, last_message_at: new Date().toISOString() }).eq("id", active.id);
-        setActive({ ...active, is_handed_off: true });
-      } else {
-        await supabase.from("customer_chats").update({ last_message_at: new Date().toISOString() }).eq("id", active.id);
-      }
+      await supabase.from("customer_chats").update({
+        is_handed_off: true,
+        unanswered: false,
+        last_message_at: new Date().toISOString(),
+      }).eq("id", active.id);
+      setActive({ ...active, is_handed_off: true, unanswered: false });
       setReply("");
     } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
   };
+
+  const convert = async () => {
+    if (!active) return;
+    setBusy(true);
+    try {
+      const res = await convertChatToClient({ data: { chat_id: active.id } });
+      toast.success(res.duplicate ? "Вече има запитване — свързано." : "Създадени са запитване и клиент.");
+      setActive({ ...active, lead_captured: true, client_id: res.client_id });
+      loadChats();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const toggleHandoff = async (on: boolean) => {
+    if (!active) return;
+    try {
+      await setChatHandoff({ data: { chat_id: active.id, handed_off: on, reason: on ? "broker" : undefined } });
+      setActive({ ...active, is_handed_off: on, unanswered: on });
+      loadChats();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const visible = chats.filter((c) => {
+    if (filter === "all") return true;
+    if (filter === "unanswered") return Boolean(c.unanswered);
+    if (filter === "handoff") return Boolean(c.is_handed_off);
+    return (c.channel || "site") === filter;
+  });
 
   return (
     <div className="flex h-[calc(100vh-220px)] gap-4">
@@ -244,12 +299,32 @@ function CustomerChat() {
           <h2 className="font-display text-amber-100">Разговори</h2>
           <button onClick={loadChats} className="text-amber-100/60 hover:text-amber-100"><RefreshCw className="h-4 w-4" /></button>
         </div>
-        {chats.length === 0 ? (
+        <div className="flex flex-wrap gap-1 border-b border-amber-500/10 p-2">
+          {([
+            ["all", "Всички"],
+            ["site", "Сайт"],
+            ["whatsapp", "WA"],
+            ["messenger", "FB"],
+            ["viber", "Viber"],
+            ["unanswered", "Отворени"],
+            ["handoff", "Брокер"],
+          ] as Array<[ChannelFilter, string]>).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`rounded-full px-2 py-0.5 text-[10px] ${filter === key ? "bg-amber-500/25 text-amber-50" : "text-amber-100/50 hover:text-amber-100"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {visible.length === 0 ? (
           <div className="p-6 text-center text-sm text-amber-100/60">Все още няма разговори.</div>
         ) : (
           <ul>
-            {chats.map(c => {
+            {visible.map(c => {
               const isActive = active?.id === c.id;
+              const ch = CHANNEL_SHORT[c.channel || "site"] || "Сайт";
               return (
                 <li key={c.id}>
                   <button onClick={() => setActive(c)}
@@ -258,13 +333,16 @@ function CustomerChat() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <span className="truncate text-sm font-semibold text-amber-100">{c.visitor_name || "Анонимен"}</span>
+                        <span className="rounded bg-amber-500/15 px-1 text-[9px] text-amber-200">{ch}</span>
                         {c.is_handed_off && <UserCog className="h-3 w-3 text-emerald-300" />}
+                        {c.unanswered && <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />}
                       </div>
                       <div className="truncate text-[11px] text-amber-100/55">
                         {c.visitor_phone || c.visitor_email || c.page_url || "—"}
                       </div>
                       <div className="text-[10px] text-amber-100/40">
                         {new Date(c.last_message_at).toLocaleString("bg-BG", { dateStyle: "short", timeStyle: "short" })}
+                        {c.lead_captured ? " · лийд" : ""}
                       </div>
                     </div>
                   </button>
@@ -284,9 +362,22 @@ function CustomerChat() {
         ) : (
           <>
             <header className="border-b border-amber-500/15 p-3">
-              <div className="font-semibold text-amber-100">{active.visitor_name || "Анонимен посетител"}</div>
-              <div className="text-xs text-amber-100/60">
-                {[active.visitor_phone, active.visitor_email, active.page_url].filter(Boolean).join(" · ")}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div className="font-semibold text-amber-100">{active.visitor_name || "Анонимен посетител"}</div>
+                  <div className="text-xs text-amber-100/60">
+                    {[CHANNEL_SHORT[active.channel || "site"], active.visitor_phone, active.visitor_email, active.visitor_city, active.page_url].filter(Boolean).join(" · ")}
+                    {active.is_handed_off ? " · AI спрян (брокер)" : " · AI"}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  <Button size="sm" variant="outline" onClick={convert} disabled={busy || Boolean(active.client_id)}>
+                    <UserPlus className="h-3.5 w-3.5" /> {active.client_id ? "Клиент" : "Към клиент"}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => toggleHandoff(!active.is_handed_off)}>
+                    {active.is_handed_off ? "Върни AI" : "Предай на брокер"}
+                  </Button>
+                </div>
               </div>
             </header>
             <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4">
@@ -297,7 +388,7 @@ function CustomerChat() {
                   </div>
                   <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${m.role === "user" ? "bg-amber-500/10 text-amber-100" : m.role === "agent" ? "bg-emerald-500/15 text-emerald-50" : "bg-sky-500/15 text-sky-50"}`}>
                     {m.content}
-                    <div className="mt-1 text-[10px] text-amber-100/40">{new Date(m.created_at).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })}</div>
+                    <div className="mt-1 text-[10px] text-amber-100/40">{new Date(m.created_at).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" })} {m.role === "assistant" ? "AI" : m.role === "agent" ? "брокер" : ""}</div>
                   </div>
                 </div>
               ))}

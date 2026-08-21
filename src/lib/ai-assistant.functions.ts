@@ -631,6 +631,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
     z.object({
       messages: z.array(messageSchema).min(1).max(60),
       conversation_id: z.string().uuid().optional().nullable(),
+      images: z.array(z.string().min(32).max(1_800_000)).max(4).optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -807,7 +808,22 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 
 ВАЖНО: Не си шаблон. Ти си опитен колега-юрист, който първо ОБЯСНЯВА, после дава ВАРИАНТИ, после ДЕЙСТВА.`;
 
-    const conversation: any[] = [{ role: "system", content: systemPrompt }, ...data.messages];
+    const conversation: any[] = [
+      { role: "system", content: systemPrompt },
+      ...data.messages.map((m, i, arr) => {
+        const lastUser = m.role === "user" && !arr.slice(i + 1).some((x) => x.role === "user");
+        if (lastUser && data.images?.length) {
+          return {
+            role: "user",
+            content: [
+              { type: "text", text: m.content || "Разгледай прикачената снимка и отговори." },
+              ...data.images.map((url) => ({ type: "image_url", image_url: { url } })),
+            ],
+          };
+        }
+        return m;
+      }),
+    ];
     let iterations = 0;
 
     while (iterations < 16) {

@@ -21,7 +21,13 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { path: "/cities/shumen", changefreq: "daily", priority: "0.9" },
   { path: "/cities/varna", changefreq: "daily", priority: "0.9" },
   { path: "/cities/burgas", changefreq: "daily", priority: "0.9" },
-  { path: "/cities/nov-pazar", changefreq: "daily", priority: "0.9" },
+  { path: "/cities/novi-pazar", changefreq: "daily", priority: "0.9" },
+  { path: "/cities/shumen/around", changefreq: "weekly", priority: "0.7" },
+  { path: "/cities/varna/around", changefreq: "weekly", priority: "0.7" },
+  { path: "/cities/burgas/around", changefreq: "weekly", priority: "0.7" },
+  { path: "/cities/novi-pazar/around", changefreq: "weekly", priority: "0.7" },
+  { path: "/search?status=sale", changefreq: "daily", priority: "0.8" },
+  { path: "/search?status=rent", changefreq: "daily", priority: "0.8" },
 ];
 
 function buildSitemapXml(entries: SitemapEntry[]) {
@@ -63,6 +69,12 @@ export const Route = createFileRoute("/sitemap.xml")({
               lastmod: (c as any).updated_at ?? undefined,
               changefreq: "weekly",
               priority: "0.8",
+            });
+            entries.push({
+              path: `/cities/${c.slug}/around`,
+              lastmod: (c as any).updated_at ?? undefined,
+              changefreq: "weekly",
+              priority: "0.7",
             });
           }
 

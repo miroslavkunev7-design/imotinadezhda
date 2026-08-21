@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,9 @@ import {
   searchPropertiesForLink,
 } from "@/lib/crm.functions";
 import { BankMortgageDesk } from "@/components/admin/bank-mortgage-desk";
+import { LeadScoreBadge } from "@/components/admin/lead-score-badge";
+import { qualifyClient } from "@/lib/qualify.functions";
+import { ScheduleViewingDialog } from "@/components/admin/schedule-viewing-dialog";
 import {
   Phone, Mail, MapPin, FileText, Upload, Trash2, Pencil,
   Download, Copy, CalendarPlus, ClipboardList, MessageSquare,
@@ -162,7 +166,7 @@ export function ClientDetailsSheet({
   const [propResults, setPropResults] = useState<LinkableProperty[]>([]);
   const [propSearching, setPropSearching] = useState(false);
   const [savingDep, setSavingDep] = useState(false);
-  const [scheduling, setScheduling] = useState(false);
+  const [viewingOpen, setViewingOpen] = useState(false);
   const [banksOpen, setBanksOpen] = useState(false);
   const banksOpenRef = useRef(false);
   banksOpenRef.current = banksOpen;
@@ -348,8 +352,13 @@ export function ClientDetailsSheet({
   const monthsCompleted = (subject: string, category: string) =>
     months.filter((m) => docsFor(subject, category, m.key).length > 0).length;
 
+  const openDoc = (doc: { file_url?: string | null }) => {
+    if (!doc?.file_url) return;
+    window.open(doc.file_url, "_blank", "noopener,noreferrer");
+  };
+
   const removeDoc = async (id: string) => {
-    if (!confirm("Изтриване?")) return;
+    if (!confirm("Изтриване на този файл?")) return;
     await deleteClientDocument({ data: { id } });
     await reload();
   };
@@ -431,63 +440,7 @@ export function ClientDetailsSheet({
     );
   };
 
-  const scheduleViewing = async () => {
-    setScheduling(true);
-    try {
-      let brokerId: string | null = client.assigned_broker_id ?? null;
-      if (!brokerId) {
-        const { data: userData } = await supabase.auth.getUser();
-        const uid = userData.user?.id;
-        if (uid) {
-          const { data } = await supabase.from("brokers").select("id").eq("user_id", uid).maybeSingle();
-          brokerId = (data as { id: string } | null)?.id ?? null;
-        }
-      }
-      if (!brokerId) {
-        const { data } = await supabase.from("brokers").select("id").limit(1).maybeSingle();
-        brokerId = (data as { id: string } | null)?.id ?? null;
-      }
-      if (!brokerId) {
-        toast.error("Няма брокер, към когото да се запише огледът.");
-        return;
-      }
-      const due = new Date();
-      due.setDate(due.getDate() + 1);
-      due.setHours(10, 0, 0, 0);
-      const end = new Date(due);
-      end.setHours(11, 0, 0, 0);
-      const { data: userRes } = await supabase.auth.getUser();
-      const payload: Record<string, unknown> = {
-        broker_id: brokerId,
-        client_id: client.id,
-        title: `Оглед — ${client.full_name}`,
-        description: clientBrief(),
-        due_at: due.toISOString(),
-        task_type: "viewing",
-        created_by: userRes.user?.id ?? null,
-        auto_action_log: {
-          end_at: end.toISOString(),
-          kind: "viewing",
-          fields: {
-            client_phone: client.phone ?? "",
-            quarter: client.quarters?.name ?? "",
-            property_type: client.search_property_type ?? "",
-          },
-        },
-      };
-      let { error } = await supabase.from("broker_tasks").insert(payload);
-      if (error && /client_id/i.test(error.message)) {
-        const { client_id: _c, ...rest } = payload;
-        ({ error } = await supabase.from("broker_tasks").insert(rest));
-      }
-      if (error) throw error;
-      toast.success("Огледът е в календара — утре в 10:00. Часът се сменя от календара.");
-    } catch (e: any) {
-      toast.error(e?.message ?? "Не стана записът в календара.");
-    } finally {
-      setScheduling(false);
-    }
-  };
+  const scheduleViewing = () => setViewingOpen(true);
 
   const downloadDoc = async (doc: any) => {
     try {
@@ -610,31 +563,69 @@ export function ClientDetailsSheet({
                   const items = docsFor(subject, cat.id, m.key);
                   const ok = items.length > 0;
                   const isUp = uploading === `${subject}${cat.id}-${m.key}`;
-                  return (
-                    <label
-                      key={m.key}
-                      className={`group flex cursor-pointer flex-col gap-1 rounded-lg border p-2 text-[11px] transition ${
-                        ok ? "border-emerald-400/60 bg-emerald-50" : "border-dashed border-rose-300/60 bg-rose-50/40 hover:border-rose-400"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-1">
-                        <span className={`truncate font-medium ${ok ? "text-emerald-800" : "text-rose-700"}`}>{m.label}</span>
-                        {ok ? <Check className="h-3.5 w-3.5 flex-none text-emerald-600" /> : <AlertCircle className="h-3.5 w-3.5 flex-none text-rose-500" />}
-                      </div>
-                      {items.length > 0 ? (
+                  const first = items[0];
+                  if (ok) {
+                    return (
+                      <div
+                        key={m.key}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => openDoc(first)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDoc(first); } }}
+                        className="group flex cursor-pointer flex-col gap-1 rounded-lg border border-emerald-400/60 bg-emerald-50 p-2 text-[11px] transition hover:border-emerald-500 hover:bg-emerald-100/80"
+                        title="Отвори документа"
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="truncate font-medium text-emerald-800">{m.label}</span>
+                          <Check className="h-3.5 w-3.5 flex-none text-emerald-600" />
+                        </div>
                         <div className="space-y-0.5">
                           {items.map((f) => (
                             <div key={f.id} className="flex items-center justify-between gap-1 text-[10px] text-emerald-700/90">
-                              <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{f.file_name}</a>
-                              <button type="button" onClick={(e) => { e.preventDefault(); removeDoc(f.id); }} className="text-rose-500 hover:text-rose-700"><Trash2 className="h-3 w-3" /></button>
+                              <span className="truncate underline-offset-2 group-hover:underline">{f.file_name}</span>
+                              <button
+                                type="button"
+                                title="Изтрий"
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeDoc(f.id); }}
+                                className="rounded p-0.5 text-rose-500 hover:bg-rose-100 hover:text-rose-700"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
                             </div>
                           ))}
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-1 text-[10px] text-rose-600/80">
-                          {isUp ? <><Loader2 className="h-3 w-3 animate-spin" /> Качване…</> : <><Upload className="h-3 w-3" /> Добави</>}
-                        </div>
-                      )}
+                        <label
+                          className="mt-0.5 inline-flex w-fit cursor-pointer items-center gap-1 text-[10px] text-emerald-800/70 hover:text-emerald-900"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {isUp ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                          Добави още
+                          <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) uploadFile(file, subject, cat.id, m.key);
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                      </div>
+                    );
+                  }
+                  return (
+                    <label
+                      key={m.key}
+                      className="group flex cursor-pointer flex-col gap-1 rounded-lg border border-dashed border-rose-300/60 bg-rose-50/40 p-2 text-[11px] transition hover:border-rose-400"
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="truncate font-medium text-rose-700">{m.label}</span>
+                        <AlertCircle className="h-3.5 w-3.5 flex-none text-rose-500" />
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] text-rose-600/80">
+                        {isUp ? <><Loader2 className="h-3 w-3 animate-spin" /> Качване…</> : <><Upload className="h-3 w-3" /> Добави</>}
+                      </div>
                       <input
                         type="file"
                         accept="image/*,application/pdf"
@@ -660,34 +651,75 @@ export function ClientDetailsSheet({
           const items = docsFor(subject, cat.id);
           const ok = items.length > 0;
           const isUp = uploading === `${subject}${cat.id}-single`;
+          const first = items[0];
+          if (ok) {
+            return (
+              <div
+                key={`${subject}${cat.id}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => openDoc(first)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDoc(first); } }}
+                className="flex cursor-pointer flex-col gap-1 rounded-xl border-2 border-emerald-400 bg-emerald-50 p-2.5 text-xs transition hover:border-emerald-500 hover:bg-emerald-100/80"
+                title="Отвори документа"
+              >
+                <div className="flex items-center justify-between gap-1">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <cat.icon className="h-3.5 w-3.5 flex-none text-primary" />
+                    <span className="truncate font-medium text-primary">{cat.label}</span>
+                  </div>
+                  <Check className="h-4 w-4 flex-none text-emerald-600" />
+                </div>
+                <div className="space-y-0.5 text-[10px] text-emerald-800">
+                  {items.map((f) => (
+                    <div key={f.id} className="flex items-center justify-between gap-1">
+                      <span className="truncate underline-offset-2 hover:underline">{f.file_name}</span>
+                      <button
+                        type="button"
+                        title="Изтрий"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeDoc(f.id); }}
+                        className="rounded p-0.5 text-rose-500 hover:bg-rose-100"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <label
+                  className="mt-0.5 inline-flex w-fit cursor-pointer items-center gap-1 text-[10px] text-emerald-800/70 hover:text-emerald-900"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {isUp ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                  Добави / замени
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadFile(file, subject, cat.id);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+            );
+          }
           return (
             <label
               key={`${subject}${cat.id}`}
-              className={`flex cursor-pointer flex-col gap-1 rounded-xl border-2 border-dashed p-2.5 text-xs transition ${
-                ok ? "border-emerald-400 bg-emerald-50" : "border-primary/25 bg-background hover:border-primary/50"
-              }`}
+              className="flex cursor-pointer flex-col gap-1 rounded-xl border-2 border-dashed border-primary/25 bg-background p-2.5 text-xs transition hover:border-primary/50"
             >
               <div className="flex items-center justify-between gap-1">
                 <div className="flex min-w-0 items-center gap-1.5">
                   <cat.icon className="h-3.5 w-3.5 flex-none text-primary" />
                   <span className="truncate font-medium text-primary">{cat.label}</span>
                 </div>
-                {ok ? <Check className="h-4 w-4 flex-none text-emerald-600" /> : <AlertCircle className="h-4 w-4 flex-none text-rose-500" />}
+                <AlertCircle className="h-4 w-4 flex-none text-rose-500" />
               </div>
-              {items.length > 0 ? (
-                <div className="space-y-0.5 text-[10px] text-emerald-800">
-                  {items.map((f) => (
-                    <div key={f.id} className="flex items-center justify-between gap-1">
-                      <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{f.file_name}</a>
-                      <button type="button" onClick={(e) => { e.preventDefault(); removeDoc(f.id); }} className="text-rose-500"><Trash2 className="h-3 w-3" /></button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                  {isUp ? <><Loader2 className="h-3 w-3 animate-spin" /> Качване…</> : <><Upload className="h-3 w-3" /> Добави документ</>}
-                </div>
-              )}
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                {isUp ? <><Loader2 className="h-3 w-3 animate-spin" /> Качване…</> : <><Upload className="h-3 w-3" /> Добави документ</>}
+              </div>
               <input
                 type="file"
                 accept="image/*,application/pdf"
@@ -765,6 +797,9 @@ export function ClientDetailsSheet({
               <DialogTitle className="font-display text-3xl font-semibold leading-tight text-[#8B1A2B] sm:text-[2.05rem]">
                 {client.full_name}
               </DialogTitle>
+              <div className="pt-1">
+                <LeadScoreBadge score={client.lead_score} tier={client.lead_tier} tone="light" />
+              </div>
               {client.phone ? (
                 <a
                   href={`tel:${tel}`}
@@ -844,13 +879,12 @@ export function ClientDetailsSheet({
             <button
               type="button"
               onClick={scheduleViewing}
-              disabled={scheduling}
               className="relative col-span-2 overflow-hidden rounded-2xl sm:col-span-4"
             >
               <img src={scheduleCover} alt="" className="absolute inset-0 h-full w-full object-cover" />
               <span className="relative flex items-center justify-center gap-1.5 bg-[#31020c]/55 py-2.5 text-[12px] font-semibold text-[#faf6ee]">
-                {scheduling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CalendarPlus className="h-3.5 w-3.5" />}
-                Запиши оглед утре 10:00
+                <CalendarPlus className="h-3.5 w-3.5" />
+                Насрочи оглед
               </span>
             </button>
           </div>
@@ -898,6 +932,31 @@ export function ClientDetailsSheet({
             <div className="mt-4 flex flex-wrap gap-2 border-t border-accent/20 pt-3">
               <Button variant="outline" size="sm" className="rounded-full" onClick={() => onEdit(client)}>
                 <Pencil className="h-3.5 w-3.5" /> Редакция
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    const r = await qualifyClient({ data: { clientId: client.id, useAi: true, applyFields: true } });
+                    toast.success(`Оценка ${r.lead_score}/100`);
+                    await onChanged();
+                  } catch (e: any) {
+                    toast.error(e?.message ?? "Квалификацията не успя");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                <Sparkles className="h-3.5 w-3.5" /> Оцени с AI
+              </Button>
+              <Button variant="outline" size="sm" className="rounded-full" asChild>
+                <Link to="/admin/contracts" search={{ client: client.id }}>
+                  <FileSignature className="h-3.5 w-3.5" /> Генерирай договор
+                </Link>
               </Button>
               <Button variant="outline" size="sm" className="rounded-full" onClick={() => setBanksOpen(true)}>
                 <CreditCard className="h-3.5 w-3.5" /> Кандидатура кредит
@@ -964,6 +1023,15 @@ export function ClientDetailsSheet({
                 <Info label="Стаи" value={roomsLine ?? "—"} icon={Home} />
                 <Info label="Площ" value={areaLine ?? "—"} icon={Sparkles} />
                 <Info label="Брокер" value={client.brokers?.full_name ?? "—"} icon={Users} />
+                <Info
+                  label="Квалификация"
+                  value={
+                    client.lead_score != null
+                      ? `${client.lead_score}/100 · ${client.qualification_source === "ai" ? "AI" : "евристика"}`
+                      : "няма оценка"
+                  }
+                  icon={Sparkles}
+                />
               </dl>
             </Chapter>
 
@@ -1006,6 +1074,12 @@ export function ClientDetailsSheet({
                   Липсват {missingDocLines("").length} неща за кредита. Натисни, за да копираш списъка и да го пратиш на клиента.
                 </button>
               )}
+              <a
+                href={`/admin/documents?client=${client.id}`}
+                className="mb-3 inline-flex items-center gap-1 text-xs font-medium text-amber-800 underline-offset-2 hover:underline"
+              >
+                Към бюрото за документи
+              </a>
               {renderDocsSubject("")}
             </Chapter>
 
@@ -1222,6 +1296,15 @@ export function ClientDetailsSheet({
           open={banksOpen}
           onClose={() => setBanksOpen(false)}
           onSaved={() => onChanged()}
+        />
+        <ScheduleViewingDialog
+          open={viewingOpen}
+          onClose={() => setViewingOpen(false)}
+          defaults={{
+            client_id: client.id,
+            broker_id: client.assigned_broker_id,
+            property_id: interestPropertyId,
+          }}
         />
       </DialogContent>
     </Dialog>

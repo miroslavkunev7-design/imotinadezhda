@@ -39,3 +39,5 @@ scripts/.migration-batches-remaining/
 tests/visual/current/
 tests/visual/diff/
 .vercel
+
+.vercel

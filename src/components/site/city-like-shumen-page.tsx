@@ -17,11 +17,14 @@ import {
   User,
   Users,
   Building2,
+  Compass,
 } from "lucide-react";
 
 import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { SiteHeader } from "@/components/site/site-header";
+import { SiteSeoFooter } from "@/components/site/site-seo-footer";
 import { InstallCrmButton } from "@/components/site/install-crm-button";
+import { citySeo } from "@/lib/site-config";
 import { shouldPlayHeroVideo } from "@/lib/device-perf";
 
 // Shumen quarter photo tiles (label baked into the image).
@@ -91,7 +94,7 @@ function HeaderNav() {
 }
 
 /* Clean quarter card — matches the reference 1:1 */
-function QuarterCard({ image, title, count, slug, citySlug, fill }: { image: string; title: string; count: number; slug: string; citySlug: string; fill?: boolean }) {
+function QuarterCard({ image, title, count, slug, citySlug, cityLabel, fill }: { image: string; title: string; count: number; slug: string; citySlug: string; cityLabel: string; fill?: boolean }) {
   return (
     <Link
       to="/cities/$slug/districts/$district"
@@ -102,7 +105,7 @@ function QuarterCard({ image, title, count, slug, citySlug, fill }: { image: str
         {image ? (
           <img
             src={image}
-            alt={title}
+            alt={`Имоти в квартал ${title}, ${cityLabel}`}
             loading="lazy"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
@@ -119,6 +122,38 @@ function QuarterCard({ image, title, count, slug, citySlug, fill }: { image: str
       <FleurOrnament />
       <span className="quarter-card__arrow" aria-hidden>
         <ArrowRight className="w-5 h-5" strokeWidth={2.4} />
+      </span>
+    </Link>
+  );
+}
+
+function AroundCityCard({
+  citySlug,
+  cityLabel,
+  aroundCount,
+}: {
+  citySlug: string;
+  cityLabel: string;
+  aroundCount?: number;
+}) {
+  const oblastHint =
+    citySlug === "burgas" ? "Курорти и села"
+    : citySlug === "varna" ? "Села в областта"
+    : citySlug === "novi-pazar" ? "Села в общината"
+    : "Села в областта";
+  return (
+    <Link
+      to="/cities/$slug/around"
+      params={{ slug: citySlug } as never}
+      className="group relative overflow-hidden rounded-2xl border border-[#c9a84c] nadezhda-dark-red-bg px-4 py-4 text-white shadow-lg transition hover:brightness-110"
+    >
+      <Compass className="mb-2 h-7 w-7 text-[#f4d07d] transition group-hover:scale-110" />
+      <div className="font-serif-nadezhda text-lg font-bold leading-tight">Около {cityLabel}</div>
+      <div className="mt-1 text-[11px] text-[#f4d07d]/95">
+        {aroundCount ? `${aroundCount} имота · ${oblastHint}` : oblastHint}
+      </div>
+      <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-white/90">
+        Отвори картата <ArrowRight className="h-3.5 w-3.5" />
       </span>
     </Link>
   );
@@ -250,24 +285,28 @@ export function CityLikeShumenPage(p: CityHomeProps) {
               preload="metadata"
               disablePictureInPicture
               poster={p.panoramaUrl}
+              aria-label={`Имоти в ${p.cityLabel} — панорама от Имоти Надежда`}
             >
               {p.heroVideoWebmUrl ? <source src={p.heroVideoWebmUrl} type="video/webm" /> : null}
               <source src={p.heroVideoUrl} type="video/mp4" />
             </video>
           ) : (
-            <img src={p.panoramaUrl} alt={p.cityLabel} className="w-full h-full object-cover block" loading="eager" />
+            <img src={p.panoramaUrl} alt={`Имоти в ${p.cityLabel} — панорама от Имоти Надежда`} className="w-full h-full object-cover block" loading="eager" />
           )}
         </div>
         <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6 md:gap-10 lg:gap-12 items-stretch">
           <div className="hidden lg:block" />
           <div className="text-white flex flex-col justify-center lg:min-h-[430px]">
-            <div className="text-[#e8c974] text-[11px] md:text-xs tracking-[0.28em] uppercase font-bold mb-3">За града</div>
-            <h1 className="text-5xl md:text-6xl lg:text-[80px] font-serif-nadezhda text-[#f0d78c] leading-none mb-4 md:mb-5">{p.cityLabel}</h1>
+            <div className="text-[#e8c974] text-[11px] md:text-xs tracking-[0.28em] uppercase font-bold mb-3">Имоти Надежда</div>
+            <h1 className="text-5xl md:text-6xl lg:text-[80px] font-serif-nadezhda text-[#f0d78c] leading-none mb-4 md:mb-5">
+              <span className="block text-2xl md:text-3xl lg:text-4xl text-[#f5ecc8] mb-2">Имоти в</span>
+              {p.cityLabel}
+            </h1>
             <p
               className="text-sm md:text-base text-[#f5ecc8]/85 leading-relaxed max-w-lg mb-5 md:mb-7"
               style={{ minHeight: "4.8em" }}
             >
-              {p.cityDescription}
+              {citySeo(p.citySlug, p.cityLabel).intro} {p.cityDescription}
             </p>
             <div className="h-px w-full bg-gradient-to-r from-[#c9a84c]/60 via-[#c9a84c]/30 to-transparent mb-5 md:mb-7" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -345,7 +384,7 @@ export function CityLikeShumenPage(p: CityHomeProps) {
                   }))
               ).map((q) => (
                 <div key={q.slug} className="snap-start shrink-0 w-[70%] sm:w-[38%] md:w-[26%] lg:w-[calc((100%-4*1.25rem)/5)]">
-                  <QuarterCard image={q.image} title={q.name} count={q.count} slug={q.slug} citySlug={p.citySlug} fill={q.fill} />
+                  <QuarterCard image={q.image} title={q.name} count={q.count} slug={q.slug} citySlug={p.citySlug} cityLabel={p.cityLabel} fill={q.fill} />
                 </div>
               ))}
             </div>
@@ -363,9 +402,15 @@ export function CityLikeShumenPage(p: CityHomeProps) {
               <span className="text-left leading-tight">Виж всички<br />квартали</span>
               <ArrowRight className="w-4 h-4 flex-none" />
             </Link>
+            <AroundCityCard
+              citySlug={p.citySlug}
+              cityLabel={p.cityLabel}
+              aroundCount={p.aroundCount}
+            />
           </div>
         </div>
       </section>
+      <SiteSeoFooter />
       <InstallCrmButton />
     </div>
   );

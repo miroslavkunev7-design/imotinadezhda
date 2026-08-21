@@ -20,14 +20,17 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PropertiesPropertyIdRouteImport } from './routes/properties.$propertyId'
+import { Route as AdminViewingsRouteImport } from './routes/admin.viewings'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminSchemaRouteImport } from './routes/admin.schema'
 import { Route as AdminRulesRouteImport } from './routes/admin.rules'
 import { Route as AdminRentalsRouteImport } from './routes/admin.rentals'
 import { Route as AdminQuartersRouteImport } from './routes/admin.quarters'
+import { Route as AdminQualifyRouteImport } from './routes/admin.qualify'
 import { Route as AdminPropertiesRouteImport } from './routes/admin.properties'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
+import { Route as AdminPhotosRouteImport } from './routes/admin.photos'
 import { Route as AdminOwnersRouteImport } from './routes/admin.owners'
 import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
 import { Route as AdminMarketingRouteImport } from './routes/admin.marketing'
@@ -36,6 +39,7 @@ import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminExtractedRouteImport } from './routes/admin.extracted'
 import { Route as AdminDocumentsRouteImport } from './routes/admin.documents'
 import { Route as AdminDnsRouteImport } from './routes/admin.dns'
+import { Route as AdminDistributeRouteImport } from './routes/admin.distribute'
 import { Route as AdminContractsRouteImport } from './routes/admin.contracts'
 import { Route as AdminContactsRouteImport } from './routes/admin.contacts'
 import { Route as AdminClientsRouteImport } from './routes/admin.clients'
@@ -43,10 +47,13 @@ import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
 import { Route as AdminChatRouteImport } from './routes/admin.chat'
 import { Route as AdminCalendarRouteImport } from './routes/admin.calendar'
 import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
+import { Route as AdminBotsRouteImport } from './routes/admin.bots'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminAssistantRouteImport } from './routes/admin.assistant'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as CitiesSlugIndexRouteImport } from './routes/cities.$slug.index'
 import { Route as CitiesSlugAroundRouteImport } from './routes/cities.$slug.around'
+import { Route as ApiPublicLeadsRouteImport } from './routes/api/public/leads'
 import { Route as ApiPublicCustomerChatRouteImport } from './routes/api/public/customer-chat'
 import { Route as AdminSettingsThemeRouteImport } from './routes/admin.settings.theme'
 import { Route as AdminSettingsPageEditorRouteImport } from './routes/admin.settings.page-editor'
@@ -55,7 +62,11 @@ import { Route as AdminSettingsImagesRouteImport } from './routes/admin.settings
 import { Route as AdminDebugQuartersRouteImport } from './routes/admin.debug.quarters'
 import { Route as AdminAuditIdRouteImport } from './routes/admin.audit.$id'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
+import { Route as ApiPublicHooksWhatsappRouteImport } from './routes/api/public/hooks/whatsapp'
+import { Route as ApiPublicHooksViberRouteImport } from './routes/api/public/hooks/viber'
 import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
+import { Route as ApiPublicHooksFacebookOauthRouteImport } from './routes/api/public/hooks/facebook-oauth'
+import { Route as ApiPublicHooksFacebookMessengerRouteImport } from './routes/api/public/hooks/facebook-messenger'
 import { Route as ApiEmailQueueProcessRouteImport } from './routes/api/email/queue/process'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -113,6 +124,11 @@ const PropertiesPropertyIdRoute = PropertiesPropertyIdRouteImport.update({
   path: '/properties/$propertyId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminViewingsRoute = AdminViewingsRouteImport.update({
+  id: '/viewings',
+  path: '/viewings',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminTasksRoute = AdminTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -143,6 +159,11 @@ const AdminQuartersRoute = AdminQuartersRouteImport.update({
   path: '/quarters',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminQualifyRoute = AdminQualifyRouteImport.update({
+  id: '/qualify',
+  path: '/qualify',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPropertiesRoute = AdminPropertiesRouteImport.update({
   id: '/properties',
   path: '/properties',
@@ -151,6 +172,11 @@ const AdminPropertiesRoute = AdminPropertiesRouteImport.update({
 const AdminProfileRoute = AdminProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPhotosRoute = AdminPhotosRouteImport.update({
+  id: '/photos',
+  path: '/photos',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminOwnersRoute = AdminOwnersRouteImport.update({
@@ -193,6 +219,11 @@ const AdminDnsRoute = AdminDnsRouteImport.update({
   path: '/dns',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDistributeRoute = AdminDistributeRouteImport.update({
+  id: '/distribute',
+  path: '/distribute',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminContractsRoute = AdminContractsRouteImport.update({
   id: '/contracts',
   path: '/contracts',
@@ -228,9 +259,19 @@ const AdminBrokersRoute = AdminBrokersRouteImport.update({
   path: '/brokers',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBotsRoute = AdminBotsRouteImport.update({
+  id: '/bots',
+  path: '/bots',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAssistantRoute = AdminAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAiRoute = AdminAiRouteImport.update({
@@ -246,6 +287,11 @@ const CitiesSlugIndexRoute = CitiesSlugIndexRouteImport.update({
 const CitiesSlugAroundRoute = CitiesSlugAroundRouteImport.update({
   id: '/cities/$slug/around',
   path: '/cities/$slug/around',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLeadsRoute = ApiPublicLeadsRouteImport.update({
+  id: '/api/public/leads',
+  path: '/api/public/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicCustomerChatRoute = ApiPublicCustomerChatRouteImport.update({
@@ -290,10 +336,32 @@ const CitiesSlugDistrictsDistrictRoute =
     path: '/cities/$slug/districts/$district',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksWhatsappRoute = ApiPublicHooksWhatsappRouteImport.update({
+  id: '/api/public/hooks/whatsapp',
+  path: '/api/public/hooks/whatsapp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksViberRoute = ApiPublicHooksViberRouteImport.update({
+  id: '/api/public/hooks/viber',
+  path: '/api/public/hooks/viber',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksTaskRemindersRoute =
   ApiPublicHooksTaskRemindersRouteImport.update({
     id: '/api/public/hooks/task-reminders',
     path: '/api/public/hooks/task-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksFacebookOauthRoute =
+  ApiPublicHooksFacebookOauthRouteImport.update({
+    id: '/api/public/hooks/facebook-oauth',
+    path: '/api/public/hooks/facebook-oauth',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksFacebookMessengerRoute =
+  ApiPublicHooksFacebookMessengerRouteImport.update({
+    id: '/api/public/hooks/facebook-messenger',
+    path: '/api/public/hooks/facebook-messenger',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiEmailQueueProcessRoute = ApiEmailQueueProcessRouteImport.update({
@@ -313,7 +381,9 @@ export interface FileRoutesByFullPath {
   '/sell': typeof SellRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ai': typeof AdminAiRoute
+  '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
+  '/admin/bots': typeof AdminBotsRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/calendar': typeof AdminCalendarRoute
   '/admin/chat': typeof AdminChatRoute
@@ -321,6 +391,7 @@ export interface FileRoutesByFullPath {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/contracts': typeof AdminContractsRoute
+  '/admin/distribute': typeof AdminDistributeRoute
   '/admin/dns': typeof AdminDnsRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
@@ -329,14 +400,17 @@ export interface FileRoutesByFullPath {
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/owners': typeof AdminOwnersRoute
+  '/admin/photos': typeof AdminPhotosRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
+  '/admin/qualify': typeof AdminQualifyRoute
   '/admin/quarters': typeof AdminQuartersRoute
   '/admin/rentals': typeof AdminRentalsRoute
   '/admin/rules': typeof AdminRulesRoute
   '/admin/schema': typeof AdminSchemaRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
+  '/admin/viewings': typeof AdminViewingsRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
@@ -346,10 +420,15 @@ export interface FileRoutesByFullPath {
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/admin/settings/theme': typeof AdminSettingsThemeRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
+  '/api/public/leads': typeof ApiPublicLeadsRoute
   '/cities/$slug/around': typeof CitiesSlugAroundRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/api/email/queue/process': typeof ApiEmailQueueProcessRoute
+  '/api/public/hooks/facebook-messenger': typeof ApiPublicHooksFacebookMessengerRoute
+  '/api/public/hooks/facebook-oauth': typeof ApiPublicHooksFacebookOauthRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
+  '/api/public/hooks/viber': typeof ApiPublicHooksViberRoute
+  '/api/public/hooks/whatsapp': typeof ApiPublicHooksWhatsappRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
 export interface FileRoutesByTo {
@@ -362,7 +441,9 @@ export interface FileRoutesByTo {
   '/sell': typeof SellRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ai': typeof AdminAiRoute
+  '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
+  '/admin/bots': typeof AdminBotsRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/calendar': typeof AdminCalendarRoute
   '/admin/chat': typeof AdminChatRoute
@@ -370,6 +451,7 @@ export interface FileRoutesByTo {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/contracts': typeof AdminContractsRoute
+  '/admin/distribute': typeof AdminDistributeRoute
   '/admin/dns': typeof AdminDnsRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
@@ -378,14 +460,17 @@ export interface FileRoutesByTo {
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/owners': typeof AdminOwnersRoute
+  '/admin/photos': typeof AdminPhotosRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
+  '/admin/qualify': typeof AdminQualifyRoute
   '/admin/quarters': typeof AdminQuartersRoute
   '/admin/rentals': typeof AdminRentalsRoute
   '/admin/rules': typeof AdminRulesRoute
   '/admin/schema': typeof AdminSchemaRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
+  '/admin/viewings': typeof AdminViewingsRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
@@ -395,10 +480,15 @@ export interface FileRoutesByTo {
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/admin/settings/theme': typeof AdminSettingsThemeRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
+  '/api/public/leads': typeof ApiPublicLeadsRoute
   '/cities/$slug/around': typeof CitiesSlugAroundRoute
   '/cities/$slug': typeof CitiesSlugIndexRoute
   '/api/email/queue/process': typeof ApiEmailQueueProcessRoute
+  '/api/public/hooks/facebook-messenger': typeof ApiPublicHooksFacebookMessengerRoute
+  '/api/public/hooks/facebook-oauth': typeof ApiPublicHooksFacebookOauthRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
+  '/api/public/hooks/viber': typeof ApiPublicHooksViberRoute
+  '/api/public/hooks/whatsapp': typeof ApiPublicHooksWhatsappRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
 export interface FileRoutesById {
@@ -413,7 +503,9 @@ export interface FileRoutesById {
   '/sell': typeof SellRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ai': typeof AdminAiRoute
+  '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
+  '/admin/bots': typeof AdminBotsRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/calendar': typeof AdminCalendarRoute
   '/admin/chat': typeof AdminChatRoute
@@ -421,6 +513,7 @@ export interface FileRoutesById {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/contracts': typeof AdminContractsRoute
+  '/admin/distribute': typeof AdminDistributeRoute
   '/admin/dns': typeof AdminDnsRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
@@ -429,14 +522,17 @@ export interface FileRoutesById {
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/matches': typeof AdminMatchesRoute
   '/admin/owners': typeof AdminOwnersRoute
+  '/admin/photos': typeof AdminPhotosRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
+  '/admin/qualify': typeof AdminQualifyRoute
   '/admin/quarters': typeof AdminQuartersRoute
   '/admin/rentals': typeof AdminRentalsRoute
   '/admin/rules': typeof AdminRulesRoute
   '/admin/schema': typeof AdminSchemaRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
+  '/admin/viewings': typeof AdminViewingsRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
@@ -446,10 +542,15 @@ export interface FileRoutesById {
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/admin/settings/theme': typeof AdminSettingsThemeRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
+  '/api/public/leads': typeof ApiPublicLeadsRoute
   '/cities/$slug/around': typeof CitiesSlugAroundRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
   '/api/email/queue/process': typeof ApiEmailQueueProcessRoute
+  '/api/public/hooks/facebook-messenger': typeof ApiPublicHooksFacebookMessengerRoute
+  '/api/public/hooks/facebook-oauth': typeof ApiPublicHooksFacebookOauthRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
+  '/api/public/hooks/viber': typeof ApiPublicHooksViberRoute
+  '/api/public/hooks/whatsapp': typeof ApiPublicHooksWhatsappRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
 }
 export interface FileRouteTypes {
@@ -465,7 +566,9 @@ export interface FileRouteTypes {
     | '/sell'
     | '/sitemap.xml'
     | '/admin/ai'
+    | '/admin/assistant'
     | '/admin/audit'
+    | '/admin/bots'
     | '/admin/brokers'
     | '/admin/calendar'
     | '/admin/chat'
@@ -473,6 +576,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/contacts'
     | '/admin/contracts'
+    | '/admin/distribute'
     | '/admin/dns'
     | '/admin/documents'
     | '/admin/extracted'
@@ -481,14 +585,17 @@ export interface FileRouteTypes {
     | '/admin/marketing'
     | '/admin/matches'
     | '/admin/owners'
+    | '/admin/photos'
     | '/admin/profile'
     | '/admin/properties'
+    | '/admin/qualify'
     | '/admin/quarters'
     | '/admin/rentals'
     | '/admin/rules'
     | '/admin/schema'
     | '/admin/settings'
     | '/admin/tasks'
+    | '/admin/viewings'
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
@@ -498,10 +605,15 @@ export interface FileRouteTypes {
     | '/admin/settings/page-editor'
     | '/admin/settings/theme'
     | '/api/public/customer-chat'
+    | '/api/public/leads'
     | '/cities/$slug/around'
     | '/cities/$slug/'
     | '/api/email/queue/process'
+    | '/api/public/hooks/facebook-messenger'
+    | '/api/public/hooks/facebook-oauth'
     | '/api/public/hooks/task-reminders'
+    | '/api/public/hooks/viber'
+    | '/api/public/hooks/whatsapp'
     | '/cities/$slug/districts/$district'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -514,7 +626,9 @@ export interface FileRouteTypes {
     | '/sell'
     | '/sitemap.xml'
     | '/admin/ai'
+    | '/admin/assistant'
     | '/admin/audit'
+    | '/admin/bots'
     | '/admin/brokers'
     | '/admin/calendar'
     | '/admin/chat'
@@ -522,6 +636,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/contacts'
     | '/admin/contracts'
+    | '/admin/distribute'
     | '/admin/dns'
     | '/admin/documents'
     | '/admin/extracted'
@@ -530,14 +645,17 @@ export interface FileRouteTypes {
     | '/admin/marketing'
     | '/admin/matches'
     | '/admin/owners'
+    | '/admin/photos'
     | '/admin/profile'
     | '/admin/properties'
+    | '/admin/qualify'
     | '/admin/quarters'
     | '/admin/rentals'
     | '/admin/rules'
     | '/admin/schema'
     | '/admin/settings'
     | '/admin/tasks'
+    | '/admin/viewings'
     | '/properties/$propertyId'
     | '/admin'
     | '/admin/audit/$id'
@@ -547,10 +665,15 @@ export interface FileRouteTypes {
     | '/admin/settings/page-editor'
     | '/admin/settings/theme'
     | '/api/public/customer-chat'
+    | '/api/public/leads'
     | '/cities/$slug/around'
     | '/cities/$slug'
     | '/api/email/queue/process'
+    | '/api/public/hooks/facebook-messenger'
+    | '/api/public/hooks/facebook-oauth'
     | '/api/public/hooks/task-reminders'
+    | '/api/public/hooks/viber'
+    | '/api/public/hooks/whatsapp'
     | '/cities/$slug/districts/$district'
   id:
     | '__root__'
@@ -564,7 +687,9 @@ export interface FileRouteTypes {
     | '/sell'
     | '/sitemap.xml'
     | '/admin/ai'
+    | '/admin/assistant'
     | '/admin/audit'
+    | '/admin/bots'
     | '/admin/brokers'
     | '/admin/calendar'
     | '/admin/chat'
@@ -572,6 +697,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/contacts'
     | '/admin/contracts'
+    | '/admin/distribute'
     | '/admin/dns'
     | '/admin/documents'
     | '/admin/extracted'
@@ -580,14 +706,17 @@ export interface FileRouteTypes {
     | '/admin/marketing'
     | '/admin/matches'
     | '/admin/owners'
+    | '/admin/photos'
     | '/admin/profile'
     | '/admin/properties'
+    | '/admin/qualify'
     | '/admin/quarters'
     | '/admin/rentals'
     | '/admin/rules'
     | '/admin/schema'
     | '/admin/settings'
     | '/admin/tasks'
+    | '/admin/viewings'
     | '/properties/$propertyId'
     | '/admin/'
     | '/admin/audit/$id'
@@ -597,10 +726,15 @@ export interface FileRouteTypes {
     | '/admin/settings/page-editor'
     | '/admin/settings/theme'
     | '/api/public/customer-chat'
+    | '/api/public/leads'
     | '/cities/$slug/around'
     | '/cities/$slug/'
     | '/api/email/queue/process'
+    | '/api/public/hooks/facebook-messenger'
+    | '/api/public/hooks/facebook-oauth'
     | '/api/public/hooks/task-reminders'
+    | '/api/public/hooks/viber'
+    | '/api/public/hooks/whatsapp'
     | '/cities/$slug/districts/$district'
   fileRoutesById: FileRoutesById
 }
@@ -616,10 +750,15 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
   ApiPublicCustomerChatRoute: typeof ApiPublicCustomerChatRoute
+  ApiPublicLeadsRoute: typeof ApiPublicLeadsRoute
   CitiesSlugAroundRoute: typeof CitiesSlugAroundRoute
   CitiesSlugIndexRoute: typeof CitiesSlugIndexRoute
   ApiEmailQueueProcessRoute: typeof ApiEmailQueueProcessRoute
+  ApiPublicHooksFacebookMessengerRoute: typeof ApiPublicHooksFacebookMessengerRoute
+  ApiPublicHooksFacebookOauthRoute: typeof ApiPublicHooksFacebookOauthRoute
   ApiPublicHooksTaskRemindersRoute: typeof ApiPublicHooksTaskRemindersRoute
+  ApiPublicHooksViberRoute: typeof ApiPublicHooksViberRoute
+  ApiPublicHooksWhatsappRoute: typeof ApiPublicHooksWhatsappRoute
   CitiesSlugDistrictsDistrictRoute: typeof CitiesSlugDistrictsDistrictRoute
 }
 
@@ -702,6 +841,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropertiesPropertyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/viewings': {
+      id: '/admin/viewings'
+      path: '/viewings'
+      fullPath: '/admin/viewings'
+      preLoaderRoute: typeof AdminViewingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/tasks': {
       id: '/admin/tasks'
       path: '/tasks'
@@ -744,6 +890,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminQuartersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/qualify': {
+      id: '/admin/qualify'
+      path: '/qualify'
+      fullPath: '/admin/qualify'
+      preLoaderRoute: typeof AdminQualifyRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/properties': {
       id: '/admin/properties'
       path: '/properties'
@@ -756,6 +909,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/admin/profile'
       preLoaderRoute: typeof AdminProfileRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/photos': {
+      id: '/admin/photos'
+      path: '/photos'
+      fullPath: '/admin/photos'
+      preLoaderRoute: typeof AdminPhotosRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/owners': {
@@ -814,6 +974,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDnsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/distribute': {
+      id: '/admin/distribute'
+      path: '/distribute'
+      fullPath: '/admin/distribute'
+      preLoaderRoute: typeof AdminDistributeRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/contracts': {
       id: '/admin/contracts'
       path: '/contracts'
@@ -863,11 +1030,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBrokersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/bots': {
+      id: '/admin/bots'
+      path: '/bots'
+      fullPath: '/admin/bots'
+      preLoaderRoute: typeof AdminBotsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/audit': {
       id: '/admin/audit'
       path: '/audit'
       fullPath: '/admin/audit'
       preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/assistant': {
+      id: '/admin/assistant'
+      path: '/assistant'
+      fullPath: '/admin/assistant'
+      preLoaderRoute: typeof AdminAssistantRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/ai': {
@@ -889,6 +1070,13 @@ declare module '@tanstack/react-router' {
       path: '/cities/$slug/around'
       fullPath: '/cities/$slug/around'
       preLoaderRoute: typeof CitiesSlugAroundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/leads': {
+      id: '/api/public/leads'
+      path: '/api/public/leads'
+      fullPath: '/api/public/leads'
+      preLoaderRoute: typeof ApiPublicLeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/customer-chat': {
@@ -947,11 +1135,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CitiesSlugDistrictsDistrictRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/whatsapp': {
+      id: '/api/public/hooks/whatsapp'
+      path: '/api/public/hooks/whatsapp'
+      fullPath: '/api/public/hooks/whatsapp'
+      preLoaderRoute: typeof ApiPublicHooksWhatsappRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/viber': {
+      id: '/api/public/hooks/viber'
+      path: '/api/public/hooks/viber'
+      fullPath: '/api/public/hooks/viber'
+      preLoaderRoute: typeof ApiPublicHooksViberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/task-reminders': {
       id: '/api/public/hooks/task-reminders'
       path: '/api/public/hooks/task-reminders'
       fullPath: '/api/public/hooks/task-reminders'
       preLoaderRoute: typeof ApiPublicHooksTaskRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/facebook-oauth': {
+      id: '/api/public/hooks/facebook-oauth'
+      path: '/api/public/hooks/facebook-oauth'
+      fullPath: '/api/public/hooks/facebook-oauth'
+      preLoaderRoute: typeof ApiPublicHooksFacebookOauthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/facebook-messenger': {
+      id: '/api/public/hooks/facebook-messenger'
+      path: '/api/public/hooks/facebook-messenger'
+      fullPath: '/api/public/hooks/facebook-messenger'
+      preLoaderRoute: typeof ApiPublicHooksFacebookMessengerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/email/queue/process': {
@@ -996,7 +1212,9 @@ const AdminSettingsRouteWithChildren = AdminSettingsRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminAiRoute: typeof AdminAiRoute
+  AdminAssistantRoute: typeof AdminAssistantRoute
   AdminAuditRoute: typeof AdminAuditRouteWithChildren
+  AdminBotsRoute: typeof AdminBotsRoute
   AdminBrokersRoute: typeof AdminBrokersRoute
   AdminCalendarRoute: typeof AdminCalendarRoute
   AdminChatRoute: typeof AdminChatRoute
@@ -1004,6 +1222,7 @@ interface AdminRouteChildren {
   AdminClientsRoute: typeof AdminClientsRoute
   AdminContactsRoute: typeof AdminContactsRoute
   AdminContractsRoute: typeof AdminContractsRoute
+  AdminDistributeRoute: typeof AdminDistributeRoute
   AdminDnsRoute: typeof AdminDnsRoute
   AdminDocumentsRoute: typeof AdminDocumentsRoute
   AdminExtractedRoute: typeof AdminExtractedRoute
@@ -1012,21 +1231,26 @@ interface AdminRouteChildren {
   AdminMarketingRoute: typeof AdminMarketingRoute
   AdminMatchesRoute: typeof AdminMatchesRoute
   AdminOwnersRoute: typeof AdminOwnersRoute
+  AdminPhotosRoute: typeof AdminPhotosRoute
   AdminProfileRoute: typeof AdminProfileRoute
   AdminPropertiesRoute: typeof AdminPropertiesRoute
+  AdminQualifyRoute: typeof AdminQualifyRoute
   AdminQuartersRoute: typeof AdminQuartersRoute
   AdminRentalsRoute: typeof AdminRentalsRoute
   AdminRulesRoute: typeof AdminRulesRoute
   AdminSchemaRoute: typeof AdminSchemaRoute
   AdminSettingsRoute: typeof AdminSettingsRouteWithChildren
   AdminTasksRoute: typeof AdminTasksRoute
+  AdminViewingsRoute: typeof AdminViewingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminDebugQuartersRoute: typeof AdminDebugQuartersRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAiRoute: AdminAiRoute,
+  AdminAssistantRoute: AdminAssistantRoute,
   AdminAuditRoute: AdminAuditRouteWithChildren,
+  AdminBotsRoute: AdminBotsRoute,
   AdminBrokersRoute: AdminBrokersRoute,
   AdminCalendarRoute: AdminCalendarRoute,
   AdminChatRoute: AdminChatRoute,
@@ -1034,6 +1258,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminClientsRoute: AdminClientsRoute,
   AdminContactsRoute: AdminContactsRoute,
   AdminContractsRoute: AdminContractsRoute,
+  AdminDistributeRoute: AdminDistributeRoute,
   AdminDnsRoute: AdminDnsRoute,
   AdminDocumentsRoute: AdminDocumentsRoute,
   AdminExtractedRoute: AdminExtractedRoute,
@@ -1042,14 +1267,17 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMarketingRoute: AdminMarketingRoute,
   AdminMatchesRoute: AdminMatchesRoute,
   AdminOwnersRoute: AdminOwnersRoute,
+  AdminPhotosRoute: AdminPhotosRoute,
   AdminProfileRoute: AdminProfileRoute,
   AdminPropertiesRoute: AdminPropertiesRoute,
+  AdminQualifyRoute: AdminQualifyRoute,
   AdminQuartersRoute: AdminQuartersRoute,
   AdminRentalsRoute: AdminRentalsRoute,
   AdminRulesRoute: AdminRulesRoute,
   AdminSchemaRoute: AdminSchemaRoute,
   AdminSettingsRoute: AdminSettingsRouteWithChildren,
   AdminTasksRoute: AdminTasksRoute,
+  AdminViewingsRoute: AdminViewingsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminDebugQuartersRoute: AdminDebugQuartersRoute,
 }
@@ -1068,10 +1296,15 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
   ApiPublicCustomerChatRoute: ApiPublicCustomerChatRoute,
+  ApiPublicLeadsRoute: ApiPublicLeadsRoute,
   CitiesSlugAroundRoute: CitiesSlugAroundRoute,
   CitiesSlugIndexRoute: CitiesSlugIndexRoute,
   ApiEmailQueueProcessRoute: ApiEmailQueueProcessRoute,
+  ApiPublicHooksFacebookMessengerRoute: ApiPublicHooksFacebookMessengerRoute,
+  ApiPublicHooksFacebookOauthRoute: ApiPublicHooksFacebookOauthRoute,
   ApiPublicHooksTaskRemindersRoute: ApiPublicHooksTaskRemindersRoute,
+  ApiPublicHooksViberRoute: ApiPublicHooksViberRoute,
+  ApiPublicHooksWhatsappRoute: ApiPublicHooksWhatsappRoute,
   CitiesSlugDistrictsDistrictRoute: CitiesSlugDistrictsDistrictRoute,
 }
 export const routeTree = rootRouteImport
