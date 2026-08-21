@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, Mail, MapPin, AlertTriangle, Sparkles, CreditCard, Camera, Folder, ArrowLeft, Home, Building2, Trees, Store, Landmark } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, MapPin, AlertTriangle, Sparkles, Camera, Folder, ArrowLeft, Home, Building2, Trees, Store, Landmark } from "lucide-react";
 import { listClients, listBrokers, upsertClient, deleteClient, getClientDocuments, addClientDocument, deleteClientDocument, updateClientDeal } from "@/lib/crm.functions";
 import { MortgageStagesModal } from "@/components/admin/mortgage-stages-modal";
 import { ClientDetailsSheet } from "@/components/admin/client-details-sheet";
@@ -67,6 +67,30 @@ function matchesPropKey(r: any, pt: PropKey | null): boolean {
   return (mn == null || mn <= n) && (mx == null || mx >= n);
 }
 
+type SortKey = "newest" | "name" | "score" | "stage";
+
+function clientHaystack(r: { full_name?: string; phone?: string | null; email?: string | null }) {
+  return `${r.full_name ?? ""} ${r.phone ?? ""} ${r.email ?? ""}`.toLowerCase();
+}
+
+function stageWeight(r: { deal_stage?: string | null }) {
+  if (r.deal_stage === "mortgage") return 0;
+  if (r.deal_stage === "started") return 1;
+  if (r.deal_stage === "closed") return 3;
+  return 2;
+}
+
+function sortClients(list: any[], sortBy: SortKey) {
+  const copy = [...list];
+  copy.sort((a, b) => {
+    if (sortBy === "name") return String(a.full_name ?? "").localeCompare(String(b.full_name ?? ""), "bg");
+    if (sortBy === "score") return (Number(b.lead_score) || -1) - (Number(a.lead_score) || -1);
+    if (sortBy === "stage") return stageWeight(a) - stageWeight(b);
+    return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+  });
+  return copy;
+}
+
 function ClientsAdmin() {
   const [rows, setRows] = useState<Client[]>([]);
   const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
@@ -83,6 +107,10 @@ function ClientsAdmin() {
   const [scanOpen, setScanOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState("");
   const [filterBroker, setFilterBroker] = useState("");
+  const [sortBy, setSortBy] = useState<SortKey>("newest");
+  const [filterTier, setFilterTier] = useState("");
+  const [filterNoBroker, setFilterNoBroker] = useState(false);
+  const [filterDealChip, setFilterDealChip] = useState<"started" | "mortgage" | "">("");
 
   // Access control: brokers can only open clients assigned to them.
   const { user } = useAuth();
@@ -117,6 +145,7 @@ function ClientsAdmin() {
 
   // Folder navigation
   const [navCityId, setNavCityId] = useState<string | null>(null);
+  const [navUnassigned, setNavUnassigned] = useState(false);
   const [navType, setNavType] = useState<string | null>(null);
   const [navQuarterId, setNavQuarterId] = useState<string | null>(null);
   const [navProp, setNavProp] = useState<PropKey | null>(null);
@@ -201,24 +230,38 @@ function ClientsAdmin() {
   const scopedByType     = scopedByCity.filter((r) => !navType || r.client_type === navType);
   const scopedByQuarter  = scopedByType.filter((r) => !navQuarterId || r.search_quarter_id === navQuarterId);
   const scopedByProp     = scopedByQuarter.filter((r) => matchesPropKey(r, navProp));
+  const unassignedRows   = rows.filter((r) => !r.search_city_id);
+  const searchQ = search.trim().toLowerCase();
+  const isSearching = searchQ.length > 0;
 
-  const filtered = scopedByProp.filter((r) => {
-    if (search.trim() && !(r.full_name + " " + (r.phone ?? "") + " " + (r.email ?? "")).toLowerCase().includes(search.toLowerCase())) return false;
+  const listSource = isSearching
+    ? rows.filter((r) => clientHaystack(r).includes(searchQ))
+    : navUnassigned
+      ? unassignedRows
+      : scopedByProp;
+
+  const filtered = listSource.filter((r) => {
     if (filterStatus && r.status !== filterStatus) return false;
     if (filterBroker && (r.assigned_broker_id ?? "") !== filterBroker) return false;
+    if (filterTier && String(r.lead_tier ?? "") !== filterTier) return false;
+    if (filterNoBroker && r.assigned_broker_id) return false;
+    if (filterDealChip === "started" && r.deal_stage !== "started" && r.deal_stage !== "mortgage") return false;
+    if (filterDealChip === "mortgage" && r.deal_stage !== "mortgage") return false;
     return true;
   });
+  const sorted = sortClients(filtered, sortBy);
 
   const countCity     = (id: string) => rows.filter((r) => r.search_city_id === id).length;
   const countType     = (t: string)  => scopedByCity.filter((r) => r.client_type === t).length;
   const countQuarter  = (id: string) => scopedByType.filter((r) => r.search_quarter_id === id).length;
   const countProp     = (pk: PropKey) => scopedByQuarter.filter((r) => matchesPropKey(r, pk)).length;
+  const countUnassigned = unassignedRows.length;
 
   const currentCity    = citiesFull.find((c) => c.id === navCityId) || null;
   const currentQuarter = quarters.find((q) => q.id === navQuarterId) || null;
   const cityImage = (c: { slug: string; hero_image_url: string | null }) => c.hero_image_url || CITY_FALLBACK[c.slug] || cityBurgas;
 
-  const goHome     = () => { setNavCityId(null); setNavType(null); setNavQuarterId(null); setNavProp(null); setNavDeals(false); setDealClientId(null); setDealSub(null); };
+  const goHome     = () => { setNavCityId(null); setNavUnassigned(false); setNavType(null); setNavQuarterId(null); setNavProp(null); setNavDeals(false); setDealClientId(null); setDealSub(null); };
   const goCity     = () => { setNavType(null); setNavQuarterId(null); setNavProp(null); };
   const goType     = () => { setNavQuarterId(null); setNavProp(null); };
   const goQuarter  = () => { setNavProp(null); };
@@ -237,7 +280,9 @@ function ClientsAdmin() {
     });
   }, [dealClientId, dealClient?.mortgage_data]);
 
-  const atLeaf = navCityId && navType && navQuarterId && navProp;
+  const atLeaf = Boolean(navCityId && navType && navQuarterId && navProp);
+  const showList = isSearching || navUnassigned || (atLeaf && !navDeals);
+  const showFolders = !isSearching && !navUnassigned;
 
   return (
     <div className="space-y-6">
@@ -247,9 +292,11 @@ function ClientsAdmin() {
             Клиенти · папки
           </div>
           <h1 className="mt-2 font-display text-4xl text-amber-100">
-            {navDeals && dealClient && dealSub ? (DEAL_SUBS.find((s) => s.id === dealSub)?.label ?? dealSub)
+            {isSearching ? "Търсене"
+              : navDeals && dealClient && dealSub ? (DEAL_SUBS.find((s) => s.id === dealSub)?.label ?? dealSub)
               : navDeals && dealClient ? dealClient.full_name
               : navDeals ? "Започнати сделки"
+              : navUnassigned ? "Без град"
               : atLeaf ? PROP_META.find(p => p.key === navProp)?.label
               : navQuarterId ? currentQuarter?.name
               : navType ? TYPE_META[navType]?.label
@@ -257,7 +304,11 @@ function ClientsAdmin() {
               : "Клиенти"}
           </h1>
           <p className="mt-1 text-sm text-amber-100/60">
-            {navDeals ? `${startedRows.length} започнати сделки` : atLeaf ? `${filtered.length} клиента в тази папка` : `${rows.length} записа общо`}
+            {isSearching ? `${sorted.length} резултат${sorted.length === 1 ? "" : "а"} за „${search.trim()}“`
+              : navDeals ? `${startedRows.length} започнати сделки`
+              : navUnassigned ? `${sorted.length} клиента без град`
+              : atLeaf ? `${sorted.length} клиента в тази папка`
+              : `${rows.length} записа общо`}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -276,7 +327,7 @@ function ClientsAdmin() {
       </header>
 
       {/* Breadcrumbs */}
-      {(navCityId || navType || navQuarterId || navProp || navDeals) && (
+      {!isSearching && (navCityId || navUnassigned || navType || navQuarterId || navProp || navDeals) && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <button onClick={goHome} className="inline-flex items-center gap-1 rounded-lg bg-amber-500/15 px-3 py-1.5 text-amber-100 hover:bg-amber-500/25">
             <ArrowLeft className="h-3.5 w-3.5" /> Назад
@@ -299,6 +350,12 @@ function ClientsAdmin() {
                 </>
               )}
             </>
+          ) : navUnassigned ? (
+            <>
+              <button onClick={goHome} className="rounded-md px-2 py-1 text-amber-300 hover:text-amber-100">Градове</button>
+              <span className="text-amber-100/40">›</span>
+              <span className="rounded-md px-2 py-1 font-semibold text-amber-100">Без град</span>
+            </>
           ) : (
             <>
           <button onClick={goHome} className={`rounded-md px-2 py-1 ${!navCityId ? "font-semibold text-amber-100" : "text-amber-300 hover:text-amber-100"}`}>Градове</button>
@@ -316,7 +373,7 @@ function ClientsAdmin() {
       )}
 
       {/* Level 0: Cities + Започнати сделки */}
-      {!navCityId && !navDeals && (
+      {showFolders && !navCityId && !navDeals && (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {loadError && (
             <div className="col-span-full rounded-2xl border border-rose-300 bg-white p-4 text-sm text-[#8B1A2B]">
@@ -329,7 +386,7 @@ function ClientsAdmin() {
             </div>
           )}
           {citiesFull.map((c) => (
-            <button key={c.id} onClick={() => setNavCityId(c.id)}
+            <button key={c.id} onClick={() => { setNavUnassigned(false); setNavCityId(c.id); }}
               className="crm-folder-card group relative block text-left transition hover:-translate-y-0.5 hover:shadow-2xl">
               <div className="relative h-48 overflow-hidden rounded-[4px_18px_18px_18px] ring-1 ring-black/10">
                 <img src={cityImage(c)} alt={c.name} className="h-full w-full object-cover transition group-hover:scale-105" />
@@ -344,7 +401,22 @@ function ClientsAdmin() {
             </button>
           ))}
           <button
-            onClick={() => { setNavDeals(true); setDealClientId(null); setDealSub(null); }}
+            onClick={() => { goHome(); setNavUnassigned(true); }}
+            className="crm-folder-card group relative block text-left transition hover:-translate-y-0.5 hover:shadow-2xl"
+          >
+            <div className="relative flex h-48 flex-col justify-end overflow-hidden rounded-[4px_18px_18px_18px] bg-[#31020c] ring-1 ring-black/10">
+              <Folder className="absolute right-4 top-6 h-20 w-20 text-amber-300/25 transition group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <div className="relative p-4">
+                <div className="font-display text-2xl text-white drop-shadow">Без град</div>
+                <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-500/95 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                  {countUnassigned} клиент{countUnassigned === 1 ? "" : "а"}
+                </div>
+              </div>
+            </div>
+          </button>
+          <button
+            onClick={() => { setNavDeals(true); setNavUnassigned(false); setDealClientId(null); setDealSub(null); }}
             className="crm-folder-card group relative block text-left transition hover:-translate-y-0.5 hover:shadow-2xl"
           >
             <div className="relative h-48 overflow-hidden rounded-[4px_18px_18px_18px] ring-1 ring-black/10">
@@ -362,7 +434,7 @@ function ClientsAdmin() {
       )}
 
       {/* Започнати сделки — клиентски папки */}
-      {navDeals && !dealClientId && (
+      {showFolders && navDeals && !dealClientId && (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {startedRows.map((r) => (
             <button
@@ -390,7 +462,7 @@ function ClientsAdmin() {
         </div>
       )}
 
-      {navDeals && dealClient && !dealSub && (
+      {showFolders && navDeals && dealClient && !dealSub && (
         <div className="space-y-4">
           {(dealClient.notes || dealClient.interest_note) && (
             <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.95)] p-4 text-sm text-primary">
@@ -422,7 +494,7 @@ function ClientsAdmin() {
         </div>
       )}
 
-      {navDeals && dealClient && dealSub && (
+      {showFolders && navDeals && dealClient && dealSub && (
         <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.95)] p-5 text-primary">
           {dealSub === "banka" ? (
             <div className="space-y-3">
@@ -480,7 +552,7 @@ function ClientsAdmin() {
       )}
 
       {/* Level 1: Client type folders */}
-      {navCityId && !navType && !navDeals && (
+      {showFolders && navCityId && !navType && !navDeals && (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {TYPE_ORDER.map((t) => {
             const meta = TYPE_META[t];
@@ -506,7 +578,7 @@ function ClientsAdmin() {
       )}
 
       {/* Level 2: Quarters in selected city */}
-      {navCityId && navType && !navQuarterId && !navDeals && (
+      {showFolders && navCityId && navType && !navQuarterId && !navDeals && (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {quarters.filter(q => q.city_id === navCityId).map((q) => {
             const cnt = countQuarter(q.id);
@@ -544,7 +616,7 @@ function ClientsAdmin() {
       )}
 
       {/* Level 3: Property type folders */}
-      {navCityId && navType && navQuarterId && !navProp && !navDeals && (
+      {showFolders && navCityId && navType && navQuarterId && !navProp && !navDeals && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PROP_META.map((p) => {
             const cnt = countProp(p.key);
@@ -563,86 +635,95 @@ function ClientsAdmin() {
         </div>
       )}
 
-      {/* Level 4: client list (existing table) */}
-      {atLeaf && !navDeals && (
+      {/* Level 4 + Без град + глобално търсене: карти */}
+      {showList && (
         <>
-      <div className="flex flex-wrap gap-2 rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.6)] p-3">
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.08)] p-3">
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortKey)} className="rounded-full border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
+          <option value="newest">Най-нови</option>
+          <option value="name">Име А–Я</option>
+          <option value="score">Оценка</option>
+          <option value="stage">Етап</option>
+        </select>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-full border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
           <option value="">Статус: всички</option>
           <option value="active">Активен</option>
-          <option value="paused">Пауза</option>
+          <option value="inactive">Неактивен</option>
           <option value="closed">Затворен</option>
         </select>
-        <select value={filterBroker} onChange={(e) => setFilterBroker(e.target.value)} className="rounded border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
+        <select value={filterBroker} onChange={(e) => setFilterBroker(e.target.value)} className="rounded-full border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-1.5 text-sm text-amber-100">
           <option value="">Брокер: всички</option>
           {brokers.map((b) => <option key={b.id} value={b.id}>{b.full_name}</option>)}
         </select>
-        {(filterStatus || filterBroker) && (
-          <button onClick={() => { setFilterStatus(""); setFilterBroker(""); }} className="text-xs text-amber-100/60 underline">Изчисти</button>
+        <Chip active={filterTier === "hot"} onClick={() => setFilterTier(filterTier === "hot" ? "" : "hot")}>Горещ</Chip>
+        <Chip active={filterTier === "warm"} onClick={() => setFilterTier(filterTier === "warm" ? "" : "warm")}>Топъл</Chip>
+        <Chip active={filterTier === "cold"} onClick={() => setFilterTier(filterTier === "cold" ? "" : "cold")}>Студен</Chip>
+        <Chip active={filterNoBroker} onClick={() => setFilterNoBroker(!filterNoBroker)}>Без брокер</Chip>
+        <Chip active={filterDealChip === "started"} onClick={() => setFilterDealChip(filterDealChip === "started" ? "" : "started")}>Започната сделка</Chip>
+        <Chip active={filterDealChip === "mortgage"} onClick={() => setFilterDealChip(filterDealChip === "mortgage" ? "" : "mortgage")}>Ипотека</Chip>
+        {(filterStatus || filterBroker || filterTier || filterNoBroker || filterDealChip) && (
+          <button onClick={() => { setFilterStatus(""); setFilterBroker(""); setFilterTier(""); setFilterNoBroker(false); setFilterDealChip(""); }} className="text-xs text-amber-100/60 underline">Изчисти</button>
         )}
-        <span className="ml-auto text-xs text-amber-100/50 self-center">{filtered.length} / {rows.length}</span>
+        <span className="ml-auto self-center text-xs text-amber-100/50">{sorted.length} / {listSource.length}</span>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
-        <table className="w-full min-w-[760px] text-sm text-amber-100">
-          <thead className="bg-[rgba(40,8,16,0.7)] text-left text-amber-100/80">
-            <tr>
-              <th className="px-4 py-3">Име</th>
-              <th className="px-4 py-3">Оценка</th>
-              <th className="px-4 py-3">Контакт</th>
-              <th className="px-4 py-3">Тип</th>
-              <th className="px-4 py-3">Търси</th>
-              <th className="px-4 py-3">Бюджет</th>
-              <th className="px-4 py-3">Брокер</th>
-              <th className="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((r) => (
-              <tr key={r.id} className="border-t border-amber-500/10 hover:bg-amber-500/5">
-                <td className="px-4 py-2 font-semibold">
-                  <button
-                    onClick={() => guard(r, () => setDetailsFor(r))}
-                    className="flex items-center gap-2 text-left hover:text-amber-300"
-                  >
-                    {r.full_name}
+      {sorted.length === 0 ? (
+        <div className="rounded-2xl border border-amber-500/20 bg-[#faf6ee] px-6 py-12 text-center text-sm text-[#8B1A2B]/60">
+          {isSearching ? "Няма клиенти по това търсене." : "Няма клиенти. Добави нов."}
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {sorted.map((r) => {
+            const budget = r.budget_min || r.budget_max
+              ? `${r.budget_min ?? "?"} – ${r.budget_max ?? "?"} ${r.currency ?? "EUR"}`
+              : "без бюджет";
+            return (
+              <div
+                key={r.id}
+                className="flex flex-col rounded-2xl border border-[#C9A84C]/45 bg-[#faf6ee] p-4 text-left shadow-sm transition hover:border-[#C9A84C] hover:shadow-md"
+              >
+                <button type="button" className="min-w-0 flex-1 text-left" onClick={() => guard(r, () => setDetailsFor(r))}>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="rounded-full bg-[#8B1A2B]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#8B1A2B]">
+                      {labelType(r.client_type)}
+                    </span>
+                    <LeadScoreBadge score={r.lead_score} tier={r.lead_tier} compact tone="light" />
+                  </div>
+                  <div className="mt-2 font-display text-xl leading-tight text-[#8B1A2B]">{r.full_name}</div>
+                  {r.phone ? (
+                    <div className="mt-1 flex items-center gap-1.5 text-sm text-[#8B1A2B]/80">
+                      <Phone className="h-3.5 w-3.5" />{r.phone}
+                    </div>
+                  ) : (
+                    <div className="mt-1 text-sm text-[#8B1A2B]/40">Няма телефон</div>
+                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
                     {r.deal_stage === "mortgage" && (
-                      <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">ипотека</span>
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800">ипотека</span>
                     )}
                     {r.deal_stage === "started" && (
-                      <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-300">сделка</span>
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-900">сделка</span>
                     )}
-                  </button>
-                </td>
-                <td className="px-4 py-2">
-                  <LeadScoreBadge score={r.lead_score} tier={r.lead_tier} compact tone="light" />
-                </td>
-
-                <td className="px-4 py-2 text-xs">
-                  {r.phone && <div className="flex items-center gap-1"><Phone className="h-3 w-3" />{r.phone}</div>}
-                  {r.email && <div className="flex items-center gap-1"><Mail className="h-3 w-3" />{r.email}</div>}
-                </td>
-                <td className="px-4 py-2"><span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs">{labelType(r.client_type)}</span></td>
-                <td className="px-4 py-2 text-xs">
-                  {r.cities?.name && <div className="flex items-center gap-1"><MapPin className="h-3 w-3" />{r.cities.name}{r.quarters?.name ? `, ${r.quarters.name}` : ""}</div>}
-                  {r.search_property_type && <div>{r.search_property_type}</div>}
-                </td>
-                <td className="px-4 py-2 text-xs">
-                  {r.budget_min || r.budget_max ? `${r.budget_min ?? "?"} – ${r.budget_max ?? "?"} ${r.currency}` : "—"}
-                </td>
-                <td className="px-4 py-2 text-xs">{r.brokers?.full_name ?? "—"}</td>
-                <td className="px-4 py-2 text-right">
-                  <button className="mr-2 text-amber-300" title="Кандидатура за ипотечен кредит" onClick={() => guard(r, () => setMortgageFor(r))}><CreditCard className="h-4 w-4" /></button>
-                  <button className="mr-2 text-amber-300" title="Документи" onClick={() => guard(r, () => setDocsFor(r))}><FileText className="h-4 w-4" /></button>
-                  <button className="mr-2 text-amber-300" title="Редакция" onClick={() => guard(r, () => setEditing(r))}><Pencil className="h-4 w-4" /></button>
-                  <button className="text-rose-400" onClick={() => guard(r, () => remove(r.id))}><Trash2 className="h-4 w-4" /></button>
-                </td>
-              </tr>
-            ))}
-            {!filtered.length && <tr><td colSpan={8} className="px-4 py-10 text-center text-amber-100/40">Няма клиенти. Добави нов.</td></tr>}
-          </tbody>
-        </table>
-      </div>
+                    {r.cities?.name && (
+                      <span className="inline-flex items-center gap-1 text-[11px] text-[#8B1A2B]/70">
+                        <MapPin className="h-3 w-3" />{r.cities.name}{r.quarters?.name ? `, ${r.quarters.name}` : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 text-xs text-[#8B1A2B]/70">
+                    {budget} · {r.brokers?.full_name ?? "без брокер"}
+                  </div>
+                </button>
+                <div className="mt-3 flex justify-end gap-1 border-t border-[#C9A84C]/25 pt-2">
+                  <button type="button" className="rounded-lg p-1.5 text-[#8B1A2B]/70 hover:bg-amber-100" title="Документи" onClick={() => guard(r, () => setDocsFor(r))}><FileText className="h-4 w-4" /></button>
+                  <button type="button" className="rounded-lg p-1.5 text-[#8B1A2B]/70 hover:bg-amber-100" title="Редакция" onClick={() => guard(r, () => setEditing(r))}><Pencil className="h-4 w-4" /></button>
+                  <button type="button" className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-50" title="Изтриване" onClick={() => guard(r, () => remove(r.id))}><Trash2 className="h-4 w-4" /></button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
         </>
       )}
 
@@ -749,6 +830,22 @@ function ClientsAdmin() {
 const iC = "w-full rounded border border-input bg-background px-3 py-2";
 
 function labelType(t: string) { return ({ buyer: "Купувач", seller: "Продавач", tenant: "Наемател", landlord: "Наемодател" } as any)[t] ?? t; }
+
+function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
+        active
+          ? "border-amber-400 bg-amber-400 text-primary"
+          : "border-amber-500/30 bg-[rgba(20,4,8,0.45)] text-amber-100 hover:border-amber-400/60"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (

@@ -38,9 +38,15 @@ import {
   Download, Copy, CalendarPlus, ClipboardList, MessageSquare,
   CreditCard, Handshake, XCircle, Sparkles, Save,
   Check, AlertCircle, Loader2, IdCard, Briefcase, FileSignature, ChevronDown,
-  Users, UserPlus, MessageCircle, Home, KeyRound,
+  Users, UserPlus, MessageCircle, Home, KeyRound, MoreHorizontal,
   type LucideIcon,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type LinkableProperty = {
   id: string;
@@ -755,13 +761,12 @@ export function ClientDetailsSheet({
   const cityPhoto = CITY_PHOTO[String(client.cities?.slug ?? "").toLowerCase()]
     ?? CITY_PHOTO[String(client.cities?.name ?? "").toLowerCase()];
   const chapterNav = [
-    { id: "info", label: "Търси", img: CHAPTER_PHOTO.info },
-    { id: "notes", label: "Бележки", img: CHAPTER_PHOTO.notes },
-    { id: "docs", label: "Документи", img: CHAPTER_PHOTO.docs },
-    { id: "deposit", label: "Депозит", img: CHAPTER_PHOTO.deposit },
-    { id: "files", label: "Файлове", img: CHAPTER_PHOTO.files },
-    { id: "guarantors", label: "Поръчители", img: CHAPTER_PHOTO.guarantors },
-    { id: "mortgage", label: "Ипотечен", img: CHAPTER_PHOTO.mortgage },
+    { id: "info", label: "Търси" },
+    { id: "notes", label: "Бележки" },
+    { id: "docs", label: "Документи" },
+    { id: "deposit", label: "Депозит" },
+    { id: "files", label: "Файлове" },
+    { id: "guarantors", label: "Поръчители" },
   ];
 
   return (
@@ -776,23 +781,23 @@ export function ClientDetailsSheet({
       }}
     >
       <DialogContent
-        className="max-h-[88vh] w-[min(92vw,720px)] max-w-none gap-0 overflow-hidden rounded-[28px] border-2 border-[#C9A84C]/55 bg-[#faf6ee] p-0 shadow-[0_28px_80px_rgba(49,2,12,0.45)]"
+        className="flex h-[92vh] w-[min(96vw,920px)] max-w-none flex-col gap-0 overflow-hidden rounded-[28px] border-2 border-[#C9A84C]/55 bg-[#faf6ee] p-0 shadow-[0_28px_80px_rgba(49,2,12,0.45)] sm:rounded-[28px]"
         onInteractOutside={(e) => { if (banksOpenRef.current) e.preventDefault(); }}
         onPointerDownOutside={(e) => { if (banksOpenRef.current) e.preventDefault(); }}
         onFocusOutside={(e) => { if (banksOpenRef.current) e.preventDefault(); }}
       >
         <div className="shrink-0">
-          <div className="relative h-[120px] overflow-hidden">
+          <div className="relative h-[88px] overflow-hidden">
             <img src={typePhoto} alt="" className="h-full w-full object-cover object-center" />
             {cityPhoto ? (
               <img
                 src={cityPhoto}
                 alt=""
-                className="absolute right-14 top-3 h-14 w-14 rounded-2xl object-cover ring-2 ring-[#C9A84C]/80"
+                className="absolute right-14 top-3 h-12 w-12 rounded-2xl object-cover ring-2 ring-[#C9A84C]/80"
               />
             ) : null}
           </div>
-          <div className="bg-[#faf6ee] px-6 pb-3 pt-2 pr-14">
+          <div className="bg-[#faf6ee] px-6 pb-2 pt-2 pr-14">
             <DialogHeader className="space-y-0.5 text-left">
               <DialogTitle className="font-display text-3xl font-semibold leading-tight text-[#8B1A2B] sm:text-[2.05rem]">
                 {client.full_name}
@@ -822,74 +827,76 @@ export function ClientDetailsSheet({
                 )}
               </div>
             )}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {client.phone && (
+                <a href={`tel:${tel}`} className="inline-flex items-center justify-center gap-1.5 rounded-full border border-accent/40 bg-background px-3 py-2 text-xs font-semibold text-primary transition hover:bg-accent/20">
+                  <Phone className="h-3.5 w-3.5" /> Позвъни
+                </a>
+              )}
+              {client.phone && (
+                <a href={`https://wa.me/${waDigits}?text=${encodeURIComponent(greet)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#25D366]/50 bg-[#25D366]/10 px-3 py-2 text-xs font-semibold text-[#128C7E] transition hover:bg-[#25D366]/20">
+                  <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                </a>
+              )}
+              {client.phone && (
+                <a href={`viber://chat?number=%2B${waDigits}`} className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[#7360f2]/50 bg-[#7360f2]/10 px-3 py-2 text-xs font-semibold text-[#5b46d6] transition hover:bg-[#7360f2]/20">
+                  <MessageCircle className="h-3.5 w-3.5" /> Viber
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={scheduleViewing}
+                className="inline-flex items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+              >
+                <CalendarPlus className="h-3.5 w-3.5" /> Оглед
+              </button>
+              <button
+                type="button"
+                onClick={() => onEdit(client)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-full border border-accent/40 bg-background px-3 py-2 text-xs font-semibold text-primary hover:bg-accent/20"
+              >
+                <Pencil className="h-3.5 w-3.5" /> Редакция
+              </button>
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full border border-accent/40 bg-background px-3 py-2 text-xs font-semibold text-primary hover:bg-accent/20"
+                  >
+                    <MoreHorizontal className="h-3.5 w-3.5" /> Още
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="z-[80] min-w-[200px]">
+                  {client.phone && (
+                    <DropdownMenuItem onSelect={() => copyText(client.phone, "Телефонът е копиран.")}>
+                      <Copy className="h-3.5 w-3.5" /> Копирай тел.
+                    </DropdownMenuItem>
+                  )}
+                  {client.phone && (
+                    <DropdownMenuItem asChild>
+                      <a href={`sms:${tel}?&body=${encodeURIComponent(greet)}`}>
+                        <MessageSquare className="h-3.5 w-3.5" /> SMS
+                      </a>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onSelect={() => copyText(clientBrief(), "Краткият профил е копиран — залепи го във WhatsApp или бележка.")}>
+                    <ClipboardList className="h-3.5 w-3.5" /> Копирай досие
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={copyMissingDocs}>
+                    <FileText className="h-3.5 w-3.5" /> Какво липсва
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 
         <div
           ref={cardScrollRef}
           data-client-card-scroll
-          className="max-h-[calc(88vh-196px)] overflow-y-auto px-5 pb-8 pt-4 [overflow-anchor:none]"
+          className="min-h-0 flex-1 overflow-y-auto px-5 pb-8 pt-3 [overflow-anchor:none]"
         >
-          {client.phone && (
-            <div className="grid grid-cols-3 gap-2">
-              <a href={`tel:${tel}`} className="flex items-center justify-center gap-1.5 rounded-full border border-accent/40 bg-background py-2 text-xs font-semibold text-primary transition hover:bg-accent/20">
-                <Phone className="h-3.5 w-3.5" /> Позвъни
-              </a>
-              <a href={`https://wa.me/${waDigits}?text=${encodeURIComponent(greet)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 rounded-full border border-[#25D366]/50 bg-[#25D366]/10 py-2 text-xs font-semibold text-[#128C7E] transition hover:bg-[#25D366]/20">
-                <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-              </a>
-              <a href={`viber://chat?number=%2B${waDigits}`} className="flex items-center justify-center gap-1.5 rounded-full border border-[#7360f2]/50 bg-[#7360f2]/10 py-2 text-xs font-semibold text-[#5b46d6] transition hover:bg-[#7360f2]/20">
-                <MessageCircle className="h-3.5 w-3.5" /> Viber
-              </a>
-            </div>
-          )}
-
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {client.phone && (
-              <button
-                type="button"
-                onClick={() => copyText(client.phone, "Телефонът е копиран.")}
-                className="flex items-center justify-center gap-1.5 rounded-full border border-accent/40 bg-background py-2 text-[11px] font-semibold text-primary hover:bg-accent/20"
-              >
-                <Copy className="h-3.5 w-3.5" /> Копирай тел.
-              </button>
-            )}
-            {client.phone && (
-              <a
-                href={`sms:${tel}?&body=${encodeURIComponent(greet)}`}
-                className="flex items-center justify-center gap-1.5 rounded-full border border-accent/40 bg-background py-2 text-[11px] font-semibold text-primary hover:bg-accent/20"
-              >
-                <MessageSquare className="h-3.5 w-3.5" /> SMS
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={() => copyText(clientBrief(), "Краткият профил е копиран — залепи го във WhatsApp или бележка.")}
-              className="flex items-center justify-center gap-1.5 rounded-full border border-accent/40 bg-background py-2 text-[11px] font-semibold text-primary hover:bg-accent/20"
-            >
-              <ClipboardList className="h-3.5 w-3.5" /> Копирай досие
-            </button>
-            <button
-              type="button"
-              onClick={copyMissingDocs}
-              className="flex items-center justify-center gap-1.5 rounded-full border border-accent/40 bg-background py-2 text-[11px] font-semibold text-primary hover:bg-accent/20"
-            >
-              <FileText className="h-3.5 w-3.5" /> Какво липсва
-            </button>
-            <button
-              type="button"
-              onClick={scheduleViewing}
-              className="relative col-span-2 overflow-hidden rounded-2xl sm:col-span-4"
-            >
-              <img src={scheduleCover} alt="" className="absolute inset-0 h-full w-full object-cover" />
-              <span className="relative flex items-center justify-center gap-1.5 bg-[#31020c]/55 py-2.5 text-[12px] font-semibold text-[#faf6ee]">
-                <CalendarPlus className="h-3.5 w-3.5" />
-                Насрочи оглед
-              </span>
-            </button>
-          </div>
-
-          <div className="mt-4 overflow-hidden rounded-[22px] border border-accent/35 bg-background/85 p-4">
+          <div className="overflow-hidden rounded-[22px] border border-accent/35 bg-background/85 p-4">
             <div className="mb-3 flex items-end justify-between gap-2">
               <div>
                 <div className="font-display text-lg text-primary">Пътят на сделката</div>
@@ -930,9 +937,6 @@ export function ClientDetailsSheet({
               })}
             </div>
             <div className="mt-4 flex flex-wrap gap-2 border-t border-accent/20 pt-3">
-              <Button variant="outline" size="sm" className="rounded-full" onClick={() => onEdit(client)}>
-                <Pencil className="h-3.5 w-3.5" /> Редакция
-              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -984,24 +988,19 @@ export function ClientDetailsSheet({
             </span>
           </button>
 
-          <nav className="mt-4 grid grid-cols-3 gap-2">
+          <nav className="sticky top-0 z-10 -mx-5 mt-4 flex gap-1 overflow-x-auto bg-[#faf6ee] px-5 py-2">
             {chapterNav.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => jumpTo(item.id)}
-                className={`overflow-hidden rounded-2xl border text-left transition ${
-                  item.id === "mortgage"
-                    ? (banksOpen ? "border-primary ring-2 ring-primary/30" : "border-accent/35 hover:border-primary/50")
-                    : openChapters[item.id] ? "border-primary ring-2 ring-primary/30" : "border-accent/35 hover:border-primary/50"
+                className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold transition ${
+                  openChapters[item.id]
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-accent/40 bg-background text-primary hover:bg-accent/20"
                 }`}
               >
-                <span className="relative block h-28">
-                  <img src={item.img} alt="" className="h-full w-full object-cover object-center" />
-                </span>
-                <span className="block bg-[#faf6ee] px-2 py-1.5 text-center text-[11px] font-semibold text-primary">
-                  {item.label}
-                </span>
+                {item.label}
               </button>
             ))}
           </nav>
