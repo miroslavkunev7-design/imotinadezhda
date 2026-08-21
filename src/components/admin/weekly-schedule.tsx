@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Plus, X, ChevronLeft, ChevronRight, Check, Trash2, Pencil } from "lucide-react";
 import coverImg from "@/assets/schedule-cover.jpg";
 import logoNadezhda from "@/assets/logo-nadezhda-transparent.png";
+import { ClientPicker } from "@/components/admin/client-picker";
+import { formatClientLabel, isClientRelatedTaskType } from "@/lib/task-kinds";
 
 /** Viewport overlay — must portal to body. DeskCalendar uses perspective/transform,
  *  which turns `position:fixed` into a box over the tall week grid and hides the card. */
@@ -26,11 +28,13 @@ type TaskFields = Record<string, string>;
 type Task = {
   id: string;
   broker_id: string;
+  client_id?: string | null;
   title: string;
   description: string | null;
   due_at: string | null;
   is_completed: boolean;
   auto_action_log: { end_at?: string; highlight?: string; kind?: string; fields?: TaskFields } | null;
+  clients?: { full_name: string; phone?: string | null } | null;
 };
 
 type FieldDef = { key: string; label: string; type?: "text" | "tel" | "number" | "textarea"; placeholder?: string };
@@ -97,6 +101,25 @@ const TASK_KINDS: TaskKind[] = [
     { key: "bank_name",    label: "Банка" },
     { key: "purpose",      label: "Цел", placeholder: "оценка, кредит, превод" },
     { key: "amount",       label: "Сума (€)" },
+  ]},
+  { key: "mortgage", label: "Ипотека", icon: "🏦", fields: [
+    { key: "bank_name", label: "Банка" },
+    { key: "amount",    label: "Сума (€)" },
+    { key: "purpose",   label: "Цел", placeholder: "жилищен кредит, рефинансиране…" },
+  ]},
+  { key: "deal", label: "Сделка", icon: "🤝", fields: [
+    { key: "property_id", label: "Имот (ID/адрес)" },
+    { key: "deposit",     label: "Капаро (€)" },
+  ]},
+  { key: "qualification", label: "Квалификация", icon: "⭐", fields: [
+    { key: "topic", label: "Относно" },
+  ]},
+  { key: "client_docs", label: "Документи на клиент", icon: "📎", fields: [
+    { key: "doc_type", label: "Вид документ" },
+    { key: "deadline", label: "Срок" },
+  ]},
+  { key: "follow_up", label: "Follow-up", icon: "🔁", fields: [
+    { key: "topic", label: "Относно" },
   ]},
   { key: "evaluation", label: "Оценка на имот", icon: "📐", fields: [
     { key: "property_id", label: "Имот (ID)" },
@@ -170,12 +193,14 @@ export function WeeklySchedule() {
   const [hlChoice, setHlChoice] = useState<string>("");
   const [kindChoice, setKindChoice] = useState<string>("other");
   const [fieldValues, setFieldValues] = useState<TaskFields>({});
+  const [clientId, setClientId] = useState<string | null>(null);
 
   useEffect(() => {
     if (editing) {
       setHlChoice(editing.task?.auto_action_log?.highlight ?? "");
       setKindChoice(editing.task?.auto_action_log?.kind ?? "other");
       setFieldValues(editing.task?.auto_action_log?.fields ?? {});
+      setClientId(editing.task?.client_id ?? null);
     }
   }, [editing]);
 
@@ -185,12 +210,15 @@ export function WeeklySchedule() {
     if (!brokerId) return;
     const { data, error } = await supabase
       .from("broker_tasks")
-      .select("id,broker_id,title,description,due_at,is_completed,auto_action_log")
+      .select("id,broker_id,client_id,title,description,due_at,is_completed,auto_action_log,clients:client_id(full_name,phone)")
       .gte("due_at", weekStart.toISOString())
       .lt("due_at", weekEnd.toISOString())
       .order("due_at", { ascending: true });
     if (error) { toast.error(error.message); return; }
-    setTasks((data as Task[]) ?? []);
+    setTasks(((data as any[]) ?? []).map((row) => ({
+      ...row,
+      clients: Array.isArray(row.clients) ? row.clients[0] ?? null : row.clients ?? null,
+    })) as Task[]);
   };
 
   useEffect(() => {
@@ -252,6 +280,9 @@ export function WeeklySchedule() {
     const highlight = String(fd.get("highlight") || "").trim() || undefined;
     if (!title) return toast.error("Заглавието е задължително");
     if (endH <= startH) return toast.error("Крайният час трябва да е след началния");
+    if (isClientRelatedTaskType(kindChoice) && !clientId) {
+      return toast.error("Избери клиент за този тип задача.");
+    }
     setBusy(true);
     try {
       const due_at = combine(editing.day, startH).toISOString();
@@ -271,6 +302,7 @@ export function WeeklySchedule() {
         description,
         due_at,
         task_type: kindChoice,
+        client_id: clientId || null,
         auto_action_log: log,
       };
       if (editing.task) {
@@ -384,6 +416,9 @@ export function WeeklySchedule() {
                                 >{getKind(t.auto_action_log?.kind).icon} {t.title}</span>
                               </div>
                               <div className="text-[9px] opacity-70 lg:text-[11px]">{fmtHM(t.due_at!)}{endIso ? `–${fmtHM(endIso)}` : ""}</div>
+                              {t.clients?.full_name && (
+                                <div className="truncate text-[9px] font-semibold text-[#8B1A2B] lg:text-[11px]">👤 {t.clients.full_name}</div>
+                              )}
                             </div>
                             <button type="button" onClick={() => remove(t.id)} className="opacity-0 transition group-hover:opacity-100" aria-label="Изтрий">
                               <Trash2 className="h-2.5 w-2.5 text-[#8B1A2B]" />
@@ -424,6 +459,9 @@ export function WeeklySchedule() {
                     <div className="mt-1 text-xs font-semibold text-white/85">
                       {editing.day.toLocaleDateString("bg-BG", { weekday: "long", day: "2-digit", month: "short" })} · {fmtHM(t.due_at!)}{endIso ? ` – ${fmtHM(endIso)}` : ""}
                     </div>
+                    {t.clients?.full_name && (
+                      <div className="mt-1 text-xs font-semibold text-white">Клиент: {formatClientLabel(t.clients)}</div>
+                    )}
                   </div>
                   <button type="button" onClick={() => setEditing(null)} className="rounded-md p-1 text-white hover:bg-white/10" aria-label="Затвори"><X className="h-5 w-5" /></button>
                 </div>
@@ -490,6 +528,30 @@ export function WeeklySchedule() {
                 ))}
               </select>
             </label>
+            {isClientRelatedTaskType(kindChoice) && (
+              <label className="block">
+                <span className="text-xs font-bold uppercase tracking-wide text-white">Клиент *</span>
+                <ClientPicker
+                  tone="schedule"
+                  required
+                  value={clientId}
+                  onChange={(id, c) => {
+                    setClientId(id);
+                    if (c) {
+                      setFieldValues((prev) => ({
+                        ...prev,
+                        client_name: prev.client_name || c.full_name,
+                        contact_name: prev.contact_name || c.full_name,
+                        client_phone: prev.client_phone || c.phone || "",
+                        phone: prev.phone || c.phone || "",
+                        tenant_phone: prev.tenant_phone || c.phone || "",
+                      }));
+                    }
+                  }}
+                />
+                <span className="mt-1 block text-[11px] text-white/75">Задължително — избери точния клиент от регистъра.</span>
+              </label>
+            )}
             <label className="block">
               <span className="text-xs font-bold uppercase tracking-wide text-white">Заглавие *</span>
               <input name="title" required defaultValue={editing.task?.title ?? ""} placeholder={`Например: ${kindDef.label}`} className="mt-1 w-full rounded-md border border-[#8B1A2B]/40 bg-white px-3 py-2 text-sm font-medium text-black outline-none focus:border-[#8B1A2B] focus:ring-2 focus:ring-white/40" />

@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { toast } from "sonner";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
-import { X, Plus, Trash2, Mail, Phone, Folder, Upload, Send, Save, ShieldCheck, Loader2 } from "lucide-react";
+import { X, Plus, Trash2, Mail, Phone, Folder, Upload, Send, Save, ShieldCheck, Loader2, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { updateClientDeal, getClientDocuments, addClientDocument } from "@/lib/crm.functions";
 import { runCkrCheck, type CkrCheckResult } from "@/lib/ckr.functions";
@@ -26,6 +26,7 @@ import {
 } from "@/lib/shumen-banks";
 import { BANK_BRANCH_PHOTOS } from "@/lib/bank-branch-photos";
 import { getDayBankRates, type DayBankRate } from "@/lib/bank-rates.functions";
+import { ClientTaskDialog } from "@/components/admin/client-task-dialog";
 
 type ClientLite = {
   id: string;
@@ -52,6 +53,7 @@ export function BankMortgageDesk({
   const [bank, setBank] = useState<ShumenBank | null>(null);
   const [dayRates, setDayRates] = useState<Record<string, DayBankRate>>({});
   const [ratesLoading, setRatesLoading] = useState(false);
+  const [taskOpen, setTaskOpen] = useState(false);
 
   useEffect(() => {
     if (!open) setBank(null);
@@ -77,7 +79,8 @@ export function BankMortgageDesk({
   }, [open, client.id]);
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+    <>
+    <Dialog open={open} onOpenChange={(v) => { if (!v && !taskOpen) onClose(); }}>
       <DialogPortal>
         <DialogOverlay className="pointer-events-auto !z-[220] bg-[#8B1A2B]/55" />
         <DialogPrimitive.Content
@@ -100,6 +103,7 @@ export function BankMortgageDesk({
               onBack={() => setBank(null)}
               onClose={onClose}
               onSaved={onSaved}
+              onAddTask={() => setTaskOpen(true)}
             />
           ) : (
             <>
@@ -111,9 +115,18 @@ export function BankMortgageDesk({
                     {ratesLoading ? " · взимам лихвите за днес…" : " · лихвата се взема автоматично за деня"}
                   </div>
                 </div>
-                <button type="button" onClick={onClose} className="rounded-full p-1 hover:bg-accent/30">
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTaskOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#C9A84C]/60 bg-white px-3 py-1.5 text-xs font-semibold text-[#8B1A2B]"
+                  >
+                    <ListChecks className="h-3.5 w-3.5" /> Добавяне към задача
+                  </button>
+                  <button type="button" onClick={onClose} className="rounded-full p-1 hover:bg-accent/30">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
               <div className="max-h-[calc(88vh-88px)] overflow-y-auto px-5 pb-5">
                 <div className="grid grid-cols-2 gap-3">
@@ -154,6 +167,17 @@ export function BankMortgageDesk({
         </DialogPrimitive.Content>
       </DialogPortal>
     </Dialog>
+    <ClientTaskDialog
+      open={taskOpen}
+      onClose={() => setTaskOpen(false)}
+      defaultType="mortgage"
+      client={{
+        id: client.id,
+        full_name: client.full_name,
+        phone: client.phone,
+      }}
+    />
+    </>
   );
 }
 
@@ -164,6 +188,7 @@ function BankWindow({
   onBack,
   onClose,
   onSaved,
+  onAddTask,
 }: {
   bank: ShumenBank;
   dayRate?: DayBankRate;
@@ -171,6 +196,7 @@ function BankWindow({
   onBack: () => void;
   onClose: () => void;
   onSaved?: () => void;
+  onAddTask?: () => void;
 }) {
   const saved = loadBankDesk(bank.id);
   const [contacts, setContacts] = useState<BankContact[]>(saved.contacts);
@@ -285,6 +311,16 @@ function BankWindow({
         <button type="button" onClick={onBack} className="rounded-full bg-white/90 px-3 py-1 text-sm font-semibold shadow" style={{ color: bank.color2 }}>
           ← Банките
         </button>
+        {onAddTask ? (
+          <button
+            type="button"
+            onClick={onAddTask}
+            className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold shadow"
+            style={{ color: bank.color2 }}
+          >
+            <ListChecks className="mr-1 inline h-3.5 w-3.5" /> Към задача
+          </button>
+        ) : null}
         <div
           className="min-w-0 flex-1 rounded-sm px-4 py-3 text-center shadow-[0_10px_28px_rgba(0,0,0,0.35)] ring-[3px] ring-white/85"
           style={{ background: `linear-gradient(180deg, ${bank.color}, ${bank.color2})`, color: bank.textOn }}

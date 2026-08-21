@@ -3,13 +3,14 @@ import { toast } from "sonner";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, MapPin, AlertTriangle, Sparkles, Camera, Folder, ArrowLeft, Home, Building2, Trees, Store, Landmark } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Upload, FileText, Phone, MapPin, AlertTriangle, Sparkles, Camera, Folder, ArrowLeft, Home, Building2, Trees, Store, Landmark, ListChecks } from "lucide-react";
 import { listClients, listBrokers, upsertClient, deleteClient, getClientDocuments, addClientDocument, deleteClientDocument, updateClientDeal } from "@/lib/crm.functions";
 import { MortgageStagesModal } from "@/components/admin/mortgage-stages-modal";
 import { ClientDetailsSheet } from "@/components/admin/client-details-sheet";
 import { LeadScoreBadge } from "@/components/admin/lead-score-badge";
 import { ClientScanModal } from "@/components/admin/client-scan-modal";
 import { BankMortgageDesk } from "@/components/admin/bank-mortgage-desk";
+import { ClientTaskDialog } from "@/components/admin/client-task-dialog";
 import { isStartedDeal, DEAL_SUBS, docBucket, bankFileLabel } from "@/lib/started-deals";
 import dealsFolderImg from "@/assets/crm/crm-opt-mortgage.png";
 import { useAuth } from "@/hooks/use-auth";
@@ -102,6 +103,7 @@ function ClientsAdmin() {
   const [mortgageFor, setMortgageFor] = useState<Client | null>(null);
   const [mortgageStagesFor, setMortgageStagesFor] = useState<Client | null>(null);
   const [detailsFor, setDetailsFor] = useState<Client | null>(null);
+  const [taskFor, setTaskFor] = useState<Client | null>(null);
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
   const [scanOpen, setScanOpen] = useState(false);
@@ -464,6 +466,16 @@ function ClientsAdmin() {
 
       {showFolders && navDeals && dealClient && !dealSub && (
         <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-amber-500/50 text-amber-100 hover:bg-amber-500/15"
+              onClick={() => setTaskFor(dealClient)}
+            >
+              <ListChecks className="h-4 w-4" /> Добавяне към задача
+            </Button>
+          </div>
           {(dealClient.notes || dealClient.interest_note) && (
             <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.95)] p-4 text-sm text-primary">
               {dealClient.notes ? <p className="whitespace-pre-wrap">{dealClient.notes}</p> : null}
@@ -496,6 +508,11 @@ function ClientsAdmin() {
 
       {showFolders && navDeals && dealClient && dealSub && (
         <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.95)] p-5 text-primary">
+          <div className="mb-3 flex justify-end">
+            <Button type="button" variant="outline" onClick={() => setTaskFor(dealClient)}>
+              <ListChecks className="h-4 w-4" /> Добавяне към задача
+            </Button>
+          </div>
           {dealSub === "banka" ? (
             <div className="space-y-3">
               <div className="font-display text-2xl">
@@ -715,6 +732,7 @@ function ClientsAdmin() {
                   </div>
                 </button>
                 <div className="mt-3 flex justify-end gap-1 border-t border-[#C9A84C]/25 pt-2">
+                  <button type="button" className="rounded-lg p-1.5 text-[#8B1A2B] hover:bg-[#8B1A2B]/10" title="Добавяне към задача" onClick={() => guard(r, () => setTaskFor(r))}><ListChecks className="h-4 w-4" /></button>
                   <button type="button" className="rounded-lg p-1.5 text-[#8B1A2B] hover:bg-[#8B1A2B]/10" title="Документи" onClick={() => guard(r, () => setDocsFor(r))}><FileText className="h-4 w-4" /></button>
                   <button type="button" className="rounded-lg p-1.5 text-[#8B1A2B] hover:bg-[#8B1A2B]/10" title="Редакция" onClick={() => guard(r, () => setEditing(r))}><Pencil className="h-4 w-4" /></button>
                   <button type="button" className="client-card-danger rounded-lg p-1.5 text-rose-500 hover:bg-rose-50" title="Изтриване" onClick={() => guard(r, () => remove(r.id))}><Trash2 className="h-4 w-4" /></button>
@@ -807,6 +825,17 @@ function ClientsAdmin() {
         />
       ) : null}
       {mortgageStagesFor && <MortgageStagesModal client={mortgageStagesFor} onClose={() => setMortgageStagesFor(null)} onSaved={load} />}
+      <ClientTaskDialog
+        open={!!taskFor}
+        onClose={() => setTaskFor(null)}
+        defaultType={navDeals ? "deal" : "follow_up"}
+        client={taskFor ? {
+          id: taskFor.id,
+          full_name: taskFor.full_name,
+          phone: taskFor.phone,
+          assigned_broker_id: taskFor.assigned_broker_id,
+        } : null}
+      />
       <ClientDetailsSheet
         client={detailsFor}
         open={!!detailsFor}

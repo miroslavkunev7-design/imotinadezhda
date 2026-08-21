@@ -584,7 +584,7 @@ const taskSchema = z.object({
   client_id: z.string().uuid().optional().nullable(),
   title: z.string().min(2).max(300),
   description: z.string().max(2000).optional().nullable(),
-  task_type: z.enum(["general", "message_client", "call_client", "meeting"]).default("general"),
+  task_type: z.string().min(1).max(64).default("general"),
   due_at: z.string().optional().nullable(),
   is_completed: z.boolean().optional(),
 });

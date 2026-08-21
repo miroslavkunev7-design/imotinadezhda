@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckSquare, Square, Plus, Trash2, X, Calendar as CalIcon } from "lucide-react";
+import { ClientPicker, type ClientOption } from "@/components/admin/client-picker";
+import { TASK_TYPE_OPTIONS, formatClientLabel, isClientRelatedTaskType, taskTypeLabel } from "@/lib/task-kinds";
 
 export const Route = createFileRoute("/admin/tasks")({ component: TasksAdmin });
 
@@ -20,7 +22,7 @@ type Task = {
   created_at: string;
 };
 type Broker = { id: string; full_name: string };
-type Client = { id: string; full_name: string };
+type Client = ClientOption;
 
 function TasksAdmin() {
   const [rows, setRows] = useState<Task[]>([]);
@@ -34,7 +36,7 @@ function TasksAdmin() {
     const [t, b, c] = await Promise.all([
       supabase.from("broker_tasks").select("*").order("due_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }),
       supabase.from("brokers").select("id,full_name").order("full_name"),
-      supabase.from("clients").select("id,full_name").order("full_name"),
+      supabase.from("clients").select("id,full_name,phone").order("full_name"),
     ]);
     if (t.error) return toast.error(t.error.message);
     setRows((t.data as Task[]) ?? []);
@@ -50,6 +52,10 @@ function TasksAdmin() {
     try {
       if (!editing.title?.trim()) throw new Error("Заглавието е задължително");
       if (!editing.broker_id) throw new Error("Избери брокер");
+      const kind = editing.task_type || "general";
+      if (isClientRelatedTaskType(kind) && !editing.client_id) {
+        throw new Error("Избери клиент за този тип задача");
+      }
       const payload: any = {
         title: editing.title.trim(),
         description: editing.description ?? null,
@@ -93,7 +99,11 @@ function TasksAdmin() {
 
   const filtered = rows.filter(r => filter === "all" || (filter === "open" ? !r.is_completed : r.is_completed));
   const brokerName = (id: string) => brokers.find(b => b.id === id)?.full_name ?? "—";
-  const clientName = (id: string | null) => id ? (clients.find(c => c.id === id)?.full_name ?? "—") : "";
+  const clientName = (id: string | null) => {
+    if (!id) return "";
+    const c = clients.find((x) => x.id === id);
+    return c ? formatClientLabel(c) : "—";
+  };
 
   return (
     <div className="space-y-6">
@@ -135,7 +145,7 @@ function TasksAdmin() {
                     <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-amber-100/55">
                       <span>👤 {brokerName(t.broker_id)}</span>
                       {t.client_id && <span>· Клиент: {clientName(t.client_id)}</span>}
-                      <span className="rounded bg-amber-500/15 px-1.5 py-0.5">{t.task_type}</span>
+                      <span className="rounded bg-amber-500/15 px-1.5 py-0.5">{taskTypeLabel(t.task_type)}</span>
                       {t.due_at && (
                         <span className={overdue ? "text-rose-300" : ""}>
                           <CalIcon className="mr-1 inline h-3 w-3" />
@@ -175,20 +185,20 @@ function TasksAdmin() {
                   {brokers.map(b => <option key={b.id} value={b.id}>{b.full_name}</option>)}
                 </select>
               </Field>
-              <Field label="Клиент (по избор)">
-                <select value={editing.client_id ?? ""} onChange={e => setEditing({ ...editing, client_id: e.target.value || null })} className={inp}>
-                  <option value="">—</option>
-                  {clients.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}
-                </select>
+              <Field label={isClientRelatedTaskType(editing.task_type) ? "Клиент *" : "Клиент (по избор)"}>
+                <ClientPicker
+                  tone="dark"
+                  required={isClientRelatedTaskType(editing.task_type)}
+                  value={editing.client_id ?? null}
+                  onChange={(id) => setEditing({ ...editing, client_id: id })}
+                  clients={clients}
+                />
               </Field>
               <Field label="Тип">
                 <select value={editing.task_type ?? "general"} onChange={e => setEditing({ ...editing, task_type: e.target.value })} className={inp}>
-                  <option value="general">Обща</option>
-                  <option value="call">Обаждане</option>
-                  <option value="visit">Оглед</option>
-                  <option value="meeting">Среща</option>
-                  <option value="follow_up">Follow-up</option>
-                  <option value="document">Документ</option>
+                  {TASK_TYPE_OPTIONS.filter((o, i, all) => all.findIndex((x) => x.value === o.value) === i && o.value !== "visit").map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
                 </select>
               </Field>
               <Field label="Срок">

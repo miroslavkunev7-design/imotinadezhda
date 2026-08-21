@@ -10,6 +10,8 @@ import {
   assignClientToBroker, unassignClientFromBroker, listUnassignedClients,
 } from "@/lib/crm.functions";
 import { BrokerRolesDialog } from "@/components/admin/broker-roles-dialog";
+import { ClientPicker } from "@/components/admin/client-picker";
+import { TASK_TYPE_OPTIONS, isClientRelatedTaskType, taskTypeLabel } from "@/lib/task-kinds";
 import { KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/admin/brokers")({
@@ -239,6 +241,10 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
   const saveTask = async (e: FormEvent) => {
     e.preventDefault();
     if (!taskDraft || !taskDraft.title) return;
+    if (isClientRelatedTaskType(taskDraft.task_type) && !taskDraft.client_id) {
+      toast.error("Избери клиент за този тип задача.");
+      return;
+    }
     setBusy(true);
     try {
       const payload = {
@@ -298,6 +304,7 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
               {(data?.tasks ?? []).map((t) => {
                 const meta = TYPE_META[t.task_type] ?? TYPE_META.general;
                 const Icon = meta.Icon;
+                const typeLabel = taskTypeLabel(t.task_type) !== t.task_type ? taskTypeLabel(t.task_type) : meta.label;
                 return (
                   <div key={t.id} className={`rounded-lg border-2 p-3 text-white ${t.is_completed ? "border-emerald-400/50 bg-emerald-500/10 opacity-80" : "border-[#C9A84C]/40 bg-white/5"}`}>
                     <div className="flex items-start gap-3">
@@ -307,8 +314,8 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
                       <div className="flex-1 min-w-0">
                         <div className={`font-semibold text-white ${t.is_completed ? "line-through" : ""}`}>{t.title}</div>
                         <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-white/80">
-                          <span className="flex items-center gap-1 rounded bg-[#C9A84C]/25 px-1.5 py-0.5 text-[#f4d989]"><Icon className="h-3 w-3" />{meta.label}</span>
-                          {t.clients?.full_name && <span>· клиент: <strong>{t.clients.full_name}</strong></span>}
+                          <span className="flex items-center gap-1 rounded bg-[#C9A84C]/25 px-1.5 py-0.5 text-[#f4d989]"><Icon className="h-3 w-3" />{typeLabel}</span>
+                          {t.clients?.full_name && <span>· клиент: <strong>{t.clients.full_name}{t.clients?.phone ? ` · ${t.clients.phone}` : ""}</strong></span>}
                           {t.due_at && <span>· до {new Date(t.due_at).toLocaleString("bg-BG")}</span>}
                         </div>
                         {t.description && <p className="mt-1 text-xs text-white/85">{t.description}</p>}
@@ -372,17 +379,18 @@ function BrokerDetailModal({ broker, onClose }: { broker: any; onClose: () => vo
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="block"><span className="text-xs uppercase text-muted-foreground">Тип</span>
                   <select value={taskDraft.task_type} onChange={(e) => setTaskDraft({ ...taskDraft, task_type: e.target.value })} className={iC}>
-                    <option value="general">Обикновена</option>
-                    <option value="message_client">Изпрати съобщение (онлайн)</option>
-                    <option value="call_client">Обади се (онлайн)</option>
-                    <option value="meeting">Среща</option>
+                    {TASK_TYPE_OPTIONS.filter((o) => o.value !== "visit").map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
                   </select>
                 </label>
-                <label className="block"><span className="text-xs uppercase text-muted-foreground">Клиент</span>
-                  <select value={taskDraft.client_id ?? ""} onChange={(e) => setTaskDraft({ ...taskDraft, client_id: e.target.value || null })} className={iC}>
-                    <option value="">—</option>
-                    {(data?.clients ?? []).map((c) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
-                  </select>
+                <label className="block"><span className="text-xs uppercase text-muted-foreground">{isClientRelatedTaskType(taskDraft.task_type) ? "Клиент *" : "Клиент"}</span>
+                  <ClientPicker
+                    tone="light"
+                    required={isClientRelatedTaskType(taskDraft.task_type)}
+                    value={taskDraft.client_id ?? null}
+                    onChange={(id) => setTaskDraft({ ...taskDraft, client_id: id })}
+                  />
                 </label>
                 <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">Краен срок</span>
                   <input type="datetime-local" value={taskDraft.due_at ? taskDraft.due_at.slice(0, 16) : ""} onChange={(e) => setTaskDraft({ ...taskDraft, due_at: e.target.value || null })} className={iC} />
