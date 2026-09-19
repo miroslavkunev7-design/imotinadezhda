@@ -169,7 +169,8 @@ async function tryGeminiEdit(source: SourceBytes, prompt: string): Promise<EditO
     };
     const parts = json.candidates?.[0]?.content?.parts ?? [];
     for (const part of parts) {
-      const inline = part.inlineData ?? part.inline_data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const inline: any = part.inlineData ?? part.inline_data;
       if (inline?.data) {
         return {
           image: Uint8Array.from(Buffer.from(inline.data, "base64")),
@@ -340,7 +341,8 @@ export const listPhotoDesk = createServerFn({ method: "GET" })
     const finished = done + failed;
     const mix = { enhance: 0, hdr: 0, staging: 0 };
     for (const r of mixRows ?? []) {
-      if (r.job_type === "enhance" || r.job_type === "hdr" || r.job_type === "staging") mix[r.job_type] += 1;
+      const jt = String(r.job_type) as "enhance" | "hdr" | "staging";
+      if (jt === "enhance" || jt === "hdr" || jt === "staging") mix[jt] += 1;
     }
 
     const keys = imageKeysReady();

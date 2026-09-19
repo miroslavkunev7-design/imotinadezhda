@@ -110,7 +110,7 @@ export const updateLead = createServerFn({ method: "POST" })
     if (data.notes !== undefined) patch.notes = data.notes;
     if (data.assigned_broker_id !== undefined) patch.assigned_broker_id = data.assigned_broker_id;
     if (data.first_response) patch.first_response_at = new Date().toISOString();
-    const { error } = await db.from("inquiries").update(patch).eq("id", data.id);
+    const { error } = await db.from("inquiries").update(patch as never).eq("id", data.id);
     if (error) throw new Error(error.message);
     await db.from("lead_events").insert({
       inquiry_id: data.id,

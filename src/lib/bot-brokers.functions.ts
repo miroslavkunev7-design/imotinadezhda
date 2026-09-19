@@ -102,7 +102,7 @@ export const setBotRunning = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-async function tickValentinInner(db: ServerDb) {
+async function tickValentinInner(db: LooseDb) {
   const { data: listings } = await db
     .from("extracted_listings")
     .select("id, title, source_url, price")

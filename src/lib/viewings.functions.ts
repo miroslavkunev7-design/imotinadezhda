@@ -92,7 +92,7 @@ async function syncBrokerTask(
     if (!error) return viewing.broker_task_id;
   }
 
-  const insert = { ...payload, created_by: userId };
+  const insert: Record<string, unknown> = { ...payload, created_by: userId };
   let { data, error } = await db.from("broker_tasks").insert(insert as never).select("id").maybeSingle();
   if (error && /client_id/i.test(error.message)) {
     const { client_id: _c, ...rest } = insert;
