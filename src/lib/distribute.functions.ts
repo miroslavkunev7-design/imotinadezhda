@@ -119,7 +119,9 @@ export const listDistributeDesk = createServerFn({ method: "GET" })
         .limit(40),
     ]);
 
-    const byKey = new Map((connections ?? []).map((c: any) => [c.platform_key, c]));
+    const byKey = new Map<string, Record<string, any>>(
+      (connections ?? []).map((c: any) => [String(c.platform_key), c as Record<string, any>]),
+    );
     const portals = PORTAL_DEFS.map((def) => {
       const row = byKey.get(def.key);
       return {
@@ -254,7 +256,9 @@ export const scatterListing = createServerFn({ method: "POST" })
     if (pErr || !property) throw new Error(pErr?.message ?? "Имотът не е намерен");
 
     const { data: connections } = await db.from("platform_connections").select("*");
-    const byKey = new Map((connections ?? []).map((c: any) => [c.platform_key, c]));
+    const byKey = new Map<string, Record<string, any>>(
+      (connections ?? []).map((c: any) => [String(c.platform_key), c as Record<string, any>]),
+    );
     const { message, url } = listingCopy(property);
     const images = (property.property_images ?? [])
       .sort(
