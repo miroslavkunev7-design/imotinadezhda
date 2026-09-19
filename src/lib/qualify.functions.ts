@@ -193,7 +193,7 @@ async function qualifyOneClient(
     .eq("id", client.id);
   if (error) throw new Error(error.message);
 
-  return { id: client.id, ...qPatch, applied: fieldPatch as Record<string, unknown> };
+  return { id: client.id, ...qPatch, applied: JSON.parse(JSON.stringify(fieldPatch)) as Record<string, string | number | boolean | null> };
 }
 
 async function qualifyOneInquiry(
