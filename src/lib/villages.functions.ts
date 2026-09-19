@@ -36,7 +36,9 @@ export const getVillagesAround = createServerFn({ method: "GET" })
     const cfg = CITY_TO_OBLAST[data.citySlug];
     if (!cfg) return { cityLabel: data.citySlug, oblast: null, municipality: null, villages: [] as VillageRow[], resortCount: 0, villageCount: 0 };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin: typedAdmin } = await import("@/integrations/supabase/client.server");
+    // villages.kind is added via a manual migration and is absent from generated types.
+    const supabaseAdmin = typedAdmin as unknown as import("@/lib/supabase-server-db").LooseDb;
     let q = supabaseAdmin
       .from("villages")
       .select("id, name, slug, oblast_slug, municipality_slug, distance_km, kind")
@@ -131,7 +133,9 @@ export const backfillVillageCoords = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin: typedAdmin } = await import("@/integrations/supabase/client.server");
+    // villages.kind is added via a manual migration and is absent from generated types.
+    const supabaseAdmin = typedAdmin as unknown as import("@/lib/supabase-server-db").LooseDb;
 
     // Pull city centers for distance calc.
     const { data: cities } = await supabaseAdmin.from("cities").select("slug, lat, lng").in("slug", ["shumen", "varna", "burgas"]);

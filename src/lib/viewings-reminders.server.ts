@@ -1,4 +1,8 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin as typedAdmin } from "@/integrations/supabase/client.server";
+import type { LooseDb } from "@/lib/supabase-server-db";
+
+// The viewings table has reminder columns added via manual migrations.
+const supabaseAdmin = typedAdmin as unknown as LooseDb;
 import { sendTransactionalEmail } from "@/lib/send-email";
 
 export type ViewingReminderKind = "day_before" | "hours_before";

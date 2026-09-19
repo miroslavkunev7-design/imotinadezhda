@@ -5,9 +5,10 @@ import type { Database } from "@/integrations/supabase/types";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
 import { resolveLooseDb } from "@/lib/supabase-server-db";
 
-type ChecklistUpdate = Database["public"]["Tables"]["document_checklist"]["Update"];
-type ClientDocUpdate = Database["public"]["Tables"]["client_documents"]["Update"];
-type PropertyDocUpdate = Database["public"]["Tables"]["property_documents"]["Update"];
+// Document tables carry columns added via manual migrations, so patches stay loosely typed.
+type ChecklistUpdate = Record<string, unknown>;
+type ClientDocUpdate = Record<string, unknown>;
+type PropertyDocUpdate = Record<string, unknown>;
 
 function authEmail(claims: unknown): string | null {
   return (claims as { email?: string } | undefined)?.email ?? null;

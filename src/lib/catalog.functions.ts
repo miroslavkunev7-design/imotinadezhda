@@ -201,14 +201,15 @@ export const getQuarterBySlug = createServerFn({ method: "GET" })
     if (!quarter) return null;
     const propCols =
       "id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, is_featured, address, lat, lng";
-    let propertiesRes = await supabaseAdmin
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let propertiesRes: { data: any; error: any } = await (supabaseAdmin as any)
       .from("properties")
       .select(propCols)
       .eq("quarter_id", quarter.id)
       .eq("is_published", true)
       .order("created_at", { ascending: false });
     if (propertiesRes.error) {
-      propertiesRes = await supabaseAdmin
+      propertiesRes = await (supabaseAdmin as any)
         .from("properties")
         .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, is_featured, address")
         .eq("quarter_id", quarter.id)
