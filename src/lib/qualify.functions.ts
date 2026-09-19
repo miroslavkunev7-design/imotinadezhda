@@ -189,7 +189,7 @@ async function qualifyOneClient(
 
   const { error } = await db
     .from("clients")
-    .update({ ...fieldPatch, ...qPatch })
+    .update({ ...fieldPatch, ...qPatch } as never)
     .eq("id", client.id);
   if (error) throw new Error(error.message);
 
@@ -367,7 +367,7 @@ export const qualifyClient = createServerFn({ method: "POST" })
       .eq("id", data.clientId)
       .single();
     if (error || !row) throw new Error(error?.message ?? "Клиентът не е намерен");
-    return qualifyOneClient(db, row as ClientRow, {
+    return qualifyOneClient(db, row as unknown as ClientRow, {
       useAi: data.useAi ?? true,
       applyFields: data.applyFields ?? true,
     });
@@ -477,7 +477,7 @@ export async function rescoreClientHeuristic(db: ServerDb, clientId: string) {
   const { data: row, error } = await db.from("clients").select("*").eq("id", clientId).maybeSingle();
   if (error || !row) return;
   try {
-    await qualifyOneClient(db, row as ClientRow, { useAi: false, applyFields: false });
+    await qualifyOneClient(db, row as unknown as ClientRow, { useAi: false, applyFields: false });
   } catch {
     // scoring must not block client save
   }

@@ -103,7 +103,7 @@ function QualifyAdmin() {
     try {
       const data = await listQualifiedLeads();
       setAiAvailable(data.aiAvailable);
-      setClients(data.clients as ClientRow[]);
+      setClients(data.clients as unknown as ClientRow[]);
       setInquiries(data.inquiries as InquiryRow[]);
       setAnalytics(data.analytics);
     } catch (e: any) {

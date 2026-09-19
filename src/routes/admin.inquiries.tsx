@@ -87,10 +87,10 @@ function InquiriesAdmin() {
     });
   }, [rows, statusFilter, sourceFilter, q]);
 
-  const patch = async (id: string, data: Parameters<typeof updateLead>[0]["data"]) => {
+  const patch = async (id: string, data: Record<string, unknown>) => {
     setBusy(id);
     try {
-      await updateLead({ data: { id, ...data } });
+      await updateLead({ data: { id, ...data } as never });
       await load();
     } catch (e: any) {
       toast.error(e?.message ?? "Не се записа");

@@ -68,11 +68,11 @@ function DistributePage() {
   useEffect(() => {
     if (search.facebook === "ok") {
       toast.success("Facebook страницата е свързана.");
-      navigate({ to: "/admin/distribute", search: { property: search.property }, replace: true });
+      navigate({ to: "/admin/distribute", search: { property: search.property } as never, replace: true });
       void load();
     } else if (search.facebook === "error") {
       toast.error(search.reason || "Facebook свързването се провали");
-      navigate({ to: "/admin/distribute", search: { property: search.property }, replace: true });
+      navigate({ to: "/admin/distribute", search: { property: search.property } as never, replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.facebook]);
