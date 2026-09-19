@@ -9,9 +9,17 @@ function authEmail(claims: unknown): string | null {
   return (claims as { email?: string } | undefined)?.email ?? null;
 }
 
-async function gate(ctx: { userId: string; supabase: ServerDb; claims: unknown }) {
+/** Loose DB handle: bot_* tables are not present in the generated Supabase types. */
+type LooseDb = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  from: (table: string) => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rpc: (fn: string, args?: Record<string, unknown>) => any;
+};
+
+async function gate(ctx: { userId: string; supabase: ServerDb; claims: unknown }): Promise<LooseDb> {
   await assertCrmAccess(ctx.userId, ctx.supabase, authEmail(ctx.claims));
-  return resolveServerDb(ctx.supabase) as ServerDb & { from: (t: string) => ReturnType<ServerDb["from"]> };
+  return resolveServerDb(ctx.supabase) as unknown as LooseDb;
 }
 
 function sofiaParts(d = new Date()) {
