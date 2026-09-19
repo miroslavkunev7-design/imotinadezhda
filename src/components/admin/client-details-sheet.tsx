@@ -969,7 +969,7 @@ export function ClientDetailsSheet({
                 <Sparkles className="h-3.5 w-3.5" /> Оцени с AI
               </Button>
               <Button variant="outline" size="sm" className="rounded-full" asChild>
-                <Link to="/admin/contracts" search={{ client: client.id }}>
+                <Link to="/admin/contracts" search={{ client: client.id, property: undefined }}>
                   <FileSignature className="h-3.5 w-3.5" /> Генерирай договор
                 </Link>
               </Button>
