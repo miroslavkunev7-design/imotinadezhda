@@ -253,7 +253,7 @@ function CustomerChat() {
         is_handed_off: true,
         unanswered: false,
         last_message_at: new Date().toISOString(),
-      }).eq("id", active.id);
+      } as never).eq("id", active.id);
       setActive({ ...active, is_handed_off: true, unanswered: false });
       setReply("");
     } catch (e: any) { toast.error(e.message); } finally { setBusy(false); }

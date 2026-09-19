@@ -3,7 +3,7 @@ import { z } from "zod";
 import { aiChatCompletions, resolveAiProvider } from "@/lib/ai-provider";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb, type ServerDb } from "@/lib/supabase-server-db";
 import {
   combineExtractions,
   extractFromFreeText,
@@ -23,7 +23,7 @@ function authEmail(claims: unknown): string | null {
 type CrmCtx = { userId: string; supabase: ServerDb; claims: unknown };
 
 function crmDb(ctx: CrmCtx) {
-  return resolveServerDb(ctx.supabase);
+  return resolveLooseDb(ctx.supabase);
 }
 
 const AI_EXTRACT_PROMPT = `Ти си асистент на агенция за недвижими имоти в България.
@@ -189,11 +189,11 @@ async function qualifyOneClient(
 
   const { error } = await db
     .from("clients")
-    .update({ ...fieldPatch, ...qPatch })
+    .update({ ...fieldPatch, ...qPatch } as never)
     .eq("id", client.id);
   if (error) throw new Error(error.message);
 
-  return { id: client.id, ...qPatch, applied: fieldPatch };
+  return { id: client.id, ...qPatch, applied: JSON.parse(JSON.stringify(fieldPatch)) as Record<string, string | number | boolean | null> };
 }
 
 async function qualifyOneInquiry(
@@ -367,7 +367,7 @@ export const qualifyClient = createServerFn({ method: "POST" })
       .eq("id", data.clientId)
       .single();
     if (error || !row) throw new Error(error?.message ?? "Клиентът не е намерен");
-    return qualifyOneClient(db, row as ClientRow, {
+    return qualifyOneClient(db, row as unknown as ClientRow, {
       useAi: data.useAi ?? true,
       applyFields: data.applyFields ?? true,
     });
@@ -477,7 +477,7 @@ export async function rescoreClientHeuristic(db: ServerDb, clientId: string) {
   const { data: row, error } = await db.from("clients").select("*").eq("id", clientId).maybeSingle();
   if (error || !row) return;
   try {
-    await qualifyOneClient(db, row as ClientRow, { useAi: false, applyFields: false });
+    await qualifyOneClient(db, row as unknown as ClientRow, { useAi: false, applyFields: false });
   } catch {
     // scoring must not block client save
   }

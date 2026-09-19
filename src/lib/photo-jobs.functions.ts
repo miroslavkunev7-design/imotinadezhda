@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb, type ServerDb } from "@/lib/supabase-server-db";
 
 export const PHOTO_JOB_TYPES = ["enhance", "hdr", "staging"] as const;
 export type PhotoJobType = (typeof PHOTO_JOB_TYPES)[number];
@@ -22,7 +22,7 @@ function authEmail(claims: unknown): string | null {
 
 async function gate(ctx: { userId: string; supabase: ServerDb; claims: unknown }) {
   await assertCrmAccess(ctx.userId, ctx.supabase, authEmail(ctx.claims));
-  return resolveServerDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
+  return resolveLooseDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
 }
 
 function imageKeysReady() {
@@ -169,7 +169,8 @@ async function tryGeminiEdit(source: SourceBytes, prompt: string): Promise<EditO
     };
     const parts = json.candidates?.[0]?.content?.parts ?? [];
     for (const part of parts) {
-      const inline = part.inlineData ?? part.inline_data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const inline: any = part.inlineData ?? part.inline_data;
       if (inline?.data) {
         return {
           image: Uint8Array.from(Buffer.from(inline.data, "base64")),
@@ -340,7 +341,8 @@ export const listPhotoDesk = createServerFn({ method: "GET" })
     const finished = done + failed;
     const mix = { enhance: 0, hdr: 0, staging: 0 };
     for (const r of mixRows ?? []) {
-      if (r.job_type === "enhance" || r.job_type === "hdr" || r.job_type === "staging") mix[r.job_type] += 1;
+      const jt = String(r.job_type) as "enhance" | "hdr" | "staging";
+      if (jt === "enhance" || jt === "hdr" || jt === "staging") mix[jt] += 1;
     }
 
     const keys = imageKeysReady();

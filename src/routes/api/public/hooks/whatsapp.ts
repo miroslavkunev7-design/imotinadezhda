@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/public/hooks/whatsapp")({
             const d = String(c.phone ?? "").replace(/\D/g, "");
             return d.endsWith(from.slice(-8)) || from.endsWith(d.slice(-8));
           });
-          await supabaseAdmin.from("bot_messages").insert({
+          await (supabaseAdmin as unknown as { from: (t: string) => { insert: (v: unknown) => Promise<unknown> } }).from("bot_messages").insert({
             bot_id: "senior",
             client_id: client?.id ?? null,
             direction: "in",
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/api/public/hooks/whatsapp")({
               displayName: client ? undefined : null,
             });
             if (result.reply) {
-              await supabaseAdmin.from("bot_messages").insert({
+              await (supabaseAdmin as unknown as { from: (t: string) => { insert: (v: unknown) => Promise<unknown> } }).from("bot_messages").insert({
                 bot_id: "assistant",
                 client_id: client?.id ?? null,
                 direction: "out",

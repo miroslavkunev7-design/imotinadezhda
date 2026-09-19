@@ -451,51 +451,39 @@ export type Database = {
           client_id: string
           created_at: string
           document_type: string
-          expires_at: string | null
           file_name: string
           file_size: number | null
           file_url: string
           id: string
           mime_type: string | null
           notes: string | null
-          status: string
           uploaded_by: string | null
-          verified_at: string | null
-          verified_by: string | null
           version: number
         }
         Insert: {
           client_id: string
           created_at?: string
           document_type: string
-          expires_at?: string | null
           file_name: string
           file_size?: number | null
           file_url: string
           id?: string
           mime_type?: string | null
           notes?: string | null
-          status?: string
           uploaded_by?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
           version?: number
         }
         Update: {
           client_id?: string
           created_at?: string
           document_type?: string
-          expires_at?: string | null
           file_name?: string
           file_size?: number | null
           file_url?: string
           id?: string
           mime_type?: string | null
           notes?: string | null
-          status?: string
           uploaded_by?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
           version?: number
         }
         Relationships: [
@@ -504,94 +492,6 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      document_checklist: {
-        Row: {
-          archived_property_id: string | null
-          client_id: string | null
-          created_at: string
-          doc_type: string
-          expires_at: string | null
-          file_id: string | null
-          file_name: string | null
-          file_source: string | null
-          file_url: string | null
-          id: string
-          notes: string | null
-          property_id: string | null
-          requested_at: string | null
-          status: string
-          updated_at: string
-          uploaded_at: string | null
-          uploaded_by: string | null
-          verified_at: string | null
-          verified_by: string | null
-        }
-        Insert: {
-          archived_property_id?: string | null
-          client_id?: string | null
-          created_at?: string
-          doc_type: string
-          expires_at?: string | null
-          file_id?: string | null
-          file_name?: string | null
-          file_source?: string | null
-          file_url?: string | null
-          id?: string
-          notes?: string | null
-          property_id?: string | null
-          requested_at?: string | null
-          status?: string
-          updated_at?: string
-          uploaded_at?: string | null
-          uploaded_by?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Update: {
-          archived_property_id?: string | null
-          client_id?: string | null
-          created_at?: string
-          doc_type?: string
-          expires_at?: string | null
-          file_id?: string | null
-          file_name?: string | null
-          file_source?: string | null
-          file_url?: string | null
-          id?: string
-          notes?: string | null
-          property_id?: string | null
-          requested_at?: string | null
-          status?: string
-          updated_at?: string
-          uploaded_at?: string | null
-          uploaded_by?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "document_checklist_archived_property_id_fkey"
-            columns: ["archived_property_id"]
-            isOneToOne: false
-            referencedRelation: "archived_properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_checklist_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "document_checklist_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -612,16 +512,9 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
-          lead_score: number | null
-          lead_tier: string | null
-          lead_urgency: string | null
           mortgage_data: Json
           notes: string | null
           phone: string | null
-          qualification_breakdown: Json
-          qualification_source: string | null
-          qualification_summary: string | null
-          qualified_at: string | null
           rooms_max: number | null
           rooms_min: number | null
           search_city_id: string | null
@@ -646,16 +539,9 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
-          lead_score?: number | null
-          lead_tier?: string | null
-          lead_urgency?: string | null
           mortgage_data?: Json
           notes?: string | null
           phone?: string | null
-          qualification_breakdown?: Json
-          qualification_source?: string | null
-          qualification_summary?: string | null
-          qualified_at?: string | null
           rooms_max?: number | null
           rooms_min?: number | null
           search_city_id?: string | null
@@ -680,16 +566,9 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
-          lead_score?: number | null
-          lead_tier?: string | null
-          lead_urgency?: string | null
           mortgage_data?: Json
           notes?: string | null
           phone?: string | null
-          qualification_breakdown?: Json
-          qualification_source?: string | null
-          qualification_summary?: string | null
-          qualified_at?: string | null
           rooms_max?: number | null
           rooms_min?: number | null
           search_city_id?: string | null
@@ -976,16 +855,6 @@ export type Database = {
           visitor_name: string | null
           visitor_phone: string | null
           visitor_token: string
-          channel: string
-          external_user_id: string | null
-          visitor_budget: number | null
-          visitor_city: string | null
-          lead_captured: boolean
-          inquiry_id: string | null
-          client_id: string | null
-          unanswered: boolean
-          first_response_at: string | null
-          handoff_reason: string | null
         }
         Insert: {
           created_at?: string
@@ -998,16 +867,6 @@ export type Database = {
           visitor_name?: string | null
           visitor_phone?: string | null
           visitor_token: string
-          channel?: string
-          external_user_id?: string | null
-          visitor_budget?: number | null
-          visitor_city?: string | null
-          lead_captured?: boolean
-          inquiry_id?: string | null
-          client_id?: string | null
-          unanswered?: boolean
-          first_response_at?: string | null
-          handoff_reason?: string | null
         }
         Update: {
           created_at?: string
@@ -1020,16 +879,6 @@ export type Database = {
           visitor_name?: string | null
           visitor_phone?: string | null
           visitor_token?: string
-          channel?: string
-          external_user_id?: string | null
-          visitor_budget?: number | null
-          visitor_city?: string | null
-          lead_captured?: boolean
-          inquiry_id?: string | null
-          client_id?: string | null
-          unanswered?: boolean
-          first_response_at?: string | null
-          handoff_reason?: string | null
         }
         Relationships: []
       }
@@ -1335,67 +1184,34 @@ export type Database = {
         Row: {
           created_at: string
           email: string
-          first_response_at: string | null
           id: string
-          intent: string | null
-          lead_score: number | null
-          lead_tier: string | null
-          lead_urgency: string | null
           message: string | null
           name: string
           notes: string | null
-          page_url: string | null
           phone: string | null
-          phone_digits: string | null
-          processed_at: string | null
           property_id: string | null
-          qualification_breakdown: Json
-          qualification_source: string | null
-          qualification_summary: string | null
-          qualified_at: string | null
-          raw: Json
-          score: number
-          source: string
           status: Database["public"]["Enums"]["inquiry_status"]
-          urgency: string
-          utm_campaign: string | null
-          utm_medium: string | null
-          utm_source: string | null
         }
         Insert: {
           created_at?: string
           email: string
           id?: string
-          lead_score?: number | null
-          lead_tier?: string | null
-          lead_urgency?: string | null
           message?: string | null
           name: string
           notes?: string | null
           phone?: string | null
           property_id?: string | null
-          qualification_breakdown?: Json
-          qualification_source?: string | null
-          qualification_summary?: string | null
-          qualified_at?: string | null
           status?: Database["public"]["Enums"]["inquiry_status"]
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
-          lead_score?: number | null
-          lead_tier?: string | null
-          lead_urgency?: string | null
           message?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
           property_id?: string | null
-          qualification_breakdown?: Json
-          qualification_source?: string | null
-          qualification_summary?: string | null
-          qualified_at?: string | null
           status?: Database["public"]["Enums"]["inquiry_status"]
         }
         Relationships: [
@@ -1605,75 +1421,6 @@ export type Database = {
         }
         Relationships: []
       }
-      photo_jobs: {
-        Row: {
-          attached_image_id: string | null
-          created_at: string
-          created_by: string | null
-          error_message: string | null
-          id: string
-          job_type: string
-          prompt: string | null
-          property_id: string | null
-          provider: string | null
-          result_storage_path: string | null
-          result_url: string | null
-          source_url: string | null
-          staging_style: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          attached_image_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          error_message?: string | null
-          id?: string
-          job_type: string
-          prompt?: string | null
-          property_id?: string | null
-          provider?: string | null
-          result_storage_path?: string | null
-          result_url?: string | null
-          source_url?: string | null
-          staging_style?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          attached_image_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          error_message?: string | null
-          id?: string
-          job_type?: string
-          prompt?: string | null
-          property_id?: string | null
-          provider?: string | null
-          result_storage_path?: string | null
-          result_url?: string | null
-          source_url?: string | null
-          staging_style?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "photo_jobs_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "photo_jobs_attached_image_id_fkey"
-            columns: ["attached_image_id"]
-            isOneToOne: false
-            referencedRelation: "property_images"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1730,8 +1477,6 @@ export type Database = {
           is_featured: boolean
           is_published: boolean
           land_regulation: string | null
-          lat: number | null
-          lng: number | null
           office_class: string | null
           owner_id: string | null
           parking_spaces: number | null
@@ -1770,8 +1515,6 @@ export type Database = {
           is_featured?: boolean
           is_published?: boolean
           land_regulation?: string | null
-          lat?: number | null
-          lng?: number | null
           office_class?: string | null
           owner_id?: string | null
           parking_spaces?: number | null
@@ -1810,8 +1553,6 @@ export type Database = {
           is_featured?: boolean
           is_published?: boolean
           land_regulation?: string | null
-          lat?: number | null
-          lng?: number | null
           office_class?: string | null
           owner_id?: string | null
           parking_spaces?: number | null
@@ -1877,55 +1618,40 @@ export type Database = {
         Row: {
           created_at: string
           doc_type: string
-          expires_at: string | null
           file_name: string
           file_path: string
           file_size: number | null
           file_url: string
           id: string
           mime_type: string | null
-          notes: string | null
           property_id: string
-          status: string
           uploaded_by: string | null
-          verified_at: string | null
-          verified_by: string | null
           version: number
         }
         Insert: {
           created_at?: string
           doc_type: string
-          expires_at?: string | null
           file_name: string
           file_path: string
           file_size?: number | null
           file_url: string
           id?: string
           mime_type?: string | null
-          notes?: string | null
           property_id: string
-          status?: string
           uploaded_by?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
           version?: number
         }
         Update: {
           created_at?: string
           doc_type?: string
-          expires_at?: string | null
           file_name?: string
           file_path?: string
           file_size?: number | null
           file_url?: string
           id?: string
           mime_type?: string | null
-          notes?: string | null
           property_id?: string
-          status?: string
           uploaded_by?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
           version?: number
         }
         Relationships: [
@@ -2250,99 +1976,6 @@ export type Database = {
         }
         Relationships: []
       }
-      viewings: {
-        Row: {
-          archived_property_id: string | null
-          broker_id: string
-          broker_task_id: string | null
-          client_id: string | null
-          created_at: string
-          created_by: string | null
-          id: string
-          location: string | null
-          notes: string | null
-          property_id: string | null
-          property_title: string | null
-          reminded_day_before_at: string | null
-          reminded_hours_before_at: string | null
-          scheduled_at: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          archived_property_id?: string | null
-          broker_id: string
-          broker_task_id?: string | null
-          client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          location?: string | null
-          notes?: string | null
-          property_id?: string | null
-          property_title?: string | null
-          reminded_day_before_at?: string | null
-          reminded_hours_before_at?: string | null
-          scheduled_at: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          archived_property_id?: string | null
-          broker_id?: string
-          broker_task_id?: string | null
-          client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          location?: string | null
-          notes?: string | null
-          property_id?: string | null
-          property_title?: string | null
-          reminded_day_before_at?: string | null
-          reminded_hours_before_at?: string | null
-          scheduled_at?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "viewings_archived_property_id_fkey"
-            columns: ["archived_property_id"]
-            isOneToOne: false
-            referencedRelation: "archived_properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "viewings_broker_id_fkey"
-            columns: ["broker_id"]
-            isOneToOne: false
-            referencedRelation: "brokers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "viewings_broker_task_id_fkey"
-            columns: ["broker_task_id"]
-            isOneToOne: false
-            referencedRelation: "broker_tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "viewings_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "viewings_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       villages: {
         Row: {
           created_at: string
@@ -2354,7 +1987,6 @@ export type Database = {
           name: string
           oblast_slug: string
           slug: string
-          kind: string
           updated_at: string
         }
         Insert: {
@@ -2367,7 +1999,6 @@ export type Database = {
           name: string
           oblast_slug: string
           slug: string
-          kind?: string
           updated_at?: string
         }
         Update: {
@@ -2380,7 +2011,6 @@ export type Database = {
           name?: string
           oblast_slug?: string
           slug?: string
-          kind?: string
           updated_at?: string
         }
         Relationships: []
@@ -2430,6 +2060,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -2500,12 +2131,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2529,11 +2160,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2554,11 +2185,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2579,11 +2210,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2596,11 +2227,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

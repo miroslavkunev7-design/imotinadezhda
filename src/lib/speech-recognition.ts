@@ -1,4 +1,7 @@
-type SpeechRecognitionCtor = new () => SpeechRecognition;
+// The SpeechRecognition DOM lib types are not available in this TS config.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SpeechRecognitionInstance = any;
+type SpeechRecognitionCtor = new () => SpeechRecognitionInstance;
 
 export type SpeechRecognitionHandle = {
   stop: () => void;

@@ -957,7 +957,7 @@ export function ClientDetailsSheet({
                   setBusy(true);
                   try {
                     const r = await qualifyClient({ data: { clientId: client.id, useAi: true, applyFields: true } });
-                    toast.success(`Оценка ${r.lead_score}/100`);
+                    toast.success(`Оценка ${(r as { lead_score?: number } | null)?.lead_score ?? 0}/100`);
                     await onChanged();
                   } catch (e: any) {
                     toast.error(e?.message ?? "Квалификацията не успя");
@@ -969,7 +969,7 @@ export function ClientDetailsSheet({
                 <Sparkles className="h-3.5 w-3.5" /> Оцени с AI
               </Button>
               <Button variant="outline" size="sm" className="rounded-full" asChild>
-                <Link to="/admin/contracts" search={{ client: client.id }}>
+                <Link to="/admin/contracts" search={{ client: client.id, property: undefined }}>
                   <FileSignature className="h-3.5 w-3.5" /> Генерирай договор
                 </Link>
               </Button>

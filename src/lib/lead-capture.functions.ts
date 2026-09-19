@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb, type ServerDb } from "@/lib/supabase-server-db";
 import { ingestLead } from "@/lib/lead-capture";
 
 function authEmail(claims: unknown): string | null {
@@ -11,7 +11,7 @@ function authEmail(claims: unknown): string | null {
 
 async function gate(ctx: { userId: string; supabase: ServerDb; claims: unknown }) {
   await assertCrmAccess(ctx.userId, ctx.supabase, authEmail(ctx.claims));
-  return resolveServerDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
+  return resolveLooseDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
 }
 
 function hoursAgo(iso: string) {
@@ -110,7 +110,7 @@ export const updateLead = createServerFn({ method: "POST" })
     if (data.notes !== undefined) patch.notes = data.notes;
     if (data.assigned_broker_id !== undefined) patch.assigned_broker_id = data.assigned_broker_id;
     if (data.first_response) patch.first_response_at = new Date().toISOString();
-    const { error } = await db.from("inquiries").update(patch).eq("id", data.id);
+    const { error } = await db.from("inquiries").update(patch as never).eq("id", data.id);
     if (error) throw new Error(error.message);
     await db.from("lead_events").insert({
       inquiry_id: data.id,

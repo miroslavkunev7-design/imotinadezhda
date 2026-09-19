@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb, type ServerDb } from "@/lib/supabase-server-db";
 import { SITE_URL } from "@/lib/site-config";
 
 const GRAPH = "https://graph.facebook.com/v21.0";
@@ -28,7 +28,7 @@ function authEmail(claims: unknown): string | null {
 
 async function gate(ctx: { userId: string; supabase: ServerDb; claims: unknown }) {
   await assertCrmAccess(ctx.userId, ctx.supabase, authEmail(ctx.claims));
-  return resolveServerDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
+  return resolveLooseDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
 }
 
 function maskEmail(email: string | null | undefined) {
@@ -119,7 +119,9 @@ export const listDistributeDesk = createServerFn({ method: "GET" })
         .limit(40),
     ]);
 
-    const byKey = new Map((connections ?? []).map((c: any) => [c.platform_key, c]));
+    const byKey = new Map<string, Record<string, any>>(
+      (connections ?? []).map((c: any) => [String(c.platform_key), c as Record<string, any>]),
+    );
     const portals = PORTAL_DEFS.map((def) => {
       const row = byKey.get(def.key);
       return {
@@ -254,7 +256,9 @@ export const scatterListing = createServerFn({ method: "POST" })
     if (pErr || !property) throw new Error(pErr?.message ?? "Имотът не е намерен");
 
     const { data: connections } = await db.from("platform_connections").select("*");
-    const byKey = new Map((connections ?? []).map((c: any) => [c.platform_key, c]));
+    const byKey = new Map<string, Record<string, any>>(
+      (connections ?? []).map((c: any) => [String(c.platform_key), c as Record<string, any>]),
+    );
     const { message, url } = listingCopy(property);
     const images = (property.property_images ?? [])
       .sort(

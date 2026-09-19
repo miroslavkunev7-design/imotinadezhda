@@ -2404,7 +2404,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
 
       {/* Floating search bar */}
       <div className="relative z-10 mx-auto -mt-12 max-w-6xl px-4">
-        <DistrictSearchBar cityName={cityName} />
+        <DistrictSearchBar cityName={cityName} citySlug={citySlug} />
       </div>
 
       <div className="site-main-below-header mx-auto mt-12 max-w-7xl px-4 pb-24">
