@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb, type ServerDb } from "@/lib/supabase-server-db";
 import { SITE_URL } from "@/lib/site-config";
 
 const GRAPH = "https://graph.facebook.com/v21.0";
@@ -28,7 +28,7 @@ function authEmail(claims: unknown): string | null {
 
 async function gate(ctx: { userId: string; supabase: ServerDb; claims: unknown }) {
   await assertCrmAccess(ctx.userId, ctx.supabase, authEmail(ctx.claims));
-  return resolveServerDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
+  return resolveLooseDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
 }
 
 function maskEmail(email: string | null | undefined) {

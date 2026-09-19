@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb } from "@/lib/supabase-server-db";
 
 function authEmail(claims: unknown): string | null {
   return (claims as { email?: string } | undefined)?.email ?? null;
@@ -52,7 +52,7 @@ function relName(rel: { full_name?: string } | { full_name?: string }[] | null |
 }
 
 async function syncBrokerTask(
-  db: ReturnType<typeof resolveServerDb>,
+  db: ReturnType<typeof resolveLooseDb>,
   viewing: {
     id: string;
     broker_id: string;
@@ -117,7 +117,7 @@ export const listViewings = createServerFn({ method: "GET" })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase) as any;
+    const db = resolveLooseDb(context.supabase) as any;
     const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     let q = db.from("viewings").select(SELECT).order("scheduled_at", { ascending: true });
     q = scopeBroker(q, access);
@@ -146,7 +146,7 @@ export const upsertViewing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => viewingSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase) as any;
+    const db = resolveLooseDb(context.supabase) as any;
     const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     if (!access.isAdmin && access.brokerId && data.broker_id !== access.brokerId) {
       throw new Error("Можете да насрочвате огледи само към своя график.");
@@ -209,7 +209,7 @@ export const setViewingStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: uuid, status: statusSchema }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase) as any;
+    const db = resolveLooseDb(context.supabase) as any;
     const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     let q = db.from("viewings").select(SELECT).eq("id", data.id);
     q = scopeBroker(q, access);
@@ -248,7 +248,7 @@ export const deleteViewing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase) as any;
+    const db = resolveLooseDb(context.supabase) as any;
     const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     let q = db.from("viewings").select("id, broker_task_id, broker_id").eq("id", data.id);
     q = scopeBroker(q, access);
@@ -264,7 +264,7 @@ export const deleteViewing = createServerFn({ method: "POST" })
 export const getViewingStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const db = resolveServerDb(context.supabase) as any;
+    const db = resolveLooseDb(context.supabase) as any;
     const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
 
     const startToday = new Date();

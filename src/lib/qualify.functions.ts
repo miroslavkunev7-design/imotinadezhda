@@ -3,7 +3,7 @@ import { z } from "zod";
 import { aiChatCompletions, resolveAiProvider } from "@/lib/ai-provider";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb, type ServerDb } from "@/lib/supabase-server-db";
 import {
   combineExtractions,
   extractFromFreeText,
@@ -23,7 +23,7 @@ function authEmail(claims: unknown): string | null {
 type CrmCtx = { userId: string; supabase: ServerDb; claims: unknown };
 
 function crmDb(ctx: CrmCtx) {
-  return resolveServerDb(ctx.supabase);
+  return resolveLooseDb(ctx.supabase);
 }
 
 const AI_EXTRACT_PROMPT = `Ти си асистент на агенция за недвижими имоти в България.

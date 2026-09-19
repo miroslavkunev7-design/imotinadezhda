@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb, type ServerDb } from "@/lib/supabase-server-db";
 
 export const PHOTO_JOB_TYPES = ["enhance", "hdr", "staging"] as const;
 export type PhotoJobType = (typeof PHOTO_JOB_TYPES)[number];
@@ -22,7 +22,7 @@ function authEmail(claims: unknown): string | null {
 
 async function gate(ctx: { userId: string; supabase: ServerDb; claims: unknown }) {
   await assertCrmAccess(ctx.userId, ctx.supabase, authEmail(ctx.claims));
-  return resolveServerDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
+  return resolveLooseDb(ctx.supabase) as ServerDb & { from: (t: string) => any };
 }
 
 function imageKeysReady() {

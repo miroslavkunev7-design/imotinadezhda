@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb } from "@/lib/supabase-server-db";
 
 type ChecklistUpdate = Database["public"]["Tables"]["document_checklist"]["Update"];
 type ClientDocUpdate = Database["public"]["Tables"]["client_documents"]["Update"];
@@ -122,7 +122,7 @@ function asName(rel: unknown): string | null {
   return typeof name === "string" && name.trim() ? name : null;
 }
 
-async function brokerNames(db: ReturnType<typeof resolveServerDb>): Promise<Map<string, string>> {
+async function brokerNames(db: ReturnType<typeof resolveLooseDb>): Promise<Map<string, string>> {
   const { data } = await db.from("brokers").select("user_id, full_name");
   const map = new Map<string, string>();
   for (const row of data ?? []) {
@@ -142,7 +142,7 @@ export const listDocumentDesk = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => filterSchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
 
     const names = await brokerNames(db);
@@ -352,7 +352,7 @@ export const listDocumentDesk = createServerFn({ method: "GET" })
 export const listDocumentLookups = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     const [clients, properties] = await Promise.all([
       db.from("clients").select("id, full_name, phone").order("full_name").limit(400),
@@ -376,7 +376,7 @@ export const seedDealChecklist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => seedSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     if (!data.client_id && !data.property_id && !data.archived_property_id) {
       throw new Error("Избери клиент и/или имот.");
@@ -419,7 +419,7 @@ export const updateChecklistItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => checklistPatch.parse(d))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     const patch: ChecklistUpdate = {};
     if (data.status) {
@@ -441,7 +441,7 @@ export const deleteChecklistItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     const { error } = await db.from("document_checklist").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -467,7 +467,7 @@ export const registerDocumentUpload = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => registerSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     const docType = normalizeDocType(data.doc_type);
     const now = new Date().toISOString();
@@ -561,7 +561,7 @@ export const updateDocumentTracking = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => fileTrackSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
     const now = new Date().toISOString();
     if (data.source === "checklist") {
