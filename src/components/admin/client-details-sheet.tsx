@@ -957,7 +957,7 @@ export function ClientDetailsSheet({
                   setBusy(true);
                   try {
                     const r = await qualifyClient({ data: { clientId: client.id, useAi: true, applyFields: true } });
-                    toast.success(`Оценка ${r.lead_score}/100`);
+                    toast.success(`Оценка ${(r as { lead_score?: number } | null)?.lead_score ?? 0}/100`);
                     await onChanged();
                   } catch (e: any) {
                     toast.error(e?.message ?? "Квалификацията не успя");
