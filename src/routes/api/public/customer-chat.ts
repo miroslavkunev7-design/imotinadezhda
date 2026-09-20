@@ -188,23 +188,25 @@ export const Route = createFileRoute("/api/public/customer-chat")({
               phone: body.visitor_phone ?? null,
               email: body.visitor_email ?? null,
             });
-            await looseDb(safeAdmin).from("bot_messages").insert([
-              {
-                conversation_id: conv.id,
-                channel_code: "web",
-                direction: "in",
-                role: "user",
-                content: body.message,
-              },
-              {
-                conversation_id: conv.id,
-                channel_code: "web",
-                direction: "out",
-                role: "assistant",
-                content: finalContent,
-                ai_used: true,
-              },
-            ]);
+            await looseDb(safeAdmin)
+              .from("bot_messages")
+              .insert([
+                {
+                  conversation_id: conv.id,
+                  channel_code: "web",
+                  direction: "in",
+                  role: "user",
+                  content: body.message,
+                },
+                {
+                  conversation_id: conv.id,
+                  channel_code: "web",
+                  direction: "out",
+                  role: "assistant",
+                  content: finalContent,
+                  ai_used: true,
+                },
+              ]);
             await looseDb(safeAdmin)
               .from("bot_conversations")
               .update({

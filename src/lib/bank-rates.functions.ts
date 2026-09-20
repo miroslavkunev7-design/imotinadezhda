@@ -155,7 +155,9 @@ export const listBankRateFetchLog = createServerFn({ method: "GET" })
     const db = resolveLooseDb(context.supabase);
     const { data, error } = await db
       .from("bank_rate_fetch_log")
-      .select("bank, url, ok, rate_bg, rate_foreign, cities_updated, skipped_manual, error, fetched_at")
+      .select(
+        "bank, url, ok, rate_bg, rate_foreign, cities_updated, skipped_manual, error, fetched_at",
+      )
       .order("fetched_at", { ascending: false })
       .limit(60);
     if (error) throw new Error(error.message);

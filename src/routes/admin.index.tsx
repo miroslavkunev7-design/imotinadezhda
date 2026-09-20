@@ -139,7 +139,10 @@ function Dashboard() {
     Promise.all([
       looseDb(supabase).from("properties").select("id", { count: "exact", head: true }),
       looseDb(supabase).from("clients").select("id", { count: "exact", head: true }),
-      looseDb(supabase).from("deals").select("id", { count: "exact", head: true }).neq("status", "lost"),
+      looseDb(supabase)
+        .from("deals")
+        .select("id", { count: "exact", head: true })
+        .neq("status", "lost"),
       looseDb(supabase).from("deals").select("commission_amount").eq("commission_paid", true),
     ]).then(([p, c, d, com]) => {
       const revenue = (com.data ?? []).reduce(

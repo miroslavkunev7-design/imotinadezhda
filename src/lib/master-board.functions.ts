@@ -202,7 +202,10 @@ export const deleteBoardStage = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
-    const { error } = await looseDb(context.supabase).from("visual_board_stages").delete().eq("id", data.id);
+    const { error } = await looseDb(context.supabase)
+      .from("visual_board_stages")
+      .delete()
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

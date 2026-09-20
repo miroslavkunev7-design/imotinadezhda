@@ -120,7 +120,10 @@ export const deleteArchive = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { error } = await looseDb(context.supabase).from("archived_properties").delete().eq("id", data.id);
+    const { error } = await looseDb(context.supabase)
+      .from("archived_properties")
+      .delete()
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -214,9 +217,15 @@ export const publishArchive = createServerFn({ method: "POST" })
     // Скриване от сайта
     if (!data.publish) {
       if (linkedId) {
-        await looseDb(supabase).from("properties").update({ is_published: false }).eq("id", linkedId);
+        await looseDb(supabase)
+          .from("properties")
+          .update({ is_published: false })
+          .eq("id", linkedId);
       }
-      await looseDb(supabase).from("archived_properties").update({ is_published: false }).eq("id", data.id);
+      await looseDb(supabase)
+        .from("archived_properties")
+        .update({ is_published: false })
+        .eq("id", data.id);
       return { ok: true as const, published: false, property_id: linkedId };
     }
 
@@ -251,7 +260,10 @@ export const publishArchive = createServerFn({ method: "POST" })
 
     let propertyId = linkedId;
     if (propertyId) {
-      const { error } = await looseDb(supabase).from("properties").update(payload).eq("id", propertyId);
+      const { error } = await looseDb(supabase)
+        .from("properties")
+        .update(payload)
+        .eq("id", propertyId);
       if (error) throw new Error(error.message);
     } else {
       const { data: ins, error } = await looseDb(supabase)
