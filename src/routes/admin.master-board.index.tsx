@@ -10,6 +10,7 @@ import {
   MASTER_BOARD_COUNTS,
   MASTER_BOARD_FOOTER,
   type MasterBoardRow,
+  type MasterBoardQuarterRef,
 } from "@/lib/master-board-data";
 import {
   PROCESS_STEPS,
@@ -112,7 +113,9 @@ function MasterBoardPage() {
               <th className="w-[330px] min-w-[330px] max-w-[330px] px-3 py-3 xl:w-[340px] xl:min-w-[340px] xl:max-w-[340px]">
                 Mobile референция
               </th>
+              <th className="w-[300px] min-w-[300px] max-w-[300px] px-3 py-3">Квартални карти</th>
               <th className="w-44 px-3 py-3">Статус</th>
+
               <th className="w-40 px-3 py-3">Процес / ✓</th>
             </tr>
           </thead>
@@ -153,6 +156,10 @@ function MasterBoardPage() {
                       onOpen={setViewer}
                     />
                   </td>
+                  <td className="px-3 py-4">
+                    <QuarterRefsCell refs={row.quarterRefs} onOpen={setViewer} />
+                  </td>
+
                   <td className="px-3 py-4">
                     <span
                       className="inline-block rounded-full px-3 py-1 text-xs font-semibold"
@@ -329,5 +336,47 @@ function RefCell({
       </button>
       <figcaption className="text-[11px] text-muted-foreground">{label}</figcaption>
     </figure>
+  );
+}
+
+function QuarterRefsCell({
+  refs,
+  onOpen,
+}: {
+  refs: MasterBoardQuarterRef[] | undefined;
+  onOpen: (image: { src: string; label: string }) => void;
+}) {
+  if (!refs || refs.length === 0) {
+    return <span className="text-sm text-muted-foreground">—</span>;
+  }
+  return (
+    <div className="w-[300px] min-w-[300px] space-y-2">
+      <div className="text-[11px] font-semibold text-muted-foreground">
+        {refs.length} референции
+      </div>
+      <div className="max-h-[420px] overflow-y-auto rounded-lg border bg-muted/20 p-2">
+        <div className="grid grid-cols-3 gap-2">
+          {refs.map((q) => (
+            <button
+              key={q.slug}
+              type="button"
+              onClick={() => onOpen({ src: q.src, label: q.name })}
+              className="group block overflow-hidden rounded-md border bg-background text-left"
+              aria-label={`Отвори в пълен размер: ${q.name}`}
+            >
+              <img
+                src={q.src}
+                alt={q.name}
+                loading="lazy"
+                className="block aspect-square w-full object-cover"
+              />
+              <span className="block truncate px-1 py-1 text-[10px] text-muted-foreground">
+                {q.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

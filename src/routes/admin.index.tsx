@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { DeskCalendar } from "@/components/admin/desk-calendar";
+import { looseDb } from "@/lib/supabase-loose-db";
 
 export const Route = createFileRoute("/admin/")({
   component: Dashboard,
@@ -136,10 +137,13 @@ function Dashboard() {
     endOfDay.setHours(23, 59, 59, 999);
 
     Promise.all([
-      supabase.from("properties").select("id", { count: "exact", head: true }),
-      supabase.from("clients").select("id", { count: "exact", head: true }),
-      supabase.from("deals").select("id", { count: "exact", head: true }).neq("status", "lost"),
-      supabase.from("deals").select("commission_amount").eq("commission_paid", true),
+      looseDb(supabase).from("properties").select("id", { count: "exact", head: true }),
+      looseDb(supabase).from("clients").select("id", { count: "exact", head: true }),
+      looseDb(supabase)
+        .from("deals")
+        .select("id", { count: "exact", head: true })
+        .neq("status", "lost"),
+      looseDb(supabase).from("deals").select("commission_amount").eq("commission_paid", true),
     ]).then(([p, c, d, com]) => {
       const revenue = (com.data ?? []).reduce(
         (s: number, r: any) => s + Number(r.commission_amount ?? 0),
@@ -148,7 +152,7 @@ function Dashboard() {
       setKpi({ properties: p.count ?? 0, clients: c.count ?? 0, deals: d.count ?? 0, revenue });
     });
 
-    supabase
+    looseDb(supabase)
       .from("deals")
       .select("stage_code")
       .then(({ data }) => {
@@ -159,7 +163,7 @@ function Dashboard() {
         setStages(map);
       });
 
-    supabase
+    looseDb(supabase)
       .from("properties")
       .select(
         "id, title, price, currency, is_published, area_sqm, rooms, status, address, cover_image_url",
@@ -168,7 +172,7 @@ function Dashboard() {
       .limit(4)
       .then(({ data }) => setLatest((data ?? []) as never));
 
-    supabase
+    looseDb(supabase)
       .from("broker_tasks")
       .select("id, title, due_at, task_type")
       .eq("is_completed", false)
@@ -177,7 +181,7 @@ function Dashboard() {
       .limit(4)
       .then(({ data }) => setTasks((data ?? []) as never));
 
-    supabase
+    looseDb(supabase)
       .from("viewings")
       .select("id, scheduled_at, contact_name, location, status")
       .gte("scheduled_at", startOfDay.toISOString())
