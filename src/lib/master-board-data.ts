@@ -356,6 +356,8 @@ export const MASTER_BOARD_ROWS: MasterBoardRow[] = [
     desktopLabel: "Desktop Design — Варна",
     mobile: "/master-board/5bf7f7dfede5.png",
     mobileLabel: "Mobile Design — Варна",
+    quarterRefs: VARNA_QUARTER_REFS,
+
   },
   {
     num: "07",
