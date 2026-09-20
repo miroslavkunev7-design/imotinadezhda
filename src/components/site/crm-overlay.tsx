@@ -18,6 +18,7 @@ import {
 import { CrmPageSettingsPanel } from "@/components/admin/page-settings/page-settings-panel";
 import { CrmPageEditLayer } from "@/components/admin/page-settings/page-edit-mode";
 import { CrmCustomBlocks } from "@/components/admin/page-settings/custom-blocks";
+import { looseDb } from "@/lib/supabase-loose-db";
 
 export function CrmSiteOverlay() {
   const { user, loading } = useAuth();
@@ -31,7 +32,7 @@ export function CrmSiteOverlay() {
     }
     void (async () => {
       try {
-        const { data } = await supabase.rpc("is_crm_staff", { _user_id: user.id });
+        const { data } = await looseDb(supabase).rpc("is_crm_staff", { _user_id: user.id });
         if (!cancelled) setStaff(data === true);
       } catch {
         if (!cancelled) setStaff(false);

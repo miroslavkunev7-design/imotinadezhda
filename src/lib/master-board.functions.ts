@@ -2,6 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
+import { looseDb } from "@/lib/supabase-loose-db";
 
 function actorEmail(claims: unknown): string | null {
   return (claims as { email?: string } | undefined)?.email ?? null;
@@ -26,7 +27,7 @@ export const listBoardState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<BoardState[]> => {
     await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
-    const { data, error } = await context.supabase
+    const { data, error } = await looseDb(context.supabase)
       .from("visual_board_pages")
       .select("route, approved, approved_by_name, approved_at, stage_flags, match_percent, notes");
     if (error) throw new Error(error.message);
@@ -53,7 +54,7 @@ export const setBoardApproval = createServerFn({ method: "POST" })
       approved_by_name: data.approved ? actorName(context.claims) : null,
       approved_at: data.approved ? new Date().toISOString() : null,
     };
-    const { data: saved, error } = await context.supabase
+    const { data: saved, error } = await looseDb(context.supabase)
       .from("visual_board_pages")
       .upsert(row, { onConflict: "route" })
       .select("route, approved, approved_by_name, approved_at, stage_flags, match_percent, notes")
@@ -82,7 +83,7 @@ export const setBoardProgress = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }): Promise<BoardState> => {
     await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
-    const { data: saved, error } = await context.supabase
+    const { data: saved, error } = await looseDb(context.supabase)
       .from("visual_board_pages")
       .upsert(
         {
@@ -138,7 +139,7 @@ export const listBoardStages = createServerFn({ method: "GET" })
   .inputValidator((d: { route: string }) => d)
   .handler(async ({ data, context }): Promise<BoardStage[]> => {
     await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
-    const { data: rows, error } = await context.supabase
+    const { data: rows, error } = await looseDb(context.supabase)
       .from("visual_board_stages")
       .select(STAGE_COLS)
       .eq("route", data.route)
@@ -155,14 +156,14 @@ export const addBoardStage = createServerFn({ method: "POST" })
     await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
     const title = data.title.trim();
     if (!title) throw new Error("Стадият трябва да има име.");
-    const { data: last } = await context.supabase
+    const { data: last } = await looseDb(context.supabase)
       .from("visual_board_stages")
       .select("position")
       .eq("route", data.route)
       .order("position", { ascending: false })
       .limit(1);
     const nextPos = (last?.[0]?.position ?? 0) + 1;
-    const { data: saved, error } = await context.supabase
+    const { data: saved, error } = await looseDb(context.supabase)
       .from("visual_board_stages")
       .insert({
         route: data.route,
@@ -182,7 +183,7 @@ export const setBoardStageDone = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; done: boolean }) => d)
   .handler(async ({ data, context }): Promise<BoardStage> => {
     await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
-    const { data: saved, error } = await context.supabase
+    const { data: saved, error } = await looseDb(context.supabase)
       .from("visual_board_stages")
       .update({
         done: data.done,
@@ -201,7 +202,7 @@ export const deleteBoardStage = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
-    const { error } = await context.supabase.from("visual_board_stages").delete().eq("id", data.id);
+    const { error } = await looseDb(context.supabase).from("visual_board_stages").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveServerDb } from "@/lib/supabase-server-db";
+import { resolveLooseDb } from "@/lib/supabase-loose-db";
 
 export type BankBranchRow = {
   bank: string;
@@ -26,7 +26,7 @@ export const listBankBranches = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }): Promise<BankBranchRow[]> => {
     await assertCrmAccess(context.userId, context.supabase);
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     const day = data.day ?? new Date().toISOString().slice(0, 10);
 
     const [branches, rates] = await Promise.all([
@@ -93,7 +93,7 @@ export const upsertBankBranchRate = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertCrmAccess(context.userId, context.supabase);
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     const { error } = await db.from("bank_branch_rates").upsert(
       {
         bank: data.bank,
@@ -125,7 +125,7 @@ export const setBankBranchImage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertCrmAccess(context.userId, context.supabase);
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     const { error } = await db
       .from("bank_branches")
       .update({ image_url: data.image_url } as any)
@@ -152,7 +152,7 @@ export const listBankRateFetchLog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<BankRateFetchLogRow[]> => {
     await assertCrmAccess(context.userId, context.supabase);
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     const { data, error } = await db
       .from("bank_rate_fetch_log")
       .select("bank, url, ok, rate_bg, rate_foreign, cities_updated, skipped_manual, error, fetched_at")
@@ -202,7 +202,7 @@ export const getCityLocalTax = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }): Promise<CityLocalTax | null> => {
     await assertCrmAccess(context.userId, context.supabase);
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     const { data: row, error } = await db
       .from("city_local_taxes")
       .select("city_slug, local_tax_rate, source, note, updated_by_name")
@@ -233,7 +233,7 @@ export const upsertCityLocalTax = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertCrmAccess(context.userId, context.supabase);
-    const db = resolveServerDb(context.supabase);
+    const db = resolveLooseDb(context.supabase);
     const { error } = await db.from("city_local_taxes").upsert(
       {
         city_slug: data.city_slug,

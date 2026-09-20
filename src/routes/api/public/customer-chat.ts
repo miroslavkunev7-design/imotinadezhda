@@ -7,6 +7,7 @@ import {
   fallbackCustomerReply,
   runCustomerTool,
 } from "@/lib/customer-assistant";
+import { looseDb } from "@/lib/supabase-loose-db";
 
 const InputSchema = z.object({
   chat_id: z.string().uuid().nullable().optional(),
@@ -31,7 +32,7 @@ const cors = {
 
 async function loadPropertyContext(propertyId: string | null | undefined) {
   if (!propertyId) return undefined;
-  const { data } = await safeAdmin
+  const { data } = await looseDb(safeAdmin)
     .from("properties")
     .select(
       "title, description, price, currency, area_sqm, rooms, floor, address, property_type, cities(name), quarters(name)",
@@ -187,7 +188,7 @@ export const Route = createFileRoute("/api/public/customer-chat")({
               phone: body.visitor_phone ?? null,
               email: body.visitor_email ?? null,
             });
-            await safeAdmin.from("bot_messages").insert([
+            await looseDb(safeAdmin).from("bot_messages").insert([
               {
                 conversation_id: conv.id,
                 channel_code: "web",
@@ -204,7 +205,7 @@ export const Route = createFileRoute("/api/public/customer-chat")({
                 ai_used: true,
               },
             ]);
-            await safeAdmin
+            await looseDb(safeAdmin)
               .from("bot_conversations")
               .update({
                 last_message_at: new Date().toISOString(),
