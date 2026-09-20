@@ -5,7 +5,6 @@
  * `types.ts`. За да остане typecheck-ът чист, заявките към тях минават през
  * „свободен“ (нетипизиран) клиент. Логиката и правата в базата не се променят.
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
