@@ -16,7 +16,6 @@ import {
   pageKeyFromPath,
   type PageSettings,
 } from "@/lib/crm-page-settings/types";
-import { looseDb } from "@/lib/supabase-loose-db";
 
 type Ctx = {
   pageKey: string;
@@ -73,7 +72,7 @@ export function CrmPageSettingsProvider({ children }: { children: ReactNode }) {
     setPast([]);
     setFuture([]);
     (async () => {
-      const { data } = await looseDb(supabase)
+      const { data } = await supabase
         .from("crm_page_customizations")
         .select("settings, scope")
         .eq("page_key", pageKey);
@@ -132,7 +131,7 @@ export function CrmPageSettingsProvider({ children }: { children: ReactNode }) {
     if (!user) throw new Error("Няма влязъл потребител");
     // Частичният уникален индекс (scope='user') не позволява ON CONFLICT,
     // затова записваме ръчно: select → update / insert.
-    const { data: existing, error: selErr } = await looseDb(supabase)
+    const { data: existing, error: selErr } = await supabase
       .from("crm_page_customizations")
       .select("id")
       .eq("user_id", user.id)
@@ -141,11 +140,11 @@ export function CrmPageSettingsProvider({ children }: { children: ReactNode }) {
       .maybeSingle();
     if (selErr) throw new Error(selErr.message);
     const { error } = existing
-      ? await looseDb(supabase)
+      ? await supabase
           .from("crm_page_customizations")
           .update({ settings: settings as never })
           .eq("id", existing.id)
-      : await looseDb(supabase)
+      : await supabase
           .from("crm_page_customizations")
           .insert({
             user_id: user.id,
@@ -162,18 +161,18 @@ export function CrmPageSettingsProvider({ children }: { children: ReactNode }) {
   }, [pageKey, settings, user]);
 
   const saveGlobal = useCallback(async () => {
-    const { data: existing } = await looseDb(supabase)
+    const { data: existing } = await supabase
       .from("crm_page_customizations")
       .select("id")
       .eq("page_key", pageKey)
       .eq("scope", "global")
       .maybeSingle();
     const { error } = existing
-      ? await looseDb(supabase)
+      ? await supabase
           .from("crm_page_customizations")
           .update({ settings: settings as never })
           .eq("id", existing.id)
-      : await looseDb(supabase)
+      : await supabase
           .from("crm_page_customizations")
           .insert({ page_key: pageKey, scope: "global", settings: settings as never });
     if (error) throw new Error(error.message);
@@ -183,7 +182,7 @@ export function CrmPageSettingsProvider({ children }: { children: ReactNode }) {
 
   const reset = useCallback(async () => {
     if (user) {
-      await looseDb(supabase)
+      await supabase
         .from("crm_page_customizations")
         .delete()
         .eq("user_id", user.id)

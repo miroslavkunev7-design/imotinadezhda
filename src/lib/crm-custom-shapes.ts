@@ -5,7 +5,6 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { registerCustomShapes, unregisterCustomShape, type CrmShape } from "@/lib/crm-shapes";
-import { looseDb } from "@/lib/supabase-loose-db";
 
 export type CustomShapeRow = {
   id: string;
@@ -105,7 +104,7 @@ async function fileToImageDataUrl(file: File): Promise<string> {
 
 /** Зарежда всички собствени форми и ги регистрира в каталога. */
 export async function loadCustomShapes(): Promise<CustomShapeRow[]> {
-  const { data, error } = await looseDb(supabase)
+  const { data, error } = await supabase
     .from("crm_custom_shapes")
     .select(ROW_COLS)
     .order("created_at", { ascending: false });
@@ -130,7 +129,7 @@ export async function createCustomShapeFromFile(
   const userId = auth.user?.id;
   if (!userId) throw new Error("Няма влязъл потребител");
 
-  const { data, error } = await looseDb(supabase)
+  const { data, error } = await supabase
     .from("crm_custom_shapes")
     .insert({
       name: name.trim() || file.name,
@@ -149,7 +148,7 @@ export async function createCustomShapeFromFile(
 }
 
 export async function deleteCustomShape(row: CustomShapeRow): Promise<void> {
-  const { error } = await looseDb(supabase).from("crm_custom_shapes").delete().eq("id", row.id);
+  const { error } = await supabase.from("crm_custom_shapes").delete().eq("id", row.id);
   if (error) throw new Error(error.message);
   unregisterCustomShape(`custom-${row.id}`);
 }
@@ -162,7 +161,7 @@ export async function createCustomShapeFromMask(
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id;
   if (!userId) throw new Error("Няма влязъл потребител");
-  const { data, error } = await looseDb(supabase)
+  const { data, error } = await supabase
     .from("crm_custom_shapes")
     .insert({
       name: name.trim() || "Импортирана форма",

@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { looseDb } from "@/lib/supabase-loose-db";
 
 async function assertAdmin(userId: string) {
   const { data } = await supabaseAdmin
@@ -37,7 +36,7 @@ export const archiveExtracted = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
     const { supabase, userId } = context;
 
-    const { data: src, error: srcErr } = await looseDb(supabase)
+    const { data: src, error: srcErr } = await supabase
       .from("extracted_listings")
       .select("*, cities(name), quarters(name)")
       .eq("id", data.id)
@@ -53,7 +52,7 @@ export const archiveExtracted = createServerFn({ method: "POST" })
       src.id,
     );
 
-    const { data: inserted, error } = await looseDb(supabase)
+    const { data: inserted, error } = await supabase
       .from("archived_properties")
       .insert({
         source_extracted_id: src.id,
@@ -100,7 +99,7 @@ export const listArchive = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabase } = context;
-    let q = looseDb(supabase)
+    let q = supabase
       .from("archived_properties")
       .select("*, cities(name), quarters(name)")
       .order("archived_at", { ascending: false })
@@ -120,10 +119,7 @@ export const deleteArchive = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { error } = await looseDb(context.supabase)
-      .from("archived_properties")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("archived_properties").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -134,7 +130,7 @@ export const getArchiveDetail = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { data: row, error } = await looseDb(context.supabase)
+    const { data: row, error } = await context.supabase
       .from("archived_properties")
       .select("*, cities(name), quarters(name)")
       .eq("id", data.id)
@@ -164,7 +160,7 @@ export const updateArchive = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { error } = await looseDb(context.supabase)
+    const { error } = await context.supabase
       .from("archived_properties")
       .update(data.patch as any)
       .eq("id", data.id);
@@ -204,7 +200,7 @@ export const publishArchive = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
     const { supabase, userId } = context;
 
-    const { data: row, error: rowErr } = await looseDb(supabase)
+    const { data: row, error: rowErr } = await supabase
       .from("archived_properties")
       .select("*")
       .eq("id", data.id)
@@ -217,15 +213,9 @@ export const publishArchive = createServerFn({ method: "POST" })
     // Скриване от сайта
     if (!data.publish) {
       if (linkedId) {
-        await looseDb(supabase)
-          .from("properties")
-          .update({ is_published: false })
-          .eq("id", linkedId);
+        await supabase.from("properties").update({ is_published: false }).eq("id", linkedId);
       }
-      await looseDb(supabase)
-        .from("archived_properties")
-        .update({ is_published: false })
-        .eq("id", data.id);
+      await supabase.from("archived_properties").update({ is_published: false }).eq("id", data.id);
       return { ok: true as const, published: false, property_id: linkedId };
     }
 
@@ -260,13 +250,10 @@ export const publishArchive = createServerFn({ method: "POST" })
 
     let propertyId = linkedId;
     if (propertyId) {
-      const { error } = await looseDb(supabase)
-        .from("properties")
-        .update(payload)
-        .eq("id", propertyId);
+      const { error } = await supabase.from("properties").update(payload).eq("id", propertyId);
       if (error) throw new Error(error.message);
     } else {
-      const { data: ins, error } = await looseDb(supabase)
+      const { data: ins, error } = await supabase
         .from("properties")
         .insert(payload)
         .select("id")
@@ -276,9 +263,9 @@ export const publishArchive = createServerFn({ method: "POST" })
     }
 
     // Снимките се синхронизират 1:1 с архивната папка.
-    await looseDb(supabase).from("property_images").delete().eq("property_id", propertyId);
+    await supabase.from("property_images").delete().eq("property_id", propertyId);
     if (images.length) {
-      const { error: imgErr } = await looseDb(supabase)
+      const { error: imgErr } = await supabase
         .from("property_images")
         .insert(
           images.map((url, i) => ({
@@ -291,7 +278,7 @@ export const publishArchive = createServerFn({ method: "POST" })
       if (imgErr) throw new Error(imgErr.message);
     }
 
-    await looseDb(supabase)
+    await supabase
       .from("archived_properties")
       .update({ is_published: true, published_property_id: propertyId })
       .eq("id", data.id);
@@ -317,7 +304,7 @@ export const createArchive = createServerFn({ method: "POST" })
     let cityName: string | null = null;
     let quarterName: string | null = null;
     if (data.city_id) {
-      const { data: c } = await looseDb(supabase)
+      const { data: c } = await supabase
         .from("cities")
         .select("name")
         .eq("id", data.city_id)
@@ -325,7 +312,7 @@ export const createArchive = createServerFn({ method: "POST" })
       cityName = (c as any)?.name ?? null;
     }
     if (data.quarter_id) {
-      const { data: q } = await looseDb(supabase)
+      const { data: q } = await supabase
         .from("quarters")
         .select("name")
         .eq("id", data.quarter_id)
@@ -334,7 +321,7 @@ export const createArchive = createServerFn({ method: "POST" })
     }
 
     const year = new Date().getFullYear();
-    const { data: inserted, error } = await looseDb(supabase)
+    const { data: inserted, error } = await supabase
       .from("archived_properties")
       .insert({
         title: "Нова папка",
@@ -350,7 +337,7 @@ export const createArchive = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const path = folderPath(year, cityName, quarterName, "Нова папка", inserted.id);
-    await looseDb(supabase)
+    await supabase
       .from("archived_properties")
       .update({ drive_folder_path: path })
       .eq("id", inserted.id);
