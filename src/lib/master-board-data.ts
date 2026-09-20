@@ -168,6 +168,101 @@ export const SHUMEN_QUARTER_REFS: MasterBoardQuarterRef[] = [
   },
 ];
 
+export const VARNA_QUARTER_REFS: MasterBoardQuarterRef[] = [
+  {
+    name: "Ален мак",
+    slug: "alen-mak",
+    src: "/master-board/quarters/varna/alen-mak.svg",
+  },
+  {
+    name: "Аспарухово",
+    slug: "asparuhovo",
+    src: "/master-board/quarters/varna/asparuhovo.svg",
+  },
+  {
+    name: "Бриз",
+    slug: "briz",
+    src: "/master-board/quarters/varna/briz.svg",
+  },
+  {
+    name: "Център",
+    slug: "centar",
+    src: "/master-board/quarters/varna/centar.svg",
+  },
+  {
+    name: "Чайка",
+    slug: "chayka",
+    src: "/master-board/quarters/varna/chayka.svg",
+  },
+  {
+    name: "Галата",
+    slug: "galata",
+    src: "/master-board/quarters/varna/galata.svg",
+  },
+  {
+    name: "Изгрев",
+    slug: "izgrev",
+    src: "/master-board/quarters/varna/izgrev.svg",
+  },
+  {
+    name: "Кайсиева градина",
+    slug: "kaysiyeva-gradina",
+    src: "/master-board/quarters/varna/kaysiyeva-gradina.svg",
+  },
+  {
+    name: "Левски",
+    slug: "levski",
+    src: "/master-board/quarters/varna/levski.svg",
+  },
+  {
+    name: "Лятно кино Тракия",
+    slug: "lyatno-kino-trakiya",
+    src: "/master-board/quarters/varna/lyatno-kino-trakiya.svg",
+  },
+  {
+    name: "Младост 2",
+    slug: "mladost-2",
+    src: "/master-board/quarters/varna/mladost-2.svg",
+  },
+  {
+    name: "Младост 1",
+    slug: "mladost",
+    src: "/master-board/quarters/varna/mladost.svg",
+  },
+  {
+    name: "Пчелина",
+    slug: "pchelina",
+    src: "/master-board/quarters/varna/pchelina.svg",
+  },
+  {
+    name: "Победа",
+    slug: "pobeda",
+    src: "/master-board/quarters/varna/pobeda.svg",
+  },
+  {
+    name: "Слънчев ден",
+    slug: "slanchev-den",
+    src: "/master-board/quarters/varna/slanchev-den.svg",
+  },
+  {
+    name: "Трошево",
+    slug: "troshevo",
+    src: "/master-board/quarters/varna/troshevo.svg",
+  },
+  {
+    name: "Виница",
+    slug: "vinica",
+    src: "/master-board/quarters/varna/vinica.svg",
+  },
+  {
+    name: "Владиславово",
+    slug: "vladislavovo",
+    src: "/master-board/quarters/varna/vladislavovo.svg",
+  },
+];
+
+
+
 export const MASTER_BOARD_SUBTITLE =
   "Редът е: първо всички видими клиентски страници, започвайки от Home Page, след това профилните страници и накрая целият CRM.";
 
@@ -261,6 +356,8 @@ export const MASTER_BOARD_ROWS: MasterBoardRow[] = [
     desktopLabel: "Desktop Design — Варна",
     mobile: "/master-board/5bf7f7dfede5.png",
     mobileLabel: "Mobile Design — Варна",
+    quarterRefs: VARNA_QUARTER_REFS,
+
   },
   {
     num: "07",
