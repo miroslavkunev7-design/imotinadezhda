@@ -156,6 +156,10 @@ function MasterBoardPage() {
                     />
                   </td>
                   <td className="px-3 py-4">
+                    <QuarterRefsCell refs={row.quarterRefs} onOpen={setViewer} />
+                  </td>
+
+                  <td className="px-3 py-4">
                     <span
                       className="inline-block rounded-full px-3 py-1 text-xs font-semibold"
                       style={
