@@ -10,6 +10,7 @@ import {
   MASTER_BOARD_COUNTS,
   MASTER_BOARD_FOOTER,
   type MasterBoardRow,
+  type MasterBoardQuarterRef,
 } from "@/lib/master-board-data";
 import {
   PROCESS_STEPS,
@@ -335,5 +336,47 @@ function RefCell({
       </button>
       <figcaption className="text-[11px] text-muted-foreground">{label}</figcaption>
     </figure>
+  );
+}
+
+function QuarterRefsCell({
+  refs,
+  onOpen,
+}: {
+  refs: MasterBoardQuarterRef[] | undefined;
+  onOpen: (image: { src: string; label: string }) => void;
+}) {
+  if (!refs || refs.length === 0) {
+    return <span className="text-sm text-muted-foreground">—</span>;
+  }
+  return (
+    <div className="w-[300px] min-w-[300px] space-y-2">
+      <div className="text-[11px] font-semibold text-muted-foreground">
+        {refs.length} референции
+      </div>
+      <div className="max-h-[420px] overflow-y-auto rounded-lg border bg-muted/20 p-2">
+        <div className="grid grid-cols-3 gap-2">
+          {refs.map((q) => (
+            <button
+              key={q.slug}
+              type="button"
+              onClick={() => onOpen({ src: q.src, label: q.name })}
+              className="group block overflow-hidden rounded-md border bg-background text-left"
+              aria-label={`Отвори в пълен размер: ${q.name}`}
+            >
+              <img
+                src={q.src}
+                alt={q.name}
+                loading="lazy"
+                className="block aspect-square w-full object-cover"
+              />
+              <span className="block truncate px-1 py-1 text-[10px] text-muted-foreground">
+                {q.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
