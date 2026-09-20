@@ -112,7 +112,9 @@ function MasterBoardPage() {
               <th className="w-[330px] min-w-[330px] max-w-[330px] px-3 py-3 xl:w-[340px] xl:min-w-[340px] xl:max-w-[340px]">
                 Mobile референция
               </th>
+              <th className="w-[300px] min-w-[300px] max-w-[300px] px-3 py-3">Квартални карти</th>
               <th className="w-44 px-3 py-3">Статус</th>
+
               <th className="w-40 px-3 py-3">Процес / ✓</th>
             </tr>
           </thead>
