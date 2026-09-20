@@ -29,143 +29,143 @@ export const SHUMEN_QUARTER_REFS: MasterBoardQuarterRef[] = [
   {
     name: "Център",
     slug: "centar",
-    src: "/master-board/quarters/shumen/centar.svg"
+    src: "/master-board/quarters/shumen/centar.svg",
   },
   {
     name: "Тракия",
     slug: "trakiya",
-    src: "/master-board/quarters/shumen/trakiya.svg"
+    src: "/master-board/quarters/shumen/trakiya.svg",
   },
   {
     name: "Добруджански",
     slug: "dobrudjanski",
-    src: "/master-board/quarters/shumen/dobrudjanski.svg"
+    src: "/master-board/quarters/shumen/dobrudjanski.svg",
   },
   {
     name: "Пазара",
     slug: "pazara",
-    src: "/master-board/quarters/shumen/pazara.svg"
+    src: "/master-board/quarters/shumen/pazara.svg",
   },
   {
     name: "Болницата",
     slug: "bolnicata",
-    src: "/master-board/quarters/shumen/bolnicata.svg"
+    src: "/master-board/quarters/shumen/bolnicata.svg",
   },
   {
     name: "Пети полк",
     slug: "peti-polk",
-    src: "/master-board/quarters/shumen/peti-polk.svg"
+    src: "/master-board/quarters/shumen/peti-polk.svg",
   },
   {
     name: "Военно училище",
     slug: "voenno-uchilishte",
-    src: "/master-board/quarters/shumen/voenno-uchilishte.svg"
+    src: "/master-board/quarters/shumen/voenno-uchilishte.svg",
   },
   {
     name: "Боян Българанов 2",
     slug: "boyan-bulgarov-2",
-    src: "/master-board/quarters/shumen/boyan-bulgarov-2.svg"
+    src: "/master-board/quarters/shumen/boyan-bulgarov-2.svg",
   },
   {
     name: "Дивдядово",
     slug: "divdyadovo",
-    src: "/master-board/quarters/shumen/divdyadovo.svg"
+    src: "/master-board/quarters/shumen/divdyadovo.svg",
   },
   {
     name: "Боян Българанов 1",
     slug: "boyan-bulgarov",
-    src: "/master-board/quarters/shumen/boyan-bulgarov.svg"
+    src: "/master-board/quarters/shumen/boyan-bulgarov.svg",
   },
   {
     name: "Пожарната",
     slug: "pozharnata",
-    src: "/master-board/quarters/shumen/pozharnata.svg"
+    src: "/master-board/quarters/shumen/pozharnata.svg",
   },
   {
     name: "Херсон",
     slug: "herson",
-    src: "/master-board/quarters/shumen/herson.svg"
+    src: "/master-board/quarters/shumen/herson.svg",
   },
   {
     name: "Под манастира",
     slug: "pod-manastira",
-    src: "/master-board/quarters/shumen/pod-manastira.svg"
+    src: "/master-board/quarters/shumen/pod-manastira.svg",
   },
   {
     name: "Втори корпус",
     slug: "vtori-korpus",
-    src: "/master-board/quarters/shumen/vtori-korpus.svg"
+    src: "/master-board/quarters/shumen/vtori-korpus.svg",
   },
   {
     name: "Гривица",
     slug: "grivitsa",
-    src: "/master-board/quarters/shumen/grivitsa.svg"
+    src: "/master-board/quarters/shumen/grivitsa.svg",
   },
   {
     name: "Дивизионна болница",
     slug: "divizionna-bolnitsa",
-    src: "/master-board/quarters/shumen/divizionna-bolnitsa.svg"
+    src: "/master-board/quarters/shumen/divizionna-bolnitsa.svg",
   },
   {
     name: "Математическата гимназия",
     slug: "matematicheska-gimnazia",
-    src: "/master-board/quarters/shumen/matematicheska-gimnazia.svg"
+    src: "/master-board/quarters/shumen/matematicheska-gimnazia.svg",
   },
   {
     name: "Томбул Джамия",
     slug: "tombul-djamia",
-    src: "/master-board/quarters/shumen/tombul-djamia.svg"
+    src: "/master-board/quarters/shumen/tombul-djamia.svg",
   },
   {
     name: "Мътница",
     slug: "mtnitsa",
-    src: "/master-board/quarters/shumen/mtnitsa.svg"
+    src: "/master-board/quarters/shumen/mtnitsa.svg",
   },
   {
     name: "Промишлена зона Запад",
     slug: "promishlena-zona-zapad",
-    src: "/master-board/quarters/shumen/promishlena-zona-zapad.svg"
+    src: "/master-board/quarters/shumen/promishlena-zona-zapad.svg",
   },
   {
     name: "Топхане",
     slug: "tophane",
-    src: "/master-board/quarters/shumen/tophane.svg"
+    src: "/master-board/quarters/shumen/tophane.svg",
   },
   {
     name: "Куршун чешма",
     slug: "kurshun-cheshma",
-    src: "/master-board/quarters/shumen/kurshun-cheshma.svg"
+    src: "/master-board/quarters/shumen/kurshun-cheshma.svg",
   },
   {
     name: "Макак",
     slug: "makak",
-    src: "/master-board/quarters/shumen/makak.svg"
+    src: "/master-board/quarters/shumen/makak.svg",
   },
   {
     name: "Чашка",
     slug: "chashka",
-    src: "/master-board/quarters/shumen/chashka.svg"
+    src: "/master-board/quarters/shumen/chashka.svg",
   },
   {
     name: "Сакарка",
     slug: "sakarka",
-    src: "/master-board/quarters/shumen/sakarka.svg"
+    src: "/master-board/quarters/shumen/sakarka.svg",
   },
   {
     name: "Смесе",
     slug: "smese",
-    src: "/master-board/quarters/shumen/smese.svg"
+    src: "/master-board/quarters/shumen/smese.svg",
   },
   {
     name: "Промишлена зона Юг",
     slug: "promishlena-zona-yug",
-    src: "/master-board/quarters/shumen/promishlena-zona-yug.svg"
+    src: "/master-board/quarters/shumen/promishlena-zona-yug.svg",
   },
   {
     name: "Еверест",
     slug: "everest",
-    src: "/master-board/quarters/shumen/everest.svg"
-  }
+    src: "/master-board/quarters/shumen/everest.svg",
+  },
 ];
 
 export const MASTER_BOARD_SUBTITLE =
