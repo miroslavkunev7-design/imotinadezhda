@@ -19,18 +19,16 @@ export const saveSubscription = createServerFn({ method: "POST" })
   .inputValidator((d) => subSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { error } = await supabase
-      .from("push_subscriptions")
-      .upsert(
-        {
-          user_id: userId,
-          endpoint: data.endpoint,
-          p256dh: data.p256dh,
-          auth: data.auth,
-          user_agent: data.userAgent ?? null,
-        },
-        { onConflict: "endpoint" },
-      );
+    const { error } = await supabase.from("push_subscriptions").upsert(
+      {
+        user_id: userId,
+        endpoint: data.endpoint,
+        p256dh: data.p256dh,
+        auth: data.auth,
+        user_agent: data.userAgent ?? null,
+      },
+      { onConflict: "endpoint" },
+    );
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -66,7 +64,11 @@ export const sendTestPush = createServerFn({ method: "POST" })
         tag: "push-test",
       });
       if (r.ok) sent++;
-      if (r.gone) await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", (s as any).endpoint);
+      if (r.gone)
+        await supabaseAdmin
+          .from("push_subscriptions")
+          .delete()
+          .eq("endpoint", (s as any).endpoint);
     }
     return { sent };
   });

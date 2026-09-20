@@ -34,7 +34,17 @@ const ALLOWED_MIME = new Set([
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ]);
 const ALLOWED_EXT = new Set([
-  "pdf", "jpg", "jpeg", "png", "webp", "heic", "heif", "doc", "docx", "xls", "xlsx",
+  "pdf",
+  "jpg",
+  "jpeg",
+  "png",
+  "webp",
+  "heic",
+  "heif",
+  "doc",
+  "docx",
+  "xls",
+  "xlsx",
 ]);
 const EXT_TO_MIME: Record<string, string[]> = {
   pdf: ["application/pdf"],
@@ -52,31 +62,75 @@ const EXT_TO_MIME: Record<string, string[]> = {
 
 function sniffMime(bytes: Uint8Array): string | null {
   if (bytes.length < 4) return null;
-  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) return "application/pdf";
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "image/png";
+  if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)
+    return "application/pdf";
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47)
+    return "image/png";
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg";
-  if (bytes.length >= 12 && bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
-      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "image/webp";
-  if (bytes.length >= 12 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  )
+    return "image/webp";
+  if (
+    bytes.length >= 12 &&
+    bytes[4] === 0x66 &&
+    bytes[5] === 0x74 &&
+    bytes[6] === 0x79 &&
+    bytes[7] === 0x70
+  ) {
     const brand = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]);
     if (["heic", "heix", "heif", "mif1", "msf1"].includes(brand)) return "image/heic";
   }
-  if (bytes[0] === 0x50 && bytes[1] === 0x4b && (bytes[2] === 0x03 || bytes[2] === 0x05) && (bytes[3] === 0x04 || bytes[3] === 0x06)) return "application/zip";
-  if (bytes[0] === 0xd0 && bytes[1] === 0xcf && bytes[2] === 0x11 && bytes[3] === 0xe0) return "application/x-ole-storage";
+  if (
+    bytes[0] === 0x50 &&
+    bytes[1] === 0x4b &&
+    (bytes[2] === 0x03 || bytes[2] === 0x05) &&
+    (bytes[3] === 0x04 || bytes[3] === 0x06)
+  )
+    return "application/zip";
+  if (bytes[0] === 0xd0 && bytes[1] === 0xcf && bytes[2] === 0x11 && bytes[3] === 0xe0)
+    return "application/x-ole-storage";
   return null;
 }
 
 const uploadSchema = z.object({
-  category: z.string().min(1).max(80).regex(/^[a-z0-9_-]+$/),
-  month: z.string().max(20).regex(/^[a-zA-Z0-9_-]*$/).optional().nullable(),
-  fileName: z.string().min(1).max(200).regex(/^[^/\\\x00-\x1f]+$/, "Невалидно име на файл"),
+  category: z
+    .string()
+    .min(1)
+    .max(80)
+    .regex(/^[a-z0-9_-]+$/),
+  month: z
+    .string()
+    .max(20)
+    .regex(/^[a-zA-Z0-9_-]*$/)
+    .optional()
+    .nullable(),
+  fileName: z
+    .string()
+    .min(1)
+    .max(200)
+    .regex(/^[^/\\\x00-\x1f]+$/, "Невалидно име на файл"),
   contentType: z.string().max(120).optional().nullable(),
   size: z.number().int().positive().max(MAX_FILE_BYTES),
-  base64: z.string().min(1).max(Math.ceil(MAX_FILE_BYTES * 4 / 3) + 256),
+  base64: z
+    .string()
+    .min(1)
+    .max(Math.ceil((MAX_FILE_BYTES * 4) / 3) + 256),
 });
 
 function safeFileName(name: string) {
-  const cleaned = name.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^\.+/, "").slice(0, 120);
+  const cleaned = name
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/^\.+/, "")
+    .slice(0, 120);
   return cleaned || "document";
 }
 
@@ -132,17 +186,21 @@ export const uploadMortgageDocument = createServerFn({ method: "POST" })
     const monthPart = data.month ? `-${data.month.replace(/[^a-zA-Z0-9_-]+/g, "-")}` : "";
     const path = `${crypto.randomUUID()}/${data.category}${monthPart}-${Date.now()}-${safeName}`;
 
-    const { error } = await supabaseAdmin.storage
-      .from("mortgage-docs")
-      .upload(path, bytes, {
-        contentType: declaredMime || "application/octet-stream",
-        upsert: false,
-      });
+    const { error } = await supabaseAdmin.storage.from("mortgage-docs").upload(path, bytes, {
+      contentType: declaredMime || "application/octet-stream",
+      upsert: false,
+    });
     if (error) {
       console.error("[mortgage-docs-upload]", error);
       throw new Error("Грешка при качване на документа.");
     }
-    return { category: data.category, month: data.month ?? undefined, path, file_name: safeName, size: bytes.byteLength };
+    return {
+      category: data.category,
+      month: data.month ?? undefined,
+      path,
+      file_name: safeName,
+      size: bytes.byteLength,
+    };
   });
 
 export const submitMortgageApplication = createServerFn({ method: "POST" })

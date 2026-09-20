@@ -23,11 +23,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { resolveServerDb, type ServerDb } from "@/lib/supabase-server-db";
 
-async function hasRoleRpc(
-  db: ServerDb,
-  userId: string,
-  role: CrmStaffRole,
-): Promise<boolean> {
+async function hasRoleRpc(db: ServerDb, userId: string, role: CrmStaffRole): Promise<boolean> {
   const { data, error } = await db.rpc("has_role", { _user_id: userId, _role: role });
   if (error) return false;
   return !!data;
@@ -58,8 +54,7 @@ export async function loadUserAccess(
   if (fullAccessErr) console.error("loadUserAccess is_full_access failed", fullAccessErr);
 
   let roles = (roleRows ?? []).map((r) => String(r.role));
-  let brokerId =
-    brokerRow?.id ?? (typeof brokerIdRpc === "string" ? brokerIdRpc : null) ?? null;
+  let brokerId = brokerRow?.id ?? (typeof brokerIdRpc === "string" ? brokerIdRpc : null) ?? null;
 
   if (!brokerId && email?.trim()) {
     const { data: byEmail } = await db
@@ -79,14 +74,9 @@ export async function loadUserAccess(
   }
 
   const roleSet = new Set(roles);
-  const isAdmin =
-    roleSet.has("admin") ||
-    roleSet.has("boss") ||
-    roleSet.has("head_broker") ||
-    roleSet.has("secretary") ||
-    !!isFullAccess;
+  const isAdmin = roleSet.has("admin");
   const hasStaffRole = CRM_STAFF_ROLES.some((r) => roleSet.has(r));
-  const hasCrmAccess = isAdmin || hasStaffRole || !!brokerId;
+  const hasCrmAccess = isAdmin || !!isFullAccess || hasStaffRole || !!brokerId;
 
   return {
     isAdmin,

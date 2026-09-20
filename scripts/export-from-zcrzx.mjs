@@ -35,7 +35,10 @@ async function exportTable(table) {
   const page = 1000;
   let from = 0;
   while (true) {
-    const { data, error } = await sb.from(table).select("*").range(from, from + page - 1);
+    const { data, error } = await sb
+      .from(table)
+      .select("*")
+      .range(from, from + page - 1);
     if (error) {
       console.log(`  [err] ${table}: ${error.message}`);
       return;

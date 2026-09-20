@@ -52,12 +52,19 @@ export const NOTARY_EXTRACTION_PROMPT = `Ти си български нотар
 Числата са числа (без разделители и валута). Датите са във формат ГГГГ-ММ-ДД, ако е ясно.`;
 
 export function parseNotaryJson(raw: string): NotaryAct {
-  const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+  const cleaned = raw
+    .replace(/^```(?:json)?/i, "")
+    .replace(/```$/, "")
+    .trim();
   const start = cleaned.indexOf("{");
   const end = cleaned.lastIndexOf("}");
   let parsed: any = {};
   if (start >= 0 && end > start) {
-    try { parsed = JSON.parse(cleaned.slice(start, end + 1)); } catch { parsed = {}; }
+    try {
+      parsed = JSON.parse(cleaned.slice(start, end + 1));
+    } catch {
+      parsed = {};
+    }
   }
   return {
     act_number: parsed.act_number ?? null,

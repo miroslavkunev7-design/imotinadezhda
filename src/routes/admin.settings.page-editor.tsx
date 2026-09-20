@@ -17,7 +17,6 @@ import {
   Pencil,
   History,
   Undo2,
-  
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -72,9 +71,7 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
   const fetchRevisions = useServerFn(listPageLayoutRevisions);
   const restoreRevision = useServerFn(restorePageLayoutRevision);
 
-  const [sections, setSections] = useState<SectionState[]>(() =>
-    resolveSections(pageKey, null),
-  );
+  const [sections, setSections] = useState<SectionState[]>(() => resolveSections(pageKey, null));
   const [initial, setInitial] = useState<SectionState[]>(sections);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -133,7 +130,10 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
           const next: SectionState[] = [];
           for (const id of data.order as string[]) {
             const s = byId.get(id);
-            if (s) { next.push(s); byId.delete(id); }
+            if (s) {
+              next.push(s);
+              byId.delete(id);
+            }
           }
           for (const s of byId.values()) next.push(s);
           return next;
@@ -146,13 +146,16 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
       if (
         data.type === "page-editor:section-update" &&
         typeof data.section_id === "string" &&
-        data.patch && typeof data.patch === "object"
+        data.patch &&
+        typeof data.patch === "object"
       ) {
         const patch = data.patch as Record<string, string | null>;
         setSections((prev) =>
           prev.map((s) => {
             if (s.id !== data.section_id) return s;
-            const nextProps: Record<string, string | number | boolean | null> = { ...(s.props ?? {}) };
+            const nextProps: Record<string, string | number | boolean | null> = {
+              ...(s.props ?? {}),
+            };
             for (const [k, v] of Object.entries(patch)) {
               if (v === null || v === "") delete nextProps[k];
               else nextProps[k] = v;
@@ -188,9 +191,7 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
   }
 
   function toggle(idx: number) {
-    setSections((prev) =>
-      prev.map((s, i) => (i === idx ? { ...s, visible: !s.visible } : s)),
-    );
+    setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, visible: !s.visible } : s)));
   }
 
   function remove(idx: number) {
@@ -238,7 +239,8 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
   }
 
   async function onReset() {
-    if (!confirm("Възстановяване на оригиналната подредба? Сегашната ще се запази в историята.")) return;
+    if (!confirm("Възстановяване на оригиналната подредба? Сегашната ще се запази в историята."))
+      return;
     setSaving(true);
     try {
       await resetLayout({ data: { page_key: pageKey } });
@@ -511,7 +513,11 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
                   disabled={!isDirty || saving || loading}
                   className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 px-3 py-2 text-sm font-semibold text-amber-950 shadow-md transition disabled:opacity-50"
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
                   Запази
                 </button>
                 <button
@@ -546,7 +552,9 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
                           <div className="mt-0.5 text-[11px] text-amber-100/55">{r.note}</div>
                         )}
                         <div className="mt-0.5 text-[10px] text-amber-300/70">
-                          {Array.isArray(r.sections) ? `${(r.sections as unknown[]).length} секции` : "—"}
+                          {Array.isArray(r.sections)
+                            ? `${(r.sections as unknown[]).length} секции`
+                            : "—"}
                         </div>
                       </div>
                       <button
@@ -613,9 +621,7 @@ function PageEditor({ pageKey }: { pageKey: PageKey }) {
                 title="Preview"
                 className={cn(
                   "rounded-lg border border-amber-500/20 bg-white shadow-2xl",
-                  device === "desktop"
-                    ? "h-[820px] w-full max-w-[1440px]"
-                    : "h-[760px] w-[400px]",
+                  device === "desktop" ? "h-[820px] w-full max-w-[1440px]" : "h-[760px] w-[400px]",
                 )}
               />
             </div>
@@ -672,7 +678,9 @@ function SectionEditor({
   return (
     <div className="space-y-2 border-t border-amber-500/15 bg-[rgba(20,4,8,0.45)] px-3 py-2.5">
       <label className="block">
-        <span className="text-[11px] uppercase tracking-wide text-amber-200/80">Заглавие (override)</span>
+        <span className="text-[11px] uppercase tracking-wide text-amber-200/80">
+          Заглавие (override)
+        </span>
         <input
           type="text"
           value={section.title ?? ""}
@@ -683,7 +691,9 @@ function SectionEditor({
         />
       </label>
       <label className="block">
-        <span className="text-[11px] uppercase tracking-wide text-amber-200/80">Подзаглавие (override)</span>
+        <span className="text-[11px] uppercase tracking-wide text-amber-200/80">
+          Подзаглавие (override)
+        </span>
         <textarea
           value={section.subtitle ?? ""}
           onChange={(e) => onChange({ subtitle: e.target.value })}
@@ -709,7 +719,8 @@ function SectionEditor({
           )}
         />
         <span className="mt-1 block text-[10px] text-amber-100/45">
-          Стойностите трябва да са текст, число, true/false или null. Public страниците ги четат когато компонентът ги поддържа.
+          Стойностите трябва да са текст, число, true/false или null. Public страниците ги четат
+          когато компонентът ги поддържа.
         </span>
       </label>
     </div>

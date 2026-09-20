@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
-import { signInWithOAuth } from "@/integrations/app-auth";
+import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -18,9 +18,16 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Вход | Имоти Надежда" },
-      { name: "description", content: "Вход за брокери и служители на Имоти Надежда — достъп до CRM панела за управление на имоти, клиенти и сделки." },
+      {
+        name: "description",
+        content:
+          "Вход за брокери и служители на Имоти Надежда — достъп до CRM панела за управление на имоти, клиенти и сделки.",
+      },
       { property: "og:title", content: "Вход | Имоти Надежда" },
-      { property: "og:description", content: "Вход за брокери и служители на Имоти Надежда — CRM панел." },
+      {
+        property: "og:description",
+        content: "Вход за брокери и служители на Имоти Надежда — CRM панел.",
+      },
       { property: "og:url", content: siteUrl("/login") },
       { name: "robots", content: "noindex,nofollow" },
     ],
@@ -31,7 +38,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const { user, loading } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -39,6 +46,7 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [quality, setQuality] = useState<"4k" | "8k">("4k");
 
   // Video quality sources. Both currently point to the same uploaded clip;
@@ -60,11 +68,7 @@ function LoginPage() {
   const [loginUrl, setLoginUrl] = useState<string | null>(null);
   useEffect(() => {
     setLoginUrl(`${window.location.origin}/login`);
-    const q = new URLSearchParams(window.location.search);
-    const oauthErr = q.get("error_description") || q.get("error");
-    if (oauthErr) setError(decodeURIComponent(oauthErr.replace(/\+/g, " ")));
   }, []);
-
 
   const handle = async (e: FormEvent) => {
     e.preventDefault();
@@ -74,6 +78,14 @@ function LoginPage() {
       setRememberMe(remember);
       const normEmail = email.trim().toLowerCase();
       const normPassword = password.trim();
+      if (mode === "forgot") {
+        const { error: err } = await supabase.auth.resetPasswordForEmail(normEmail, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (err) throw err;
+        setResetSent(true);
+        return;
+      }
       if (mode === "signup") {
         const { error: err } = await supabase.auth.signUp({
           email: normEmail,
@@ -85,12 +97,11 @@ function LoginPage() {
         });
         if (err) throw err;
       } else {
-        const { data: signed, error: err } = await supabase.auth.signInWithPassword({
+        const { error: err } = await supabase.auth.signInWithPassword({
           email: normEmail,
           password: normPassword,
         });
         if (err) throw err;
-        if (!signed.session) throw new Error("Входът мина, но сесията не се записа. Опитай пак.");
       }
 
       window.location.replace("/admin");
@@ -101,12 +112,10 @@ function LoginPage() {
       const translated = msg.includes("Invalid login credentials")
         ? "Грешен имейл или парола"
         : msg.includes("Email not confirmed")
-        ? "Имейлът не е потвърден"
-        : msg.includes("rate limit")
-        ? "Твърде много опити — изчакай малко"
-        : msg.includes("redirect") || msg.includes("Redirect")
-        ? "Google не връща към локала. Опитай с имейл и парола на тази страница."
-        : msg;
+          ? "Имейлът не е потвърден"
+          : msg.includes("rate limit")
+            ? "Твърде много опити — изчакай малко"
+            : msg;
       setError(translated);
     } finally {
       setBusy(false);
@@ -118,7 +127,7 @@ function LoginPage() {
     setError(null);
     try {
       setRememberMe(remember);
-      const result = await signInWithOAuth("google", {
+      const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: `${window.location.origin}/login`,
       });
       if (result.error) {
@@ -169,31 +178,43 @@ function LoginPage() {
         {/* Login card — solid backing for readability */}
         <div className="relative w-full max-w-md rounded-2xl border border-[#C9A84C]/40 bg-white/95 p-6 shadow-[0_30px_70px_-20px_rgba(139,26,43,0.45)] ring-1 ring-[#C9A84C]/30 backdrop-blur-md md:p-8">
           <div className="mb-6 text-center">
-            <Link to="/" className="font-display text-2xl text-[#8B1A2B]">Имоти Надежда</Link>
+            <Link to="/" className="font-display text-2xl text-[#8B1A2B]">
+              Имоти Надежда
+            </Link>
             <h1 className="mt-3 font-display text-3xl text-[#2b1418]">
-              {mode === "signin" ? "Вход" : "Регистрация"}
+              {mode === "signin" ? "Вход" : mode === "signup" ? "Регистрация" : "Забравена парола"}
             </h1>
             <p className="mt-1 text-sm text-[#5a3a3f]">
-              {mode === "signin" ? "Влез в админ панела с имейл и парола" : "Създай нов профил"}
+              {mode === "signin"
+                ? "Влез в админ панела"
+                : mode === "signup"
+                  ? "Създай нов профил"
+                  : "Ще получиш линк за нова парола на имейла си"}
             </p>
           </div>
 
-          {/* Google sign-in */}
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={googleBusy || busy}
-            className="mb-3 flex w-full items-center justify-center gap-2.5 rounded-lg border-2 border-[#8B1A2B]/20 bg-white px-4 py-2.5 text-sm font-semibold text-[#2b1418] shadow-sm transition hover:border-[#C9A84C] hover:bg-[#fff8ec] hover:shadow-md disabled:opacity-60"
-          >
-            <GoogleIcon />
-            {googleBusy ? "Свързване..." : "Влез с Google"}
-          </button>
+          {mode !== "forgot" && (
+            <>
+              {/* Google sign-in */}
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={googleBusy || busy}
+                className="mb-3 flex w-full items-center justify-center gap-2.5 rounded-lg border-2 border-[#8B1A2B]/20 bg-white px-4 py-2.5 text-sm font-semibold text-[#2b1418] shadow-sm transition hover:border-[#C9A84C] hover:bg-[#fff8ec] hover:shadow-md disabled:opacity-60"
+              >
+                <GoogleIcon />
+                {googleBusy ? "Свързване..." : "Влез с Google"}
+              </button>
 
-          <div className="my-4 flex items-center gap-3">
-            <span className="h-px flex-1 bg-gradient-to-r from-transparent to-[#C9A84C]/40" />
-            <span className="text-[11px] uppercase tracking-wider text-muted-foreground">или</span>
-            <span className="h-px flex-1 bg-gradient-to-l from-transparent to-[#C9A84C]/40" />
-          </div>
+              <div className="my-4 flex items-center gap-3">
+                <span className="h-px flex-1 bg-gradient-to-r from-transparent to-[#C9A84C]/40" />
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  или
+                </span>
+                <span className="h-px flex-1 bg-gradient-to-l from-transparent to-[#C9A84C]/40" />
+              </div>
+            </>
+          )}
 
           <form onSubmit={handle} className="space-y-3">
             {mode === "signup" && (
@@ -214,36 +235,73 @@ function LoginPage() {
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
               required
             />
-            <input
-              type="password"
-              placeholder="Парола (мин. 6 символа)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={6}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-              required
-            />
-
-            <label className="flex cursor-pointer items-center gap-2 select-none">
+            {mode !== "forgot" && (
               <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="h-4 w-4 cursor-pointer accent-[#8B1A2B]"
+                type="password"
+                placeholder="Парола (мин. 6 символа)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                required
               />
-              <span className="text-sm text-[#2b1418]">Запомни ме</span>
-            </label>
+            )}
 
-            {error && <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>}
+            {mode !== "forgot" && (
+              <label className="flex cursor-pointer items-center gap-2 select-none">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="h-4 w-4 cursor-pointer accent-[#8B1A2B]"
+                />
+                <span className="text-sm text-[#2b1418]">Запомни ме</span>
+              </label>
+            )}
+
+            {resetSent && mode === "forgot" && (
+              <div className="rounded-md bg-[#8B1A2B]/10 px-3 py-2 text-sm text-[#8B1A2B]">
+                Изпратихме линк за нова парола. Провери имейла си (и папка „Спам").
+              </div>
+            )}
+            {error && (
+              <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+              </div>
+            )}
             <Button type="submit" disabled={busy} className="gold-cta-button w-full">
-              {busy ? "Моля изчакайте..." : mode === "signin" ? "Вход" : "Регистрация"}
+              {busy
+                ? "Моля изчакайте..."
+                : mode === "signin"
+                  ? "Вход"
+                  : mode === "signup"
+                    ? "Регистрация"
+                    : "Изпрати линк за нова парола"}
             </Button>
           </form>
 
+          {mode === "signin" && (
+            <button
+              type="button"
+              className="mt-4 w-full text-center text-sm text-[#8B1A2B] underline-offset-2 hover:underline"
+              onClick={() => {
+                setMode("forgot");
+                setError(null);
+                setResetSent(false);
+              }}
+            >
+              Забравена парола?
+            </button>
+          )}
+
           <button
             type="button"
-            className="mt-4 w-full text-center text-sm text-[#8B1A2B] underline-offset-2 hover:underline"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+            className="mt-2 w-full text-center text-sm text-[#8B1A2B] underline-offset-2 hover:underline"
+            onClick={() => {
+              setError(null);
+              setResetSent(false);
+              setMode(mode === "signin" ? "signup" : "signin");
+            }}
           >
             {mode === "signin" ? "Нямаш профил? Регистрирай се" : "Имаш профил? Влез"}
           </button>
@@ -324,10 +382,22 @@ function LoginVideo({ src, quality }: { src: string; quality: string }) {
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z" />
-      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
-      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.2 44 24 44z" />
-      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.6l6.2 5.2C41.1 36.1 44 30.5 44 24c0-1.2-.1-2.3-.4-3.5z" />
+      <path
+        fill="#FFC107"
+        d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"
+      />
+      <path
+        fill="#FF3D00"
+        d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"
+      />
+      <path
+        fill="#4CAF50"
+        d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.2 44 24 44z"
+      />
+      <path
+        fill="#1976D2"
+        d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.6l6.2 5.2C41.1 36.1 44 30.5 44 24c0-1.2-.1-2.3-.4-3.5z"
+      />
     </svg>
   );
 }

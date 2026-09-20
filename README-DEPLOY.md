@@ -55,6 +55,7 @@ WHERE table_schema = 'public' AND table_name IN ('rentals', 'rental_payments');
 ### 2.3 Копирай API ключовете
 
 Supabase → Project Settings → API → копирай:
+
 - `URL` → отива в `SUPABASE_URL` и `VITE_SUPABASE_URL`
 - `anon` public key → `SUPABASE_PUBLISHABLE_KEY` + `VITE_SUPABASE_PUBLISHABLE_KEY`
 - `service_role` secret key → `SUPABASE_SERVICE_ROLE_KEY` (SERVER-ONLY!)
@@ -67,22 +68,22 @@ Vercel Dashboard → твой проект → Settings → Environment Variable
 
 **Задължителни** (без тях сайтът не работи):
 
-| Име | Стойност | Environments |
-|---|---|---|
-| `SUPABASE_URL` | от Стъпка 2.3 | Production, Preview |
-| `SUPABASE_PUBLISHABLE_KEY` | от Стъпка 2.3 | Production, Preview |
-| `SUPABASE_SERVICE_ROLE_KEY` | от Стъпка 2.3 | Production, Preview |
-| `VITE_SUPABASE_URL` | същата URL | Production, Preview |
+| Име                             | Стойност        | Environments        |
+| ------------------------------- | --------------- | ------------------- |
+| `SUPABASE_URL`                  | от Стъпка 2.3   | Production, Preview |
+| `SUPABASE_PUBLISHABLE_KEY`      | от Стъпка 2.3   | Production, Preview |
+| `SUPABASE_SERVICE_ROLE_KEY`     | от Стъпка 2.3   | Production, Preview |
+| `VITE_SUPABASE_URL`             | същата URL      | Production, Preview |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | същият anon key | Production, Preview |
 
 **За AI (един от четирите варианта):**
 
-| Име | Стойност | Откъде |
-|---|---|---|
-| `OPENAI_API_KEY` | `sk-...` | https://platform.openai.com/api-keys |
-| `GEMINI_API_KEY` | `AIza...` | https://aistudio.google.com/apikey |
-| `AI_GATEWAY_KEY` | | https://vercel.com/ai-gateway |
-| `LOVABLE_API_KEY` | *авто в Lovable* | синхронизира се автоматично |
+| Име               | Стойност         | Откъде                               |
+| ----------------- | ---------------- | ------------------------------------ |
+| `OPENAI_API_KEY`  | `sk-...`         | https://platform.openai.com/api-keys |
+| `GEMINI_API_KEY`  | `AIza...`        | https://aistudio.google.com/apikey   |
+| `AI_GATEWAY_KEY`  |                  | https://vercel.com/ai-gateway        |
+| `LOVABLE_API_KEY` | _авто в Lovable_ | синхронизира се автоматично          |
 
 **За Push нотификации** (напомняния за задачи):
 
@@ -91,28 +92,30 @@ Vercel Dashboard → твой проект → Settings → Environment Variable
 npx web-push generate-vapid-keys
 ```
 
-| Име | Стойност |
-|---|---|
-| `VAPID_PUBLIC_KEY` | от командата по-горе |
-| `VAPID_PRIVATE_KEY` | от командата по-горе |
-| `VAPID_SUBJECT` | `mailto:contact@imotinadezhda.bg` |
+| Име                 | Стойност                          |
+| ------------------- | --------------------------------- |
+| `VAPID_PUBLIC_KEY`  | от командата по-горе              |
+| `VAPID_PRIVATE_KEY` | от командата по-горе              |
+| `VAPID_SUBJECT`     | `mailto:contact@imotinadezhda.bg` |
 
 **Опционални:**
 
-| Име | За какво | Откъде |
-|---|---|---|
-| `RESEND_API_KEY` | Email newsletters | https://resend.com/api-keys |
-| `EMAIL_FROM` | Sender адрес | твой домейн |
-| `FIRECRAWL_API_KEY` | Scraper imot.bg | https://firecrawl.dev/ (~$16/мес) |
+| Име                 | За какво          | Откъде                            |
+| ------------------- | ----------------- | --------------------------------- |
+| `RESEND_API_KEY`    | Email newsletters | https://resend.com/api-keys       |
+| `EMAIL_FROM`        | Sender адрес      | твой домейн                       |
+| `FIRECRAWL_API_KEY` | Scraper imot.bg   | https://firecrawl.dev/ (~$16/мес) |
 
 ---
 
 ## Стъпка 4 — Deploy
 
 ### GitHub метод
+
 Push към main → Vercel auto-deploy → готово.
 
 ### ZIP метод
+
 ```bash
 cd imotinadezhda
 npm install -g vercel

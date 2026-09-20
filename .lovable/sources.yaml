@@ -1,0 +1,12 @@
+tokens:
+  - file: src/lib/theme/contrast.ts
+    operation: js-object-path
+  - file: src/lib/theme/theme.functions.ts
+    operation: js-object-path
+  - file: src/lib/theme/tokens.ts
+    operation: js-object-path
+  - file: src/styles.css
+    operation: css-variables
+components:
+  - file: src/routes/index.tsx
+    operation: ts-named-exports

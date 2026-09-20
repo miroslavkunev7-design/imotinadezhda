@@ -35,8 +35,7 @@ export function SupabaseConfigBanner() {
 
   // Decide whether to show
   const configProblem = !validation.ok;
-  const fallbackInProd =
-    validation.ok && validation.source === "fallback" && import.meta.env.PROD;
+  const fallbackInProd = validation.ok && validation.source === "fallback" && import.meta.env.PROD;
   const healthProblem = health.status === "error";
 
   if (!configProblem && !fallbackInProd && !healthProblem) return null;
@@ -57,9 +56,7 @@ export function SupabaseConfigBanner() {
     const missing: string[] = [];
     if (validation.urlSource === "fallback") missing.push("VITE_SUPABASE_URL");
     if (validation.keySource === "fallback") missing.push("VITE_SUPABASE_PUBLISHABLE_KEY");
-    details.push(
-      `Използва се резервен (hardcoded) ключ. Липсват: ${missing.join(", ")}.`,
-    );
+    details.push(`Използва се резервен (hardcoded) ключ. Липсват: ${missing.join(", ")}.`);
   }
 
   if (health.status === "error") {
@@ -124,15 +121,25 @@ export function SupabaseConfigBanner() {
         <div style={{ flex: 1, minWidth: 240 }}>
           <div style={{ fontWeight: 600 }}>{headline}</div>
           <div style={{ opacity: 0.9, marginTop: 2 }}>
-            Провери <code style={{ background: "rgba(0,0,0,0.25)", padding: "1px 6px", borderRadius: 4 }}>VITE_SUPABASE_URL</code>
+            Провери{" "}
+            <code style={{ background: "rgba(0,0,0,0.25)", padding: "1px 6px", borderRadius: 4 }}>
+              VITE_SUPABASE_URL
+            </code>
             {" и "}
-            <code style={{ background: "rgba(0,0,0,0.25)", padding: "1px 6px", borderRadius: 4 }}>VITE_SUPABASE_PUBLISHABLE_KEY</code>
+            <code style={{ background: "rgba(0,0,0,0.25)", padding: "1px 6px", borderRadius: 4 }}>
+              VITE_SUPABASE_PUBLISHABLE_KEY
+            </code>
             {" във Vercel → Settings → Environment Variables или в локалния "}
-            <code style={{ background: "rgba(0,0,0,0.25)", padding: "1px 6px", borderRadius: 4 }}>.env</code>.
+            <code style={{ background: "rgba(0,0,0,0.25)", padding: "1px 6px", borderRadius: 4 }}>
+              .env
+            </code>
+            .
           </div>
           {expanded && (
             <ul style={{ margin: "8px 0 0", paddingLeft: 20, opacity: 0.95 }}>
-              <li>Хост: <code>{host}</code></li>
+              <li>
+                Хост: <code>{host}</code>
+              </li>
               {details.map((d, i) => (
                 <li key={i}>{d}</li>
               ))}

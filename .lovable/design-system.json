@@ -1,0 +1,3514 @@
+{
+  "meta": {
+    "name": "И.Надежда Топа",
+    "package": "@ws-7w0ajudzovth5kzy5ogn/5918298d-acf3-4979-893a-62acd1c0b25d",
+    "version": "2.12.0",
+    "framework": "react",
+    "css_framework": "tailwind",
+    "starter_template": "custom_design_system_tailwind",
+    "theme_files": [
+      "src/lib/theme/contrast.ts",
+      "src/lib/theme/theme.functions.ts",
+      "src/lib/theme/tokens.ts",
+      "src/styles.css"
+    ],
+    "source_type": "local",
+    "source_manifest": {
+      "#enrichment": "c6f8c0cddc1fc375ba7493d368931944bffa70193e0bc59faa614c32fe4016c6",
+      ".cursor/rules/context-handoff-protocol.mdc": "6156e2485605430f7aa40b5405788539",
+      ".github/workflows/visual-burgas.yml": "418002ad204a1aa3b063c78506926afc",
+      ".gitignore": "522538164c47e8108b59910306c10c6c",
+      ".lovable/meta.yaml": "954a981e8847ec1692669dbb04ae9ae9",
+      ".lovable/plan/crm-редизайн-бордо-тъмна-тема-тефтер-само-при-клиенти-2026-08-27.md": "8f1d5ef01c69f4db31b6db27a0a8e2bb",
+      ".lovable/plan/градове-1-1-пълен-crm-редизайн-2026-08-27.md": "a1eb331097c0617b1a7a1bfb8086638d",
+      ".lovable/plan/градските-страници-във-варианта-от-скрийншот-1-brush-карти-с-2026-08-29.md": "a2bc44238d9c3faa23bccf4648cab954",
+      ".lovable/plan/детайлна-страница-автоматизации-1-и-2-2026-08-19.md": "7cfa2436f89e667949914c9a90be1b0c",
+      ".lovable/plan/достъпни-бутони-в-прозорците-на-crm-без-отрязан-запази-2026-08-29.md": "9289f0f6525a068c2df56010011c52a4",
+      ".lovable/plan/задача-1-форми-като-елементи-на-всяка-страница-задача-2-ai-а-2026-08-31.md": "901d556eb2d238cc2d80627a897c952f",
+      ".lovable/plan/задачи-3-4-и-5-2026-08-10.md": "41b219378aa69b19b0a07951460328fd",
+      ".lovable/plan/замяна-на-десктоп-началната-страница-с-начална-страница-лукс-2026-08-31.md": "c4080a637ec1c48aedca8f2b5ac55f50",
+      ".lovable/plan/запазване-на-настройките-избор-на-форма-за-всеки-компонент-2-2026-08-29.md": "766d657df9091b1f5f00127d08786145",
+      ".lovable/plan/изчистване-на-hero-а-и-десктоп-подредба-50-50-2026-08-30.md": "99cc64f2141360450e0255acf7d6b718",
+      ".lovable/plan/назъбени-четкови-граници-драскана-мазилка-в-таблицата-на-crm-2026-08-29.md": "c66bfbdb22354f1dfbc4d2d515e58186",
+      ".lovable/plan/настройки-на-crm-страници-reset-undo-redo-преглед-фото-контр-2026-08-29.md": "68aa5450d8c243dd3c0e3f937f0b52fe",
+      ".lovable/plan/настройки-на-всяка-crm-страница-кръгло-зъбно-колело-2026-08-29.md": "0f3e5924d7c2b821c2ae93f83238124f",
+      ".lovable/plan/панел-за-търсене-върху-четката-1-1-2026-08-30.md": "63235e8ffe1c0f3a140ba7e3a9ec525a",
+      ".lovable/plan/план-brush-форма-като-react-tailwind-компонент-и-поставяне-п-2026-08-29.md": "135e607687ad9ccd439ad540e2f31dc5",
+      ".lovable/plan/план-градски-страници-и-карти-1-1-с-референтните-скрийншоти-2026-08-29.md": "3f0cee99401480535592d95f91d90fbe",
+      ".lovable/plan/план-четково-петно-1-1-с-оригинала-назъбени-краища-точен-цвя-2026-08-29.md": "eba4b1d4b716b262fcac754c35d851f5",
+      ".lovable/plan/прилагане-на-страницата-бургас-от-архива-2026-08-29.md": "b83c4e53a4b331db316bd28f4d11bb50",
+      ".lovable/plan/продължение-от-мястото-където-спряхме-2026-08-31.md": "d6faab51e3fbf07ca7dbc781f86a0047",
+      ".lovable/plan/регулиране-на-интензитета-на-четката-в-таблицата-2026-08-29.md": "8c93765e4bf2f711929fd5803d9340fb",
+      ".lovable/plan/тефтер-с-клиенти-a4-разгъване-ръкописна-анимация-маркер-и-ба-2026-08-29.md": "de55ffb4c38a2a5403cad5a173c83058",
+      ".lovable/plan/фон-на-crm-мобилният-фон-на-началната-страница-2026-08-29.md": "738d64d2f0ed1be461c83850f0b8e87d",
+      ".lovable/plan/четливост-на-hover-избран-focus-ред-в-crm-таблиците-2026-08-29.md": "cddc09b501cc0b6d613d87ea5e78f7cd",
+      ".lovable/plan/четливост-на-детайлите-в-crm-карти-графи-бутони-2026-08-29.md": "0498c974d0c70c745618fdb5980663d2",
+      ".lovable/plan/ясно-различими-четири-цветови-роли-върху-тъмно-бордо-2026-08-29.md": "0b4230403226f90393b72ee373d2a1ec",
+      ".lovable/sources.yaml": "84363990e50d879720fbad4dc73ec981",
+      ".prettierignore": "7279a476f196a2da5f7edd18db568dc6",
+      ".prettierrc": "185ef0234746ab738ac1ab6cec5e2bd9",
+      "README-DEPLOY.md": "e4a75418cb7742e752514c2863ffece6",
+      "README.md": "2c1ff6e06e9fff1102ed024404fd9f6e",
+      "bunfig.toml": "609312c3234a5d0450187b5bf8a1daf8",
+      "components.json": "30d3d035361ce807021f5c54620962e9",
+      "db/migrations/20260713120000_rentals_and_payments.sql": "4772b25623e86ebb964ba693e88fc432",
+      "db/migrations/20260713130000_rentals_management_fee.sql": "eab54e47dc35234381a5036e1d7585d8",
+      "db/migrations/20260715120000_missing_tables.sql": "9731be4530478d714f967f2eb13fd9e4",
+      "db/migrations/20260721120000_core_missing_tables.sql": "c2a5307243ae7f330b9332d73252f11a",
+      "db/migrations/20260725120000_ai_chat_sessions.sql": "b8635ee7cfee449cec690fe212379240",
+      "db/migrations/20260810120000_client_deposit_interest.sql": "5b0bb0c2f198a0b727d2ea6d1da3a453",
+      "db/migrations/20260819120000_automations_1_2_leads.sql": "20860f8b607ec9203045ddf7475475d2",
+      "db/migrations/20260819130000_automations_3_qualification.sql": "122e62866d951d892e7bc873a95e5781",
+      "db/migrations/20260819140000_automations_4_matching.sql": "d91c0a6f01a41ea547667698d464328b",
+      "db/migrations/20260819150000_automations_5_followup.sql": "872f113bb042088a567e4b30f54d0233",
+      "db/migrations/20260819160000_automations_6_viewings.sql": "be795b64ec395dbc8b6253855606a9d7",
+      "db/migrations/20260819170000_automations_7_portals.sql": "ba0bbe435aa7e3f97e1e752bdd7b0f83",
+      "db/migrations/20260819180000_automations_8_contracts.sql": "5cb8e208991149b6bad805cd6cfd2d95",
+      "db/migrations/20260819190000_automations_9_documents.sql": "b1057ba227b3b7684af9a4d7f865630a",
+      "db/migrations/20260819200000_automations_10_deals.sql": "1ce5204a61d96bfb000eea21d472d30b",
+      "db/migrations/20260819210000_automations_11_copy.sql": "0097a7fc3233bd65057cdc088331d80a",
+      "db/migrations/20260819220000_automations_12_photos.sql": "c76e70f30cf2a52509df74f3ac7d6a4d",
+      "db/migrations/20260819230000_automations_13_owner_reports.sql": "a1c5aceea32247ff15ebce856f5af096",
+      "db/migrations/20260819240000_automations_14_reviews.sql": "aab734053d64a25c0092c969d86c2d19",
+      "db/migrations/20260819250000_automations_15_reactivation.sql": "6fb1bddfd6e36ee6aaf4d5419fde19ec",
+      "db/migrations/20260819260000_automations_16_omnichannel_bot.sql": "c305c64f8ff1f76266c95263da6c13a2",
+      "db/migrations/20260819270000_automations_17_commissions.sql": "fca45c9590124c1220773d2dd88c07ca",
+      "db/migrations/20260819280000_automations_18_marketing.sql": "9a8405fe172cde36e6f8d887a70f41aa",
+      "db/migrations/20260819290000_automations_19_seller_prediction.sql": "cbb3e7c2d42b0ca3080ff8fc589e94b6",
+      "db/migrations/20260819300000_automations_20_control_center.sql": "0a012b195bb689c766ad9166daffbc11",
+      "db/migrations/20260820070000_property_matches_reconcile.sql": "1fd20fb3699224055bb1ddd52a98451a",
+      "db/migrations/20260829120000_brokers_revoke_anon_read.sql": "772f14b5a64df0ca8991106401da66bc",
+      "db/migrations/20260829130000_crm_page_customizations.sql": "afbf3268d79321b41e60dbf4ef709d66",
+      "db/migrations/20260829140000_viewings_property_fk.sql": "29e18f02ffddd1aa5ce48acedf4c3aaf",
+      "db/migrations/20260831120000_crm_custom_shapes_image.sql": "fdc2baa779004beb56c877544f9f95fd",
+      "db/migrations/APPLY_ALL_PENDING_20260728.sql": "44ac919e3f8e166e96a4aaba9f67ff98",
+      "db/migrations/FIX_MISSING_TABLES_20260728.sql": "772f2c349afa1cea5effc858c9445227",
+      "db/migrations/_BOOTSTRAP_exec_sql.sql": "39b939bfacbc549e29e004777047446c",
+      "docs/CONTEXT_HANDOFF.md": "ed54292c2dc40d853a1b8ecbf5120b78",
+      "docs/SITE_DIAGNOSTIC.md": "35df1821bb461dda15e3da01e2be235b",
+      "docs/audit-backups/2026-06-19/ai-assistant.functions.ts.bak": "c2ea72cd2dcf24aa150ad60f0de2abe4",
+      "docs/audit-backups/2026-06-19/audit.functions.ts.bak": "9002b8d4fdc90e709ce0897a7fa3c197",
+      "docs/audit-backups/2026-06-19/crm-access.ts.bak2": "3d6c588bddeae8bbb6837dcea0756b05",
+      "docs/audit-backups/2026-06-19/crm.functions.ts.bak": "c8b4520a4da192916b9ea5ddf3df3819",
+      "docs/audit-backups/2026-06-19/customer-chat.ts.bak": "d8c437de3dc25130250af3fcd6527066",
+      "docs/audit-backups/2026-06-19/luxury-real-estate.tsx.bak": "d11d7bd30c108528b64183b83461a7a7",
+      "docs/audit-backups/2026-06-19/types.ts.bak": "919fffd1b42d7aba991903e6e947fd73",
+      "docs/handoffs/HANDOFF-01-OF-20.md": "e51262c2e3ac6b938977032fb5dac6d3",
+      "docs/handoffs/HANDOFF-02-OF-20.md": "6de7d19ff36bcd2e51c5176f3b93080e",
+      "docs/handoffs/HANDOFF-03-OF-20.md": "3ca4e4678ff21dab90195f65a319e830",
+      "docs/manual-migrations/2026-07-14_client_documents_ai_ingest.sql": "3b7faa9e4d5ceeb2d399ecfe50053c3d",
+      "drizzle.config.ts": "c2b6029fa56b49433380b7263b06e3f7",
+      "drizzle/migrations/0000_archived_properties_published_link.sql": "daa556a0c454a0aa0b25bb03579920d3",
+      "drizzle/migrations/meta/0000_snapshot.json": "1927a4aa967de1c4e4bc14ef7edcdae4",
+      "drizzle/migrations/meta/_journal.json": "612fd15776af66cbd9942c0c6174f01d",
+      "drizzle/schema.ts": "a60267d05d7dd11572f02686241f37c6",
+      "eslint.config.js": "345bdd57e188e0e4525edcd00e5003f5",
+      "package.json": "3d89f7d0c3094034d1cd10104ee4d3d3",
+      "public/apple-touch-icon.png": "cd267323c698fed7741eb6febe1959e6",
+      "public/assets/HOME_WORKING_PIXEL_LOCK.png": "96170663d1f21c2a1950c23e58b11b98",
+      "public/assets/OCEAN_OUTSIDE_FILL.png": "42b86cc52aa3bab9dbc4f29c30edc457",
+      "public/assets/SEA_EFFECTIVE_MOTION_MASK.png": "56b8fb8697e04f3bed1df3112d87dc3b",
+      "public/assets/SEA_PROTECTED_STATIC_MASK.png": "8059334c579c0395022af3664d5f1953",
+      "public/clips/burgas-hero-4k.mp4": "08602809fa6ef445adc3dad023463aaa",
+      "public/favicon.ico": "a9012a8e0b0c7e3de80b59e7241cdded",
+      "public/icon-192.png": "cf8ee79ba441044377822504d24d20a6",
+      "public/icon-384.png": "284960455da7590a9968016b919805ba",
+      "public/icon-512.png": "3443ece667e4a2a28d8a59c89fdbbb55",
+      "public/icon-maskable-512.png": "61a83e65b72e5e3b9efd17a5de616a52",
+      "public/llms.txt": "88ba634cc79f11dae3c1230e726fb5da",
+      "public/manifest.webmanifest": "7cf8ca203637868bd05318a23eff66b0",
+      "public/robots.txt": "a651be7a199c750f731711c2fd6ea0eb",
+      "public/scroll-shape.svg": "2c666f0e40df109fa27b53813536fa58",
+      "public/sw.js": "c593ec48e9195df2fc9f1a5b98b0fa6a",
+      "scripts/apply-chat-rpc.sh": "b7ea2b276fb829a48df617415b431c54",
+      "scripts/apply-migrations.mjs": "7052dc9b3c7e68fae2d496fd10811507",
+      "scripts/apply-sql-parts.mjs": "39e563cd4bdf9a199aaa22c48d0cdb47",
+      "scripts/bootstrap-vercel-env.ps1": "3cfebf0dc6f8b2a22c861f0907ec3c86",
+      "scripts/build-migration-batches.mjs": "0c177743e614c93877cdbbf230a93376",
+      "scripts/deploy-with-env.mjs": "b7d50deab1b4fe129b626c2bc41cb603",
+      "scripts/diagnose-production.mjs": "94be14d8b77a29df9770716e2b5c1324",
+      "scripts/export-from-zcrzx.mjs": "b1fcdfa8ebe3b56cc56d0fc71eb5e74d",
+      "scripts/fetch-supabase-service-key.ps1": "6ad8a78e47b0d202f16b565e3583fca3",
+      "scripts/import-data-to-bxtx.mjs": "82f42fd9f2b44238fbf7068a86871678",
+      "scripts/patch-crm-db.mjs": "a7250fcbc22c2a5fedd8f73f798e2061",
+      "scripts/setup-vercel-service-key.ps1": "e1976030c51d79bcf0335f840c711ad9",
+      "scripts/split-sql-batches.mjs": "90fd72e0774484830c6fd3710c79d984",
+      "scripts/sync-all-vercel-env.ps1": "5d3e33ef137a128e5bad02f4b824968b",
+      "scripts/sync-vercel-env.ps1": "24faab4814ba0adeff89fe784a57ea64",
+      "scripts/visual-burgas.mjs": "f48b72daff75c4e897056c75ac196c34",
+      "scripts/visual-diff.mjs": "5890d67477cc11102bb830d643781a53",
+      "scripts/visual-district.mjs": "d7358baa5fad1215212e2778dd445ea6",
+      "src/assets/about-sofa.jpeg": "d24fc04abf8dc5a63c64c34e2dd77ec6",
+      "src/assets/brand-logo-square.png.asset.json": "1ddc3bf06b0d94a69fa46188f95dc8ee",
+      "src/assets/brush-blot-1to1.png.asset.json": "4be1eeb799d3ba4aa7a6f493d9de2c55",
+      "src/assets/brush-card-mask.png": "0cc9d8c5fc36cce6cf9e9689363d51fe",
+      "src/assets/brush-edge-vertical.png": "962ec7d71c2b665b8f1dd299fd4c0f46",
+      "src/assets/brush-panel-mask.png": "c21e2ffa6700dc895ca75705808fe2cd",
+      "src/assets/brush-search-bar.png.asset.json": "0428787a9c4ef691f51159daae5aec07",
+      "src/assets/brush-shape-clean.png.asset.json": "7fec9d823434113d52c3376f7e6bbb52",
+      "src/assets/brush-shape.png.asset.json": "bd9c99468212ef83499fa9bf5dc4bf78",
+      "src/assets/burgas-hero-2026.mp4.asset.json": "857b7d4027da58c082e4e0b396decf5f",
+      "src/assets/burgas-hero-2026.webm.asset.json": "e724287331397502533b775ecc4f1321",
+      "src/assets/burgas-hero-4k.mp4.asset.json": "0f47ecd84d3dbb0ec537d30491464f03",
+      "src/assets/burgas-hero.jpeg": "356ae12e2480d18c508b0c6208d87e96",
+      "src/assets/burgas-hero.mp4.asset.json": "0f47ecd84d3dbb0ec537d30491464f03",
+      "src/assets/burgas-pier.jpeg": "b226eb73b69cab65267a1d1ca563fb78",
+      "src/assets/burgundy-terrace-hero.jpeg": "7b237584f36561639749f3f4d340ca6f",
+      "src/assets/calendar/calendar-cover-left.jpeg.asset.json": "ee03f7ddc1fc4dd8cc6f0be151e75608",
+      "src/assets/calendar/calendar-cover-right.jpeg.asset.json": "c515caef6ba65aa36335cd3de71e9eed",
+      "src/assets/city-burgas.jpeg": "fcbf2a9d6c823a2d606d37fd0372e3e2",
+      "src/assets/city-novi-pazar.jpeg": "735e1245337fcf1236b987a003f6ff89",
+      "src/assets/city-photos/burgas.jpeg.asset.json": "0b309afef04879f15802670a3c4a16d8",
+      "src/assets/city-photos/novi-pazar.jpeg.asset.json": "ab4ca2636142e314bc3a3b7e9586ab0d",
+      "src/assets/city-photos/shumen.jpeg.asset.json": "77bad8ff83eb32a8e68aaac5e81e45ed",
+      "src/assets/city-photos/varna.jpeg.asset.json": "79b0fa967b501483ee2ef3d9702de567",
+      "src/assets/city-shumen.jpeg": "31a0067cbd055aa489bf325fbc1dafe2",
+      "src/assets/city-varna.jpeg": "f80ff7e4e8f215e1e31d0b03c2c3c700",
+      "src/assets/client-buyer.jpg": "d550ef2d45abe766dee5d72f8e3a85c3",
+      "src/assets/client-landlord.jpg": "c591f6ab70d5bcfee78b9b7397f2ff0b",
+      "src/assets/client-seller.jpg": "3b757ff441a60afb7338d1e2c3c23f64",
+      "src/assets/client-tenant.jpg": "7e8ae6fdf8ff89322e9f61bb9ce786a6",
+      "src/assets/clouds-bg.jpg": "ba3bb4059ef9d2b37b626ab570235273",
+      "src/assets/crm-bg-architecture.jpg": "330edfe7e8b303890794a9fe6848a644",
+      "src/assets/crm-hero-2026.mp4.asset.json": "a276996ceb9f19d503fab01007fc372a",
+      "src/assets/crm-hero-2026.webm.asset.json": "3ceee2c0570cc25034a753cd6fd7ce12",
+      "src/assets/deal-green.jpeg": "62411c17ad9d59f78b03a6b84de9ffeb",
+      "src/assets/deal-rent.jpeg": "28a7f57283f198016d7e9ec78dff7c41",
+      "src/assets/deal-sale.jpeg": "3f2d1c7aac61395f929748147244150a",
+      "src/assets/header-marble-panel.png": "d3a2eda37ceb78517e249f0baffa9dde",
+      "src/assets/header-panel.png": "f73d0c9f30f182fca852e2294512bb5d",
+      "src/assets/home-hero-2026.mp4.asset.json": "503f227269ec561849fcdbbfb06efc9d",
+      "src/assets/home-hero-2026.webm.asset.json": "0b0c9dea9d101cfdc64d8c77e6072e39",
+      "src/assets/home-hero-bkg.jpeg": "deb181448c5e9aee4f2d519728216a25",
+      "src/assets/home-hero-living.jpeg": "deb181448c5e9aee4f2d519728216a25",
+      "src/assets/home-hero.mp4.asset.json": "b420ebaac8111d51d563dad411aae197",
+      "src/assets/login-hero.jpeg": "c4e3ef1c1818870c7966a02ff9ca672b",
+      "src/assets/login-hero.mp4.asset.json": "5590bfa5ce0fdc2cb5e6a8da6cc1bb6e",
+      "src/assets/logo-nadezhda-red.png": "6dda9be288188392f7c45ed4f946a7f7",
+      "src/assets/logo-nadezhda-transparent.png": "ea2e563eb59f9a1010ef33bc3c836b84",
+      "src/assets/logo-nadezhda.png": "6b30dbac6f33548e134276d0cbc51eb6",
+      "src/assets/logo-scroll-banner.png": "f0fbae97ba02c9a4bb7ceda602d2534e",
+      "src/assets/marble-bg.png": "d392905f0d271e7fc4e0fd824fc73e4f",
+      "src/assets/marble-hover-reference.png": "6380b0a72522ee4729b3d46d2823828a",
+      "src/assets/nadezhda-brush-mobile.png": "3056706109344bd0a965ccda90670ed6",
+      "src/assets/nadezhda-brush-original.png": "c0661c53ba656f03871a550eb5f71dc7",
+      "src/assets/nadezhda-brush-smaller.png": "c0661c53ba656f03871a550eb5f71dc7",
+      "src/assets/nadezhda-logo-brush.png.asset.json": "274fe7abe3eb8c46552923f386e42e27",
+      "src/assets/navbar-brush.png": "a7c07428708167237f55a0f9f0f0000f",
+      "src/assets/navbar-brush.png.asset.json": "df1eee87449cd41877f30f2106585c36",
+      "src/assets/navbar-desktop-clean.png.asset.json": "d1e2068d90bf2e3da4a73b7f281fc7b7",
+      "src/assets/navbar-desktop.png.asset.json": "afe3fd4e2e8a02642286671f7eb2b1ae",
+      "src/assets/navbar-mobile.png.asset.json": "ec521ad42e8956fb4ca83372a00ee748",
+      "src/assets/navbar-scroll.png.asset.json": "bfcfe190cb4d6fe12e2a0aa509cbb138",
+      "src/assets/notebook/logo-watermark.png": "88edee7d1a1ea68eaddd0f0623786853",
+      "src/assets/notebook/notebook-spread.jpg": "7a937ef6e58980e14c4d192ab9503edc",
+      "src/assets/notebook/sticky-note.png": "8ddbf9f90d8594947b78c940a88d1e51",
+      "src/assets/office-glass-tower.jpg": "9d63c73bb35f62b2989bba65b7ff8af7",
+      "src/assets/schedule-cover.jpg": "663c4cb6b6a730bc2241f6cb4435f537",
+      "src/assets/shumen-2026.mp4.asset.json": "c190b1840d41aaea1d22d4059e61168d",
+      "src/assets/shumen-2026.webm.asset.json": "60c70875c8f9272f099f4d4c147efd7e",
+      "src/assets/shumen-hero-mobile.jpeg.asset.json": "cac9e549f4825fadaa8cf0d0321e6ae4",
+      "src/assets/shumen-hero.mp4.asset.json": "94f37e56baa5e4e58cca68c1d4995156",
+      "src/assets/shumen-page/image-1.png.asset.json": "c18f564d58f136a7b492bfa704fb0dc6",
+      "src/assets/shumen-page/image-10.png.asset.json": "3eb4a12cd6bb87450534a98b787e0c72",
+      "src/assets/shumen-page/image-11.png.asset.json": "6c7e732f5b07dd9a2141669cefa59481",
+      "src/assets/shumen-page/image-12.png.asset.json": "3b043e5972bc07e0f365008b8f924680",
+      "src/assets/shumen-page/image-13.png.asset.json": "e6d779d6e0a9eb4c35735003fbad9dc5",
+      "src/assets/shumen-page/image-14.png.asset.json": "e2408b6717f4e9d761c8d7f59d39c29d",
+      "src/assets/shumen-page/image-15.png.asset.json": "10b0e493fb142eee838925e95d236e1a",
+      "src/assets/shumen-page/image-2.jpg.asset.json": "771e764836975f255ec2d72e97019e85",
+      "src/assets/shumen-page/image-3.png.asset.json": "0003b279c836de1e832f8adf2fe847cf",
+      "src/assets/shumen-page/image-4.png.asset.json": "6394deac3c209640a99fde403d57e7f5",
+      "src/assets/shumen-page/image-5.png.asset.json": "450b4fe8f122f1d125ecf22b281861db",
+      "src/assets/shumen-page/image-6.png.asset.json": "6c5cc38e8101511082fecc9b3a3601b8",
+      "src/assets/shumen-page/image-7.png.asset.json": "14358e0ca87bc8665e20aacaf5f0a4e5",
+      "src/assets/shumen-page/image-8.png.asset.json": "ece12dccd8829e497303adcd51baac83",
+      "src/assets/shumen-page/image-9.png.asset.json": "1779f243c49e8e74c593b2f8c8872fc5",
+      "src/assets/shumen-page/shumen-hero.mp4.asset.json": "ebfd0b9e39cd7d3230ae29e7db59438f",
+      "src/assets/shumen-page/shumen-hero.webm.asset.json": "325aee6c4d2b1abab6a7890928d6b5e4",
+      "src/assets/shumen-quarters/bolnitsata.png.asset.json": "12f8e57c79ce6054d99f6854bc8ef395",
+      "src/assets/shumen-quarters/boyan-1.png.asset.json": "8807c781e198f09dbf1a51a7342ea03e",
+      "src/assets/shumen-quarters/boyan-2.png.asset.json": "52a68b0b88278a265721ec87e0423f66",
+      "src/assets/shumen-quarters/dobrudzhanski.png.asset.json": "763060ec8650c7962cb40d806432473c",
+      "src/assets/shumen-quarters/herson.png.asset.json": "4145984de85acc1ddc1e7da4e13afac1",
+      "src/assets/shumen-quarters/pazara.png.asset.json": "82567bb74dd8dec5b6d5909f159f315b",
+      "src/assets/shumen-quarters/pozharnata.png.asset.json": "f1cf4865c1f443b081f04c33229fe35f",
+      "src/assets/shumen-quarters/trakiya.png.asset.json": "6d1fd6f09926b5a5a9c2e4527fd43a1c",
+      "src/assets/shumen-quarters/tsentar.jpeg.asset.json": "c7bfadcef52498e2c87e5ad431771827",
+      "src/assets/shumen-quarters/voenno.png.asset.json": "c603e15266beb7d5e15d10080c438886",
+      "src/assets/site-header-panel.png": "65bbc95decad865e247a2a1bd8317526",
+      "src/assets/varna-2026.mp4.asset.json": "02a83f90f94f794b9152fdaf7cdaa04d",
+      "src/assets/varna-2026.webm.asset.json": "a78c85b0429e949c0f298623ce21dfc5",
+      "src/assets/varna-hero.mp4.asset.json": "ce28137379c4cdaabfd706070adf514f",
+      "src/components/admin/admin-shell.tsx": "523f39bcaa3b890e163816997b2c3e04",
+      "src/components/admin/ai-bubble.tsx": "489891a1222f86318c4bbe3bc76acb5d",
+      "src/components/admin/bank-picker-modal.tsx": "00a4c1564fb5df3c3435b213fb7a04d1",
+      "src/components/admin/broker-roles-dialog.tsx": "1db118035d3f99b72db9007920bd09b8",
+      "src/components/admin/client-a4-sheet.tsx": "1d824e2f275eefc66cf5002eee00bca4",
+      "src/components/admin/client-details-sheet.tsx": "c73837956309e78fc1df602c9577d5f2",
+      "src/components/admin/client-notebook.tsx": "ffb829bb653982b83793e5b63c312a0e",
+      "src/components/admin/client-scan-modal.tsx": "037959660876118a4b669229303b1345",
+      "src/components/admin/desk-calendar.tsx": "1d9ab8311d119bfe8c9149c85f1e8f52",
+      "src/components/admin/doc-scanner.tsx": "0465044b3696ac285566dce0d359a496",
+      "src/components/admin/mortgage-calculator-modal.tsx": "939d5c5ddece0f4bc7ca5918e2e525ac",
+      "src/components/admin/mortgage-docs-modal.tsx": "b1e95a48191ed0fc24b5359421326a2b",
+      "src/components/admin/mortgage-send-modal.tsx": "d700e27fd79d0d4d0284cd993384c382",
+      "src/components/admin/mortgage-stages-modal.tsx": "2eea61f034562cba5f8b5393221e677e",
+      "src/components/admin/page-settings/custom-blocks.tsx": "77a868485466d8cf0df43ed601bed753",
+      "src/components/admin/page-settings/free-transform.tsx": "f10110dd6b7f9bcbb0ae1bcb41289b30",
+      "src/components/admin/page-settings/page-edit-mode.tsx": "82faf7a095e941f40128b7153c92115b",
+      "src/components/admin/page-settings/page-settings-panel.tsx": "ef1dd4350f91df3606a9d8299a3e4f64",
+      "src/components/admin/page-settings/shape-picker.tsx": "f41161f7dae2455473df0dc0e24a313b",
+      "src/components/admin/page-settings/shape-transfer.tsx": "04e9a1d70d88326f8b89ad3c4c6f335e",
+      "src/components/admin/property-detail-modal.tsx": "32fb8596c85f6b4aa3894fda48a27192",
+      "src/components/admin/push-toggle.tsx": "236c0a45741918e9e8355bf5dc72c950",
+      "src/components/admin/theme/color-token-grid.tsx": "62d5565f96e88e9fff78b1fc50b71138",
+      "src/components/admin/theme/device-preview.tsx": "c2dad3f101db57d1b58cf181af660bed",
+      "src/components/admin/theme/preset-picker.tsx": "d2c4878b1b42c0c162521e7c218dd030",
+      "src/components/admin/weekly-schedule.tsx": "c3986fae006920f5aaf9cc09ffe06686",
+      "src/components/editor/section-editor-overlay.tsx": "cc8687f472e55ec0b96a7dcfb07186dc",
+      "src/components/home-locked/components/BulgariaMapLayer.jsx": "91a4d17409ba251fb09d1b91d4ebba74",
+      "src/components/home-locked/components/CityCardsLayer.jsx": "7bc98541d61c21b33eb22ba78c6d99a3",
+      "src/components/home-locked/components/HomePage.jsx": "3104a2d7d45d9cbbbe78a569ff0a3a8f",
+      "src/components/home-locked/components/NavigationLayer.jsx": "fd0a5eae30b96eab9f8af81b1d7afa62",
+      "src/components/home-locked/components/SeaMotion.jsx": "d609e3e08fc83f9a008eefc4151cdfdb",
+      "src/components/home-locked/components/SearchLayer.jsx": "aa0b608a62e27937e4045a1e12d754e2",
+      "src/components/home-locked/data/cities.js": "99bab9eb3aa01e24ccf550c240ce8b53",
+      "src/components/home-locked/data/filterOptions.js": "31ddb529ef5b86973ae25bd073034cae",
+      "src/components/home-locked/data/uiGeometry.js": "b59c4e9e525617970986612703ae55f0",
+      "src/components/home-locked/lib/router.js": "86d46ebc3d6bf8b06dc38e79566ac4af",
+      "src/components/home-locked/locked-home-desktop.tsx": "dffc16596edbaa17a31e05841460b4b0",
+      "src/components/home-locked/styles/locked-home.css": "3061efbeedb3f406b905c6c3d5042efd",
+      "src/components/site/auto-play-video.tsx": "9d0522a7219bca5dc80363d0578bcf78",
+      "src/components/site/brush-search-bar.tsx": "68b94faa20f960fcd4759d92e9a1b1dc",
+      "src/components/site/brush-shape.tsx": "ab2e017ed6e03792f3642ab49a7350e8",
+      "src/components/site/city-brush-card.tsx": "6cbd1021936af62a5370b1ae54a3509c",
+      "src/components/site/city-like-shumen-page.tsx": "09adbeccdd435fb77cf944224fcc903d",
+      "src/components/site/crm-overlay.tsx": "6a15962213c5d0196f369119fbd62b49",
+      "src/components/site/customer-chat.tsx": "e9b68909f2548af3e7e97e79371f29ae",
+      "src/components/site/gold-dust-card.tsx": "fa5694ef67de6e067dd2812bbfcc888b",
+      "src/components/site/install-crm-button.tsx": "dbe687e605dca281cd1501c75885f05a",
+      "src/components/site/luxury-real-estate.tsx": "2497f6de039c7a49fb2f7925d2a23545",
+      "src/components/site/mobile-bottom-nav.tsx": "0f996ef104653249ee6d229cdd80713f",
+      "src/components/site/mortgage-apply-modal.tsx": "520956f777e953b6d4d7a58e7c61f19e",
+      "src/components/site/mortgage-calculator.tsx": "3f0b63888956a02edec32eacbde9b4b2",
+      "src/components/site/mortgage-range-band.tsx": "a623329b41595098917d54efbf920d28",
+      "src/components/site/nadezhda-logo.tsx": "77894e79dca50607732151ec45d6eec1",
+      "src/components/site/page-skeleton.tsx": "9012ec3b5a65c5b9e27ec4c7243fbb0e",
+      "src/components/site/render-design.tsx": "1af8564caf4409520473d21b9814268a",
+      "src/components/site/shumen-home-page.tsx": "7a478a569dc983c998ae4ff3924c6035",
+      "src/components/site/shumen-imposed-page.css": "6138a139b16c7d44050ca087b98e3d73",
+      "src/components/site/shumen-imposed-page.tsx": "340452c8f960a1c60eb12342cecd6804",
+      "src/components/site/site-header.tsx": "dc6ad6c4352cfa120e1ba7bdaf62b997",
+      "src/components/site/supabase-config-banner.tsx": "2a378e46c4d03b0f6e7e62112f588572",
+      "src/components/theme-provider.tsx": "d8660464922bb8a6879cc8a87bf62654",
+      "src/components/ui/accordion.tsx": "55f9dda62b4e3913c9b23e5015a86aef",
+      "src/components/ui/alert-dialog.tsx": "42fd7d804fd7ccc87334d86a52703a71",
+      "src/components/ui/alert.tsx": "f993d7e96b1e25ce50e68ed97e11d2a8",
+      "src/components/ui/aspect-ratio.tsx": "c5c364545e1b25a94e9e752cd67ad048",
+      "src/components/ui/avatar.tsx": "72989cd32f72c4122802540ef32525a5",
+      "src/components/ui/badge.tsx": "81cade001fc4260f9943e18dcd79449b",
+      "src/components/ui/breadcrumb.tsx": "bb9ac254f12662b20d5d50b84308bf3a",
+      "src/components/ui/button.tsx": "7d07d520f486b12bd47373d694ecd2ee",
+      "src/components/ui/calendar.tsx": "415d91d7006d4cc654e27620fca340f6",
+      "src/components/ui/card.tsx": "d6c48ea36221b9cdc3576d305d12d5d5",
+      "src/components/ui/carousel.tsx": "e324c68ae00cd5aed49317638abd429a",
+      "src/components/ui/chart.tsx": "6a3baf94f2e89f1f97d4d7a28f3622d2",
+      "src/components/ui/checkbox.tsx": "f78aac270ca482c8c2cb907ef6260462",
+      "src/components/ui/collapsible.tsx": "767631bbc344945c236f185f4078d71d",
+      "src/components/ui/command.tsx": "014782599cc838b021ec68b07ad4ea02",
+      "src/components/ui/context-menu.tsx": "e9d689beb53d9adb63165bfe64838bf6",
+      "src/components/ui/dialog.tsx": "17633c6f51cda012ee2469d131f0d430",
+      "src/components/ui/drawer.tsx": "ada4ad28b3344b828cfb5a000adfce0e",
+      "src/components/ui/dropdown-menu.tsx": "32156e221f3473280114c80fdb818829",
+      "src/components/ui/form.tsx": "1b0aa6302b9017ea2a1307c22a1d2983",
+      "src/components/ui/hover-card.tsx": "1442794c5ca2a78d69e4e613b315ed3d",
+      "src/components/ui/input-otp.tsx": "58cff10c8942cac8483c0bcd65d39d3c",
+      "src/components/ui/input.tsx": "1d4cc52a4cd8afb3e18e45bda942bb8a",
+      "src/components/ui/label.tsx": "7e35df4ca8edd0835efd97ca7937ef92",
+      "src/components/ui/menubar.tsx": "5870465653e12c3d0e35a2fad6f9faa9",
+      "src/components/ui/navigation-menu.tsx": "e85351147a02b29577ff83d188b63c24",
+      "src/components/ui/pagination.tsx": "fac6cdbb4bbf78b273d85cd36d6cbb49",
+      "src/components/ui/popover.tsx": "f18aa1da2144f25ee60795c539c51bcd",
+      "src/components/ui/progress.tsx": "55c462e5c9dd678dcf2c0c510b014ac4",
+      "src/components/ui/radio-group.tsx": "0e1ace237a5da3197e3eb1e6683faba9",
+      "src/components/ui/resizable.tsx": "d9fcb9203c749fcab4e125a99bb12a86",
+      "src/components/ui/scroll-area.tsx": "87b65d3eb26f2b02ff35a7acea585ba5",
+      "src/components/ui/select.tsx": "31ea1bbd6671833b010b2e852c8a55d0",
+      "src/components/ui/separator.tsx": "433d163c4ffa00b59398a0c293198b5e",
+      "src/components/ui/sheet.tsx": "14d367540e14d0f72cc00767497dcea2",
+      "src/components/ui/sidebar.tsx": "83c1623eb50ebc370d7b1b84a542e369",
+      "src/components/ui/skeleton.tsx": "41b182e6e2fc3805960d41e767d4a972",
+      "src/components/ui/slider.tsx": "4752f1bfa26426988d325599e01c335b",
+      "src/components/ui/sonner.tsx": "20708dec037f43c5db6582e3a32d3bb7",
+      "src/components/ui/switch.tsx": "82f5d8b0c59bb7ff305caa9f502e79ff",
+      "src/components/ui/table.tsx": "7cc889989d53894b659903c73aded96e",
+      "src/components/ui/tabs.tsx": "56e725558c2ce72c18243bf51717f385",
+      "src/components/ui/textarea.tsx": "c7aad96fb9545210d53135a96c76ed6b",
+      "src/components/ui/toggle-group.tsx": "ac26383acf721d116ca8e3ab5c5355d5",
+      "src/components/ui/toggle.tsx": "ee8c5adac74e7242b85b544db1a8fbad",
+      "src/components/ui/tooltip.tsx": "67d71db5a1ab935695d1def497f5b8a6",
+      "src/hooks/use-auth.tsx": "ed124b0ed6b99152abed126c64e75230",
+      "src/hooks/use-crm-page-settings.tsx": "354a2e280da72bfbf03957efa55cea27",
+      "src/hooks/use-crm-theme.ts": "8d486ab73f480edde7db3f4e99f1cda8",
+      "src/hooks/use-favorites.ts": "2843a9bc3f7fb264ec635f67b9d6bf33",
+      "src/hooks/use-mobile.tsx": "c0a0bdd4638c391a1dd06ac82074e60b",
+      "src/hooks/use-push-subscription.ts": "e615404cb23019fa72494889c2cd1a9c",
+      "src/hooks/use-task-reminders.ts": "12e4f1b05c65a01cb9e70138bb8cffc0",
+      "src/index.ts": "14462e27583cd55094892f8d38e42c82",
+      "src/integrations/app-auth.ts": "c91c06c9c0677ca102ccefd15888f1ee",
+      "src/integrations/supabase/auth-attacher.ts": "dad043cda134d909e52de0346c16625e",
+      "src/integrations/supabase/auth-middleware.ts": "5d9d831f79177b7c6327cbd794a97367",
+      "src/integrations/supabase/client.server.ts": "23f838ab7633e0a97e695f3c500d91aa",
+      "src/integrations/supabase/client.ts": "b40d27b03f346573ed0f76551e478ffb",
+      "src/integrations/supabase/previewAuthStorage.ts": "bc45a76c9242c4b85d6d4345625c46e9",
+      "src/integrations/supabase/safe-admin.ts": "83918d40daa22d60cc8ead3045d7a1cf",
+      "src/integrations/supabase/types.ts": "a5307d4b485110315147b3b2baa5574d",
+      "src/lib/ai-assistant.functions.ts": "c38992537a1a869cc8dcaaa1e11b893d",
+      "src/lib/ai-image.functions.ts": "bf961d63ff186b073b27f2caa70088f4",
+      "src/lib/ai-provider.ts": "25d769bec5c4d3d15815903511146a75",
+      "src/lib/api/example.functions.ts": "043d58c65b874e64b81caf99e5963ecf",
+      "src/lib/archive.functions.ts": "471091f5db59236ea0d009338cbe19a3",
+      "src/lib/asset-url.ts": "1821e3542aac317aa7129b66c089ee4d",
+      "src/lib/audit.functions.ts": "a8bef958984591942c7a387184771493",
+      "src/lib/auth/assert-admin.test.ts": "171052116123f3ace3e4a4fc37655ab0",
+      "src/lib/auth/assert-admin.ts": "991f2b5da538a28998623a525a58bdd8",
+      "src/lib/auth/crm-access.ts": "28d53e89722465bb916141f71de125c8",
+      "src/lib/catalog.functions.ts": "b386faeec7b7beeb01436c6572ecc1f4",
+      "src/lib/city-hero-videos.ts": "65359e1dd9c49bfdbcfc63f71e8c06fa",
+      "src/lib/commissions.functions.ts": "25850b2fb6fd051017c250ab77dc089c",
+      "src/lib/commissions.server.ts": "3908fab6719dac8ed2fc161e8cf20395",
+      "src/lib/config.server.ts": "630ee452f2db063bc3eb97a65e1ade1f",
+      "src/lib/contact-config.ts": "d091c4fbeadca64cde523d5aa9478dfd",
+      "src/lib/contacts.functions.ts": "b343baeb56fd2a8f997e91c38ecaf9e8",
+      "src/lib/contracts.functions.ts": "e26bef506d57000e6397a59e7d328a96",
+      "src/lib/contracts.server.ts": "5bb0c6bbea57ee609bcd8de92a17c204",
+      "src/lib/control-center.functions.ts": "5ef4e945cf5e53826a26b91752a5a47e",
+      "src/lib/control-center.server.ts": "5e1f00ee5b8aef148d1fa71cbe929140",
+      "src/lib/copy.functions.ts": "ca2d8f18c5d70c0b7b1e6bcbd3a1f029",
+      "src/lib/copy.server.ts": "54cacab1081b4dcbc50c082ecf636b32",
+      "src/lib/crm-custom-shapes.ts": "f937582796b1d3d431c60aef32f4db88",
+      "src/lib/crm-page-settings/shape-transfer.ts": "e647866d466c9effda056a99f3869c8a",
+      "src/lib/crm-page-settings/to-react.ts": "53d74b5532098d509d4d70ce3cdb135b",
+      "src/lib/crm-page-settings/types.ts": "7ac363e4614eba8547ce0be3bf35602d",
+      "src/lib/crm-scan.functions.test.ts": "3f90e6feeb0cf96616418a336d4f5db7",
+      "src/lib/crm-scan.functions.ts": "0c8d5f6f6de253e7859f183ef2e2e3eb",
+      "src/lib/crm-shapes.ts": "c80eed7b3258795ad5583a4a0e84e028",
+      "src/lib/crm.functions.ts": "4c5d37ccf94b265f8adcf5efe7a71a74",
+      "src/lib/customer-assistant.ts": "3032eb02631976597120d8dee398f117",
+      "src/lib/deals.functions.ts": "9e40ca9bee8681013f79f529ad29a563",
+      "src/lib/deals.server.ts": "0fc72e798512a29c546e6c7371aa721f",
+      "src/lib/device-perf.ts": "2d5e2c9fd7c20dae7e5d511837fb1d0d",
+      "src/lib/dns-check.functions.ts": "a71b3101970fb4532512ea3930676b1f",
+      "src/lib/document-processor.functions.ts": "068e2b4f9d3e69f8f77a2ffbd8ecd526",
+      "src/lib/documents.functions.ts": "1533532751a1889cd84adc6891f1a64d",
+      "src/lib/documents.server.ts": "d5ae87b3f1c60cc4b8e985ba895631d8",
+      "src/lib/download-archive.ts": "1630ff1755b9789e1b0331c18e883214",
+      "src/lib/error-capture.ts": "00e77bfacfb2d79c0816361e678f1b65",
+      "src/lib/error-page.ts": "cad556491a9a6702926fffae07544d30",
+      "src/lib/error-reporting.ts": "41ea53a43da066c1715a411583b4ce5c",
+      "src/lib/followup.functions.ts": "89842163992bf3a7417b2ad864b6cf30",
+      "src/lib/followup.server.ts": "f1c6b19f28cbe5943df3576467c924ff",
+      "src/lib/image-enhance.ts": "75d384857bbf4efc9ee0fe3be5847a8b",
+      "src/lib/leads.functions.ts": "52c70096d99a6cfb17e9518b92713de4",
+      "src/lib/leads.server.ts": "ab6f46a15dbe0d91d5983c457354f874",
+      "src/lib/legal-docs.functions.ts": "e6730fe692660de451da275ee7e7d41f",
+      "src/lib/legal-docs.ts": "ee35370cc022e1c0099473f560ea5fce",
+      "src/lib/marketing-auto.functions.ts": "4fafaa1adf696f807cb6225b5f636bbe",
+      "src/lib/marketing-auto.server.ts": "3248e70c3ab3be5eb8689715695da022",
+      "src/lib/marketing.functions.ts": "9eac165220c0c8d38fc1b42d0a134765",
+      "src/lib/matching.functions.ts": "c789f4e12be20fce2c1b65976903d56a",
+      "src/lib/matching.server.ts": "56e9cec55ef8db6e1750b3940b1244f8",
+      "src/lib/mortgage-calc.ts": "27a5cbc8f77d2585cd97e7f575af0717",
+      "src/lib/mortgage-docs.functions.ts": "63719936eba423257f28bcfcd1885c4d",
+      "src/lib/mortgage-docs.ts": "618efa10abac7d30feffd5a8575a4e88",
+      "src/lib/mortgage-rates.ts": "32357fe0c4830800029c8ff1f6cd55a8",
+      "src/lib/mortgage.functions.ts": "d1fa9c684b684bc61d30e05050f2c219",
+      "src/lib/omnibot.functions.ts": "0fc1543971767256c920cd10826e61d2",
+      "src/lib/omnibot.server.ts": "60bb2eb3d269202e06394d3c5bd7a209",
+      "src/lib/owner-reports.functions.ts": "ace38aa5f3aeb02dc96a5a47c7d78841",
+      "src/lib/owner-reports.server.ts": "6d8498fc1580b9ccaeab385f132c82a3",
+      "src/lib/page-builder/blocks.ts": "d04504dcad1dd3bd17d12e05ae180e85",
+      "src/lib/page-builder/page-builder.functions.test.ts": "77d8cbd2b14e26c4e8b04b2af398a202",
+      "src/lib/page-builder/page-builder.functions.ts": "1b694b435f4052495ba0071c20938c78",
+      "src/lib/page-builder/render.tsx": "596dc45a688541f2fd25b96daa88d7d7",
+      "src/lib/page-builder/store.ts": "d7c23b9cb6825926e4dee60db5617635",
+      "src/lib/page-layouts.functions.ts": "0d1bae3e73fbb778f3c95f0e1781b855",
+      "src/lib/page-sections.ts": "5525ed9a10d80654d0a46e74b409cf3b",
+      "src/lib/photos.functions.ts": "97bd0501265c6c78fd831af4fbe80fff",
+      "src/lib/photos.server.ts": "d99379dca754da344e5f2fa505e0c4d2",
+      "src/lib/portals.functions.ts": "41f91e25e2aa84565d07a345431d94ac",
+      "src/lib/portals.server.ts": "6adbb4885f9c37f6c0d7c9a3d24fc3b7",
+      "src/lib/property-ai.functions.ts": "95ec95f50a1e1b41a30a61b3247d53ce",
+      "src/lib/push.functions.ts": "5e69834b9dddc06b93ad3acb7cca594b",
+      "src/lib/push.server.ts": "c729b6a7761fa7692cb71e9d7facc680",
+      "src/lib/pwa.ts": "a6d64056e8f6d654af3079f4b897d904",
+      "src/lib/qualification.functions.ts": "bd8831bbfbb73a67dc8387968720fd1d",
+      "src/lib/qualification.server.ts": "4f1ee8fede76a3d6d7caec1acfc7f581",
+      "src/lib/reactivation.functions.ts": "8fa18d04ba2014b43702f617c8070d48",
+      "src/lib/reactivation.server.ts": "6ee066c3426fdfa53db0ada5502ad319",
+      "src/lib/remember-me.ts": "dfbb1ed287760cae485a0b3fabe5dc67",
+      "src/lib/rentals.functions.ts": "0f608f530d49660b381968928480e26f",
+      "src/lib/reviews.functions.ts": "6644b3efe76d6279f9463321427a91ee",
+      "src/lib/reviews.server.ts": "17d1d93039a0905e866e53d784cf6099",
+      "src/lib/schema-check.functions.ts": "333d4ed4b3342eade29b10c1e6326a92",
+      "src/lib/scraper.functions.ts": "4d03141d98cbadfc0ffe8a8c6e5a6c8b",
+      "src/lib/seller-predict.functions.ts": "2b556a133381bf1d308d05a84daa8bef",
+      "src/lib/seller-predict.server.ts": "0ba22d194ea17494bff0c4f4c823641f",
+      "src/lib/send-email.ts": "1c0c54f655b0133b84943e2cf4be28ef",
+      "src/lib/shumen-villages.ts": "4fe05fcb9d6958a4f6d06edbdff7485a",
+      "src/lib/site-config.ts": "b6f595c5019a1b3f38c549927bb53022",
+      "src/lib/site-images.functions.ts": "3e12711a1038202461ec9adaacc57b8f",
+      "src/lib/slug-validation.test.ts": "2dc2798b56f1e9883b3d7a71eb1f6ec7",
+      "src/lib/supabase-env.ts": "c25cc35d13ad8caa43a3b0650ee3cb41",
+      "src/lib/supabase-health.ts": "0652bc13af02ab24c0a34ee20bfb0c51",
+      "src/lib/supabase-server-db.ts": "536cdeb248542fe44e420e717e8dd364",
+      "src/lib/theme/contrast.ts": "c07a7aeadac2c468c79a4398eae92e84",
+      "src/lib/theme/theme.functions.ts": "734494a67e1cbb042f6b40f7b1fadc93",
+      "src/lib/theme/tokens.ts": "e84e449cc5ea8d148c70f7fb91df05ed",
+      "src/lib/tts-utils.ts": "f550ea4f2e04ff5235a2cc731a9bd63b",
+      "src/lib/upload-public-image.ts": "86b47028644ee673594d8485c8fabbd7",
+      "src/lib/utils.ts": "d9837f38cc05303254571985e3164050",
+      "src/lib/viewings.functions.ts": "9478df74513d28a99f4598fca96d2d50",
+      "src/lib/viewings.server.ts": "12476943f0a58cad6072421448a00958",
+      "src/lib/villages.functions.ts": "e66b1755f2ccf2ea71b725c51c66d3f6",
+      "src/lib/web-research.ts": "da4973b7ab69e718efe2686a1f665c98",
+      "src/routeTree.gen.ts": "7ee70c088bbf0cc56647caaa8d913c8a",
+      "src/router.tsx": "8f905e713b0eba7fa8148b7995a708c9",
+      "src/routes/README.md": "7f49cf3bb7558aa775fd62140a37b175",
+      "src/routes/__root.tsx": "06f9130193cdbd762186561080a17588",
+      "src/routes/about.tsx": "3cde69e73f35224bf83927505827e44d",
+      "src/routes/admin.ai.tsx": "68c74a2b3a078f5f6e573d315ba26f89",
+      "src/routes/admin.audit.$id.tsx": "57461ad280203654454510572c650859",
+      "src/routes/admin.audit.tsx": "1cf042ff9f26f53e88eec72ffa3d582e",
+      "src/routes/admin.brokers.tsx": "23a51f418afdf9685ff37f960cf0bda7",
+      "src/routes/admin.calendar.tsx": "81df8dc86585ede32fdd4170300940cd",
+      "src/routes/admin.chat.tsx": "2c063eeb1845f5fa11ffaa91d6a80f5b",
+      "src/routes/admin.cities.tsx": "9a6c6ff0c8a7d8e0d5701c1f7ccb8a4d",
+      "src/routes/admin.clients.tsx": "69bb3db1455aa5d64851dde6437316dc",
+      "src/routes/admin.commissions.tsx": "c530e95020566fe330811ebaa5c6cf8c",
+      "src/routes/admin.contacts.tsx": "02780f90b9c1ce42040e9f2c81990a25",
+      "src/routes/admin.contracts.tsx": "731e02aa3c2933077f07c7f44fa04b85",
+      "src/routes/admin.control-center.tsx": "f55e318c8c0f51f7caae3958a03a5640",
+      "src/routes/admin.copy.tsx": "a9752515ffe41c13f811fb3b0df5c3ea",
+      "src/routes/admin.deals.tsx": "2ef0cf19667b20a5f89b3b656cacc9ba",
+      "src/routes/admin.debug.quarters.tsx": "ebbdd9c487b217c88573a9f7d470274f",
+      "src/routes/admin.dns.tsx": "430f6cd3558e4b4da1df981aae567750",
+      "src/routes/admin.documents.tsx": "781cfa6fd58443ada5c1b99f59a2bae0",
+      "src/routes/admin.extracted.tsx": "4d4d097af7a08e37edf3fc0eef5c3fa5",
+      "src/routes/admin.finance.tsx": "e8b14c989ad3c88790f2a3fefae2b3b0",
+      "src/routes/admin.followup.tsx": "5f199e8e78b8678c94c0d770f21deeba",
+      "src/routes/admin.index.tsx": "043879ada021ba3f3b1f3c47f1f7f76b",
+      "src/routes/admin.inquiries.tsx": "58c4998dcd70044dc0102aed50bb192a",
+      "src/routes/admin.leads.tsx": "cb4e9ae352a2eb152ac43aa25a722279",
+      "src/routes/admin.marketing-auto.tsx": "f08cd72b9495cb8c93deeb451fe5cde1",
+      "src/routes/admin.marketing.tsx": "20a70822c945b1d61b0a956b9ae43a6f",
+      "src/routes/admin.matches.tsx": "275770dd83a4cd66536d7f116f6b16ac",
+      "src/routes/admin.matching.tsx": "153917b3dff2fed74bfae6357cc09d61",
+      "src/routes/admin.omnibot.tsx": "867be0b706659ed0952700f4bb4be1aa",
+      "src/routes/admin.owner-reports.tsx": "0a7fa57bd89d4f0172fbc0874ba31289",
+      "src/routes/admin.owners.tsx": "078809c80e8f996a8f847bb35d33151a",
+      "src/routes/admin.photos.tsx": "e72fe459d6b768427580b02b1ecc8ebf",
+      "src/routes/admin.portals.tsx": "90b6803b802992eb941c7dd31167ae6f",
+      "src/routes/admin.profile.tsx": "9c09b7fb5b6e0be94f7b9f750e42b834",
+      "src/routes/admin.properties.tsx": "849d667a67fd9a28cdeaae0216c15466",
+      "src/routes/admin.qualification.tsx": "0b96180df2e366b121ae827e41912213",
+      "src/routes/admin.quarters.tsx": "c86db045eda6f5d60e7fafe2e9eaed5e",
+      "src/routes/admin.reactivation.tsx": "6a5ed48434c81cb94cbeee25c338f087",
+      "src/routes/admin.rentals.tsx": "0bcd80fc00419c354d305a2d0bf388cf",
+      "src/routes/admin.reviews.tsx": "e31abc657d37fcbbdaaad7a13f6b1317",
+      "src/routes/admin.rules.tsx": "5e85f93ae2e81f9988e746a01c4747d5",
+      "src/routes/admin.schema.tsx": "09dc8c4511c6a012bd09fa284a6910b5",
+      "src/routes/admin.seller-predict.tsx": "42b0f53b0b2c9d138777d5da5ea554d0",
+      "src/routes/admin.settings.images.tsx": "fd9e851e1904f2c688673e98f4c211e8",
+      "src/routes/admin.settings.page-builder.tsx": "87b52e4792268642138db1976e089170",
+      "src/routes/admin.settings.page-editor.tsx": "6224075516cc4a12675628fad1de6f1e",
+      "src/routes/admin.settings.theme.tsx": "f758474d6a2c71f859a6971bf9909979",
+      "src/routes/admin.settings.tsx": "83d68f7183868cc7107c05adfcf63802",
+      "src/routes/admin.tasks.tsx": "a343b1cb5292b808ff3e188952ea2949",
+      "src/routes/admin.tsx": "ba74d4b364b96185def68c0771d1429c",
+      "src/routes/admin.viewings.tsx": "3a6d9bba7521e1ce5d248540002603e0",
+      "src/routes/api/email/queue/process.ts": "ecf3c456e7cc91a4e2b3dc45e8364d3a",
+      "src/routes/api/public/ads/track.ts": "3d4fd501f4aa14038c1192e3b534a743",
+      "src/routes/api/public/bot/message.ts": "7932c5f26905ce9b2ea1a11fedd0c2fa",
+      "src/routes/api/public/contracts/sign.$token.ts": "a8b27c5dd4ccc4dac12a88565cb26453",
+      "src/routes/api/public/customer-chat.ts": "abf0d87d4c1943abfe3973ef482584f1",
+      "src/routes/api/public/documents/upload.$token.ts": "7e987c688ee1bacf4789734fc2b3fd26",
+      "src/routes/api/public/followup/track.ts": "84ca0c02f0fadc9e111ce5bddf454def",
+      "src/routes/api/public/hooks/commissions.ts": "929e81ba3d91ba6ca887c09880456e4c",
+      "src/routes/api/public/hooks/contracts.ts": "8d59d0979f7ef54d40976c18f024ce98",
+      "src/routes/api/public/hooks/control-center.ts": "b961d20868f996b9bb631bb745be2595",
+      "src/routes/api/public/hooks/deals.ts": "4230bcdfd04e5d7f1dd3100220361938",
+      "src/routes/api/public/hooks/documents.ts": "7b873bc5e4340497d3a620c585486448",
+      "src/routes/api/public/hooks/followup.ts": "5b30773e0d76813c0a9ec5dd63bdceec",
+      "src/routes/api/public/hooks/instant-contact.ts": "d58fea5c87a1a89d3a93b8cbe56b8933",
+      "src/routes/api/public/hooks/marketing.ts": "ce167fa12ce5c57042472c20111cc2d0",
+      "src/routes/api/public/hooks/messenger.ts": "606d910218436b154f94210bc7a7bb89",
+      "src/routes/api/public/hooks/owner-reports.ts": "ced976cd5fb4e390331432555d55bc0a",
+      "src/routes/api/public/hooks/portals.ts": "5a23ac179d6570e5b39fa11b3a8eab96",
+      "src/routes/api/public/hooks/property-copy.ts": "cb0dc39bca5655a3b42bda13bf84ae38",
+      "src/routes/api/public/hooks/property-matching.ts": "8d7b3625cf4c8adecd06059f4b66e634",
+      "src/routes/api/public/hooks/property-photos.ts": "30d8a3e9246d827cf61a212ede757018",
+      "src/routes/api/public/hooks/reactivation.ts": "68cf81340113f336e2f25fba68a64c8c",
+      "src/routes/api/public/hooks/reviews.ts": "5de0af6a30c127a1604ee1fd58612ce2",
+      "src/routes/api/public/hooks/seller-prediction.ts": "d6825d3a19ad5e7abab64303b2569d0e",
+      "src/routes/api/public/hooks/task-reminders.ts": "9d2a62d9d479e34a8d06e39ae8c1aa54",
+      "src/routes/api/public/hooks/viber.ts": "0977c8563554ef952f1484a215d21259",
+      "src/routes/api/public/hooks/viewings.ts": "5451d1f0ed86e30e1d5de7cd42dec3d2",
+      "src/routes/api/public/hooks/whatsapp.ts": "e770aab0e413d53192bd7b4b6d5791a8",
+      "src/routes/api/public/leads/capture.ts": "40dffaaefd32f8b48e635c80fe8e9a63",
+      "src/routes/api/public/leads/qualify.ts": "b608b3504f06327575ccb8dd46958418",
+      "src/routes/api/public/matches/feedback.ts": "a7933210e5d7ed021f3df99478b190e9",
+      "src/routes/api/public/portals/feed.$code.ts": "5629d36eba79b9eceebc1cb526aa21de",
+      "src/routes/api/public/reactivation/o.$token.ts": "d7b73f60e2f3bfaff49dc118c24317f1",
+      "src/routes/api/public/reports/view.$token.ts": "4e949b28a770940bcb463ec3e3a40bd4",
+      "src/routes/api/public/reviews/r.$token.ts": "702ac5250f9ac2e71e6a0e213ed2f63f",
+      "src/routes/api/public/viewings/respond.ts": "33167a3fad87603866c1b1f8603fd349",
+      "src/routes/buy.tsx": "b1a32903ca31c89e7525cf10999a8076",
+      "src/routes/cities.$slug.around.tsx": "cde68611f53f8305ce0f54a3540d2bef",
+      "src/routes/cities.$slug.districts.$district.tsx": "32f0823fd33a484f57441b9df05fe96a",
+      "src/routes/cities.$slug.index.tsx": "de7ac8825bce3e437f5f730ee3ff2179",
+      "src/routes/contacts.tsx": "c473045025ab0b4b7526ce1713af1c0d",
+      "src/routes/index.tsx": "9c71363da72758645b0aa83bcf6ca3bd",
+      "src/routes/login.tsx": "9987f71dc0c2eeea7130cd32277d5873",
+      "src/routes/properties.$propertyId.tsx": "47152b0115c94994def8f6d26428d145",
+      "src/routes/reset-password.tsx": "4e71c318701aba3d028bc4aa61998348",
+      "src/routes/search.tsx": "0fa41717fb4147e703b181c311456bb1",
+      "src/routes/sell.tsx": "0933e044c025647de89dde9c66abf132",
+      "src/routes/sitemap[.]xml.ts": "41b494891602f26b77b3ad2700797bfc",
+      "src/server.ts": "fbc6ebe75c2c10edbbe88119737e2f68",
+      "src/server/scraper-firecrawl.ts": "1199e4592bbfed9872a7346f5743cda2",
+      "src/start.ts": "5095495bc44763efe9c3f3ecd394d2b9",
+      "src/styles.css": "563c51016a4dc8b7a6dee5d131a96627",
+      "src/types/jscanify.d.ts": "aac6d7636c0c7b4510c5daad784f9b4c",
+      "supabase/config.toml": "34b092b6ad325d0f40e321e2760e37d5",
+      "supabase/migrations/20260531200338_e2bff7ef-ce5f-4759-92e3-373883b1640a.sql": "04cee911108dc911bab53c552bf45b20",
+      "supabase/migrations/20260531200357_8540b7c0-0518-48c6-9465-75369ecfdb28.sql": "b1eda21022057f2f98a531dfc973ce78",
+      "supabase/migrations/20260531210903_66dc9a2a-126f-4659-ab1b-c1e49605f354.sql": "6aaf4a28acdcc567866d99d41a1a7092",
+      "supabase/migrations/20260531212429_ec8a70cc-b5d8-497c-b062-7b2fcc4193d3.sql": "4ff1b85d700c18207634a7e6453fc941",
+      "supabase/migrations/20260531213406_0b0da3e2-4b9f-411d-b3f9-ee0ea19616e6.sql": "c88cf906e199764f8941b4e5aaf8995e",
+      "supabase/migrations/20260531215108_a8ff2f1c-df23-4024-8982-d1b87e059c08.sql": "41a0d3799b02638f143d6ad2d52e2458",
+      "supabase/migrations/20260531215145_1a3eac22-f15d-4097-ba5b-201af7a3fc76.sql": "e06553328466a3a54d23cf6073350f7b",
+      "supabase/migrations/20260531223224_a2849aaf-aa14-4716-94b9-8c652875858e.sql": "6a63c06aaa3df125ba80854609c451a7",
+      "supabase/migrations/20260601033026_cef33b8f-3f7b-4c90-aabc-6fbe5a49156d.sql": "edda2ab2b38b4cea9e2e78b7349e2a98",
+      "supabase/migrations/20260601043739_f1f498a2-d884-42d8-9163-6e63c9f90f08.sql": "0d8cb6589ff181ca9b9d0e6070cf675a",
+      "supabase/migrations/20260601044339_e274d95a-850d-48f4-9f1f-45af2058c590.sql": "c2b1a458db94cc6275ad878010c2944b",
+      "supabase/migrations/20260601045313_20db7863-2374-4788-b1f8-4b70e421df99.sql": "7386b5e2c80d945900d90108cc9e587d",
+      "supabase/migrations/20260601065507_c21ecc9f-264f-4f05-bfa6-9983f6edd23e.sql": "f76d6805b4d85b38cf1ac85b8ff89474",
+      "supabase/migrations/20260601071559_7c871af3-94bc-43ea-90fa-6e0fc0857af8.sql": "ca8666e28ed31e9bb9418b386b77b555",
+      "supabase/migrations/20260601072652_c085f808-57b5-4565-bb8f-d4629dd1ad76.sql": "cdd44e7574676922d92779f072f07bd7",
+      "supabase/migrations/20260601073912_1a3d4ae3-1032-44e9-bf3e-3a3cffbd33ad.sql": "8dda802e7059a63634464327582589f7",
+      "supabase/migrations/20260601080049_3b160098-2a13-48d1-bb2e-8f998b6d5a08.sql": "13c208b91fe22b0f740814304d45f875",
+      "supabase/migrations/20260601093955_d110f24c-b080-4d39-9923-0af225be383e.sql": "7c35f09f9b7e97e71fe4fb19c7824c8e",
+      "supabase/migrations/20260601094417_632208e7-56ca-45fb-8027-033cdda19c01.sql": "9a15b5bfb77f0aee55de5a8a800c9f06",
+      "supabase/migrations/20260601104215_4840d464-4897-4c47-8fc0-109a8ed4e5ab.sql": "7aa88889dd2a53e16b516faa44574542",
+      "supabase/migrations/20260601112224_f0dc3350-245f-4608-a551-f81757fe2541.sql": "4035027b10819db39e49cc6550d6ed55",
+      "supabase/migrations/20260601115724_5ee61266-fbb4-4d55-a468-5d87db1f00c4.sql": "1b8c4039fc37bc0b0dd76179b36165ad",
+      "supabase/migrations/20260601121801_e4c6a6be-88bb-41e2-83bd-c8a1f976cdb5.sql": "baabeea23a4ae80ff7754630b4ad489a",
+      "supabase/migrations/20260601132244_email_infra.sql": "5ce1ca4ea4c5b2e918f0edc06322beba",
+      "supabase/migrations/20260601161051_0abdac0f-3f40-4025-bb3e-4520ccd33b48.sql": "45328b6144b57de34a9e0f899ebc33ba",
+      "supabase/migrations/20260602173843_b360cea2-10cc-47d1-8a5c-c34c7c27feb7.sql": "bf04a4fc46d483efcc6900d86b257736",
+      "supabase/migrations/20260602194858_0a92d0cf-071f-4abc-bfca-2c55e5fdbf58.sql": "e1e74c7e1281f9339411892c92ce11e5",
+      "supabase/migrations/20260603171421_e4490ca2-44c4-44d0-a915-9ae72e77343d.sql": "2e7023c3fb6aa5626386488e6dad6615",
+      "supabase/migrations/20260603183005_6294b4c6-87dd-46b7-877b-4b41a84f5ee9.sql": "0b7e0a1c71c6968d1690eb8673a021d0",
+      "supabase/migrations/20260603184117_62b27a92-3696-45be-8d35-b6c8aadb8f83.sql": "35f86fc0a7a4d15c3cfb481aed1cc35e",
+      "supabase/migrations/20260603184450_17c105be-0499-4941-9c2f-b0f6ffe67403.sql": "ea4f7b3e25cfc2c0a5af1450ee686846",
+      "supabase/migrations/20260603200708_31268094-e2ee-4999-8e3c-34239b6d227e.sql": "74b2ede291966b014fec2bae81c35fa4",
+      "supabase/migrations/20260603202739_148610f5-2c61-4474-9e38-76bdb946d837.sql": "51e1d617612fa506e0bb85b2e7bdf971",
+      "supabase/migrations/20260603202856_65472c3e-2ed2-4b5a-84f7-959a0d9d082a.sql": "17b94feb2db6e0c38753e786999dd2d2",
+      "supabase/migrations/20260604145540_1e20e4de-dd2d-46f1-bc78-ff4d3e7910e9.sql": "099de77b3ff0c06bde1a51cc6196c5d1",
+      "supabase/migrations/20260604191454_bcb039c4-6699-46dc-bff9-a5652412f1d1.sql": "085726d7a9809a2f89d9a06744e7e8f7",
+      "supabase/migrations/20260604194028_0fb0980b-e903-45bf-8c31-64243240f804.sql": "e04f2e005d88f90fbde2ac7227ffdae1",
+      "supabase/migrations/20260604204716_8317434b-5864-446f-99b6-2b733c32b132.sql": "4cb3f41b77acfbbb6617ed160a34cf92",
+      "supabase/migrations/20260604205056_b13c592c-01e3-427a-a07c-cc5b7c68d453.sql": "ec748708efa0fbe557d4ba1e09c0037d",
+      "supabase/migrations/20260605172717_655f393a-fdf1-46fd-9efd-a36bdebf105a.sql": "87b6c3f5970c4a9e917b30a3583a2bab",
+      "supabase/migrations/20260605182003_fb7678b6-a707-459e-ba01-75d16fec17ce.sql": "3ee2ac651cbbabc4aa2b5b0be817f7a7",
+      "supabase/migrations/20260607031121_da7985d3-3d11-482d-a436-8a408c91d7e0.sql": "e31ef3b45b9bb4c719b55cf97b41264e",
+      "supabase/migrations/20260613091538_94589d82-d54e-494e-8f8a-e4115265caed.sql": "4159443ed1ad87bce00ba31c89113299",
+      "supabase/migrations/20260613093011_67848a81-5a7c-4ad7-83e0-fe1a6a109495.sql": "14b50056dbf8bab73bd2a2d068f29ee1",
+      "supabase/migrations/20260613093521_dfa43a9b-e286-4129-bf60-898c919bce28.sql": "bca142c25a7dceaa49b6e57dc2a5d24b",
+      "supabase/migrations/20260614215754_7c24beb8-5724-48de-99f3-2e2d3d5f61ad.sql": "15fef5e46a2bc465b0128727b92cc9b5",
+      "supabase/migrations/20260615103807_2bd5bb43-9bbc-497c-8fdd-3925add78985.sql": "8bc35c9a5e927c5ef6ee2dfbd26eba32",
+      "supabase/migrations/20260615122016_9bf5cf69-3ea9-43b7-bba1-fe9d21ed224e.sql": "d305be7335a2f4097c74ebc2492917ed",
+      "supabase/migrations/20260615122746_01bfdc75-f8e7-431f-a990-131511750442.sql": "87dcc4fdec7b14c8beb8fc90182f52ba",
+      "supabase/migrations/20260615134834_9ec6668c-bb67-4dd2-9e7f-c2bb208b1dc6.sql": "5ddd31941d1747092f22efd22ff5a1b7",
+      "supabase/migrations/20260615135346_01fb146f-95c1-483e-bf87-891f7b79e161.sql": "2cf3168c18b2064866f9c0116c30415a",
+      "supabase/migrations/20260615170108_6d5d150f-fe8a-4bb0-9bbd-814d07625626.sql": "f293cd80f9d80ba1985e16635993be1d",
+      "supabase/migrations/20260615170638_3bb536df-161f-4fe0-9162-d9bc58d0a1a3.sql": "a5c7faccf07a4e8ac272c48778de6896",
+      "supabase/migrations/20260617055835_88073de1-3c71-42ca-a059-3079fda5040b.sql": "0864fd6dff83711268fe7a6fe91d5dca",
+      "supabase/migrations/20260617062747_5a2842bb-1fff-4b83-9cde-2572cafffbae.sql": "74a87918f9dc4aa035a161255570d96e",
+      "supabase/migrations/20260617063803_c9f54180-6444-4f70-8b8e-16d9abfceb84.sql": "e99c933b4db301802c3fe83280dc2742",
+      "supabase/migrations/20260617063824_cfc468e1-803a-4a3a-b86c-05566b200afd.sql": "8e05c4a0edcf07682120a6d8f0551673",
+      "supabase/migrations/20260617063843_40f6f421-7968-41c7-9c32-9e6dc73c71aa.sql": "3666351469372ecb12c0a223af655e42",
+      "supabase/migrations/20260617064501_9e60def5-d54a-4215-9cfd-296f726ae396.sql": "2c2294350454c5defaa1efd0526daef6",
+      "supabase/migrations/20260617064538_135f1b39-9242-40f2-a369-d4ba89adb843.sql": "9836e4de1fd750449ccff1b713b48cd3",
+      "supabase/migrations/20260617070643_a5012b53-2467-4871-ad87-27c52515b43e.sql": "e9b5d46b6a37a958ec4b8d5c7087d6cd",
+      "supabase/migrations/20260618120000_visitor_customer_chat_rpc.sql": "e76656e8212cdcfddc4978cf227442b2",
+      "supabase/migrations/20260619010000_production_cron_urls.sql": "6584fcb5a8bd69fd9bfd7e72bec19bb1",
+      "supabase/migrations/20260619120000_customer_chat_public_rpc.sql": "9611d84d049bb6f91e804dc2b7ec375d",
+      "supabase/migrations/20260619133428_e035b3b2-587a-4cbd-a50d-bda1ecd84768.sql": "5c98688db9d14312ee3baa9d194e83e7",
+      "supabase/migrations/20260712120000_archive_property_details.sql": "5fd939cd1a0e8132dbfdfc938c777167",
+      "supabase/migrations/20260819204159_24cd167f-e693-4aba-8875-2f3e83dfca62.sql": "a45bb8b36a05b1a2d9c98aaaef6799ac",
+      "supabase/migrations/20260819204343_8dd78c03-b989-425c-a949-26c63431d406.sql": "60e7f07bf1327b1ec6866fcd0641c77c",
+      "supabase/migrations/20260819204456_b04fc642-46bb-444e-8b12-e22d8019f6ba.sql": "1bfd5bcc5012ca9a3a24ae0ef8491c23",
+      "supabase/migrations/20260819204533_ef4008b7-3a8b-478a-b376-028fbc9ab63b.sql": "a2b8629d6b0f6dd7692538c942de4411",
+      "supabase/migrations/20260819204659_8e00da81-1ac4-41c0-aede-1fd01a5aae10.sql": "b715267b4a52a9c74642b815db50aa61",
+      "supabase/migrations/20260819204842_af499204-697d-4f9c-ab52-094af58b1f2d.sql": "d149321620b6cff44e9c7cfa1524f7e9",
+      "supabase/migrations/20260819205106_011fbf18-85e5-4a27-9f3a-3f9492f745f2.sql": "347ffac7f3c3b7cead5643946087c817",
+      "supabase/migrations/20260820063752_70af55f9-ad09-4186-9fa5-29c81cd16cee.sql": "68df0e380579a49c3622edbf0c3f0d44",
+      "supabase/migrations/20260829120957_c0bfc65c-b69a-4fb5-be18-7828ba471ff5.sql": "5454a4883dea74269fe0c772d665bded",
+      "supabase/migrations/20260829151023_d75803d7-c45e-4639-8561-f4efad025416.sql": "19ba64b9e38d2632843466a8e8bcc33d",
+      "supabase/migrations/20260829162237_27dd02f6-7b63-4b35-b199-3499a0e27b7f.sql": "28af43fc563fa7d38926b87682fa10b9",
+      "supabase/migrations/20260829215823_339eb3f9-18da-4c28-93f7-5ba6ad0f2dc2.sql": "8a1dcbdbc44005b71e8eb9d64462f749",
+      "supabase/migrations/20260830120349_2a4bf5d8-a464-4df0-9981-d8415e4f3914.sql": "18d4f13f25cad4d435e1c0bfd7240d5c",
+      "supabase/migrations/20260830120429_cf707abf-2022-450c-ae34-6d437961f547.sql": "12803e6feea1e8192942249656e32d5b",
+      "supabase/migrations/20260830160800_f45061de-963d-4a07-b30c-3dc78401c4ae.sql": "a5b8e533aba7abc565a737e7f7cc69f3",
+      "supabase/migrations/20260831003207_64ceeff5-af93-482d-a581-19fcfed32f11.sql": "6e07ecf56f639f42ef55b1ab4ba2c49f",
+      "tests/visual/README.md": "d4a68a81a3a0790dd6490f5fe626dc8a",
+      "tests/visual/baseline/burgas-viewport.png": "6998805f227a1f0abeb2f210a462d2c7",
+      "tsconfig.json": "994abf64c2b9f78b568879f80ed0170e",
+      "vercel.json": "756d09886c3ff223136331b28c8b8d33",
+      "vite.config.ts": "fe846e09607d9edd13709b71f66691fd",
+      "vitest.config.ts": "a04391c47451839ae80b7548a16c99dd",
+      "worker/.gitignore": "a36bef1b5873ed4ebd34384a773a65b2",
+      "worker/README.md": "d6a66b0b4a3cec52dcf5848ecd0fda32",
+      "worker/package.json": "aa307991d01797b09bca6a08fc8994a7",
+      "worker/src/index.js": "456d65c70570f939689f3c374d35cc62",
+      "worker/src/publishers/_helpers.js": "ff4c033d36d4179498594caddcc9dab0",
+      "worker/src/publishers/alo-bg.js": "226600638c6bbce06e1a58435253b60b",
+      "worker/src/publishers/bazar-bg.js": "2fe552669eb3c52e10556972534af2cc",
+      "worker/src/publishers/fb-marketplace.js": "bb79d3b53f6c3f0d58574856289b8bf3",
+      "worker/src/publishers/home-bg.js": "1213a0c83af719e4bd56bb4e1aeaec25",
+      "worker/src/publishers/imot-bg.js": "e1d0ab5034a1ebe4d62b9b5b5ab62d27",
+      "worker/src/publishers/imoti-net.js": "0e59111d0f4e2481b8a10fc78d072144",
+      "worker/src/publishers/index.js": "a0318ab99e4880c44dbb4a665134a508",
+      "worker/src/publishers/olx-bg.js": "db4ad6ce7e2e58588dbf454ae59fa6a5"
+    },
+    "pipeline_version": 8
+  },
+  "tokens": {
+    "color": [
+      {
+        "name": "DEFAULT_TOKENS.background",
+        "raw": "#ffffff",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.foreground",
+        "raw": "#1a0d10",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.card",
+        "raw": "#ffffff",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.cardForeground",
+        "raw": "#1a0d10",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.primary",
+        "raw": "#8B1A2B",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.primaryForeground",
+        "raw": "#fdf7ee",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.secondary",
+        "raw": "#f7efe2",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.secondaryForeground",
+        "raw": "#8B1A2B",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.muted",
+        "raw": "#f5ede0",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.mutedForeground",
+        "raw": "#6a4b4f",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.accent",
+        "raw": "#C9A84C",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.accentForeground",
+        "raw": "#1a0d10",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.border",
+        "raw": "#e8d9b8",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.sidebar",
+        "raw": "#fbf6ec",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.sidebarForeground",
+        "raw": "#1a0d10",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.background",
+        "raw": "Фон на страницата",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.foreground",
+        "raw": "Основен текст",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.card",
+        "raw": "Фон на карта / панел",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.cardForeground",
+        "raw": "Текст в карта",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.primary",
+        "raw": "Първичен (бутони, акценти)",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.primaryForeground",
+        "raw": "Текст върху първичен",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.secondary",
+        "raw": "Вторичен фон",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.secondaryForeground",
+        "raw": "Текст върху вторичен",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.muted",
+        "raw": "Muted фон",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.mutedForeground",
+        "raw": "Muted текст",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.accent",
+        "raw": "Акцент (злато)",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.accentForeground",
+        "raw": "Текст върху акцент",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.border",
+        "raw": "Граници / разделители",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.sidebarForeground",
+        "raw": "Странична лента (текст)",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.background",
+        "raw": "--background",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.foreground",
+        "raw": "--foreground",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.card",
+        "raw": "--card",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.cardForeground",
+        "raw": "--card-foreground",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.primary",
+        "raw": "--primary",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.primaryForeground",
+        "raw": "--primary-foreground",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.secondary",
+        "raw": "--secondary",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.secondaryForeground",
+        "raw": "--secondary-foreground",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.muted",
+        "raw": "--muted",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.mutedForeground",
+        "raw": "--muted-foreground",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.accent",
+        "raw": "--accent",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.accentForeground",
+        "raw": "--accent-foreground",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.border",
+        "raw": "--border",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.sidebarForeground",
+        "raw": "--sidebar-foreground",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "--background",
+        "raw": "oklch(1 0 0)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--foreground",
+        "raw": "oklch(0.25 0.04 20)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--card",
+        "raw": "oklch(1 0 0)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--card-foreground",
+        "raw": "oklch(0.25 0.04 20)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--popover",
+        "raw": "oklch(1 0 0)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--popover-foreground",
+        "raw": "oklch(0.25 0.04 20)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--primary",
+        "raw": "oklch(0.38 0.13 18)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--primary-foreground",
+        "raw": "oklch(0.99 0.005 80)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--secondary",
+        "raw": "oklch(0.96 0.01 80)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--secondary-foreground",
+        "raw": "oklch(0.38 0.13 18)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--muted",
+        "raw": "oklch(0.97 0.008 80)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--muted-foreground",
+        "raw": "oklch(0.45 0.03 20)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--accent",
+        "raw": "oklch(0.78 0.13 85)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--accent-foreground",
+        "raw": "oklch(0.25 0.04 20)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--destructive",
+        "raw": "oklch(0.55 0.2 25)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--destructive-foreground",
+        "raw": "oklch(0.99 0 0)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--border",
+        "raw": "oklch(0.78 0.13 85 / 0.35)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--input",
+        "raw": "oklch(0.85 0.02 80 / 0.6)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--ring",
+        "raw": "oklch(0.78 0.13 85 / 0.6)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-1",
+        "raw": "oklch(0.38 0.13 18)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-2",
+        "raw": "oklch(0.78 0.13 85)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-3",
+        "raw": "oklch(0.55 0.13 25)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-4",
+        "raw": "oklch(0.7 0.08 80)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--chart-5",
+        "raw": "oklch(0.32 0.08 20)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar",
+        "raw": "oklch(0.98 0.005 80)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-foreground",
+        "raw": "oklch(0.25 0.04 20)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-primary",
+        "raw": "oklch(0.38 0.13 18)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-primary-foreground",
+        "raw": "oklch(0.99 0.005 80)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-accent",
+        "raw": "oklch(0.96 0.01 80)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-accent-foreground",
+        "raw": "oklch(0.38 0.13 18)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-border",
+        "raw": "oklch(0.78 0.13 85 / 0.35)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sidebar-ring",
+        "raw": "oklch(0.78 0.13 85 / 0.6)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-panel",
+        "raw": "#fbf6ec",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-panel-strong",
+        "raw": "#f2e6c8",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-row-alt",
+        "raw": "#f5ecd7",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-border",
+        "raw": "rgba(139, 26, 43, 0.18)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-accent",
+        "raw": "#8B1A2B",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-accent-soft",
+        "raw": "rgba(139, 26, 43, 0.10)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-surface",
+        "raw": "#ffffff",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-row-hover",
+        "raw": "rgba(139, 26, 43, 0.14)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-row-selected",
+        "raw": "#8B1A2B",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-row-selected-muted",
+        "raw": "#f5c95a",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-focus-ring",
+        "raw": "#C9A84C",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-readable-bg",
+        "raw": "#fffaf2",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-readable-bg-strong",
+        "raw": "#ffffff",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-readable-bg-alt",
+        "raw": "#f6efe2",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-readable-muted",
+        "raw": "#604149",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-readable-border",
+        "raw": "rgba(96, 15, 28, 0.32)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-readable-header",
+        "raw": "#600f1c",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--bordo",
+        "raw": "#5c101d",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--bordo-deep",
+        "raw": "#430b16",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sp-bg",
+        "raw": "#4a0d1a",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sp-btn",
+        "raw": "#f5c95a",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sp-label",
+        "raw": "#bf8128",
+        "source": "src/styles.css"
+      }
+    ],
+    "typography": [
+      {
+        "name": "DEFAULT_TOKENS.fontHeading",
+        "raw": "Playfair Display",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.fontBody",
+        "raw": "Open Sans",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_TOKENS.fontSizeBase",
+        "raw": "16",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "--font-sans",
+        "raw": "\"Open Sans\", \"Manrope\", sans-serif",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--font-display",
+        "raw": "\"Playfair Display\", \"Cormorant Garamond\", serif",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-text",
+        "raw": "#2a0a12",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-text-muted",
+        "raw": "rgba(42, 10, 18, 0.68)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-row-hover-text",
+        "raw": "#2a0a12",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-row-selected-text",
+        "raw": "#fff4e6",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-readable-text",
+        "raw": "#2b1418",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--crm-readable-header-text",
+        "raw": "#fffaf2",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sp-text",
+        "raw": "#fff4e6",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--sp-btn-text",
+        "raw": "#35060f",
+        "source": "src/styles.css"
+      }
+    ],
+    "radius": [
+      {
+        "name": "--radius-sm",
+        "raw": "calc(var(--radius) - 4px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-md",
+        "raw": "calc(var(--radius) - 2px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-xl",
+        "raw": "calc(var(--radius) + 4px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-2xl",
+        "raw": "calc(var(--radius) + 8px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-3xl",
+        "raw": "calc(var(--radius) + 12px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius-4xl",
+        "raw": "calc(var(--radius) + 16px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--radius",
+        "raw": "0.75rem",
+        "source": "src/styles.css"
+      }
+    ],
+    "other": [
+      {
+        "name": "DEFAULT_PRESETS.cards",
+        "raw": "classic",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_PRESETS.navbar",
+        "raw": "burgundy",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_PRESETS.logo",
+        "raw": "left-above",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_PRESETS.forms",
+        "raw": "rounded",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "DEFAULT_PRESETS.buttons",
+        "raw": "rounded",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_LABELS.sidebar",
+        "raw": "Странична лента (фон)",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "TOKEN_TO_CSS_VAR.sidebar",
+        "raw": "--sidebar",
+        "source": "src/lib/theme/tokens.ts"
+      },
+      {
+        "name": "--logo-scroll-w",
+        "raw": "clamp(188px, 17.2vw, 226px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--header-bar-h",
+        "raw": "clamp(74px, 8.8vw, 112px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--site-header-offset",
+        "raw": "max(\n    var(--header-bar-h),\n    calc(var(--logo-scroll-w) * 848 / 1264)\n  )",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--gold",
+        "raw": "hover",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--cityref-max",
+        "raw": "1400px",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--cityref-gutter",
+        "raw": "clamp(16px, 3.2vw, 56px)",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--active",
+        "raw": ":before",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--tight",
+        "raw": ":before",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--brush-mask-panel",
+        "raw": "url(\"data:image/svg+xml",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--brush-mask-row",
+        "raw": "url(\"data:image/svg+xml",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--brush-mask-field",
+        "raw": "url(\"data:image/svg+xml",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--brush-mask-divider",
+        "raw": "url(\"data:image/svg+xml",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--brush-grain",
+        "raw": "0.5",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--soft",
+        "raw": ":after",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--top",
+        "raw": ":after",
+        "source": "src/styles.css"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "AdminShell",
+      "file": "src/components/admin/admin-shell",
+      "import_path": ""
+    },
+    {
+      "name": "MarbleCard",
+      "file": "src/components/admin/admin-shell",
+      "import_path": ""
+    },
+    {
+      "name": "AdminAIBubble",
+      "file": "src/components/admin/ai-bubble",
+      "import_path": ""
+    },
+    {
+      "name": "BankPickerModal",
+      "file": "src/components/admin/bank-picker-modal",
+      "import_path": ""
+    },
+    {
+      "name": "BrokerRolesDialog",
+      "file": "src/components/admin/broker-roles-dialog",
+      "import_path": "",
+      "props": [
+        {
+          "name": "brokerName",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "userId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "onClose",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "onSaved",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "name": "ClientA4Sheet",
+      "file": "src/components/admin/client-a4-sheet",
+      "import_path": ""
+    },
+    {
+      "name": "ClientDetailsSheet",
+      "file": "src/components/admin/client-details-sheet",
+      "import_path": ""
+    },
+    {
+      "name": "ClientNotebook",
+      "file": "src/components/admin/client-notebook",
+      "import_path": ""
+    },
+    {
+      "name": "ClientScanModal",
+      "file": "src/components/admin/client-scan-modal",
+      "import_path": ""
+    },
+    {
+      "name": "DeskCalendar",
+      "file": "src/components/admin/desk-calendar",
+      "import_path": ""
+    },
+    {
+      "name": "DocScanner",
+      "file": "src/components/admin/doc-scanner",
+      "import_path": ""
+    },
+    {
+      "name": "MortgageCalculatorModal",
+      "file": "src/components/admin/mortgage-calculator-modal",
+      "import_path": ""
+    },
+    {
+      "name": "MortgageDocsModal",
+      "file": "src/components/admin/mortgage-docs-modal",
+      "import_path": ""
+    },
+    {
+      "name": "MortgageSendModal",
+      "file": "src/components/admin/mortgage-send-modal",
+      "import_path": ""
+    },
+    {
+      "name": "MortgageStagesModal",
+      "file": "src/components/admin/mortgage-stages-modal",
+      "import_path": ""
+    },
+    {
+      "name": "CrmCustomBlocks",
+      "file": "src/components/admin/page-settings/custom-blocks",
+      "import_path": ""
+    },
+    {
+      "name": "FreeTransform",
+      "file": "src/components/admin/page-settings/free-transform",
+      "import_path": "",
+      "props": [
+        {
+          "name": "value",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "onChange",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "onCommit",
+          "type": "function"
+        },
+        {
+          "name": "onSelect",
+          "type": "function"
+        },
+        {
+          "name": "children",
+          "type": "any",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "CrmPageEditLayer",
+      "file": "src/components/admin/page-settings/page-edit-mode",
+      "import_path": ""
+    },
+    {
+      "name": "CrmPageSettingsPanel",
+      "file": "src/components/admin/page-settings/page-settings-panel",
+      "import_path": ""
+    },
+    {
+      "name": "ShapePicker",
+      "file": "src/components/admin/page-settings/shape-picker",
+      "import_path": "",
+      "props": [
+        {
+          "name": "current",
+          "type": "any"
+        },
+        {
+          "name": "previewOn",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "hasTrial",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "onTogglePreview",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "onPick",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "onPlace",
+          "type": "function"
+        },
+        {
+          "name": "onApplyTrial",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "onCancelTrial",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "onClose",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "ShapeTransferSection",
+      "file": "src/components/admin/page-settings/shape-transfer",
+      "import_path": ""
+    },
+    {
+      "name": "PropertyDetailModal",
+      "file": "src/components/admin/property-detail-modal",
+      "import_path": "",
+      "props": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "onClose",
+          "type": "function",
+          "required": true
+        },
+        {
+          "name": "onDeleted",
+          "type": "function"
+        },
+        {
+          "name": "onChanged",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "name": "PushToggle",
+      "file": "src/components/admin/push-toggle",
+      "import_path": ""
+    },
+    {
+      "name": "ColorTokenGrid",
+      "file": "src/components/admin/theme/color-token-grid",
+      "import_path": "",
+      "props": [
+        {
+          "name": "tokens",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "onChange",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "DevicePreview",
+      "file": "src/components/admin/theme/device-preview",
+      "import_path": ""
+    },
+    {
+      "name": "PresetPicker",
+      "file": "src/components/admin/theme/preset-picker",
+      "import_path": "",
+      "props": [
+        {
+          "name": "presets",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "onChange",
+          "type": "function",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "WeeklySchedule",
+      "file": "src/components/admin/weekly-schedule",
+      "import_path": ""
+    },
+    {
+      "name": "SectionEditorOverlay",
+      "file": "src/components/editor/section-editor-overlay",
+      "import_path": ""
+    },
+    {
+      "name": "LockedHomeDesktop",
+      "file": "src/components/home-locked/locked-home-desktop",
+      "import_path": ""
+    },
+    {
+      "name": "AutoPlayVideo",
+      "file": "src/components/site/auto-play-video",
+      "import_path": ""
+    },
+    {
+      "name": "BrushSearchBar",
+      "file": "src/components/site/brush-search-bar",
+      "import_path": ""
+    },
+    {
+      "name": "BrushShape",
+      "file": "src/components/site/brush-shape",
+      "import_path": "",
+      "props": [
+        {
+          "name": "tone",
+          "type": "enum",
+          "values": ["burgundy", "burgundyDark", "white", "gold"],
+          "default": "burgundy"
+        },
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": ["panel", "badge", "pill", "strip"],
+          "default": "panel"
+        },
+        {
+          "name": "flipX",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "flipY",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "stretch",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "CityBrushCard",
+      "file": "src/components/site/city-brush-card",
+      "import_path": ""
+    },
+    {
+      "name": "CityLikeShumenPage",
+      "file": "src/components/site/city-like-shumen-page",
+      "import_path": ""
+    },
+    {
+      "name": "CrmSiteOverlay",
+      "file": "src/components/site/crm-overlay",
+      "import_path": ""
+    },
+    {
+      "name": "CustomerChat",
+      "file": "src/components/site/customer-chat",
+      "import_path": ""
+    },
+    {
+      "name": "GoldDustLayer",
+      "file": "src/components/site/gold-dust-card",
+      "import_path": ""
+    },
+    {
+      "name": "InstallCrmButton",
+      "file": "src/components/site/install-crm-button",
+      "import_path": ""
+    },
+    {
+      "name": "LuxuryHeader",
+      "file": "src/components/site/luxury-real-estate",
+      "import_path": ""
+    },
+    {
+      "name": "ListingCard",
+      "file": "src/components/site/luxury-real-estate",
+      "import_path": ""
+    },
+    {
+      "name": "HomePage",
+      "file": "src/components/site/luxury-real-estate",
+      "import_path": ""
+    },
+    {
+      "name": "TrustStrip",
+      "file": "src/components/site/luxury-real-estate",
+      "import_path": ""
+    },
+    {
+      "name": "CityPage",
+      "file": "src/components/site/luxury-real-estate",
+      "import_path": ""
+    },
+    {
+      "name": "DistrictPage",
+      "file": "src/components/site/luxury-real-estate",
+      "import_path": ""
+    },
+    {
+      "name": "PropertyPage",
+      "file": "src/components/site/luxury-real-estate",
+      "import_path": ""
+    },
+    {
+      "name": "MobileBottomNav",
+      "file": "src/components/site/mobile-bottom-nav",
+      "import_path": ""
+    },
+    {
+      "name": "MortgageApplyModal",
+      "file": "src/components/site/mortgage-apply-modal",
+      "import_path": ""
+    },
+    {
+      "name": "MortgageCalculator",
+      "file": "src/components/site/mortgage-calculator",
+      "import_path": ""
+    },
+    {
+      "name": "MortgageRangeBand",
+      "file": "src/components/site/mortgage-range-band",
+      "import_path": ""
+    },
+    {
+      "name": "NadezhdaLogo",
+      "file": "src/components/site/nadezhda-logo",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": ["default", "mobile"],
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "name": "HomeSkeleton",
+      "file": "src/components/site/page-skeleton",
+      "import_path": ""
+    },
+    {
+      "name": "PageErrorRetry",
+      "file": "src/components/site/page-skeleton",
+      "import_path": ""
+    },
+    {
+      "name": "RenderDesign",
+      "file": "src/components/site/render-design",
+      "import_path": ""
+    },
+    {
+      "name": "ShumenHomePage",
+      "file": "src/components/site/shumen-home-page",
+      "import_path": "",
+      "props": [
+        {
+          "name": "quarterCounts",
+          "type": "object"
+        },
+        {
+          "name": "aroundCount",
+          "type": "number"
+        },
+        {
+          "name": "activePropertiesTotal",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "CityImposedPage",
+      "file": "src/components/site/shumen-imposed-page",
+      "import_path": ""
+    },
+    {
+      "name": "ShumenImposedPage",
+      "file": "src/components/site/shumen-imposed-page",
+      "import_path": ""
+    },
+    {
+      "name": "VarnaImposedPage",
+      "file": "src/components/site/shumen-imposed-page",
+      "import_path": ""
+    },
+    {
+      "name": "BurgasImposedPage",
+      "file": "src/components/site/shumen-imposed-page",
+      "import_path": ""
+    },
+    {
+      "name": "SiteHeader",
+      "file": "src/components/site/site-header",
+      "import_path": ""
+    },
+    {
+      "name": "SupabaseConfigBanner",
+      "file": "src/components/site/supabase-config-banner",
+      "import_path": ""
+    },
+    {
+      "name": "ThemeProvider",
+      "file": "src/components/theme-provider",
+      "import_path": ""
+    },
+    {
+      "name": "Accordion",
+      "file": "src/components/ui/accordion",
+      "import_path": ""
+    },
+    {
+      "name": "AccordionItem",
+      "file": "src/components/ui/accordion",
+      "import_path": ""
+    },
+    {
+      "name": "AccordionTrigger",
+      "file": "src/components/ui/accordion",
+      "import_path": ""
+    },
+    {
+      "name": "AccordionContent",
+      "file": "src/components/ui/accordion",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialog",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogPortal",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogOverlay",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogTrigger",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogContent",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogHeader",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogFooter",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogTitle",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogDescription",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogAction",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AlertDialogCancel",
+      "file": "src/components/ui/alert-dialog",
+      "import_path": ""
+    },
+    {
+      "name": "AspectRatio",
+      "file": "src/components/ui/aspect-ratio",
+      "import_path": ""
+    },
+    {
+      "name": "Avatar",
+      "file": "src/components/ui/avatar",
+      "import_path": ""
+    },
+    {
+      "name": "AvatarImage",
+      "file": "src/components/ui/avatar",
+      "import_path": ""
+    },
+    {
+      "name": "AvatarFallback",
+      "file": "src/components/ui/avatar",
+      "import_path": ""
+    },
+    {
+      "name": "Badge",
+      "file": "src/components/ui/badge",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": ["default", "secondary", "destructive", "outline"],
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "name": "Breadcrumb",
+      "file": "src/components/ui/breadcrumb",
+      "import_path": ""
+    },
+    {
+      "name": "BreadcrumbList",
+      "file": "src/components/ui/breadcrumb",
+      "import_path": ""
+    },
+    {
+      "name": "BreadcrumbItem",
+      "file": "src/components/ui/breadcrumb",
+      "import_path": ""
+    },
+    {
+      "name": "BreadcrumbLink",
+      "file": "src/components/ui/breadcrumb",
+      "import_path": ""
+    },
+    {
+      "name": "BreadcrumbPage",
+      "file": "src/components/ui/breadcrumb",
+      "import_path": ""
+    },
+    {
+      "name": "BreadcrumbSeparator",
+      "file": "src/components/ui/breadcrumb",
+      "import_path": ""
+    },
+    {
+      "name": "BreadcrumbEllipsis",
+      "file": "src/components/ui/breadcrumb",
+      "import_path": ""
+    },
+    {
+      "name": "Button",
+      "file": "src/components/ui/button",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": ["default", "destructive", "outline", "secondary", "ghost", "link"],
+          "default": "default"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": ["default", "sm", "lg", "icon"],
+          "default": "default"
+        },
+        {
+          "name": "asChild",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "Calendar",
+      "file": "src/components/ui/calendar",
+      "import_path": ""
+    },
+    {
+      "name": "CalendarDayButton",
+      "file": "src/components/ui/calendar",
+      "import_path": ""
+    },
+    {
+      "name": "Card",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardHeader",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardFooter",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardTitle",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardDescription",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "CardContent",
+      "file": "src/components/ui/card",
+      "import_path": ""
+    },
+    {
+      "name": "Carousel",
+      "file": "src/components/ui/carousel",
+      "import_path": "",
+      "props": [
+        {
+          "name": "opts",
+          "type": "any"
+        },
+        {
+          "name": "plugins",
+          "type": "any"
+        },
+        {
+          "name": "orientation",
+          "type": "enum",
+          "values": ["horizontal", "vertical"],
+          "default": "horizontal"
+        },
+        {
+          "name": "setApi",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "name": "CarouselContent",
+      "file": "src/components/ui/carousel",
+      "import_path": ""
+    },
+    {
+      "name": "CarouselItem",
+      "file": "src/components/ui/carousel",
+      "import_path": ""
+    },
+    {
+      "name": "CarouselPrevious",
+      "file": "src/components/ui/carousel",
+      "import_path": ""
+    },
+    {
+      "name": "CarouselNext",
+      "file": "src/components/ui/carousel",
+      "import_path": ""
+    },
+    {
+      "name": "Checkbox",
+      "file": "src/components/ui/checkbox",
+      "import_path": ""
+    },
+    {
+      "name": "Collapsible",
+      "file": "src/components/ui/collapsible",
+      "import_path": ""
+    },
+    {
+      "name": "CollapsibleTrigger",
+      "file": "src/components/ui/collapsible",
+      "import_path": ""
+    },
+    {
+      "name": "CollapsibleContent",
+      "file": "src/components/ui/collapsible",
+      "import_path": ""
+    },
+    {
+      "name": "Command",
+      "file": "src/components/ui/command",
+      "import_path": ""
+    },
+    {
+      "name": "CommandDialog",
+      "file": "src/components/ui/command",
+      "import_path": ""
+    },
+    {
+      "name": "CommandInput",
+      "file": "src/components/ui/command",
+      "import_path": ""
+    },
+    {
+      "name": "CommandList",
+      "file": "src/components/ui/command",
+      "import_path": ""
+    },
+    {
+      "name": "CommandEmpty",
+      "file": "src/components/ui/command",
+      "import_path": ""
+    },
+    {
+      "name": "CommandGroup",
+      "file": "src/components/ui/command",
+      "import_path": ""
+    },
+    {
+      "name": "CommandItem",
+      "file": "src/components/ui/command",
+      "import_path": ""
+    },
+    {
+      "name": "CommandShortcut",
+      "file": "src/components/ui/command",
+      "import_path": ""
+    },
+    {
+      "name": "CommandSeparator",
+      "file": "src/components/ui/command",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenu",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuTrigger",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuContent",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuItem",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuCheckboxItem",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuRadioItem",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuLabel",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuSeparator",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuShortcut",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuGroup",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuPortal",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuSub",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuSubContent",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuSubTrigger",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "ContextMenuRadioGroup",
+      "file": "src/components/ui/context-menu",
+      "import_path": ""
+    },
+    {
+      "name": "Dialog",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogPortal",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogOverlay",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogTrigger",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogClose",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogContent",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogHeader",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogFooter",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogTitle",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "DialogDescription",
+      "file": "src/components/ui/dialog",
+      "import_path": ""
+    },
+    {
+      "name": "Drawer",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DrawerPortal",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DrawerOverlay",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DrawerTrigger",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DrawerClose",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DrawerContent",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DrawerHeader",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DrawerFooter",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DrawerTitle",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DrawerDescription",
+      "file": "src/components/ui/drawer",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenu",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuTrigger",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuContent",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuItem",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuCheckboxItem",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuRadioItem",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuLabel",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuSeparator",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuShortcut",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuGroup",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuPortal",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuSub",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuSubContent",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuSubTrigger",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "DropdownMenuRadioGroup",
+      "file": "src/components/ui/dropdown-menu",
+      "import_path": ""
+    },
+    {
+      "name": "Form",
+      "file": "src/components/ui/form",
+      "import_path": ""
+    },
+    {
+      "name": "FormItem",
+      "file": "src/components/ui/form",
+      "import_path": ""
+    },
+    {
+      "name": "FormLabel",
+      "file": "src/components/ui/form",
+      "import_path": ""
+    },
+    {
+      "name": "FormControl",
+      "file": "src/components/ui/form",
+      "import_path": ""
+    },
+    {
+      "name": "FormDescription",
+      "file": "src/components/ui/form",
+      "import_path": ""
+    },
+    {
+      "name": "FormMessage",
+      "file": "src/components/ui/form",
+      "import_path": ""
+    },
+    {
+      "name": "FormField",
+      "file": "src/components/ui/form",
+      "import_path": ""
+    },
+    {
+      "name": "HoverCard",
+      "file": "src/components/ui/hover-card",
+      "import_path": ""
+    },
+    {
+      "name": "HoverCardTrigger",
+      "file": "src/components/ui/hover-card",
+      "import_path": ""
+    },
+    {
+      "name": "HoverCardContent",
+      "file": "src/components/ui/hover-card",
+      "import_path": ""
+    },
+    {
+      "name": "Input",
+      "file": "src/components/ui/input",
+      "import_path": ""
+    },
+    {
+      "name": "Label",
+      "file": "src/components/ui/label",
+      "import_path": ""
+    },
+    {
+      "name": "Menubar",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarMenu",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarTrigger",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarContent",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarItem",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarSeparator",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarLabel",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarCheckboxItem",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarRadioGroup",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarRadioItem",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarPortal",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarSubContent",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarSubTrigger",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarGroup",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarSub",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "MenubarShortcut",
+      "file": "src/components/ui/menubar",
+      "import_path": ""
+    },
+    {
+      "name": "NavigationMenu",
+      "file": "src/components/ui/navigation-menu",
+      "import_path": ""
+    },
+    {
+      "name": "NavigationMenuList",
+      "file": "src/components/ui/navigation-menu",
+      "import_path": ""
+    },
+    {
+      "name": "NavigationMenuItem",
+      "file": "src/components/ui/navigation-menu",
+      "import_path": ""
+    },
+    {
+      "name": "NavigationMenuContent",
+      "file": "src/components/ui/navigation-menu",
+      "import_path": ""
+    },
+    {
+      "name": "NavigationMenuTrigger",
+      "file": "src/components/ui/navigation-menu",
+      "import_path": ""
+    },
+    {
+      "name": "NavigationMenuLink",
+      "file": "src/components/ui/navigation-menu",
+      "import_path": ""
+    },
+    {
+      "name": "NavigationMenuIndicator",
+      "file": "src/components/ui/navigation-menu",
+      "import_path": ""
+    },
+    {
+      "name": "NavigationMenuViewport",
+      "file": "src/components/ui/navigation-menu",
+      "import_path": ""
+    },
+    {
+      "name": "Popover",
+      "file": "src/components/ui/popover",
+      "import_path": ""
+    },
+    {
+      "name": "PopoverTrigger",
+      "file": "src/components/ui/popover",
+      "import_path": ""
+    },
+    {
+      "name": "PopoverContent",
+      "file": "src/components/ui/popover",
+      "import_path": ""
+    },
+    {
+      "name": "PopoverAnchor",
+      "file": "src/components/ui/popover",
+      "import_path": ""
+    },
+    {
+      "name": "Progress",
+      "file": "src/components/ui/progress",
+      "import_path": ""
+    },
+    {
+      "name": "RadioGroup",
+      "file": "src/components/ui/radio-group",
+      "import_path": ""
+    },
+    {
+      "name": "RadioGroupItem",
+      "file": "src/components/ui/radio-group",
+      "import_path": ""
+    },
+    {
+      "name": "ScrollArea",
+      "file": "src/components/ui/scroll-area",
+      "import_path": ""
+    },
+    {
+      "name": "ScrollBar",
+      "file": "src/components/ui/scroll-area",
+      "import_path": ""
+    },
+    {
+      "name": "Select",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectGroup",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectValue",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectTrigger",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectContent",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectLabel",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectItem",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectSeparator",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectScrollUpButton",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "SelectScrollDownButton",
+      "file": "src/components/ui/select",
+      "import_path": ""
+    },
+    {
+      "name": "Separator",
+      "file": "src/components/ui/separator",
+      "import_path": ""
+    },
+    {
+      "name": "Sheet",
+      "file": "src/components/ui/sheet",
+      "import_path": "",
+      "props": [
+        {
+          "name": "side",
+          "type": "enum",
+          "values": ["top", "bottom", "left", "right"],
+          "default": "right"
+        }
+      ]
+    },
+    {
+      "name": "SheetPortal",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetOverlay",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetTrigger",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetClose",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetContent",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetHeader",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetFooter",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetTitle",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "SheetDescription",
+      "file": "src/components/ui/sheet",
+      "import_path": ""
+    },
+    {
+      "name": "Skeleton",
+      "file": "src/components/ui/skeleton",
+      "import_path": ""
+    },
+    {
+      "name": "Toaster",
+      "file": "src/components/ui/sonner",
+      "import_path": ""
+    },
+    {
+      "name": "Table",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableHeader",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableBody",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableFooter",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableHead",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableRow",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableCell",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "TableCaption",
+      "file": "src/components/ui/table",
+      "import_path": ""
+    },
+    {
+      "name": "Tabs",
+      "file": "src/components/ui/tabs",
+      "import_path": ""
+    },
+    {
+      "name": "TabsList",
+      "file": "src/components/ui/tabs",
+      "import_path": ""
+    },
+    {
+      "name": "TabsTrigger",
+      "file": "src/components/ui/tabs",
+      "import_path": ""
+    },
+    {
+      "name": "TabsContent",
+      "file": "src/components/ui/tabs",
+      "import_path": ""
+    },
+    {
+      "name": "Textarea",
+      "file": "src/components/ui/textarea",
+      "import_path": ""
+    },
+    {
+      "name": "ToggleGroup",
+      "file": "src/components/ui/toggle-group",
+      "import_path": ""
+    },
+    {
+      "name": "ToggleGroupItem",
+      "file": "src/components/ui/toggle-group",
+      "import_path": ""
+    },
+    {
+      "name": "Toggle",
+      "file": "src/components/ui/toggle",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": ["default", "outline"],
+          "default": "default"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": ["default", "sm", "lg"],
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "name": "Tooltip",
+      "file": "src/components/ui/tooltip",
+      "import_path": ""
+    },
+    {
+      "name": "TooltipTrigger",
+      "file": "src/components/ui/tooltip",
+      "import_path": ""
+    },
+    {
+      "name": "TooltipContent",
+      "file": "src/components/ui/tooltip",
+      "import_path": ""
+    },
+    {
+      "name": "TooltipProvider",
+      "file": "src/components/ui/tooltip",
+      "import_path": ""
+    },
+    {
+      "name": "AuthProvider",
+      "file": "src/hooks/use-auth",
+      "import_path": ""
+    },
+    {
+      "name": "CrmPageSettingsProvider",
+      "file": "src/hooks/use-crm-page-settings",
+      "import_path": ""
+    },
+    {
+      "name": "Constants",
+      "file": "src/integrations/supabase/types",
+      "import_path": ""
+    },
+    {
+      "name": "GatewayDenied",
+      "file": "src/lib/documents.server",
+      "import_path": ""
+    }
+  ],
+  "assets": [
+    {
+      "file": "src/assets/about-sofa.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/brand-logo-square.png.asset.json",
+      "kind": "logo",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/brush-blot-1to1.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/brush-card-mask.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/brush-edge-vertical.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/brush-panel-mask.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/brush-search-bar.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/brush-shape-clean.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/brush-shape.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/burgas-hero-2026.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/burgas-hero-2026.webm.asset.json",
+      "kind": "video",
+      "format": "webm",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/burgas-hero-4k.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/burgas-hero.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/burgas-hero.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/burgas-pier.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/burgundy-terrace-hero.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/calendar/calendar-cover-left.jpeg.asset.json",
+      "kind": "image",
+      "format": "jpeg",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/calendar/calendar-cover-right.jpeg.asset.json",
+      "kind": "image",
+      "format": "jpeg",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/city-burgas.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/city-novi-pazar.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/city-photos/burgas.jpeg.asset.json",
+      "kind": "image",
+      "format": "jpeg",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/city-photos/novi-pazar.jpeg.asset.json",
+      "kind": "image",
+      "format": "jpeg",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/city-photos/shumen.jpeg.asset.json",
+      "kind": "image",
+      "format": "jpeg",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/city-photos/varna.jpeg.asset.json",
+      "kind": "image",
+      "format": "jpeg",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/city-shumen.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/city-varna.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/client-buyer.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/client-landlord.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/client-seller.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/client-tenant.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/clouds-bg.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/crm-bg-architecture.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/crm-hero-2026.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/crm-hero-2026.webm.asset.json",
+      "kind": "video",
+      "format": "webm",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/deal-green.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/deal-rent.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/deal-sale.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/header-marble-panel.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/header-panel.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/home-hero-2026.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/home-hero-2026.webm.asset.json",
+      "kind": "video",
+      "format": "webm",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/home-hero-bkg.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/home-hero-living.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/home-hero.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/login-hero.jpeg",
+      "kind": "image",
+      "format": "jpeg"
+    },
+    {
+      "file": "src/assets/login-hero.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/logo-nadezhda-red.png",
+      "kind": "logo",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/logo-nadezhda-transparent.png",
+      "kind": "logo",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/logo-nadezhda.png",
+      "kind": "logo",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/logo-scroll-banner.png",
+      "kind": "logo",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/marble-bg.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/marble-hover-reference.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/nadezhda-brush-mobile.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/nadezhda-brush-original.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/nadezhda-brush-smaller.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/nadezhda-logo-brush.png.asset.json",
+      "kind": "logo",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/navbar-brush.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/navbar-brush.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/navbar-desktop-clean.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/navbar-desktop.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/navbar-mobile.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/navbar-scroll.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/notebook/logo-watermark.png",
+      "kind": "logo",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/notebook/notebook-spread.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/notebook/sticky-note.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/office-glass-tower.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/schedule-cover.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/shumen-2026.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-2026.webm.asset.json",
+      "kind": "video",
+      "format": "webm",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-hero-mobile.jpeg.asset.json",
+      "kind": "image",
+      "format": "jpeg",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-hero.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-1.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-10.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-11.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-12.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-13.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-14.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-15.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-2.jpg.asset.json",
+      "kind": "image",
+      "format": "jpg",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-3.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-4.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-5.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-6.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-7.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-8.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/image-9.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/shumen-hero.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-page/shumen-hero.webm.asset.json",
+      "kind": "video",
+      "format": "webm",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/bolnitsata.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/boyan-1.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/boyan-2.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/dobrudzhanski.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/herson.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/pazara.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/pozharnata.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/trakiya.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/tsentar.jpeg.asset.json",
+      "kind": "image",
+      "format": "jpeg",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/shumen-quarters/voenno.png.asset.json",
+      "kind": "image",
+      "format": "png",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/site-header-panel.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/varna-2026.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/varna-2026.webm.asset.json",
+      "kind": "video",
+      "format": "webm",
+      "pointer": true
+    },
+    {
+      "file": "src/assets/varna-hero.mp4.asset.json",
+      "kind": "video",
+      "format": "mp4",
+      "pointer": true
+    }
+  ]
+}

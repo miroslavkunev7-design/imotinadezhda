@@ -15,7 +15,13 @@ type ClientLite = {
   notes?: string | null;
 };
 
-export function MortgageSendModal({ client, onClose }: { client: ClientLite; onClose: () => void }) {
+export function MortgageSendModal({
+  client,
+  onClose,
+}: {
+  client: ClientLite;
+  onClose: () => void;
+}) {
   const [extra, setExtra] = useState("");
 
   const sendTo = (partner: (typeof MORTGAGE_PARTNERS)[number]) => {
@@ -40,25 +46,37 @@ export function MortgageSendModal({ client, onClose }: { client: ClientLite; onC
       "",
       "Поздрави,",
       "Имоти Надежда",
-    ].filter(Boolean).join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
     const href = `mailto:${partner.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines)}`;
     window.location.href = href;
     toast.success(`Отворено е писмо до ${partner.name}`);
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#8B1A2B]/55 p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg overflow-hidden rounded-2xl border border-amber-500/30 bg-card shadow-2xl">
-        <div className="flex items-center justify-between border-b border-primary/15 bg-gradient-to-r from-[#66081c] to-[#4a0613] px-5 py-4 text-amber-100">
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-[#8B1A2B]/55 p-4 pb-24 sm:pb-4"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-card shadow-2xl"
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-primary/15 bg-gradient-to-r from-[#66081c] to-[#4a0613] px-5 py-4 text-amber-100">
           <div>
             <div className="font-display text-xl">Пусни кандидатура за кредит</div>
             <div className="text-xs text-amber-200/80">{client.full_name}</div>
           </div>
-          <button onClick={onClose}><X className="h-5 w-5" /></button>
+          <button onClick={onClose}>
+            <X className="h-5 w-5" />
+          </button>
         </div>
-        <div className="space-y-4 p-5">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">Допълнителен коментар (по избор)</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Допълнителен коментар (по избор)
+            </span>
             <textarea
               rows={3}
               value={extra}
@@ -69,11 +87,18 @@ export function MortgageSendModal({ client, onClose }: { client: ClientLite; onC
           </label>
           <div className="grid gap-2 sm:grid-cols-2">
             {MORTGAGE_PARTNERS.map((p) => (
-              <Button key={p.id} onClick={() => sendTo(p)} className="gold-cta-button h-auto justify-start py-3">
+              <Button
+                key={p.id}
+                onClick={() => sendTo(p)}
+                className="gold-cta-button h-auto justify-start py-3"
+              >
                 <Send className="h-4 w-4" />
                 <div className="flex flex-col items-start text-left">
                   <span className="text-sm font-semibold">Изпрати към {p.name}</span>
-                  <span className="text-[10px] opacity-80"><Mail className="mr-1 inline h-3 w-3" />{p.email || "имейл — предстои"}</span>
+                  <span className="text-[10px] opacity-80">
+                    <Mail className="mr-1 inline h-3 w-3" />
+                    {p.email || "имейл — предстои"}
+                  </span>
                 </div>
               </Button>
             ))}

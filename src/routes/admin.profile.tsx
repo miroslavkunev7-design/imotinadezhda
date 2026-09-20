@@ -99,7 +99,13 @@ function ProfilePage() {
         <div className="flex items-center gap-6">
           <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-amber-400/40 bg-amber-500/10">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="Аватар" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+              <img
+                src={avatarUrl}
+                alt="Аватар"
+                className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-amber-200/60">
                 <UserIcon className="h-12 w-12" />
@@ -133,7 +139,9 @@ function ProfilePage() {
 
         <div className="grid gap-4">
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-100/70">Имейл</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-100/70">
+              Имейл
+            </span>
             <input
               value={user?.email ?? ""}
               disabled
@@ -141,7 +149,9 @@ function ProfilePage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-100/70">Име и фамилия</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-100/70">
+              Име и фамилия
+            </span>
             <input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -150,7 +160,9 @@ function ProfilePage() {
             />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-100/70">Телефон</span>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-100/70">
+              Телефон
+            </span>
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -201,11 +213,17 @@ function ThemeSection() {
 
   const Color = ({ label, k }: { label: string; k: keyof CrmTheme }) => (
     <label className="block">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-100/70">{label}</span>
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-amber-100/70">
+        {label}
+      </span>
       <div className="flex items-center gap-2">
         <input
           type="color"
-          value={typeof local[k] === "string" && (local[k] as string).startsWith("#") ? (local[k] as string) : "#000000"}
+          value={
+            typeof local[k] === "string" && (local[k] as string).startsWith("#")
+              ? (local[k] as string)
+              : "#000000"
+          }
           onChange={(e) => setLocal({ ...local, [k]: e.target.value })}
           className="h-10 w-14 cursor-pointer rounded border border-amber-500/30 bg-transparent"
         />
@@ -225,12 +243,16 @@ function ThemeSection() {
         <Palette className="h-5 w-5 text-amber-300" />
         <div>
           <h2 className="font-display text-2xl text-amber-100">Моята тема</h2>
-          <p className="text-xs text-amber-100/60">Всеки потребител има собствена тема и цветове за CRM панела</p>
+          <p className="text-xs text-amber-100/60">
+            Всеки потребител има собствена тема и цветове за CRM панела
+          </p>
         </div>
       </header>
 
       <div>
-        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-100/70">Готови теми</div>
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-100/70">
+          Готови теми
+        </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {Object.entries(CRM_THEME_PRESETS).map(([key, p]) => {
             const active = local.preset === key;
@@ -254,7 +276,10 @@ function ThemeSection() {
                 <div className="mt-2 flex gap-1.5">
                   <span className="h-4 w-4 rounded-full" style={{ background: p.accent }} />
                   <span className="h-4 w-4 rounded-full" style={{ background: p.text }} />
-                  <span className="h-4 w-4 rounded-full border border-white/20" style={{ background: p.surface }} />
+                  <span
+                    className="h-4 w-4 rounded-full border border-white/20"
+                    style={{ background: p.surface }}
+                  />
                 </div>
               </button>
             );
@@ -277,7 +302,9 @@ function ThemeSection() {
           borderColor: local.border,
         }}
       >
-        <div className="text-xs uppercase tracking-wide" style={{ color: local.textMuted }}>Преглед</div>
+        <div className="text-xs uppercase tracking-wide" style={{ color: local.textMuted }}>
+          Преглед
+        </div>
         <div className="mt-1 text-lg font-semibold">Имоти Надежда · CRM</div>
         <button
           type="button"

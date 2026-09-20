@@ -39,25 +39,43 @@ import { resolveAssetUrl } from "@/lib/asset-url";
 import { InstallCrmButton } from "@/components/site/install-crm-button";
 const shumenPanorama = { url: cityShumen };
 
-
 /* ---------------- Шумен квартали ---------------- */
 const SHUMEN_QUARTERS: Array<{ name: string; slug: string; count: number; image: string }> = [
-  { name: "Център",             slug: "tsentar",            count: 64, image: resolveAssetUrl(qTsentar) },
-  { name: "Тракия",             slug: "trakiya",            count: 58, image: resolveAssetUrl(qTrakiya) },
-  { name: "Боян Българанов 1",  slug: "boyan-balgaranov-1", count: 31, image: resolveAssetUrl(qBoyan1) },
-  { name: "Боян Българанов 2",  slug: "boyan-balgaranov-2", count: 28, image: resolveAssetUrl(qBoyan2) },
-  { name: "Болницата",          slug: "bolnitsata",         count: 22, image: resolveAssetUrl(qBolnitsata) },
-  { name: "Херсон",             slug: "herson",             count: 25, image: resolveAssetUrl(qHerson) },
-  { name: "Пазара",             slug: "pazara",             count: 19, image: resolveAssetUrl(qPazara) },
-  { name: "Добруджански",       slug: "dobrudzhanski",      count: 43, image: resolveAssetUrl(qDobrudzhanski) },
-  { name: "Пожарната",          slug: "pozharnata",         count: 14, image: resolveAssetUrl(qPozharnata) },
-  { name: "Военно училище",     slug: "voenno-uchilishte",  count: 11, image: resolveAssetUrl(qVoenno) },
+  { name: "Център", slug: "tsentar", count: 64, image: resolveAssetUrl(qTsentar) },
+  { name: "Тракия", slug: "trakiya", count: 58, image: resolveAssetUrl(qTrakiya) },
+  {
+    name: "Боян Българанов 1",
+    slug: "boyan-balgaranov-1",
+    count: 31,
+    image: resolveAssetUrl(qBoyan1),
+  },
+  {
+    name: "Боян Българанов 2",
+    slug: "boyan-balgaranov-2",
+    count: 28,
+    image: resolveAssetUrl(qBoyan2),
+  },
+  { name: "Болницата", slug: "bolnitsata", count: 22, image: resolveAssetUrl(qBolnitsata) },
+  { name: "Херсон", slug: "herson", count: 25, image: resolveAssetUrl(qHerson) },
+  { name: "Пазара", slug: "pazara", count: 19, image: resolveAssetUrl(qPazara) },
+  {
+    name: "Добруджански",
+    slug: "dobrudzhanski",
+    count: 43,
+    image: resolveAssetUrl(qDobrudzhanski),
+  },
+  { name: "Пожарната", slug: "pozharnata", count: 14, image: resolveAssetUrl(qPozharnata) },
+  { name: "Военно училище", slug: "voenno-uchilishte", count: 11, image: resolveAssetUrl(qVoenno) },
 ];
 
 /* ---------------- Logo header (top-left) — desktop only ---------------- */
 function LogoHeader() {
   return (
-    <Link to="/" className="absolute top-0 left-0 z-50 hidden md:block" aria-label="Имоти Надежда — начало">
+    <Link
+      to="/"
+      className="absolute top-0 left-0 z-50 hidden md:block"
+      aria-label="Имоти Надежда — начало"
+    >
       <div className="nadezhda-marble-bg w-52 md:w-64 pt-5 pb-6 px-5 nadezhda-top-logo-curve shadow-2xl relative border-b-4 border-r-4 border-[#c59441] flex items-center justify-center">
         <img
           src={logoNadezhda}
@@ -69,15 +87,22 @@ function LogoHeader() {
   );
 }
 
-
 /* ---------------- Header nav (top-right) ---------------- */
 function HeaderNav() {
   return (
     <div className="absolute top-0 right-0 p-6 md:p-8 hidden md:flex gap-6 lg:gap-8 text-white text-base lg:text-lg z-50 font-sans-nadezhda items-center drop-shadow-md">
-      <Link to="/search" search={{ status: "sale" } as never} className="hover:text-yellow-400 border-b-2 border-yellow-400 pb-1 font-bold">
+      <Link
+        to="/search"
+        search={{ status: "sale" } as never}
+        className="hover:text-yellow-400 border-b-2 border-yellow-400 pb-1 font-bold"
+      >
         За продажба
       </Link>
-      <Link to="/search" search={{ status: "rent" } as never} className="hover:text-yellow-400 font-bold">
+      <Link
+        to="/search"
+        search={{ status: "rent" } as never}
+        className="hover:text-yellow-400 font-bold"
+      >
         Под наем
       </Link>
       <Link to="/about" className="hover:text-yellow-400 font-bold">
@@ -92,23 +117,43 @@ function HeaderNav() {
 
 /* ---------------- Shumen info box (overlay on hero, right side) ---------------- */
 function ShumenInfoBox({ activePropertiesTotal }: { activePropertiesTotal?: number }) {
-  const activeLabel =
-    activePropertiesTotal != null ? String(activePropertiesTotal) : "—";
+  const activeLabel = activePropertiesTotal != null ? String(activePropertiesTotal) : "—";
   return (
     <div className="absolute right-4 md:right-8 lg:right-12 top-28 md:top-40 lg:top-44 w-[92%] max-w-[420px] lg:max-w-[450px] p-6 md:p-7 lg:p-8 rounded-3xl text-white font-sans-nadezhda z-30">
       <div className="aspect-square md:aspect-auto md:h-36 lg:h-40 rounded-2xl overflow-hidden mb-5 md:mb-6 relative">
         <img src={shumenPanorama.url} alt="Шумен" className="w-full h-full object-cover" />
       </div>
-      <div className="text-yellow-500 text-[11px] tracking-[0.22em] mb-2 uppercase font-bold">За града</div>
-      <h1 className="text-4xl md:text-5xl font-serif-nadezhda text-[#ebd197] mb-3 md:mb-4">Шумен</h1>
+      <div className="text-yellow-500 text-[11px] tracking-[0.22em] mb-2 uppercase font-bold">
+        За града
+      </div>
+      <h1 className="text-4xl md:text-5xl font-serif-nadezhda text-[#ebd197] mb-3 md:mb-4">
+        Шумен
+      </h1>
       <p className="text-sm md:text-base text-gray-300 mb-5 md:mb-6 leading-relaxed">
-        Исторически и модерен град в сърцето на Североизточна България. Благоприятна среда за инвестиции, живот и бизнес.
+        Исторически и модерен град в сърцето на Североизточна България. Благоприятна среда за
+        инвестиции, живот и бизнес.
       </p>
       <div className="flex justify-between border-t border-yellow-500/30 pt-5 md:pt-6 mb-6 md:mb-8 gap-2">
-        <Stat icon={<UserCheck className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />} value="≈ 85 000" label="жители" />
-        <Stat icon={<Square className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />} value="436 km²" label="площ" />
-        <Stat icon={<MapPin className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />} value="Стратегическо" label="местоположение" />
-        <Stat icon={<HomeIcon className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />} value={activeLabel} label="активни имота" />
+        <Stat
+          icon={<UserCheck className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />}
+          value="≈ 85 000"
+          label="жители"
+        />
+        <Stat
+          icon={<Square className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />}
+          value="436 km²"
+          label="площ"
+        />
+        <Stat
+          icon={<MapPin className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />}
+          value="Стратегическо"
+          label="местоположение"
+        />
+        <Stat
+          icon={<HomeIcon className="text-yellow-500 w-5 h-5 md:w-6 md:h-6" />}
+          value={activeLabel}
+          label="активни имота"
+        />
       </div>
       <Link
         to="/cities/$slug"
@@ -148,7 +193,12 @@ function MainSearchBar() {
   return (
     <div className="nadezhda-dark-red-bg p-4 md:p-5 rounded-3xl border border-[#c59441] shadow-2xl text-white text-sm font-sans-nadezhda w-full lg:w-[750px]">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-5">
-        <SelectField icon={<MapPin className="text-yellow-500 w-5 h-5" />} label="Град" value={city} onChange={setCity} border
+        <SelectField
+          icon={<MapPin className="text-yellow-500 w-5 h-5" />}
+          label="Град"
+          value={city}
+          onChange={setCity}
+          border
           options={[
             { value: "shumen", label: "Шумен" },
             { value: "varna", label: "Варна" },
@@ -156,7 +206,12 @@ function MainSearchBar() {
             { value: "novi-pazar", label: "Нови пазар" },
           ]}
         />
-        <SelectField icon={<HomeIcon className="text-yellow-500 w-5 h-5" />} label="Вид имот" value={type} onChange={setType} border
+        <SelectField
+          icon={<HomeIcon className="text-yellow-500 w-5 h-5" />}
+          label="Вид имот"
+          value={type}
+          onChange={setType}
+          border
           options={[
             { value: "", label: "Всички" },
             { value: "apartment", label: "Апартамент" },
@@ -165,7 +220,11 @@ function MainSearchBar() {
             { value: "office", label: "Офис" },
           ]}
         />
-        <SelectField icon={<Wallet className="text-yellow-500 w-5 h-5" />} label="Цена" value={price} onChange={setPrice}
+        <SelectField
+          icon={<Wallet className="text-yellow-500 w-5 h-5" />}
+          label="Цена"
+          value={price}
+          onChange={setPrice}
           options={[
             { value: "", label: "Без значение" },
             { value: "50000", label: "до 50 000 €" },
@@ -177,7 +236,11 @@ function MainSearchBar() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-center">
         <div className="md:col-span-2">
-          <SelectField icon={<Square className="text-yellow-500 w-5 h-5" />} label="Площ" value={area} onChange={setArea}
+          <SelectField
+            icon={<Square className="text-yellow-500 w-5 h-5" />}
+            label="Площ"
+            value={area}
+            onChange={setArea}
             options={[
               { value: "", label: "Без значение" },
               { value: "50", label: "над 50 м²" },
@@ -199,7 +262,12 @@ function MainSearchBar() {
 }
 
 function SelectField({
-  icon, label, value, onChange, options, border,
+  icon,
+  label,
+  value,
+  onChange,
+  options,
+  border,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -209,7 +277,9 @@ function SelectField({
   border?: boolean;
 }) {
   return (
-    <div className={`flex px-2 md:px-4 items-center gap-3 ${border ? "md:border-r border-gray-600/50" : ""}`}>
+    <div
+      className={`flex px-2 md:px-4 items-center gap-3 ${border ? "md:border-r border-gray-600/50" : ""}`}
+    >
       <span className="flex-none">{icon}</span>
       <div className="w-full min-w-0">
         <div className="text-xs text-gray-300">{label}</div>
@@ -230,7 +300,17 @@ function SelectField({
 }
 
 /* ---------------- Neighborhood card — SHUMEN variant ---------------- */
-function NeighborhoodCardShumen({ image, title, count, slug }: { image: string; title: string; count: number; slug: string }) {
+function NeighborhoodCardShumen({
+  image,
+  title,
+  count,
+  slug,
+}: {
+  image: string;
+  title: string;
+  count: number;
+  slug: string;
+}) {
   return (
     <Link
       to="/cities/$slug/districts/$district"
@@ -267,10 +347,16 @@ function NeighborhoodCardShumen({ image, title, count, slug }: { image: string; 
   );
 }
 
-
-
 /* ---------------- Feature strip (bottom) ---------------- */
-function FeatureIcon({ Icon, title, desc }: { Icon: React.ComponentType<{ className?: string }>; title: string; desc: string }) {
+function FeatureIcon({
+  Icon,
+  title,
+  desc,
+}: {
+  Icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  desc: string;
+}) {
   return (
     <div className="flex items-center gap-4 md:gap-5 font-sans-nadezhda group">
       <Icon className="w-10 h-10 md:w-12 md:h-12 text-[#c59441] group-hover:scale-110 transition duration-300 flex-none" />
@@ -294,7 +380,15 @@ function HeroVideoOrImage({
 }) {
   const [failed, setFailed] = useState(false);
   if (failed || !videoUrl) {
-    return <img src={posterUrl} alt={alt} className="absolute inset-0 w-full h-full object-cover" loading="eager" decoding="async" />;
+    return (
+      <img
+        src={posterUrl}
+        alt={alt}
+        className="absolute inset-0 w-full h-full object-cover"
+        loading="eager"
+        decoding="async"
+      />
+    );
   }
   return (
     <AutoPlayVideo
@@ -312,7 +406,11 @@ export type ShumenHomePageProps = {
   activePropertiesTotal?: number;
 };
 
-export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTotal }: ShumenHomePageProps = {}) {
+export function ShumenHomePage({
+  quarterCounts,
+  aroundCount,
+  activePropertiesTotal,
+}: ShumenHomePageProps = {}) {
   const quartersWithLive = SHUMEN_QUARTERS.map((q) => ({
     ...q,
     count: quarterCounts?.[q.slug] ?? 0,
@@ -325,7 +423,11 @@ export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTot
 
       <div className="relative">
         <div className="h-[600px] md:h-[680px] lg:h-[720px] w-full relative overflow-hidden">
-          <HeroVideoOrImage videoUrl={resolveAssetUrl(shumenHeroVideo)} posterUrl={shumenPanorama.url} alt="Шумен" />
+          <HeroVideoOrImage
+            videoUrl={resolveAssetUrl(shumenHeroVideo)}
+            posterUrl={shumenPanorama.url}
+            alt="Шумен"
+          />
           <div className="absolute inset-0" />
           <ShumenInfoBox activePropertiesTotal={activePropertiesTotal} />
         </div>
@@ -353,7 +455,13 @@ export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTot
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-12">
           {quartersWithLive.map((q) => (
-            <NeighborhoodCardShumen key={q.slug} image={q.image} title={q.name} count={q.count} slug={q.slug} />
+            <NeighborhoodCardShumen
+              key={q.slug}
+              image={q.image}
+              title={q.name}
+              count={q.count}
+              slug={q.slug}
+            />
           ))}
 
           {/* Around Shumen — villages in the oblast */}
@@ -396,10 +504,26 @@ export function ShumenHomePage({ quarterCounts, aroundCount, activePropertiesTot
 
         {/* Feature strip */}
         <div className="border border-[#eaddc4] rounded-3xl nadezhda-marble-bg p-6 md:p-10 lg:p-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 shadow-lg">
-          <FeatureIcon Icon={ShieldCheck} title="Доверие и сигурност" desc="Прозрачност във всяка сделка" />
-          <FeatureIcon Icon={UserCheck} title="Персонален подход" desc="Индивидуално отношение към всеки клиент" />
-          <FeatureIcon Icon={Award} title="Богат избор" desc="Голямо разнообразие от имоти в региона" />
-          <FeatureIcon Icon={Trophy} title="Професионализъм" desc="Опитен екип с доказани резултати" />
+          <FeatureIcon
+            Icon={ShieldCheck}
+            title="Доверие и сигурност"
+            desc="Прозрачност във всяка сделка"
+          />
+          <FeatureIcon
+            Icon={UserCheck}
+            title="Персонален подход"
+            desc="Индивидуално отношение към всеки клиент"
+          />
+          <FeatureIcon
+            Icon={Award}
+            title="Богат избор"
+            desc="Голямо разнообразие от имоти в региона"
+          />
+          <FeatureIcon
+            Icon={Trophy}
+            title="Професионализъм"
+            desc="Опитен екип с доказани резултати"
+          />
         </div>
       </div>
       <InstallCrmButton />

@@ -7,11 +7,23 @@ import { SHUMEN_VILLAGES_25KM, SHUMEN_VILLAGES_LOWER } from "@/lib/shumen-villag
 
 async function assertAdmin(userId: string) {
   const { data } = await supabaseAdmin
-    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
   if (!data) throw new Error("Forbidden — admin only");
 }
 
-const SOURCES = ["realistimo", "imoti_bg", "olx", "bazar_bg", "home_bg", "alo_bg", "facebook"] as const;
+const SOURCES = [
+  "realistimo",
+  "imoti_bg",
+  "olx",
+  "bazar_bg",
+  "home_bg",
+  "alo_bg",
+  "facebook",
+] as const;
 
 async function fc() {
   const { createFirecrawlClient } = await import("@/server/scraper-firecrawl");
@@ -38,13 +50,31 @@ const CITY_ALLOWED_PLACES: Record<string, string[]> = {
 // Explicit deny-list — nearby resorts / regions we do NOT want mixed in.
 const CITY_DENY_PLACES: Record<string, string[]> = {
   burgas: [
-    "слънчев бряг", "sunny beach", "поморие", "свети влас", "св. влас",
-    "несебър", "созопол", "приморско", "царево", "ахтопол", "равда",
-    "лозенец", "черноморец", "елените",
+    "слънчев бряг",
+    "sunny beach",
+    "поморие",
+    "свети влас",
+    "св. влас",
+    "несебър",
+    "созопол",
+    "приморско",
+    "царево",
+    "ахтопол",
+    "равда",
+    "лозенец",
+    "черноморец",
+    "елените",
   ],
   varna: [
-    "златни пясъци", "св. константин", "константин и елена", "камчия",
-    "албена", "балчик", "каварна", "бяла", "обзор",
+    "златни пясъци",
+    "св. константин",
+    "константин и елена",
+    "камчия",
+    "албена",
+    "балчик",
+    "каварна",
+    "бяла",
+    "обзор",
   ],
   shumen: [],
 };
@@ -55,7 +85,9 @@ function detectSellerType(text: string): "private" | "agency" | "unknown" {
   // Agency indicators (checked first — "собственик" often appears alongside
   // "агенция Х" in agency listings).
   if (
-    /(агенция|агенциа|brokers?|посредник|realtor|realty|estate agency|"еоод"|\beоод\b|\bеоод|\bоод\b|\bltd\b|мирела|явлена|адрес|address\.bg|bulgarian ?properties|luximmo|imoteka|suprimmo|remax|re\/max|era ?bulgaria|primaimoti|arcobaleno|home ?estates|homelike|нова ?хоум|prima ?home|новахоум)/.test(t)
+    /(агенция|агенциа|brokers?|посредник|realtor|realty|estate agency|"еоод"|\beоод\b|\bеоод|\bоод\b|\bltd\b|мирела|явлена|адрес|address\.bg|bulgarian ?properties|luximmo|imoteka|suprimmo|remax|re\/max|era ?bulgaria|primaimoti|arcobaleno|home ?estates|homelike|нова ?хоум|prima ?home|новахоум)/.test(
+      t,
+    )
   )
     return "agency";
   if (/(собственик|без посредник|частник|частно лице|от собственик|owner|no ?agency)/.test(t))
@@ -77,10 +109,21 @@ function isNonPropertyListing(text: string, url: string): boolean {
   const t = (text || "").toLowerCase();
   const u = (url || "").toLowerCase();
   // Block URLs that are not property categories
-  if (/(youtube\.com|youtu\.be|facebook\.com\/watch|tiktok\.com|instagram\.com|vbox7)/.test(u)) return true;
-  if (/\/(avtomobili|automobili|cars?|moto|motori|velosipedi|bike|elektronika|drehi|obuvki|igrachki|jobs?|rabota)\b/.test(u)) return true;
+  if (/(youtube\.com|youtu\.be|facebook\.com\/watch|tiktok\.com|instagram\.com|vbox7)/.test(u))
+    return true;
+  if (
+    /\/(avtomobili|automobili|cars?|moto|motori|velosipedi|bike|elektronika|drehi|obuvki|igrachki|jobs?|rabota)\b/.test(
+      u,
+    )
+  )
+    return true;
   // Block by keywords in title/body
-  if (/\b(автомобил|кола|джип|бмв|мерцедес|ауди|пежо|опел|рено|тойота|мотор|скутер|велосипед|ремарке|джанти|гуми|части за|резервни части)\b/.test(t)) return true;
+  if (
+    /\b(автомобил|кола|джип|бмв|мерцедес|ауди|пежо|опел|рено|тойота|мотор|скутер|велосипед|ремарке|джанти|гуми|части за|резервни части)\b/.test(
+      t,
+    )
+  )
+    return true;
   // Block listings that are clearly services or rentals of equipment, not estates
   if (/(услуга|почистване|ремонт на коли|автосервиз|кредит без)/.test(t)) return true;
   return false;
@@ -90,7 +133,12 @@ function isNonPropertyListing(text: string, url: string): boolean {
 function looksLikeProperty(text: string, url: string): boolean {
   const t = (text || "").toLowerCase();
   const u = (url || "").toLowerCase();
-  if (/(апартамент|едностаен|двустаен|тристаен|четиристаен|многостаен|къща|вила|парцел|урегулиран|офис|магазин|етаж от къща|студио|мезонет|таванско|имот)/.test(t)) return true;
+  if (
+    /(апартамент|едностаен|двустаен|тристаен|четиристаен|многостаен|къща|вила|парцел|урегулиран|офис|магазин|етаж от къща|студио|мезонет|таванско|имот)/.test(
+      t,
+    )
+  )
+    return true;
   if (/\/(apartament|imoti|nedvizhimi|imot|kashta|parcel|ofis|magazin)/.test(u)) return true;
   return false;
 }
@@ -105,15 +153,49 @@ function parseNumber(text?: string | null): number | null {
 // Domains / keywords commonly used by competing agencies — skip listings that
 // show their watermark/logo or serve images from an agency-owned domain.
 const AGENCY_KEYWORDS = [
-  "logo", "watermark", "brand", "stamp", "agent",
-  "address.bg", "luximmo", "bulgarianproperties", "imotiplus", "yavlena", "mirela",
-  "imoti.net", "stoyanov", "homeland", "imoplus", "novahome", "primahome", "remax", "re-max",
-  "era-bulgaria", "erabg", "imotibg", "domsi", "newestate", "arcobaleno", "imoti24",
-  "suprimmo", "imoteka", "agencia", "agenciq", "primaimoti", "homeestates",
-  "kw.com", "keller-williams", "century21", "engelvoelkers", "sotheby",
+  "logo",
+  "watermark",
+  "brand",
+  "stamp",
+  "agent",
+  "address.bg",
+  "luximmo",
+  "bulgarianproperties",
+  "imotiplus",
+  "yavlena",
+  "mirela",
+  "imoti.net",
+  "stoyanov",
+  "homeland",
+  "imoplus",
+  "novahome",
+  "primahome",
+  "remax",
+  "re-max",
+  "era-bulgaria",
+  "erabg",
+  "imotibg",
+  "domsi",
+  "newestate",
+  "arcobaleno",
+  "imoti24",
+  "suprimmo",
+  "imoteka",
+  "agencia",
+  "agenciq",
+  "primaimoti",
+  "homeestates",
+  "kw.com",
+  "keller-williams",
+  "century21",
+  "engelvoelkers",
+  "sotheby",
 ];
 
-function extractImages(html: string, baseUrl: string): { urls: string[]; agencyLogo: { detected: boolean; reason: string | null } } {
+function extractImages(
+  html: string,
+  baseUrl: string,
+): { urls: string[]; agencyLogo: { detected: boolean; reason: string | null } } {
   if (!html) return { urls: [], agencyLogo: { detected: false, reason: null } };
   const urls = new Set<string>();
   const re = /<img[^>]+src=["']([^"']+)["']/gi;
@@ -123,27 +205,37 @@ function extractImages(html: string, baseUrl: string): { urls: string[]; agencyL
     let u = m[1];
     if (u.startsWith("//")) u = "https:" + u;
     else if (u.startsWith("/")) {
-      try { u = new URL(u, baseUrl).toString(); } catch { continue; }
+      try {
+        u = new URL(u, baseUrl).toString();
+      } catch {
+        continue;
+      }
     }
     if (!/^https?:\/\//.test(u)) continue;
     if (/\.(svg|gif)$/i.test(u)) continue;
     const lower = u.toLowerCase();
     const hit = AGENCY_KEYWORDS.find((kw) => lower.includes(kw));
-    if (hit) { if (!agencyHit) agencyHit = hit; continue; }
+    if (hit) {
+      if (!agencyHit) agencyHit = hit;
+      continue;
+    }
     if (/(icon|sprite|avatar|placeholder)/i.test(u)) continue;
     urls.add(u);
     if (urls.size >= 12) break;
   }
   // Also scan raw HTML for explicit "лого на агенция" mentions
-  if (!agencyHit && /(агенция|агенциа|brokerage|estate agency)/i.test(html) && /<img[^>]+(logo|watermark)/i.test(html)) {
+  if (
+    !agencyHit &&
+    /(агенция|агенциа|brokerage|estate agency)/i.test(html) &&
+    /<img[^>]+(logo|watermark)/i.test(html)
+  ) {
     agencyHit = "agency-html-mention";
   }
   return { urls: Array.from(urls), agencyLogo: { detected: !!agencyHit, reason: agencyHit } };
 }
 
-
 type ScrapeResult = {
-  source: typeof SOURCES[number];
+  source: (typeof SOURCES)[number];
   source_url: string;
   title?: string;
   description?: string;
@@ -160,7 +252,7 @@ type ScrapeResult = {
 };
 
 function buildResult(
-  source: typeof SOURCES[number],
+  source: (typeof SOURCES)[number],
   item: any,
   citySlug: string,
 ): ScrapeResult | null {
@@ -188,10 +280,9 @@ function buildResult(
   };
 }
 
-
 async function searchAndBuild(
   client: Firecrawl,
-  source: typeof SOURCES[number],
+  source: (typeof SOURCES)[number],
   query: string,
   domainFilter: RegExp | null,
   citySlug: string,
@@ -200,14 +291,18 @@ async function searchAndBuild(
   const results: ScrapeResult[] = [];
   const started = Date.now();
   try {
-    console.log(`[firecrawl] search source=${source} city=${citySlug} query="${query}" limit=${limit}`);
+    console.log(
+      `[firecrawl] search source=${source} city=${citySlug} query="${query}" limit=${limit}`,
+    );
     const res: any = await client.search(query, {
       limit,
       tbs: "qdr:d",
       scrapeOptions: { formats: ["markdown", "html"] },
     });
     const items = res?.web ?? res?.data ?? [];
-    console.log(`[firecrawl] ok source=${source} city=${citySlug} items=${items.length} ms=${Date.now() - started}`);
+    console.log(
+      `[firecrawl] ok source=${source} city=${citySlug} items=${items.length} ms=${Date.now() - started}`,
+    );
     for (const item of items) {
       const url = item.url ?? item.link;
       if (!url) continue;
@@ -225,7 +320,6 @@ async function searchAndBuild(
     return { results, found: 0, error: detail };
   }
 }
-
 
 export const runScrape = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -284,13 +378,15 @@ export const runScrape = createServerFn({ method: "POST" })
       }
     }
 
-
     // Post-filter: agency logo, non-property, city scope, private-only.
     let skippedAgencyLogo = 0;
     let skippedOutOfScope = 0;
     let skippedAgency = 0;
     const filtered = allResults.filter((r) => {
-      if (r.agency_logo_detected) { skippedAgencyLogo++; return false; }
+      if (r.agency_logo_detected) {
+        skippedAgencyLogo++;
+        return false;
+      }
       const text = `${r.title ?? ""} ${r.description ?? ""}`;
       if (isNonPropertyListing(text, r.source_url)) return false;
       if (!looksLikeProperty(text, r.source_url)) return false;
@@ -299,7 +395,10 @@ export const runScrape = createServerFn({ method: "POST" })
         return false;
       }
       if (data.privateOnly) {
-        if (r.seller_type === "agency") { skippedAgency++; return false; }
+        if (r.seller_type === "agency") {
+          skippedAgency++;
+          return false;
+        }
         return r.seller_type === "private" || r.seller_type === "unknown";
       }
       return true;
@@ -329,7 +428,10 @@ export const runScrape = createServerFn({ method: "POST" })
       for (const [p, c] of counts) if (c > 3) agencyPhones.add(p);
     }
     const filteredFinal = filtered.filter((r) => {
-      if (r.phone && agencyPhones.has(r.phone)) { skippedAgency++; return false; }
+      if (r.phone && agencyPhones.has(r.phone)) {
+        skippedAgency++;
+        return false;
+      }
       return true;
     });
 
@@ -341,27 +443,26 @@ export const runScrape = createServerFn({ method: "POST" })
     let skipped = 0;
     for (const r of filteredFinal) {
       const cityId = r.city_slug ? cityMap.get(r.city_slug) : null;
-      const { error } = await supabaseAdmin
-        .from("extracted_listings")
-        .upsert(
-          {
-            source: r.source,
-            source_url: r.source_url,
-            city_id: cityId ?? null,
-            title: r.title ?? null,
-            description: r.description ?? null,
-            price: r.price ?? null,
-            currency: r.currency ?? "EUR",
-            area_sqm: r.area_sqm ?? null,
-            phone: r.phone ?? null,
-            images: r.images ?? [],
-            seller_type: r.seller_type,
-            agency_logo_detected: false,
-            status: "pending",
-          },
-          { onConflict: "source,source_url", ignoreDuplicates: true },
-        );
-      if (error) skipped++; else inserted++;
+      const { error } = await supabaseAdmin.from("extracted_listings").upsert(
+        {
+          source: r.source,
+          source_url: r.source_url,
+          city_id: cityId ?? null,
+          title: r.title ?? null,
+          description: r.description ?? null,
+          price: r.price ?? null,
+          currency: r.currency ?? "EUR",
+          area_sqm: r.area_sqm ?? null,
+          phone: r.phone ?? null,
+          images: r.images ?? [],
+          seller_type: r.seller_type,
+          agency_logo_detected: false,
+          status: "pending",
+        },
+        { onConflict: "source,source_url", ignoreDuplicates: true },
+      );
+      if (error) skipped++;
+      else inserted++;
     }
 
     return {
@@ -423,7 +524,10 @@ export const updateExtracted = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { error } = await supabaseAdmin.from("extracted_listings").update(data.patch).eq("id", data.id);
+    const { error } = await supabaseAdmin
+      .from("extracted_listings")
+      .update(data.patch)
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -462,8 +566,6 @@ export const publishExtracted = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (e2 || !created) throw new Error(e2?.message ?? "Грешка при създаване");
-    const { fillPropertyCoordinates } = await import("@/lib/property-geo");
-    await fillPropertyCoordinates(supabaseAdmin, created.id).catch(() => null);
 
     // Add gallery images
     if (Array.isArray(row.images) && row.images.length > 0) {

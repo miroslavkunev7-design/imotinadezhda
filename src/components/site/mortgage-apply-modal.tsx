@@ -1,5 +1,16 @@
 import { useMemo, useState } from "react";
-import { X, Check, AlertCircle, Upload, FileText, Loader2, CreditCard, Briefcase, IdCard, FileSignature } from "lucide-react";
+import {
+  X,
+  Check,
+  AlertCircle,
+  Upload,
+  FileText,
+  Loader2,
+  CreditCard,
+  Briefcase,
+  IdCard,
+  FileSignature,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { submitMortgageApplication, uploadMortgageDocument } from "@/lib/mortgage.functions";
 import { toast } from "sonner";
@@ -12,7 +23,20 @@ type UploadedFile = {
   size: number;
 };
 
-const BG_MONTHS = ["Януари", "Февруари", "Март", "Април", "Май", "Юни", "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември"];
+const BG_MONTHS = [
+  "Януари",
+  "Февруари",
+  "Март",
+  "Април",
+  "Май",
+  "Юни",
+  "Юли",
+  "Август",
+  "Септември",
+  "Октомври",
+  "Ноември",
+  "Декември",
+];
 
 function lastTwelveMonths(): { key: string; label: string }[] {
   const out: { key: string; label: string }[] = [];
@@ -84,7 +108,13 @@ export function MortgageApplyModal({
       });
       setFiles((prev) => [
         ...prev,
-        { category, month, path: uploaded.path, file_name: uploaded.file_name, size: uploaded.size },
+        {
+          category,
+          month,
+          path: uploaded.path,
+          file_name: uploaded.file_name,
+          size: uploaded.size,
+        },
       ]);
       toast.success("Файлът е качен");
     } catch (e: any) {
@@ -143,7 +173,11 @@ export function MortgageApplyModal({
             <div className="font-display text-2xl">Кандидатствай за ипотечен кредит</div>
             {propertyTitle && <div className="text-xs text-amber-200/80">{propertyTitle}</div>}
           </div>
-          <button onClick={onClose} className="rounded-md p-1.5 hover:bg-amber-100/10" aria-label="Затвори">
+          <button
+            onClick={onClose}
+            className="rounded-md p-1.5 hover:bg-amber-100/10"
+            aria-label="Затвори"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -155,31 +189,61 @@ export function MortgageApplyModal({
             </div>
             <h3 className="font-display text-2xl text-primary">Благодарим Ви!</h3>
             <p className="max-w-md text-sm text-primary/75">
-              Получихме Вашето заявление и документи. Кредитен консултант ще се свърже с Вас в рамките на 24 часа.
+              Получихме Вашето заявление и документи. Кредитен консултант ще се свърже с Вас в
+              рамките на 24 часа.
             </p>
-            <Button onClick={onClose} className="gold-cta-button mt-2">Затвори</Button>
+            <Button onClick={onClose} className="gold-cta-button mt-2">
+              Затвори
+            </Button>
           </div>
         ) : (
           <div className="max-h-[80vh] overflow-y-auto px-4 py-4 md:px-6 md:py-5">
             {/* Personal info */}
             <section className="mb-6 grid gap-3 sm:grid-cols-2">
               <Field label="Име и фамилия *">
-                <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputCls} />
+                <input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Телефон *">
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Имейл">
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Работодател">
-                <input value={employer} onChange={(e) => setEmployer(e.target.value)} className={inputCls} />
+                <input
+                  value={employer}
+                  onChange={(e) => setEmployer(e.target.value)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Месечен доход (лв.)">
-                <input type="number" min={0} value={monthlyIncome} onChange={(e) => setMonthlyIncome(e.target.value)} className={inputCls} />
+                <input
+                  type="number"
+                  min={0}
+                  value={monthlyIncome}
+                  onChange={(e) => setMonthlyIncome(e.target.value)}
+                  className={inputCls}
+                />
               </Field>
               <Field label="Бележки">
-                <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputCls} />
+                <input
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className={inputCls}
+                />
               </Field>
             </section>
 
@@ -190,13 +254,18 @@ export function MortgageApplyModal({
             ].map((cat) => {
               const completed = monthCompleted(cat.id);
               return (
-                <section key={cat.id} className="mb-5 rounded-2xl border border-primary/15 bg-white/70 p-4">
+                <section
+                  key={cat.id}
+                  className="mb-5 rounded-2xl border border-primary/15 bg-white/70 p-4"
+                >
                   <div className="mb-3 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <cat.icon className="h-5 w-5 text-primary" />
                       <h3 className="font-semibold text-primary">{cat.label}</h3>
                     </div>
-                    <div className={`rounded-full px-3 py-1 text-xs font-semibold ${completed === 12 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"}`}>
+                    <div
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${completed === 12 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"}`}
+                    >
                       {completed} / 12
                     </div>
                   </div>
@@ -215,13 +284,24 @@ export function MortgageApplyModal({
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className={`font-medium ${ok ? "text-emerald-800" : "text-rose-700"}`}>{m.label}</span>
-                            {ok ? <Check className="h-4 w-4 text-emerald-600" /> : <AlertCircle className="h-4 w-4 text-rose-500" />}
+                            <span
+                              className={`font-medium ${ok ? "text-emerald-800" : "text-rose-700"}`}
+                            >
+                              {m.label}
+                            </span>
+                            {ok ? (
+                              <Check className="h-4 w-4 text-emerald-600" />
+                            ) : (
+                              <AlertCircle className="h-4 w-4 text-rose-500" />
+                            )}
                           </div>
                           {items.length > 0 ? (
                             <div className="space-y-0.5">
                               {items.map((f) => (
-                                <div key={f.path} className="flex items-center justify-between gap-1 truncate text-[10px] text-emerald-700/90">
+                                <div
+                                  key={f.path}
+                                  className="flex items-center justify-between gap-1 truncate text-[10px] text-emerald-700/90"
+                                >
                                   <span className="truncate">{f.file_name}</span>
                                   <button
                                     type="button"
@@ -239,9 +319,13 @@ export function MortgageApplyModal({
                           ) : (
                             <div className="flex items-center gap-1 text-[10px] text-rose-600/80">
                               {isUploading ? (
-                                <><Loader2 className="h-3 w-3 animate-spin" /> Качване…</>
+                                <>
+                                  <Loader2 className="h-3 w-3 animate-spin" /> Качване…
+                                </>
                               ) : (
-                                <><Upload className="h-3 w-3" /> Качи документ</>
+                                <>
+                                  <Upload className="h-3 w-3" /> Качи документ
+                                </>
                               )}
                             </div>
                           )}
@@ -273,7 +357,9 @@ export function MortgageApplyModal({
                   <label
                     key={d.id}
                     className={`flex cursor-pointer flex-col gap-2 rounded-2xl border-2 border-dashed p-4 text-sm transition ${
-                      ok ? "border-emerald-400 bg-emerald-50" : "border-primary/25 bg-white/70 hover:border-primary/50"
+                      ok
+                        ? "border-emerald-400 bg-emerald-50"
+                        : "border-primary/25 bg-white/70 hover:border-primary/50"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -281,7 +367,11 @@ export function MortgageApplyModal({
                         <d.icon className="h-5 w-5 text-primary" />
                         <span className="font-medium text-primary">{d.label}</span>
                       </div>
-                      {ok ? <Check className="h-5 w-5 text-emerald-600" /> : <AlertCircle className="h-5 w-5 text-rose-500" />}
+                      {ok ? (
+                        <Check className="h-5 w-5 text-emerald-600" />
+                      ) : (
+                        <AlertCircle className="h-5 w-5 text-rose-500" />
+                      )}
                     </div>
                     {items.length > 0 ? (
                       <div className="space-y-1 text-xs text-emerald-800">
@@ -303,7 +393,15 @@ export function MortgageApplyModal({
                       </div>
                     ) : (
                       <div className="flex items-center gap-1.5 text-xs text-primary/65">
-                        {isUploading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Качване…</> : <><Upload className="h-3.5 w-3.5" /> Качи документ</>}
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Качване…
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-3.5 w-3.5" /> Качи документ
+                          </>
+                        )}
                       </div>
                     )}
                     <input
@@ -324,10 +422,21 @@ export function MortgageApplyModal({
             {/* Submit */}
             <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-primary/15 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] px-4 py-3 md:-mx-6 md:px-6">
               <p className="text-[11px] text-primary/65">
-                * Можете да изпратите заявлението и с частична документация — нашите консултанти ще се свържат с Вас за останалите документи.
+                * Можете да изпратите заявлението и с частична документация — нашите консултанти ще
+                се свържат с Вас за останалите документи.
               </p>
-              <Button onClick={submit} disabled={submitting} className="gold-cta-button h-12 w-full text-base">
-                {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Изпращане…</> : "Изпрати заявление"}
+              <Button
+                onClick={submit}
+                disabled={submitting}
+                className="gold-cta-button h-12 w-full text-base"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Изпращане…
+                  </>
+                ) : (
+                  "Изпрати заявление"
+                )}
               </Button>
             </div>
           </div>
@@ -337,7 +446,8 @@ export function MortgageApplyModal({
   );
 }
 
-const inputCls = "w-full rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm text-primary placeholder:text-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/40";
+const inputCls =
+  "w-full rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm text-primary placeholder:text-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/40";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

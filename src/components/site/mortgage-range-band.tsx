@@ -41,7 +41,9 @@ export function MortgageRangeBand({
               <Calculator className="h-6 w-6" />
             </div>
             <div>
-              <div className="text-xs uppercase tracking-[0.18em] text-primary/70">Месечна вноска</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-primary/70">
+                Месечна вноска
+              </div>
               <div className="font-display text-[2rem] leading-tight text-amber-200 md:text-[2.4rem]">
                 от {fmt(monthlyMin)} до {fmt(monthlyMax)}
               </div>

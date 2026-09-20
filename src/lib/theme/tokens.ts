@@ -58,7 +58,10 @@ export const DEFAULT_PRESETS: ThemePresets = {
   buttons: "rounded",
 };
 
-export const TOKEN_LABELS: Record<keyof Omit<ThemeTokens, "fontHeading" | "fontBody" | "fontSizeBase">, string> = {
+export const TOKEN_LABELS: Record<
+  keyof Omit<ThemeTokens, "fontHeading" | "fontBody" | "fontSizeBase">,
+  string
+> = {
   background: "Фон на страницата",
   foreground: "Основен текст",
   card: "Фон на карта / панел",
@@ -88,7 +91,10 @@ export const FONT_OPTIONS = [
 ] as const;
 
 /** Map theme token → CSS variable name used by shadcn/Tailwind. */
-export const TOKEN_TO_CSS_VAR: Record<keyof Omit<ThemeTokens, "fontHeading" | "fontBody" | "fontSizeBase">, string> = {
+export const TOKEN_TO_CSS_VAR: Record<
+  keyof Omit<ThemeTokens, "fontHeading" | "fontBody" | "fontSizeBase">,
+  string
+> = {
   background: "--background",
   foreground: "--foreground",
   card: "--card",

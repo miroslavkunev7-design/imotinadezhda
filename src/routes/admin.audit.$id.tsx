@@ -74,22 +74,18 @@ function AuditDetailPage() {
               timeStyle: "medium",
             })}
           />
-          <Row
-            label="Път"
-            value={<span className="font-mono text-amber-200">{row.path}</span>}
-          />
+          <Row label="Път" value={<span className="font-mono text-amber-200">{row.path}</span>} />
           <Row label="Имейл" value={row.email ?? "—"} />
           <Row
             label="Потребител (user_id)"
             value={
-              row.user_id ? (
-                <span className="font-mono text-xs">{row.user_id}</span>
-              ) : (
-                "анонимен"
-              )
+              row.user_id ? <span className="font-mono text-xs">{row.user_id}</span> : "анонимен"
             }
           />
-          <Row label="IP адрес" value={<span className="font-mono text-xs">{row.ip ?? "—"}</span>} />
+          <Row
+            label="IP адрес"
+            value={<span className="font-mono text-xs">{row.ip ?? "—"}</span>}
+          />
           <Row
             label="User Agent"
             value={<span className="text-xs">{row.user_agent ?? "—"}</span>}

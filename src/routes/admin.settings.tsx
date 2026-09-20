@@ -13,7 +13,6 @@ function Page() {
   return (
     <>
       <div className="mx-auto w-full max-w-4xl space-y-6 p-2">
-
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-200">
             <Settings className="h-6 w-6" />
@@ -38,7 +37,8 @@ function Page() {
                 <ChevronRight className="h-4 w-4 text-amber-300/70 transition group-hover:translate-x-0.5" />
               </div>
               <p className="mt-1 text-xs text-amber-100/60">
-                Background на сайта (за всички), личен CRM фон, снимки на карти градове и квартали, добавяне на нови.
+                Background на сайта (за всички), личен CRM фон, снимки на карти градове и квартали,
+                добавяне на нови.
               </p>
             </div>
           </Link>
@@ -76,7 +76,8 @@ function Page() {
                 <ChevronRight className="h-4 w-4 text-amber-300/70 transition group-hover:translate-x-0.5" />
               </div>
               <p className="mt-1 text-xs text-amber-100/60">
-                Изграждай страници с блокове (навбари, hero, бутони, секции). Качи референция за автоматичен клонинг или подобен дизайн чрез AI.
+                Изграждай страници с блокове (навбари, hero, бутони, секции). Качи референция за
+                автоматичен клонинг или подобен дизайн чрез AI.
               </p>
             </div>
           </Link>
@@ -94,7 +95,8 @@ function Page() {
                 <ChevronRight className="h-4 w-4 text-amber-300/70 transition group-hover:translate-x-0.5" />
               </div>
               <p className="mt-1 text-xs text-amber-100/60">
-                Сменяй цветовете, шрифтовете и дизайн пресетите на целия CRM. Auto-contrast пази текста винаги четим. Responsive preview за всички устройства.
+                Сменяй цветовете, шрифтовете и дизайн пресетите на целия CRM. Auto-contrast пази
+                текста винаги четим. Responsive preview за всички устройства.
               </p>
             </div>
           </Link>

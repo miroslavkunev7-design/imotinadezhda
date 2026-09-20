@@ -9,7 +9,11 @@ export type PageSlug = (typeof PAGE_SLUGS)[number];
 
 const blockSchema = z.object({
   id: z.string().min(1).max(64),
-  type: z.string().min(1).max(64).regex(/^[a-z0-9._-]+$/),
+  type: z
+    .string()
+    .min(1)
+    .max(64)
+    .regex(/^[a-z0-9._-]+$/),
   props: z.record(z.string(), z.any()),
 });
 
@@ -129,9 +133,7 @@ export const saveDesign = createServerFn({ method: "POST" })
 // ADMIN — publish / unpublish
 export const publishDesign = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ id: z.string().uuid(), publish: z.boolean() }).parse(input),
-  )
+  .inputValidator((input) => z.object({ id: z.string().uuid(), publish: z.boolean() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabase } = context;
@@ -164,10 +166,7 @@ export const deleteDesign = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { error } = await context.supabase
-      .from("page_designs")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("page_designs").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -213,9 +212,7 @@ export async function scrapeReferenceHandler(
 export const scrapeReference = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => scrapeReferenceInput.parse(input))
-  .handler(async ({ data, context }) =>
-    scrapeReferenceHandler(data, { userId: context.userId }),
-  );
+  .handler(async ({ data, context }) => scrapeReferenceHandler(data, { userId: context.userId }));
 
 // ADMIN — call AI provider to convert scraped reference into a layout_json
 const generateFromReferenceInput = z.object({
@@ -236,7 +233,8 @@ export async function generateFromReferenceHandler(
   context: { userId: string },
 ) {
   await assertAdmin(context.userId);
-  if (!resolveAiProvider()) throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
+  if (!resolveAiProvider())
+    throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
 
   // import block registry definitions for the prompt
   const { BLOCK_REGISTRY } = await import("./blocks");
@@ -344,4 +342,3 @@ export const generateFromReference = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) =>
     generateFromReferenceHandler(data, { userId: context.userId }),
   );
-

@@ -18,16 +18,16 @@ export const Route = createFileRoute("/admin/debug/quarters")({
 type Row = { name: string; slug: string; asset: typeof qTsentar };
 
 const ROWS: Row[] = [
-  { name: "Център",            slug: "tsentar",            asset: qTsentar },
-  { name: "Тракия",            slug: "trakiya",            asset: qTrakiya },
+  { name: "Център", slug: "tsentar", asset: qTsentar },
+  { name: "Тракия", slug: "trakiya", asset: qTrakiya },
   { name: "Боян Българанов 1", slug: "boyan-balgaranov-1", asset: qBoyan1 },
   { name: "Боян Българанов 2", slug: "boyan-balgaranov-2", asset: qBoyan2 },
-  { name: "Болницата",         slug: "bolnitsata",         asset: qBolnitsata },
-  { name: "Херсон",            slug: "herson",             asset: qHerson },
-  { name: "Пазара",            slug: "pazara",             asset: qPazara },
-  { name: "Добруджански",      slug: "dobrudzhanski",      asset: qDobrudzhanski },
-  { name: "Пожарната",         slug: "pozharnata",         asset: qPozharnata },
-  { name: "Военно училище",    slug: "voenno-uchilishte",  asset: qVoenno },
+  { name: "Болницата", slug: "bolnitsata", asset: qBolnitsata },
+  { name: "Херсон", slug: "herson", asset: qHerson },
+  { name: "Пазара", slug: "pazara", asset: qPazara },
+  { name: "Добруджански", slug: "dobrudzhanski", asset: qDobrudzhanski },
+  { name: "Пожарната", slug: "pozharnata", asset: qPozharnata },
+  { name: "Военно училище", slug: "voenno-uchilishte", asset: qVoenno },
 ];
 
 function DebugQuarters() {
@@ -39,16 +39,28 @@ function DebugQuarters() {
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {ROWS.map((r) => (
-          <div key={r.slug} className="border border-gray-300 rounded-lg overflow-hidden bg-gray-50">
+          <div
+            key={r.slug}
+            className="border border-gray-300 rounded-lg overflow-hidden bg-gray-50"
+          >
             <div className="aspect-square bg-gray-200">
               <img src={r.asset.url} alt={r.name} className="w-full h-full object-cover" />
             </div>
             <div className="p-3 text-xs space-y-1">
               <div className="text-base font-bold text-black">{r.name}</div>
-              <div><span className="text-gray-500">slug:</span> <code>{r.slug}</code></div>
-              <div><span className="text-gray-500">файл:</span> <code>{r.asset.original_filename}</code></div>
-              <div><span className="text-gray-500">размер:</span> {(r.asset.size / 1024).toFixed(0)} KB</div>
-              <div className="truncate"><span className="text-gray-500">asset_id:</span> <code>{r.asset.asset_id}</code></div>
+              <div>
+                <span className="text-gray-500">slug:</span> <code>{r.slug}</code>
+              </div>
+              <div>
+                <span className="text-gray-500">файл:</span>{" "}
+                <code>{r.asset.original_filename}</code>
+              </div>
+              <div>
+                <span className="text-gray-500">размер:</span> {(r.asset.size / 1024).toFixed(0)} KB
+              </div>
+              <div className="truncate">
+                <span className="text-gray-500">asset_id:</span> <code>{r.asset.asset_id}</code>
+              </div>
               <a
                 href={r.asset.url}
                 target="_blank"

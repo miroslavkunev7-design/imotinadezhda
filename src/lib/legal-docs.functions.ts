@@ -64,8 +64,7 @@ export const analyzeNotaryAct = createServerFn({ method: "POST" })
 
     return {
       extracted: act,
-      contract_text:
-        data.kind === "receipt" ? null : buildSaleContract(act),
+      contract_text: data.kind === "receipt" ? null : buildSaleContract(act),
       receipt_text:
         data.kind === "contract"
           ? null

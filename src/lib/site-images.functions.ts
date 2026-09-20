@@ -25,7 +25,11 @@ export const setPageBackground = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z
       .object({
-        page_key: z.string().min(1).max(64).regex(/^[a-z0-9_-]+$/),
+        page_key: z
+          .string()
+          .min(1)
+          .max(64)
+          .regex(/^[a-z0-9_-]+$/),
         image_url: z.string().url().max(2048),
       })
       .parse(input),
@@ -35,7 +39,12 @@ export const setPageBackground = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { error } = await supabase
       .from("page_backgrounds")
-      .upsert({ page_key: data.page_key, image_url: data.image_url, updated_by: userId, updated_at: new Date().toISOString() });
+      .upsert({
+        page_key: data.page_key,
+        image_url: data.image_url,
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+      });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -157,7 +166,11 @@ export const createCityCard = createServerFn({ method: "POST" })
     z
       .object({
         name: z.string().min(1).max(120),
-        slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/),
+        slug: z
+          .string()
+          .min(1)
+          .max(120)
+          .regex(/^[a-z0-9-]+$/),
         hero_image_url: z.string().url().max(2048).optional(),
       })
       .parse(input),
@@ -167,7 +180,12 @@ export const createCityCard = createServerFn({ method: "POST" })
     const { supabase } = context;
     const { error } = await supabase
       .from("cities")
-      .insert({ name: data.name, slug: data.slug, hero_image_url: data.hero_image_url ?? null, is_published: true });
+      .insert({
+        name: data.name,
+        slug: data.slug,
+        hero_image_url: data.hero_image_url ?? null,
+        is_published: true,
+      });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -179,7 +197,11 @@ export const createQuarterCard = createServerFn({ method: "POST" })
       .object({
         city_id: z.string().uuid(),
         name: z.string().min(1).max(120),
-        slug: z.string().min(1).max(120).regex(/^[a-z0-9-]+$/),
+        slug: z
+          .string()
+          .min(1)
+          .max(120)
+          .regex(/^[a-z0-9-]+$/),
         image_url: z.string().url().max(2048).optional(),
       })
       .parse(input),
@@ -187,15 +209,13 @@ export const createQuarterCard = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabase } = context;
-    const { error } = await supabase
-      .from("quarters")
-      .insert({
-        city_id: data.city_id,
-        name: data.name,
-        slug: data.slug,
-        image_url: data.image_url ?? null,
-        is_published: true,
-      });
+    const { error } = await supabase.from("quarters").insert({
+      city_id: data.city_id,
+      name: data.name,
+      slug: data.slug,
+      image_url: data.image_url ?? null,
+      is_published: true,
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });

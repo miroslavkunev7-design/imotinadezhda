@@ -16,11 +16,12 @@ import { Toaster } from "@/components/ui/sonner";
 import { useRouterState } from "@tanstack/react-router";
 import { initPwa } from "@/lib/pwa";
 import { enforceRememberMePolicy } from "@/lib/remember-me";
-import { HOME_DESCRIPTION, HOME_TITLE, SEO_KEYWORDS, siteUrl } from "@/lib/site-config";
+import { SEO_KEYWORDS, siteUrl } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SectionEditorOverlay } from "@/components/editor/section-editor-overlay";
 import { SupabaseConfigBanner } from "@/components/site/supabase-config-banner";
 import { MobileBottomNav } from "@/components/site/mobile-bottom-nav";
+import { CrmSiteOverlay } from "@/components/site/crm-overlay";
 
 const CustomerChat = lazy(() =>
   import("@/components/site/customer-chat").then((m) => ({ default: m.CustomerChat })),
@@ -91,10 +92,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: HOME_TITLE },
-      { name: "description", content: HOME_DESCRIPTION },
+      { title: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
+      {
+        name: "description",
+        content:
+          "Имоти Надежда — агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар.",
+      },
       { name: "keywords", content: SEO_KEYWORDS },
-      { name: "robots", content: "index, follow" },
       { name: "author", content: "Имоти Надежда" },
       { name: "theme-color", content: "#8B1A2B" },
       { name: "application-name", content: "Имоти Надежда" },
@@ -102,21 +106,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Имоти Надежда" },
       { property: "og:site_name", content: "Имоти Надежда" },
-      { property: "og:title", content: HOME_TITLE },
-      { property: "og:description", content: HOME_DESCRIPTION },
+      { property: "og:title", content: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
+      {
+        property: "og:description",
+        content:
+          "Агенция Имоти Надежда. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар.",
+      },
       { property: "og:type", content: "website" },
       { property: "og:url", content: siteUrl("/") },
       { property: "og:locale", content: "bg_BG" },
-      { property: "og:image", content: siteUrl("/icon-512.png") },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: HOME_TITLE },
-      { name: "twitter:description", content: HOME_DESCRIPTION },
+      { name: "twitter:title", content: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
+      {
+        name: "twitter:description",
+        content:
+          "Агенция Имоти Надежда. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар.",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700;900&family=Open+Sans:wght@400;500;600;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700;900&family=Open+Sans:wght@400;500;600;700&family=Marck+Script&display=swap",
+      },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", href: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { rel: "icon", href: "/icon-512.png", sizes: "512x512", type: "image/png" },
@@ -171,6 +185,8 @@ function RootComponent() {
           )}
           <SectionEditorOverlay />
           <MobileBottomNav />
+          {/* Настройки на страницата — само за влязъл екип през CRM. */}
+          {!pathname.startsWith("/admin") && !pathname.startsWith("/login") && <CrmSiteOverlay />}
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

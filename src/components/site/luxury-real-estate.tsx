@@ -1,4 +1,12 @@
-import { cloneElement, useEffect, useRef, useState as useReactState, type ReactElement, type CSSProperties, type VideoHTMLAttributes } from "react";
+import {
+  cloneElement,
+  useEffect,
+  useRef,
+  useState as useReactState,
+  type ReactElement,
+  type CSSProperties,
+  type VideoHTMLAttributes,
+} from "react";
 import { shouldPlayHeroVideo } from "@/lib/device-perf";
 
 // Auto-play helper with instant-poster + deferred video mount:
@@ -17,7 +25,18 @@ function AutoPlayVideo(
     priority?: boolean;
   },
 ) {
-  const { src, fallbackSrc, onPermanentError, onError, poster, className, style, preload, priority, ...videoProps } = props;
+  const {
+    src,
+    fallbackSrc,
+    onPermanentError,
+    onError,
+    poster,
+    className,
+    style,
+    preload,
+    priority,
+    ...videoProps
+  } = props;
   const ref = useRef<HTMLVideoElement | null>(null);
   const [activeSrc, setActiveSrc] = useReactState(src);
   const [mountVideo, setMountVideo] = useReactState(!!priority);
@@ -167,6 +186,7 @@ function AutoPlayVideo(
   );
 }
 import { Link, useNavigate } from "@tanstack/react-router";
+import { CityBrushCard } from "@/components/site/city-brush-card";
 import { AGENCY } from "@/lib/contact-config";
 import { useFavorites, shareProperty } from "@/hooks/use-favorites";
 import { toast } from "sonner";
@@ -230,7 +250,6 @@ import { cn } from "@/lib/utils";
 import { resolveAssetUrl } from "@/lib/asset-url";
 import { MortgageRangeBand } from "@/components/site/mortgage-range-band";
 import { SiteHeader, type SiteNavKey } from "@/components/site/site-header";
-import { DistrictPriceMap } from "@/components/site/district-price-map";
 import { GoldDustLayer } from "@/components/site/gold-dust-card";
 
 // Route external images through a CDN proxy to bypass cross-origin resource policy blocks.
@@ -247,10 +266,14 @@ function proxyImage(url?: string | null): string {
   }
 }
 
-
 type NavKey = SiteNavKey;
 
-const topNav: Array<{ key: "sale" | "rent" | "about"; label: string; to: string; search?: Record<string, string> }> = [
+const topNav: Array<{
+  key: "sale" | "rent" | "about";
+  label: string;
+  to: string;
+  search?: Record<string, string>;
+}> = [
   { key: "sale", label: "За продажба", to: "/search", search: { status: "sale" } },
   { key: "rent", label: "Под наем", to: "/search", search: { status: "rent" } },
   { key: "about", label: "За нас", to: "/about" },
@@ -272,51 +295,71 @@ const cityVideoFallbacks: Record<string, string> = {
 const shumenQuarterCards = [
   { name: "Център", slug: "tsentar", image_url: resolveAssetUrl(qTsentar), properties_count: 0 },
   { name: "Тракия", slug: "trakiya", image_url: resolveAssetUrl(qTrakiya), properties_count: 0 },
-  { name: "Боян Българанов 1", slug: "boyan-balgaranov-1", image_url: resolveAssetUrl(qBoyan1), properties_count: 0 },
-  { name: "Боян Българанов 2", slug: "boyan-balgaranov-2", image_url: resolveAssetUrl(qBoyan2), properties_count: 0 },
-  { name: "Болницата", slug: "bolnitsata", image_url: resolveAssetUrl(qBolnitsata), properties_count: 0 },
+  {
+    name: "Боян Българанов 1",
+    slug: "boyan-balgaranov-1",
+    image_url: resolveAssetUrl(qBoyan1),
+    properties_count: 0,
+  },
+  {
+    name: "Боян Българанов 2",
+    slug: "boyan-balgaranov-2",
+    image_url: resolveAssetUrl(qBoyan2),
+    properties_count: 0,
+  },
+  {
+    name: "Болницата",
+    slug: "bolnitsata",
+    image_url: resolveAssetUrl(qBolnitsata),
+    properties_count: 0,
+  },
   { name: "Херсон", slug: "herson", image_url: resolveAssetUrl(qHerson), properties_count: 0 },
   { name: "Пазара", slug: "pazara", image_url: resolveAssetUrl(qPazara), properties_count: 0 },
-  { name: "Добруджански", slug: "dobrudzhanski", image_url: resolveAssetUrl(qDobrudzhanski), properties_count: 0 },
-  { name: "Пожарната", slug: "pozharnata", image_url: resolveAssetUrl(qPozharnata), properties_count: 0 },
-  { name: "Военно училище", slug: "voenno-uchilishte", image_url: resolveAssetUrl(qVoenno), properties_count: 0 },
+  {
+    name: "Добруджански",
+    slug: "dobrudzhanski",
+    image_url: resolveAssetUrl(qDobrudzhanski),
+    properties_count: 0,
+  },
+  {
+    name: "Пожарната",
+    slug: "pozharnata",
+    image_url: resolveAssetUrl(qPozharnata),
+    properties_count: 0,
+  },
+  {
+    name: "Военно училище",
+    slug: "voenno-uchilishte",
+    image_url: resolveAssetUrl(qVoenno),
+    properties_count: 0,
+  },
 ];
 
 function normalizeQuarterName(name: string) {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-const homeCities: Array<{ name: string; image: string; href: "/cities/$slug"; params: { slug: string } }> = [
+const homeCities: Array<{
+  name: string;
+  image: string;
+  href: "/cities/$slug";
+  params: { slug: string };
+}> = [
   { name: "Бургас", image: cityBurgas, href: "/cities/$slug", params: { slug: "burgas" } },
   { name: "Варна", image: cityVarna, href: "/cities/$slug", params: { slug: "varna" } },
   { name: "Шумен", image: cityShumen, href: "/cities/$slug", params: { slug: "shumen" } },
-  { name: "Нови пазар", image: cityNoviPazar, href: "/cities/$slug", params: { slug: "novi-pazar" } },
+  {
+    name: "Нов пазар",
+    image: cityNoviPazar,
+    href: "/cities/$slug",
+    params: { slug: "novi-pazar" },
+  },
 ];
-
-const HOME_CITY_ORDER = ["burgas", "varna", "shumen", "novi-pazar"] as const;
-const HOME_CITY_NAMES: Record<(typeof HOME_CITY_ORDER)[number], string> = {
-  burgas: "Бургас",
-  varna: "Варна",
-  shumen: "Шумен",
-  "novi-pazar": "Нови пазар",
-};
-
-function orderedCityOptions(cities: Array<{ slug: string; name: string }>) {
-  const source = cities.length
-    ? cities
-    : HOME_CITY_ORDER.map((slug) => ({ slug, name: HOME_CITY_NAMES[slug] }));
-  return [...source].sort((a, b) => {
-    const ia = HOME_CITY_ORDER.indexOf(a.slug as (typeof HOME_CITY_ORDER)[number]);
-    const ib = HOME_CITY_ORDER.indexOf(b.slug as (typeof HOME_CITY_ORDER)[number]);
-    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
-  });
-}
 
 // NOTE: removed mock arrays (burgasDistricts, listingCards, propertyThumbs,
 // propertyFacts, amenityList) — replaced by live DB data via quarterCounts /
 // catalog server fns.
 const burgasDistricts: Array<{ name: string; count: number; image: string }> = [];
-
 
 /**
  * Backwards-compatible alias for the old per-section LuxuryHeader. Every page
@@ -332,8 +375,6 @@ export function LuxuryHeader({
 }) {
   return <SiteHeader active={active} overlay={overlay} />;
 }
-
-
 
 type SearchOption = { value: string; label: string };
 
@@ -354,11 +395,19 @@ function SearchBar({
 }: {
   cities?: Array<{ slug: string; name: string }>;
   quarters?: Array<{ slug: string; name: string }>;
-  initial?: { city_slug?: string; quarter_slug?: string; property_type?: string; price_min?: string; price_max?: string; area_min?: string; area_max?: string };
+  initial?: {
+    city_slug?: string;
+    quarter_slug?: string;
+    property_type?: string;
+    price_min?: string;
+    price_max?: string;
+    area_min?: string;
+    area_max?: string;
+  };
   variant?: "light" | "burgundy";
 }) {
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [city, setCity] = useReactState(initial?.city_slug ?? (cities[0]?.slug ?? ""));
+  const [city, setCity] = useReactState(initial?.city_slug ?? cities[0]?.slug ?? "");
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [quarter, setQuarter] = useReactState(initial?.quarter_slug ?? "");
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -385,7 +434,14 @@ function SearchBar({
     navigate({ to: "/search", search: params as never });
   };
 
-  const cityOptions = orderedCityOptions(cities);
+  const cityOptions = cities.length
+    ? cities
+    : [
+        { slug: "burgas", name: "Бургас" },
+        { slug: "varna", name: "Варна" },
+        { slug: "shumen", name: "Шумен" },
+        { slug: "novi-pazar", name: "Нов пазар" },
+      ];
 
   const isBurgundy = variant === "burgundy";
 
@@ -395,16 +451,48 @@ function SearchBar({
     <section className="max-w-[1250px] mx-auto relative z-20">
       {/* Mobile: 2-column grid of compact filter tiles */}
       <div className="grid grid-cols-2 gap-2 md:hidden">
-        <SearchField title="Град" value={city} onChange={setCity} tile
-          options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
-        <SearchField title="Квартал" value={quarter} onChange={setQuarter} tile
-          options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]} />
-        <SearchField title="Вид имот" value={ptype} onChange={setPtype} tile
-          options={propertyTypeOptions} />
-        <SearchRangeField title="Цена" minVal={priceMin} maxVal={priceMax}
-          onMin={setPriceMin} onMax={setPriceMax} suffix="€" tile />
-        <SearchRangeField title="Площ" minVal={areaMin} maxVal={areaMax}
-          onMin={setAreaMin} onMax={setAreaMax} suffix="м²" tile />
+        <SearchField
+          title="Град"
+          value={city}
+          onChange={setCity}
+          tile
+          options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))}
+        />
+        <SearchField
+          title="Квартал"
+          value={quarter}
+          onChange={setQuarter}
+          tile
+          options={[
+            { value: "", label: "Всички" },
+            ...quarters.map((q) => ({ value: q.slug, label: q.name })),
+          ]}
+        />
+        <SearchField
+          title="Вид имот"
+          value={ptype}
+          onChange={setPtype}
+          tile
+          options={propertyTypeOptions}
+        />
+        <SearchRangeField
+          title="Цена"
+          minVal={priceMin}
+          maxVal={priceMax}
+          onMin={setPriceMin}
+          onMax={setPriceMax}
+          suffix="€"
+          tile
+        />
+        <SearchRangeField
+          title="Площ"
+          minVal={areaMin}
+          maxVal={areaMax}
+          onMin={setAreaMin}
+          onMax={setAreaMax}
+          suffix="м²"
+          tile
+        />
         <button
           type="button"
           onClick={handleSearch}
@@ -426,16 +514,43 @@ function SearchBar({
         style={{ background: "linear-gradient(to right, #4b0018, #690020, #7a0028)" }}
       >
         <div className="grid grid-cols-6 divide-x divide-white/10">
-          <SearchField title="Град" value={city} onChange={setCity}
-            options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))} />
-          <SearchField title="Квартал" value={quarter} onChange={setQuarter}
-            options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]} />
-          <SearchField title="Вид имот" value={ptype} onChange={setPtype}
-            options={propertyTypeOptions} />
-          <SearchRangeField title="Цена" minVal={priceMin} maxVal={priceMax}
-            onMin={setPriceMin} onMax={setPriceMax} suffix="€" />
-          <SearchRangeField title="Площ" minVal={areaMin} maxVal={areaMax}
-            onMin={setAreaMin} onMax={setAreaMax} suffix="м²" />
+          <SearchField
+            title="Град"
+            value={city}
+            onChange={setCity}
+            options={cityOptions.map((c) => ({ value: c.slug, label: c.name }))}
+          />
+          <SearchField
+            title="Квартал"
+            value={quarter}
+            onChange={setQuarter}
+            options={[
+              { value: "", label: "Всички" },
+              ...quarters.map((q) => ({ value: q.slug, label: q.name })),
+            ]}
+          />
+          <SearchField
+            title="Вид имот"
+            value={ptype}
+            onChange={setPtype}
+            options={propertyTypeOptions}
+          />
+          <SearchRangeField
+            title="Цена"
+            minVal={priceMin}
+            maxVal={priceMax}
+            onMin={setPriceMin}
+            onMax={setPriceMax}
+            suffix="€"
+          />
+          <SearchRangeField
+            title="Площ"
+            minVal={areaMin}
+            maxVal={areaMax}
+            onMin={setAreaMin}
+            onMax={setAreaMax}
+            suffix="м²"
+          />
           <button
             type="button"
             onClick={handleSearch}
@@ -451,12 +566,15 @@ function SearchBar({
   );
 }
 
-function QuickSearchCard({
-  cities = [],
-}: {
-  cities?: Array<{ slug: string; name: string }>;
-}) {
-  const cityOptions = orderedCityOptions(cities);
+function QuickSearchCard({ cities = [] }: { cities?: Array<{ slug: string; name: string }> }) {
+  const cityOptions = cities.length
+    ? cities
+    : [
+        { slug: "burgas", name: "Бургас" },
+        { slug: "varna", name: "Варна" },
+        { slug: "shumen", name: "Шумен" },
+        { slug: "novi-pazar", name: "Нов пазар" },
+      ];
   const [city, setCity] = useReactState(cityOptions[0]?.slug ?? "burgas");
   const [quarter, setQuarter] = useReactState("");
   const [ptype, setPtype] = useReactState("apartment");
@@ -522,8 +640,12 @@ function QuickSearchCard({
               >
                 <Icon className="h-3 w-3" strokeWidth={1.8} />
               </span>
-              <span className="text-[8px] uppercase tracking-[0.05em] text-white/70 leading-tight">{t.label}</span>
-              <span className="text-[8px] font-semibold text-white leading-tight break-words w-full">{t.value}</span>
+              <span className="text-[8px] uppercase tracking-[0.05em] text-white/70 leading-tight">
+                {t.label}
+              </span>
+              <span className="text-[8px] font-semibold text-white leading-tight break-words w-full">
+                {t.value}
+              </span>
             </div>
           );
         })}
@@ -582,14 +704,19 @@ function SearchField({
         <span className="text-white text-[14px] font-display font-medium truncate pr-5">
           {current?.label ?? "—"}
         </span>
-        <ChevronDown aria-hidden className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D9B06F]" />
+        <ChevronDown
+          aria-hidden
+          className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#D9B06F]"
+        />
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         >
           {options.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
       </label>
@@ -603,14 +730,19 @@ function SearchField({
       <span className="text-white text-sm md:text-base font-display truncate pr-6">
         {current?.label ?? "—"}
       </span>
-      <ChevronDown aria-hidden className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#d9b06f]" />
+      <ChevronDown
+        aria-hidden
+        className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#d9b06f]"
+      />
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
         ))}
       </select>
     </label>
@@ -700,7 +832,11 @@ function SearchRangeField({
 
 function PillDivider() {
   return (
-    <span aria-hidden className="my-2 hidden w-px self-stretch md:inline-block" style={{ backgroundColor: "rgba(201,168,76,0.35)" }} />
+    <span
+      aria-hidden
+      className="my-2 hidden w-px self-stretch md:inline-block"
+      style={{ backgroundColor: "rgba(201,168,76,0.35)" }}
+    />
   );
 }
 
@@ -727,16 +863,27 @@ function PillCell({
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <Icon className="h-4 w-4 flex-none md:h-5 md:w-5" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+      <Icon
+        className="h-4 w-4 flex-none md:h-5 md:w-5"
+        style={{ color: "#C9A84C" }}
+        strokeWidth={1.75}
+      />
       <div className="min-w-0 flex-1">
-        <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-[#C9A84C] md:text-[10px]">{label}</div>
+        <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-[#C9A84C] md:text-[10px]">
+          {label}
+        </div>
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
           className="-ml-px mt-0.5 flex w-full items-center justify-between gap-2 bg-transparent text-left font-display text-sm text-white outline-none md:text-[15px]"
         >
           <span className="truncate">{selected?.label ?? "—"}</span>
-          <ChevronDown className={cn("h-3.5 w-3.5 flex-none text-[#C9A84C] transition md:h-4 md:w-4", open && "rotate-180")} />
+          <ChevronDown
+            className={cn(
+              "h-3.5 w-3.5 flex-none text-[#C9A84C] transition md:h-4 md:w-4",
+              open && "rotate-180",
+            )}
+          />
         </button>
       </div>
       {open && (
@@ -788,9 +935,15 @@ function PillRangeCell({
 }) {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2 px-3 py-1.5 md:gap-3 md:px-4 md:py-2">
-      <Icon className="h-4 w-4 flex-none md:h-5 md:w-5" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+      <Icon
+        className="h-4 w-4 flex-none md:h-5 md:w-5"
+        style={{ color: "#C9A84C" }}
+        strokeWidth={1.75}
+      />
       <div className="min-w-0 flex-1">
-        <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-[#C9A84C] md:text-[10px]">{label}</div>
+        <div className="text-[9px] font-medium uppercase tracking-[0.18em] text-[#C9A84C] md:text-[10px]">
+          {label}
+        </div>
         <div className="mt-0.5 flex items-center gap-1 font-display text-[12px] text-white md:text-[13px]">
           <span className="text-white/70">от</span>
           <input
@@ -841,7 +994,9 @@ function SelectCell({
         <Icon className="h-4 w-4 md:h-5 md:w-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">{label}</div>
+        <div className="text-[10px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">
+          {label}
+        </div>
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
@@ -852,7 +1007,12 @@ function SelectCell({
           <span className="truncate">{selected?.label ?? "—"}</span>
         </button>
       </div>
-      <ChevronDown className={cn("h-3.5 w-3.5 flex-none text-primary/70 transition md:h-4 md:w-4", open && "rotate-180")} />
+      <ChevronDown
+        className={cn(
+          "h-3.5 w-3.5 flex-none text-primary/70 transition md:h-4 md:w-4",
+          open && "rotate-180",
+        )}
+      />
       {open && (
         <div
           role="listbox"
@@ -905,18 +1065,28 @@ function RangeCell({
         <Icon className="h-3.5 w-3.5 md:h-5 md:w-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[9px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">{label}</div>
+        <div className="text-[9px] font-medium uppercase tracking-wide text-primary/70 md:text-[11px]">
+          {label}
+        </div>
         <div className="flex items-center gap-0.5 text-primary md:gap-1">
           <span className="text-[9px] text-primary/60 md:text-[11px]">от</span>
-          <input value={minVal} onChange={(e) => onMin(e.target.value.replace(/[^0-9]/g, ""))}
+          <input
+            value={minVal}
+            onChange={(e) => onMin(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-8 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
-          <span className="hidden text-[9px] text-primary/60 md:inline md:text-[11px]">{suffix}</span>
+            className="w-8 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base"
+          />
+          <span className="hidden text-[9px] text-primary/60 md:inline md:text-[11px]">
+            {suffix}
+          </span>
           <span className="mx-0.5 text-primary/40">·</span>
           <span className="text-[9px] text-primary/60 md:text-[11px]">до</span>
-          <input value={maxVal} onChange={(e) => onMax(e.target.value.replace(/[^0-9]/g, ""))}
+          <input
+            value={maxVal}
+            onChange={(e) => onMax(e.target.value.replace(/[^0-9]/g, ""))}
             inputMode="numeric"
-            className="w-8 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base" />
+            className="w-8 bg-transparent font-display text-[11px] outline-none placeholder:text-primary/40 md:w-16 md:text-base"
+          />
           <span className="text-[9px] text-primary/60 md:text-[11px]">{suffix}</span>
         </div>
       </div>
@@ -924,7 +1094,17 @@ function RangeCell({
   );
 }
 
-function CityCard({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
+function CityCard({
+  name,
+  image,
+  href,
+  params,
+}: {
+  name: string;
+  image: string;
+  href: "/cities/$slug";
+  params: { slug: string };
+}) {
   return CityCardImpl({ name, image, href, params });
 }
 function FleurOrnament() {
@@ -936,7 +1116,17 @@ function FleurOrnament() {
     </span>
   );
 }
-function CityCardImpl({ name, image, href, params }: { name: string; image: string; href: "/cities/$slug"; params: { slug: string } }) {
+function CityCardImpl({
+  name,
+  image,
+  href,
+  params,
+}: {
+  name: string;
+  image: string;
+  href: "/cities/$slug";
+  params: { slug: string };
+}) {
   return (
     <Link
       to={href}
@@ -945,7 +1135,7 @@ function CityCardImpl({ name, image, href, params }: { name: string; image: stri
     >
       <img
         src={image}
-        alt={`Имоти в ${name} — Имоти Надежда`}
+        alt={name}
         loading="lazy"
         className="h-[108px] md:h-[230px] w-full object-cover transition duration-500 md:group-hover:scale-110"
       />
@@ -977,7 +1167,6 @@ function CityCardImpl({ name, image, href, params }: { name: string; image: stri
     </Link>
   );
 }
-
 
 function MarblePropertyCard({
   title,
@@ -1052,13 +1241,28 @@ export function ListingCard({
             if (el.src !== burgasHero) el.src = burgasHero;
           }}
         />
-        {tag ? <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-[0.08em] text-primary-foreground">{tag}</span> : null}
-        <button type="button" aria-label="Добави в любими" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow">
+        {tag ? (
+          <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-semibold tracking-[0.08em] text-primary-foreground">
+            {tag}
+          </span>
+        ) : null}
+        <button
+          type="button"
+          aria-label="Добави в любими"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-primary shadow"
+        >
           <Heart className="h-4 w-4" />
         </button>
         <button
           type="button"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-[rgba(225,29,72,0.88)] px-3.5 py-1.5 text-xs font-semibold tracking-[0.08em] text-primary-foreground shadow-[0_8px_22px_rgba(139,26,43,0.45)] backdrop-blur-sm transition hover:bg-[rgba(225,29,72,0.95)]"
           aria-label="3D виртуален оглед"
         >
@@ -1070,13 +1274,29 @@ export function ListingCard({
       </div>
       <div className="space-y-3 px-4 pb-5 pt-4">
         <div>
-          <h3 className="font-display text-[1.35rem] leading-snug text-accent-foreground">{title}</h3>
-          {location ? <p className="mt-1 inline-flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4 text-primary" />{location}</p> : null}
+          <h3 className="font-display text-[1.35rem] leading-snug text-accent-foreground">
+            {title}
+          </h3>
+          {location ? (
+            <p className="mt-1 inline-flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 text-primary" />
+              {location}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5"><Square className="h-4 w-4 text-primary" />{size}</span>
-          <span className="inline-flex items-center gap-1.5"><BedDouble className="h-4 w-4 text-primary" />{beds}</span>
-          <span className="inline-flex items-center gap-1.5"><Bath className="h-4 w-4 text-primary" />{baths}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <Square className="h-4 w-4 text-primary" />
+            {size}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <BedDouble className="h-4 w-4 text-primary" />
+            {beds}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Bath className="h-4 w-4 text-primary" />
+            {baths}
+          </span>
         </div>
         <div className="font-display text-[1.9rem] text-accent-foreground">{price}</div>
       </div>
@@ -1090,7 +1310,6 @@ export function ListingCard({
   );
 }
 
-
 function AgentCard() {
   return (
     <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(139,26,43,0.3)]">
@@ -1099,16 +1318,32 @@ function AgentCard() {
           <User className="h-8 w-8" />
         </div>
         <div>
-          <div className="font-display text-[1.8rem] leading-none text-primary-foreground">Мария Иванова</div>
+          <div className="font-display text-[1.8rem] leading-none text-primary-foreground">
+            Мария Иванова
+          </div>
           <div className="mt-1 text-lg text-primary/85">Старши консултант</div>
         </div>
       </div>
       <div className="space-y-3 text-lg">
-        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />{AGENCY.phoneDisplay}</div>
-        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />{AGENCY.email}</div>
+        <div className="flex items-center gap-3">
+          <Phone className="h-5 w-5 text-primary" />
+          {AGENCY.phoneDisplay}
+        </div>
+        <div className="flex items-center gap-3 break-all">
+          <Mail className="h-5 w-5 text-primary" />
+          {AGENCY.email}
+        </div>
       </div>
-      <Button asChild className="gold-cta-button h-14 w-full rounded-[14px] text-lg"><a href={`tel:${AGENCY.phone}`}>Запази час за оглед</a></Button>
-      <Button asChild variant="outline" className="marble-action-button h-14 w-full rounded-[14px] border-primary/30 bg-transparent text-lg text-primary-foreground hover:bg-white/6"><a href={`mailto:${AGENCY.email}?subject=Запитване%20за%20имот`}>Запитване</a></Button>
+      <Button asChild className="gold-cta-button h-14 w-full rounded-[14px] text-lg">
+        <a href={`tel:${AGENCY.phone}`}>Запази час за оглед</a>
+      </Button>
+      <Button
+        asChild
+        variant="outline"
+        className="marble-action-button h-14 w-full rounded-[14px] border-primary/30 bg-transparent text-lg text-primary-foreground hover:bg-white/6"
+      >
+        <a href={`mailto:${AGENCY.email}?subject=Запитване%20за%20имот`}>Запитване</a>
+      </Button>
     </aside>
   );
 }
@@ -1118,15 +1353,24 @@ function DetailCard() {
     <aside className="marble-dark-panel rounded-[20px] p-6 text-primary-foreground shadow-[0_22px_45px_rgba(139,26,43,0.28)]">
       <h3 className="mb-4 font-display text-[2rem] text-primary-foreground">Детайли за имота</h3>
       <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-3 text-base md:text-lg">
-        <dt className="text-primary/78">Тип имот:</dt><dd>Апартамент</dd>
-        <dt className="text-primary/78">Вид строителство:</dt><dd>Тухла</dd>
-        <dt className="text-primary/78">Година на строителство:</dt><dd>2015</dd>
-        <dt className="text-primary/78">Етаж:</dt><dd>8 от 9</dd>
-        <dt className="text-primary/78">Асансьор:</dt><dd>Да</dd>
-        <dt className="text-primary/78">Отопление:</dt><dd>Електричество</dd>
-        <dt className="text-primary/78">Паркиране:</dt><dd>Възможност за покупка на подземно паркомясто</dd>
-        <dt className="text-primary/78">Мазе:</dt><dd>Да</dd>
-        <dt className="text-primary/78">Такса поддръжка:</dt><dd>€ 45 / месец</dd>
+        <dt className="text-primary/78">Тип имот:</dt>
+        <dd>Апартамент</dd>
+        <dt className="text-primary/78">Вид строителство:</dt>
+        <dd>Тухла</dd>
+        <dt className="text-primary/78">Година на строителство:</dt>
+        <dd>2015</dd>
+        <dt className="text-primary/78">Етаж:</dt>
+        <dd>8 от 9</dd>
+        <dt className="text-primary/78">Асансьор:</dt>
+        <dd>Да</dd>
+        <dt className="text-primary/78">Отопление:</dt>
+        <dd>Електричество</dd>
+        <dt className="text-primary/78">Паркиране:</dt>
+        <dd>Възможност за покупка на подземно паркомясто</dd>
+        <dt className="text-primary/78">Мазе:</dt>
+        <dd>Да</dd>
+        <dt className="text-primary/78">Такса поддръжка:</dt>
+        <dd>€ 45 / месец</dd>
       </dl>
     </aside>
   );
@@ -1140,16 +1384,50 @@ function MapCard({ district = false }: { district?: boolean }) {
         <p className="mt-1 text-base text-muted-foreground">кв. Лазур, гр. Бургас</p>
       </div>
       <div className="relative h-[300px] overflow-hidden border-y border-primary/10 bg-[linear-gradient(135deg,rgba(212,212,212,0.85),rgba(229,229,229,0.92))]">
-        <div className="absolute inset-0 opacity-70" style={{ backgroundImage: "linear-gradient(90deg, rgba(120,106,94,0.18) 1px, transparent 1px), linear-gradient(rgba(120,106,94,0.18) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
-        <div className={cn("absolute inset-y-0 right-[12%] w-[22%] bg-[linear-gradient(180deg,rgba(56,136,180,0.6),rgba(34,125,180,0.78))]", district ? "w-[28%]" : "")} />
-        {district ? <div className="absolute inset-y-[12%] right-[18%] w-[28%] rounded-[40%] bg-[rgba(225,29,72,0.5)]" /> : null}
-        <div className={cn("absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-card text-primary shadow-[0_0_0_8px_rgba(225,29,72,0.18)]", district && "left-[58%] top-[58%]") }>
+        <div
+          className="absolute inset-0 opacity-70"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, rgba(120,106,94,0.18) 1px, transparent 1px), linear-gradient(rgba(120,106,94,0.18) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+        <div
+          className={cn(
+            "absolute inset-y-0 right-[12%] w-[22%] bg-[linear-gradient(180deg,rgba(56,136,180,0.6),rgba(34,125,180,0.78))]",
+            district ? "w-[28%]" : "",
+          )}
+        />
+        {district ? (
+          <div className="absolute inset-y-[12%] right-[18%] w-[28%] rounded-[40%] bg-[rgba(225,29,72,0.5)]" />
+        ) : null}
+        <div
+          className={cn(
+            "absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-card text-primary shadow-[0_0_0_8px_rgba(225,29,72,0.18)]",
+            district && "left-[58%] top-[58%]",
+          )}
+        >
           <MapPin className="h-6 w-6" />
         </div>
-        {district ? <div className="absolute left-[48%] top-[58%] -translate-x-1/2 -translate-y-1/2 font-display text-[2.3rem] tracking-[0.12em] text-card-foreground/75">ЛАЗУР</div> : null}
+        {district ? (
+          <div className="absolute left-[48%] top-[58%] -translate-x-1/2 -translate-y-1/2 font-display text-[2.3rem] tracking-[0.12em] text-card-foreground/75">
+            ЛАЗУР
+          </div>
+        ) : null}
       </div>
       <div className="p-4">
-        <Button asChild className="marble-dark-panel h-14 w-full rounded-[14px] text-lg text-primary-foreground"><a href="https://www.google.com/maps/search/?api=1&query=кв.+Лазур+Бургас" target="_blank" rel="noopener noreferrer">Виж на картата</a></Button>
+        <Button
+          asChild
+          className="marble-dark-panel h-14 w-full rounded-[14px] text-lg text-primary-foreground"
+        >
+          <a
+            href="https://www.google.com/maps/search/?api=1&query=кв.+Лазур+Бургас"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Виж на картата
+          </a>
+        </Button>
       </div>
     </aside>
   );
@@ -1208,14 +1486,11 @@ export function HomePage({
   featured?: FeaturedListing[];
   layout?: LayoutSection[] | null;
 } = {}) {
-  const cityList = HOME_CITY_ORDER.map((slug) => {
-    const found = (cities && cities.length ? cities : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug }))).find((c) => c.slug === slug);
-    return {
-      slug,
-      name: found?.name || HOME_CITY_NAMES[slug],
-      image: citySlugImages[slug] || found?.image || burgasHero,
-    };
-  });
+  const cityList = (
+    cities && cities.length
+      ? cities
+      : homeCities.map((c) => ({ name: c.name, image: c.image, slug: c.params.slug }))
+  ).map((c) => ({ ...c, image: citySlugImages[c.slug] || c.image || burgasHero }));
   const cityOpts = cityList.map((c) => ({ slug: c.slug, name: c.name }));
 
   // Default order if no saved layout
@@ -1255,7 +1530,6 @@ export function HomePage({
               <SearchBar cities={cityOpts} variant="burgundy" />
             </div>
           </div>
-
         );
       case "hero-search-desktop":
         return (
@@ -1266,23 +1540,22 @@ export function HomePage({
 
       case "cities-grid":
         return (
-          <div key={id} data-section-id="cities-grid">
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-4 md:gap-4">
+          <div
+            key={id}
+            data-section-id="cities-grid"
+            className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5"
+          >
             {cityList.map((city) => (
-              <CityCard
+              <CityBrushCard
                 key={city.slug}
                 name={city.name}
                 image={city.image}
-                href="/cities/$slug"
                 params={{ slug: city.slug }}
               />
             ))}
-            </div>
-            <p className="mt-2 text-center text-[11px] tracking-[0.16em] text-white/70">
-              Имоти Надежда · <span lang="en">imoti nadezhda</span>
-            </p>
           </div>
         );
+
       case "trust-strip":
         return <TrustStrip key={id} />;
       default:
@@ -1301,14 +1574,24 @@ export function HomePage({
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden focusable="false">
         <defs>
           <filter id="paintSplashEdge" x="-10%" y="-10%" width="120%" height="120%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="2" seed="7" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="10" xChannelSelector="R" yChannelSelector="G" />
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.028"
+              numOctaves="2"
+              seed="7"
+              result="noise"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="noise"
+              scale="10"
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
           </filter>
         </defs>
       </svg>
-      <section
-        className="relative flex flex-1 min-h-0 flex-col pt-0 pb-[92px] md:pb-3"
-      >
+      <section className="relative flex flex-1 min-h-0 flex-col pt-0 pb-[92px] md:pb-3">
         {/* Mobile: static Shumen photo per design #5 */}
         <img
           src={resolveAssetUrl(shumenHeroMobile)}
@@ -1325,11 +1608,16 @@ export function HomePage({
           preload="metadata"
           className="hidden md:absolute md:inset-0 md:block md:h-full md:w-full md:object-contain bg-[#0f0a0b]"
         />
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/55 md:from-black/15 md:to-black/25" />
-        <div className="relative z-10 flex flex-1 min-h-0 flex-col">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/55 md:from-black/15 md:to-black/25"
+        />
+        <div className="relative z-10 flex flex-1 min-h-0 flex-col site-header-overlay-pad">
           <LuxuryHeader active="sale" overlay />
 
-          <h1 className="sr-only">Имоти Надежда — недвижими имоти в Шумен, Варна, Бургас и Нови пазар</h1>
+          <h1 className="sr-only">
+            Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен и Нови пазар
+          </h1>
           <section className="relative z-10 mx-auto flex w-full max-w-[1420px] flex-col gap-[14px] px-4 md:mt-auto md:gap-0 md:px-8 md:pt-5">
             {heroSections.map((s) => renderSection(s))}
           </section>
@@ -1338,10 +1626,6 @@ export function HomePage({
     </main>
   );
 }
-
-
-
-
 
 export function TrustStrip() {
   const items = [
@@ -1358,13 +1642,24 @@ export function TrustStrip() {
             <div key={title} className="flex items-start gap-3">
               <div
                 className="flex h-10 w-10 flex-none items-center justify-center rounded-full border md:h-12 md:w-12"
-                style={{ borderColor: "rgba(201,168,76,0.55)", backgroundColor: "rgba(201,168,76,0.08)" }}
+                style={{
+                  borderColor: "rgba(201,168,76,0.55)",
+                  backgroundColor: "rgba(201,168,76,0.08)",
+                }}
               >
-                <Icon className="h-5 w-5 md:h-6 md:w-6" style={{ color: "#C9A84C" }} strokeWidth={1.75} />
+                <Icon
+                  className="h-5 w-5 md:h-6 md:w-6"
+                  style={{ color: "#C9A84C" }}
+                  strokeWidth={1.75}
+                />
               </div>
               <div className="min-w-0">
-                <div className="font-display text-base font-semibold text-white md:text-lg">{title}</div>
-                <div className="mt-1 text-[12px] leading-snug text-white/65 md:text-[13px]">{desc}</div>
+                <div className="font-display text-base font-semibold text-white md:text-lg">
+                  {title}
+                </div>
+                <div className="mt-1 text-[12px] leading-snug text-white/65 md:text-[13px]">
+                  {desc}
+                </div>
               </div>
             </div>
           ))}
@@ -1378,7 +1673,11 @@ export function TrustStrip() {
             boxShadow: "0 8px 22px rgba(0,0,0,0.45)",
           }}
         >
-          <MessageCircle className="h-4 w-4 md:h-5 md:w-5" style={{ color: "#C9A84C" }} strokeWidth={2} />
+          <MessageCircle
+            className="h-4 w-4 md:h-5 md:w-5"
+            style={{ color: "#C9A84C" }}
+            strokeWidth={2}
+          />
           <span>Чат с консултант</span>
         </button>
       </div>
@@ -1397,8 +1696,23 @@ type CityData = {
     population?: number | null;
     area_km2?: number | null;
   };
-  quarters: Array<{ id: string; slug: string; name: string; image_url?: string | null; properties_count?: number | null }>;
-  properties: Array<{ id: string; title: string; price: number | string; currency?: string | null; area_sqm?: number | null; bedrooms?: number | null; bathrooms?: number | null; cover_image_url?: string | null }>;
+  quarters: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    image_url?: string | null;
+    properties_count?: number | null;
+  }>;
+  properties: Array<{
+    id: string;
+    title: string;
+    price: number | string;
+    currency?: string | null;
+    area_sqm?: number | null;
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    cover_image_url?: string | null;
+  }>;
 };
 
 const HERO_FILTER_FIELD =
@@ -1440,7 +1754,9 @@ function HeroFilterSelect({
           className="mt-0.5 flex w-full items-center justify-between gap-1 bg-transparent text-left outline-none"
         >
           <span className="truncate text-[11px] text-white">{selected?.label ?? "—"}</span>
-          <ChevronDown className={cn("h-3 w-3 flex-none text-[#C9A84C]/80 transition", open && "rotate-180")} />
+          <ChevronDown
+            className={cn("h-3 w-3 flex-none text-[#C9A84C]/80 transition", open && "rotate-180")}
+          />
         </button>
       </div>
       {open && (
@@ -1519,7 +1835,10 @@ function CityFilterPanel({
           value={quarter}
           onChange={setQuarter}
           ariaLabel="Квартал"
-          options={[{ value: "", label: "Всички" }, ...quarters.map((q) => ({ value: q.slug, label: q.name }))]}
+          options={[
+            { value: "", label: "Всички" },
+            ...quarters.map((q) => ({ value: q.slug, label: q.name })),
+          ]}
         />
         <HeroFilterSelect
           icon={LandPlot}
@@ -1535,7 +1854,9 @@ function CityFilterPanel({
         <label className={fieldBase}>
           <LandPlot className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
           <div className="min-w-0 flex-1">
-            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Цена до</div>
+            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">
+              Цена до
+            </div>
             <input
               value={priceMax}
               onChange={(e) => setPriceMax(e.target.value.replace(/\D/g, ""))}
@@ -1549,7 +1870,9 @@ function CityFilterPanel({
         <label className={fieldBase}>
           <Square className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
           <div className="min-w-0 flex-1">
-            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Площ от</div>
+            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">
+              Площ от
+            </div>
             <input
               value={areaMin}
               onChange={(e) => setAreaMin(e.target.value.replace(/\D/g, ""))}
@@ -1580,11 +1903,7 @@ function CityFilterPanel({
  * Search panel for the homepage hero — identical visual style to CityFilterPanel
  * (used on /cities/$slug pages) but with a city selector instead of a fixed city.
  */
-function HomeFilterPanel({
-  cities = [],
-}: {
-  cities?: Array<{ slug: string; name: string }>;
-}) {
+function HomeFilterPanel({ cities = [] }: { cities?: Array<{ slug: string; name: string }> }) {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [city, setCity] = useReactState(cities[0]?.slug ?? "burgas");
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -1595,7 +1914,14 @@ function HomeFilterPanel({
   const [areaMin, setAreaMin] = useReactState("");
   const navigate = useNavigate();
 
-  const cityOptions = orderedCityOptions(cities);
+  const cityOptions = cities.length
+    ? cities
+    : [
+        { slug: "burgas", name: "Бургас" },
+        { slug: "varna", name: "Варна" },
+        { slug: "shumen", name: "Шумен" },
+        { slug: "novi-pazar", name: "Нов пазар" },
+      ];
 
   const submit = () => {
     const params: Record<string, string> = {};
@@ -1631,7 +1957,9 @@ function HomeFilterPanel({
         <label className={fieldBase}>
           <Building2 className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
           <div className="min-w-0 flex-1">
-            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Цена до</div>
+            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">
+              Цена до
+            </div>
             <input
               value={priceMax}
               onChange={(e) => setPriceMax(e.target.value.replace(/\D/g, ""))}
@@ -1647,7 +1975,9 @@ function HomeFilterPanel({
         <label className={fieldBase}>
           <Square className="h-3.5 w-3.5 flex-none text-[#C9A84C]" />
           <div className="min-w-0 flex-1">
-            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">Площ от</div>
+            <div className="text-[8.5px] uppercase tracking-[0.12em] text-[#C9A84C]/90">
+              Площ от
+            </div>
             <input
               value={areaMin}
               onChange={(e) => setAreaMin(e.target.value.replace(/\D/g, ""))}
@@ -1674,8 +2004,6 @@ function HomeFilterPanel({
   );
 }
 
-
-
 export function CityPage({ data }: { data?: CityData } = {}) {
   const [videoFailed, setVideoFailed] = useReactState(false);
   const city = data?.city ?? {
@@ -1692,7 +2020,9 @@ export function CityPage({ data }: { data?: CityData } = {}) {
     city.slug === "shumen"
       ? shumenQuarterCards.map((local, i) => {
           const dbMatch = data?.quarters?.find(
-            (q) => q.slug === local.slug || normalizeQuarterName(q.name) === normalizeQuarterName(local.name),
+            (q) =>
+              q.slug === local.slug ||
+              normalizeQuarterName(q.name) === normalizeQuarterName(local.name),
           );
           return {
             id: dbMatch?.id ?? `shumen-${i}`,
@@ -1716,7 +2046,7 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       ? city.hero_image_url
       : citySlugImages[city.slug]) || cityShumen;
   const fallbackVideo = cityVideoFallbacks[city.slug];
-  const heroVideo = videoFailed ? null : (city.hero_video_url || fallbackVideo);
+  const heroVideo = videoFailed ? null : city.hero_video_url || fallbackVideo;
 
   const fmt = (n: number) => new Intl.NumberFormat("bg-BG").format(n);
 
@@ -1725,7 +2055,6 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       {/* HERO with overlay navbar */}
       <section className="relative">
         <div className="relative h-[100dvh] min-h-[640px] w-full overflow-hidden">
-
           {heroVideo ? (
             <AutoPlayVideo
               src={heroVideo}
@@ -1735,15 +2064,23 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (
-            <img src={heroImage} alt={city.name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+            <img
+              src={heroImage}
+              alt={city.name}
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
           )}
-          <div aria-hidden className="absolute inset-0 md:bg-gradient-to-b md:from-black/35 md:via-transparent md:to-[#5e0f1d]/40" />
+          <div
+            aria-hidden
+            className="absolute inset-0 md:bg-gradient-to-b md:from-black/35 md:via-transparent md:to-[#5e0f1d]/40"
+          />
 
           {/* Overlay navbar */}
           <div className="absolute inset-x-0 top-0 z-30">
             <LuxuryHeader active="sale" overlay />
           </div>
-
 
           {/* Right-side overlays */}
           <div className="absolute inset-x-0 bottom-0 z-20 flex max-h-[60%] flex-col gap-3 overflow-y-auto p-3 md:inset-y-0 md:right-0 md:left-auto md:bottom-auto md:max-h-none md:w-full md:max-w-[480px] md:gap-4 md:p-6 md:pt-[130px]">
@@ -1755,16 +2092,25 @@ export function CityPage({ data }: { data?: CityData } = {}) {
             />
 
             {/* CITY INFO CARD */}
-            <div
-              className="mt-auto overflow-hidden rounded-2xl text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:ring-1 md:ring-[#C9A84C]/25 bg-transparent md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]"
-            >
-
+            <div className="mt-auto overflow-hidden rounded-2xl text-white shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:ring-1 md:ring-[#C9A84C]/25 bg-transparent md:[background:linear-gradient(135deg,#8B1A2B_0%,#5e0f1d_100%)]">
               <div className="flex gap-3 p-3.5 md:gap-4 md:p-4">
-                <img src={heroImage} alt="" className="h-24 w-24 flex-none rounded-xl object-cover ring-1 ring-[#C9A84C]/30" loading="lazy" decoding="async" />
+                <img
+                  src={heroImage}
+                  alt=""
+                  className="h-24 w-24 flex-none rounded-xl object-cover ring-1 ring-[#C9A84C]/30"
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div className="min-w-0">
-                  <div className="text-[9.5px] uppercase tracking-[0.22em] text-[#C9A84C] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">За града</div>
-                  <h1 className="mt-1 font-display text-[2.2rem] leading-none text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.55)]">{city.name}</h1>
-                  <p className="mt-2 line-clamp-3 text-[11px] leading-snug text-white/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">{city.description}</p>
+                  <div className="text-[9.5px] uppercase tracking-[0.22em] text-[#C9A84C] [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">
+                    За града
+                  </div>
+                  <h1 className="mt-1 font-display text-[2.2rem] leading-none text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.55)]">
+                    {city.name}
+                  </h1>
+                  <p className="mt-2 line-clamp-3 text-[11px] leading-snug text-white/95 [text-shadow:0_1px_3px_rgba(0,0,0,0.6)]">
+                    {city.description}
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-4 gap-1 border-t border-[#C9A84C]/15 px-3 py-3">
@@ -1784,8 +2130,12 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                 ].map((s, i) => (
                   <div key={i} className="flex flex-col items-center text-center">
                     <s.icon className="h-4 w-4 text-[#C9A84C]" />
-                    <div className="mt-1 text-[11.5px] font-semibold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">{s.val}</div>
-                    <div className="text-[9px] leading-tight text-white/85 [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">{s.label}</div>
+                    <div className="mt-1 text-[11.5px] font-semibold leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">
+                      {s.val}
+                    </div>
+                    <div className="text-[9px] leading-tight text-white/85 [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]">
+                      {s.label}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1807,7 +2157,12 @@ export function CityPage({ data }: { data?: CityData } = {}) {
       </section>
 
       {/* NEIGHBORHOODS — overlaps the hero video */}
-      <section className="relative z-20 -mt-32 md:-mt-48 px-4 py-10 md:px-8 md:pt-14 md:pb-12 rounded-t-[28px] shadow-[0_-20px_60px_rgba(0,0,0,0.45)]" style={{ background: "linear-gradient(180deg, rgba(94,15,29,0.92) 0%, #5e0f1d 30%, #4a0c17 100%)" }}>
+      <section
+        className="relative z-20 -mt-32 md:-mt-48 px-4 py-10 md:px-8 md:pt-14 md:pb-12 rounded-t-[28px] shadow-[0_-20px_60px_rgba(0,0,0,0.45)]"
+        style={{
+          background: "linear-gradient(180deg, rgba(94,15,29,0.92) 0%, #5e0f1d 30%, #4a0c17 100%)",
+        }}
+      >
         <div className="mx-auto max-w-[1480px]">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="flex items-center gap-2 font-display text-xl text-white md:text-2xl">
@@ -1819,7 +2174,6 @@ export function CityPage({ data }: { data?: CityData } = {}) {
               params={{ slug: city.slug }}
               className="text-sm text-[#C9A84C] transition hover:text-white hover:underline"
             >
-
               Виж всички квартали →
             </Link>
           </div>
@@ -1847,13 +2201,16 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                       aria-hidden
                       className="absolute inset-x-0 bottom-0 h-[70%]"
                       style={{
-                        background: "linear-gradient(180deg, transparent 0%, rgba(94,15,29,0.85) 100%)",
+                        background:
+                          "linear-gradient(180deg, transparent 0%, rgba(94,15,29,0.85) 100%)",
                       }}
                     />
                     <div className="absolute inset-x-0 bottom-0 p-3">
-                      <h3 className="font-serif-nadezhda text-[15px] font-bold leading-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] sm:text-base">
-                        {q.name}
-                      </h3>
+                      {city.slug !== "shumen" && (
+                        <h3 className="font-serif-nadezhda text-[15px] font-bold leading-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)] sm:text-base">
+                          {q.name}
+                        </h3>
+                      )}
                       <div className="mt-1 flex items-center justify-between">
                         <span className="inline-flex items-center gap-1 text-[11px] text-white/90">
                           <MapPin className="h-3 w-3 text-[#C9A84C]" />
@@ -1904,7 +2261,11 @@ export function CityPage({ data }: { data?: CityData } = {}) {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-4 md:gap-6">
             {[
               { icon: Shield, title: "Доверие и сигурност", desc: "Прозрачност във всяка сделка" },
-              { icon: User, title: "Персонален подход", desc: "Индивидуално отношение към всеки клиент" },
+              {
+                icon: User,
+                title: "Персонален подход",
+                desc: "Индивидуално отношение към всеки клиент",
+              },
               { icon: Award, title: "Богат избор", desc: "Голямо разнообразие от имоти в региона" },
               { icon: Trophy, title: "Професионализъм", desc: "Опитен екип с доказани резултати" },
             ].map((f, i) => (
@@ -1913,7 +2274,9 @@ export function CityPage({ data }: { data?: CityData } = {}) {
                   <f.icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="font-display text-[15px] leading-tight text-[#8B1A2B]">{f.title}</div>
+                  <div className="font-display text-[15px] leading-tight text-[#8B1A2B]">
+                    {f.title}
+                  </div>
                   <div className="mt-1 text-[12px] leading-snug text-[#2b1418]/70">{f.desc}</div>
                 </div>
               </div>
@@ -1925,7 +2288,15 @@ export function CityPage({ data }: { data?: CityData } = {}) {
   );
 }
 
-function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: string; label: string }) {
+function StatItem({
+  icon: Icon,
+  value,
+  label,
+}: {
+  icon: typeof User;
+  value: string;
+  label: string;
+}) {
   return (
     <div className="flex flex-col items-start gap-1 md:gap-2">
       <div
@@ -1938,13 +2309,29 @@ function StatItem({ icon: Icon, value, label }: { icon: typeof User; value: stri
       >
         <Icon className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]" />
       </div>
-      <div className="mt-0.5 font-display text-[0.85rem] leading-tight text-[#ef4444] md:mt-1 md:text-[1.25rem]">{value}</div>
+      <div className="mt-0.5 font-display text-[0.85rem] leading-tight text-[#ef4444] md:mt-1 md:text-[1.25rem]">
+        {value}
+      </div>
       <div className="text-[10px] leading-tight text-[#e5e5e5]/90 md:text-[12.5px]">{label}</div>
     </div>
   );
 }
 
-function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Array<{ id: string; slug: string; name: string; image_url?: string | null; properties_count?: number | null }>; citySlug: string; fallbackImage: string }) {
+function QuartersScroller({
+  quarters,
+  citySlug,
+  fallbackImage,
+}: {
+  quarters: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    image_url?: string | null;
+    properties_count?: number | null;
+  }>;
+  citySlug: string;
+  fallbackImage: string;
+}) {
   const visible = quarters.slice(0, 5);
   const localCycle = [burgasHero, burgasPier, cityBurgas, homeHero, fallbackImage];
   return (
@@ -1970,12 +2357,17 @@ function QuartersScroller({ quarters, citySlug, fallbackImage }: { quarters: Arr
   );
 }
 
-
 function DistrictMapCard({ name }: { name: string }) {
   return (
     <aside className="overflow-hidden rounded-[26px] border border-primary/20 bg-card shadow-[0_24px_55px_rgba(88,40,18,0.18)]">
       <div className="relative h-[520px] overflow-hidden">
-        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(135deg,#525252 0%,#737373 35%,#404040 70%,#525252 100%)" }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(135deg,#525252 0%,#737373 35%,#404040 70%,#525252 100%)",
+          }}
+        />
         <div
           className="absolute inset-0 opacity-30"
           style={{
@@ -1994,20 +2386,38 @@ function DistrictMapCard({ name }: { name: string }) {
         <div
           className="absolute"
           style={{
-            top: "18%", left: "32%", width: "44%", height: "62%",
+            top: "18%",
+            left: "32%",
+            width: "44%",
+            height: "62%",
             background: "rgba(225,29,72,0.78)",
             border: "1.5px solid rgba(220,38,38,0.65)",
             clipPath: "polygon(20% 0,80% 6%,100% 32%,92% 68%,72% 96%,38% 100%,8% 78%,0 40%)",
             boxShadow: "0 0 30px rgba(225,29,72,0.45) inset",
           }}
         />
-        <div className="absolute font-display tracking-[0.18em] text-primary-foreground" style={{ top: "44%", left: "44%", fontSize: "2rem", textShadow: "0 2px 8px rgba(139, 26, 43,0.55)" }}>
+        <div
+          className="absolute font-display tracking-[0.18em] text-primary-foreground"
+          style={{
+            top: "44%",
+            left: "44%",
+            fontSize: "2rem",
+            textShadow: "0 2px 8px rgba(139, 26, 43,0.55)",
+          }}
+        >
           {name.toUpperCase()}
         </div>
       </div>
       <div className="marble-dark-panel flex items-center justify-center px-4 py-5">
-        <Button asChild className="h-12 rounded-[14px] border border-[var(--color-secondary)]/60 bg-transparent px-6 text-base text-primary-foreground hover:bg-white/5">
-          <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " Шумен")}`} target="_blank" rel="noopener noreferrer">
+        <Button
+          asChild
+          className="h-12 rounded-[14px] border border-[var(--color-secondary)]/60 bg-transparent px-6 text-base text-primary-foreground hover:bg-white/5"
+        >
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " Шумен")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <MapPin className="mr-2 h-5 w-5 text-[var(--color-secondary)]" />
             Виж на картата
           </a>
@@ -2017,32 +2427,69 @@ function DistrictMapCard({ name }: { name: string }) {
   );
 }
 
-function DistrictListingCard({ p, location, fallback }: { p: QuarterData["properties"][number]; location: string; fallback: string }) {
+function DistrictListingCard({
+  p,
+  location,
+  fallback,
+}: {
+  p: QuarterData["properties"][number];
+  location: string;
+  fallback: string;
+}) {
   const tag = p.is_featured ? "ТОП ОФЕРТА" : "НОВО";
   return (
     <Link to="/properties/$propertyId" params={{ propertyId: p.id }} className="block">
       <article className="marble-hover-card group flex h-full flex-col overflow-hidden rounded-[20px] border border-primary/18 bg-card shadow-[0_18px_42px_rgba(139,26,43,0.16)]">
         <div className="relative aspect-[1.05/0.82] overflow-hidden">
-          <img src={p.cover_image_url || fallback} alt={p.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
-          <span className="absolute left-3 top-3 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-primary-foreground shadow">{tag}</span>
-          <button type="button" aria-label="Добави в любими" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 text-primary shadow">
+          <img
+            src={p.cover_image_url || fallback}
+            alt={p.title}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+          <span className="absolute left-3 top-3 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-primary-foreground shadow">
+            {tag}
+          </span>
+          <button
+            type="button"
+            aria-label="Добави в любими"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 text-primary shadow"
+          >
             <Heart className="h-4 w-4" />
           </button>
           <div className="marble-wave-glow" />
           <GoldDustLayer />
         </div>
         <div className="flex flex-1 flex-col gap-2.5 px-4 pb-4 pt-3">
-          <h3 className="font-display text-[1.2rem] leading-tight text-accent-foreground">{p.title}</h3>
+          <h3 className="font-display text-[1.2rem] leading-tight text-accent-foreground">
+            {p.title}
+          </h3>
           <p className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 text-primary" />{location}
+            <MapPin className="h-3.5 w-3.5 text-primary" />
+            {location}
           </p>
           <div className="flex items-center gap-3 border-t border-primary/10 pt-2.5 text-[13px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><Square className="h-3.5 w-3.5 text-primary" />{p.area_sqm ?? "—"} м²</span>
-            <span className="inline-flex items-center gap-1"><BedDouble className="h-3.5 w-3.5 text-primary" />{p.bedrooms ?? 0}</span>
-            <span className="inline-flex items-center gap-1"><User className="h-3.5 w-3.5 text-primary" />{p.bathrooms ?? 0}</span>
+            <span className="inline-flex items-center gap-1">
+              <Square className="h-3.5 w-3.5 text-primary" />
+              {p.area_sqm ?? "—"} м²
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <BedDouble className="h-3.5 w-3.5 text-primary" />
+              {p.bedrooms ?? 0}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <User className="h-3.5 w-3.5 text-primary" />
+              {p.bathrooms ?? 0}
+            </span>
           </div>
           <div className="mt-auto flex items-center justify-between pt-1">
-            <div className="font-display text-[1.45rem] text-accent-foreground">{formatPrice(p.price, p.currency ?? "EUR")}</div>
+            <div className="font-display text-[1.45rem] text-accent-foreground">
+              {formatPrice(p.price, p.currency ?? "EUR")}
+            </div>
             <span className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
               <ChevronRight className="h-4 w-4" />
             </span>
@@ -2054,8 +2501,16 @@ function DistrictListingCard({ p, location, fallback }: { p: QuarterData["proper
 }
 
 type QuarterData = {
-  city: { id: string; slug: string; name: string; lat?: number | null; lng?: number | null };
-  quarter: { id: string; slug: string; name: string; description?: string | null; image_url?: string | null; properties_count?: number | null; avg_price_per_sqm?: number | null };
+  city: { id: string; slug: string; name: string };
+  quarter: {
+    id: string;
+    slug: string;
+    name: string;
+    description?: string | null;
+    image_url?: string | null;
+    properties_count?: number | null;
+    avg_price_per_sqm?: number | null;
+  };
   properties: Array<{
     id: string;
     title: string;
@@ -2066,19 +2521,22 @@ type QuarterData = {
     bathrooms?: number | null;
     cover_image_url?: string | null;
     is_featured?: boolean;
-    address?: string | null;
-    lat?: number | null;
-    lng?: number | null;
   }>;
   gallery?: Array<{ id: string; url: string; is_cover?: boolean; display_order?: number | null }>;
-  cityQuarters?: Array<{ name: string }>;
 };
 
 export function DistrictPage({ data }: { data?: QuarterData } = {}) {
   const city = data?.city ?? { id: "x", slug: "shumen", name: "Шумен" };
-  const quarter = data?.quarter ?? { id: "x", slug: "centar", name: "Център", description: null, image_url: null, properties_count: 0 };
+  const quarter = data?.quarter ?? {
+    id: "x",
+    slug: "centar",
+    name: "Център",
+    description: null,
+    image_url: null,
+    properties_count: 0,
+  };
   const properties = data?.properties ?? [];
-  const count = properties.length || quarter.properties_count || 0;
+  const count = quarter.properties_count ?? properties.length;
   const [districtVideoFailed, setDistrictVideoFailed] = useReactState(false);
   const districtFallbackVideo = cityVideoFallbacks[city.slug];
   const districtHeroVideo = districtVideoFailed ? null : districtFallbackVideo;
@@ -2086,9 +2544,10 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
 
   return (
     <main className="luxury-page nadezhda-marble-bg min-h-screen font-sans-nadezhda text-[#31020c]">
-      <LuxuryHeader active="sale" overlay />
+      <LuxuryHeader active="sale" />
 
-      <div className="relative top-0 w-full overflow-hidden h-[75vh] min-h-[520px] max-h-[780px] md:min-h-[600px]">
+      {/* HERO — city video */}
+      <div className="relative h-[450px] w-full">
         {districtHeroVideo ? (
           <AutoPlayVideo
             src={districtHeroVideo}
@@ -2098,46 +2557,76 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <img src={districtHeroPoster} alt={`${quarter.name}, ${city.name}`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+          <img
+            src={districtHeroPoster}
+            alt={city.name}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
         )}
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/15 to-black/25" />
-        <div className="absolute inset-x-0 bottom-0 z-10 mx-auto max-w-7xl px-4 pb-8 pt-[clamp(150px,32vw,220px)]">
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-sm text-white/85">
-            <Link to="/" className="hover:text-white">Начало</Link>
-            <ChevronRight className="h-3 w-3" />
-            <Link to="/cities/$slug" params={{ slug: city.slug }} className="hover:text-white">{city.name}</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="font-semibold text-[#f4d07d]">{quarter.name}</span>
-          </div>
-          <h1 className="max-w-4xl break-words font-serif-nadezhda text-3xl font-bold leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] md:text-5xl">
-            Имоти в {quarter.name}
-          </h1>
-          <p className="mt-1 text-base font-semibold text-white/90 md:text-lg">гр. {city.name} — Имоти Надежда</p>
-        </div>
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent"
+        />
       </div>
 
-      <div className="relative z-10 mx-auto -mt-5 max-w-7xl px-4">
-        <DistrictSearchBar cityName={city.name} citySlug={city.slug} />
+      {/* Floating search bar overlapping hero */}
+      <div className="relative z-10 mx-auto -mt-12 max-w-6xl px-4">
+        <DistrictSearchBar cityName={city.name} />
       </div>
 
-      <div className="mx-auto mt-8 flex max-w-7xl flex-col gap-8 px-4 pb-24 lg:flex-row">
+      {/* Main content */}
+      <div className="mx-auto mt-12 flex max-w-7xl flex-col gap-8 px-4 pb-24 lg:flex-row">
         <DistrictFilterSidebar citySlug={city.slug} quarterSlug={quarter.slug} />
 
-        <div className="min-w-0 flex-1">
-          <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-            <p className="max-w-2xl text-base leading-relaxed text-[#3a1418]/80">
-              {quarter.description || `Имоти Надежда предлага апартаменти и къщи в квартал ${quarter.name}, ${city.name} — продажба и под наем.`}
-            </p>
-            <div className="flex items-center gap-4 rounded-2xl border border-[#eaddc4] bg-white px-5 py-3 shadow-sm">
-              <House className="h-7 w-7 text-[#c59441]" />
-              <div>
-                <div className="font-serif-nadezhda text-xl font-bold leading-none text-[#600f1c]">{count}</div>
-                <div className="text-sm text-gray-500">имота</div>
+        <div className="flex-1">
+          {/* Breadcrumb */}
+          <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+            <Link to="/" className="hover:text-black">
+              Начало
+            </Link>
+            <ChevronRight className="h-3 w-3" />
+            <Link to="/cities/$slug" params={{ slug: city.slug }} className="hover:text-black">
+              {city.name}
+            </Link>
+            <ChevronRight className="h-3 w-3" />
+            <span className="font-bold text-[#600f1c]">{quarter.name}</span>
+          </div>
+
+          {/* Title row */}
+          <div className="mb-8 flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-xl">
+              <h1 className="font-serif-nadezhda mb-3 text-4xl font-bold leading-tight text-[#600f1c] md:text-5xl">
+                {quarter.name}, гр. {city.name}
+              </h1>
+              <p className="text-base leading-relaxed text-gray-600">
+                {quarter.description ||
+                  `Един от предпочитаните квартали в гр. ${city.name} – с отлична инфраструктура, удобства и възможности за съвременен начин на живот.`}
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-4 rounded-2xl border border-[#eaddc4] bg-white px-5 py-3 shadow-sm">
+                <House className="h-7 w-7 text-[#c59441]" />
+                <div>
+                  <div className="font-serif-nadezhda text-xl font-bold leading-none text-[#600f1c]">
+                    {count}
+                  </div>
+                  <div className="text-sm text-gray-500">имота</div>
+                </div>
               </div>
+              <button className="flex items-center gap-4 rounded-2xl border border-[#eaddc4] bg-white px-5 py-3 shadow-sm transition hover:bg-gray-50">
+                <Heart className="h-7 w-7 text-[#c59441]" />
+                <div className="text-left">
+                  <div className="text-base font-bold leading-none text-[#600f1c]">Добави</div>
+                  <div className="mt-1 text-xs text-gray-500">в любими</div>
+                </div>
+              </button>
             </div>
           </div>
 
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#eaddc4] bg-[#fdfaf5] px-4 py-2 shadow-sm">
+          {/* Sort bar */}
+          <div className="mb-8 flex items-center justify-between rounded-2xl border border-[#eaddc4] bg-[#fdfaf5] px-4 py-2 shadow-sm">
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-600">Сортирай по:</span>
               <select className="cursor-pointer border-none bg-transparent text-base font-bold text-[#600f1c] outline-none">
@@ -2146,95 +2635,114 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
                 <option>Най-скъпи</option>
               </select>
             </div>
+            <div className="flex gap-2">
+              <button className="nadezhda-dark-red-bg flex h-10 w-10 items-center justify-center rounded-lg text-white shadow">
+                <SlidersHorizontal className="h-4 w-4" />
+              </button>
+              <button className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 shadow-sm hover:bg-gray-50">
+                <Ruler className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          {/* Listings grid */}
+          <div className="grid gap-8 md:grid-cols-2">
             {properties.length === 0 ? (
-              <div className="rounded-2xl border border-[#eaddc4] bg-white p-10 text-center md:col-span-2">
-                <p className="font-serif-nadezhda text-xl font-bold text-[#600f1c]">Все още няма обяви в {quarter.name}</p>
-                <p className="mt-2 text-sm text-[#3a1418]/70">Разгледайте всички имоти в {city.name} или се върнете към кварталите.</p>
-                <div className="mt-5 flex flex-wrap justify-center gap-3">
-                  <Link to="/search" search={{ city_slug: city.slug } as never} className="nadezhda-gold-bg rounded-full px-5 py-2 text-sm font-bold text-[#2a0a12]">
-                    Имоти в {city.name}
-                  </Link>
-                  <Link to="/cities/$slug" params={{ slug: city.slug }} className="rounded-full border border-[#8B1A2B] px-5 py-2 text-sm font-bold text-[#8B1A2B]">
-                    Квартали
-                  </Link>
-                </div>
+              <div className="rounded-2xl bg-white p-10 text-center text-muted-foreground md:col-span-2">
+                Все още няма публикувани имоти в този квартал.
               </div>
             ) : (
               properties.map((p) => (
-                <DistrictListingCard key={p.id} p={p} location={`${quarter.name}, гр. ${city.name}`} fallback={districtHeroPoster} />
+                <DistrictListingCard
+                  key={p.id}
+                  p={p}
+                  location={`${quarter.name}, гр. ${city.name}`}
+                  fallback={districtHeroPoster}
+                />
               ))
             )}
           </div>
 
           {data?.gallery && data.gallery.length > 0 ? (
-            <div className="mt-10 rounded-3xl border border-[#eaddc4] bg-[#fdfaf5] p-6 shadow-sm md:p-8">
+            <div className="mt-10 rounded-3xl border border-[#eaddc4] bg-[#fdfaf5] p-8 shadow-sm">
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="font-serif-nadezhda text-2xl font-bold text-[#600f1c]">Галерия — {quarter.name}</h2>
+                <h2 className="font-serif-nadezhda text-2xl font-bold text-[#600f1c]">
+                  Галерия — {quarter.name}
+                </h2>
                 <span className="text-sm text-gray-500">{data.gallery.length} снимки</span>
               </div>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {data.gallery.map((img) => (
-                  <div key={img.id} className="overflow-hidden rounded-2xl border border-[#eaddc4] shadow-sm">
-                    <img src={img.url} alt={quarter.name} className="h-40 w-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
+                  <div
+                    key={img.id}
+                    className="overflow-hidden rounded-2xl border border-[#eaddc4] shadow-sm"
+                  >
+                    <img
+                      src={img.url}
+                      alt={quarter.name}
+                      className="h-40 w-full object-cover transition duration-500 hover:scale-105"
+                      loading="lazy"
+                    />
                   </div>
                 ))}
               </div>
             </div>
           ) : null}
-
-          <div className="mt-8">
-            <DistrictPriceMap
-              quarterName={quarter.name}
-              cityName={city.name}
-              citySlug={city.slug}
-              cityLat={city.lat}
-              cityLng={city.lng}
-              listings={properties}
-              quarters={data?.cityQuarters ?? [{ name: quarter.name }]}
-            />
-          </div>
         </div>
+
+        <DistrictQuarterMap name={quarter.name} />
       </div>
     </main>
   );
 }
 
-function DistrictSearchBar({ cityName, citySlug }: { cityName: string; citySlug: string }) {
+function DistrictSearchBar({ cityName }: { cityName: string }) {
   return (
-    <div className="nadezhda-dark-red-bg flex flex-col gap-3 rounded-2xl border border-[#c59441] p-4 font-sans-nadezhda text-sm text-white shadow-2xl md:flex-row md:flex-wrap md:items-center lg:flex-nowrap">
-      <div className="flex min-w-0 flex-1 items-center gap-3 border-white/15 px-2 md:border-r">
-        <MapPin className="h-5 w-5 shrink-0 text-[#f4d07d]" />
-        <div className="min-w-0">
+    <div className="nadezhda-dark-red-bg flex flex-wrap items-center justify-between gap-3 rounded-full border border-[#c59441] p-4 font-sans-nadezhda text-sm text-white shadow-2xl">
+      <div className="flex w-full items-center gap-3 border-gray-600 px-4 md:w-1/5 md:border-r">
+        <MapPin className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
           <div className="text-xs text-gray-300">Град</div>
-          <div className="truncate text-base font-bold">{cityName}</div>
+          <div className="flex items-center justify-between text-base font-bold">
+            {cityName} <ChevronDown className="h-3 w-3" />
+          </div>
         </div>
       </div>
-      <div className="flex min-w-0 flex-1 items-center gap-3 border-white/15 px-2 md:border-r">
-        <House className="h-5 w-5 shrink-0 text-[#f4d07d]" />
-        <div className="min-w-0">
+      <div className="flex w-full items-center gap-3 border-gray-600 px-4 md:w-1/5 md:border-r">
+        <House className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
           <div className="text-xs text-gray-300">Вид имот</div>
-          <div className="text-base font-bold">Всички</div>
+          <div className="flex items-center justify-between text-base font-bold">
+            Всички <ChevronDown className="h-3 w-3" />
+          </div>
         </div>
       </div>
-      <div className="flex min-w-0 flex-1 items-center gap-3 border-white/15 px-2 md:border-r">
-        <LandPlot className="h-5 w-5 shrink-0 text-[#f4d07d]" />
-        <div className="min-w-0">
+      <div className="flex w-full items-center gap-3 border-gray-600 px-4 md:w-1/5 md:border-r">
+        <LandPlot className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
           <div className="text-xs text-gray-300">Цена</div>
-          <div className="text-base font-bold">Без значение</div>
+          <div className="flex items-center justify-between text-base font-bold">
+            Без значение <ChevronDown className="h-3 w-3" />
+          </div>
         </div>
       </div>
-      <div className="flex min-w-0 flex-1 items-center gap-3 px-2">
-        <Square className="h-5 w-5 shrink-0 text-[#f4d07d]" />
-        <div className="min-w-0">
+      <div className="flex w-full items-center gap-3 px-4 md:w-1/5">
+        <Square className="h-5 w-5 text-[#f4d07d]" />
+        <div className="w-full">
           <div className="text-xs text-gray-300">Площ</div>
-          <div className="text-base font-bold">Без значение</div>
+          <div className="flex items-center justify-between text-base font-bold">
+            Без значение <ChevronDown className="h-3 w-3" />
+          </div>
         </div>
       </div>
-      <div className="flex shrink-0 items-center justify-end gap-3 px-2">
-        <Link to="/search" search={{ city_slug: citySlug } as never} className="nadezhda-gold-bg flex items-center gap-2 rounded-full px-6 py-3 text-base font-bold text-black shadow-lg transition hover:brightness-110">
+      <div className="flex w-full items-center justify-end gap-3 pl-4 md:w-1/5">
+        <button className="flex items-center gap-2 rounded-full border border-gray-500 px-5 py-3 text-white transition hover:bg-white/10">
+          <SlidersHorizontal className="h-4 w-4" /> Филтри
+        </button>
+        <Link
+          to="/search"
+          className="nadezhda-gold-bg flex items-center gap-2 rounded-full px-8 py-3 text-base font-bold text-black shadow-lg transition hover:brightness-110"
+        >
           <Search className="h-4 w-4" /> Търси
         </Link>
       </div>
@@ -2242,7 +2750,13 @@ function DistrictSearchBar({ cityName, citySlug }: { cityName: string; citySlug:
   );
 }
 
-function DistrictFilterSidebar({ citySlug, quarterSlug }: { citySlug?: string; quarterSlug?: string }) {
+function DistrictFilterSidebar({
+  citySlug,
+  quarterSlug,
+}: {
+  citySlug?: string;
+  quarterSlug?: string;
+}) {
   const navigate = useNavigate();
   const [selectedType, setSelectedType] = useReactState<string>("");
   const [priceMin, setPriceMin] = useReactState("");
@@ -2265,13 +2779,16 @@ function DistrictFilterSidebar({ citySlug, quarterSlug }: { citySlug?: string; q
     navigate({ to: "/search", search: params as never });
   };
   return (
-    <aside className="nadezhda-dark-red-bg w-full flex-shrink-0 rounded-3xl border border-[#c59441] p-6 text-white shadow-xl lg:sticky lg:top-28 lg:w-72 lg:self-start">
+    <aside className="nadezhda-dark-red-bg w-full flex-shrink-0 rounded-3xl border border-[#c59441] p-6 text-white shadow-xl lg:w-72">
       <h3 className="font-serif-nadezhda mb-4 text-2xl font-bold">Бързи филтри</h3>
       <hr className="mb-6 border-gray-600/50" />
       <div className="mb-8">
         <div className="mb-3 text-lg text-gray-300">Тип имот</div>
         {types.map((t) => (
-          <label key={t.value} className="mb-3 flex cursor-pointer items-center gap-3 transition hover:text-yellow-400">
+          <label
+            key={t.value}
+            className="mb-3 flex cursor-pointer items-center gap-3 transition hover:text-yellow-400"
+          >
             <input
               type="radio"
               name="ptype"
@@ -2322,37 +2839,86 @@ function DistrictFilterSidebar({ citySlug, quarterSlug }: { citySlug?: string; q
   );
 }
 
+function DistrictQuarterMap({ name }: { name: string }) {
+  return (
+    <aside className="relative h-[700px] w-full flex-shrink-0 overflow-hidden rounded-3xl border border-[#c59441] bg-gray-200 shadow-xl lg:w-80">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#525252] via-[#737373] to-[#404040]" />
+      <div
+        className="absolute inset-y-0 right-0 w-[36%]"
+        style={{
+          background: "linear-gradient(135deg,#1b4d62 0%,#0f3a4f 55%,#0b2c3d 100%)",
+          clipPath: "polygon(35% 0,100% 0,100% 100%,0 100%)",
+        }}
+      />
+      <div className="absolute bottom-1/3 left-10 right-10 top-1/4 flex items-center justify-center rounded-[3rem] border-2 border-red-500 bg-red-600/30 backdrop-blur-sm">
+        <span className="font-serif-nadezhda text-3xl font-bold tracking-wider text-white drop-shadow-lg">
+          {name.toUpperCase()}
+        </span>
+      </div>
+      <div className="absolute bottom-6 left-6 right-6">
+        <button className="nadezhda-dark-red-bg flex w-full items-center justify-center gap-3 rounded-xl border border-[#c59441] py-4 text-lg text-white shadow-xl transition hover:brightness-125">
+          <MapPin className="h-5 w-5 text-[#c59441]" /> Виж на картата
+        </button>
+      </div>
+    </aside>
+  );
+}
+
 type PropertyData = {
   property: {
-    id: string; title: string; description?: string | null; price: number; currency?: string | null;
-    area_sqm?: number | null; rooms?: number | null; bedrooms?: number | null; bathrooms?: number | null;
-    floor?: number | null; total_floors?: number | null; year_built?: number | null;
-    property_type?: string | null; status?: string | null; address?: string | null; amenities?: string[] | null;
-    cover_image_url?: string | null; is_featured?: boolean;
+    id: string;
+    title: string;
+    description?: string | null;
+    price: number;
+    currency?: string | null;
+    area_sqm?: number | null;
+    rooms?: number | null;
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    floor?: number | null;
+    total_floors?: number | null;
+    year_built?: number | null;
+    property_type?: string | null;
+    status?: string | null;
+    address?: string | null;
+    amenities?: string[] | null;
+    cover_image_url?: string | null;
+    is_featured?: boolean;
     cities?: { name: string; slug: string } | null;
     quarters?: { name: string; slug: string } | null;
   };
   images: Array<{ id: string; url: string; is_cover?: boolean; display_order?: number | null }>;
-  broker?: { id: string; full_name: string; email: string | null; phone: string | null; photo_url: string | null } | null;
+  broker?: {
+    id: string;
+    full_name: string;
+    email: string | null;
+    phone: string | null;
+    photo_url: string | null;
+  } | null;
   similar?: Array<{
-    id: string; title: string; price: number; currency?: string | null;
-    area_sqm?: number | null; rooms?: number | null; bedrooms?: number | null; bathrooms?: number | null;
-    cover_image_url?: string | null; property_type?: string | null;
+    id: string;
+    title: string;
+    price: number;
+    currency?: string | null;
+    area_sqm?: number | null;
+    rooms?: number | null;
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    cover_image_url?: string | null;
+    property_type?: string | null;
     cities?: { name: string; slug: string } | null;
   }>;
 };
 
-
 export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   if (!data) {
     return (
-      <main className="luxury-page nadezhda-marble-bg flex min-h-screen flex-col">
-        <LuxuryHeader active="sale" />
-        <div className="flex flex-1 items-center justify-center">
+      <main className="luxury-page nadezhda-marble-bg flex min-h-screen items-center justify-center">
         <div className="text-center">
           <h1 className="font-serif-nadezhda text-3xl text-[#600f1c]">Имотът не е намерен</h1>
-          <Link to="/" className="mt-4 inline-block text-[#600f1c] underline">Към началната страница</Link>
-        </div>
+          <Link to="/" className="mt-4 inline-block text-[#600f1c] underline">
+            Към началната страница
+          </Link>
         </div>
       </main>
     );
@@ -2369,18 +2935,26 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
   const brokerEmail = broker?.email?.trim() || AGENCY.email;
   const brokerPhoto = broker?.photo_url?.trim() || "";
 
-  const gallery = (images.length ? images.map((i) => i.url) : [property.cover_image_url || burgasHero]).filter(Boolean) as string[];
+  const gallery = (
+    images.length ? images.map((i) => i.url) : [property.cover_image_url || burgasHero]
+  ).filter(Boolean) as string[];
   const cityName = property.cities?.name ?? "—";
   const citySlug = property.cities?.slug ?? "";
   const quarterName = property.quarters?.name ?? "";
   const quarterSlug = property.quarters?.slug ?? "";
   const priceStr = formatPrice(property.price, property.currency ?? "EUR");
-  const pricePerSqm = property.area_sqm ? formatPrice(Math.round(Number(property.price) / Number(property.area_sqm)), property.currency ?? "EUR") + " / м²" : undefined;
+  const pricePerSqm = property.area_sqm
+    ? formatPrice(
+        Math.round(Number(property.price) / Number(property.area_sqm)),
+        property.currency ?? "EUR",
+      ) + " / м²"
+    : undefined;
 
   const [propVideoFailed, setPropVideoFailed] = useReactState(false);
   const propFallbackVideo = cityVideoFallbacks[citySlug];
   const propHeroVideo = propVideoFailed ? null : propFallbackVideo;
-  const propHeroPoster = (citySlugImages as Record<string, string>)[citySlug] || property.cover_image_url || burgasHero;
+  const propHeroPoster =
+    (citySlugImages as Record<string, string>)[citySlug] || property.cover_image_url || burgasHero;
 
   return (
     <main className="luxury-page nadezhda-marble-bg min-h-screen font-sans-nadezhda text-[#31020c]">
@@ -2397,26 +2971,53 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <img src={propHeroPoster} alt={cityName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+          <img
+            src={propHeroPoster}
+            alt={cityName}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
         )}
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent"
+        />
       </div>
 
       {/* Floating search bar */}
       <div className="relative z-10 mx-auto -mt-12 max-w-6xl px-4">
-        <DistrictSearchBar cityName={cityName} citySlug={citySlug} />
+        <DistrictSearchBar cityName={cityName} />
       </div>
 
       <div className="site-main-below-header mx-auto mt-12 max-w-7xl px-4 pb-24">
         {/* Breadcrumb */}
         <div className="mb-8 flex flex-wrap items-center gap-3 text-sm text-gray-500">
-          <Link to="/" className="hover:text-black">Начало</Link>
+          <Link to="/" className="hover:text-black">
+            Начало
+          </Link>
           <ChevronRight className="h-3 w-3" />
-          {citySlug ? <Link to="/cities/$slug" params={{ slug: citySlug }} className="hover:text-black">{cityName}</Link> : <span>{cityName}</span>}
+          {citySlug ? (
+            <Link to="/cities/$slug" params={{ slug: citySlug }} className="hover:text-black">
+              {cityName}
+            </Link>
+          ) : (
+            <span>{cityName}</span>
+          )}
           {quarterName ? (
             <>
               <ChevronRight className="h-3 w-3" />
-              {quarterSlug ? <Link to="/cities/$slug/districts/$district" params={{ slug: citySlug, district: quarterSlug }} className="hover:text-black">{quarterName}</Link> : <span>{quarterName}</span>}
+              {quarterSlug ? (
+                <Link
+                  to="/cities/$slug/districts/$district"
+                  params={{ slug: citySlug, district: quarterSlug }}
+                  className="hover:text-black"
+                >
+                  {quarterName}
+                </Link>
+              ) : (
+                <span>{quarterName}</span>
+              )}
             </>
           ) : null}
           <ChevronRight className="h-3 w-3" />
@@ -2427,11 +3028,19 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
           {/* LEFT */}
           <div className="flex-1">
             <div className="mb-6">
-              {property.is_featured ? <span className="nadezhda-gold-bg mb-4 inline-block rounded-md px-4 py-2 text-xs font-bold tracking-wide text-black shadow">ТОП ОФЕРТА</span> : null}
+              {property.is_featured ? (
+                <span className="nadezhda-gold-bg mb-4 inline-block rounded-md px-4 py-2 text-xs font-bold tracking-wide text-black shadow">
+                  ТОП ОФЕРТА
+                </span>
+              ) : null}
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h1 className="font-serif-nadezhda mb-3 text-3xl font-bold text-[#600f1c] md:text-4xl">{property.title}</h1>
-                  <div className="text-lg text-gray-600">{quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}</div>
+                  <h1 className="font-serif-nadezhda mb-3 text-3xl font-bold text-[#600f1c] md:text-4xl">
+                    {property.title}
+                  </h1>
+                  <div className="text-lg text-gray-600">
+                    {quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}
+                  </div>
                 </div>
                 <div className="flex gap-6">
                   <button
@@ -2442,14 +3051,22 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
                     }}
                     className={`flex items-center gap-2 transition ${favs.has(property.id) ? "text-red-500" : "text-gray-500 hover:text-red-500"}`}
                   >
-                    <Heart className={`h-6 w-6 ${favs.has(property.id) ? "fill-red-500 text-red-500" : "text-[#c59441]"}`} />
-                    <span className="text-left text-sm">{favs.has(property.id) ? "Премахни\nот любими" : "Добави\nв любими"}</span>
+                    <Heart
+                      className={`h-6 w-6 ${favs.has(property.id) ? "fill-red-500 text-red-500" : "text-[#c59441]"}`}
+                    />
+                    <span className="text-left text-sm">
+                      {favs.has(property.id) ? "Премахни\nот любими" : "Добави\nв любими"}
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={async () => {
                       const url = typeof window !== "undefined" ? window.location.href : "";
-                      const r = await shareProperty({ title: property.title, url, text: `${property.title} — ${cityName}` });
+                      const r = await shareProperty({
+                        title: property.title,
+                        url,
+                        text: `${property.title} — ${cityName}`,
+                      });
                       if (r === "copied") toast.success("Линкът е копиран");
                       else if (r === "failed") toast.error("Споделянето не е възможно");
                     }}
@@ -2463,41 +3080,72 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
             </div>
 
             {/* GALLERY — kept untouched (uses existing PropertyGallery for the property photos viewer) */}
-            <div className="mb-10 overflow-hidden rounded-3xl border border-[#eaddc4] bg-card p-3 shadow-2xl" style={{ height: 620 }}>
+            <div
+              className="mb-10 overflow-hidden rounded-3xl border border-[#eaddc4] bg-card p-3 shadow-2xl"
+              style={{ height: 620 }}
+            >
               <PropertyGallery images={gallery} title={property.title} />
             </div>
 
             {/* Price + facts row */}
             <div className="mb-8 flex flex-wrap items-end justify-between gap-6 border-b-2 border-gray-200 pb-8">
               <div>
-                <div className="mb-2 flex items-center gap-2 text-sm text-gray-500"><LandPlot className="h-5 w-5 text-[#c59441]" /> Цена</div>
-                <div className="font-serif-nadezhda mb-2 text-4xl font-bold text-[#600f1c]">{priceStr}</div>
-                {pricePerSqm ? <div className="text-sm font-bold text-gray-500">{pricePerSqm}</div> : null}
+                <div className="mb-2 flex items-center gap-2 text-sm text-gray-500">
+                  <LandPlot className="h-5 w-5 text-[#c59441]" /> Цена
+                </div>
+                <div className="font-serif-nadezhda mb-2 text-4xl font-bold text-[#600f1c]">
+                  {priceStr}
+                </div>
+                {pricePerSqm ? (
+                  <div className="text-sm font-bold text-gray-500">{pricePerSqm}</div>
+                ) : null}
               </div>
               <div className="flex flex-wrap gap-8 divide-x divide-gray-200 text-center">
                 {[
-                  property.area_sqm != null ? { icon: Square, label: "Площ", value: `${property.area_sqm} м²` } : null,
-                  property.floor != null ? { icon: Building2, label: "Етаж", value: `${property.floor}${property.total_floors ? ` от ${property.total_floors}` : ""}` } : null,
-                  property.rooms != null ? { icon: House, label: "Стаи", value: String(property.rooms) } : null,
-                  property.bedrooms != null ? { icon: BedDouble, label: "Спални", value: String(property.bedrooms) } : null,
-                  property.bathrooms != null ? { icon: Bath, label: "Бани", value: String(property.bathrooms) } : null,
-                  property.year_built != null ? { icon: Compass, label: "Година", value: String(property.year_built) } : null,
-                ].filter(Boolean).map((f: any, i) => {
-                  const Icon = f.icon;
-                  return (
-                    <div key={f.label} className={i === 0 ? "first:pl-0" : "pl-8"}>
-                      <div className="mb-2 flex items-center justify-center gap-2 text-sm text-gray-500"><Icon className="h-5 w-5 text-[#c59441]" /> {f.label}</div>
-                      <div className="text-xl font-bold">{f.value}</div>
-                    </div>
-                  );
-                })}
+                  property.area_sqm != null
+                    ? { icon: Square, label: "Площ", value: `${property.area_sqm} м²` }
+                    : null,
+                  property.floor != null
+                    ? {
+                        icon: Building2,
+                        label: "Етаж",
+                        value: `${property.floor}${property.total_floors ? ` от ${property.total_floors}` : ""}`,
+                      }
+                    : null,
+                  property.rooms != null
+                    ? { icon: House, label: "Стаи", value: String(property.rooms) }
+                    : null,
+                  property.bedrooms != null
+                    ? { icon: BedDouble, label: "Спални", value: String(property.bedrooms) }
+                    : null,
+                  property.bathrooms != null
+                    ? { icon: Bath, label: "Бани", value: String(property.bathrooms) }
+                    : null,
+                  property.year_built != null
+                    ? { icon: Compass, label: "Година", value: String(property.year_built) }
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .map((f: any, i) => {
+                    const Icon = f.icon;
+                    return (
+                      <div key={f.label} className={i === 0 ? "first:pl-0" : "pl-8"}>
+                        <div className="mb-2 flex items-center justify-center gap-2 text-sm text-gray-500">
+                          <Icon className="h-5 w-5 text-[#c59441]" /> {f.label}
+                        </div>
+                        <div className="text-xl font-bold">{f.value}</div>
+                      </div>
+                    );
+                  })}
               </div>
             </div>
 
             {/* Description */}
             {property.description ? (
               <div className="rounded-3xl border border-[#eaddc4] bg-[#fdfaf5] p-8 shadow-lg md:p-10">
-                <h3 className="font-serif-nadezhda mb-6 text-3xl font-bold text-[#600f1c]">Описание</h3>
+                <h3 className="font-serif-nadezhda mb-6 text-3xl font-bold text-[#600f1c]">
+                  Описание
+                </h3>
                 <div className="mb-8 space-y-5 whitespace-pre-line text-lg leading-relaxed text-gray-700">
                   {property.description}
                 </div>
@@ -2522,76 +3170,157 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
               <div className="mb-8 flex items-center gap-5">
                 <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-[#c59441] bg-[#3a0010] shadow-lg">
                   {brokerPhoto ? (
-                    <img src={brokerPhoto} alt={brokerName} className="h-full w-full object-cover" />
+                    <img
+                      src={brokerPhoto}
+                      alt={brokerName}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <User className="h-8 w-8 text-[#c59441]" />
                   )}
                 </div>
                 <div>
-                  <div className="font-serif-nadezhda mb-1 text-xl font-bold text-[#ebd197]">{brokerName}</div>
+                  <div className="font-serif-nadezhda mb-1 text-xl font-bold text-[#ebd197]">
+                    {brokerName}
+                  </div>
                   <div className="text-sm text-gray-300">{brokerRole}</div>
                 </div>
               </div>
               <div className="mb-6 space-y-4 text-base">
-                <a href={`tel:${brokerPhoneTel}`} className="flex items-center gap-4 hover:text-[#f4d07d]"><Phone className="h-5 w-5 text-[#f4d07d]" /> {brokerPhoneDisplay}</a>
-                <a href={`mailto:${brokerEmail}`} className="flex items-center gap-4 break-all hover:text-[#f4d07d]"><Mail className="h-5 w-5 text-[#f4d07d]" /> {brokerEmail}</a>
+                <a
+                  href={`tel:${brokerPhoneTel}`}
+                  className="flex items-center gap-4 hover:text-[#f4d07d]"
+                >
+                  <Phone className="h-5 w-5 text-[#f4d07d]" /> {brokerPhoneDisplay}
+                </a>
+                <a
+                  href={`mailto:${brokerEmail}`}
+                  className="flex items-center gap-4 break-all hover:text-[#f4d07d]"
+                >
+                  <Mail className="h-5 w-5 text-[#f4d07d]" /> {brokerEmail}
+                </a>
               </div>
 
               <div className="mb-4 grid grid-cols-3 gap-2">
-                <a href={`tel:${brokerPhoneTel}`} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-[#c59441]/60 bg-white/5 py-3 text-xs font-semibold text-white transition hover:bg-white/10" aria-label="Позвъни">
+                <a
+                  href={`tel:${brokerPhoneTel}`}
+                  className="flex flex-col items-center justify-center gap-1 rounded-xl border border-[#c59441]/60 bg-white/5 py-3 text-xs font-semibold text-white transition hover:bg-white/10"
+                  aria-label="Позвъни"
+                >
                   <Phone className="h-5 w-5 text-[#f4d07d]" /> Позвъни
                 </a>
-                <a href={`https://wa.me/${brokerPhoneTel.replace(/\D/g, "")}?text=${encodeURIComponent(`Здравейте, интересувам се от имот: ${property.title}`)}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center gap-1 rounded-xl border border-[#25D366]/70 bg-[#25D366]/15 py-3 text-xs font-semibold text-white transition hover:bg-[#25D366]/25" aria-label="WhatsApp">
+                <a
+                  href={`https://wa.me/${brokerPhoneTel.replace(/\D/g, "")}?text=${encodeURIComponent(`Здравейте, интересувам се от имот: ${property.title}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center gap-1 rounded-xl border border-[#25D366]/70 bg-[#25D366]/15 py-3 text-xs font-semibold text-white transition hover:bg-[#25D366]/25"
+                  aria-label="WhatsApp"
+                >
                   <MessageCircle className="h-5 w-5 text-[#25D366]" /> WhatsApp
                 </a>
-                <a href={`viber://chat?number=%2B${brokerPhoneTel.replace(/\D/g, "")}`} className="flex flex-col items-center justify-center gap-1 rounded-xl border border-[#7360f2]/70 bg-[#7360f2]/15 py-3 text-xs font-semibold text-white transition hover:bg-[#7360f2]/25" aria-label="Viber">
+                <a
+                  href={`viber://chat?number=%2B${brokerPhoneTel.replace(/\D/g, "")}`}
+                  className="flex flex-col items-center justify-center gap-1 rounded-xl border border-[#7360f2]/70 bg-[#7360f2]/15 py-3 text-xs font-semibold text-white transition hover:bg-[#7360f2]/25"
+                  aria-label="Viber"
+                >
                   <MessageCircle className="h-5 w-5 text-[#a594ff]" /> Viber
                 </a>
               </div>
 
-              <a href="#inquiry" className="nadezhda-gold-bg mb-3 flex w-full items-center justify-center gap-3 rounded-xl py-4 text-lg font-bold text-black shadow-xl transition hover:brightness-110">
+              <a
+                href="#inquiry"
+                className="nadezhda-gold-bg mb-3 flex w-full items-center justify-center gap-3 rounded-xl py-4 text-lg font-bold text-black shadow-xl transition hover:brightness-110"
+              >
                 Запази час за оглед
               </a>
-              <a href="#inquiry" className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-[#c59441] bg-transparent py-4 text-lg font-bold text-white transition hover:bg-white/10">
+              <a
+                href="#inquiry"
+                className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-[#c59441] bg-transparent py-4 text-lg font-bold text-white transition hover:bg-white/10"
+              >
                 <Mail className="h-5 w-5" /> Запитване
               </a>
             </div>
 
             {/* Details card */}
             <div className="nadezhda-dark-red-bg rounded-3xl border border-[#c59441] p-8 text-white shadow-2xl">
-              <h3 className="font-serif-nadezhda mb-6 text-2xl font-bold text-[#ebd197]">Детайли за имота</h3>
+              <h3 className="font-serif-nadezhda mb-6 text-2xl font-bold text-[#ebd197]">
+                Детайли за имота
+              </h3>
               <div className="space-y-4 text-sm">
                 {[
                   property.property_type ? ["Тип имот:", property.property_type] : null,
-                  property.year_built ? ["Година на строителство:", String(property.year_built)] : null,
-                  property.floor != null ? ["Етаж:", `${property.floor}${property.total_floors ? ` от ${property.total_floors}` : ""}`] : null,
+                  property.year_built
+                    ? ["Година на строителство:", String(property.year_built)]
+                    : null,
+                  property.floor != null
+                    ? [
+                        "Етаж:",
+                        `${property.floor}${property.total_floors ? ` от ${property.total_floors}` : ""}`,
+                      ]
+                    : null,
                   property.rooms != null ? ["Стаи:", String(property.rooms)] : null,
                   property.bedrooms != null ? ["Спални:", String(property.bedrooms)] : null,
                   property.bathrooms != null ? ["Бани:", String(property.bathrooms)] : null,
                   property.area_sqm != null ? ["Площ:", `${property.area_sqm} м²`] : null,
                   property.status ? ["Статус:", property.status] : null,
                   property.address ? ["Адрес:", property.address] : null,
-                ].filter(Boolean).map((row: any) => (
-                  <div key={row[0]} className="flex justify-between border-b border-gray-600/30 pb-3">
-                    <span className="text-gray-400">{row[0]}</span>
-                    <span className="w-1/2 text-right font-bold leading-tight">{row[1]}</span>
-                  </div>
-                ))}
+                ]
+                  .filter(Boolean)
+                  .map((row: any) => (
+                    <div
+                      key={row[0]}
+                      className="flex justify-between border-b border-gray-600/30 pb-3"
+                    >
+                      <span className="text-gray-400">{row[0]}</span>
+                      <span className="w-1/2 text-right font-bold leading-tight">{row[1]}</span>
+                    </div>
+                  ))}
               </div>
             </div>
 
             {/* Location card */}
             <div className="nadezhda-marble-bg rounded-3xl border border-[#eaddc4] p-8 shadow-xl">
-              <h3 className="font-serif-nadezhda mb-2 text-2xl font-bold text-[#600f1c]">Локация</h3>
-              <div className="mb-6 text-base font-semibold text-gray-600">{quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}</div>
-              <div className="relative mb-6 h-56 overflow-hidden rounded-2xl border border-gray-300 shadow-inner">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#525252] via-[#737373] to-[#404040]" />
-                <div className="absolute inset-0 bg-blue-100/30 mix-blend-color-burn" />
-                <MapPin className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 text-red-700 drop-shadow-xl" />
+              <h3 className="font-serif-nadezhda mb-2 text-2xl font-bold text-[#600f1c]">
+                Локация
+              </h3>
+              <div className="mb-6 text-base font-semibold text-gray-600">
+                {quarterName ? `кв. ${quarterName}, ` : ""}гр. {cityName}
               </div>
-              <button className="nadezhda-dark-red-bg flex w-full items-center justify-center gap-3 rounded-xl py-4 text-lg font-bold text-white shadow-lg transition hover:brightness-125">
+              <div className="relative mb-6 h-56 overflow-hidden rounded-2xl border border-gray-300 shadow-inner">
+                <iframe
+                  title={`Карта — ${property.address ?? cityName}`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="h-full w-full border-0"
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(
+                    [
+                      property.address,
+                      quarterName ? `кв. ${quarterName}` : null,
+                      cityName,
+                      "Bulgaria",
+                    ]
+                      .filter(Boolean)
+                      .join(", "),
+                  )}&z=14&output=embed`}
+                />
+              </div>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  [
+                    property.address,
+                    quarterName ? `кв. ${quarterName}` : null,
+                    cityName,
+                    "Bulgaria",
+                  ]
+                    .filter(Boolean)
+                    .join(", "),
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="nadezhda-dark-red-bg flex w-full items-center justify-center gap-3 rounded-xl py-4 text-lg font-bold text-white shadow-lg transition hover:brightness-125"
+              >
                 <MapPin className="h-5 w-5 text-[#f4d07d]" /> Виж на картата
-              </button>
+              </a>
             </div>
           </aside>
         </div>
@@ -2599,14 +3328,23 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
 
       {/* Ипотечен диапазон */}
       <section className="mx-auto max-w-7xl px-4 pb-16">
-        <MortgageRangeBand price={Number(property.price) || 0} currency={property.currency ?? "EUR"} propertyId={property.id} propertyTitle={property.title} />
+        <MortgageRangeBand
+          price={Number(property.price) || 0}
+          currency={property.currency ?? "EUR"}
+          propertyId={property.id}
+          propertyTitle={property.title}
+        />
       </section>
 
       {/* Запитване */}
       <section id="inquiry" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-20">
         <div className="rounded-3xl border border-[#eaddc4] bg-[#fdfaf5] p-6 shadow-xl md:p-10">
-          <h2 className="font-serif-nadezhda mb-2 text-3xl font-bold text-[#600f1c]">Запитване за този имот</h2>
-          <p className="mb-6 text-base text-gray-600">Оставете данни за контакт и ще Ви върнем отговор още същия работен ден.</p>
+          <h2 className="font-serif-nadezhda mb-2 text-3xl font-bold text-[#600f1c]">
+            Запитване за този имот
+          </h2>
+          <p className="mb-6 text-base text-gray-600">
+            Оставете данни за контакт и ще Ви върнем отговор още същия работен ден.
+          </p>
           <InquiryForm propertyId={property.id} propertyTitle={property.title} />
         </div>
       </section>
@@ -2614,7 +3352,9 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
       {/* Подобни имоти */}
       {similar.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 pb-24">
-          <h2 className="font-serif-nadezhda mb-8 text-3xl font-bold text-[#600f1c]">Подобни имоти в {cityName}</h2>
+          <h2 className="font-serif-nadezhda mb-8 text-3xl font-bold text-[#600f1c]">
+            Подобни имоти в {cityName}
+          </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {similar.map((s) => (
               <ListingCard
@@ -2644,8 +3384,12 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
   const [fsLoaded, setFsLoaded] = useReactState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
-  useEffect(() => { setMainLoaded(false); }, [idx, images]);
-  useEffect(() => { if (open) setFsLoaded(false); }, [open, idx]);
+  useEffect(() => {
+    setMainLoaded(false);
+  }, [idx, images]);
+  useEffect(() => {
+    if (open) setFsLoaded(false);
+  }, [open, idx]);
   useEffect(() => {
     if (!open) return;
     const opener = openerRef.current;
@@ -2654,8 +3398,8 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
       if (!root) return [] as HTMLElement[];
       return Array.from(
         root.querySelectorAll<HTMLElement>(
-          'button:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'
-        )
+          'button:not([disabled]),[href],[tabindex]:not([tabindex="-1"])',
+        ),
       ).filter((el) => !el.hasAttribute("aria-hidden"));
     };
     // Move focus into the dialog on open.
@@ -2667,18 +3411,32 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
       if (e.key === "Escape") setOpen(false);
       else if (e.key === "ArrowLeft") setIdx((idx - 1 + images.length) % images.length);
       else if (e.key === "ArrowRight") setIdx((idx + 1) % images.length);
-      else if (e.key === "Home") { e.preventDefault(); setIdx(0); }
-      else if (e.key === "End") { e.preventDefault(); setIdx(images.length - 1); }
-      else if (e.key === "Tab") {
+      else if (e.key === "Home") {
+        e.preventDefault();
+        setIdx(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        setIdx(images.length - 1);
+      } else if (e.key === "Tab") {
         const nodes = getFocusable();
-        if (nodes.length === 0) { e.preventDefault(); dialogRef.current?.focus(); return; }
+        if (nodes.length === 0) {
+          e.preventDefault();
+          dialogRef.current?.focus();
+          return;
+        }
         const first = nodes[0];
         const last = nodes[nodes.length - 1];
         const active = document.activeElement as HTMLElement | null;
         if (e.shiftKey) {
-          if (active === first || !dialogRef.current?.contains(active)) { e.preventDefault(); last.focus(); }
+          if (active === first || !dialogRef.current?.contains(active)) {
+            e.preventDefault();
+            last.focus();
+          }
         } else {
-          if (active === last) { e.preventDefault(); first.focus(); }
+          if (active === last) {
+            e.preventDefault();
+            first.focus();
+          }
         }
       }
     };
@@ -2696,45 +3454,155 @@ function PropertyGallery({ images, title }: { images: string[]; title: string })
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-[18px] bg-black">
-        <button ref={openerRef} type="button" onClick={() => setOpen(true)} aria-label="Отвори снимката на цял екран" className="absolute inset-0 h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
-          <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className={cn("absolute inset-0 h-full w-full object-contain transition-opacity duration-300", mainLoaded ? "opacity-100" : "opacity-0")} loading="lazy" decoding="async" onLoad={() => setMainLoaded(true)} onError={() => setMainLoaded(true)} />
+        <button
+          ref={openerRef}
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Отвори снимката на цял екран"
+          className="absolute inset-0 h-full w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+        >
+          <img
+            src={images[idx]}
+            alt={`${title} – снимка ${idx + 1}`}
+            className={cn(
+              "absolute inset-0 h-full w-full object-contain transition-opacity duration-300",
+              mainLoaded ? "opacity-100" : "opacity-0",
+            )}
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setMainLoaded(true)}
+            onError={() => setMainLoaded(true)}
+          />
           {!mainLoaded ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black">
-              <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/25 border-t-white" aria-label="Зареждане" />
+              <div
+                className="h-10 w-10 animate-spin rounded-full border-2 border-white/25 border-t-white"
+                aria-label="Зареждане"
+              />
             </div>
           ) : null}
         </button>
         {images.length > 1 ? (
           <>
-            <button type="button" aria-label="Предишна снимка" onClick={(e) => { e.stopPropagation(); setIdx((idx - 1 + images.length) % images.length); }} className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronLeft className="h-5 w-5" /></button>
-            <button type="button" aria-label="Следваща снимка" onClick={(e) => { e.stopPropagation(); setIdx((idx + 1) % images.length); }} className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"><ChevronRight className="h-5 w-5" /></button>
+            <button
+              type="button"
+              aria-label="Предишна снимка"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIdx((idx - 1 + images.length) % images.length);
+              }}
+              className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              aria-label="Следваща снимка"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIdx((idx + 1) % images.length);
+              }}
+              className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-[rgba(225,29,72,0.88)] text-primary-foreground shadow-lg"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
           </>
         ) : null}
-        <div className="pointer-events-none absolute bottom-3 left-3 rounded-[10px] bg-[rgba(53,12,18,0.85)] px-3 py-1 text-xs text-primary-foreground">{idx + 1} / {images.length}</div>
+        <div className="pointer-events-none absolute bottom-3 left-3 rounded-[10px] bg-[rgba(53,12,18,0.85)] px-3 py-1 text-xs text-primary-foreground">
+          {idx + 1} / {images.length}
+        </div>
       </div>
       {images.length > 1 ? (
         <div className="grid flex-shrink-0 grid-cols-6 gap-2">
           {images.slice(0, 6).map((thumb, i) => (
-            <button key={`${thumb}-${i}`} type="button" aria-label={`Покажи снимка ${i + 1} от ${title}`} aria-current={i === idx} onClick={() => setIdx(i)} className={cn("overflow-hidden rounded-[8px] border", i === idx ? "border-primary" : "border-primary/12")}>
-              <img src={thumb} alt={`${title} – снимка ${i + 1}`} className="h-14 w-full object-cover md:h-16" loading="lazy" />
+            <button
+              key={`${thumb}-${i}`}
+              type="button"
+              aria-label={`Покажи снимка ${i + 1} от ${title}`}
+              aria-current={i === idx}
+              onClick={() => setIdx(i)}
+              className={cn(
+                "overflow-hidden rounded-[8px] border",
+                i === idx ? "border-primary" : "border-primary/12",
+              )}
+            >
+              <img
+                src={thumb}
+                alt={`${title} – снимка ${i + 1}`}
+                className="h-14 w-full object-cover md:h-16"
+                loading="lazy"
+              />
             </button>
           ))}
         </div>
       ) : null}
       {open ? (
-        <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Галерия" tabIndex={-1} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 focus:outline-none" onClick={() => setOpen(false)}>
-          <img src={images[idx]} alt={`${title} – снимка ${idx + 1}`} className={cn("max-h-full max-w-full object-contain transition-opacity duration-300", fsLoaded ? "opacity-100" : "opacity-0")} onClick={(e) => e.stopPropagation()} onLoad={() => setFsLoaded(true)} onError={() => setFsLoaded(true)} />
+        <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Галерия"
+          tabIndex={-1}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 focus:outline-none"
+          onClick={() => setOpen(false)}
+        >
+          <img
+            src={images[idx]}
+            alt={`${title} – снимка ${idx + 1}`}
+            className={cn(
+              "max-h-full max-w-full object-contain transition-opacity duration-300",
+              fsLoaded ? "opacity-100" : "opacity-0",
+            )}
+            onClick={(e) => e.stopPropagation()}
+            onLoad={() => setFsLoaded(true)}
+            onError={() => setFsLoaded(true)}
+          />
           {!fsLoaded ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-label="Зареждане" />
+              <div
+                className="h-12 w-12 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                aria-label="Зареждане"
+              />
             </div>
           ) : null}
-          <button type="button" aria-label="Затвори" onClick={(e) => { e.stopPropagation(); setOpen(false); }} className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/30 backdrop-blur hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"><X className="h-6 w-6" /></button>
+          <button
+            type="button"
+            aria-label="Затвори"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+            }}
+            className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/30 backdrop-blur hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <X className="h-6 w-6" />
+          </button>
           {images.length > 1 ? (
             <>
-              <button type="button" aria-label="Предишна снимка" onClick={(e) => { e.stopPropagation(); setIdx((idx - 1 + images.length) % images.length); }} className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/30 backdrop-blur hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"><ChevronLeft className="h-6 w-6" /></button>
-              <button type="button" aria-label="Следваща снимка" onClick={(e) => { e.stopPropagation(); setIdx((idx + 1) % images.length); }} className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/30 backdrop-blur hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"><ChevronRight className="h-6 w-6" /></button>
-              <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-1.5 text-sm text-white">{idx + 1} / {images.length}</div>
+              <button
+                type="button"
+                aria-label="Предишна снимка"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIdx((idx - 1 + images.length) % images.length);
+                }}
+                className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/30 backdrop-blur hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                type="button"
+                aria-label="Следваща снимка"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIdx((idx + 1) % images.length);
+                }}
+                className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/30 backdrop-blur hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+              <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-1.5 text-sm text-white">
+                {idx + 1} / {images.length}
+              </div>
             </>
           ) : null}
         </div>
@@ -2752,52 +3620,136 @@ function useGalleryIndex(len: number): [number, (n: number) => void] {
   return [idx, setIdx];
 }
 
-function InquiryForm({ propertyId, propertyTitle }: { propertyId?: string; propertyTitle?: string }) {
+function InquiryForm({
+  propertyId,
+  propertyTitle,
+}: {
+  propertyId?: string;
+  propertyTitle?: string;
+}) {
   const [name, setName] = useReactState("");
   const [email, setEmail] = useReactState("");
   const [phone, setPhone] = useReactState("");
-  const [message, setMessage] = useReactState(propertyTitle ? `Здравейте, интересувам се от "${propertyTitle}". ` : "");
+  const [message, setMessage] = useReactState(
+    propertyTitle ? `Здравейте, интересувам се от "${propertyTitle}". ` : "",
+  );
   const [status, setStatus] = useReactState<"idle" | "sending" | "ok" | "error">("idle");
   const [err, setErr] = useReactState<string | null>(null);
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("sending"); setErr(null);
+    setStatus("sending");
+    setErr(null);
     try {
-      const hp = String(new FormData(e.currentTarget).get("website") ?? "");
       const { submitInquiry } = await import("@/lib/catalog.functions");
-      await submitInquiry({ data: { property_id: propertyId ?? null, name, email, phone: phone || undefined, message: message || undefined, honeypot: hp } });
+      await submitInquiry({
+        data: {
+          property_id: propertyId ?? null,
+          name,
+          email,
+          phone: phone || undefined,
+          message: message || undefined,
+        },
+      });
+      // Автоматизация №1/№2 — лийдът тръгва към CRM и получава първи контакт.
+      try {
+        const params = new URLSearchParams(window.location.search);
+        await fetch("/api/public/leads/capture", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            full_name: name,
+            email,
+            phone: phone || null,
+            message: message || null,
+            channel: propertyId ? "property_page" : "website",
+            source: document.referrer || "imotinadezhda.bg",
+            property_id: propertyId ?? null,
+            utm_source: params.get("utm_source"),
+            utm_medium: params.get("utm_medium"),
+            utm_campaign: params.get("utm_campaign"),
+            referrer: document.referrer || null,
+            landing_path: window.location.pathname,
+          }),
+        });
+      } catch {
+        /* лийд-автоматизацията не блокира потвърждението към клиента */
+      }
       setStatus("ok");
-      setName(""); setEmail(""); setPhone(""); setMessage("");
+      setName("");
+      setEmail("");
+      setPhone("");
+      setMessage("");
     } catch (e: any) {
-      setStatus("error"); setErr(e?.message ?? "Грешка при изпращане");
+      setStatus("error");
+      setErr(e?.message ?? "Грешка при изпращане");
     }
   };
 
   return (
     <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(139,26,43,0.3)]">
       <div>
-        <div className="font-display text-[1.8rem] leading-none text-primary-foreground">Изпрати запитване</div>
-        <div className="mt-1 text-base text-primary/85">Ще се свържем с вас възможно най-бързо.</div>
+        <div className="font-display text-[1.8rem] leading-none text-primary-foreground">
+          Изпрати запитване
+        </div>
+        <div className="mt-1 text-base text-primary/85">
+          Ще се свържем с вас възможно най-бързо.
+        </div>
       </div>
       {status === "ok" ? (
-        <div className="rounded-[14px] bg-primary-foreground/10 p-4 text-base">Благодарим! Получихме запитването ви.</div>
+        <div className="rounded-[14px] bg-primary-foreground/10 p-4 text-base">
+          Благодарим! Получихме запитването ви.
+        </div>
       ) : (
-        <form onSubmit={onSubmit} className="relative space-y-3">
-          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Име" className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60" />
-          <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Имейл" className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60" />
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Телефон (по избор)" className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60" />
-          <input type="text" name="website" tabIndex={-1} autoComplete="off" className="absolute -left-[9999px] h-0 w-0 opacity-0" aria-hidden="true" />
-          <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Съобщение" rows={4} className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60" />
+        <form onSubmit={onSubmit} className="space-y-3">
+          <input
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Име"
+            className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60"
+          />
+          <input
+            required
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Имейл"
+            className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60"
+          />
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Телефон (по избор)"
+            className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60"
+          />
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Съобщение"
+            rows={4}
+            className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60"
+          />
           {err ? <div className="text-sm text-destructive-foreground">{err}</div> : null}
-          <Button type="submit" disabled={status === "sending"} className="gold-cta-button h-14 w-full rounded-[14px] text-lg">{status === "sending" ? "Изпращане…" : "Изпрати запитване"}</Button>
+          <Button
+            type="submit"
+            disabled={status === "sending"}
+            className="gold-cta-button h-14 w-full rounded-[14px] text-lg"
+          >
+            {status === "sending" ? "Изпращане…" : "Изпрати запитване"}
+          </Button>
         </form>
       )}
       <div className="space-y-2 border-t border-primary/15 pt-3 text-base">
-        <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" />{AGENCY.phoneDisplay}</div>
-        <div className="flex items-center gap-3 break-all"><Mail className="h-5 w-5 text-primary" />{AGENCY.email}</div>
+        <div className="flex items-center gap-3">
+          <Phone className="h-5 w-5 text-primary" />
+          {AGENCY.phoneDisplay}
+        </div>
+        <div className="flex items-center gap-3 break-all">
+          <Mail className="h-5 w-5 text-primary" />
+          {AGENCY.email}
+        </div>
       </div>
     </aside>
   );
 }
-

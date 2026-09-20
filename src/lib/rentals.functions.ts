@@ -11,7 +11,10 @@ function authEmail(claims: unknown): string | null {
 const uuid = z.string().uuid();
 const optStr = z.string().max(500).optional().nullable();
 const optDate = z.string().max(20).optional().nullable();
-const optNum = z.preprocess((v) => (v === "" || v === null || v === undefined ? null : Number(v)), z.number().nullable().optional());
+const optNum = z.preprocess(
+  (v) => (v === "" || v === null || v === undefined ? null : Number(v)),
+  z.number().nullable().optional(),
+);
 
 // ---------------- RENTALS ----------------
 
@@ -22,7 +25,9 @@ export const listRentals = createServerFn({ method: "GET" })
     await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
     const { data, error } = await db
       .from("rentals")
-      .select("*, cities:city_id(name), quarters:quarter_id(name), tenant:tenant_client_id(full_name, phone), landlord:landlord_client_id(full_name, phone)")
+      .select(
+        "*, cities:city_id(name), quarters:quarter_id(name), tenant:tenant_client_id(full_name, phone), landlord:landlord_client_id(full_name, phone)",
+      )
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -43,7 +48,6 @@ const rentalSchema = z.object({
   start_date: optDate,
   end_date: optDate,
   monthly_rent: optNum,
-  management_fee: optNum,
   currency: z.string().max(8).default("EUR"),
   payment_day: optNum,
   deposit: optNum,
@@ -59,7 +63,10 @@ export const upsertRental = createServerFn({ method: "POST" })
     const db = resolveServerDb(context.supabase) as any;
     await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
     const clean: Record<string, unknown> = { ...data, updated_at: new Date().toISOString() };
-    if (!clean.id) { clean.created_by = context.userId; delete clean.id; }
+    if (!clean.id) {
+      clean.created_by = context.userId;
+      delete clean.id;
+    }
     const { data: row, error } = await db.from("rentals").upsert(clean).select("*").maybeSingle();
     if (error) throw new Error(error.message);
     return row;
@@ -116,7 +123,11 @@ export const upsertRentalPayment = createServerFn({ method: "POST" })
     await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
     // Normalise period_month to first day of month.
     const pm = data.period_month.length === 7 ? `${data.period_month}-01` : data.period_month;
-    const clean: Record<string, unknown> = { ...data, period_month: pm, updated_at: new Date().toISOString() };
+    const clean: Record<string, unknown> = {
+      ...data,
+      period_month: pm,
+      updated_at: new Date().toISOString(),
+    };
     if (!clean.id) delete clean.id;
     const { data: row, error } = await db
       .from("rental_payments")

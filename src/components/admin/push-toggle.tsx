@@ -15,6 +15,7 @@ export function PushToggle() {
         <Button
           size="sm"
           variant="outline"
+          className="crm-push-btn"
           onClick={async () => {
             const r = await sendTestPush({ data: undefined as any }).catch(() => ({ sent: 0 }));
             toast.success(`Изпратени ${r.sent} тестови известия`);
@@ -22,7 +23,13 @@ export function PushToggle() {
         >
           <BellRing className="size-4" /> Push активен
         </Button>
-        <Button size="sm" variant="ghost" onClick={unsubscribe} title="Изключи">
+        <Button
+          size="sm"
+          variant="ghost"
+          className="crm-push-btn"
+          onClick={unsubscribe}
+          title="Изключи"
+        >
           <BellOff className="size-4" />
         </Button>
       </div>
@@ -33,12 +40,14 @@ export function PushToggle() {
     <Button
       size="sm"
       variant="outline"
+      className="crm-push-btn"
       onClick={subscribe}
       disabled={state === "loading" || state === "denied"}
       title={state === "denied" ? "Известията са блокирани в браузъра" : "Активирай push известия"}
     >
-      <Bell className="size-4" /> {state === "denied" ? "Известията са блокирани" : "Активирай push"}
-      {error && <span className="ml-1 text-destructive">!</span>}
+      <Bell className="size-4" />{" "}
+      {state === "denied" ? "Известията са блокирани" : "Активирай push"}
+      {error && <span className="ml-1 text-[#7a0d16]">!</span>}
     </Button>
   );
 }

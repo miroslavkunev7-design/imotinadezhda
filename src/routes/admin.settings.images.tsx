@@ -1,6 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useRef, type ChangeEvent } from "react";
-import { Image as ImageIcon, Upload, Loader2, Eye, EyeOff, Trash2, Plus, Check, X, ArrowLeft } from "lucide-react";
+import {
+  Image as ImageIcon,
+  Upload,
+  Loader2,
+  Eye,
+  EyeOff,
+  Trash2,
+  Plus,
+  Check,
+  X,
+  ArrowLeft,
+} from "lucide-react";
 import { uploadPublicImage } from "@/lib/upload-public-image";
 import {
   listPageBackgrounds,
@@ -32,25 +43,25 @@ const PAGES: { key: string; label: string }[] = [
 function Page() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-8">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h1 className="font-display text-2xl text-amber-100">Промяна на снимки</h1>
-            <p className="mt-1 text-sm text-amber-100/60">
-              Сменяй background-а на сайта, личния си CRM фон и снимките на картите.
-            </p>
-          </div>
-          <Link
-            to="/admin/settings"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 text-xs text-amber-100 hover:bg-amber-500/15"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> Назад
-          </Link>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl text-amber-100">Промяна на снимки</h1>
+          <p className="mt-1 text-sm text-amber-100/60">
+            Сменяй background-а на сайта, личния си CRM фон и снимките на картите.
+          </p>
         </div>
+        <Link
+          to="/admin/settings"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-1.5 text-xs text-amber-100 hover:bg-amber-500/15"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Назад
+        </Link>
+      </div>
 
-        <PageBackgroundsSection />
-        <CrmBackgroundSection />
-        <CityCardsSection />
-        <QuarterCardsSection />
+      <PageBackgroundsSection />
+      <CrmBackgroundSection />
+      <CityCardsSection />
+      <QuarterCardsSection />
     </div>
   );
 }
@@ -59,7 +70,15 @@ function Page() {
 /* Reusable card                                                    */
 /* ---------------------------------------------------------------- */
 
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+function Section({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="rounded-2xl border border-amber-500/20 bg-[rgba(20,4,8,0.55)] p-5 backdrop-blur md:p-6">
       <div className="mb-4">
@@ -71,7 +90,13 @@ function Section({ title, description, children }: { title: string; description?
   );
 }
 
-function DevicePreview({ imageUrl, mode }: { imageUrl: string | null; mode: "desktop" | "mobile" }) {
+function DevicePreview({
+  imageUrl,
+  mode,
+}: {
+  imageUrl: string | null;
+  mode: "desktop" | "mobile";
+}) {
   const frame =
     mode === "desktop"
       ? "aspect-[16/10] w-full max-w-[420px] rounded-lg border-2 border-amber-500/40"
@@ -132,7 +157,11 @@ function UploadButton({
         disabled={busy}
         className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/60 bg-gradient-to-r from-amber-500/25 to-amber-300/20 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:from-amber-500/40 disabled:opacity-50"
       >
-        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+        {busy ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Upload className="h-3.5 w-3.5" />
+        )}
         {label}
       </button>
     </>
@@ -149,7 +178,9 @@ function PageBackgroundsSection() {
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   useEffect(() => {
-    listPageBackgrounds().then(setBgs).catch(() => {});
+    listPageBackgrounds()
+      .then(setBgs)
+      .catch(() => {});
   }, []);
 
   async function handleUpload(pageKey: string, file: File) {
@@ -196,7 +227,10 @@ function PageBackgroundsSection() {
           const draft = drafts[p.key] ?? null;
           const preview = draft ?? current;
           return (
-            <div key={p.key} className="rounded-xl border border-amber-500/15 bg-[rgba(20,4,8,0.4)] p-4">
+            <div
+              key={p.key}
+              className="rounded-xl border border-amber-500/15 bg-[rgba(20,4,8,0.4)] p-4"
+            >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-sm font-semibold text-amber-100">
                   <ImageIcon className="h-4 w-4 text-amber-300" /> {p.label}
@@ -357,7 +391,10 @@ function CityCardsSection() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
-  const refresh = () => listCityCards().then((r) => setCities(r as CityRow[])).catch(() => {});
+  const refresh = () =>
+    listCityCards()
+      .then((r) => setCities(r as CityRow[]))
+      .catch(() => {});
   useEffect(() => {
     refresh();
   }, []);
@@ -509,7 +546,11 @@ function AddCityForm({ onCancel, onSaved }: { onCancel: () => void; onSaved: () 
         className="rounded-md border border-amber-500/30 bg-[#1a0608] px-3 py-2 text-sm text-amber-100 placeholder:text-amber-100/30 focus:border-amber-400 focus:outline-none"
       />
       <div className="flex items-center gap-3 sm:col-span-2">
-        <UploadButton onFile={handleUpload} busy={busy} label={imageUrl ? "Смени снимка" : "Качи снимка"} />
+        <UploadButton
+          onFile={handleUpload}
+          busy={busy}
+          label={imageUrl ? "Смени снимка" : "Качи снимка"}
+        />
         {imageUrl && <img src={imageUrl} alt="" className="h-12 w-16 rounded object-cover" />}
         <div className="flex-1" />
         <button
@@ -551,8 +592,12 @@ function QuarterCardsSection() {
   const [adding, setAdding] = useState(false);
 
   const refresh = () => {
-    listQuarterCards().then((r) => setQuarters(r as QuarterRow[])).catch(() => {});
-    listCityCards().then((r) => setCities(r as CityRow[])).catch(() => {});
+    listQuarterCards()
+      .then((r) => setQuarters(r as QuarterRow[]))
+      .catch(() => {});
+    listCityCards()
+      .then((r) => setCities(r as CityRow[]))
+      .catch(() => {});
   };
   useEffect(() => {
     refresh();
@@ -732,7 +777,11 @@ function AddQuarterForm({
         className="rounded-md border border-amber-500/30 bg-[#1a0608] px-3 py-2 text-sm text-amber-100 placeholder:text-amber-100/30"
       />
       <div className="flex items-center gap-3 sm:col-span-3">
-        <UploadButton onFile={handleUpload} busy={busy} label={imageUrl ? "Смени снимка" : "Качи снимка"} />
+        <UploadButton
+          onFile={handleUpload}
+          busy={busy}
+          label={imageUrl ? "Смени снимка" : "Качи снимка"}
+        />
         {imageUrl && <img src={imageUrl} alt="" className="h-12 w-16 rounded object-cover" />}
         <div className="flex-1" />
         <button
@@ -782,7 +831,11 @@ function CardTile({
         className="relative aspect-[16/10] bg-[#2b1418]"
         style={
           imageUrl
-            ? { backgroundImage: `url(${imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+            ? {
+                backgroundImage: `url(${imageUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
             : undefined
         }
       >

@@ -28,7 +28,16 @@ function flush() {
   batch++;
   const name = `batch_${String(batch).padStart(2, "0")}.sql`;
   fs.writeFileSync(path.join(outDir, name), buf);
-  console.log(name, buf.length, "bytes", names.length, "files", names[0], "→", names[names.length - 1]);
+  console.log(
+    name,
+    buf.length,
+    "bytes",
+    names.length,
+    "files",
+    names[0],
+    "→",
+    names[names.length - 1],
+  );
   buf = "";
   names = [];
 }

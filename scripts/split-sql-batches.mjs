@@ -23,7 +23,10 @@ function splitFile(filePath) {
   return parts;
 }
 
-const files = fs.readdirSync(dir).filter((f) => f.match(/^batch_\d+\.sql$/)).sort();
+const files = fs
+  .readdirSync(dir)
+  .filter((f) => f.match(/^batch_\d+\.sql$/))
+  .sort();
 for (const f of fs.readdirSync(dir)) {
   if (f.includes("_part")) fs.unlinkSync(path.join(dir, f));
 }

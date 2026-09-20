@@ -6,11 +6,17 @@ import type { BlockInstance } from "./blocks";
 
 function splitPipe(s: string | undefined): string[] {
   if (!s) return [];
-  return s.split("|").map((x) => x.trim()).filter(Boolean);
+  return s
+    .split("|")
+    .map((x) => x.trim())
+    .filter(Boolean);
 }
 function splitDouble(s: string | undefined): string[] {
   if (!s) return [];
-  return s.split("||").map((x) => x.trim()).filter(Boolean);
+  return s
+    .split("||")
+    .map((x) => x.trim())
+    .filter(Boolean);
 }
 
 export function renderBlock(b: BlockInstance): React.ReactNode {
@@ -47,10 +53,7 @@ export function renderBlock(b: BlockInstance): React.ReactNode {
     case "navbar.centered":
     case "navbar.dark":
       return (
-        <nav
-          style={{ background: p.bg, color: p.fg }}
-          className="w-full px-6 py-5"
-        >
+        <nav style={{ background: p.bg, color: p.fg }} className="w-full px-6 py-5">
           <div className="mx-auto flex max-w-6xl flex-col items-center gap-3">
             <div className="text-xl font-bold tracking-wider" style={{ color: p.accent }}>
               {p.brand}
@@ -189,11 +192,12 @@ export function renderBlock(b: BlockInstance): React.ReactNode {
       const isGhost = b.type === "button.ghost";
       const isGradient = b.type === "button.gradient";
       const style: React.CSSProperties = {
-        background: isOutline || isGhost
-          ? "transparent"
-          : isGradient
-            ? `linear-gradient(135deg, ${p.bg}, ${shiftColor(p.bg)})`
-            : p.bg,
+        background:
+          isOutline || isGhost
+            ? "transparent"
+            : isGradient
+              ? `linear-gradient(135deg, ${p.bg}, ${shiftColor(p.bg)})`
+              : p.bg,
         color: isOutline || isGhost ? p.bg : p.fg,
         border: isOutline ? `2px solid ${p.bg}` : "none",
         borderRadius: `${p.radius ?? 8}px`,
@@ -217,10 +221,7 @@ export function renderBlock(b: BlockInstance): React.ReactNode {
     case "section.text":
       return (
         <section style={{ background: p.bg, color: p.fg }} className="w-full px-6 py-16">
-          <div
-            className="mx-auto max-w-3xl"
-            style={{ textAlign: (p.align as any) || "left" }}
-          >
+          <div className="mx-auto max-w-3xl" style={{ textAlign: (p.align as any) || "left" }}>
             <h2 className="text-2xl font-bold md:text-4xl">{p.title}</h2>
             <p className="mt-4 whitespace-pre-line opacity-90">{p.body}</p>
           </div>
@@ -353,12 +354,7 @@ export function renderBlock(b: BlockInstance): React.ReactNode {
             <h2 className="text-center text-2xl font-bold md:text-4xl">{p.title}</h2>
             <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3">
               {imgs.map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt=""
-                  className="h-48 w-full rounded-md object-cover"
-                />
+                <img key={i} src={src} alt="" className="h-48 w-full rounded-md object-cover" />
               ))}
             </div>
           </div>
@@ -387,7 +383,10 @@ export function renderBlock(b: BlockInstance): React.ReactNode {
             </div>
             {cols.map(([title, items], i) => (
               <div key={i}>
-                <div className="text-sm font-semibold uppercase tracking-wider" style={{ color: p.accent }}>
+                <div
+                  className="text-sm font-semibold uppercase tracking-wider"
+                  style={{ color: p.accent }}
+                >
                   {title}
                 </div>
                 <div className="mt-2 text-sm opacity-80">{items}</div>

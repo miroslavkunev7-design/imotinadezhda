@@ -9,17 +9,9 @@
  */
 import { describe, it, expect } from "vitest";
 import { createClient } from "@supabase/supabase-js";
+import { resolveSupabaseAnonKey, resolveSupabaseUrl } from "./supabase-env";
 
-const SUPABASE_URL =
-  process.env.SUPABASE_URL ??
-  process.env.VITE_SUPABASE_URL ??
-  "https://zcrzxgzyptqibsajoece.supabase.co";
-const SUPABASE_KEY =
-  process.env.SUPABASE_PUBLISHABLE_KEY ??
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpjcnp4Z3p5cHRxaWJzYWpvZWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNDgwMjMsImV4cCI6MjA5NTgyNDAyM30.jHsY0umR0xZi0AKT9nNWAB34hRh84VrgjkIt52CuLo8";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(resolveSupabaseUrl(), resolveSupabaseAnonKey());
 
 // Slugs от site-а (Шумен) — трябва да съвпадат 1:1 със slug в quarters
 const SHUMEN_LINKED_SLUGS = [
@@ -35,7 +27,9 @@ const SHUMEN_LINKED_SLUGS = [
   "voenno-uchilishte",
 ];
 
-describe("Slug integrity: site ↔ database", () => {
+const describeDatabase = process.env.RUN_DB_INTEGRATION_TESTS === "1" ? describe : describe.skip;
+
+describeDatabase("Slug integrity: site ↔ database", () => {
   it("всички градове са с уникални slug-ове", async () => {
     const { data, error } = await supabase.from("cities").select("slug");
     expect(error).toBeNull();
@@ -44,9 +38,7 @@ describe("Slug integrity: site ↔ database", () => {
   });
 
   it("всички квартали са с уникални slug-ове в рамките на града", async () => {
-    const { data, error } = await supabase
-      .from("quarters")
-      .select("slug, city_id");
+    const { data, error } = await supabase.from("quarters").select("slug, city_id");
     expect(error).toBeNull();
     const seen = new Set<string>();
     for (const q of data ?? []) {
@@ -79,10 +71,7 @@ describe("Slug integrity: site ↔ database", () => {
 
     const dbSlugs = new Set((quarters ?? []).map((q: any) => q.slug));
     const missing = SHUMEN_LINKED_SLUGS.filter((s) => !dbSlugs.has(s));
-    expect(
-      missing,
-      `Липсват квартали в базата: ${missing.join(", ")}`,
-    ).toEqual([]);
+    expect(missing, `Липсват квартали в базата: ${missing.join(", ")}`).toEqual([]);
   });
 
   it("всеки публикуван квартал има публикуван град-родител", async () => {
@@ -90,9 +79,7 @@ describe("Slug integrity: site ↔ database", () => {
       .from("quarters")
       .select("slug, is_published, cities:city_id(slug, is_published)")
       .eq("is_published", true);
-    const orphans = (data ?? []).filter(
-      (q: any) => !q.cities || q.cities.is_published === false,
-    );
+    const orphans = (data ?? []).filter((q: any) => !q.cities || q.cities.is_published === false);
     expect(
       orphans.map((o: any) => o.slug),
       "Публикувани квартали без публикуван град",

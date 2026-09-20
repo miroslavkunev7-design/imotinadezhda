@@ -44,7 +44,7 @@ export function speakBG(
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(clean);
   u.lang = "bg-BG";
-  u.rate = 1.05;   // нормална скорост, леко живо
+  u.rate = 1.05; // нормална скорост, леко живо
   u.pitch = 1;
   u.volume = 1;
   const voices = window.speechSynthesis.getVoices();

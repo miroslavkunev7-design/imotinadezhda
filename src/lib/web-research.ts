@@ -38,7 +38,9 @@ export async function duckDuckGoSearch(
   return results;
 }
 
-export async function fetchUrlContent(url: string): Promise<{ url: string; title: string; text: string } | { error: string }> {
+export async function fetchUrlContent(
+  url: string,
+): Promise<{ url: string; title: string; text: string } | { error: string }> {
   if (!/^https?:\/\//i.test(url)) return { error: "Невалиден URL" };
   try {
     const res = await fetch(url, {

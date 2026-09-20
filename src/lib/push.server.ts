@@ -26,7 +26,10 @@ export interface PushPayload {
   tag?: string;
 }
 
-export async function sendPush(sub: PushSub, payload: PushPayload): Promise<{ ok: boolean; gone?: boolean }> {
+export async function sendPush(
+  sub: PushSub,
+  payload: PushPayload,
+): Promise<{ ok: boolean; gone?: boolean }> {
   ensureConfigured();
   try {
     await webpush.sendNotification(

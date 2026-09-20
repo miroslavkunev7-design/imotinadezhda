@@ -100,7 +100,9 @@ export function ClientScanModal({
         search_city_id: cityMatch?.id ?? null,
         search_quarter_id: quarterMatch?.id ?? null,
         deal_stage: r.deal_stage ?? null,
-        notes: [r.notes, r.raw_text ? `\n— Сканиран текст —\n${r.raw_text}` : ""].filter(Boolean).join(""),
+        notes: [r.notes, r.raw_text ? `\n— Сканиран текст —\n${r.raw_text}` : ""]
+          .filter(Boolean)
+          .join(""),
       };
 
       toast.success("Информацията е разпозната. Прегледай и запази.");
@@ -114,17 +116,22 @@ export function ClientScanModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 pb-24 sm:pb-4"
+      onClick={onClose}
+    >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md overflow-hidden rounded-2xl bg-card p-5 shadow-2xl"
+        className="max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl bg-card p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl"
       >
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
             <h2 className="font-display text-xl text-accent-foreground">Сканирай клиент</h2>
           </div>
-          <button onClick={onClose} aria-label="Затвори"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} aria-label="Затвори">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <p className="mb-4 text-sm text-muted-foreground">
@@ -134,7 +141,11 @@ export function ClientScanModal({
 
         {preview && (
           <div className="mb-4 overflow-hidden rounded-xl border">
-            <img src={preview} alt="Сканирано" className="max-h-64 w-full object-contain bg-muted" />
+            <img
+              src={preview}
+              alt="Сканирано"
+              className="max-h-64 w-full object-contain bg-muted"
+            />
           </div>
         )}
 
@@ -177,9 +188,7 @@ export function ClientScanModal({
         </div>
 
         {busy && (
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            AI анализира снимката…
-          </p>
+          <p className="mt-3 text-center text-xs text-muted-foreground">AI анализира снимката…</p>
         )}
       </div>
     </div>

@@ -1,6 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ScanLine, Trash2, FileDown, Plus, Loader2, Camera, ImageIcon, X, Aperture, RotateCcw, Merge, Send, Search } from "lucide-react";
+import {
+  ScanLine,
+  Trash2,
+  FileDown,
+  Plus,
+  Loader2,
+  Camera,
+  ImageIcon,
+  X,
+  Aperture,
+  RotateCcw,
+  Merge,
+  Send,
+  Search,
+} from "lucide-react";
 import { jsPDF } from "jspdf";
 import { PDFDocument } from "pdf-lib";
 import { toast } from "sonner";
@@ -33,7 +47,7 @@ function loadOpenCv(): Promise<any> {
   if (w.cv && w.cv.Mat) return Promise.resolve(w.cv);
   if (cvLoadingPromise) return cvLoadingPromise;
   cvLoadingPromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector('script[data-opencv]') as HTMLScriptElement | null;
+    const existing = document.querySelector("script[data-opencv]") as HTMLScriptElement | null;
     const ready = () => {
       const tryReady = () => {
         const cv = (window as any).cv;
@@ -100,13 +114,23 @@ export function DocScanner() {
       let outCanvas: HTMLCanvasElement | null = null;
       if (scanner) {
         try {
-          outCanvas = scanner.extractPaper(img, img.naturalWidth, img.naturalHeight) as HTMLCanvasElement;
-        } catch { /* fallback */ }
+          outCanvas = scanner.extractPaper(
+            img,
+            img.naturalWidth,
+            img.naturalHeight,
+          ) as HTMLCanvasElement;
+        } catch {
+          /* fallback */
+        }
       }
       await new Promise((r) => setTimeout(r, 0));
       const enhanced = enhanceDocument(outCanvas ?? img);
       const outUrl = enhanced.toDataURL("image/jpeg", 0.9);
-      setPages((p) => p.map((x) => x.id === pageId ? { ...x, src: outUrl, w: enhanced.width, h: enhanced.height } : x));
+      setPages((p) =>
+        p.map((x) =>
+          x.id === pageId ? { ...x, src: outUrl, w: enhanced.width, h: enhanced.height } : x,
+        ),
+      );
     } catch {
       /* keep original on failure */
     }
@@ -122,7 +146,8 @@ export function DocScanner() {
     const h = Math.round(img.naturalHeight * scale);
     if (scale === 1) return { url: dataUrl, w, h };
     const c = document.createElement("canvas");
-    c.width = w; c.height = h;
+    c.width = w;
+    c.height = h;
     c.getContext("2d")!.drawImage(img, 0, 0, w, h);
     return { url: c.toDataURL("image/jpeg", 0.9), w, h };
   };
@@ -221,12 +246,21 @@ export function DocScanner() {
     const file = new File([built.blob], built.filename, { type: "application/pdf" });
     const subject = `${name || "Документ"} — от Имоти Надежда`;
     const body = `Здравейте,\n\nИзпращаме Ви прикачения документ "${name || "Документ"}".\n\nПоздрави,\nИмоти Надежда`;
-    const navAny = navigator as unknown as { canShare?: (d: ShareData) => boolean; share?: (d: ShareData) => Promise<void> };
+    const navAny = navigator as unknown as {
+      canShare?: (d: ShareData) => boolean;
+      share?: (d: ShareData) => Promise<void>;
+    };
     if (emails.length && navAny.canShare && navAny.canShare({ files: [file] })) {
       try {
-        await navAny.share!({ files: [file], title: subject, text: `${body}\n\nДо: ${emails.join(", ")}` });
+        await navAny.share!({
+          files: [file],
+          title: subject,
+          text: `${body}\n\nДо: ${emails.join(", ")}`,
+        });
         return;
-      } catch { /* user cancelled or share failed — продължи с mailto */ }
+      } catch {
+        /* user cancelled or share failed — продължи с mailto */
+      }
     }
     triggerDownload(built.blob, built.filename);
     const to = emails.join(",");
@@ -243,7 +277,9 @@ export function DocScanner() {
           </div>
           <div>
             <div className="font-display text-lg">Скенер на документи</div>
-            <div className="text-[11px] text-amber-100/60">Камера или файл → авто изправяне → PDF</div>
+            <div className="text-[11px] text-amber-100/60">
+              Камера или файл → авто изправяне → PDF
+            </div>
           </div>
         </div>
         <input
@@ -256,8 +292,17 @@ export function DocScanner() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {pages.map((p, i) => (
-          <div key={p.id} className="group relative overflow-hidden rounded-xl border border-amber-500/20 bg-[#8B1A2B]/40">
-            <img src={p.src} alt={p.name} className="h-40 w-full object-cover" loading="lazy" decoding="async" />
+          <div
+            key={p.id}
+            className="group relative overflow-hidden rounded-xl border border-amber-500/20 bg-[#8B1A2B]/40"
+          >
+            <img
+              src={p.src}
+              alt={p.name}
+              className="h-40 w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
             <div className="absolute left-2 top-2 rounded bg-[#8B1A2B]/65 px-2 py-0.5 text-[10px] font-semibold text-amber-100">
               Стр. {i + 1}
             </div>
@@ -300,18 +345,33 @@ export function DocScanner() {
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-100/60">
         <div className="flex flex-wrap items-center gap-3">
           <label className="inline-flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={autoEnhance} onChange={(e) => setAutoEnhance(e.target.checked)} className="accent-amber-400" />
+            <input
+              type="checkbox"
+              checked={autoEnhance}
+              onChange={(e) => setAutoEnhance(e.target.checked)}
+              className="accent-amber-400"
+            />
             <span>Авто-подобряване</span>
           </label>
           <label className="inline-flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={autoExport} onChange={(e) => setAutoExport(e.target.checked)} className="accent-amber-400" />
+            <input
+              type="checkbox"
+              checked={autoExport}
+              onChange={(e) => setAutoExport(e.target.checked)}
+              className="accent-amber-400"
+            />
             <span>Авто PDF при затваряне на камерата</span>
           </label>
           <span className="text-amber-100/40">· {pages.length} стр.</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {pages.length > 0 && (
-            <Button variant="outline" size="sm" onClick={() => setPages([])} className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPages([])}
+              className="border-amber-500/30 text-amber-100 hover:bg-amber-500/10"
+            >
               Изчисти
             </Button>
           )}
@@ -330,7 +390,10 @@ export function DocScanner() {
             accept="application/pdf"
             multiple
             className="hidden"
-            onChange={(e) => { mergeExternalPdfs(e.target.files); e.target.value = ""; }}
+            onChange={(e) => {
+              mergeExternalPdfs(e.target.files);
+              e.target.value = "";
+            }}
           />
           <Button
             variant="outline"
@@ -408,13 +471,25 @@ export function DocScanner() {
   );
 }
 
-function SendDialog({ onClose, onSend }: { onClose: () => void; onSend: (emails: string[]) => void | Promise<void> }) {
+function SendDialog({
+  onClose,
+  onSend,
+}: {
+  onClose: () => void;
+  onSend: (emails: string[]) => void | Promise<void>;
+}) {
   const fetchGroups = useServerFn(listContactGroups);
   const fetchContacts = useServerFn(listContacts);
   const groupsQ = useQuery({ queryKey: ["contact_groups"], queryFn: () => fetchGroups() });
   const contactsQ = useQuery({ queryKey: ["contacts"], queryFn: () => fetchContacts() });
   const groups = (groupsQ.data?.groups ?? []) as Array<{ id: string; name: string; slug: string }>;
-  const contacts = (contactsQ.data?.contacts ?? []) as Array<{ id: string; group_id: string; company_name: string; contact_person: string | null; email: string | null }>;
+  const contacts = (contactsQ.data?.contacts ?? []) as Array<{
+    id: string;
+    group_id: string;
+    company_name: string;
+    contact_person: string | null;
+    email: string | null;
+  }>;
 
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -438,15 +513,23 @@ function SendDialog({ onClose, onSend }: { onClose: () => void; onSend: (emails:
   const toggle = (email: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(email)) next.delete(email); else next.add(email);
+      if (next.has(email)) next.delete(email);
+      else next.add(email);
       return next;
     });
   };
 
   const submit = async () => {
     const emails = Array.from(selected);
-    manual.split(/[,\s;]+/).map((e) => e.trim()).filter((e) => /.+@.+\..+/.test(e)).forEach((e) => emails.push(e));
-    if (!emails.length) { toast.error("Избери поне един получател"); return; }
+    manual
+      .split(/[,\s;]+/)
+      .map((e) => e.trim())
+      .filter((e) => /.+@.+\..+/.test(e))
+      .forEach((e) => emails.push(e));
+    if (!emails.length) {
+      toast.error("Избери поне един получател");
+      return;
+    }
     await onSend(emails);
     onClose();
   };
@@ -457,7 +540,8 @@ function SendDialog({ onClose, onSend }: { onClose: () => void; onSend: (emails:
         <DialogHeader>
           <DialogTitle>Изпрати PDF на…</DialogTitle>
           <DialogDescription>
-            Избери от групите контакти или въведи ръчно. На телефон PDF се прикача директно; на компютър се сваля и се отваря имейл клиент с попълнени получатели.
+            Избери от групите контакти или въведи ръчно. На телефон PDF се прикача директно; на
+            компютър се сваля и се отваря имейл клиент с попълнени получатели.
           </DialogDescription>
         </DialogHeader>
 
@@ -466,27 +550,41 @@ function SendDialog({ onClose, onSend }: { onClose: () => void; onSend: (emails:
           <button
             onClick={() => setActiveGroup(null)}
             className={`rounded-full px-3 py-1 text-xs ${activeGroup === null ? "bg-amber-400 text-[#4A1217] font-semibold" : "border bg-amber-50 text-amber-900 hover:bg-amber-100"}`}
-          >Всички</button>
+          >
+            Всички
+          </button>
           {groups.map((g) => (
             <button
               key={g.id}
               onClick={() => setActiveGroup(g.id === activeGroup ? null : g.id)}
               className={`rounded-full px-3 py-1 text-xs ${activeGroup === g.id ? "bg-amber-400 text-[#4A1217] font-semibold" : "border bg-amber-50 text-amber-900 hover:bg-amber-100"}`}
-            >{g.name}</button>
+            >
+              {g.name}
+            </button>
           ))}
         </div>
 
         <div className="relative">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Търси по име, контакт, имейл…" className="pl-8" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Търси по име, контакт, имейл…"
+            className="pl-8"
+          />
         </div>
 
         <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border">
           {visible.length === 0 ? (
-            <div className="px-3 py-6 text-center text-xs text-muted-foreground">Няма контакти с имейл в тази група.</div>
+            <div className="px-3 py-6 text-center text-xs text-muted-foreground">
+              Няма контакти с имейл в тази група.
+            </div>
           ) : (
             visible.map((c) => (
-              <label key={c.id} className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-amber-50">
+              <label
+                key={c.id}
+                className="flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-amber-50"
+              >
                 <input
                   type="checkbox"
                   checked={c.email ? selected.has(c.email) : false}
@@ -496,7 +594,8 @@ function SendDialog({ onClose, onSend }: { onClose: () => void; onSend: (emails:
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium">{c.company_name}</div>
                   <div className="truncate text-xs text-muted-foreground">
-                    {c.contact_person ? `${c.contact_person} · ` : ""}{c.email}
+                    {c.contact_person ? `${c.contact_person} · ` : ""}
+                    {c.email}
                   </div>
                 </div>
               </label>
@@ -506,11 +605,17 @@ function SendDialog({ onClose, onSend }: { onClose: () => void; onSend: (emails:
 
         <div>
           <label className="text-xs font-semibold">Ръчно (разделени със запетая)</label>
-          <Input value={manual} onChange={(e) => setManual(e.target.value)} placeholder="ivan@primer.bg, mария@bank.bg" />
+          <Input
+            value={manual}
+            onChange={(e) => setManual(e.target.value)}
+            placeholder="ivan@primer.bg, mария@bank.bg"
+          />
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Отказ</Button>
+          <Button variant="outline" onClick={onClose}>
+            Отказ
+          </Button>
           <Button onClick={submit} className="gold-cta-button">
             <Send className="h-4 w-4" /> Изпрати ({selected.size + (manual.trim() ? "+" : "")})
           </Button>
@@ -545,7 +650,11 @@ function CameraCapture({
     (async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
           audio: false,
         });
         if (cancelled) {
@@ -563,8 +672,12 @@ function CameraCapture({
         // Lazy-load scanner in background for the edge-highlight overlay
         loadOpenCv()
           .then(() => getScanner())
-          .then((s) => { if (!cancelled) scannerRef.current = s; })
-          .catch(() => { /* overlay simply stays off */ });
+          .then((s) => {
+            if (!cancelled) scannerRef.current = s;
+          })
+          .catch(() => {
+            /* overlay simply stays off */
+          });
       } catch (e: any) {
         setErrorMsg(e?.message ?? "Няма достъп до камера");
         setStatus("error");
@@ -586,7 +699,7 @@ function CameraCapture({
     let processing = false;
     let lastRun = 0;
     const MIN_INTERVAL = 320; // ms (≈3 fps)
-    const MAX_DIM = 640;      // px за работен canvas
+    const MAX_DIM = 640; // px за работен canvas
 
     const tick = () => {
       const video = videoRef.current;
@@ -605,7 +718,8 @@ function CameraCapture({
           const sw = Math.max(1, Math.round(vw * scale));
           const sh = Math.max(1, Math.round(vh * scale));
           const work = document.createElement("canvas");
-          work.width = sw; work.height = sh;
+          work.width = sw;
+          work.height = sh;
           const wctx = work.getContext("2d");
           if (wctx) {
             wctx.drawImage(video, 0, 0, sw, sh);
@@ -614,15 +728,19 @@ function CameraCapture({
               try {
                 const highlighted = scanner.highlightPaper(work) as HTMLCanvasElement;
                 if (overlay.width !== sw || overlay.height !== sh) {
-                  overlay.width = sw; overlay.height = sh;
+                  overlay.width = sw;
+                  overlay.height = sh;
                 }
                 const octx = overlay.getContext("2d");
                 if (octx) {
                   octx.clearRect(0, 0, sw, sh);
                   octx.drawImage(highlighted, 0, 0);
                 }
-              } catch { /* пропусни кадъра */ }
-              finally { processing = false; }
+              } catch {
+                /* пропусни кадъра */
+              } finally {
+                processing = false;
+              }
             });
           } else {
             processing = false;
@@ -659,7 +777,6 @@ function CameraCapture({
     }
   };
 
-
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-[#8B1A2B]">
       <div className="flex items-center justify-between p-3 text-amber-100">
@@ -669,8 +786,17 @@ function CameraCapture({
         </button>
       </div>
       <div className="relative flex-1 overflow-hidden">
-        <video ref={videoRef} playsInline muted autoPlay className="absolute inset-0 h-full w-full object-contain" />
-        <canvas ref={overlayRef} className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-70 mix-blend-screen" />
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+        <canvas
+          ref={overlayRef}
+          className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-70 mix-blend-screen"
+        />
         {status === "loading" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-amber-100">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -682,7 +808,11 @@ function CameraCapture({
             <Camera className="h-10 w-10 text-rose-400" />
             <div className="font-display text-lg">Няма достъп до камера</div>
             <div className="text-xs text-amber-100/70 max-w-sm">{errorMsg}</div>
-            <Button onClick={onClose} variant="outline" className="border-amber-500/30 text-amber-100">
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="border-amber-500/30 text-amber-100"
+            >
               <RotateCcw className="h-4 w-4" /> Затвори
             </Button>
           </div>
@@ -703,14 +833,28 @@ function CameraCapture({
       {status === "ready" && (
         <div className="flex items-center justify-between gap-4 bg-[#8B1A2B]/85 px-4 py-4">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-amber-500/30 bg-[#8B1A2B]/40 text-[10px] text-amber-100/60">
-            {lastShot ? <img src={lastShot} alt="Последна" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : "—"}
+            {lastShot ? (
+              <img
+                src={lastShot}
+                alt="Последна"
+                className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              "—"
+            )}
           </div>
           <button
             onClick={capture}
             disabled={shooting}
             className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-amber-300 bg-amber-500/20 text-amber-100 transition hover:scale-105 disabled:opacity-50"
           >
-            {shooting ? <Loader2 className="h-8 w-8 animate-spin" /> : <Aperture className="h-9 w-9" />}
+            {shooting ? (
+              <Loader2 className="h-8 w-8 animate-spin" />
+            ) : (
+              <Aperture className="h-9 w-9" />
+            )}
           </button>
           <button
             onClick={onClose}
@@ -795,7 +939,7 @@ function enhanceDocument(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasE
   // Contrast curve: deepen mid-darks, keep paper white
   for (let i = 0; i < n; i++) {
     const j = i * 4;
-    const ratio = (lum[i] / Math.max(bg[i], 1)); // ~1 for paper
+    const ratio = lum[i] / Math.max(bg[i], 1); // ~1 for paper
     // White-balance: paper -> white
     let r = (data[j] / Math.max(bg[i], 1)) * 255 * scale;
     let g = (data[j + 1] / Math.max(bg[i], 1)) * 255 * scale;
@@ -805,9 +949,7 @@ function enhanceDocument(src: HTMLCanvasElement | HTMLImageElement): HTMLCanvasE
     const boost = (v: number) => {
       // Soft S-curve: keeps white white, darkens dark
       const x = v / 255;
-      const y = x < 0.5
-        ? Math.pow(x * 2, 1.6) / 2
-        : 1 - Math.pow((1 - x) * 2, 1.6) / 2;
+      const y = x < 0.5 ? Math.pow(x * 2, 1.6) / 2 : 1 - Math.pow((1 - x) * 2, 1.6) / 2;
       return Math.max(0, Math.min(255, y * 255));
     };
     r = boost(r);
@@ -853,4 +995,3 @@ function boxBlur(src: Float32Array, w: number, h: number, r: number): Float32Arr
   }
   return out;
 }
-

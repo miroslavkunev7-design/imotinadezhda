@@ -50,7 +50,11 @@ export function useFavorites() {
   return { ids, has, toggle };
 }
 
-export async function shareProperty(opts: { title: string; url: string; text?: string }): Promise<"shared" | "copied" | "failed"> {
+export async function shareProperty(opts: {
+  title: string;
+  url: string;
+  text?: string;
+}): Promise<"shared" | "copied" | "failed"> {
   const data = { title: opts.title, text: opts.text ?? opts.title, url: opts.url };
   if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
     try {

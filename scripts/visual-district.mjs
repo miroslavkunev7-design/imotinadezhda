@@ -39,13 +39,18 @@ let chromium;
 try {
   ({ chromium } = await import("playwright"));
 } catch {
-  console.error("❌ Playwright not installed. Run: bun add -d playwright && bunx playwright install chromium");
+  console.error(
+    "❌ Playwright not installed. Run: bun add -d playwright && bunx playwright install chromium",
+  );
   process.exit(2);
 }
 
 console.log(`→ Capturing ${url}`);
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
+const ctx = await browser.newContext({
+  viewport: { width: 1440, height: 900 },
+  deviceScaleFactor: 1,
+});
 const page = await ctx.newPage();
 await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
 // Allow font loading + marble background images to settle

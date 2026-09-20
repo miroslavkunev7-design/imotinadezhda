@@ -10,7 +10,10 @@ const PRECACHE = ["/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(PRECACHE)).catch(() => {}),
+    caches
+      .open(CACHE)
+      .then((c) => c.addAll(PRECACHE))
+      .catch(() => {}),
   );
   self.skipWaiting();
 });
@@ -44,13 +47,17 @@ self.addEventListener("fetch", (event) => {
   // Static PWA assets → cache-first.
   if (PRECACHE.includes(url.pathname) || url.pathname.startsWith("/icon-")) {
     event.respondWith(
-      caches.match(req).then((c) =>
-        c ||
-        fetch(req).then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
-          return res;
-        }),
+      caches.match(req).then(
+        (c) =>
+          c ||
+          fetch(req).then((res) => {
+            const copy = res.clone();
+            caches
+              .open(CACHE)
+              .then((cache) => cache.put(req, copy))
+              .catch(() => {});
+            return res;
+          }),
       ),
     );
   }
@@ -65,8 +72,11 @@ self.addEventListener("message", (event) => {
 // ===== Web Push =====
 self.addEventListener("push", (event) => {
   let data = { title: "Имоти Надежда", body: "", url: "/admin", tag: undefined };
-  try { if (event.data) data = { ...data, ...event.data.json() }; }
-  catch { if (event.data) data.body = event.data.text(); }
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch {
+    if (event.data) data.body = event.data.text();
+  }
 
   event.waitUntil(
     self.registration.showNotification(data.title, {
@@ -84,11 +94,16 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = (event.notification.data && event.notification.data.url) || "/admin";
-  event.waitUntil((async () => {
-    const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    for (const c of all) {
-      if ("focus" in c) { c.navigate(url).catch(() => {}); return c.focus(); }
-    }
-    if (self.clients.openWindow) return self.clients.openWindow(url);
-  })());
+  event.waitUntil(
+    (async () => {
+      const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const c of all) {
+        if ("focus" in c) {
+          c.navigate(url).catch(() => {});
+          return c.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
+    })(),
+  );
 });

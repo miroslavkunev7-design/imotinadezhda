@@ -4,10 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
  * Uploads an image to the public `property-images` bucket under the given
  * prefix and returns the publicly accessible URL.
  */
-export async function uploadPublicImage(
-  file: File,
-  pathPrefix: string,
-): Promise<string> {
+export async function uploadPublicImage(file: File, pathPrefix: string): Promise<string> {
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
   const safeExt = /^[a-z0-9]+$/.test(ext) ? ext : "jpg";
   const key = `${pathPrefix.replace(/\/+$/, "")}/${Date.now()}-${Math.random()

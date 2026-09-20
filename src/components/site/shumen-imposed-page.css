@@ -1,0 +1,1018 @@
+.shumen-imposed {
+  --wine: #330004;
+  --wine-deep: #250003;
+  --wine-red: #5a0710;
+  --cream: #fffdf9;
+  --ink: #210407;
+}
+.shumen-imposed * {
+  box-sizing: border-box;
+}
+.shumen-imposed {
+  scroll-behavior: smooth;
+}
+.shumen-imposed {
+  margin: 0;
+  min-width: 320px;
+  color: var(--cream);
+  background: #9ba8ad;
+  font-family: "Roboto", Arial, sans-serif;
+  overflow-x: hidden;
+}
+.shumen-imposed button,
+.shumen-imposed input,
+.shumen-imposed select {
+  font: inherit;
+}
+.shumen-imposed button {
+  -webkit-tap-highlight-color: transparent;
+}
+.shumen-imposed .font-display {
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+.shumen-imposed .app-root {
+  position: relative;
+  width: 100%;
+  min-height: max(1086px, 100dvh);
+  overflow: hidden;
+  isolation: isolate;
+  background: #bdc6c8;
+}
+.shumen-imposed .lower-landscape {
+  position: absolute;
+  z-index: -3;
+  left: 0;
+  right: 0;
+  top: 520px;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05), rgba(34, 44, 51, 0.08)),
+    url("/__l5e/assets-v1/70b9ee75-f8bc-47a0-b11a-72fed8e755ec/shumen-image-1.png");
+  background-size: cover;
+  background-position: center top;
+}
+.shumen-imposed .hero {
+  position: relative;
+  height: 650px;
+}
+.shumen-imposed .hero-photo {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 55%;
+  aspect-ratio: 1958 / 1116;
+  max-height: 600px;
+  background-image: url("/__l5e/assets-v1/41286a92-e34e-424f-97f4-143f76946c8c/shumen-image-2.jpg");
+  background-size: cover;
+  background-position: center center;
+  filter: saturate(0.88) contrast(1.03);
+  overflow: hidden;
+}
+.shumen-imposed .hero-photo video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.shumen-imposed .hero-brush-panel {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+.shumen-imposed .hero-brush-panel img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.shumen-imposed .logo-brush {
+  position: absolute;
+  z-index: 12;
+  left: 22px;
+  top: -15px;
+  width: 450px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shumen-imposed .logo-image-src {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.25s ease;
+}
+.shumen-imposed .logo-brush:hover .logo-image-src {
+  transform: scale(1.025);
+}
+.shumen-imposed .top-nav {
+  position: absolute;
+  z-index: 15;
+  top: 40px;
+  right: 52px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.shumen-imposed .nav-item {
+  position: relative;
+  isolation: isolate;
+  min-width: 100px;
+  height: 50px;
+  padding: 0 15px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 17px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+.shumen-imposed .nav-item::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -5px -15px;
+  background-image: url("/__l5e/assets-v1/75eb6b63-fb7e-4632-a234-2c29ce285f29/shumen-image-3.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.shumen-imposed .nav-item:hover::before,
+.shumen-imposed .nav-item.active::before {
+  opacity: 1;
+}
+.shumen-imposed .nav-item:hover,
+.shumen-imposed .nav-item.active {
+  color: #330004;
+}
+.shumen-imposed .hero-content {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  top: 122px;
+  left: calc(50% + 50px);
+  width: min(590px, calc(50% - 82px));
+  color: white;
+}
+.shumen-imposed .hero-kicker {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 37px;
+  font-weight: 500;
+  line-height: 1;
+  margin: 0 0 -5px;
+}
+.shumen-imposed .hero-title {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(78px, 7.35vw, 110px);
+  font-weight: 500;
+  line-height: 0.86;
+  letter-spacing: -3px;
+  margin: 0;
+}
+.shumen-imposed .hero-copy {
+  max-width: 585px;
+  margin-top: 28px;
+  font-size: 18px;
+  line-height: 1.65;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.94);
+}
+.shumen-imposed .stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr 1fr;
+  margin-top: 16px;
+  width: 100%;
+}
+.shumen-imposed .stat {
+  min-width: 0;
+  height: 100px;
+  padding: 0 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+.shumen-imposed .stat:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.shumen-imposed .stat svg {
+  width: 29px;
+  height: 29px;
+  margin-bottom: 5px;
+}
+.shumen-imposed .stat-main {
+  font-size: 18px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.shumen-imposed .stat-sub {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.9);
+}
+.shumen-imposed .search-shell {
+  display: none;
+  position: absolute;
+  z-index: 30;
+  top: 530px;
+  left: 3.1%;
+  right: -14px;
+  height: 130px;
+  background-image: url("/__l5e/assets-v1/4c3c5245-1dc2-44c2-8f46-4c60ec075177/shumen-image-4.png");
+  background-size: 100% 430%;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 10px 18px rgba(35, 0, 4, 0.18));
+}
+.shumen-imposed .search-shell::before {
+  display: none;
+}
+.shumen-imposed .search-inner {
+  position: relative;
+  z-index: 2;
+  width: min(1324px, calc(100% - 105px));
+  height: 100%;
+  margin-left: 72px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 240px;
+  align-items: center;
+}
+.shumen-imposed .search-control {
+  position: relative;
+  min-width: 0;
+  height: 75px;
+  padding: 4px 12px 4px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  text-align: left;
+}
+.shumen-imposed .search-control svg {
+  width: 31px;
+  height: 31px;
+  flex: none;
+}
+.shumen-imposed .filter-label {
+  font-size: 13px;
+  line-height: 1.1;
+  color: rgba(255, 255, 255, 0.87);
+  margin-bottom: 6px;
+}
+.shumen-imposed .filter-value {
+  max-width: 180px;
+  font-size: 16px;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shumen-imposed .chevron {
+  width: 15px !important;
+  height: 15px !important;
+  margin-left: auto;
+  transition: transform 0.2s;
+}
+.shumen-imposed .search-control.open .chevron {
+  transform: rotate(180deg);
+}
+.shumen-imposed .dropdown-menu {
+  position: absolute;
+  z-index: 80;
+  left: 10px;
+  right: 10px;
+  top: 71px;
+  padding: 8px;
+  color: #260104;
+  background: rgba(255, 253, 249, 0.99);
+  border: 1px solid rgba(68, 0, 6, 0.17);
+  border-radius: 3px;
+  box-shadow: 0 15px 35px rgba(18, 0, 2, 0.28);
+}
+.shumen-imposed .dropdown-option {
+  width: 100%;
+  padding: 9px 10px;
+  text-align: left;
+  border-radius: 2px;
+  font-size: 14px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.shumen-imposed .dropdown-option:hover,
+.shumen-imposed .dropdown-option.selected {
+  background: #4b080d;
+  color: white;
+}
+.shumen-imposed .filter-trigger {
+  position: relative;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: white;
+  font-size: 18px;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+.shumen-imposed .filter-trigger svg {
+  width: 27px;
+  height: 27px;
+  flex: none;
+}
+.shumen-imposed .search-button {
+  position: relative;
+  height: 75px;
+  width: 240px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease;
+  background: none;
+  border: none;
+}
+.shumen-imposed .search-button:hover {
+  transform: scale(1.025);
+}
+.shumen-imposed .search-button svg {
+  width: 27px;
+  height: 27px;
+  margin-right: 10px;
+}
+.shumen-imposed .search-button span {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+}
+.shumen-imposed .chat-launcher {
+  position: absolute;
+  z-index: 25;
+  left: 83px;
+  top: 310px;
+  width: 83px;
+  height: 69px;
+  display: grid;
+  place-items: center;
+  color: #260004;
+  transition: transform 0.2s ease;
+}
+.shumen-imposed .chat-launcher::before {
+  content: "";
+  position: absolute;
+  inset: -10px -20px;
+  z-index: -1;
+  background-image: url("/__l5e/assets-v1/75eb6b63-fb7e-4632-a234-2c29ce285f29/shumen-image-3.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.shumen-imposed .chat-launcher:hover {
+  transform: translateY(-2px);
+}
+.shumen-imposed .chat-launcher svg {
+  width: 41px;
+  height: 41px;
+}
+.shumen-imposed .neighborhood-section {
+  position: relative;
+  z-index: 5;
+  padding: 18px 0 12px;
+  margin-top: -55px;
+}
+.shumen-imposed .section-title {
+  margin: 0 0 14px;
+  text-align: center;
+  color: #171315;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 42px;
+  font-weight: 500;
+}
+.shumen-imposed .section-title span {
+  color: #641018;
+}
+.shumen-imposed .cards-wrap {
+  width: calc(100% - 100px);
+  max-width: 1320px;
+  margin: 0 auto;
+  position: relative;
+}
+.shumen-imposed .cards-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+}
+.shumen-imposed .neighborhood-pager {
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  width: 82px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  color: #3d060a;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: url("/__l5e/assets-v1/ac8f8524-8052-4a7d-b452-ee3b0f6e0710/shumen-image-5.png")
+    center / 150px auto no-repeat;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+.shumen-imposed .neighborhood-pager:hover:not(:disabled) {
+  transform: translateY(-50%) scale(1.08);
+}
+.shumen-imposed .neighborhood-pager:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.shumen-imposed .neighborhood-pager svg {
+  width: 28px;
+  height: 28px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.shumen-imposed .neighborhood-pager.prev {
+  left: -28px;
+  transform: translateY(-50%);
+}
+.shumen-imposed .neighborhood-pager.next {
+  right: -28px;
+  transform: translateY(-50%);
+}
+@media (max-width: 900px) {
+  .shumen-imposed .neighborhood-pager {
+    display: none;
+  }
+  .shumen-imposed .cards-wrap {
+    width: calc(100% - 16px);
+  }
+}
+.shumen-imposed .neighborhood-card {
+  position: relative;
+  flex: 0 1 500px;
+  height: 170px;
+  cursor: pointer;
+  transition: transform 0.24s ease;
+  outline: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: block;
+}
+.shumen-imposed .neighborhood-card::before {
+  display: none;
+}
+.shumen-imposed .card-photo {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 0;
+}
+.shumen-imposed .card-info {
+  display: none;
+}
+.shumen-imposed .neighborhood-card:hover {
+  transform: scale(1.05);
+}
+.shumen-imposed .modal-backdrop {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(20, 0, 2, 0.69);
+  backdrop-filter: blur(4px);
+}
+.shumen-imposed .modal-card {
+  position: relative;
+  width: min(570px, 100%);
+  color: #2b0508;
+  background: #fffdf9;
+  border-radius: 5px;
+}
+.shumen-imposed .modal-content {
+  padding: 30px;
+}
+@media (max-width: 800px) {
+  .shumen-imposed .top-nav {
+    display: none;
+  }
+  .shumen-imposed .hero {
+    height: auto;
+    padding-bottom: 400px;
+  }
+  .shumen-imposed .hero-photo {
+    width: 100%;
+    max-height: none;
+  }
+  .shumen-imposed .hero-brush-panel {
+    width: 100%;
+    right: 0;
+    top: 300px;
+    opacity: 0.94;
+  }
+  .shumen-imposed .hero-content {
+    top: 400px;
+    left: 20px;
+    width: calc(100% - 40px);
+  }
+  .shumen-imposed .search-shell {
+    top: 950px;
+    left: 10px;
+    right: 10px;
+    height: auto;
+    min-height: 500px;
+    background-size: 100% 430%;
+  }
+  .shumen-imposed .search-inner {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-left: 26px;
+    width: calc(100% - 52px);
+    padding: 50px 0;
+  }
+  .shumen-imposed .search-button {
+    width: 100%;
+  }
+  .shumen-imposed .logo-brush {
+    width: 300px;
+    height: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* React-rendered neighbourhood cards (Варна / Бургас) */
+.shumen-imposed .card-react {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.shumen-imposed .card-react-photo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 62%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  -webkit-mask-image: url("../../assets/brush-card-mask.png");
+  mask-image: url("../../assets/brush-card-mask.png");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  filter: saturate(0.92) contrast(1.03);
+}
+.shumen-imposed .card-react-brush {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 56%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px 10px 34px;
+  color: #fffdf9;
+  background: linear-gradient(120deg, #5a0710 0%, #3d060a 55%, #2a0206 100%);
+  -webkit-mask-image: url("../../assets/brush-panel-mask.png");
+  mask-image: url("../../assets/brush-panel-mask.png");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.shumen-imposed .card-react-name {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-align: center;
+  line-height: 1.05;
+}
+.shumen-imposed .card-react-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+}
+.shumen-imposed .card-react-count svg {
+  width: 17px;
+  height: 17px;
+}
+.shumen-imposed .card-react-cta {
+  margin-top: 4px;
+  padding: 7px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 253, 249, 0.85);
+}
+
+/* React-rendered hero panel (Варна / Бургас) — формата идва от <BrushShape /> */
+.shumen-imposed.react-panel .hero-brush-react {
+  position: absolute;
+  z-index: 9;
+  left: 40%;
+  top: -30px;
+  right: -60px;
+  height: 660px;
+  pointer-events: none;
+}
+/* Плътна бордо подложка — скрива сивото под ръбавата мазка */
+.shumen-imposed.react-panel .hero-brush-fill {
+  position: absolute;
+  z-index: 8;
+  left: 45%;
+  top: 0;
+  right: 0;
+  height: 620px;
+  background: #5f0f1c;
+  pointer-events: none;
+}
+.shumen-imposed.react-panel .hero-strip-fill {
+  position: absolute;
+  z-index: 7;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 210px;
+  background: #5f0f1c;
+  pointer-events: none;
+}
+/* Долна хоризонтална мазка, свързваща се с десния панел */
+.shumen-imposed.react-panel .hero-brush-strip {
+  position: absolute;
+  z-index: 8;
+  left: -30px;
+  right: -30px;
+  bottom: -16px;
+  height: 280px;
+  pointer-events: none;
+}
+/* Бордо бадж под логото горе вляво */
+.shumen-imposed.react-panel .hero-logo-badge {
+  position: absolute;
+  inset: -18px -26px;
+  z-index: -1;
+  pointer-events: none;
+}
+.shumen-imposed.react-panel .hero-content {
+  display: block;
+}
+.shumen-imposed.react-panel .search-shell {
+  display: block;
+}
+.shumen-imposed.react-panel .hero {
+  height: 700px;
+}
+.shumen-imposed.react-panel .neighborhood-section {
+  margin-top: 20px;
+}
+.shumen-imposed.react-panel .search-button {
+  color: #2b0508;
+  background: linear-gradient(180deg, #fffdf9, #f4ece1);
+  -webkit-mask-image: var(--brush-shape);
+  mask-image: var(--brush-shape);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+@media (max-width: 800px) {
+  .shumen-imposed.react-panel .hero-brush-react {
+    left: 0;
+    right: 0;
+    top: 300px;
+    height: 620px;
+  }
+  .shumen-imposed.react-panel .neighborhood-card {
+    flex: 0 1 100%;
+  }
+}
+
+/* ================= HERO ВАРИАНТ „БЪРЗО ТЪРСЕНЕ“ (Шумен / Варна / Бургас) ================= */
+.shumen-imposed.quick-hero .hero {
+  position: relative;
+  height: 100dvh;
+  min-height: 620px;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+.shumen-imposed.quick-hero .hero-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+  background: #0e1416;
+}
+.shumen-imposed.quick-hero .hero-photo video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+/* Скриваме старите слоеве на hero-а */
+.shumen-imposed.quick-hero .hero-brush-panel,
+.shumen-imposed.quick-hero .hero-brush-react,
+.shumen-imposed.quick-hero .hero-brush-strip,
+.shumen-imposed.quick-hero .hero-brush-fill,
+.shumen-imposed.quick-hero .hero-strip-fill,
+.shumen-imposed.quick-hero .hero-content,
+.shumen-imposed.quick-hero .chat-launcher,
+.shumen-imposed.quick-hero .search-shell {
+  display: none !important;
+}
+
+.shumen-imposed.quick-hero .sr-only-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Лого върху бордо мазка — горе централно */
+.shumen-imposed.quick-hero .logo-brush {
+  position: absolute;
+  z-index: 14;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 8px;
+  width: min(560px, 88vw);
+  height: auto;
+  aspect-ratio: 16 / 7;
+  display: grid;
+  place-items: center;
+  padding: 0 6%;
+}
+.shumen-imposed.quick-hero .hero-logo-badge {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.shumen-imposed.quick-hero .logo-image-src {
+  position: relative;
+  width: min(78%, 380px);
+  height: auto;
+}
+
+/* Кръгъл бутон за профил */
+.shumen-imposed.quick-hero .hero-account {
+  position: absolute;
+  z-index: 20;
+  top: 14px;
+  right: 14px;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #fff7ea;
+  background: #6b1020;
+  border: 1px solid rgba(201, 168, 76, 0.7);
+  box-shadow: 0 8px 22px rgba(20, 2, 6, 0.4);
+  transition: transform 0.18s ease;
+}
+.shumen-imposed.quick-hero .hero-account:hover {
+  transform: scale(1.06);
+}
+.shumen-imposed.quick-hero .hero-account svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Панел „БЪРЗО ТЪРСЕНЕ“ */
+.shumen-imposed.quick-hero .quick-search {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 96px;
+  width: min(1160px, calc(100% - 32px));
+  padding: 14px 16px 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #6d1122, #4d0a15);
+  border: 1px solid rgba(201, 168, 76, 0.75);
+  box-shadow: 0 18px 40px rgba(15, 1, 4, 0.45);
+}
+.shumen-imposed.quick-hero .quick-search-title {
+  text-align: center;
+  color: #e8c777;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 20px;
+  letter-spacing: 0.14em;
+  margin-bottom: 12px;
+}
+.shumen-imposed.quick-hero .quick-search-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.shumen-imposed.quick-hero .quick-search-grid .search-control {
+  height: auto;
+  min-height: 92px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  border: 1px solid rgba(201, 168, 76, 0.45);
+  border-radius: 14px;
+  background: rgba(255, 247, 234, 0.06);
+  color: #fff7ea;
+}
+.shumen-imposed.quick-hero .quick-search-grid .search-control svg {
+  width: 24px;
+  height: 24px;
+  color: #e8c777;
+}
+.shumen-imposed.quick-hero .quick-search-grid .search-control .min-w-0 {
+  width: 100%;
+}
+.shumen-imposed.quick-hero .quick-search-grid .filter-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #e8c777;
+  margin-bottom: 3px;
+}
+.shumen-imposed.quick-hero .quick-search-grid .filter-value {
+  max-width: 100%;
+  font-size: 13px;
+  line-height: 1.15;
+  white-space: normal;
+  color: #fff7ea;
+}
+.shumen-imposed.quick-hero .quick-search-grid .chevron {
+  display: none;
+}
+.shumen-imposed.quick-hero .quick-search-grid .dropdown-menu {
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow: auto;
+  text-align: left;
+}
+.shumen-imposed.quick-hero .quick-search-button {
+  margin-top: 12px;
+  width: 100%;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 14px;
+  color: #3a0710;
+  background: linear-gradient(180deg, #f0cf7e, #d9b45c);
+  border: 1px solid rgba(58, 7, 16, 0.25);
+  transition: transform 0.18s ease;
+}
+.shumen-imposed.quick-hero .quick-search-button:hover {
+  transform: scale(1.01);
+}
+.shumen-imposed.quick-hero .quick-search-button svg {
+  width: 24px;
+  height: 24px;
+}
+.shumen-imposed.quick-hero .quick-search-button span {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+}
+.shumen-imposed.quick-hero .neighborhood-section {
+  margin-top: 28px;
+}
+
+@media (max-width: 800px) {
+  .shumen-imposed.quick-hero .hero {
+    height: 100dvh;
+    min-height: 560px;
+    padding-bottom: 0;
+  }
+  .shumen-imposed.quick-hero .logo-brush {
+    width: 92vw;
+    top: 4px;
+  }
+  .shumen-imposed.quick-hero .quick-search {
+    bottom: 120px;
+    width: calc(100% - 20px);
+    padding: 12px 12px 14px;
+  }
+  .shumen-imposed.quick-hero .quick-search-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .shumen-imposed.quick-hero .quick-search-grid .search-control {
+    min-height: 84px;
+    padding: 8px 4px;
+    border-radius: 12px;
+  }
+  .shumen-imposed.quick-hero .quick-search-grid .search-control svg {
+    width: 20px;
+    height: 20px;
+  }
+  .shumen-imposed.quick-hero .quick-search-grid .filter-label {
+    font-size: 8px;
+  }
+  .shumen-imposed.quick-hero .quick-search-grid .filter-value {
+    font-size: 10px;
+  }
+  .shumen-imposed.quick-hero .quick-search-button {
+    height: 48px;
+  }
+  .shumen-imposed.quick-hero .quick-search-button span {
+    font-size: 19px;
+  }
+  .shumen-imposed.quick-hero .hero-account {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+/* Старите наслоени brush слоеве (brush-container / brush-layer-*) са премахнати. */
+
+/* Слот за четковия панел за търсене — 1:1 пропорции на изображението */
+.shumen-imposed.quick-hero .brush-search-slot {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 56px;
+  width: min(1160px, calc(100% - 24px));
+}
+@media (max-width: 767px) {
+  .shumen-imposed.quick-hero .brush-search-slot {
+    bottom: 104px;
+    width: calc(100% - 8px);
+  }
+}
+
+/* ================= ДЕСКТОП: видео вляво, четката вдясно (50/50) ================= */
+@media (min-width: 1024px) {
+  .shumen-imposed.quick-hero .hero {
+    background: #ffffff;
+  }
+
+  /* Клипът заема само лявата половина */
+  .shumen-imposed.quick-hero .hero-photo {
+    inset: 0 50% 0 0;
+    width: 50%;
+  }
+
+  /* Бордо дясна половина */
+  .shumen-imposed.quick-hero .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 50%;
+    background: #ffffff;
+    z-index: 1;
+  }
+
+  /* Четката запълва цялата дясна половина, вертикално центрирана */
+  .shumen-imposed.quick-hero .brush-search-slot {
+    left: 50%;
+    right: 0;
+    transform: none;
+    top: 50%;
+    bottom: auto;
+    translate: 0 -50%;
+    width: 50%;
+    max-width: none;
+    padding: 0;
+  }
+
+  /* Логото остава горе, центрирано над видео колоната */
+  .shumen-imposed.quick-hero .logo-brush {
+    left: 25%;
+    width: min(460px, 44vw);
+  }
+}

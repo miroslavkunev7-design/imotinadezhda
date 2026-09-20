@@ -1,18 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock the admin Supabase client. The terminal call (.maybeSingle) returns
-// the value we set per-test via `mockData`.
+// Mock the admin database client, including the role/access RPCs used by the
+// shared CRM gate. The role query returns the value configured per test.
 let mockData: { role: string } | null = null;
 
 vi.mock("@/integrations/supabase/client.server", () => {
-  const builder: any = {
-    select: vi.fn(() => builder),
-    eq: vi.fn(() => builder),
-    maybeSingle: vi.fn(async () => ({ data: mockData, error: null })),
+  const roleBuilder = {
+    select: vi.fn(() => ({
+      eq: vi.fn(async () => ({ data: mockData ? [mockData] : [], error: null })),
+    })),
+  };
+  const brokerBuilder = {
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+      })),
+    })),
   };
   return {
     supabaseAdmin: {
-      from: vi.fn(() => builder),
+      from: vi.fn((table: string) => (table === "user_roles" ? roleBuilder : brokerBuilder)),
+      rpc: vi.fn(async (name: string) => ({
+        data: name === "is_full_access" ? false : null,
+        error: null,
+      })),
     },
   };
 });
@@ -26,7 +37,7 @@ beforeEach(() => {
 describe("assertAdmin", () => {
   it("resolves when the user has the admin role", async () => {
     mockData = { role: "admin" };
-    await expect(assertAdmin("user-1")).resolves.toBeUndefined();
+    await expect(assertAdmin("user-1")).resolves.toMatchObject({ isAdmin: true });
   });
 
   it("throws Forbidden when the user has no admin row", async () => {

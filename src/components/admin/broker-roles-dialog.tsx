@@ -11,14 +11,54 @@ type Props = {
 };
 
 const ROLE_OPTIONS: { value: BrokerRole; label: string; description: string; tone: string }[] = [
-  { value: "admin", label: "Администратор", description: "Пълен достъп до всичко", tone: "from-rose-700 to-rose-900" },
-  { value: "boss", label: "Шеф", description: "Управленски достъп", tone: "from-amber-600 to-amber-800" },
-  { value: "head_broker", label: "Началник брокер", description: "Ръководи екип от брокери", tone: "from-purple-600 to-purple-800" },
-  { value: "secretary", label: "Секретарка", description: "Пълен достъп до всички клиенти и имоти", tone: "from-pink-600 to-pink-800" },
-  { value: "broker", label: "Брокер", description: "Вижда само своите клиенти", tone: "from-emerald-600 to-emerald-800" },
-  { value: "consultant", label: "Консултант", description: "Консултантски услуги", tone: "from-sky-600 to-sky-800" },
-  { value: "rental_dept", label: "Отдел Наем", description: "Само наеми", tone: "from-teal-600 to-teal-800" },
-  { value: "agent", label: "Агент", description: "Помощник-брокер", tone: "from-slate-600 to-slate-800" },
+  {
+    value: "admin",
+    label: "Администратор",
+    description: "Пълен достъп до всичко",
+    tone: "from-rose-700 to-rose-900",
+  },
+  {
+    value: "boss",
+    label: "Шеф",
+    description: "Управленски достъп",
+    tone: "from-amber-600 to-amber-800",
+  },
+  {
+    value: "head_broker",
+    label: "Началник брокер",
+    description: "Ръководи екип от брокери",
+    tone: "from-purple-600 to-purple-800",
+  },
+  {
+    value: "secretary",
+    label: "Секретарка",
+    description: "Пълен достъп до всички клиенти и имоти",
+    tone: "from-pink-600 to-pink-800",
+  },
+  {
+    value: "broker",
+    label: "Брокер",
+    description: "Вижда само своите клиенти",
+    tone: "from-emerald-600 to-emerald-800",
+  },
+  {
+    value: "consultant",
+    label: "Консултант",
+    description: "Консултантски услуги",
+    tone: "from-sky-600 to-sky-800",
+  },
+  {
+    value: "rental_dept",
+    label: "Отдел Наем",
+    description: "Само наеми",
+    tone: "from-teal-600 to-teal-800",
+  },
+  {
+    value: "agent",
+    label: "Агент",
+    description: "Помощник-брокер",
+    tone: "from-slate-600 to-slate-800",
+  },
 ];
 
 export function BrokerRolesDialog({ brokerName, userId, onClose, onSaved }: Props) {
@@ -61,7 +101,10 @@ export function BrokerRolesDialog({ brokerName, userId, onClose, onSaved }: Prop
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
       <div
         className="relative w-full max-w-lg rounded-3xl border-2 border-[#C9A84C]/40 bg-gradient-to-br from-[#8B1A2B] to-[#5e0f1d] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
         onClick={(e) => e.stopPropagation()}
@@ -111,8 +154,12 @@ export function BrokerRolesDialog({ brokerName, userId, onClose, onSaved }: Prop
                     {active && <Check className="h-4 w-4 text-[#5e0f1d]" />}
                   </div>
                   <div className="flex-1">
-                    <div className={`font-semibold ${active ? "text-white" : "text-amber-100"}`}>{opt.label}</div>
-                    <div className={`text-xs ${active ? "text-white/80" : "text-amber-100/60"}`}>{opt.description}</div>
+                    <div className={`font-semibold ${active ? "text-white" : "text-amber-100"}`}>
+                      {opt.label}
+                    </div>
+                    <div className={`text-xs ${active ? "text-white/80" : "text-amber-100/60"}`}>
+                      {opt.description}
+                    </div>
                   </div>
                 </button>
               );

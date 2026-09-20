@@ -3,13 +3,7 @@
  * Each block has: type id, label, category, default props, list of editable props (with control type),
  * and a React renderer.
  */
-export type ControlType =
-  | "text"
-  | "textarea"
-  | "color"
-  | "number"
-  | "select"
-  | "url";
+export type ControlType = "text" | "textarea" | "color" | "number" | "select" | "url";
 
 export interface PropControl {
   key: string;

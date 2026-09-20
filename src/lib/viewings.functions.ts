@@ -1,339 +1,203 @@
+// Автоматизация №6 — API слой (typed RPC) за CRM модула „Огледи“.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
-import { resolveLooseDb } from "@/lib/supabase-server-db";
 
-function authEmail(claims: unknown): string | null {
+function actorEmail(claims: unknown): string | null {
   return (claims as { email?: string } | undefined)?.email ?? null;
 }
 
-export const VIEWING_STATUSES = ["planned", "confirmed", "done", "cancelled", "no_show"] as const;
-export type ViewingStatus = (typeof VIEWING_STATUSES)[number];
-
-export const VIEWING_STATUS_LABEL: Record<ViewingStatus, string> = {
-  planned: "Планиран",
-  confirmed: "Потвърден",
-  done: "Проведен",
-  cancelled: "Отказан",
-  no_show: "Недошъл",
-};
-
-const uuid = z.string().uuid();
-const optUuid = uuid.optional().nullable();
-const statusSchema = z.enum(VIEWING_STATUSES);
-
-const viewingSchema = z.object({
-  id: optUuid,
-  client_id: optUuid,
-  property_id: optUuid,
-  archived_property_id: optUuid,
-  broker_id: uuid,
-  scheduled_at: z.string().min(10).max(40),
-  location: z.string().max(500).optional().nullable(),
-  notes: z.string().max(4000).optional().nullable(),
-  property_title: z.string().max(300).optional().nullable(),
-  status: statusSchema.default("planned"),
-});
-
-const SELECT =
-  "id, client_id, property_id, archived_property_id, broker_id, broker_task_id, scheduled_at, location, notes, property_title, status, reminded_day_before_at, reminded_hours_before_at, created_at, updated_at, clients:client_id(full_name, phone, email), brokers:broker_id(full_name, phone, email), properties:property_id(title, address)";
-const SELECT_PLAIN =
-  "id, client_id, property_id, archived_property_id, broker_id, broker_task_id, scheduled_at, location, notes, property_title, status, reminded_day_before_at, reminded_hours_before_at, created_at, updated_at";
-
-function scopeBroker<T extends { eq: (c: string, v: string) => T }>(q: T, access: { isAdmin: boolean; brokerId: string | null }) {
-  if (!access.isAdmin && access.brokerId) return q.eq("broker_id", access.brokerId);
-  return q;
-}
-
-function relName(rel: { full_name?: string } | { full_name?: string }[] | null | undefined) {
-  if (!rel) return null;
-  return Array.isArray(rel) ? rel[0]?.full_name ?? null : rel.full_name ?? null;
-}
-
-async function syncBrokerTask(
-  db: ReturnType<typeof resolveLooseDb>,
-  viewing: {
-    id: string;
-    broker_id: string;
-    client_id: string | null;
-    scheduled_at: string;
-    location: string | null;
-    notes: string | null;
-    property_title: string | null;
-    status: string;
-    broker_task_id: string | null;
-  },
-  userId: string,
-  clientName?: string | null,
-) {
-  const done = ["done", "cancelled", "no_show"].includes(viewing.status);
-  const title = `Оглед — ${clientName || "клиент"}${viewing.property_title ? ` · ${viewing.property_title}` : ""}`;
-  const payload: Record<string, unknown> = {
-    broker_id: viewing.broker_id,
-    client_id: viewing.client_id,
-    title,
-    description: [viewing.location, viewing.notes].filter(Boolean).join("\n") || null,
-    due_at: viewing.scheduled_at,
-    task_type: "viewing",
-    is_completed: done,
-    completed_at: done ? new Date().toISOString() : null,
-    reminder_minutes: 120,
-    reminded_at: new Date().toISOString(),
-    auto_action_log: {
-      kind: "viewing",
-      viewing_id: viewing.id,
-      end_at: new Date(new Date(viewing.scheduled_at).getTime() + 60 * 60 * 1000).toISOString(),
-    },
-  };
-
-  if (viewing.broker_task_id) {
-    const { error } = await db.from("broker_tasks").update(payload as never).eq("id", viewing.broker_task_id);
-    if (!error) return viewing.broker_task_id;
-  }
-
-  const insert: Record<string, unknown> = { ...payload, created_by: userId };
-  let { data, error } = await db.from("broker_tasks").insert(insert as never).select("id").maybeSingle();
-  if (error && /client_id/i.test(error.message)) {
-    const { client_id: _c, ...rest } = insert;
-    ({ data, error } = await db.from("broker_tasks").insert(rest as never).select("id").maybeSingle());
-  }
-  if (error || !data) return viewing.broker_task_id;
-  await db.from("viewings").update({ broker_task_id: data.id } as never).eq("id", viewing.id);
-  return data.id as string;
-}
+const VIEWING_LIST_SELECT =
+  "id, created_at, scheduled_at, duration_min, status, outcome, outcome_notes, rating, feedback, feedback_at, location, notes, source, token, agent_name, agent_email, agent_phone, contact_name, contact_email, contact_phone, reschedule_count, reminders_sent, ai_used, confirmed_at, cancelled_at, cancel_reason, lead_id, property_id, leads:lead_id(id, full_name, email, phone, status, qualification_grade), properties:property_id(id, title, price, currency, rooms, area_sqm, cover_image_url, cities:city_id(name), quarters:quarter_id(name))";
 
 export const listViewings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z
-      .object({
-        from: z.string().max(40).optional(),
-        to: z.string().max(40).optional(),
-        broker_id: optUuid,
-        client_id: optUuid,
-        status: statusSchema.optional(),
-      })
-      .parse(d ?? {}),
+  .inputValidator(
+    (d: { status?: string; scope?: "upcoming" | "past" | "all"; leadId?: string } | undefined) =>
+      d ?? {},
   )
   .handler(async ({ data, context }) => {
-    const db = resolveLooseDb(context.supabase) as any;
-    const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
-    let q = db.from("viewings").select(SELECT).order("scheduled_at", { ascending: true });
-    q = scopeBroker(q, access);
-    if (data.from) q = q.gte("scheduled_at", data.from);
-    if (data.to) q = q.lte("scheduled_at", data.to);
-    if (data.broker_id) q = q.eq("broker_id", data.broker_id);
-    if (data.client_id) q = q.eq("client_id", data.client_id);
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let q = (supabaseAdmin as any).from("viewings").select(VIEWING_LIST_SELECT).limit(300);
     if (data.status) q = q.eq("status", data.status);
-    let { data: rows, error } = await q;
-    if (error) {
-      let plain = db.from("viewings").select(SELECT_PLAIN).order("scheduled_at", { ascending: true });
-      plain = scopeBroker(plain, access);
-      if (data.from) plain = plain.gte("scheduled_at", data.from);
-      if (data.to) plain = plain.lte("scheduled_at", data.to);
-      if (data.broker_id) plain = plain.eq("broker_id", data.broker_id);
-      if (data.client_id) plain = plain.eq("client_id", data.client_id);
-      if (data.status) plain = plain.eq("status", data.status);
-      const retry = await plain;
-      if (retry.error) throw new Error(error.message);
-      rows = retry.data;
-    }
+    if (data.leadId) q = q.eq("lead_id", data.leadId);
+    if (data.scope === "past")
+      q = q
+        .lt("scheduled_at", new Date().toISOString())
+        .order("scheduled_at", { ascending: false });
+    else if (data.scope === "all") q = q.order("scheduled_at", { ascending: false });
+    else
+      q = q
+        .gte("scheduled_at", new Date(Date.now() - 3600_000).toISOString())
+        .order("scheduled_at", { ascending: true });
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
     return rows ?? [];
   });
 
-export const upsertViewing = createServerFn({ method: "POST" })
+export const listViewingReminders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => viewingSchema.parse(d))
+  .inputValidator((d: { status?: string } | undefined) => d ?? {})
   .handler(async ({ data, context }) => {
-    const db = resolveLooseDb(context.supabase) as any;
-    const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
-    if (!access.isAdmin && access.brokerId && data.broker_id !== access.brokerId) {
-      throw new Error("Можете да насрочвате огледи само към своя график.");
-    }
-
-    let propertyTitle = data.property_title?.trim() || null;
-    if (!propertyTitle && data.property_id) {
-      const { data: prop } = await db.from("properties").select("title, address").eq("id", data.property_id).maybeSingle();
-      propertyTitle = prop?.title ?? prop?.address ?? null;
-    }
-    if (!propertyTitle && data.archived_property_id) {
-      const { data: arch } = await db.from("archived_properties").select("title, address").eq("id", data.archived_property_id).maybeSingle();
-      propertyTitle = arch?.title ?? arch?.address ?? null;
-    }
-
-    const scheduledAt = new Date(data.scheduled_at).toISOString();
-    const clean: Record<string, unknown> = {
-      client_id: data.client_id ?? null,
-      property_id: data.property_id ?? null,
-      archived_property_id: data.archived_property_id ?? null,
-      broker_id: data.broker_id,
-      scheduled_at: scheduledAt,
-      location: data.location?.trim() || null,
-      notes: data.notes?.trim() || null,
-      property_title: propertyTitle,
-      status: data.status ?? "planned",
-      updated_at: new Date().toISOString(),
-    };
-
-    const op = data.id
-      ? db.from("viewings").update(clean).eq("id", data.id).select(SELECT).maybeSingle()
-      : db.from("viewings").insert({ ...clean, created_by: context.userId }).select(SELECT).maybeSingle();
-    const { data: row, error } = await op;
-    if (error) throw new Error(error.message);
-    if (!row) throw new Error("Огледът не беше записан.");
-
-    const clientName = relName(row.clients);
-    await syncBrokerTask(
-      db,
-      {
-        id: row.id,
-        broker_id: row.broker_id,
-        client_id: row.client_id,
-        scheduled_at: row.scheduled_at,
-        location: row.location,
-        notes: row.notes,
-        property_title: row.property_title,
-        status: row.status,
-        broker_task_id: row.broker_task_id,
-      },
-      context.userId,
-      clientName,
-    );
-
-    const { data: fresh } = await db.from("viewings").select(SELECT).eq("id", row.id).maybeSingle();
-    return fresh ?? row;
-  });
-
-export const setViewingStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: uuid, status: statusSchema }).parse(d))
-  .handler(async ({ data, context }) => {
-    const db = resolveLooseDb(context.supabase) as any;
-    const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
-    let q = db.from("viewings").select(SELECT).eq("id", data.id);
-    q = scopeBroker(q, access);
-    const { data: current, error: readErr } = await q.maybeSingle();
-    if (readErr) throw new Error(readErr.message);
-    if (!current) throw new Error("Огледът не е намерен.");
-
-    const { data: row, error } = await db
-      .from("viewings")
-      .update({ status: data.status, updated_at: new Date().toISOString() })
-      .eq("id", data.id)
-      .select(SELECT)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-
-    await syncBrokerTask(
-      db,
-      {
-        id: row.id,
-        broker_id: row.broker_id,
-        client_id: row.client_id,
-        scheduled_at: row.scheduled_at,
-        location: row.location,
-        notes: row.notes,
-        property_title: row.property_title,
-        status: row.status,
-        broker_task_id: row.broker_task_id,
-      },
-      context.userId,
-      relName(row.clients),
-    );
-    return row;
-  });
-
-export const deleteViewing = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: uuid }).parse(d))
-  .handler(async ({ data, context }) => {
-    const db = resolveLooseDb(context.supabase) as any;
-    const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
-    let q = db.from("viewings").select("id, broker_task_id, broker_id").eq("id", data.id);
-    q = scopeBroker(q, access);
-    const { data: row, error: readErr } = await q.maybeSingle();
-    if (readErr) throw new Error(readErr.message);
-    if (!row) throw new Error("Огледът не е намерен.");
-    if (row.broker_task_id) await db.from("broker_tasks").delete().eq("id", row.broker_task_id);
-    const { error } = await db.from("viewings").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
-
-export const getViewingStats = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const db = resolveLooseDb(context.supabase) as any;
-    const access = await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
-
-    const startToday = new Date();
-    startToday.setHours(0, 0, 0, 0);
-    const endToday = new Date(startToday);
-    endToday.setDate(endToday.getDate() + 1);
-    const end7 = new Date(startToday);
-    end7.setDate(end7.getDate() + 7);
-    const from30 = new Date(startToday);
-    from30.setDate(from30.getDate() - 30);
-
-    let q = db
-      .from("viewings")
-      .select("id, status, scheduled_at, broker_id, brokers:broker_id(full_name)")
-      .gte("scheduled_at", from30.toISOString())
-      .lt("scheduled_at", end7.toISOString());
-    q = scopeBroker(q, access);
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let q = (supabaseAdmin as any)
+      .from("viewing_reminders")
+      .select(
+        "id, created_at, kind, channel, scheduled_at, sent_at, status, recipient, subject, body, ai_used, model, error, viewing_id, viewings:viewing_id(id, scheduled_at, contact_name, status, properties:property_id(title))",
+      )
+      .order("scheduled_at", { ascending: false })
+      .limit(150);
+    if (data.status) q = q.eq("status", data.status);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    const list = (rows ?? []) as Array<{
-      id: string;
-      status: ViewingStatus;
-      scheduled_at: string;
-      broker_id: string;
-      brokers?: { full_name?: string } | { full_name?: string }[] | null;
-    }>;
-
-    const todayIso = startToday.toISOString();
-    const tomorrowIso = endToday.toISOString();
-    const weekIso = end7.toISOString();
-
-    const today = list.filter((v) => v.scheduled_at >= todayIso && v.scheduled_at < tomorrowIso);
-    const upcoming7 = list.filter(
-      (v) => v.scheduled_at >= todayIso && v.scheduled_at < weekIso && ["planned", "confirmed"].includes(v.status),
-    );
-    const last30 = list.filter((v) => v.scheduled_at >= from30.toISOString() && v.scheduled_at < tomorrowIso);
-    const decided = last30.filter((v) => v.status !== "cancelled");
-    const confirmedish = decided.filter((v) => v.status === "confirmed" || v.status === "done");
-    const noShows = last30.filter((v) => v.status === "no_show");
-
-    const byBrokerMap = new Map<string, { name: string; total: number; noShows: number; confirmed: number }>();
-    for (const v of last30) {
-      const name = Array.isArray(v.brokers) ? v.brokers[0]?.full_name : v.brokers?.full_name;
-      const cur = byBrokerMap.get(v.broker_id) ?? {
-        name: name || "Брокер",
-        total: 0,
-        noShows: 0,
-        confirmed: 0,
-      };
-      cur.total++;
-      if (v.status === "no_show") cur.noShows++;
-      if (v.status === "confirmed" || v.status === "done") cur.confirmed++;
-      byBrokerMap.set(v.broker_id, cur);
-    }
-
-    return {
-      todayCount: today.length,
-      today,
-      upcoming7Count: upcoming7.length,
-      confirmationRate: decided.length ? Math.round((confirmedish.length / decided.length) * 100) : 0,
-      noShowCount: noShows.length,
-      byBroker: Array.from(byBrokerMap.values()).sort((a, b) => b.total - a.total),
-    };
+    return rows ?? [];
   });
 
-export const processViewingReminders = createServerFn({ method: "POST" })
+export const getViewingsConfig = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertCrmAccess(context.userId, context.supabase, authEmail(context.claims));
-    const { runViewingReminders } = await import("@/lib/viewings-reminders.server");
-    return runViewingReminders();
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { getViewingSettings, getViewingJobState } = await import("@/lib/viewings.server");
+    return { settings: await getViewingSettings(), job: await getViewingJobState() };
+  });
+
+export const saveViewingsConfig = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: Record<string, unknown>) =>
+    z
+      .object({
+        enabled: z.boolean().optional(),
+        ai_enabled: z.boolean().optional(),
+        send_invite: z.boolean().optional(),
+        reminder_24h: z.boolean().optional(),
+        reminder_2h: z.boolean().optional(),
+        feedback_request: z.boolean().optional(),
+        agent_brief: z.boolean().optional(),
+        batch_size: z.number().int().min(1).max(100).optional(),
+        feedback_delay_hours: z.number().int().min(0).max(72).optional(),
+        auto_no_show_hours: z.number().int().min(1).max(168).optional(),
+        min_lead_hours: z.number().int().min(0).max(72).optional(),
+        slot_days_ahead: z.number().int().min(1).max(30).optional(),
+        quiet_start: z.number().int().min(0).max(23).optional(),
+        quiet_end: z.number().int().min(0).max(23).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { saveViewingSettings } = await import("@/lib/viewings.server");
+    return saveViewingSettings(data);
+  });
+
+export const getViewingsAnalytics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { viewingsAnalytics } = await import("@/lib/viewings.server");
+    return viewingsAnalytics();
+  });
+
+export const suggestViewingSlots = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (d: { agentId?: string | null; days?: number; limit?: number } | undefined) => d ?? {},
+  )
+  .handler(async ({ data, context }) => {
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { suggestSlots } = await import("@/lib/viewings.server");
+    return suggestSlots({ agentId: data.agentId ?? null, days: data.days, limit: data.limit });
+  });
+
+export const createViewing = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: Record<string, unknown>) =>
+    z
+      .object({
+        leadId: z.string().uuid().nullish(),
+        clientId: z.string().uuid().nullish(),
+        propertyId: z.string().uuid().nullish(),
+        agentId: z.string().uuid().nullish(),
+        agentName: z.string().max(160).nullish(),
+        agentEmail: z.string().email().nullish(),
+        agentPhone: z.string().max(60).nullish(),
+        contactName: z.string().max(160).nullish(),
+        contactEmail: z.string().email().nullish(),
+        contactPhone: z.string().max(60).nullish(),
+        scheduledAt: z.string().min(10),
+        durationMin: z.number().int().min(15).max(240).optional(),
+        location: z.string().max(300).nullish(),
+        notes: z.string().max(2000).nullish(),
+        autoConfirm: z.boolean().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { scheduleViewing } = await import("@/lib/viewings.server");
+    const res = await scheduleViewing({ ...data, source: "crm", createdBy: context.userId });
+    if (!res.ok) throw new Error(res.reason ?? "Огледът не беше създаден");
+    return res;
+  });
+
+export const updateViewingStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: Record<string, unknown>) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        action: z.enum(["confirm", "cancel", "reschedule", "complete", "no_show"]),
+        scheduledAt: z.string().min(10).optional(),
+        reason: z.string().max(500).optional(),
+        outcome: z.string().max(60).optional(),
+        notes: z.string().max(2000).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const v = await import("@/lib/viewings.server");
+    const by = actorEmail(context.claims) ?? "CRM";
+    if (data.action === "confirm") return v.confirmViewing(data.id, by);
+    if (data.action === "cancel") return v.cancelViewing(data.id, data.reason ?? "Без причина", by);
+    if (data.action === "reschedule") {
+      if (!data.scheduledAt) throw new Error("Липсва нов час");
+      const res = await v.rescheduleViewing(data.id, data.scheduledAt, by);
+      if (!res.ok) throw new Error(res.reason ?? "Пренасрочването не успя");
+      return res;
+    }
+    return v.setViewingOutcome(
+      data.id,
+      data.outcome ?? (data.action === "no_show" ? "no_show" : "completed"),
+      data.notes ?? null,
+      data.action === "no_show" ? "no_show" : "completed",
+    );
+  });
+
+export const runViewingReminderNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { runReminder } = await import("@/lib/viewings.server");
+    return runReminder(data.id, { force: true });
+  });
+
+export const runViewingsSweepNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { limit?: number } | undefined) => d ?? {})
+  .handler(async ({ data, context }) => {
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { runViewingsSweep } = await import("@/lib/viewings.server");
+    return runViewingsSweep(data.limit);
+  });
+
+export const resumeViewingsJob = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { resumeViewingJob } = await import("@/lib/viewings.server");
+    return resumeViewingJob();
   });

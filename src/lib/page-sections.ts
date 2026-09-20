@@ -19,9 +19,21 @@ export const PAGE_LABELS: Record<PageKey, string> = {
 
 export const SECTION_REGISTRY: Record<PageKey, SectionDef[]> = {
   home: [
-    { id: "hero-search-mobile", label: "Търсачка (мобилно)", description: "Видима само на телефон/таблет, под header-а." },
-    { id: "hero-search-desktop", label: "Търсачка (десктоп)", description: "Над картите с градове." },
-    { id: "cities-grid", label: "Карти с градове", description: "Шумен, Варна, Бургас, Нов пазар." },
+    {
+      id: "hero-search-mobile",
+      label: "Търсачка (мобилно)",
+      description: "Видима само на телефон/таблет, под header-а.",
+    },
+    {
+      id: "hero-search-desktop",
+      label: "Търсачка (десктоп)",
+      description: "Над картите с градове.",
+    },
+    {
+      id: "cities-grid",
+      label: "Карти с градове",
+      description: "Шумен, Варна, Бургас, Нов пазар.",
+    },
   ],
   sale: [
     { id: "filters", label: "Филтри" },

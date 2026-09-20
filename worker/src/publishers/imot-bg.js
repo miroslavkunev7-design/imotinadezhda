@@ -1,24 +1,26 @@
-import { envCreds, buildDescription, getImageUrls, downloadImages } from './_helpers.js';
-import path from 'node:path';
+import { envCreds, buildDescription, getImageUrls, downloadImages } from "./_helpers.js";
+import path from "node:path";
 
 // ⚠️ СЕЛЕКТОРИ — placeholder. Настрой ги при първо стартиране с HEADLESS=false.
 // Реалните URL/селектори трябва да се потвърдят с реален акаунт.
 
 export const imotBg = {
-  getCredentials: () => envCreds('IMOT_BG_EMAIL', 'IMOT_BG_PASSWORD'),
+  getCredentials: () => envCreds("IMOT_BG_EMAIL", "IMOT_BG_PASSWORD"),
 
   async publish({ page, property, credentials }) {
     // 1. Login
-    await page.goto('https://www.imot.bg/login', { waitUntil: 'domcontentloaded' });
+    await page.goto("https://www.imot.bg/login", { waitUntil: "domcontentloaded" });
     if (await page.locator('input[name="usr"]').count()) {
       await page.fill('input[name="usr"]', credentials.email);
       await page.fill('input[name="pwd"]', credentials.password);
       await page.click('input[type="submit"]');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState("networkidle");
     }
 
     // 2. Нова обява
-    await page.goto('https://www.imot.bg/pcgi/imot.cgi?act=8&act1=1', { waitUntil: 'domcontentloaded' });
+    await page.goto("https://www.imot.bg/pcgi/imot.cgi?act=8&act1=1", {
+      waitUntil: "domcontentloaded",
+    });
 
     // 3. TODO: попълни формата според реалната структура
     // await page.selectOption('select[name="ime_grad"]', property.cities?.name ?? '');
@@ -34,7 +36,9 @@ export const imotBg = {
     // await page.click('input[type="submit"][value*="Публикувай"]');
     // await page.waitForLoadState('networkidle');
 
-    throw new Error('imot.bg publisher: селекторите още не са конфигурирани — виж коментарите в публикатора');
+    throw new Error(
+      "imot.bg publisher: селекторите още не са конфигурирани — виж коментарите в публикатора",
+    );
     // return { url: page.url() };
   },
 };

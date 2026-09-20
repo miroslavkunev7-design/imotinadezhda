@@ -81,9 +81,7 @@ export function InstallCrmButton() {
             className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-3">
-              <h3 className="font-serif text-lg text-[#600f1c]">
-                Инсталирай CRM на iPhone
-              </h3>
+              <h3 className="font-serif text-lg text-[#600f1c]">Инсталирай CRM на iPhone</h3>
               <button
                 onClick={() => setShowIosHelp(false)}
                 className="rounded-full p-1 text-gray-500 hover:bg-gray-100"
@@ -96,16 +94,22 @@ export function InstallCrmButton() {
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 font-bold text-[#600f1c]">1.</span>
                 <span>
-                  Натисни бутона <Share className="inline h-4 w-4 align-text-bottom text-[#600f1c]" /> <strong>Сподели</strong> в Safari.
+                  Натисни бутона{" "}
+                  <Share className="inline h-4 w-4 align-text-bottom text-[#600f1c]" />{" "}
+                  <strong>Сподели</strong> в Safari.
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 font-bold text-[#600f1c]">2.</span>
-                <span>Избери <strong>„Добави в начален екран“</strong>.</span>
+                <span>
+                  Избери <strong>„Добави в начален екран“</strong>.
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 font-bold text-[#600f1c]">3.</span>
-                <span>Натисни <strong>„Добави“</strong>. Иконата ще отвори директно вход за CRM.</span>
+                <span>
+                  Натисни <strong>„Добави“</strong>. Иконата ще отвори директно вход за CRM.
+                </span>
               </li>
             </ol>
           </div>

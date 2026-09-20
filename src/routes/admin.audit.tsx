@@ -29,8 +29,13 @@ function AuditPage() {
 
   const matchesFilters = (r: LogRow) => {
     if (pathFilter !== "all" && r.path !== pathFilter) return false;
-    if (emailFilter.trim() && !(r.email ?? "").toLowerCase().includes(emailFilter.trim().toLowerCase())) return false;
-    if (ipFilter.trim() && !(r.ip ?? "").toLowerCase().includes(ipFilter.trim().toLowerCase())) return false;
+    if (
+      emailFilter.trim() &&
+      !(r.email ?? "").toLowerCase().includes(emailFilter.trim().toLowerCase())
+    )
+      return false;
+    if (ipFilter.trim() && !(r.ip ?? "").toLowerCase().includes(ipFilter.trim().toLowerCase()))
+      return false;
     if (dateFrom && new Date(r.created_at) < new Date(dateFrom)) return false;
     if (dateTo) {
       const end = new Date(dateTo);
@@ -249,10 +254,7 @@ function AuditPage() {
                     {r.user_id ? r.user_id.slice(0, 8) : "анонимен"}
                   </td>
                   <td className="px-3 py-2 font-mono text-xs">{r.ip ?? "—"}</td>
-                  <td
-                    className="px-3 py-2 max-w-xs truncate"
-                    title={r.user_agent ?? ""}
-                  >
+                  <td className="px-3 py-2 max-w-xs truncate" title={r.user_agent ?? ""}>
                     {r.user_agent ?? "—"}
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">

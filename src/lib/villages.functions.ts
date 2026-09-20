@@ -22,35 +22,33 @@ export type VillageRow = {
   municipality_slug: string | null;
   distance_km: number | null;
   property_count: number;
-  kind: "village" | "resort";
 };
 
 export const getVillagesAround = createServerFn({ method: "GET" })
-  .inputValidator((d) =>
-    z.object({
-      citySlug: z.string().min(1).max(60),
-      kind: z.enum(["village", "resort"]).optional(),
-    }).parse(d),
-  )
+  .inputValidator((d) => z.object({ citySlug: z.string().min(1).max(60) }).parse(d))
   .handler(async ({ data }) => {
     const cfg = CITY_TO_OBLAST[data.citySlug];
-    if (!cfg) return { cityLabel: data.citySlug, oblast: null, municipality: null, villages: [] as VillageRow[], resortCount: 0, villageCount: 0 };
+    if (!cfg)
+      return {
+        cityLabel: data.citySlug,
+        oblast: null,
+        municipality: null,
+        villages: [] as VillageRow[],
+      };
 
-    const { supabaseAdmin: typedAdmin } = await import("@/integrations/supabase/client.server");
-    // villages.kind is added via a manual migration and is absent from generated types.
-    const supabaseAdmin = typedAdmin as unknown as import("@/lib/supabase-server-db").LooseDb;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     let q = supabaseAdmin
       .from("villages")
-      .select("id, name, slug, oblast_slug, municipality_slug, distance_km, kind")
+      .select("id, name, slug, oblast_slug, municipality_slug, distance_km")
       .eq("oblast_slug", cfg.oblast)
       .order("distance_km", { ascending: true, nullsFirst: false })
       .order("name", { ascending: true });
     if (cfg.municipality) q = q.eq("municipality_slug", cfg.municipality);
-    if (data.kind) q = q.eq("kind", data.kind);
 
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
 
+    // Live property counts per village.
     const villageIds = (rows ?? []).map((v) => v.id);
     const countsByVillage = new Map<string, number>();
     if (villageIds.length) {
@@ -66,32 +64,15 @@ export const getVillagesAround = createServerFn({ method: "GET" })
     }
 
     const villages: VillageRow[] = (rows ?? []).map((v) => ({
-      id: v.id,
-      name: v.name,
-      slug: v.slug,
-      oblast_slug: v.oblast_slug,
-      municipality_slug: v.municipality_slug,
-      distance_km: v.distance_km,
-      kind: v.kind === "resort" ? "resort" : "village",
+      ...v,
       property_count: countsByVillage.get(v.id) ?? 0,
     }));
-
-    let countQ = supabaseAdmin
-      .from("villages")
-      .select("kind")
-      .eq("oblast_slug", cfg.oblast);
-    if (cfg.municipality) countQ = countQ.eq("municipality_slug", cfg.municipality);
-    const { data: kinds } = await countQ;
-    const resortCount = (kinds ?? []).filter((r) => r.kind === "resort").length;
-    const villageCount = (kinds ?? []).length - resortCount;
 
     return {
       cityLabel: cfg.label,
       oblast: cfg.oblast,
       municipality: cfg.municipality ?? null,
       villages,
-      resortCount,
-      villageCount,
     };
   });
 
@@ -101,7 +82,9 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
@@ -128,23 +111,34 @@ async function geocodeNominatim(query: string): Promise<{ lat: number; lng: numb
 export const backfillVillageCoords = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ oblast: z.enum(["shumen", "varna", "burgas"]).optional(), limit: z.number().int().min(1).max(80).optional() }).parse(d),
+    z
+      .object({
+        oblast: z.enum(["shumen", "varna", "burgas"]).optional(),
+        limit: z.number().int().min(1).max(80).optional(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
 
-    const { supabaseAdmin: typedAdmin } = await import("@/integrations/supabase/client.server");
-    // villages.kind is added via a manual migration and is absent from generated types.
-    const supabaseAdmin = typedAdmin as unknown as import("@/lib/supabase-server-db").LooseDb;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Pull city centers for distance calc.
-    const { data: cities } = await supabaseAdmin.from("cities").select("slug, lat, lng").in("slug", ["shumen", "varna", "burgas"]);
+    const { data: cities } = await supabaseAdmin
+      .from("cities")
+      .select("slug, lat, lng")
+      .in("slug", ["shumen", "varna", "burgas"]);
     const cityCenters: Record<string, { lat: number; lng: number }> = {};
     for (const c of cities ?? []) {
-      if (c.lat != null && c.lng != null) cityCenters[c.slug] = { lat: Number(c.lat), lng: Number(c.lng) };
+      if (c.lat != null && c.lng != null)
+        cityCenters[c.slug] = { lat: Number(c.lat), lng: Number(c.lng) };
     }
 
-    let query = supabaseAdmin.from("villages").select("id, name, oblast_slug").is("lat", null).limit(data.limit ?? 40);
+    let query = supabaseAdmin
+      .from("villages")
+      .select("id, name, oblast_slug")
+      .is("lat", null)
+      .limit(data.limit ?? 40);
     if (data.oblast) query = query.eq("oblast_slug", data.oblast);
     const { data: villages, error } = await query;
     if (error) throw new Error(error.message);
@@ -165,7 +159,11 @@ export const backfillVillageCoords = createServerFn({ method: "POST" })
       const dist = center ? haversineKm(center.lat, center.lng, coords.lat, coords.lng) : null;
       await supabaseAdmin
         .from("villages")
-        .update({ lat: coords.lat, lng: coords.lng, distance_km: dist ? Math.round(dist * 10) / 10 : null })
+        .update({
+          lat: coords.lat,
+          lng: coords.lng,
+          distance_km: dist ? Math.round(dist * 10) / 10 : null,
+        })
         .eq("id", v.id);
       geocoded++;
       // Respect Nominatim 1 req/sec policy.
@@ -173,7 +171,10 @@ export const backfillVillageCoords = createServerFn({ method: "POST" })
     }
 
     // Count remaining
-    let remQ = supabaseAdmin.from("villages").select("id", { count: "exact", head: true }).is("lat", null);
+    let remQ = supabaseAdmin
+      .from("villages")
+      .select("id", { count: "exact", head: true })
+      .is("lat", null);
     if (data.oblast) remQ = remQ.eq("oblast_slug", data.oblast);
     const { count: remaining } = await remQ;
     return { processed, geocoded, remaining: remaining ?? 0 };

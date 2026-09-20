@@ -18,9 +18,7 @@ function isPreviewOrIframe(): boolean {
     inIframe = true;
   }
   const host = window.location.hostname;
-  const isPreviewHost =
-    host.includes("id-preview--") ||
-    host.includes("vercel.app");
+  const isPreviewHost = host.includes("id-preview--") || host.includes("vercel.app");
   return inIframe || isPreviewHost;
 }
 
@@ -29,9 +27,12 @@ export function initPwa(): void {
 
   // Always unregister stale SWs in preview/iframe to keep the editor fresh.
   if (isPreviewOrIframe()) {
-    navigator.serviceWorker?.getRegistrations().then((regs) => {
-      regs.forEach((r) => r.unregister().catch(() => {}));
-    }).catch(() => {});
+    navigator.serviceWorker
+      ?.getRegistrations()
+      .then((regs) => {
+        regs.forEach((r) => r.unregister().catch(() => {}));
+      })
+      .catch(() => {});
     return;
   }
 
@@ -54,7 +55,9 @@ export function initPwa(): void {
             if (!worker) return;
             worker.addEventListener("statechange", () => {
               if (worker.state === "installed" && navigator.serviceWorker.controller) {
-                try { worker.postMessage({ type: "SKIP_WAITING" }); } catch {}
+                try {
+                  worker.postMessage({ type: "SKIP_WAITING" });
+                } catch {}
               }
             });
           };
@@ -64,7 +67,9 @@ export function initPwa(): void {
           });
 
           // 3) Poll for updates periodically and when tab regains focus/visibility.
-          const checkForUpdate = () => { registration.update().catch(() => {}); };
+          const checkForUpdate = () => {
+            registration.update().catch(() => {});
+          };
           setInterval(checkForUpdate, 60 * 1000);
           document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") checkForUpdate();

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-const withTimeout = <T,>(promise: Promise<T>, ms = 15000): Promise<T | null> =>
+const withTimeout = <T,>(promise: Promise<T>, ms = 5000): Promise<T | null> =>
   Promise.race([
     promise,
     new Promise<null>((resolve) => window.setTimeout(() => resolve(null), ms)),
@@ -24,7 +24,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, sess) => {
       if (!mounted) return;
       setSession(sess);
       setUser(sess?.user ?? null);

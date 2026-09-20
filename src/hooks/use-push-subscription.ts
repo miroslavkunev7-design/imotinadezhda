@@ -18,7 +18,11 @@ export function usePushSubscription() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    if (
+      !("serviceWorker" in navigator) ||
+      !("PushManager" in window) ||
+      !("Notification" in window)
+    ) {
       setState("unsupported");
       return;
     }
@@ -40,7 +44,10 @@ export function usePushSubscription() {
     setState("loading");
     try {
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") { setState("denied"); return; }
+      if (perm !== "granted") {
+        setState("denied");
+        return;
+      }
       const reg = await navigator.serviceWorker.ready;
       const { key } = await getVapidPublicKey();
       if (!key) throw new Error("VAPID public key not configured on server");

@@ -1,8 +1,14 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { CityLikeShumenPage } from "@/components/site/city-like-shumen-page";
+import { ShumenImposedPage, VarnaImposedPage } from "@/components/site/shumen-imposed-page";
 import { getCityBySlug } from "@/lib/catalog.functions";
-import { breadcrumbJsonLd, cityKeywords, citySeo, siteUrl, SITE_NAME, SITE_URL } from "@/lib/site-config";
+import {
+  resolveCityHeroMp4,
+  resolveCityHeroWebm,
+  resolveCityHeroLegacyMp4,
+} from "@/lib/city-hero-videos";
+import { citySeo, siteUrl, SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { resolveAssetUrl } from "@/lib/asset-url";
 import shumenPanorama from "@/assets/city-photos/shumen.jpeg.asset.json";
 import varnaPanorama from "@/assets/city-photos/varna.jpeg.asset.json";
@@ -87,6 +93,9 @@ const CITY_META: Record<string, CityMeta> = {
 };
 
 function renderCity(slug: string, data: any) {
+  if (slug === "shumen") return <ShumenImposedPage />;
+  if (slug === "varna") return <VarnaImposedPage />;
+
   const quarterCounts: Record<string, number> = data?.quarterCounts ?? {};
   const aroundCount: number = data?.aroundCount ?? 0;
   const meta = CITY_META[slug] ?? {
@@ -97,6 +106,9 @@ function renderCity(slug: string, data: any) {
     stats: { population: "—", area: "—" },
   };
   const cityLabel = data?.city?.name ?? meta.name;
+  const heroVideoUrl = resolveCityHeroMp4(slug, data?.city?.hero_video_url);
+  const heroVideoWebmUrl = resolveCityHeroWebm(slug);
+  const heroVideoFallbackUrl = resolveCityHeroLegacyMp4(slug);
   const quarters = (data?.quarters ?? []).map((q: any) => ({
     name: q.name,
     slug: q.slug,
@@ -109,8 +121,9 @@ function renderCity(slug: string, data: any) {
       cityLabel={cityLabel}
       cityDescription={CITY_META[slug]?.description ?? data?.city?.description ?? meta.description}
       panoramaUrl={meta.panoramaUrl}
-      heroVideoUrl={meta.heroVideoUrl}
-      heroVideoWebmUrl={meta.heroVideoWebmUrl}
+      heroVideoUrl={heroVideoUrl || undefined}
+      heroVideoWebmUrl={heroVideoWebmUrl}
+      heroVideoFallbackUrl={heroVideoFallbackUrl}
       regionLabel={meta.region}
       stats={{
         population: meta.stats.population,
@@ -130,7 +143,11 @@ function CityFallbackRoute() {
   const fallback = meta
     ? { name: meta.name, description: meta.description, region: meta.region }
     : { name: "Град", description: "Имоти и квартали от Имоти Надежда.", region: "България" };
-  const cityData = { city: { slug, ...fallback, hero_image_url: null, hero_video_url: null }, quarters: [], properties: [] };
+  const cityData = {
+    city: { slug, ...fallback, hero_image_url: null, hero_video_url: null },
+    quarters: [],
+    properties: [],
+  };
   return renderCity(slug, cityData);
 }
 
@@ -156,7 +173,10 @@ export const Route = createFileRoute("/cities/$slug/")({
       meta: [
         { title: seo.title },
         { name: "description", content: liveDescription },
-        { name: "keywords", content: cityKeywords(params.slug, cityName) },
+        {
+          name: "keywords",
+          content: `имоти ${cityName}, недвижими имоти ${cityName}, апартаменти ${cityName}, къщи ${cityName}, ${SITE_NAME}`,
+        },
         { property: "og:title", content: seo.title },
         { property: "og:description", content: liveDescription },
         { property: "og:url", content: url },
@@ -166,7 +186,7 @@ export const Route = createFileRoute("/cities/$slug/")({
         ...(ogImage
           ? [
               { property: "og:image", content: ogImage },
-              { property: "og:image:alt", content: `Имоти в ${cityName} — панорама от ${SITE_NAME}` },
+              { property: "og:image:alt", content: `Панорама на ${cityName}` },
               { name: "twitter:image", content: ogImage },
             ]
           : []),
@@ -178,12 +198,15 @@ export const Route = createFileRoute("/cities/$slug/")({
       scripts: [
         {
           type: "application/ld+json",
-          children: JSON.stringify(
-            breadcrumbJsonLd([
-              { name: "Начало", path: "/" },
-              { name: `Имоти в ${cityName}`, path: `/cities/${params.slug}` },
-            ]),
-          ),
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Начало", item: SITE_URL },
+              { "@type": "ListItem", position: 2, name: "Градове", item: siteUrl("/cities") },
+              { "@type": "ListItem", position: 3, name: cityName, item: url },
+            ],
+          }),
         },
         {
           type: "application/ld+json",
@@ -191,12 +214,9 @@ export const Route = createFileRoute("/cities/$slug/")({
             "@context": "https://schema.org",
             "@type": "RealEstateAgent",
             name: `${SITE_NAME} — ${cityName}`,
-            alternateName: ["Imoti Nadezhda", "imoti nadezhda"],
             description: liveDescription,
             url,
-            parentOrganization: { "@id": `${SITE_URL}/#organization` },
             areaServed: { "@type": "City", name: cityName },
-            knowsAbout: cityKeywords(params.slug, cityName).split(", ").slice(0, 12),
             ...(ogImage ? { image: ogImage } : {}),
           }),
         },

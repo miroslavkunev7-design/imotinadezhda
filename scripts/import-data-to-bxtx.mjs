@@ -11,9 +11,7 @@ const SERVICE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY ??
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4dHh5Z2FrYWZ3dXNzdHBwdGtnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTY3MzcwNiwiZXhwIjoyMDk1MjQ5NzA2fQ.wmuessNJmtjuWoydXEfG0p6ZWsLu4GQQcyewGrL1Q-M";
 
-const exportDir =
-  process.env.EXPORT_DIR ??
-  path.join(process.cwd(), "scripts/.data-export");
+const exportDir = process.env.EXPORT_DIR ?? path.join(process.cwd(), "scripts/.data-export");
 
 const ORDER = [
   "cities",

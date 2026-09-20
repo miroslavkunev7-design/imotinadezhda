@@ -7,8 +7,14 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
-    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Изображението не може да се прочете")); };
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Изображението не може да се прочете"));
+    };
     img.src = url;
   });
 }
@@ -22,10 +28,24 @@ function autoContrast(data: Uint8ClampedArray) {
   }
   const total = data.length / 4;
   const clip = total * 0.01;
-  let lo = 0, hi = 255, acc = 0;
-  for (let i = 0; i < 256; i++) { acc += hist[i]; if (acc > clip) { lo = i; break; } }
+  let lo = 0,
+    hi = 255,
+    acc = 0;
+  for (let i = 0; i < 256; i++) {
+    acc += hist[i];
+    if (acc > clip) {
+      lo = i;
+      break;
+    }
+  }
   acc = 0;
-  for (let i = 255; i >= 0; i--) { acc += hist[i]; if (acc > clip) { hi = i; break; } }
+  for (let i = 255; i >= 0; i--) {
+    acc += hist[i];
+    if (acc > clip) {
+      hi = i;
+      break;
+    }
+  }
   if (hi - lo < 20) return;
   const scale = 255 / (hi - lo);
   const lut = new Uint8ClampedArray(256);

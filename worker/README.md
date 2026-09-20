@@ -27,15 +27,15 @@ npm start
 
 ## Поддържани сайтове
 
-| site (key)        | Файл                          | Статус   |
-|-------------------|-------------------------------|----------|
-| imot.bg           | `publishers/imot-bg.js`       | Скелет ⚠️ |
-| imoti.net         | `publishers/imoti-net.js`     | Скелет ⚠️ |
-| olx.bg            | `publishers/olx-bg.js`        | Скелет ⚠️ |
-| bazar.bg          | `publishers/bazar-bg.js`      | Скелет ⚠️ |
-| alo.bg            | `publishers/alo-bg.js`        | Скелет ⚠️ |
-| home.bg           | `publishers/home-bg.js`       | Скелет ⚠️ |
-| fb-marketplace    | `publishers/fb-marketplace.js`| Скелет ⚠️ |
+| site (key)     | Файл                           | Статус    |
+| -------------- | ------------------------------ | --------- |
+| imot.bg        | `publishers/imot-bg.js`        | Скелет ⚠️ |
+| imoti.net      | `publishers/imoti-net.js`      | Скелет ⚠️ |
+| olx.bg         | `publishers/olx-bg.js`         | Скелет ⚠️ |
+| bazar.bg       | `publishers/bazar-bg.js`       | Скелет ⚠️ |
+| alo.bg         | `publishers/alo-bg.js`         | Скелет ⚠️ |
+| home.bg        | `publishers/home-bg.js`        | Скелет ⚠️ |
+| fb-marketplace | `publishers/fb-marketplace.js` | Скелет ⚠️ |
 
 > ⚠️ **Важно:** селекторите за формите за добавяне на обяви са placeholder-и. Трябва да ги настроите при първо стартиране с `HEADLESS=false`, като влезете с реален акаунт и инспектирате формата. Селекторите се менят често от порталите и нямат публично API.
 

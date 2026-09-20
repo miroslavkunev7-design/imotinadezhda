@@ -8,13 +8,13 @@
 
 ## Git / GitHub
 
-| Поле | Стойност |
-|------|----------|
-| Remote | `https://github.com/miroslavkunev7-design/imotinadezhda.git` |
-| Branch | `main` (synced with origin) |
-| Последен commit | `6caa836` — trigger deploy with GitHub-verified author |
-| Git author (ВАЖНО) | `286549693+miroslavkunev7-design@users.noreply.github.com` |
-| Git name | `Miroslav Kunev` |
+| Поле               | Стойност                                                     |
+| ------------------ | ------------------------------------------------------------ |
+| Remote             | `https://github.com/miroslavkunev7-design/imotinadezhda.git` |
+| Branch             | `main` (synced with origin)                                  |
+| Последен commit    | `6caa836` — trigger deploy with GitHub-verified author       |
+| Git author (ВАЖНО) | `286549693+miroslavkunev7-design@users.noreply.github.com`   |
+| Git name           | `Miroslav Kunev`                                             |
 
 **Не ползвай** `miroslav@imotinadezhda.bg` — Vercel блокира deploy.
 
@@ -22,13 +22,13 @@
 
 ## Vercel
 
-| Поле | Стойност |
-|------|----------|
-| Team | `nadq-jeleva-s-projects` |
-| GitHub проект | `imotinadezhda` → deploy **Ready** (`imotinadezhda-mh3zd1ln1-...`) |
-| Lovable проект | `imotinadezhda-lovable-vercel` → **домейнът сочи ТУК** |
-| Домейни | `imotinadezhda.bg`, `www.imotinadezhda.bg` → **lovable-vercel** проект |
-| CLI logged in | `miroslavkunev7-design` |
+| Поле           | Стойност                                                               |
+| -------------- | ---------------------------------------------------------------------- |
+| Team           | `nadq-jeleva-s-projects`                                               |
+| GitHub проект  | `imotinadezhda` → deploy **Ready** (`imotinadezhda-mh3zd1ln1-...`)     |
+| Lovable проект | `imotinadezhda-lovable-vercel` → **домейнът сочи ТУК**                 |
+| Домейни        | `imotinadezhda.bg`, `www.imotinadezhda.bg` → **lovable-vercel** проект |
+| CLI logged in  | `miroslavkunev7-design`                                                |
 
 ### Env vars на `imotinadezhda` — обновено 2026-06-18
 
@@ -46,13 +46,13 @@ SEO/sitemap fix-овете от GitHub **не са live** на .bg домейн�
 
 ## Supabase
 
-| Поле | Стойност |
-|------|----------|
-| Project ID | `zcrzxgzyptqibsajoece` |
-| URL | `https://zcrzxgzyptqibsajoece.supabase.co` |
-| Тип | Lovable Cloud (не е в личния Supabase MCP акаунт) |
-| REST API | ✅ работи (cities/properties се зареждат) |
-| Локален `.env` | има URL + publishable key, **няма** service role |
+| Поле           | Стойност                                          |
+| -------------- | ------------------------------------------------- |
+| Project ID     | `zcrzxgzyptqibsajoece`                            |
+| URL            | `https://zcrzxgzyptqibsajoece.supabase.co`        |
+| Тип            | Lovable Cloud (не е в личния Supabase MCP акаунт) |
+| REST API       | ✅ работи (cities/properties се зареждат)         |
+| Локален `.env` | има URL + publishable key, **няма** service role  |
 
 ---
 

@@ -185,9 +185,12 @@ export function SectionEditorOverlay() {
     let pickedRect: DOMRect | null = null;
 
     function closeAllPopups() {
-      menuEl?.remove(); menuEl = null;
-      bubbleEl?.remove(); bubbleEl = null;
-      galleryEl?.remove(); galleryEl = null;
+      menuEl?.remove();
+      menuEl = null;
+      bubbleEl?.remove();
+      bubbleEl = null;
+      galleryEl?.remove();
+      galleryEl = null;
     }
     function clearActive() {
       activeEl?.classList.remove("__ed-active", "__ed-picked");
@@ -199,9 +202,9 @@ export function SectionEditorOverlay() {
     }
 
     function getSections(): HTMLElement[] {
-      return Array.from(
-        document.querySelectorAll<HTMLElement>("[data-section-id]"),
-      ).filter((el) => !el.closest("[data-editor-skip]"));
+      return Array.from(document.querySelectorAll<HTMLElement>("[data-section-id]")).filter(
+        (el) => !el.closest("[data-editor-skip]"),
+      );
     }
 
     function sendOrder() {
@@ -229,7 +232,10 @@ export function SectionEditorOverlay() {
       for (const [icon, label, fn] of items) {
         const b = document.createElement("button");
         b.innerHTML = `<span style="font-size:15px">${icon}</span><span>${label}</span>`;
-        b.addEventListener("click", (e) => { e.stopPropagation(); fn(); });
+        b.addEventListener("click", (e) => {
+          e.stopPropagation();
+          fn();
+        });
         menuEl.appendChild(b);
       }
       const sep = document.createElement("div");
@@ -239,7 +245,10 @@ export function SectionEditorOverlay() {
       const closeB = document.createElement("button");
       closeB.className = "__ed-close";
       closeB.innerHTML = `<span style="font-size:15px">✕</span><span>Затвори</span>`;
-      closeB.addEventListener("click", (e) => { e.stopPropagation(); clearActive(); });
+      closeB.addEventListener("click", (e) => {
+        e.stopPropagation();
+        clearActive();
+      });
       menuEl.appendChild(closeB);
 
       document.body.appendChild(menuEl);
@@ -378,8 +387,7 @@ export function SectionEditorOverlay() {
       closeAllPopups();
       mode = "design";
       const el = activeEl;
-      snapshotVariant =
-        ALL_VARIANT_CLASSES.find((c) => el.classList.contains(c)) || null;
+      snapshotVariant = ALL_VARIANT_CLASSES.find((c) => el.classList.contains(c)) || null;
       let selectedCls: string | null = snapshotVariant;
 
       galleryEl = document.createElement("div");
@@ -400,10 +408,7 @@ export function SectionEditorOverlay() {
 
       function paintSelection() {
         grid.querySelectorAll<HTMLElement>(".__ed-card").forEach((c) => {
-          c.classList.toggle(
-            "__ed-selected",
-            c.getAttribute("data-cls") === selectedCls,
-          );
+          c.classList.toggle("__ed-selected", c.getAttribute("data-cls") === selectedCls);
         });
       }
 
@@ -441,7 +446,7 @@ export function SectionEditorOverlay() {
       });
       galleryEl.querySelector("[data-ed-apply]")!.addEventListener("click", (e) => {
         e.stopPropagation();
-        const variantId = selectedCls ? VARIANT_ID_BY_CLS.get(selectedCls) ?? null : null;
+        const variantId = selectedCls ? (VARIANT_ID_BY_CLS.get(selectedCls) ?? null) : null;
         sendUpdate(el, { sv_variant: variantId });
         setBanner('Дизайнът е приложен локално. Натисни „Запази" в горния банер за финален запис.');
         setTimeout(() => setBanner(null), 2200);
@@ -451,9 +456,7 @@ export function SectionEditorOverlay() {
 
     // ---------------- глобални събития ----------------
     function onDblClick(e: MouseEvent) {
-      const target = (e.target as HTMLElement)?.closest<HTMLElement>(
-        "[data-section-id]",
-      );
+      const target = (e.target as HTMLElement)?.closest<HTMLElement>("[data-section-id]");
       if (!target) return;
       e.preventDefault();
       e.stopPropagation();
@@ -511,9 +514,7 @@ export function SectionEditorOverlay() {
       const dy = Math.abs(t.clientY - lastTapY);
       const dx = Math.abs(t.clientX - lastTapX);
       if (dt < 400 && dy < 40 && dx < 40) {
-        const target = (e.target as HTMLElement)?.closest<HTMLElement>(
-          "[data-section-id]",
-        );
+        const target = (e.target as HTMLElement)?.closest<HTMLElement>("[data-section-id]");
         if (target) {
           e.preventDefault();
           showMenu(target, t.clientX, t.clientY);

@@ -4,11 +4,11 @@
 
 Add the following variables in your Vercel project settings (Settings → Environment Variables).
 
-| Variable | Description | Where to find it |
-|----------|-------------|------------------|
-| `VITE_SUPABASE_URL` | Your backend database URL | `.env` file → `VITE_SUPABASE_URL` |
+| Variable                        | Description                               | Where to find it                              |
+| ------------------------------- | ----------------------------------------- | --------------------------------------------- |
+| `VITE_SUPABASE_URL`             | Your backend database URL                 | `.env` file → `VITE_SUPABASE_URL`             |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Public Supabase API key (safe for client) | `.env` file → `VITE_SUPABASE_PUBLISHABLE_KEY` |
-| `VITE_SUPABASE_PROJECT_ID` | Supabase project identifier | `.env` file → `VITE_SUPABASE_PROJECT_ID` |
+| `VITE_SUPABASE_PROJECT_ID`      | Supabase project identifier               | `.env` file → `VITE_SUPABASE_PROJECT_ID`      |
 
 ### How to get these values
 

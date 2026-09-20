@@ -93,7 +93,9 @@ async function callProvider(provider: AiProviderConfig, body: AiChatRequest): Pr
 export async function aiChatCompletions(body: AiChatRequest): Promise<Response> {
   const providers = listAiProviders();
   if (providers.length === 0) {
-    throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY, GEMINI_API_KEY или AI_GATEWAY_KEY в Vercel.");
+    throw new Error(
+      "AI не е конфигуриран — задайте OPENAI_API_KEY, GEMINI_API_KEY или AI_GATEWAY_KEY в Vercel.",
+    );
   }
 
   let last: Response | null = null;

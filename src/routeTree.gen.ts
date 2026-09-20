@@ -12,62 +12,116 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SellRouteImport } from './routes/sell'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PropertyDetailsRouteImport } from './routes/property-details'
+import { Route as OfertiRouteImport } from './routes/oferti'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as BuyRouteImport } from './routes/buy'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VarnaIndexRouteImport } from './routes/varna.index'
+import { Route as ShumenIndexRouteImport } from './routes/shumen.index'
+import { Route as BurgasIndexRouteImport } from './routes/burgas.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PropertiesPropertyIdRouteImport } from './routes/properties.$propertyId'
+import { Route as CrmBankRatesRouteImport } from './routes/crm.bank-rates'
 import { Route as AdminViewingsRouteImport } from './routes/admin.viewings'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminSellerPredictRouteImport } from './routes/admin.seller-predict'
 import { Route as AdminSchemaRouteImport } from './routes/admin.schema'
 import { Route as AdminRulesRouteImport } from './routes/admin.rules'
+import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminRentalsRouteImport } from './routes/admin.rentals'
+import { Route as AdminReactivationRouteImport } from './routes/admin.reactivation'
 import { Route as AdminQuartersRouteImport } from './routes/admin.quarters'
-import { Route as AdminQualifyRouteImport } from './routes/admin.qualify'
+import { Route as AdminQualificationRouteImport } from './routes/admin.qualification'
 import { Route as AdminPropertiesRouteImport } from './routes/admin.properties'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
+import { Route as AdminPortalsRouteImport } from './routes/admin.portals'
 import { Route as AdminPhotosRouteImport } from './routes/admin.photos'
 import { Route as AdminOwnersRouteImport } from './routes/admin.owners'
+import { Route as AdminOwnerReportsRouteImport } from './routes/admin.owner-reports'
+import { Route as AdminOmnibotRouteImport } from './routes/admin.omnibot'
+import { Route as AdminMatchingRouteImport } from './routes/admin.matching'
 import { Route as AdminMatchesRouteImport } from './routes/admin.matches'
+import { Route as AdminMarketingAutoRouteImport } from './routes/admin.marketing-auto'
 import { Route as AdminMarketingRouteImport } from './routes/admin.marketing'
+import { Route as AdminLeadsRouteImport } from './routes/admin.leads'
 import { Route as AdminInquiriesRouteImport } from './routes/admin.inquiries'
+import { Route as AdminFollowupRouteImport } from './routes/admin.followup'
 import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminExtractedRouteImport } from './routes/admin.extracted'
 import { Route as AdminDocumentsRouteImport } from './routes/admin.documents'
 import { Route as AdminDnsRouteImport } from './routes/admin.dns'
-import { Route as AdminDistributeRouteImport } from './routes/admin.distribute'
+import { Route as AdminDealsRouteImport } from './routes/admin.deals'
+import { Route as AdminCopyRouteImport } from './routes/admin.copy'
+import { Route as AdminControlCenterRouteImport } from './routes/admin.control-center'
 import { Route as AdminContractsRouteImport } from './routes/admin.contracts'
 import { Route as AdminContactsRouteImport } from './routes/admin.contacts'
+import { Route as AdminCommissionsRouteImport } from './routes/admin.commissions'
 import { Route as AdminClientsRouteImport } from './routes/admin.clients'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
 import { Route as AdminChatRouteImport } from './routes/admin.chat'
 import { Route as AdminCalendarRouteImport } from './routes/admin.calendar'
 import { Route as AdminBrokersRouteImport } from './routes/admin.brokers'
-import { Route as AdminBotsRouteImport } from './routes/admin.bots'
+import { Route as AdminBankRatesRouteImport } from './routes/admin.bank-rates'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
-import { Route as AdminAssistantRouteImport } from './routes/admin.assistant'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
+import { Route as CrmMasterBoardIndexRouteImport } from './routes/crm.master-board.index'
 import { Route as CitiesSlugIndexRouteImport } from './routes/cities.$slug.index'
+import { Route as AdminMasterBoardIndexRouteImport } from './routes/admin.master-board.index'
+import { Route as VarnaNeighborhoodAreaSlugRouteImport } from './routes/varna.neighborhood.$areaSlug'
+import { Route as CrmMasterBoardSlugRouteImport } from './routes/crm.master-board.$slug'
 import { Route as CitiesSlugAroundRouteImport } from './routes/cities.$slug.around'
-import { Route as ApiPublicLeadsRouteImport } from './routes/api/public/leads'
+import { Route as BurgasNeighborhoodAreaSlugRouteImport } from './routes/burgas.neighborhood.$areaSlug'
 import { Route as ApiPublicCustomerChatRouteImport } from './routes/api/public/customer-chat'
 import { Route as AdminSettingsThemeRouteImport } from './routes/admin.settings.theme'
 import { Route as AdminSettingsPageEditorRouteImport } from './routes/admin.settings.page-editor'
 import { Route as AdminSettingsPageBuilderRouteImport } from './routes/admin.settings.page-builder'
 import { Route as AdminSettingsImagesRouteImport } from './routes/admin.settings.images'
+import { Route as AdminMasterBoardSlugRouteImport } from './routes/admin.master-board.$slug'
 import { Route as AdminDebugQuartersRouteImport } from './routes/admin.debug.quarters'
 import { Route as AdminAuditIdRouteImport } from './routes/admin.audit.$id'
 import { Route as CitiesSlugDistrictsDistrictRouteImport } from './routes/cities.$slug.districts.$district'
+import { Route as ApiPublicViewingsRespondRouteImport } from './routes/api/public/viewings/respond'
+import { Route as ApiPublicMatchesFeedbackRouteImport } from './routes/api/public/matches/feedback'
+import { Route as ApiPublicLeadsQualifyRouteImport } from './routes/api/public/leads/qualify'
+import { Route as ApiPublicLeadsCaptureRouteImport } from './routes/api/public/leads/capture'
 import { Route as ApiPublicHooksWhatsappRouteImport } from './routes/api/public/hooks/whatsapp'
+import { Route as ApiPublicHooksViewingsRouteImport } from './routes/api/public/hooks/viewings'
 import { Route as ApiPublicHooksViberRouteImport } from './routes/api/public/hooks/viber'
 import { Route as ApiPublicHooksTaskRemindersRouteImport } from './routes/api/public/hooks/task-reminders'
-import { Route as ApiPublicHooksFacebookOauthRouteImport } from './routes/api/public/hooks/facebook-oauth'
-import { Route as ApiPublicHooksFacebookMessengerRouteImport } from './routes/api/public/hooks/facebook-messenger'
+import { Route as ApiPublicHooksSellerPredictionRouteImport } from './routes/api/public/hooks/seller-prediction'
+import { Route as ApiPublicHooksReviewsRouteImport } from './routes/api/public/hooks/reviews'
+import { Route as ApiPublicHooksReactivationRouteImport } from './routes/api/public/hooks/reactivation'
+import { Route as ApiPublicHooksPropertyPhotosRouteImport } from './routes/api/public/hooks/property-photos'
+import { Route as ApiPublicHooksPropertyMatchingRouteImport } from './routes/api/public/hooks/property-matching'
+import { Route as ApiPublicHooksPropertyCopyRouteImport } from './routes/api/public/hooks/property-copy'
+import { Route as ApiPublicHooksPortalsRouteImport } from './routes/api/public/hooks/portals'
+import { Route as ApiPublicHooksOwnerReportsRouteImport } from './routes/api/public/hooks/owner-reports'
+import { Route as ApiPublicHooksMessengerRouteImport } from './routes/api/public/hooks/messenger'
+import { Route as ApiPublicHooksMarketingRouteImport } from './routes/api/public/hooks/marketing'
+import { Route as ApiPublicHooksInstantContactRouteImport } from './routes/api/public/hooks/instant-contact'
+import { Route as ApiPublicHooksFollowupRouteImport } from './routes/api/public/hooks/followup'
+import { Route as ApiPublicHooksDocumentsRouteImport } from './routes/api/public/hooks/documents'
+import { Route as ApiPublicHooksDealsRouteImport } from './routes/api/public/hooks/deals'
+import { Route as ApiPublicHooksControlCenterRouteImport } from './routes/api/public/hooks/control-center'
+import { Route as ApiPublicHooksContractsRouteImport } from './routes/api/public/hooks/contracts'
+import { Route as ApiPublicHooksCommissionsRouteImport } from './routes/api/public/hooks/commissions'
+import { Route as ApiPublicHooksBankRatesRouteImport } from './routes/api/public/hooks/bank-rates'
+import { Route as ApiPublicFollowupTrackRouteImport } from './routes/api/public/followup/track'
+import { Route as ApiPublicBotMessageRouteImport } from './routes/api/public/bot/message'
+import { Route as ApiPublicAdsTrackRouteImport } from './routes/api/public/ads/track'
 import { Route as ApiEmailQueueProcessRouteImport } from './routes/api/email/queue/process'
+import { Route as ApiPublicReviewsRTokenRouteImport } from './routes/api/public/reviews/r.$token'
+import { Route as ApiPublicReportsViewTokenRouteImport } from './routes/api/public/reports/view.$token'
+import { Route as ApiPublicReactivationOTokenRouteImport } from './routes/api/public/reactivation/o.$token'
+import { Route as ApiPublicPortalsFeedCodeRouteImport } from './routes/api/public/portals/feed.$code'
+import { Route as ApiPublicDocumentsUploadTokenRouteImport } from './routes/api/public/documents/upload.$token'
+import { Route as ApiPublicContractsSignTokenRouteImport } from './routes/api/public/contracts/sign.$token'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -82,6 +136,21 @@ const SellRoute = SellRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropertyDetailsRoute = PropertyDetailsRouteImport.update({
+  id: '/property-details',
+  path: '/property-details',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfertiRoute = OfertiRouteImport.update({
+  id: '/oferti',
+  path: '/oferti',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -114,6 +183,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VarnaIndexRoute = VarnaIndexRouteImport.update({
+  id: '/varna/',
+  path: '/varna/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShumenIndexRoute = ShumenIndexRouteImport.update({
+  id: '/shumen/',
+  path: '/shumen/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BurgasIndexRoute = BurgasIndexRouteImport.update({
+  id: '/burgas/',
+  path: '/burgas/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -122,6 +206,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const PropertiesPropertyIdRoute = PropertiesPropertyIdRouteImport.update({
   id: '/properties/$propertyId',
   path: '/properties/$propertyId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmBankRatesRoute = CrmBankRatesRouteImport.update({
+  id: '/crm/bank-rates',
+  path: '/crm/bank-rates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminViewingsRoute = AdminViewingsRouteImport.update({
@@ -139,6 +228,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSellerPredictRoute = AdminSellerPredictRouteImport.update({
+  id: '/seller-predict',
+  path: '/seller-predict',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSchemaRoute = AdminSchemaRouteImport.update({
   id: '/schema',
   path: '/schema',
@@ -149,9 +243,19 @@ const AdminRulesRoute = AdminRulesRouteImport.update({
   path: '/rules',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminRentalsRoute = AdminRentalsRouteImport.update({
   id: '/rentals',
   path: '/rentals',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReactivationRoute = AdminReactivationRouteImport.update({
+  id: '/reactivation',
+  path: '/reactivation',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminQuartersRoute = AdminQuartersRouteImport.update({
@@ -159,9 +263,9 @@ const AdminQuartersRoute = AdminQuartersRouteImport.update({
   path: '/quarters',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminQualifyRoute = AdminQualifyRouteImport.update({
-  id: '/qualify',
-  path: '/qualify',
+const AdminQualificationRoute = AdminQualificationRouteImport.update({
+  id: '/qualification',
+  path: '/qualification',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPropertiesRoute = AdminPropertiesRouteImport.update({
@@ -174,6 +278,11 @@ const AdminProfileRoute = AdminProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPortalsRoute = AdminPortalsRouteImport.update({
+  id: '/portals',
+  path: '/portals',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPhotosRoute = AdminPhotosRouteImport.update({
   id: '/photos',
   path: '/photos',
@@ -184,9 +293,29 @@ const AdminOwnersRoute = AdminOwnersRouteImport.update({
   path: '/owners',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminOwnerReportsRoute = AdminOwnerReportsRouteImport.update({
+  id: '/owner-reports',
+  path: '/owner-reports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOmnibotRoute = AdminOmnibotRouteImport.update({
+  id: '/omnibot',
+  path: '/omnibot',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMatchingRoute = AdminMatchingRouteImport.update({
+  id: '/matching',
+  path: '/matching',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMatchesRoute = AdminMatchesRouteImport.update({
   id: '/matches',
   path: '/matches',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMarketingAutoRoute = AdminMarketingAutoRouteImport.update({
+  id: '/marketing-auto',
+  path: '/marketing-auto',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminMarketingRoute = AdminMarketingRouteImport.update({
@@ -194,9 +323,19 @@ const AdminMarketingRoute = AdminMarketingRouteImport.update({
   path: '/marketing',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLeadsRoute = AdminLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInquiriesRoute = AdminInquiriesRouteImport.update({
   id: '/inquiries',
   path: '/inquiries',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFollowupRoute = AdminFollowupRouteImport.update({
+  id: '/followup',
+  path: '/followup',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminFinanceRoute = AdminFinanceRouteImport.update({
@@ -219,9 +358,19 @@ const AdminDnsRoute = AdminDnsRouteImport.update({
   path: '/dns',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminDistributeRoute = AdminDistributeRouteImport.update({
-  id: '/distribute',
-  path: '/distribute',
+const AdminDealsRoute = AdminDealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCopyRoute = AdminCopyRouteImport.update({
+  id: '/copy',
+  path: '/copy',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminControlCenterRoute = AdminControlCenterRouteImport.update({
+  id: '/control-center',
+  path: '/control-center',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminContractsRoute = AdminContractsRouteImport.update({
@@ -232,6 +381,11 @@ const AdminContractsRoute = AdminContractsRouteImport.update({
 const AdminContactsRoute = AdminContactsRouteImport.update({
   id: '/contacts',
   path: '/contacts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCommissionsRoute = AdminCommissionsRouteImport.update({
+  id: '/commissions',
+  path: '/commissions',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminClientsRoute = AdminClientsRouteImport.update({
@@ -259,9 +413,9 @@ const AdminBrokersRoute = AdminBrokersRouteImport.update({
   path: '/brokers',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminBotsRoute = AdminBotsRouteImport.update({
-  id: '/bots',
-  path: '/bots',
+const AdminBankRatesRoute = AdminBankRatesRouteImport.update({
+  id: '/bank-rates',
+  path: '/bank-rates',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
@@ -269,19 +423,35 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminAssistantRoute = AdminAssistantRouteImport.update({
-  id: '/assistant',
-  path: '/assistant',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminAiRoute = AdminAiRouteImport.update({
   id: '/ai',
   path: '/ai',
   getParentRoute: () => AdminRoute,
 } as any)
+const CrmMasterBoardIndexRoute = CrmMasterBoardIndexRouteImport.update({
+  id: '/crm/master-board/',
+  path: '/crm/master-board/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CitiesSlugIndexRoute = CitiesSlugIndexRouteImport.update({
   id: '/cities/$slug/',
   path: '/cities/$slug/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMasterBoardIndexRoute = AdminMasterBoardIndexRouteImport.update({
+  id: '/master-board/',
+  path: '/master-board/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const VarnaNeighborhoodAreaSlugRoute =
+  VarnaNeighborhoodAreaSlugRouteImport.update({
+    id: '/varna/neighborhood/$areaSlug',
+    path: '/varna/neighborhood/$areaSlug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const CrmMasterBoardSlugRoute = CrmMasterBoardSlugRouteImport.update({
+  id: '/crm/master-board/$slug',
+  path: '/crm/master-board/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CitiesSlugAroundRoute = CitiesSlugAroundRouteImport.update({
@@ -289,11 +459,12 @@ const CitiesSlugAroundRoute = CitiesSlugAroundRouteImport.update({
   path: '/cities/$slug/around',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicLeadsRoute = ApiPublicLeadsRouteImport.update({
-  id: '/api/public/leads',
-  path: '/api/public/leads',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const BurgasNeighborhoodAreaSlugRoute =
+  BurgasNeighborhoodAreaSlugRouteImport.update({
+    id: '/burgas/neighborhood/$areaSlug',
+    path: '/burgas/neighborhood/$areaSlug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCustomerChatRoute = ApiPublicCustomerChatRouteImport.update({
   id: '/api/public/customer-chat',
   path: '/api/public/customer-chat',
@@ -320,6 +491,11 @@ const AdminSettingsImagesRoute = AdminSettingsImagesRouteImport.update({
   path: '/images',
   getParentRoute: () => AdminSettingsRoute,
 } as any)
+const AdminMasterBoardSlugRoute = AdminMasterBoardSlugRouteImport.update({
+  id: '/master-board/$slug',
+  path: '/master-board/$slug',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDebugQuartersRoute = AdminDebugQuartersRouteImport.update({
   id: '/debug/quarters',
   path: '/debug/quarters',
@@ -336,9 +512,36 @@ const CitiesSlugDistrictsDistrictRoute =
     path: '/cities/$slug/districts/$district',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicViewingsRespondRoute =
+  ApiPublicViewingsRespondRouteImport.update({
+    id: '/api/public/viewings/respond',
+    path: '/api/public/viewings/respond',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicMatchesFeedbackRoute =
+  ApiPublicMatchesFeedbackRouteImport.update({
+    id: '/api/public/matches/feedback',
+    path: '/api/public/matches/feedback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicLeadsQualifyRoute = ApiPublicLeadsQualifyRouteImport.update({
+  id: '/api/public/leads/qualify',
+  path: '/api/public/leads/qualify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLeadsCaptureRoute = ApiPublicLeadsCaptureRouteImport.update({
+  id: '/api/public/leads/capture',
+  path: '/api/public/leads/capture',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksWhatsappRoute = ApiPublicHooksWhatsappRouteImport.update({
   id: '/api/public/hooks/whatsapp',
   path: '/api/public/hooks/whatsapp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksViewingsRoute = ApiPublicHooksViewingsRouteImport.update({
+  id: '/api/public/hooks/viewings',
+  path: '/api/public/hooks/viewings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksViberRoute = ApiPublicHooksViberRouteImport.update({
@@ -352,23 +555,160 @@ const ApiPublicHooksTaskRemindersRoute =
     path: '/api/public/hooks/task-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksFacebookOauthRoute =
-  ApiPublicHooksFacebookOauthRouteImport.update({
-    id: '/api/public/hooks/facebook-oauth',
-    path: '/api/public/hooks/facebook-oauth',
+const ApiPublicHooksSellerPredictionRoute =
+  ApiPublicHooksSellerPredictionRouteImport.update({
+    id: '/api/public/hooks/seller-prediction',
+    path: '/api/public/hooks/seller-prediction',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksFacebookMessengerRoute =
-  ApiPublicHooksFacebookMessengerRouteImport.update({
-    id: '/api/public/hooks/facebook-messenger',
-    path: '/api/public/hooks/facebook-messenger',
+const ApiPublicHooksReviewsRoute = ApiPublicHooksReviewsRouteImport.update({
+  id: '/api/public/hooks/reviews',
+  path: '/api/public/hooks/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksReactivationRoute =
+  ApiPublicHooksReactivationRouteImport.update({
+    id: '/api/public/hooks/reactivation',
+    path: '/api/public/hooks/reactivation',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPropertyPhotosRoute =
+  ApiPublicHooksPropertyPhotosRouteImport.update({
+    id: '/api/public/hooks/property-photos',
+    path: '/api/public/hooks/property-photos',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPropertyMatchingRoute =
+  ApiPublicHooksPropertyMatchingRouteImport.update({
+    id: '/api/public/hooks/property-matching',
+    path: '/api/public/hooks/property-matching',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPropertyCopyRoute =
+  ApiPublicHooksPropertyCopyRouteImport.update({
+    id: '/api/public/hooks/property-copy',
+    path: '/api/public/hooks/property-copy',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPortalsRoute = ApiPublicHooksPortalsRouteImport.update({
+  id: '/api/public/hooks/portals',
+  path: '/api/public/hooks/portals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksOwnerReportsRoute =
+  ApiPublicHooksOwnerReportsRouteImport.update({
+    id: '/api/public/hooks/owner-reports',
+    path: '/api/public/hooks/owner-reports',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksMessengerRoute = ApiPublicHooksMessengerRouteImport.update({
+  id: '/api/public/hooks/messenger',
+  path: '/api/public/hooks/messenger',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksMarketingRoute = ApiPublicHooksMarketingRouteImport.update({
+  id: '/api/public/hooks/marketing',
+  path: '/api/public/hooks/marketing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksInstantContactRoute =
+  ApiPublicHooksInstantContactRouteImport.update({
+    id: '/api/public/hooks/instant-contact',
+    path: '/api/public/hooks/instant-contact',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksFollowupRoute = ApiPublicHooksFollowupRouteImport.update({
+  id: '/api/public/hooks/followup',
+  path: '/api/public/hooks/followup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksDocumentsRoute = ApiPublicHooksDocumentsRouteImport.update({
+  id: '/api/public/hooks/documents',
+  path: '/api/public/hooks/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksDealsRoute = ApiPublicHooksDealsRouteImport.update({
+  id: '/api/public/hooks/deals',
+  path: '/api/public/hooks/deals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksControlCenterRoute =
+  ApiPublicHooksControlCenterRouteImport.update({
+    id: '/api/public/hooks/control-center',
+    path: '/api/public/hooks/control-center',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksContractsRoute = ApiPublicHooksContractsRouteImport.update({
+  id: '/api/public/hooks/contracts',
+  path: '/api/public/hooks/contracts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksCommissionsRoute =
+  ApiPublicHooksCommissionsRouteImport.update({
+    id: '/api/public/hooks/commissions',
+    path: '/api/public/hooks/commissions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksBankRatesRoute = ApiPublicHooksBankRatesRouteImport.update({
+  id: '/api/public/hooks/bank-rates',
+  path: '/api/public/hooks/bank-rates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicFollowupTrackRoute = ApiPublicFollowupTrackRouteImport.update({
+  id: '/api/public/followup/track',
+  path: '/api/public/followup/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBotMessageRoute = ApiPublicBotMessageRouteImport.update({
+  id: '/api/public/bot/message',
+  path: '/api/public/bot/message',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAdsTrackRoute = ApiPublicAdsTrackRouteImport.update({
+  id: '/api/public/ads/track',
+  path: '/api/public/ads/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEmailQueueProcessRoute = ApiEmailQueueProcessRouteImport.update({
   id: '/api/email/queue/process',
   path: '/api/email/queue/process',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicReviewsRTokenRoute = ApiPublicReviewsRTokenRouteImport.update({
+  id: '/api/public/reviews/r/$token',
+  path: '/api/public/reviews/r/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicReportsViewTokenRoute =
+  ApiPublicReportsViewTokenRouteImport.update({
+    id: '/api/public/reports/view/$token',
+    path: '/api/public/reports/view/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicReactivationOTokenRoute =
+  ApiPublicReactivationOTokenRouteImport.update({
+    id: '/api/public/reactivation/o/$token',
+    path: '/api/public/reactivation/o/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPortalsFeedCodeRoute =
+  ApiPublicPortalsFeedCodeRouteImport.update({
+    id: '/api/public/portals/feed/$code',
+    path: '/api/public/portals/feed/$code',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicDocumentsUploadTokenRoute =
+  ApiPublicDocumentsUploadTokenRouteImport.update({
+    id: '/api/public/documents/upload/$token',
+    path: '/api/public/documents/upload/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicContractsSignTokenRoute =
+  ApiPublicContractsSignTokenRouteImport.update({
+    id: '/api/public/contracts/sign/$token',
+    path: '/api/public/contracts/sign/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -377,59 +717,113 @@ export interface FileRoutesByFullPath {
   '/buy': typeof BuyRoute
   '/contacts': typeof ContactsRoute
   '/login': typeof LoginRoute
+  '/oferti': typeof OfertiRoute
+  '/property-details': typeof PropertyDetailsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ai': typeof AdminAiRoute
-  '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
-  '/admin/bots': typeof AdminBotsRoute
+  '/admin/bank-rates': typeof AdminBankRatesRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/calendar': typeof AdminCalendarRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/contracts': typeof AdminContractsRoute
-  '/admin/distribute': typeof AdminDistributeRoute
+  '/admin/control-center': typeof AdminControlCenterRoute
+  '/admin/copy': typeof AdminCopyRoute
+  '/admin/deals': typeof AdminDealsRoute
   '/admin/dns': typeof AdminDnsRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/followup': typeof AdminFollowupRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
+  '/admin/leads': typeof AdminLeadsRoute
   '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/marketing-auto': typeof AdminMarketingAutoRoute
   '/admin/matches': typeof AdminMatchesRoute
+  '/admin/matching': typeof AdminMatchingRoute
+  '/admin/omnibot': typeof AdminOmnibotRoute
+  '/admin/owner-reports': typeof AdminOwnerReportsRoute
   '/admin/owners': typeof AdminOwnersRoute
   '/admin/photos': typeof AdminPhotosRoute
+  '/admin/portals': typeof AdminPortalsRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
-  '/admin/qualify': typeof AdminQualifyRoute
+  '/admin/qualification': typeof AdminQualificationRoute
   '/admin/quarters': typeof AdminQuartersRoute
+  '/admin/reactivation': typeof AdminReactivationRoute
   '/admin/rentals': typeof AdminRentalsRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/rules': typeof AdminRulesRoute
   '/admin/schema': typeof AdminSchemaRoute
+  '/admin/seller-predict': typeof AdminSellerPredictRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/viewings': typeof AdminViewingsRoute
+  '/crm/bank-rates': typeof CrmBankRatesRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/burgas/': typeof BurgasIndexRoute
+  '/shumen/': typeof ShumenIndexRoute
+  '/varna/': typeof VarnaIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
   '/admin/debug/quarters': typeof AdminDebugQuartersRoute
+  '/admin/master-board/$slug': typeof AdminMasterBoardSlugRoute
   '/admin/settings/images': typeof AdminSettingsImagesRoute
   '/admin/settings/page-builder': typeof AdminSettingsPageBuilderRoute
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/admin/settings/theme': typeof AdminSettingsThemeRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
-  '/api/public/leads': typeof ApiPublicLeadsRoute
+  '/burgas/neighborhood/$areaSlug': typeof BurgasNeighborhoodAreaSlugRoute
   '/cities/$slug/around': typeof CitiesSlugAroundRoute
+  '/crm/master-board/$slug': typeof CrmMasterBoardSlugRoute
+  '/varna/neighborhood/$areaSlug': typeof VarnaNeighborhoodAreaSlugRoute
+  '/admin/master-board/': typeof AdminMasterBoardIndexRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
+  '/crm/master-board/': typeof CrmMasterBoardIndexRoute
   '/api/email/queue/process': typeof ApiEmailQueueProcessRoute
-  '/api/public/hooks/facebook-messenger': typeof ApiPublicHooksFacebookMessengerRoute
-  '/api/public/hooks/facebook-oauth': typeof ApiPublicHooksFacebookOauthRoute
+  '/api/public/ads/track': typeof ApiPublicAdsTrackRoute
+  '/api/public/bot/message': typeof ApiPublicBotMessageRoute
+  '/api/public/followup/track': typeof ApiPublicFollowupTrackRoute
+  '/api/public/hooks/bank-rates': typeof ApiPublicHooksBankRatesRoute
+  '/api/public/hooks/commissions': typeof ApiPublicHooksCommissionsRoute
+  '/api/public/hooks/contracts': typeof ApiPublicHooksContractsRoute
+  '/api/public/hooks/control-center': typeof ApiPublicHooksControlCenterRoute
+  '/api/public/hooks/deals': typeof ApiPublicHooksDealsRoute
+  '/api/public/hooks/documents': typeof ApiPublicHooksDocumentsRoute
+  '/api/public/hooks/followup': typeof ApiPublicHooksFollowupRoute
+  '/api/public/hooks/instant-contact': typeof ApiPublicHooksInstantContactRoute
+  '/api/public/hooks/marketing': typeof ApiPublicHooksMarketingRoute
+  '/api/public/hooks/messenger': typeof ApiPublicHooksMessengerRoute
+  '/api/public/hooks/owner-reports': typeof ApiPublicHooksOwnerReportsRoute
+  '/api/public/hooks/portals': typeof ApiPublicHooksPortalsRoute
+  '/api/public/hooks/property-copy': typeof ApiPublicHooksPropertyCopyRoute
+  '/api/public/hooks/property-matching': typeof ApiPublicHooksPropertyMatchingRoute
+  '/api/public/hooks/property-photos': typeof ApiPublicHooksPropertyPhotosRoute
+  '/api/public/hooks/reactivation': typeof ApiPublicHooksReactivationRoute
+  '/api/public/hooks/reviews': typeof ApiPublicHooksReviewsRoute
+  '/api/public/hooks/seller-prediction': typeof ApiPublicHooksSellerPredictionRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
   '/api/public/hooks/viber': typeof ApiPublicHooksViberRoute
+  '/api/public/hooks/viewings': typeof ApiPublicHooksViewingsRoute
   '/api/public/hooks/whatsapp': typeof ApiPublicHooksWhatsappRoute
+  '/api/public/leads/capture': typeof ApiPublicLeadsCaptureRoute
+  '/api/public/leads/qualify': typeof ApiPublicLeadsQualifyRoute
+  '/api/public/matches/feedback': typeof ApiPublicMatchesFeedbackRoute
+  '/api/public/viewings/respond': typeof ApiPublicViewingsRespondRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
+  '/api/public/contracts/sign/$token': typeof ApiPublicContractsSignTokenRoute
+  '/api/public/documents/upload/$token': typeof ApiPublicDocumentsUploadTokenRoute
+  '/api/public/portals/feed/$code': typeof ApiPublicPortalsFeedCodeRoute
+  '/api/public/reactivation/o/$token': typeof ApiPublicReactivationOTokenRoute
+  '/api/public/reports/view/$token': typeof ApiPublicReportsViewTokenRoute
+  '/api/public/reviews/r/$token': typeof ApiPublicReviewsRTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -437,59 +831,113 @@ export interface FileRoutesByTo {
   '/buy': typeof BuyRoute
   '/contacts': typeof ContactsRoute
   '/login': typeof LoginRoute
+  '/oferti': typeof OfertiRoute
+  '/property-details': typeof PropertyDetailsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ai': typeof AdminAiRoute
-  '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
-  '/admin/bots': typeof AdminBotsRoute
+  '/admin/bank-rates': typeof AdminBankRatesRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/calendar': typeof AdminCalendarRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/contracts': typeof AdminContractsRoute
-  '/admin/distribute': typeof AdminDistributeRoute
+  '/admin/control-center': typeof AdminControlCenterRoute
+  '/admin/copy': typeof AdminCopyRoute
+  '/admin/deals': typeof AdminDealsRoute
   '/admin/dns': typeof AdminDnsRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/followup': typeof AdminFollowupRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
+  '/admin/leads': typeof AdminLeadsRoute
   '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/marketing-auto': typeof AdminMarketingAutoRoute
   '/admin/matches': typeof AdminMatchesRoute
+  '/admin/matching': typeof AdminMatchingRoute
+  '/admin/omnibot': typeof AdminOmnibotRoute
+  '/admin/owner-reports': typeof AdminOwnerReportsRoute
   '/admin/owners': typeof AdminOwnersRoute
   '/admin/photos': typeof AdminPhotosRoute
+  '/admin/portals': typeof AdminPortalsRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
-  '/admin/qualify': typeof AdminQualifyRoute
+  '/admin/qualification': typeof AdminQualificationRoute
   '/admin/quarters': typeof AdminQuartersRoute
+  '/admin/reactivation': typeof AdminReactivationRoute
   '/admin/rentals': typeof AdminRentalsRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/rules': typeof AdminRulesRoute
   '/admin/schema': typeof AdminSchemaRoute
+  '/admin/seller-predict': typeof AdminSellerPredictRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/viewings': typeof AdminViewingsRoute
+  '/crm/bank-rates': typeof CrmBankRatesRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin': typeof AdminIndexRoute
+  '/burgas': typeof BurgasIndexRoute
+  '/shumen': typeof ShumenIndexRoute
+  '/varna': typeof VarnaIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
   '/admin/debug/quarters': typeof AdminDebugQuartersRoute
+  '/admin/master-board/$slug': typeof AdminMasterBoardSlugRoute
   '/admin/settings/images': typeof AdminSettingsImagesRoute
   '/admin/settings/page-builder': typeof AdminSettingsPageBuilderRoute
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/admin/settings/theme': typeof AdminSettingsThemeRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
-  '/api/public/leads': typeof ApiPublicLeadsRoute
+  '/burgas/neighborhood/$areaSlug': typeof BurgasNeighborhoodAreaSlugRoute
   '/cities/$slug/around': typeof CitiesSlugAroundRoute
+  '/crm/master-board/$slug': typeof CrmMasterBoardSlugRoute
+  '/varna/neighborhood/$areaSlug': typeof VarnaNeighborhoodAreaSlugRoute
+  '/admin/master-board': typeof AdminMasterBoardIndexRoute
   '/cities/$slug': typeof CitiesSlugIndexRoute
+  '/crm/master-board': typeof CrmMasterBoardIndexRoute
   '/api/email/queue/process': typeof ApiEmailQueueProcessRoute
-  '/api/public/hooks/facebook-messenger': typeof ApiPublicHooksFacebookMessengerRoute
-  '/api/public/hooks/facebook-oauth': typeof ApiPublicHooksFacebookOauthRoute
+  '/api/public/ads/track': typeof ApiPublicAdsTrackRoute
+  '/api/public/bot/message': typeof ApiPublicBotMessageRoute
+  '/api/public/followup/track': typeof ApiPublicFollowupTrackRoute
+  '/api/public/hooks/bank-rates': typeof ApiPublicHooksBankRatesRoute
+  '/api/public/hooks/commissions': typeof ApiPublicHooksCommissionsRoute
+  '/api/public/hooks/contracts': typeof ApiPublicHooksContractsRoute
+  '/api/public/hooks/control-center': typeof ApiPublicHooksControlCenterRoute
+  '/api/public/hooks/deals': typeof ApiPublicHooksDealsRoute
+  '/api/public/hooks/documents': typeof ApiPublicHooksDocumentsRoute
+  '/api/public/hooks/followup': typeof ApiPublicHooksFollowupRoute
+  '/api/public/hooks/instant-contact': typeof ApiPublicHooksInstantContactRoute
+  '/api/public/hooks/marketing': typeof ApiPublicHooksMarketingRoute
+  '/api/public/hooks/messenger': typeof ApiPublicHooksMessengerRoute
+  '/api/public/hooks/owner-reports': typeof ApiPublicHooksOwnerReportsRoute
+  '/api/public/hooks/portals': typeof ApiPublicHooksPortalsRoute
+  '/api/public/hooks/property-copy': typeof ApiPublicHooksPropertyCopyRoute
+  '/api/public/hooks/property-matching': typeof ApiPublicHooksPropertyMatchingRoute
+  '/api/public/hooks/property-photos': typeof ApiPublicHooksPropertyPhotosRoute
+  '/api/public/hooks/reactivation': typeof ApiPublicHooksReactivationRoute
+  '/api/public/hooks/reviews': typeof ApiPublicHooksReviewsRoute
+  '/api/public/hooks/seller-prediction': typeof ApiPublicHooksSellerPredictionRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
   '/api/public/hooks/viber': typeof ApiPublicHooksViberRoute
+  '/api/public/hooks/viewings': typeof ApiPublicHooksViewingsRoute
   '/api/public/hooks/whatsapp': typeof ApiPublicHooksWhatsappRoute
+  '/api/public/leads/capture': typeof ApiPublicLeadsCaptureRoute
+  '/api/public/leads/qualify': typeof ApiPublicLeadsQualifyRoute
+  '/api/public/matches/feedback': typeof ApiPublicMatchesFeedbackRoute
+  '/api/public/viewings/respond': typeof ApiPublicViewingsRespondRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
+  '/api/public/contracts/sign/$token': typeof ApiPublicContractsSignTokenRoute
+  '/api/public/documents/upload/$token': typeof ApiPublicDocumentsUploadTokenRoute
+  '/api/public/portals/feed/$code': typeof ApiPublicPortalsFeedCodeRoute
+  '/api/public/reactivation/o/$token': typeof ApiPublicReactivationOTokenRoute
+  '/api/public/reports/view/$token': typeof ApiPublicReportsViewTokenRoute
+  '/api/public/reviews/r/$token': typeof ApiPublicReviewsRTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -499,59 +947,113 @@ export interface FileRoutesById {
   '/buy': typeof BuyRoute
   '/contacts': typeof ContactsRoute
   '/login': typeof LoginRoute
+  '/oferti': typeof OfertiRoute
+  '/property-details': typeof PropertyDetailsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/sell': typeof SellRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/ai': typeof AdminAiRoute
-  '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRouteWithChildren
-  '/admin/bots': typeof AdminBotsRoute
+  '/admin/bank-rates': typeof AdminBankRatesRoute
   '/admin/brokers': typeof AdminBrokersRoute
   '/admin/calendar': typeof AdminCalendarRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/clients': typeof AdminClientsRoute
+  '/admin/commissions': typeof AdminCommissionsRoute
   '/admin/contacts': typeof AdminContactsRoute
   '/admin/contracts': typeof AdminContractsRoute
-  '/admin/distribute': typeof AdminDistributeRoute
+  '/admin/control-center': typeof AdminControlCenterRoute
+  '/admin/copy': typeof AdminCopyRoute
+  '/admin/deals': typeof AdminDealsRoute
   '/admin/dns': typeof AdminDnsRoute
   '/admin/documents': typeof AdminDocumentsRoute
   '/admin/extracted': typeof AdminExtractedRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/followup': typeof AdminFollowupRoute
   '/admin/inquiries': typeof AdminInquiriesRoute
+  '/admin/leads': typeof AdminLeadsRoute
   '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/marketing-auto': typeof AdminMarketingAutoRoute
   '/admin/matches': typeof AdminMatchesRoute
+  '/admin/matching': typeof AdminMatchingRoute
+  '/admin/omnibot': typeof AdminOmnibotRoute
+  '/admin/owner-reports': typeof AdminOwnerReportsRoute
   '/admin/owners': typeof AdminOwnersRoute
   '/admin/photos': typeof AdminPhotosRoute
+  '/admin/portals': typeof AdminPortalsRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/properties': typeof AdminPropertiesRoute
-  '/admin/qualify': typeof AdminQualifyRoute
+  '/admin/qualification': typeof AdminQualificationRoute
   '/admin/quarters': typeof AdminQuartersRoute
+  '/admin/reactivation': typeof AdminReactivationRoute
   '/admin/rentals': typeof AdminRentalsRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/rules': typeof AdminRulesRoute
   '/admin/schema': typeof AdminSchemaRoute
+  '/admin/seller-predict': typeof AdminSellerPredictRoute
   '/admin/settings': typeof AdminSettingsRouteWithChildren
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/viewings': typeof AdminViewingsRoute
+  '/crm/bank-rates': typeof CrmBankRatesRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/burgas/': typeof BurgasIndexRoute
+  '/shumen/': typeof ShumenIndexRoute
+  '/varna/': typeof VarnaIndexRoute
   '/admin/audit/$id': typeof AdminAuditIdRoute
   '/admin/debug/quarters': typeof AdminDebugQuartersRoute
+  '/admin/master-board/$slug': typeof AdminMasterBoardSlugRoute
   '/admin/settings/images': typeof AdminSettingsImagesRoute
   '/admin/settings/page-builder': typeof AdminSettingsPageBuilderRoute
   '/admin/settings/page-editor': typeof AdminSettingsPageEditorRoute
   '/admin/settings/theme': typeof AdminSettingsThemeRoute
   '/api/public/customer-chat': typeof ApiPublicCustomerChatRoute
-  '/api/public/leads': typeof ApiPublicLeadsRoute
+  '/burgas/neighborhood/$areaSlug': typeof BurgasNeighborhoodAreaSlugRoute
   '/cities/$slug/around': typeof CitiesSlugAroundRoute
+  '/crm/master-board/$slug': typeof CrmMasterBoardSlugRoute
+  '/varna/neighborhood/$areaSlug': typeof VarnaNeighborhoodAreaSlugRoute
+  '/admin/master-board/': typeof AdminMasterBoardIndexRoute
   '/cities/$slug/': typeof CitiesSlugIndexRoute
+  '/crm/master-board/': typeof CrmMasterBoardIndexRoute
   '/api/email/queue/process': typeof ApiEmailQueueProcessRoute
-  '/api/public/hooks/facebook-messenger': typeof ApiPublicHooksFacebookMessengerRoute
-  '/api/public/hooks/facebook-oauth': typeof ApiPublicHooksFacebookOauthRoute
+  '/api/public/ads/track': typeof ApiPublicAdsTrackRoute
+  '/api/public/bot/message': typeof ApiPublicBotMessageRoute
+  '/api/public/followup/track': typeof ApiPublicFollowupTrackRoute
+  '/api/public/hooks/bank-rates': typeof ApiPublicHooksBankRatesRoute
+  '/api/public/hooks/commissions': typeof ApiPublicHooksCommissionsRoute
+  '/api/public/hooks/contracts': typeof ApiPublicHooksContractsRoute
+  '/api/public/hooks/control-center': typeof ApiPublicHooksControlCenterRoute
+  '/api/public/hooks/deals': typeof ApiPublicHooksDealsRoute
+  '/api/public/hooks/documents': typeof ApiPublicHooksDocumentsRoute
+  '/api/public/hooks/followup': typeof ApiPublicHooksFollowupRoute
+  '/api/public/hooks/instant-contact': typeof ApiPublicHooksInstantContactRoute
+  '/api/public/hooks/marketing': typeof ApiPublicHooksMarketingRoute
+  '/api/public/hooks/messenger': typeof ApiPublicHooksMessengerRoute
+  '/api/public/hooks/owner-reports': typeof ApiPublicHooksOwnerReportsRoute
+  '/api/public/hooks/portals': typeof ApiPublicHooksPortalsRoute
+  '/api/public/hooks/property-copy': typeof ApiPublicHooksPropertyCopyRoute
+  '/api/public/hooks/property-matching': typeof ApiPublicHooksPropertyMatchingRoute
+  '/api/public/hooks/property-photos': typeof ApiPublicHooksPropertyPhotosRoute
+  '/api/public/hooks/reactivation': typeof ApiPublicHooksReactivationRoute
+  '/api/public/hooks/reviews': typeof ApiPublicHooksReviewsRoute
+  '/api/public/hooks/seller-prediction': typeof ApiPublicHooksSellerPredictionRoute
   '/api/public/hooks/task-reminders': typeof ApiPublicHooksTaskRemindersRoute
   '/api/public/hooks/viber': typeof ApiPublicHooksViberRoute
+  '/api/public/hooks/viewings': typeof ApiPublicHooksViewingsRoute
   '/api/public/hooks/whatsapp': typeof ApiPublicHooksWhatsappRoute
+  '/api/public/leads/capture': typeof ApiPublicLeadsCaptureRoute
+  '/api/public/leads/qualify': typeof ApiPublicLeadsQualifyRoute
+  '/api/public/matches/feedback': typeof ApiPublicMatchesFeedbackRoute
+  '/api/public/viewings/respond': typeof ApiPublicViewingsRespondRoute
   '/cities/$slug/districts/$district': typeof CitiesSlugDistrictsDistrictRoute
+  '/api/public/contracts/sign/$token': typeof ApiPublicContractsSignTokenRoute
+  '/api/public/documents/upload/$token': typeof ApiPublicDocumentsUploadTokenRoute
+  '/api/public/portals/feed/$code': typeof ApiPublicPortalsFeedCodeRoute
+  '/api/public/reactivation/o/$token': typeof ApiPublicReactivationOTokenRoute
+  '/api/public/reports/view/$token': typeof ApiPublicReportsViewTokenRoute
+  '/api/public/reviews/r/$token': typeof ApiPublicReviewsRTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -562,59 +1064,113 @@ export interface FileRouteTypes {
     | '/buy'
     | '/contacts'
     | '/login'
+    | '/oferti'
+    | '/property-details'
+    | '/reset-password'
     | '/search'
     | '/sell'
     | '/sitemap.xml'
     | '/admin/ai'
-    | '/admin/assistant'
     | '/admin/audit'
-    | '/admin/bots'
+    | '/admin/bank-rates'
     | '/admin/brokers'
     | '/admin/calendar'
     | '/admin/chat'
     | '/admin/cities'
     | '/admin/clients'
+    | '/admin/commissions'
     | '/admin/contacts'
     | '/admin/contracts'
-    | '/admin/distribute'
+    | '/admin/control-center'
+    | '/admin/copy'
+    | '/admin/deals'
     | '/admin/dns'
     | '/admin/documents'
     | '/admin/extracted'
     | '/admin/finance'
+    | '/admin/followup'
     | '/admin/inquiries'
+    | '/admin/leads'
     | '/admin/marketing'
+    | '/admin/marketing-auto'
     | '/admin/matches'
+    | '/admin/matching'
+    | '/admin/omnibot'
+    | '/admin/owner-reports'
     | '/admin/owners'
     | '/admin/photos'
+    | '/admin/portals'
     | '/admin/profile'
     | '/admin/properties'
-    | '/admin/qualify'
+    | '/admin/qualification'
     | '/admin/quarters'
+    | '/admin/reactivation'
     | '/admin/rentals'
+    | '/admin/reviews'
     | '/admin/rules'
     | '/admin/schema'
+    | '/admin/seller-predict'
     | '/admin/settings'
     | '/admin/tasks'
     | '/admin/viewings'
+    | '/crm/bank-rates'
     | '/properties/$propertyId'
     | '/admin/'
+    | '/burgas/'
+    | '/shumen/'
+    | '/varna/'
     | '/admin/audit/$id'
     | '/admin/debug/quarters'
+    | '/admin/master-board/$slug'
     | '/admin/settings/images'
     | '/admin/settings/page-builder'
     | '/admin/settings/page-editor'
     | '/admin/settings/theme'
     | '/api/public/customer-chat'
-    | '/api/public/leads'
+    | '/burgas/neighborhood/$areaSlug'
     | '/cities/$slug/around'
+    | '/crm/master-board/$slug'
+    | '/varna/neighborhood/$areaSlug'
+    | '/admin/master-board/'
     | '/cities/$slug/'
+    | '/crm/master-board/'
     | '/api/email/queue/process'
-    | '/api/public/hooks/facebook-messenger'
-    | '/api/public/hooks/facebook-oauth'
+    | '/api/public/ads/track'
+    | '/api/public/bot/message'
+    | '/api/public/followup/track'
+    | '/api/public/hooks/bank-rates'
+    | '/api/public/hooks/commissions'
+    | '/api/public/hooks/contracts'
+    | '/api/public/hooks/control-center'
+    | '/api/public/hooks/deals'
+    | '/api/public/hooks/documents'
+    | '/api/public/hooks/followup'
+    | '/api/public/hooks/instant-contact'
+    | '/api/public/hooks/marketing'
+    | '/api/public/hooks/messenger'
+    | '/api/public/hooks/owner-reports'
+    | '/api/public/hooks/portals'
+    | '/api/public/hooks/property-copy'
+    | '/api/public/hooks/property-matching'
+    | '/api/public/hooks/property-photos'
+    | '/api/public/hooks/reactivation'
+    | '/api/public/hooks/reviews'
+    | '/api/public/hooks/seller-prediction'
     | '/api/public/hooks/task-reminders'
     | '/api/public/hooks/viber'
+    | '/api/public/hooks/viewings'
     | '/api/public/hooks/whatsapp'
+    | '/api/public/leads/capture'
+    | '/api/public/leads/qualify'
+    | '/api/public/matches/feedback'
+    | '/api/public/viewings/respond'
     | '/cities/$slug/districts/$district'
+    | '/api/public/contracts/sign/$token'
+    | '/api/public/documents/upload/$token'
+    | '/api/public/portals/feed/$code'
+    | '/api/public/reactivation/o/$token'
+    | '/api/public/reports/view/$token'
+    | '/api/public/reviews/r/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -622,59 +1178,113 @@ export interface FileRouteTypes {
     | '/buy'
     | '/contacts'
     | '/login'
+    | '/oferti'
+    | '/property-details'
+    | '/reset-password'
     | '/search'
     | '/sell'
     | '/sitemap.xml'
     | '/admin/ai'
-    | '/admin/assistant'
     | '/admin/audit'
-    | '/admin/bots'
+    | '/admin/bank-rates'
     | '/admin/brokers'
     | '/admin/calendar'
     | '/admin/chat'
     | '/admin/cities'
     | '/admin/clients'
+    | '/admin/commissions'
     | '/admin/contacts'
     | '/admin/contracts'
-    | '/admin/distribute'
+    | '/admin/control-center'
+    | '/admin/copy'
+    | '/admin/deals'
     | '/admin/dns'
     | '/admin/documents'
     | '/admin/extracted'
     | '/admin/finance'
+    | '/admin/followup'
     | '/admin/inquiries'
+    | '/admin/leads'
     | '/admin/marketing'
+    | '/admin/marketing-auto'
     | '/admin/matches'
+    | '/admin/matching'
+    | '/admin/omnibot'
+    | '/admin/owner-reports'
     | '/admin/owners'
     | '/admin/photos'
+    | '/admin/portals'
     | '/admin/profile'
     | '/admin/properties'
-    | '/admin/qualify'
+    | '/admin/qualification'
     | '/admin/quarters'
+    | '/admin/reactivation'
     | '/admin/rentals'
+    | '/admin/reviews'
     | '/admin/rules'
     | '/admin/schema'
+    | '/admin/seller-predict'
     | '/admin/settings'
     | '/admin/tasks'
     | '/admin/viewings'
+    | '/crm/bank-rates'
     | '/properties/$propertyId'
     | '/admin'
+    | '/burgas'
+    | '/shumen'
+    | '/varna'
     | '/admin/audit/$id'
     | '/admin/debug/quarters'
+    | '/admin/master-board/$slug'
     | '/admin/settings/images'
     | '/admin/settings/page-builder'
     | '/admin/settings/page-editor'
     | '/admin/settings/theme'
     | '/api/public/customer-chat'
-    | '/api/public/leads'
+    | '/burgas/neighborhood/$areaSlug'
     | '/cities/$slug/around'
+    | '/crm/master-board/$slug'
+    | '/varna/neighborhood/$areaSlug'
+    | '/admin/master-board'
     | '/cities/$slug'
+    | '/crm/master-board'
     | '/api/email/queue/process'
-    | '/api/public/hooks/facebook-messenger'
-    | '/api/public/hooks/facebook-oauth'
+    | '/api/public/ads/track'
+    | '/api/public/bot/message'
+    | '/api/public/followup/track'
+    | '/api/public/hooks/bank-rates'
+    | '/api/public/hooks/commissions'
+    | '/api/public/hooks/contracts'
+    | '/api/public/hooks/control-center'
+    | '/api/public/hooks/deals'
+    | '/api/public/hooks/documents'
+    | '/api/public/hooks/followup'
+    | '/api/public/hooks/instant-contact'
+    | '/api/public/hooks/marketing'
+    | '/api/public/hooks/messenger'
+    | '/api/public/hooks/owner-reports'
+    | '/api/public/hooks/portals'
+    | '/api/public/hooks/property-copy'
+    | '/api/public/hooks/property-matching'
+    | '/api/public/hooks/property-photos'
+    | '/api/public/hooks/reactivation'
+    | '/api/public/hooks/reviews'
+    | '/api/public/hooks/seller-prediction'
     | '/api/public/hooks/task-reminders'
     | '/api/public/hooks/viber'
+    | '/api/public/hooks/viewings'
     | '/api/public/hooks/whatsapp'
+    | '/api/public/leads/capture'
+    | '/api/public/leads/qualify'
+    | '/api/public/matches/feedback'
+    | '/api/public/viewings/respond'
     | '/cities/$slug/districts/$district'
+    | '/api/public/contracts/sign/$token'
+    | '/api/public/documents/upload/$token'
+    | '/api/public/portals/feed/$code'
+    | '/api/public/reactivation/o/$token'
+    | '/api/public/reports/view/$token'
+    | '/api/public/reviews/r/$token'
   id:
     | '__root__'
     | '/'
@@ -683,59 +1293,113 @@ export interface FileRouteTypes {
     | '/buy'
     | '/contacts'
     | '/login'
+    | '/oferti'
+    | '/property-details'
+    | '/reset-password'
     | '/search'
     | '/sell'
     | '/sitemap.xml'
     | '/admin/ai'
-    | '/admin/assistant'
     | '/admin/audit'
-    | '/admin/bots'
+    | '/admin/bank-rates'
     | '/admin/brokers'
     | '/admin/calendar'
     | '/admin/chat'
     | '/admin/cities'
     | '/admin/clients'
+    | '/admin/commissions'
     | '/admin/contacts'
     | '/admin/contracts'
-    | '/admin/distribute'
+    | '/admin/control-center'
+    | '/admin/copy'
+    | '/admin/deals'
     | '/admin/dns'
     | '/admin/documents'
     | '/admin/extracted'
     | '/admin/finance'
+    | '/admin/followup'
     | '/admin/inquiries'
+    | '/admin/leads'
     | '/admin/marketing'
+    | '/admin/marketing-auto'
     | '/admin/matches'
+    | '/admin/matching'
+    | '/admin/omnibot'
+    | '/admin/owner-reports'
     | '/admin/owners'
     | '/admin/photos'
+    | '/admin/portals'
     | '/admin/profile'
     | '/admin/properties'
-    | '/admin/qualify'
+    | '/admin/qualification'
     | '/admin/quarters'
+    | '/admin/reactivation'
     | '/admin/rentals'
+    | '/admin/reviews'
     | '/admin/rules'
     | '/admin/schema'
+    | '/admin/seller-predict'
     | '/admin/settings'
     | '/admin/tasks'
     | '/admin/viewings'
+    | '/crm/bank-rates'
     | '/properties/$propertyId'
     | '/admin/'
+    | '/burgas/'
+    | '/shumen/'
+    | '/varna/'
     | '/admin/audit/$id'
     | '/admin/debug/quarters'
+    | '/admin/master-board/$slug'
     | '/admin/settings/images'
     | '/admin/settings/page-builder'
     | '/admin/settings/page-editor'
     | '/admin/settings/theme'
     | '/api/public/customer-chat'
-    | '/api/public/leads'
+    | '/burgas/neighborhood/$areaSlug'
     | '/cities/$slug/around'
+    | '/crm/master-board/$slug'
+    | '/varna/neighborhood/$areaSlug'
+    | '/admin/master-board/'
     | '/cities/$slug/'
+    | '/crm/master-board/'
     | '/api/email/queue/process'
-    | '/api/public/hooks/facebook-messenger'
-    | '/api/public/hooks/facebook-oauth'
+    | '/api/public/ads/track'
+    | '/api/public/bot/message'
+    | '/api/public/followup/track'
+    | '/api/public/hooks/bank-rates'
+    | '/api/public/hooks/commissions'
+    | '/api/public/hooks/contracts'
+    | '/api/public/hooks/control-center'
+    | '/api/public/hooks/deals'
+    | '/api/public/hooks/documents'
+    | '/api/public/hooks/followup'
+    | '/api/public/hooks/instant-contact'
+    | '/api/public/hooks/marketing'
+    | '/api/public/hooks/messenger'
+    | '/api/public/hooks/owner-reports'
+    | '/api/public/hooks/portals'
+    | '/api/public/hooks/property-copy'
+    | '/api/public/hooks/property-matching'
+    | '/api/public/hooks/property-photos'
+    | '/api/public/hooks/reactivation'
+    | '/api/public/hooks/reviews'
+    | '/api/public/hooks/seller-prediction'
     | '/api/public/hooks/task-reminders'
     | '/api/public/hooks/viber'
+    | '/api/public/hooks/viewings'
     | '/api/public/hooks/whatsapp'
+    | '/api/public/leads/capture'
+    | '/api/public/leads/qualify'
+    | '/api/public/matches/feedback'
+    | '/api/public/viewings/respond'
     | '/cities/$slug/districts/$district'
+    | '/api/public/contracts/sign/$token'
+    | '/api/public/documents/upload/$token'
+    | '/api/public/portals/feed/$code'
+    | '/api/public/reactivation/o/$token'
+    | '/api/public/reports/view/$token'
+    | '/api/public/reviews/r/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -745,21 +1409,61 @@ export interface RootRouteChildren {
   BuyRoute: typeof BuyRoute
   ContactsRoute: typeof ContactsRoute
   LoginRoute: typeof LoginRoute
+  OfertiRoute: typeof OfertiRoute
+  PropertyDetailsRoute: typeof PropertyDetailsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   SellRoute: typeof SellRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  CrmBankRatesRoute: typeof CrmBankRatesRoute
   PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
+  BurgasIndexRoute: typeof BurgasIndexRoute
+  ShumenIndexRoute: typeof ShumenIndexRoute
+  VarnaIndexRoute: typeof VarnaIndexRoute
   ApiPublicCustomerChatRoute: typeof ApiPublicCustomerChatRoute
-  ApiPublicLeadsRoute: typeof ApiPublicLeadsRoute
+  BurgasNeighborhoodAreaSlugRoute: typeof BurgasNeighborhoodAreaSlugRoute
   CitiesSlugAroundRoute: typeof CitiesSlugAroundRoute
+  CrmMasterBoardSlugRoute: typeof CrmMasterBoardSlugRoute
+  VarnaNeighborhoodAreaSlugRoute: typeof VarnaNeighborhoodAreaSlugRoute
   CitiesSlugIndexRoute: typeof CitiesSlugIndexRoute
+  CrmMasterBoardIndexRoute: typeof CrmMasterBoardIndexRoute
   ApiEmailQueueProcessRoute: typeof ApiEmailQueueProcessRoute
-  ApiPublicHooksFacebookMessengerRoute: typeof ApiPublicHooksFacebookMessengerRoute
-  ApiPublicHooksFacebookOauthRoute: typeof ApiPublicHooksFacebookOauthRoute
+  ApiPublicAdsTrackRoute: typeof ApiPublicAdsTrackRoute
+  ApiPublicBotMessageRoute: typeof ApiPublicBotMessageRoute
+  ApiPublicFollowupTrackRoute: typeof ApiPublicFollowupTrackRoute
+  ApiPublicHooksBankRatesRoute: typeof ApiPublicHooksBankRatesRoute
+  ApiPublicHooksCommissionsRoute: typeof ApiPublicHooksCommissionsRoute
+  ApiPublicHooksContractsRoute: typeof ApiPublicHooksContractsRoute
+  ApiPublicHooksControlCenterRoute: typeof ApiPublicHooksControlCenterRoute
+  ApiPublicHooksDealsRoute: typeof ApiPublicHooksDealsRoute
+  ApiPublicHooksDocumentsRoute: typeof ApiPublicHooksDocumentsRoute
+  ApiPublicHooksFollowupRoute: typeof ApiPublicHooksFollowupRoute
+  ApiPublicHooksInstantContactRoute: typeof ApiPublicHooksInstantContactRoute
+  ApiPublicHooksMarketingRoute: typeof ApiPublicHooksMarketingRoute
+  ApiPublicHooksMessengerRoute: typeof ApiPublicHooksMessengerRoute
+  ApiPublicHooksOwnerReportsRoute: typeof ApiPublicHooksOwnerReportsRoute
+  ApiPublicHooksPortalsRoute: typeof ApiPublicHooksPortalsRoute
+  ApiPublicHooksPropertyCopyRoute: typeof ApiPublicHooksPropertyCopyRoute
+  ApiPublicHooksPropertyMatchingRoute: typeof ApiPublicHooksPropertyMatchingRoute
+  ApiPublicHooksPropertyPhotosRoute: typeof ApiPublicHooksPropertyPhotosRoute
+  ApiPublicHooksReactivationRoute: typeof ApiPublicHooksReactivationRoute
+  ApiPublicHooksReviewsRoute: typeof ApiPublicHooksReviewsRoute
+  ApiPublicHooksSellerPredictionRoute: typeof ApiPublicHooksSellerPredictionRoute
   ApiPublicHooksTaskRemindersRoute: typeof ApiPublicHooksTaskRemindersRoute
   ApiPublicHooksViberRoute: typeof ApiPublicHooksViberRoute
+  ApiPublicHooksViewingsRoute: typeof ApiPublicHooksViewingsRoute
   ApiPublicHooksWhatsappRoute: typeof ApiPublicHooksWhatsappRoute
+  ApiPublicLeadsCaptureRoute: typeof ApiPublicLeadsCaptureRoute
+  ApiPublicLeadsQualifyRoute: typeof ApiPublicLeadsQualifyRoute
+  ApiPublicMatchesFeedbackRoute: typeof ApiPublicMatchesFeedbackRoute
+  ApiPublicViewingsRespondRoute: typeof ApiPublicViewingsRespondRoute
   CitiesSlugDistrictsDistrictRoute: typeof CitiesSlugDistrictsDistrictRoute
+  ApiPublicContractsSignTokenRoute: typeof ApiPublicContractsSignTokenRoute
+  ApiPublicDocumentsUploadTokenRoute: typeof ApiPublicDocumentsUploadTokenRoute
+  ApiPublicPortalsFeedCodeRoute: typeof ApiPublicPortalsFeedCodeRoute
+  ApiPublicReactivationOTokenRoute: typeof ApiPublicReactivationOTokenRoute
+  ApiPublicReportsViewTokenRoute: typeof ApiPublicReportsViewTokenRoute
+  ApiPublicReviewsRTokenRoute: typeof ApiPublicReviewsRTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -783,6 +1487,27 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/property-details': {
+      id: '/property-details'
+      path: '/property-details'
+      fullPath: '/property-details'
+      preLoaderRoute: typeof PropertyDetailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oferti': {
+      id: '/oferti'
+      path: '/oferti'
+      fullPath: '/oferti'
+      preLoaderRoute: typeof OfertiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -827,6 +1552,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/varna/': {
+      id: '/varna/'
+      path: '/varna'
+      fullPath: '/varna/'
+      preLoaderRoute: typeof VarnaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shumen/': {
+      id: '/shumen/'
+      path: '/shumen'
+      fullPath: '/shumen/'
+      preLoaderRoute: typeof ShumenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/burgas/': {
+      id: '/burgas/'
+      path: '/burgas'
+      fullPath: '/burgas/'
+      preLoaderRoute: typeof BurgasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -839,6 +1585,13 @@ declare module '@tanstack/react-router' {
       path: '/properties/$propertyId'
       fullPath: '/properties/$propertyId'
       preLoaderRoute: typeof PropertiesPropertyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/bank-rates': {
+      id: '/crm/bank-rates'
+      path: '/crm/bank-rates'
+      fullPath: '/crm/bank-rates'
+      preLoaderRoute: typeof CrmBankRatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/viewings': {
@@ -862,6 +1615,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/seller-predict': {
+      id: '/admin/seller-predict'
+      path: '/seller-predict'
+      fullPath: '/admin/seller-predict'
+      preLoaderRoute: typeof AdminSellerPredictRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/schema': {
       id: '/admin/schema'
       path: '/schema'
@@ -876,11 +1636,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRulesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/rentals': {
       id: '/admin/rentals'
       path: '/rentals'
       fullPath: '/admin/rentals'
       preLoaderRoute: typeof AdminRentalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reactivation': {
+      id: '/admin/reactivation'
+      path: '/reactivation'
+      fullPath: '/admin/reactivation'
+      preLoaderRoute: typeof AdminReactivationRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/quarters': {
@@ -890,11 +1664,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminQuartersRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/qualify': {
-      id: '/admin/qualify'
-      path: '/qualify'
-      fullPath: '/admin/qualify'
-      preLoaderRoute: typeof AdminQualifyRouteImport
+    '/admin/qualification': {
+      id: '/admin/qualification'
+      path: '/qualification'
+      fullPath: '/admin/qualification'
+      preLoaderRoute: typeof AdminQualificationRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/properties': {
@@ -911,6 +1685,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProfileRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/portals': {
+      id: '/admin/portals'
+      path: '/portals'
+      fullPath: '/admin/portals'
+      preLoaderRoute: typeof AdminPortalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/photos': {
       id: '/admin/photos'
       path: '/photos'
@@ -925,11 +1706,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOwnersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/owner-reports': {
+      id: '/admin/owner-reports'
+      path: '/owner-reports'
+      fullPath: '/admin/owner-reports'
+      preLoaderRoute: typeof AdminOwnerReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/omnibot': {
+      id: '/admin/omnibot'
+      path: '/omnibot'
+      fullPath: '/admin/omnibot'
+      preLoaderRoute: typeof AdminOmnibotRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/matching': {
+      id: '/admin/matching'
+      path: '/matching'
+      fullPath: '/admin/matching'
+      preLoaderRoute: typeof AdminMatchingRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/matches': {
       id: '/admin/matches'
       path: '/matches'
       fullPath: '/admin/matches'
       preLoaderRoute: typeof AdminMatchesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/marketing-auto': {
+      id: '/admin/marketing-auto'
+      path: '/marketing-auto'
+      fullPath: '/admin/marketing-auto'
+      preLoaderRoute: typeof AdminMarketingAutoRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/marketing': {
@@ -939,11 +1748,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMarketingRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/leads': {
+      id: '/admin/leads'
+      path: '/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AdminLeadsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inquiries': {
       id: '/admin/inquiries'
       path: '/inquiries'
       fullPath: '/admin/inquiries'
       preLoaderRoute: typeof AdminInquiriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/followup': {
+      id: '/admin/followup'
+      path: '/followup'
+      fullPath: '/admin/followup'
+      preLoaderRoute: typeof AdminFollowupRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/finance': {
@@ -974,11 +1797,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDnsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/distribute': {
-      id: '/admin/distribute'
-      path: '/distribute'
-      fullPath: '/admin/distribute'
-      preLoaderRoute: typeof AdminDistributeRouteImport
+    '/admin/deals': {
+      id: '/admin/deals'
+      path: '/deals'
+      fullPath: '/admin/deals'
+      preLoaderRoute: typeof AdminDealsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/copy': {
+      id: '/admin/copy'
+      path: '/copy'
+      fullPath: '/admin/copy'
+      preLoaderRoute: typeof AdminCopyRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/control-center': {
+      id: '/admin/control-center'
+      path: '/control-center'
+      fullPath: '/admin/control-center'
+      preLoaderRoute: typeof AdminControlCenterRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/contracts': {
@@ -993,6 +1830,13 @@ declare module '@tanstack/react-router' {
       path: '/contacts'
       fullPath: '/admin/contacts'
       preLoaderRoute: typeof AdminContactsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/commissions': {
+      id: '/admin/commissions'
+      path: '/commissions'
+      fullPath: '/admin/commissions'
+      preLoaderRoute: typeof AdminCommissionsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/clients': {
@@ -1030,11 +1874,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBrokersRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/bots': {
-      id: '/admin/bots'
-      path: '/bots'
-      fullPath: '/admin/bots'
-      preLoaderRoute: typeof AdminBotsRouteImport
+    '/admin/bank-rates': {
+      id: '/admin/bank-rates'
+      path: '/bank-rates'
+      fullPath: '/admin/bank-rates'
+      preLoaderRoute: typeof AdminBankRatesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/audit': {
@@ -1044,13 +1888,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/assistant': {
-      id: '/admin/assistant'
-      path: '/assistant'
-      fullPath: '/admin/assistant'
-      preLoaderRoute: typeof AdminAssistantRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/ai': {
       id: '/admin/ai'
       path: '/ai'
@@ -1058,11 +1895,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAiRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/crm/master-board/': {
+      id: '/crm/master-board/'
+      path: '/crm/master-board'
+      fullPath: '/crm/master-board/'
+      preLoaderRoute: typeof CrmMasterBoardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cities/$slug/': {
       id: '/cities/$slug/'
       path: '/cities/$slug'
       fullPath: '/cities/$slug/'
       preLoaderRoute: typeof CitiesSlugIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/master-board/': {
+      id: '/admin/master-board/'
+      path: '/master-board'
+      fullPath: '/admin/master-board/'
+      preLoaderRoute: typeof AdminMasterBoardIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/varna/neighborhood/$areaSlug': {
+      id: '/varna/neighborhood/$areaSlug'
+      path: '/varna/neighborhood/$areaSlug'
+      fullPath: '/varna/neighborhood/$areaSlug'
+      preLoaderRoute: typeof VarnaNeighborhoodAreaSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/master-board/$slug': {
+      id: '/crm/master-board/$slug'
+      path: '/crm/master-board/$slug'
+      fullPath: '/crm/master-board/$slug'
+      preLoaderRoute: typeof CrmMasterBoardSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cities/$slug/around': {
@@ -1072,11 +1937,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CitiesSlugAroundRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/leads': {
-      id: '/api/public/leads'
-      path: '/api/public/leads'
-      fullPath: '/api/public/leads'
-      preLoaderRoute: typeof ApiPublicLeadsRouteImport
+    '/burgas/neighborhood/$areaSlug': {
+      id: '/burgas/neighborhood/$areaSlug'
+      path: '/burgas/neighborhood/$areaSlug'
+      fullPath: '/burgas/neighborhood/$areaSlug'
+      preLoaderRoute: typeof BurgasNeighborhoodAreaSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/customer-chat': {
@@ -1114,6 +1979,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsImagesRouteImport
       parentRoute: typeof AdminSettingsRoute
     }
+    '/admin/master-board/$slug': {
+      id: '/admin/master-board/$slug'
+      path: '/master-board/$slug'
+      fullPath: '/admin/master-board/$slug'
+      preLoaderRoute: typeof AdminMasterBoardSlugRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/debug/quarters': {
       id: '/admin/debug/quarters'
       path: '/debug/quarters'
@@ -1135,11 +2007,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CitiesSlugDistrictsDistrictRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/viewings/respond': {
+      id: '/api/public/viewings/respond'
+      path: '/api/public/viewings/respond'
+      fullPath: '/api/public/viewings/respond'
+      preLoaderRoute: typeof ApiPublicViewingsRespondRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/matches/feedback': {
+      id: '/api/public/matches/feedback'
+      path: '/api/public/matches/feedback'
+      fullPath: '/api/public/matches/feedback'
+      preLoaderRoute: typeof ApiPublicMatchesFeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/leads/qualify': {
+      id: '/api/public/leads/qualify'
+      path: '/api/public/leads/qualify'
+      fullPath: '/api/public/leads/qualify'
+      preLoaderRoute: typeof ApiPublicLeadsQualifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/leads/capture': {
+      id: '/api/public/leads/capture'
+      path: '/api/public/leads/capture'
+      fullPath: '/api/public/leads/capture'
+      preLoaderRoute: typeof ApiPublicLeadsCaptureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/whatsapp': {
       id: '/api/public/hooks/whatsapp'
       path: '/api/public/hooks/whatsapp'
       fullPath: '/api/public/hooks/whatsapp'
       preLoaderRoute: typeof ApiPublicHooksWhatsappRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/viewings': {
+      id: '/api/public/hooks/viewings'
+      path: '/api/public/hooks/viewings'
+      fullPath: '/api/public/hooks/viewings'
+      preLoaderRoute: typeof ApiPublicHooksViewingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/viber': {
@@ -1156,18 +2063,151 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTaskRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/facebook-oauth': {
-      id: '/api/public/hooks/facebook-oauth'
-      path: '/api/public/hooks/facebook-oauth'
-      fullPath: '/api/public/hooks/facebook-oauth'
-      preLoaderRoute: typeof ApiPublicHooksFacebookOauthRouteImport
+    '/api/public/hooks/seller-prediction': {
+      id: '/api/public/hooks/seller-prediction'
+      path: '/api/public/hooks/seller-prediction'
+      fullPath: '/api/public/hooks/seller-prediction'
+      preLoaderRoute: typeof ApiPublicHooksSellerPredictionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/facebook-messenger': {
-      id: '/api/public/hooks/facebook-messenger'
-      path: '/api/public/hooks/facebook-messenger'
-      fullPath: '/api/public/hooks/facebook-messenger'
-      preLoaderRoute: typeof ApiPublicHooksFacebookMessengerRouteImport
+    '/api/public/hooks/reviews': {
+      id: '/api/public/hooks/reviews'
+      path: '/api/public/hooks/reviews'
+      fullPath: '/api/public/hooks/reviews'
+      preLoaderRoute: typeof ApiPublicHooksReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/reactivation': {
+      id: '/api/public/hooks/reactivation'
+      path: '/api/public/hooks/reactivation'
+      fullPath: '/api/public/hooks/reactivation'
+      preLoaderRoute: typeof ApiPublicHooksReactivationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/property-photos': {
+      id: '/api/public/hooks/property-photos'
+      path: '/api/public/hooks/property-photos'
+      fullPath: '/api/public/hooks/property-photos'
+      preLoaderRoute: typeof ApiPublicHooksPropertyPhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/property-matching': {
+      id: '/api/public/hooks/property-matching'
+      path: '/api/public/hooks/property-matching'
+      fullPath: '/api/public/hooks/property-matching'
+      preLoaderRoute: typeof ApiPublicHooksPropertyMatchingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/property-copy': {
+      id: '/api/public/hooks/property-copy'
+      path: '/api/public/hooks/property-copy'
+      fullPath: '/api/public/hooks/property-copy'
+      preLoaderRoute: typeof ApiPublicHooksPropertyCopyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/portals': {
+      id: '/api/public/hooks/portals'
+      path: '/api/public/hooks/portals'
+      fullPath: '/api/public/hooks/portals'
+      preLoaderRoute: typeof ApiPublicHooksPortalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/owner-reports': {
+      id: '/api/public/hooks/owner-reports'
+      path: '/api/public/hooks/owner-reports'
+      fullPath: '/api/public/hooks/owner-reports'
+      preLoaderRoute: typeof ApiPublicHooksOwnerReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/messenger': {
+      id: '/api/public/hooks/messenger'
+      path: '/api/public/hooks/messenger'
+      fullPath: '/api/public/hooks/messenger'
+      preLoaderRoute: typeof ApiPublicHooksMessengerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/marketing': {
+      id: '/api/public/hooks/marketing'
+      path: '/api/public/hooks/marketing'
+      fullPath: '/api/public/hooks/marketing'
+      preLoaderRoute: typeof ApiPublicHooksMarketingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/instant-contact': {
+      id: '/api/public/hooks/instant-contact'
+      path: '/api/public/hooks/instant-contact'
+      fullPath: '/api/public/hooks/instant-contact'
+      preLoaderRoute: typeof ApiPublicHooksInstantContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/followup': {
+      id: '/api/public/hooks/followup'
+      path: '/api/public/hooks/followup'
+      fullPath: '/api/public/hooks/followup'
+      preLoaderRoute: typeof ApiPublicHooksFollowupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/documents': {
+      id: '/api/public/hooks/documents'
+      path: '/api/public/hooks/documents'
+      fullPath: '/api/public/hooks/documents'
+      preLoaderRoute: typeof ApiPublicHooksDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/deals': {
+      id: '/api/public/hooks/deals'
+      path: '/api/public/hooks/deals'
+      fullPath: '/api/public/hooks/deals'
+      preLoaderRoute: typeof ApiPublicHooksDealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/control-center': {
+      id: '/api/public/hooks/control-center'
+      path: '/api/public/hooks/control-center'
+      fullPath: '/api/public/hooks/control-center'
+      preLoaderRoute: typeof ApiPublicHooksControlCenterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/contracts': {
+      id: '/api/public/hooks/contracts'
+      path: '/api/public/hooks/contracts'
+      fullPath: '/api/public/hooks/contracts'
+      preLoaderRoute: typeof ApiPublicHooksContractsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/commissions': {
+      id: '/api/public/hooks/commissions'
+      path: '/api/public/hooks/commissions'
+      fullPath: '/api/public/hooks/commissions'
+      preLoaderRoute: typeof ApiPublicHooksCommissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/bank-rates': {
+      id: '/api/public/hooks/bank-rates'
+      path: '/api/public/hooks/bank-rates'
+      fullPath: '/api/public/hooks/bank-rates'
+      preLoaderRoute: typeof ApiPublicHooksBankRatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/followup/track': {
+      id: '/api/public/followup/track'
+      path: '/api/public/followup/track'
+      fullPath: '/api/public/followup/track'
+      preLoaderRoute: typeof ApiPublicFollowupTrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bot/message': {
+      id: '/api/public/bot/message'
+      path: '/api/public/bot/message'
+      fullPath: '/api/public/bot/message'
+      preLoaderRoute: typeof ApiPublicBotMessageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ads/track': {
+      id: '/api/public/ads/track'
+      path: '/api/public/ads/track'
+      fullPath: '/api/public/ads/track'
+      preLoaderRoute: typeof ApiPublicAdsTrackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/email/queue/process': {
@@ -1175,6 +2215,48 @@ declare module '@tanstack/react-router' {
       path: '/api/email/queue/process'
       fullPath: '/api/email/queue/process'
       preLoaderRoute: typeof ApiEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/reviews/r/$token': {
+      id: '/api/public/reviews/r/$token'
+      path: '/api/public/reviews/r/$token'
+      fullPath: '/api/public/reviews/r/$token'
+      preLoaderRoute: typeof ApiPublicReviewsRTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/reports/view/$token': {
+      id: '/api/public/reports/view/$token'
+      path: '/api/public/reports/view/$token'
+      fullPath: '/api/public/reports/view/$token'
+      preLoaderRoute: typeof ApiPublicReportsViewTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/reactivation/o/$token': {
+      id: '/api/public/reactivation/o/$token'
+      path: '/api/public/reactivation/o/$token'
+      fullPath: '/api/public/reactivation/o/$token'
+      preLoaderRoute: typeof ApiPublicReactivationOTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/portals/feed/$code': {
+      id: '/api/public/portals/feed/$code'
+      path: '/api/public/portals/feed/$code'
+      fullPath: '/api/public/portals/feed/$code'
+      preLoaderRoute: typeof ApiPublicPortalsFeedCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/documents/upload/$token': {
+      id: '/api/public/documents/upload/$token'
+      path: '/api/public/documents/upload/$token'
+      fullPath: '/api/public/documents/upload/$token'
+      preLoaderRoute: typeof ApiPublicDocumentsUploadTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/contracts/sign/$token': {
+      id: '/api/public/contracts/sign/$token'
+      path: '/api/public/contracts/sign/$token'
+      fullPath: '/api/public/contracts/sign/$token'
+      preLoaderRoute: typeof ApiPublicContractsSignTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1212,74 +2294,102 @@ const AdminSettingsRouteWithChildren = AdminSettingsRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminAiRoute: typeof AdminAiRoute
-  AdminAssistantRoute: typeof AdminAssistantRoute
   AdminAuditRoute: typeof AdminAuditRouteWithChildren
-  AdminBotsRoute: typeof AdminBotsRoute
+  AdminBankRatesRoute: typeof AdminBankRatesRoute
   AdminBrokersRoute: typeof AdminBrokersRoute
   AdminCalendarRoute: typeof AdminCalendarRoute
   AdminChatRoute: typeof AdminChatRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminClientsRoute: typeof AdminClientsRoute
+  AdminCommissionsRoute: typeof AdminCommissionsRoute
   AdminContactsRoute: typeof AdminContactsRoute
   AdminContractsRoute: typeof AdminContractsRoute
-  AdminDistributeRoute: typeof AdminDistributeRoute
+  AdminControlCenterRoute: typeof AdminControlCenterRoute
+  AdminCopyRoute: typeof AdminCopyRoute
+  AdminDealsRoute: typeof AdminDealsRoute
   AdminDnsRoute: typeof AdminDnsRoute
   AdminDocumentsRoute: typeof AdminDocumentsRoute
   AdminExtractedRoute: typeof AdminExtractedRoute
   AdminFinanceRoute: typeof AdminFinanceRoute
+  AdminFollowupRoute: typeof AdminFollowupRoute
   AdminInquiriesRoute: typeof AdminInquiriesRoute
+  AdminLeadsRoute: typeof AdminLeadsRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
+  AdminMarketingAutoRoute: typeof AdminMarketingAutoRoute
   AdminMatchesRoute: typeof AdminMatchesRoute
+  AdminMatchingRoute: typeof AdminMatchingRoute
+  AdminOmnibotRoute: typeof AdminOmnibotRoute
+  AdminOwnerReportsRoute: typeof AdminOwnerReportsRoute
   AdminOwnersRoute: typeof AdminOwnersRoute
   AdminPhotosRoute: typeof AdminPhotosRoute
+  AdminPortalsRoute: typeof AdminPortalsRoute
   AdminProfileRoute: typeof AdminProfileRoute
   AdminPropertiesRoute: typeof AdminPropertiesRoute
-  AdminQualifyRoute: typeof AdminQualifyRoute
+  AdminQualificationRoute: typeof AdminQualificationRoute
   AdminQuartersRoute: typeof AdminQuartersRoute
+  AdminReactivationRoute: typeof AdminReactivationRoute
   AdminRentalsRoute: typeof AdminRentalsRoute
+  AdminReviewsRoute: typeof AdminReviewsRoute
   AdminRulesRoute: typeof AdminRulesRoute
   AdminSchemaRoute: typeof AdminSchemaRoute
+  AdminSellerPredictRoute: typeof AdminSellerPredictRoute
   AdminSettingsRoute: typeof AdminSettingsRouteWithChildren
   AdminTasksRoute: typeof AdminTasksRoute
   AdminViewingsRoute: typeof AdminViewingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminDebugQuartersRoute: typeof AdminDebugQuartersRoute
+  AdminMasterBoardSlugRoute: typeof AdminMasterBoardSlugRoute
+  AdminMasterBoardIndexRoute: typeof AdminMasterBoardIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAiRoute: AdminAiRoute,
-  AdminAssistantRoute: AdminAssistantRoute,
   AdminAuditRoute: AdminAuditRouteWithChildren,
-  AdminBotsRoute: AdminBotsRoute,
+  AdminBankRatesRoute: AdminBankRatesRoute,
   AdminBrokersRoute: AdminBrokersRoute,
   AdminCalendarRoute: AdminCalendarRoute,
   AdminChatRoute: AdminChatRoute,
   AdminCitiesRoute: AdminCitiesRoute,
   AdminClientsRoute: AdminClientsRoute,
+  AdminCommissionsRoute: AdminCommissionsRoute,
   AdminContactsRoute: AdminContactsRoute,
   AdminContractsRoute: AdminContractsRoute,
-  AdminDistributeRoute: AdminDistributeRoute,
+  AdminControlCenterRoute: AdminControlCenterRoute,
+  AdminCopyRoute: AdminCopyRoute,
+  AdminDealsRoute: AdminDealsRoute,
   AdminDnsRoute: AdminDnsRoute,
   AdminDocumentsRoute: AdminDocumentsRoute,
   AdminExtractedRoute: AdminExtractedRoute,
   AdminFinanceRoute: AdminFinanceRoute,
+  AdminFollowupRoute: AdminFollowupRoute,
   AdminInquiriesRoute: AdminInquiriesRoute,
+  AdminLeadsRoute: AdminLeadsRoute,
   AdminMarketingRoute: AdminMarketingRoute,
+  AdminMarketingAutoRoute: AdminMarketingAutoRoute,
   AdminMatchesRoute: AdminMatchesRoute,
+  AdminMatchingRoute: AdminMatchingRoute,
+  AdminOmnibotRoute: AdminOmnibotRoute,
+  AdminOwnerReportsRoute: AdminOwnerReportsRoute,
   AdminOwnersRoute: AdminOwnersRoute,
   AdminPhotosRoute: AdminPhotosRoute,
+  AdminPortalsRoute: AdminPortalsRoute,
   AdminProfileRoute: AdminProfileRoute,
   AdminPropertiesRoute: AdminPropertiesRoute,
-  AdminQualifyRoute: AdminQualifyRoute,
+  AdminQualificationRoute: AdminQualificationRoute,
   AdminQuartersRoute: AdminQuartersRoute,
+  AdminReactivationRoute: AdminReactivationRoute,
   AdminRentalsRoute: AdminRentalsRoute,
+  AdminReviewsRoute: AdminReviewsRoute,
   AdminRulesRoute: AdminRulesRoute,
   AdminSchemaRoute: AdminSchemaRoute,
+  AdminSellerPredictRoute: AdminSellerPredictRoute,
   AdminSettingsRoute: AdminSettingsRouteWithChildren,
   AdminTasksRoute: AdminTasksRoute,
   AdminViewingsRoute: AdminViewingsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminDebugQuartersRoute: AdminDebugQuartersRoute,
+  AdminMasterBoardSlugRoute: AdminMasterBoardSlugRoute,
+  AdminMasterBoardIndexRoute: AdminMasterBoardIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -1291,21 +2401,61 @@ const rootRouteChildren: RootRouteChildren = {
   BuyRoute: BuyRoute,
   ContactsRoute: ContactsRoute,
   LoginRoute: LoginRoute,
+  OfertiRoute: OfertiRoute,
+  PropertyDetailsRoute: PropertyDetailsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   SellRoute: SellRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  CrmBankRatesRoute: CrmBankRatesRoute,
   PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
+  BurgasIndexRoute: BurgasIndexRoute,
+  ShumenIndexRoute: ShumenIndexRoute,
+  VarnaIndexRoute: VarnaIndexRoute,
   ApiPublicCustomerChatRoute: ApiPublicCustomerChatRoute,
-  ApiPublicLeadsRoute: ApiPublicLeadsRoute,
+  BurgasNeighborhoodAreaSlugRoute: BurgasNeighborhoodAreaSlugRoute,
   CitiesSlugAroundRoute: CitiesSlugAroundRoute,
+  CrmMasterBoardSlugRoute: CrmMasterBoardSlugRoute,
+  VarnaNeighborhoodAreaSlugRoute: VarnaNeighborhoodAreaSlugRoute,
   CitiesSlugIndexRoute: CitiesSlugIndexRoute,
+  CrmMasterBoardIndexRoute: CrmMasterBoardIndexRoute,
   ApiEmailQueueProcessRoute: ApiEmailQueueProcessRoute,
-  ApiPublicHooksFacebookMessengerRoute: ApiPublicHooksFacebookMessengerRoute,
-  ApiPublicHooksFacebookOauthRoute: ApiPublicHooksFacebookOauthRoute,
+  ApiPublicAdsTrackRoute: ApiPublicAdsTrackRoute,
+  ApiPublicBotMessageRoute: ApiPublicBotMessageRoute,
+  ApiPublicFollowupTrackRoute: ApiPublicFollowupTrackRoute,
+  ApiPublicHooksBankRatesRoute: ApiPublicHooksBankRatesRoute,
+  ApiPublicHooksCommissionsRoute: ApiPublicHooksCommissionsRoute,
+  ApiPublicHooksContractsRoute: ApiPublicHooksContractsRoute,
+  ApiPublicHooksControlCenterRoute: ApiPublicHooksControlCenterRoute,
+  ApiPublicHooksDealsRoute: ApiPublicHooksDealsRoute,
+  ApiPublicHooksDocumentsRoute: ApiPublicHooksDocumentsRoute,
+  ApiPublicHooksFollowupRoute: ApiPublicHooksFollowupRoute,
+  ApiPublicHooksInstantContactRoute: ApiPublicHooksInstantContactRoute,
+  ApiPublicHooksMarketingRoute: ApiPublicHooksMarketingRoute,
+  ApiPublicHooksMessengerRoute: ApiPublicHooksMessengerRoute,
+  ApiPublicHooksOwnerReportsRoute: ApiPublicHooksOwnerReportsRoute,
+  ApiPublicHooksPortalsRoute: ApiPublicHooksPortalsRoute,
+  ApiPublicHooksPropertyCopyRoute: ApiPublicHooksPropertyCopyRoute,
+  ApiPublicHooksPropertyMatchingRoute: ApiPublicHooksPropertyMatchingRoute,
+  ApiPublicHooksPropertyPhotosRoute: ApiPublicHooksPropertyPhotosRoute,
+  ApiPublicHooksReactivationRoute: ApiPublicHooksReactivationRoute,
+  ApiPublicHooksReviewsRoute: ApiPublicHooksReviewsRoute,
+  ApiPublicHooksSellerPredictionRoute: ApiPublicHooksSellerPredictionRoute,
   ApiPublicHooksTaskRemindersRoute: ApiPublicHooksTaskRemindersRoute,
   ApiPublicHooksViberRoute: ApiPublicHooksViberRoute,
+  ApiPublicHooksViewingsRoute: ApiPublicHooksViewingsRoute,
   ApiPublicHooksWhatsappRoute: ApiPublicHooksWhatsappRoute,
+  ApiPublicLeadsCaptureRoute: ApiPublicLeadsCaptureRoute,
+  ApiPublicLeadsQualifyRoute: ApiPublicLeadsQualifyRoute,
+  ApiPublicMatchesFeedbackRoute: ApiPublicMatchesFeedbackRoute,
+  ApiPublicViewingsRespondRoute: ApiPublicViewingsRespondRoute,
   CitiesSlugDistrictsDistrictRoute: CitiesSlugDistrictsDistrictRoute,
+  ApiPublicContractsSignTokenRoute: ApiPublicContractsSignTokenRoute,
+  ApiPublicDocumentsUploadTokenRoute: ApiPublicDocumentsUploadTokenRoute,
+  ApiPublicPortalsFeedCodeRoute: ApiPublicPortalsFeedCodeRoute,
+  ApiPublicReactivationOTokenRoute: ApiPublicReactivationOTokenRoute,
+  ApiPublicReportsViewTokenRoute: ApiPublicReportsViewTokenRoute,
+  ApiPublicReviewsRTokenRoute: ApiPublicReviewsRTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

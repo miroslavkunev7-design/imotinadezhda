@@ -336,7 +336,7 @@ GRANT ALL ON public.properties TO service_role;
 ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "properties public read active" ON public.properties;
 CREATE POLICY "properties public read active" ON public.properties FOR SELECT TO anon, authenticated
-  USING (status = 'active' OR public.has_role(auth.uid(), 'admin'::public.app_role));
+  USING (is_published OR public.has_role(auth.uid(), 'admin'::public.app_role));
 DROP POLICY IF EXISTS "properties admin all" ON public.properties;
 CREATE POLICY "properties admin all" ON public.properties FOR ALL TO authenticated
   USING (public.has_role(auth.uid(), 'admin'::public.app_role))
@@ -367,8 +367,8 @@ CREATE POLICY "clients admin all" ON public.clients FOR ALL TO authenticated
   WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
 DROP POLICY IF EXISTS "clients broker assigned read" ON public.clients;
 CREATE POLICY "clients broker assigned read" ON public.clients FOR SELECT TO authenticated
-  USING (assigned_to = auth.uid());
-CREATE INDEX IF NOT EXISTS idx_clients_assigned_to ON public.clients(assigned_to);
+  USING (assigned_broker_id = public.current_broker_id(auth.uid()));
+CREATE INDEX IF NOT EXISTS idx_clients_assigned_to ON public.clients(assigned_broker_id);
 CREATE INDEX IF NOT EXISTS idx_clients_client_type ON public.clients(client_type);
 
 -- ============ inquiries ============

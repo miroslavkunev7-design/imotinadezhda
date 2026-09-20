@@ -105,7 +105,10 @@ export function useCrmTheme() {
       .then(({ data }) => {
         const raw = (data?.crm_theme ?? {}) as Partial<CrmTheme> & { preset?: string };
         if (raw && Object.keys(raw).length > 0) {
-          const base = raw.preset && CRM_THEME_PRESETS[raw.preset] ? CRM_THEME_PRESETS[raw.preset] : DEFAULT_CRM_THEME;
+          const base =
+            raw.preset && CRM_THEME_PRESETS[raw.preset]
+              ? CRM_THEME_PRESETS[raw.preset]
+              : DEFAULT_CRM_THEME;
           setTheme({ ...base, ...raw } as CrmTheme);
         } else {
           setTheme(DEFAULT_CRM_THEME);
@@ -124,7 +127,10 @@ export function useCrmTheme() {
     async (next: CrmTheme) => {
       setTheme(next);
       if (!user) return;
-      await supabase.from("profiles").update({ crm_theme: next as any }).eq("id", user.id);
+      await supabase
+        .from("profiles")
+        .update({ crm_theme: next as any })
+        .eq("id", user.id);
     },
     [user],
   );

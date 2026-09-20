@@ -15,7 +15,8 @@ function readEnv(name: string): string | undefined {
   const fromProcess =
     typeof process !== "undefined" && process?.env ? process.env[name] : undefined;
   const fromImportMeta =
-    typeof import.meta !== "undefined" && (import.meta as { env?: Record<string, string | undefined> }).env
+    typeof import.meta !== "undefined" &&
+    (import.meta as { env?: Record<string, string | undefined> }).env
       ? (import.meta as { env: Record<string, string | undefined> }).env[name]
       : undefined;
   return pickEnv(fromProcess, fromImportMeta);
@@ -30,9 +31,7 @@ function resolveWithSource(...names: string[]): { value: string | undefined; env
 }
 
 export function resolveSupabaseUrl(): string {
-  return (
-    resolveWithSource("SUPABASE_URL", "VITE_SUPABASE_URL").value ?? SUPABASE_PROJECT_URL
-  );
+  return resolveWithSource("SUPABASE_URL", "VITE_SUPABASE_URL").value ?? SUPABASE_PROJECT_URL;
 }
 
 export function resolveSupabaseAnonKey(): string {
@@ -128,7 +127,8 @@ export function validateSupabaseEnv(): SupabaseEnvValidation {
     return _cachedValidation;
   }
 
-  const source: "env" | "fallback" = urlSource === "env" && keySource === "env" ? "env" : "fallback";
+  const source: "env" | "fallback" =
+    urlSource === "env" && keySource === "env" ? "env" : "fallback";
   _cachedValidation = {
     ok: true,
     url,

@@ -2,7 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { safeAdmin } from "@/integrations/supabase/safe-admin";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { geocodeNominatim } from "@/lib/nominatim";
 
 export const getCities = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await safeAdmin
@@ -36,13 +35,17 @@ export const getCityBySlug = createServerFn({ method: "GET" })
     const [{ data: quarters }, { data: properties }, { data: liveProps }] = await Promise.all([
       safeAdmin
         .from("quarters")
-        .select("id, slug, name, description, image_url, avg_price_per_sqm, properties_count, display_order")
+        .select(
+          "id, slug, name, description, image_url, avg_price_per_sqm, properties_count, display_order",
+        )
         .eq("city_id", city.id)
         .eq("is_published", true)
         .order("display_order"),
       safeAdmin
         .from("properties")
-        .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, is_featured, property_type, status, quarter_id")
+        .select(
+          "id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, is_featured, property_type, status, quarter_id",
+        )
         .eq("city_id", city.id)
         .eq("is_published", true)
         .order("created_at", { ascending: false })
@@ -98,11 +101,12 @@ export const getCityBySlug = createServerFn({ method: "GET" })
     };
   });
 
-
 export const getFeaturedProperties = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await safeAdmin
     .from("properties")
-    .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, city_id, cities:city_id(name, slug)")
+    .select(
+      "id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, city_id, cities:city_id(name, slug)",
+    )
     .eq("is_published", true)
     .eq("is_featured", true)
     .order("created_at", { ascending: false })
@@ -129,7 +133,13 @@ export const getPropertyById = createServerFn({ method: "GET" })
       .order("display_order");
     // Resolve broker: prefer explicit broker_id, fall back to the uploader
     // (created_by → brokers.user_id) for legacy rows.
-    let broker: { id: string; full_name: string; email: string | null; phone: string | null; photo_url: string | null } | null = null;
+    let broker: {
+      id: string;
+      full_name: string;
+      email: string | null;
+      phone: string | null;
+      photo_url: string | null;
+    } | null = null;
     const brokerId = (property as any).broker_id as string | null | undefined;
     const createdBy = (property as any).created_by as string | null | undefined;
     if (brokerId) {
@@ -151,7 +161,9 @@ export const getPropertyById = createServerFn({ method: "GET" })
     }
     const { data: similar } = await supabaseAdmin
       .from("properties")
-      .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, cities:city_id(name, slug)")
+      .select(
+        "id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, cities:city_id(name, slug)",
+      )
       .eq("is_published", true)
       .eq("city_id", (property as any).city_id)
       .neq("id", property.id)
@@ -159,7 +171,6 @@ export const getPropertyById = createServerFn({ method: "GET" })
       .limit(4);
     return { property, images: images ?? [], broker, similar: similar ?? [] };
   });
-
 
 export const submitInquiry = createServerFn({ method: "POST" })
   .inputValidator((d) =>
@@ -170,94 +181,99 @@ export const submitInquiry = createServerFn({ method: "POST" })
         email: z.string().email().max(200),
         phone: z.string().max(40).optional(),
         message: z.string().max(2000).optional(),
-        honeypot: z.string().max(120).optional(),
       })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const { ingestLead } = await import("@/lib/lead-capture");
-    const result = await ingestLead({
+    const { error } = await supabaseAdmin.from("inquiries").insert({
       property_id: data.property_id ?? null,
       name: data.name,
       email: data.email,
       phone: data.phone ?? null,
       message: data.message ?? null,
-      source: data.property_id ? "property" : "website",
-      channel: "web",
-      honeypot: data.honeypot,
     });
-    if (!result.ok) throw new Error("Невалидно запитване");
-    return { ok: true, id: result.id, duplicate: result.duplicate };
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const getQuarterBySlug = createServerFn({ method: "GET" })
-  .inputValidator((d) => z.object({ citySlug: z.string().min(1).max(64), quarterSlug: z.string().min(1).max(64) }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({ citySlug: z.string().min(1).max(64), quarterSlug: z.string().min(1).max(64) })
+      .parse(d),
+  )
   .handler(async ({ data }) => {
     const { data: city } = await supabaseAdmin
-      .from("cities").select("id, slug, name, lat, lng").eq("slug", data.citySlug).maybeSingle();
+      .from("cities")
+      .select("id, slug, name")
+      .eq("slug", data.citySlug)
+      .maybeSingle();
     if (!city) return null;
     const { data: quarter } = await supabaseAdmin
-      .from("quarters").select("*").eq("city_id", city.id).eq("slug", data.quarterSlug).maybeSingle();
+      .from("quarters")
+      .select("*")
+      .eq("city_id", city.id)
+      .eq("slug", data.quarterSlug)
+      .maybeSingle();
     if (!quarter) return null;
-    const propCols =
-      "id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, is_featured, address, lat, lng";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let propertiesRes: { data: any; error: any } = await (supabaseAdmin as any)
-      .from("properties")
-      .select(propCols)
-      .eq("quarter_id", quarter.id)
-      .eq("is_published", true)
-      .order("created_at", { ascending: false });
-    if (propertiesRes.error) {
-      propertiesRes = await (supabaseAdmin as any)
+    const [{ data: properties }, { data: gallery }] = await Promise.all([
+      supabaseAdmin
         .from("properties")
-        .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, is_featured, address")
+        .select(
+          "id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, is_featured",
+        )
         .eq("quarter_id", quarter.id)
         .eq("is_published", true)
-        .order("created_at", { ascending: false });
-    }
-    const [{ data: gallery }, { data: cityQuarters }] = await Promise.all([
+        .order("created_at", { ascending: false }),
       supabaseAdmin
         .from("quarter_images")
         .select("id, url, is_cover, display_order")
         .eq("quarter_id", quarter.id)
         .order("display_order"),
-      supabaseAdmin.from("quarters").select("name").eq("city_id", city.id).eq("is_published", true).order("name"),
     ]);
-    return { city, quarter, properties: propertiesRes.data ?? [], gallery: gallery ?? [], cityQuarters: cityQuarters ?? [] };
+    return { city, quarter, properties: properties ?? [], gallery: gallery ?? [] };
   });
-
-export const geocodePlace = createServerFn({ method: "GET" })
-  .inputValidator((d) => z.object({ query: z.string().min(2).max(200) }).parse(d))
-  .handler(async ({ data }) => geocodeNominatim(data.query));
 
 export const searchProperties = createServerFn({ method: "GET" })
   .inputValidator((d) =>
-    z.object({
-      city_slug: z.string().max(64).optional().nullable(),
-      quarter_slug: z.string().max(64).optional().nullable(),
-      property_type: z.string().max(32).optional().nullable(),
-      status: z.enum(["sale", "rent"]).optional().nullable(),
-      price_min: z.coerce.number().nonnegative().optional().nullable(),
-      price_max: z.coerce.number().nonnegative().optional().nullable(),
-      area_min: z.coerce.number().nonnegative().optional().nullable(),
-      area_max: z.coerce.number().nonnegative().optional().nullable(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        city_slug: z.string().max(64).optional().nullable(),
+        quarter_slug: z.string().max(64).optional().nullable(),
+        property_type: z.string().max(32).optional().nullable(),
+        status: z.enum(["sale", "rent"]).optional().nullable(),
+        price_min: z.coerce.number().nonnegative().optional().nullable(),
+        price_max: z.coerce.number().nonnegative().optional().nullable(),
+        area_min: z.coerce.number().nonnegative().optional().nullable(),
+        area_max: z.coerce.number().nonnegative().optional().nullable(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data }) => {
     let cityId: string | null = null;
     let quarterId: string | null = null;
     if (data.city_slug) {
-      const { data: c } = await supabaseAdmin.from("cities").select("id").eq("slug", data.city_slug).maybeSingle();
+      const { data: c } = await supabaseAdmin
+        .from("cities")
+        .select("id")
+        .eq("slug", data.city_slug)
+        .maybeSingle();
       cityId = c?.id ?? null;
     }
     if (data.quarter_slug && cityId) {
-      const { data: q } = await supabaseAdmin.from("quarters").select("id").eq("city_id", cityId).eq("slug", data.quarter_slug).maybeSingle();
+      const { data: q } = await supabaseAdmin
+        .from("quarters")
+        .select("id")
+        .eq("city_id", cityId)
+        .eq("slug", data.quarter_slug)
+        .maybeSingle();
       quarterId = q?.id ?? null;
     }
     let q = supabaseAdmin
       .from("properties")
-      .select("id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, cities:city_id(name, slug)")
+      .select(
+        "id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, cities:city_id(name, slug)",
+      )
       .eq("is_published", true);
     if (cityId) q = q.eq("city_id", cityId);
     if (quarterId) q = q.eq("quarter_id", quarterId);
@@ -272,10 +288,29 @@ export const searchProperties = createServerFn({ method: "GET" })
     return rows ?? [];
   });
 
+export const getPropertiesByIds = createServerFn({ method: "GET" })
+  .inputValidator((d) => z.object({ ids: z.array(z.string().uuid()).max(200) }).parse(d))
+  .handler(async ({ data }) => {
+    if (!data.ids.length) return [];
+    const { data: rows, error } = await supabaseAdmin
+      .from("properties")
+      .select(
+        "id, title, price, currency, area_sqm, rooms, bedrooms, bathrooms, cover_image_url, property_type, status, cities:city_id(name, slug)",
+      )
+      .eq("is_published", true)
+      .in("id", data.ids);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
 export const getQuartersByCity = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ city_slug: z.string().max(64) }).parse(d))
   .handler(async ({ data }) => {
-    const { data: c } = await supabaseAdmin.from("cities").select("id").eq("slug", data.city_slug).maybeSingle();
+    const { data: c } = await supabaseAdmin
+      .from("cities")
+      .select("id")
+      .eq("slug", data.city_slug)
+      .maybeSingle();
     if (!c) return [];
     const { data: rows } = await supabaseAdmin
       .from("quarters")

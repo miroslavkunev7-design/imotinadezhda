@@ -95,7 +95,8 @@ export const Route = createFileRoute("/api/email/queue/process")({
         const sendDelayMs = state?.send_delay_ms ?? DEFAULT_SEND_DELAY_MS;
         const ttlMinutes: Record<string, number> = {
           auth_emails: state?.auth_email_ttl_minutes ?? DEFAULT_AUTH_TTL_MINUTES,
-          transactional_emails: state?.transactional_email_ttl_minutes ?? DEFAULT_TRANSACTIONAL_TTL_MINUTES,
+          transactional_emails:
+            state?.transactional_email_ttl_minutes ?? DEFAULT_TRANSACTIONAL_TTL_MINUTES,
         };
 
         let totalProcessed = 0;
@@ -133,12 +134,18 @@ export const Route = createFileRoute("/api/email/queue/process")({
               .eq("status", "failed");
 
             if (failedRowsError) {
-              console.error("Failed to load failed-attempt counters", { queue, error: failedRowsError });
+              console.error("Failed to load failed-attempt counters", {
+                queue,
+                error: failedRowsError,
+              });
             } else {
               for (const row of failedRows ?? []) {
                 const messageId = row?.message_id;
                 if (typeof messageId !== "string" || !messageId) continue;
-                failedAttemptsByMessageId.set(messageId, (failedAttemptsByMessageId.get(messageId) ?? 0) + 1);
+                failedAttemptsByMessageId.set(
+                  messageId,
+                  (failedAttemptsByMessageId.get(messageId) ?? 0) + 1,
+                );
               }
             }
           }
@@ -149,14 +156,19 @@ export const Route = createFileRoute("/api/email/queue/process")({
             const failedAttempts =
               payload?.message_id && typeof payload.message_id === "string"
                 ? (failedAttemptsByMessageId.get(payload.message_id) ?? 0)
-                : msg.read_ct ?? 0;
+                : (msg.read_ct ?? 0);
 
             const queuedAt = payload.queued_at ?? msg.enqueued_at;
             if (queuedAt) {
               const ageMs = Date.now() - new Date(queuedAt).getTime();
               const maxAgeMs = ttlMinutes[queue] * 60 * 1000;
               if (ageMs > maxAgeMs) {
-                await moveToDlq(supabase, queue, msg, `TTL exceeded (${ttlMinutes[queue]} minutes)`);
+                await moveToDlq(
+                  supabase,
+                  queue,
+                  msg,
+                  `TTL exceeded (${ttlMinutes[queue]} minutes)`,
+                );
                 continue;
               }
             }

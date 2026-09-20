@@ -15,9 +15,13 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
-.env
 .env.vercel
 .env.vercel.check
+# Local environment files may contain runtime credentials.
+.env
+.env.*
+!.env.example
+!**/.env.example
 scripts/.data-export/
 scripts/.migration-batches/
 scripts/.migration-batches-remaining/
@@ -38,6 +42,4 @@ scripts/.migration-batches-remaining/
 *.sw?
 tests/visual/current/
 tests/visual/diff/
-.vercel
-
 .vercel

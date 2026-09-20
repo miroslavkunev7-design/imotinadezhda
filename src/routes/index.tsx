@@ -1,24 +1,26 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
 
-import { HomePage } from "@/components/site/luxury-real-estate";
+import { LockedHomeDesktop } from "@/components/home-locked/locked-home-desktop";
 import { HomeSkeleton, PageErrorRetry } from "@/components/site/page-skeleton";
-import { getPublicPageLayout } from "@/lib/page-layouts.functions";
-import { getCities } from "@/lib/catalog.functions";
-import { HOME_DESCRIPTION, HOME_TITLE, organizationJsonLd, siteUrl, websiteJsonLd } from "@/lib/site-config";
-
-
+import { SITE_URL, siteUrl } from "@/lib/site-config";
 
 import homeHeroPoster from "@/assets/home-hero-living.jpeg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: HOME_TITLE },
-      { name: "description", content: HOME_DESCRIPTION },
-      { property: "og:title", content: HOME_TITLE },
-      { property: "og:description", content: HOME_DESCRIPTION },
+      { title: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
+      {
+        name: "description",
+        content:
+          "Имоти Надежда — водеща агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар.",
+      },
+      { property: "og:title", content: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
+      {
+        property: "og:description",
+        content:
+          "Имоти Надежда — водеща агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар.",
+      },
       { property: "og:url", content: siteUrl("/") },
     ],
     links: [
@@ -28,11 +30,33 @@ export const Route = createFileRoute("/")({
     scripts: [
       {
         type: "application/ld+json",
-        children: JSON.stringify(organizationJsonLd()),
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "RealEstateAgent",
+          name: "Имоти Надежда",
+          alternateName: ["Imoti Nadezhda", "imoti nadezhda", "imotinadezhda"],
+          url: SITE_URL,
+          description:
+            "Агенция за недвижими имоти Имоти Надежда — апартаменти, къщи, парцели и офиси в Бургас, Варна, Шумен и Нови пазар.",
+          areaServed: ["Бургас", "Варна", "Шумен", "Нови пазар", "България"],
+          address: { "@type": "PostalAddress", addressCountry: "BG" },
+        }),
       },
       {
         type: "application/ld+json",
-        children: JSON.stringify(websiteJsonLd()),
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Имоти Надежда",
+          alternateName: ["Imoti Nadezhda", "imoti nadezhda", "imotinadezhda.bg"],
+          url: SITE_URL,
+          inLanguage: "bg-BG",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: `${SITE_URL}/search?city_slug={search_term}`,
+            "query-input": "required name=search_term",
+          },
+        }),
       },
     ],
   }),
@@ -51,27 +75,6 @@ function HomeErrorRoute({ error }: { error: Error }) {
 }
 
 function HomeRoute() {
-  const fetchLayout = useServerFn(getPublicPageLayout);
-  const fetchCities = useServerFn(getCities);
-  const [layout, setLayout] = useState<Awaited<ReturnType<typeof getPublicPageLayout>> | null>(null);
-  const [cities, setCities] = useState<Array<{ name: string; slug: string; hero_image_url?: string | null }>>([]);
-  useEffect(() => {
-    let cancelled = false;
-    fetchLayout({ data: { page_key: "home" } })
-      .then((res) => { if (!cancelled) setLayout(res); })
-      .catch(() => { /* fallback to defaults */ });
-    fetchCities()
-      .then((rows) => {
-        if (cancelled) return;
-        setCities((rows ?? []).map((c) => ({ name: c.name, slug: c.slug, hero_image_url: c.hero_image_url })));
-      })
-      .catch(() => { /* fallback cards */ });
-    return () => { cancelled = true; };
-  }, [fetchLayout, fetchCities]);
-  return (
-    <HomePage
-      layout={layout ?? undefined}
-      cities={cities.map((c) => ({ name: c.name, slug: c.slug, image: c.hero_image_url }))}
-    />
-  );
+  // Новата начална страница от MASTER архива се показва на всички устройства (потвърдено от потребителя).
+  return <LockedHomeDesktop />;
 }

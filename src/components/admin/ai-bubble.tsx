@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Sparkles, X, Send, User as UserIcon, Mic, MicOff, Volume2, Square } from "lucide-react";
 import { aiAssistantChat } from "@/lib/ai-assistant.functions";
 import { cn } from "@/lib/utils";
 import { speakBG } from "@/lib/tts-utils";
-import { useSpeechInput } from "@/hooks/use-speech-input";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -23,20 +22,20 @@ export function AdminAIBubble() {
     }
   });
   const [error, setError] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
   const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
+  const recognitionRef = useRef<any>(null);
   const endRef = useRef<HTMLDivElement>(null);
-
-  const onSpeechTranscript = useCallback((text: string) => {
-    setInput(text);
-    setError(null);
-  }, []);
-  const onSpeechError = useCallback((message: string) => setError(message), []);
-  const { listening, toggleListen } = useSpeechInput(onSpeechTranscript, onSpeechError);
 
   // Stop any ongoing speech when panel closes / unmounts
   useEffect(() => {
     return () => {
-      try { window.speechSynthesis?.cancel(); } catch {}
+      try {
+        window.speechSynthesis?.cancel();
+      } catch {}
+      try {
+        recognitionRef.current?.stop?.();
+      } catch {}
     };
   }, []);
 
@@ -55,6 +54,44 @@ export function AdminAIBubble() {
       onEnd: () => setSpeakingIdx(null),
       onError: () => setSpeakingIdx(null),
     });
+  };
+
+  const toggleListen = () => {
+    if (typeof window === "undefined") return;
+    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setError("Браузърът ти не поддържа разпознаване на реч");
+      return;
+    }
+    if (listening) {
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
+      setListening(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "bg-BG";
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onresult = (e: any) => {
+      let transcript = "";
+      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+      setInput(transcript);
+    };
+    rec.onerror = (e: any) => {
+      setError("Грешка при запис: " + (e.error || ""));
+      setListening(false);
+    };
+    rec.onend = () => setListening(false);
+    recognitionRef.current = rec;
+    setError(null);
+    setListening(true);
+    try {
+      rec.start();
+    } catch {
+      setListening(false);
+    }
   };
 
   useEffect(() => {
@@ -117,7 +154,9 @@ export function AdminAIBubble() {
       <div
         className={cn(
           "fixed inset-x-3 bottom-[calc(9.25rem+env(safe-area-inset-bottom,0px))] z-50 flex max-h-[calc(100dvh-11rem-env(safe-area-inset-bottom,0px))] flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-[linear-gradient(180deg,#fbf6ec_0%,#f4ead5_100%)] shadow-[0_28px_60px_rgba(139,26,43,0.45)] transition-all duration-300 md:inset-x-auto md:bottom-24 md:right-5 md:w-[min(96vw,400px)]",
-          open ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0",
+          open
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-4 opacity-0",
         )}
         style={{ maxHeight: "min(70dvh, 600px)" }}
       >
@@ -184,7 +223,11 @@ export function AdminAIBubble() {
                     className="mt-1.5 flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary hover:bg-primary/20"
                     aria-label={speakingIdx === i ? "Спри" : "Чуй"}
                   >
-                    {speakingIdx === i ? <Square className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                    {speakingIdx === i ? (
+                      <Square className="h-3 w-3" />
+                    ) : (
+                      <Volume2 className="h-3 w-3" />
+                    )}
                     {speakingIdx === i ? "Спри" : "Чуй"}
                   </button>
                 )}
@@ -206,7 +249,10 @@ export function AdminAIBubble() {
         </div>
 
         {/* Input */}
-        <form onSubmit={onSubmit} className="flex gap-2 border-t border-amber-500/20 bg-white/40 p-2">
+        <form
+          onSubmit={onSubmit}
+          className="flex gap-2 border-t border-amber-500/20 bg-white/40 p-2"
+        >
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -220,7 +266,9 @@ export function AdminAIBubble() {
             disabled={busy}
             className={cn(
               "flex h-9 w-9 items-center justify-center rounded-lg transition disabled:opacity-50",
-              listening ? "bg-red-600 text-white animate-pulse" : "bg-primary/15 text-primary hover:bg-primary/25",
+              listening
+                ? "bg-red-600 text-white animate-pulse"
+                : "bg-primary/15 text-primary hover:bg-primary/25",
             )}
             aria-label={listening ? "Спри запис" : "Говори"}
           >

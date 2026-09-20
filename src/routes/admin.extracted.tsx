@@ -1,10 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listExtracted, runScrape, updateExtracted, publishExtracted, deleteExtracted } from "@/lib/scraper.functions";
+import {
+  listExtracted,
+  runScrape,
+  updateExtracted,
+  publishExtracted,
+  deleteExtracted,
+} from "@/lib/scraper.functions";
 import { archiveExtracted } from "@/lib/archive.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { Download, Loader2, Eye, Trash2, Send, CheckCircle2, XCircle, Phone, Euro, Square, MapPin, Archive, Pencil, Calendar, Layers } from "lucide-react";
+import {
+  Download,
+  Loader2,
+  Eye,
+  Trash2,
+  Send,
+  CheckCircle2,
+  XCircle,
+  Phone,
+  Euro,
+  Square,
+  MapPin,
+  Archive,
+  Pencil,
+  Calendar,
+  Layers,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -47,7 +69,10 @@ function dedupKey(r: Row): string {
   const city = r.city_id ?? "";
   if (price && area) return `pa:${price}-${area}-${city}`;
   // fall back to normalized title
-  const t = String(r.title ?? "").toLowerCase().replace(/[^а-яa-z0-9 ]/gi, "").slice(0, 60);
+  const t = String(r.title ?? "")
+    .toLowerCase()
+    .replace(/[^а-яa-z0-9 ]/gi, "")
+    .slice(0, 60);
   return `t:${t}`;
 }
 
@@ -55,7 +80,11 @@ function isToday(iso?: string | null): boolean {
   if (!iso) return false;
   const d = new Date(iso);
   const now = new Date();
-  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
 }
 
 function ExtractedPage() {
@@ -74,7 +103,9 @@ function ExtractedPage() {
   const [editRow, setEditRow] = useState<Row | null>(null);
   const [previewRow, setPreviewRow] = useState<Row | null>(null);
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
-  const [quarters, setQuarters] = useState<Array<{ id: string; name: string; city_id: string }>>([]);
+  const [quarters, setQuarters] = useState<Array<{ id: string; name: string; city_id: string }>>(
+    [],
+  );
   const [cities, setCities] = useState<Array<{ id: string; name: string }>>([]);
 
   const load = async () => {
@@ -94,8 +125,14 @@ function ExtractedPage() {
   }, [status]);
 
   useEffect(() => {
-    supabase.from("cities").select("id, name").then(({ data }) => setCities(data ?? []));
-    supabase.from("quarters").select("id, name, city_id").then(({ data }) => setQuarters(data ?? []));
+    supabase
+      .from("cities")
+      .select("id, name")
+      .then(({ data }) => setCities(data ?? []));
+    supabase
+      .from("quarters")
+      .select("id, name, city_id")
+      .then(({ data }) => setQuarters(data ?? []));
   }, []);
 
   // Filter (today) + group duplicates
@@ -200,7 +237,9 @@ function ExtractedPage() {
         <div>
           <h1 className="font-display text-4xl text-amber-100">Извлечени имоти</h1>
           <p className="mt-1 max-w-2xl text-sm text-amber-100/70">
-            Извличане от Realistimo, Imoti.bg, OLX, Bazar.bg, Home.bg и Alo.bg — <strong className="text-amber-200">само нови обяви от днес</strong>. Дубликати се групират автоматично.
+            Извличане от Realistimo, Imoti.bg, OLX, Bazar.bg, Home.bg и Alo.bg —{" "}
+            <strong className="text-amber-200">само нови обяви от днес</strong>. Дубликати се
+            групират автоматично.
           </p>
         </div>
       </header>
@@ -212,10 +251,18 @@ function ExtractedPage() {
           className="group relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-primary via-primary to-[#5e0f1d] p-5 text-left text-primary-foreground shadow-[0_18px_45px_rgba(139,26,43,0.45)] transition hover:scale-[1.01] disabled:opacity-60"
         >
           <div className="flex items-center gap-3">
-            {scraping ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
-            <span className="font-bold uppercase tracking-wider">{scraping ? "Извличане..." : "Извлечи днешни"}</span>
+            {scraping ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Download className="h-5 w-5" />
+            )}
+            <span className="font-bold uppercase tracking-wider">
+              {scraping ? "Извличане..." : "Извлечи днешни"}
+            </span>
           </div>
-          <p className="mt-2 text-xs text-primary-foreground/70">Само нови за днес · пропуска вече извлечените</p>
+          <p className="mt-2 text-xs text-primary-foreground/70">
+            Само нови за днес · пропуска вече извлечените
+          </p>
         </button>
 
         <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.92)] p-5 shadow-lg">
@@ -247,9 +294,13 @@ function ExtractedPage() {
 
         <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.92)] p-5 shadow-lg">
           <div className="text-xs uppercase tracking-wider text-primary/70">Уникални имоти</div>
-          <div className="mt-1 font-display text-3xl text-primary">{loading ? "..." : groups.length}</div>
+          <div className="mt-1 font-display text-3xl text-primary">
+            {loading ? "..." : groups.length}
+          </div>
           <div className="text-xs text-primary/60">
-            {loading ? "Зареждане..." : `${rows.length} общо, ${rows.length - groups.length} дубликата скрити`}
+            {loading
+              ? "Зареждане..."
+              : `${rows.length} общо, ${rows.length - groups.length} дубликата скрити`}
           </div>
         </div>
       </div>
@@ -260,7 +311,8 @@ function ExtractedPage() {
           <div className="p-10 text-center text-primary/60">Зареждане...</div>
         ) : groups.length === 0 ? (
           <div className="p-10 text-center text-primary/60">
-            Няма {onlyToday ? "обяви от днес" : "обяви в този статус"}. Кликнете „Извлечи днешни" горе.
+            Няма {onlyToday ? "обяви от днес" : "обяви в този статус"}. Кликнете „Извлечи днешни"
+            горе.
           </div>
         ) : (
           <div className="divide-y divide-primary/10">
@@ -271,7 +323,13 @@ function ExtractedPage() {
                   className="flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-xs text-primary/60 hover:ring-2 hover:ring-primary/40"
                 >
                   {Array.isArray(r.images) && r.images[0] ? (
-                    <img src={r.images[0]} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                    <img
+                      src={r.images[0]}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     "няма"
                   )}
@@ -282,7 +340,11 @@ function ExtractedPage() {
                       {SOURCE_LABEL[r.source] ?? r.source}
                     </span>
                     <span className="rounded-md bg-amber-200/40 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-800">
-                      {r.seller_type === "private" ? "частен" : r.seller_type === "agency" ? "агенция" : "—"}
+                      {r.seller_type === "private"
+                        ? "частен"
+                        : r.seller_type === "agency"
+                          ? "агенция"
+                          : "—"}
                     </span>
                     <span className="rounded-md bg-primary/5 px-1.5 py-0.5 text-[10px] uppercase text-primary/70">
                       {STATUS_LABEL[r.status]}
@@ -299,12 +361,34 @@ function ExtractedPage() {
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 line-clamp-1 text-sm font-semibold text-primary">{r.title ?? "Без заглавие"}</div>
+                  <div className="mt-1 line-clamp-1 text-sm font-semibold text-primary">
+                    {r.title ?? "Без заглавие"}
+                  </div>
                   <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-primary/60">
-                    {r.price ? <span className="inline-flex items-center gap-1"><Euro className="h-3 w-3" />{Number(r.price).toLocaleString()} {r.currency}</span> : null}
-                    {r.area_sqm ? <span className="inline-flex items-center gap-1"><Square className="h-3 w-3" />{r.area_sqm} m²</span> : null}
-                    {r.cities?.name ? <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{r.cities.name}</span> : null}
-                    {r.phone ? <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{r.phone}</span> : null}
+                    {r.price ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Euro className="h-3 w-3" />
+                        {Number(r.price).toLocaleString()} {r.currency}
+                      </span>
+                    ) : null}
+                    {r.area_sqm ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Square className="h-3 w-3" />
+                        {r.area_sqm} m²
+                      </span>
+                    ) : null}
+                    {r.cities?.name ? (
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {r.cities.name}
+                      </span>
+                    ) : null}
+                    {r.phone ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {r.phone}
+                      </span>
+                    ) : null}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button
@@ -366,7 +450,9 @@ function ExtractedPage() {
           {previewRow && (
             <>
               <DialogHeader>
-                <DialogTitle className="font-display text-2xl">{previewRow.title ?? "Имот"}</DialogTitle>
+                <DialogTitle className="font-display text-2xl">
+                  {previewRow.title ?? "Имот"}
+                </DialogTitle>
                 <DialogDescription className="text-primary/60">
                   {SOURCE_LABEL[previewRow.source]} · {previewRow.cities?.name ?? "—"}
                 </DialogDescription>
@@ -391,11 +477,16 @@ function ExtractedPage() {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-lg bg-primary/5 p-8 text-center text-sm text-primary/60">Няма снимки</div>
+                <div className="rounded-lg bg-primary/5 p-8 text-center text-sm text-primary/60">
+                  Няма снимки
+                </div>
               )}
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {previewRow.price && (
-                  <Stat label="Цена" value={`${Number(previewRow.price).toLocaleString()} ${previewRow.currency}`} />
+                  <Stat
+                    label="Цена"
+                    value={`${Number(previewRow.price).toLocaleString()} ${previewRow.currency}`}
+                  />
                 )}
                 {previewRow.area_sqm && <Stat label="Площ" value={`${previewRow.area_sqm} m²`} />}
                 {previewRow.bedrooms && <Stat label="Спални" value={String(previewRow.bedrooms)} />}
@@ -477,9 +568,7 @@ function ExtractedPage() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setLightbox((l) =>
-                    l ? { ...l, index: (l.index + 1) % l.images.length } : l,
-                  );
+                  setLightbox((l) => (l ? { ...l, index: (l.index + 1) % l.images.length } : l));
                 }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 px-4 py-2 text-2xl text-white hover:bg-white/20"
               >
@@ -553,7 +642,12 @@ function EditForm({
       </DialogHeader>
 
       <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-        <a href={row.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary underline">
+        <a
+          href={row.source_url}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 text-xs text-primary underline"
+        >
           <Eye className="h-3 w-3" /> Виж оригинала
         </a>
 
@@ -624,7 +718,9 @@ function EditForm({
           >
             <option value="">— Изберете —</option>
             {cities.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
         </Field>
@@ -637,9 +733,13 @@ function EditForm({
             disabled={!cityId}
           >
             <option value="">— По избор —</option>
-            {quarters.filter((q) => q.city_id === cityId).map((q) => (
-              <option key={q.id} value={q.id}>{q.name}</option>
-            ))}
+            {quarters
+              .filter((q) => q.city_id === cityId)
+              .map((q) => (
+                <option key={q.id} value={q.id}>
+                  {q.name}
+                </option>
+              ))}
           </select>
         </Field>
 
@@ -647,7 +747,9 @@ function EditForm({
           <textarea
             defaultValue={row.description ?? ""}
             rows={4}
-            onBlur={(e) => e.target.value !== row.description && onPatch({ description: e.target.value })}
+            onBlur={(e) =>
+              e.target.value !== row.description && onPatch({ description: e.target.value })
+            }
             className="w-full rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm"
           />
         </Field>
@@ -688,7 +790,9 @@ function EditForm({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-[11px] font-semibold uppercase tracking-wider text-primary/70">{label}</label>
+      <label className="text-[11px] font-semibold uppercase tracking-wider text-primary/70">
+        {label}
+      </label>
       <div className="mt-1">{children}</div>
     </div>
   );

@@ -1,629 +1,664 @@
+// Автоматизация №8 — CRM модул „Генериране на договори“.
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  FileText,
-  Trash2,
-  Eye,
-  X,
-  Printer,
-  Plus,
-  Sparkles,
-  Download,
-  Loader2,
   FileSignature,
-  Clock,
-  CheckCircle2,
+  FileText,
+  Layers,
+  ListChecks,
+  Printer,
+  RefreshCw,
+  Send,
+  Settings2,
+  Sparkles,
+  Trash2,
+  X,
+  Zap,
 } from "lucide-react";
-import { deleteContract } from "@/lib/crm.functions";
 import {
-  fillContractPreview,
-  listContractDesk,
-  saveGeneratedContract,
+  deleteGeneratedContract,
+  enqueueContractJob,
+  generateContractNow,
+  getContractsAnalytics,
+  getContractsConfig,
+  listContractEvents,
+  listContractPickers,
+  listContractQueue,
+  listContractTemplates,
+  listGeneratedContracts,
+  markContractSignedManually,
+  previewContractTemplate,
+  resumeContractsJob,
+  runContractsQueueNow,
+  saveContractTemplate,
+  saveContractsConfig,
+  sendContractForSignature,
+  voidContractDoc,
 } from "@/lib/contracts.functions";
-import { CONTRACT_STATUS_LABELS, CONTRACT_TYPE_LABELS, buildPrintableHtml } from "@/lib/contracts";
-import { Button } from "@/components/ui/button";
 
-type Desk = Awaited<ReturnType<typeof listContractDesk>>;
-type ContractRow = Desk["contracts"][number];
+export const Route = createFileRoute("/admin/contracts")({ component: ContractsAdmin });
 
-export const Route = createFileRoute("/admin/contracts")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    client: typeof s.client === "string" && s.client.length > 0 ? s.client : undefined,
-    property: typeof s.property === "string" && s.property.length > 0 ? s.property : undefined,
-  }),
-  component: ContractsAdmin,
-});
+const STATUS_LABEL: Record<string, string> = {
+  draft: "Чернова",
+  sent: "Изпратен за подпис",
+  signed: "Подписан",
+  declined: "Отказан",
+  void: "Анулиран",
+  error: "Грешка",
+};
+const TRIGGER_LABEL: Record<string, string> = {
+  none: "Ръчно",
+  deposit: "При депозит",
+  deal: "При сделка",
+  rental: "При наем",
+  viewing: "След оглед",
+};
 
-function nestedLabel(rel: unknown, key: string): string {
-  if (!rel) return "—";
-  const row = Array.isArray(rel) ? rel[0] : rel;
-  if (row && typeof row === "object" && key in row) {
-    const v = (row as Record<string, unknown>)[key];
-    return typeof v === "string" && v.trim() ? v : "—";
-  }
-  return "—";
-}
-
-function typeLabel(t: string) {
-  return CONTRACT_TYPE_LABELS[t] ?? t;
-}
-function statusLabel(s: string) {
-  return CONTRACT_STATUS_LABELS[s] ?? s;
-}
-
-function downloadHtml(title: string, content: string) {
-  const html = buildPrintableHtml(title, content);
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${title.replace(/[^\p{L}\p{N}]+/gu, "-").slice(0, 80) || "dogovor"}.html`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function printContent(title: string, content: string) {
-  const html = buildPrintableHtml(title, content);
-  const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=1000");
-  if (!w) {
-    toast.error("Блокиран е прозорецът за печат — разреши pop-up.");
-    return;
-  }
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(() => w.print(), 250);
-}
+const dt = (v?: string | null) => (v ? new Date(v).toLocaleString("bg-BG") : "—");
+const money = (v: unknown, cur?: string | null) =>
+  v == null ? "—" : `${Number(v).toLocaleString("bg-BG")} ${cur ?? "EUR"}`;
 
 function ContractsAdmin() {
-  const search = Route.useSearch();
-  const [desk, setDesk] = useState<Desk | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [wizard, setWizard] = useState(!!search.client || !!search.property);
-  const [templateId, setTemplateId] = useState("");
-  const [clientId, setClientId] = useState(search.client ?? "");
-  const [propertyId, setPropertyId] = useState(search.property ?? "");
-  const [ownerId, setOwnerId] = useState("");
-  const [brokerId, setBrokerId] = useState("");
-  const [notes, setNotes] = useState("");
-  const [useAi, setUseAi] = useState(true);
-  const [clientQ, setClientQ] = useState("");
-  const [propQ, setPropQ] = useState("");
-  const [filling, setFilling] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [preview, setPreview] = useState<{
-    id?: string | null;
-    title: string;
-    content: string;
-    contract_type: string;
-    template_id: string | null;
-    client_id: string | null;
-    property_id: string | null;
-    unfilled?: number;
-    ai_used?: boolean;
-    ai_note?: string | null;
-  } | null>(null);
-  const [view, setView] = useState<ContractRow | null>(null);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [tab, setTab] = useState<"docs" | "generator" | "templates" | "queue" | "log">("docs");
+  const [docs, setDocs] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [queue, setQueue] = useState<any[]>([]);
+  const [log, setLog] = useState<any[]>([]);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [cfg, setCfg] = useState<any>(null);
+  const [job, setJob] = useState<any>(null);
+  const [pickers, setPickers] = useState<{ clients: any[]; properties: any[] }>({
+    clients: [],
+    properties: [],
+  });
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [showCfg, setShowCfg] = useState(false);
+  const [view, setView] = useState<any | null>(null);
+  const [editTpl, setEditTpl] = useState<any | null>(null);
 
-  const load = async () => {
+  // генератор
+  const [genTpl, setGenTpl] = useState("");
+  const [genClient, setGenClient] = useState("");
+  const [genProperty, setGenProperty] = useState("");
+  const [genAmount, setGenAmount] = useState("");
+  const [genExtra, setGenExtra] = useState("");
+  const [genAi, setGenAi] = useState(true);
+  const [preview, setPreview] = useState<{ text: string; missing: string[] } | null>(null);
+
+  const load = useCallback(async () => {
     try {
-      const next = await listContractDesk();
-      setDesk(next);
-      if (!templateId && next.templates[0]) setTemplateId(next.templates[0].id);
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Грешка");
-    } finally {
-      setLoading(false);
+      const [d, t, q, l, a, c, p] = await Promise.all([
+        listGeneratedContracts({ data: { status: status || undefined } }),
+        listContractTemplates(),
+        listContractQueue(),
+        listContractEvents(),
+        getContractsAnalytics(),
+        getContractsConfig(),
+        listContractPickers(),
+      ]);
+      setDocs(d as any[]);
+      setTemplates(t as any[]);
+      setQueue(q as any[]);
+      setLog(l as any[]);
+      setAnalytics(a);
+      setCfg((c as any).settings);
+      setJob((c as any).job);
+      setPickers(p as any);
+    } catch (e: any) {
+      toast.error(e.message);
     }
-  };
+  }, [status]);
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
-  useEffect(() => {
-    if (!desk) return;
-    if (propertyId) {
-      const prop = desk.properties.find((p) => p.id === propertyId);
-      if (prop?.owner_id) setOwnerId((cur) => cur || prop.owner_id || "");
-      if (prop?.broker_id) setBrokerId((cur) => cur || prop.broker_id || "");
-    } else if (clientId) {
-      const client = desk.clients.find((c) => c.id === clientId);
-      if (client?.assigned_broker_id) {
-        setBrokerId((cur) => cur || client.assigned_broker_id || "");
-      }
+  const extraVars = () => {
+    const out: Record<string, string | number> = {};
+    if (genAmount) out["amount"] = Number(genAmount);
+    for (const line of genExtra.split("\n")) {
+      const i = line.indexOf("=");
+      if (i > 0) out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
     }
-    // Initial auto-fill from ?client= / ?property= once desk is loaded.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [desk]);
+    return out;
+  };
 
-  const clientsFiltered = useMemo(() => {
-    const q = clientQ.trim().toLowerCase();
-    const rows = desk?.clients ?? [];
-    if (!q) return rows.slice(0, 80);
-    return rows
-      .filter((c) => `${c.full_name} ${c.phone ?? ""}`.toLowerCase().includes(q))
-      .slice(0, 80);
-  }, [desk, clientQ]);
-
-  const propertiesFiltered = useMemo(() => {
-    const q = propQ.trim().toLowerCase();
-    const rows = desk?.properties ?? [];
-    if (!q) return rows.slice(0, 80);
-    return rows
-      .filter((p) => `${p.title} ${p.address ?? ""}`.toLowerCase().includes(q))
-      .slice(0, 80);
-  }, [desk, propQ]);
-
-  const rows = useMemo(() => {
-    const all = desk?.contracts ?? [];
-    if (statusFilter === "all") return all;
-    return all.filter((r) => r.status === statusFilter);
-  }, [desk, statusFilter]);
-
-  const fill = async () => {
-    if (!templateId) {
-      toast.error("Избери шаблон.");
-      return;
-    }
-    setFilling(true);
+  const run = async (fn: () => Promise<unknown>, ok: string) => {
+    setBusy(true);
     try {
-      const result = await fillContractPreview({
+      await fn();
+      toast.success(ok);
+      await load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const doPreview = async () => {
+    if (!genTpl) return toast.error("Изберете шаблон.");
+    setBusy(true);
+    try {
+      const r: any = await previewContractTemplate({
         data: {
-          template_id: templateId,
-          client_id: clientId || null,
-          property_id: propertyId || null,
-          owner_id: ownerId || null,
-          broker_id: brokerId || null,
-          notes: notes || null,
-          use_ai: useAi,
+          templateId: genTpl,
+          clientId: genClient || null,
+          propertyId: genProperty || null,
+          variables: extraVars(),
         },
       });
-      setPreview({
-        title: result.title,
-        content: result.content,
-        contract_type: result.contract_type,
-        template_id: result.template_id,
-        client_id: result.resolved.client_id,
-        property_id: result.resolved.property_id,
-        unfilled: result.unfilled,
-        ai_used: result.ai_used,
-        ai_note: result.ai_note,
-      });
-      if (result.ai_note) toast.message(result.ai_note);
-      else if (result.ai_used) toast.success("AI допълни клаузите от бележките.");
-      else toast.success("Шаблонът е попълнен.");
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Грешка при попълване");
+      setPreview({ text: r.text, missing: r.missing });
+    } catch (e: any) {
+      toast.error(e.message);
     } finally {
-      setFilling(false);
+      setBusy(false);
     }
   };
-
-  const save = async (status: "draft" | "final" | "pending_signature") => {
-    if (!preview) return;
-    setSaving(true);
-    try {
-      const saved = await saveGeneratedContract({
-        data: {
-          id: preview.id ?? null,
-          template_id: preview.template_id,
-          client_id: preview.client_id,
-          property_id: preview.property_id,
-          contract_type: preview.contract_type,
-          title: preview.title,
-          content: preview.content,
-          status,
-        },
-      });
-      setPreview({ ...preview, id: saved.id });
-      toast.success(
-        status === "draft"
-          ? "Черновата е записана."
-          : status === "final"
-            ? "Договорът е финален."
-            : "Маркиран за подпис.",
-      );
-      await load();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Неуспешен запис");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const remove = async (id: string) => {
-    if (!confirm("Изтриване на този договор?")) return;
-    try {
-      await deleteContract({ data: { id } });
-      await load();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Грешка");
-    }
-  };
-
-  const analytics = desk?.analytics;
-  const selectClass =
-    "w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.65)] px-3 py-2 text-sm text-amber-100";
-  const inputClass =
-    "w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.65)] px-3 py-2 text-sm text-amber-100 placeholder:text-amber-100/35";
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+    <div className="space-y-6" data-crm-themed>
+      <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-4xl text-amber-100">
-            <FileText className="mr-2 inline h-8 w-8 text-amber-300" />
-            Договори
+            <FileSignature className="mr-2 inline h-8 w-8 text-amber-300" />
+            Договори — Автоматизация №8
           </h1>
-          <p className="mt-1 text-sm text-amber-100/60">
-            Шаблони за агенцията — попълват се от клиент, имот и сделка.
+          <p className="mt-1 text-sm text-amber-100/70">
+            Автоматично попълване на документи от шаблони, AI допълване, изпращане за подпис по линк
+            и аналитика.
           </p>
         </div>
-        <Button
-          type="button"
-          onClick={() => setWizard((v) => !v)}
-          className="rounded-full bg-amber-500/20 text-amber-100 hover:bg-amber-500/30"
-        >
-          <Plus className="h-4 w-4" />
-          {wizard ? "Скрий генератора" : "Нов договор"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => run(() => runContractsQueueNow({ data: {} }), "Опашката е обработена")}
+            disabled={busy}
+            className="inline-flex items-center gap-2 rounded-lg bg-amber-500/20 px-3 py-2 text-sm text-amber-100 hover:bg-amber-500/30"
+          >
+            <Zap className="h-4 w-4" />
+            Обработи опашката
+          </button>
+          <button
+            onClick={() => setShowCfg(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 px-3 py-2 text-sm text-amber-100 hover:bg-amber-500/10"
+          >
+            <Settings2 className="h-4 w-4" />
+            Настройки
+          </button>
+          <button
+            onClick={load}
+            className="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 px-3 py-2 text-sm text-amber-100 hover:bg-amber-500/10"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Обнови
+          </button>
+        </div>
       </header>
 
-      {loading ? (
-        <div className="rounded-2xl border border-amber-500/20 p-10 text-center text-amber-100/60">
-          Зареждане…
+      {job?.paused && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-400/40 bg-rose-500/10 p-4 text-sm text-rose-100">
+          <span>Автоматизацията е на пауза: {job.paused_reason ?? "неизвестна причина"}</span>
+          <button
+            onClick={() => run(() => resumeContractsJob(), "Автоматизацията е възобновена")}
+            className="rounded-lg bg-rose-500/30 px-3 py-1.5"
+          >
+            Възобнови
+          </button>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <Stat
-              label="Генерирани"
-              value={String(analytics?.total ?? 0)}
-              icon={<FileText className="h-4 w-4" />}
-            />
-            <Stat
-              label="Чакат подпис"
-              value={String(analytics?.pending_signatures ?? 0)}
-              icon={<Clock className="h-4 w-4" />}
-              accent
-            />
-            <Stat
-              label="Чернови / финални"
-              value={`${analytics?.drafts ?? 0} / ${analytics?.finals ?? 0}`}
-              icon={<CheckCircle2 className="h-4 w-4" />}
-            />
-            <Stat
-              label="Последен"
-              value={
-                analytics?.last
-                  ? new Date(analytics.last.created_at).toLocaleDateString("bg-BG")
-                  : "—"
-              }
-              hint={analytics?.last?.title}
-              icon={<FileSignature className="h-4 w-4" />}
-            />
-          </div>
+      )}
 
-          {(analytics?.by_type.length ?? 0) > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {analytics!.by_type.map((row) => (
-                <span
-                  key={row.type}
-                  className="rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-xs text-amber-100"
-                >
-                  {typeLabel(row.type)} · {row.count}
-                </span>
-              ))}
+      {analytics && (
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {[
+            ["Общо документи", analytics.total],
+            ["Подписани", analytics.byStatus?.signed ?? 0],
+            ["За подпис", analytics.byStatus?.sent ?? 0],
+            ["% подписване", `${analytics.signRate}%`],
+            ["Ср. време до подпис", `${analytics.avgSignHours} ч`],
+            ["В опашка", analytics.pendingQueue],
+          ].map(([label, value]) => (
+            <div
+              key={String(label)}
+              className="rounded-xl border border-amber-500/20 bg-[rgba(40,8,16,0.55)] p-4"
+            >
+              <p className="text-xs uppercase tracking-wide text-amber-100/60">{label}</p>
+              <p className="mt-1 font-display text-2xl text-amber-100">{value as any}</p>
             </div>
-          )}
+          ))}
+        </div>
+      )}
 
-          {wizard && (
-            <section className="space-y-4 rounded-2xl border border-amber-500/20 bg-[rgba(255,255,255,0.05)] p-5">
-              <h2 className="font-display text-xl text-amber-100">Генератор</h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {(desk?.templates ?? []).map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setTemplateId(t.id)}
-                    className={`rounded-xl border px-3 py-3 text-left text-sm transition ${
-                      templateId === t.id
-                        ? "border-amber-400 bg-amber-500/20 text-amber-50"
-                        : "border-amber-500/20 text-amber-100/80 hover:border-amber-400/50"
-                    }`}
-                  >
-                    <div className="font-semibold">{t.name}</div>
-                    <div className="mt-1 text-[11px] text-amber-100/50">
-                      {typeLabel(t.contract_type)}
-                    </div>
-                  </button>
-                ))}
-              </div>
+      <nav className="flex flex-wrap gap-2">
+        {(
+          [
+            ["docs", "Документи", FileText],
+            ["generator", "Генератор", Sparkles],
+            ["templates", "Шаблони", Layers],
+            ["queue", "Опашка", ListChecks],
+            ["log", "Лог", RefreshCw],
+          ] as const
+        ).map(([key, label, Icon]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${tab === key ? "bg-amber-500/25 text-amber-50" : "border border-amber-500/25 text-amber-100/80 hover:bg-amber-500/10"}`}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        ))}
+      </nav>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="block text-xs text-amber-100/70">
-                  Търсене клиент
-                  <input
-                    className={`${inputClass} mt-1`}
-                    value={clientQ}
-                    onChange={(e) => setClientQ(e.target.value)}
-                    placeholder="Име или телефон"
-                  />
-                </label>
-                <label className="block text-xs text-amber-100/70">
-                  Клиент
-                  <select
-                    className={`${selectClass} mt-1`}
-                    value={clientId}
-                    onChange={(e) => {
-                      const id = e.target.value;
-                      setClientId(id);
-                      const client = desk?.clients.find((c) => c.id === id);
-                      if (client?.assigned_broker_id && !propertyId) {
-                        setBrokerId(client.assigned_broker_id);
-                      }
-                    }}
-                  >
-                    <option value="">— без клиент —</option>
-                    {clientsFiltered.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.full_name}
-                        {c.phone ? ` · ${c.phone}` : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-xs text-amber-100/70">
-                  Търсене имот
-                  <input
-                    className={`${inputClass} mt-1`}
-                    value={propQ}
-                    onChange={(e) => setPropQ(e.target.value)}
-                    placeholder="Заглавие или адрес"
-                  />
-                </label>
-                <label className="block text-xs text-amber-100/70">
-                  Имот
-                  <select
-                    className={`${selectClass} mt-1`}
-                    value={propertyId}
-                    onChange={(e) => {
-                      const id = e.target.value;
-                      setPropertyId(id);
-                      const prop = desk?.properties.find((p) => p.id === id);
-                      setOwnerId(prop?.owner_id ?? "");
-                      if (prop?.broker_id) setBrokerId(prop.broker_id);
-                    }}
-                  >
-                    <option value="">— без имот —</option>
-                    {propertiesFiltered.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.title}
-                        {p.price != null ? ` · ${p.price} ${p.currency ?? ""}` : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-xs text-amber-100/70">
-                  Собственик
-                  <select
-                    className={`${selectClass} mt-1`}
-                    value={ownerId}
-                    onChange={(e) => setOwnerId(e.target.value)}
-                  >
-                    <option value="">— ако има в имота —</option>
-                    {(desk?.owners ?? []).map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.full_name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-xs text-amber-100/70">
-                  Брокер
-                  <select
-                    className={`${selectClass} mt-1`}
-                    value={brokerId}
-                    onChange={(e) => setBrokerId(e.target.value)}
-                  >
-                    <option value="">— ако е назначен —</option>
-                    {(desk?.brokers ?? []).map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.full_name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <label className="block text-xs text-amber-100/70">
-                Бележки / липсващи клаузи
-                <textarea
-                  className={`${inputClass} mt-1 min-h-[88px]`}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Напр. задатък 10 000 EUR, срок до 15 септември, разноските за купувача…"
-                />
-              </label>
-
-              <label className="flex items-center gap-2 text-sm text-amber-100/80">
-                <input
-                  type="checkbox"
-                  checked={useAi}
-                  onChange={(e) => setUseAi(e.target.checked)}
-                  className="accent-amber-400"
-                />
-                <Sparkles className="h-4 w-4 text-amber-300" />
-                AI да допълни празни клаузи от бележките
-                {!desk?.ai_available && (
-                  <span className="text-xs text-amber-100/45">
-                    (няма ключ — ще се ползва само шаблонът)
-                  </span>
-                )}
-              </label>
-
-              <Button type="button" onClick={fill} disabled={filling} className="rounded-full">
-                {filling ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FileSignature className="h-4 w-4" />
-                )}
-                Попълни преглед
-              </Button>
-            </section>
-          )}
-
-          {preview && (
-            <section className="space-y-3 rounded-2xl border border-amber-400/30 bg-[rgba(255,255,255,0.06)] p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <input
-                  className={`${inputClass} max-w-xl font-display text-lg`}
-                  value={preview.title}
-                  onChange={(e) => setPreview({ ...preview, title: e.target.value })}
-                />
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => printContent(preview.title, preview.content)}
-                  >
-                    <Printer className="h-4 w-4" /> Печат / PDF
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => downloadHtml(preview.title, preview.content)}
-                  >
-                    <Download className="h-4 w-4" /> HTML
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => setPreview(null)}
-                    className="text-amber-100/60"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-              {(preview.unfilled || preview.ai_note) && (
-                <p className="text-xs text-amber-100/55">
-                  {preview.unfilled ? `Непопълнени полета: ${preview.unfilled}. ` : ""}
-                  {preview.ai_used ? "AI е използван. " : ""}
-                  {preview.ai_note ?? ""}
-                </p>
-              )}
-              <textarea
-                className={`${inputClass} min-h-[320px] font-serif text-base leading-relaxed`}
-                value={preview.content}
-                onChange={(e) => setPreview({ ...preview, content: e.target.value })}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={saving}
-                  onClick={() => save("draft")}
-                >
-                  Запази чернова
-                </Button>
-                <Button type="button" disabled={saving} onClick={() => save("final")}>
-                  Запази финален
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={saving}
-                  onClick={() => save("pending_signature")}
-                >
-                  Чака подпис
-                </Button>
-              </div>
-            </section>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2">
-            {["all", "draft", "final", "pending_signature", "signed"].map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setStatusFilter(s)}
-                className={`rounded-full px-3 py-1 text-xs ${
-                  statusFilter === s
-                    ? "bg-amber-500/25 text-amber-50"
-                    : "text-amber-100/60 hover:text-amber-100"
-                }`}
-              >
-                {s === "all" ? "Всички" : statusLabel(s)}
-              </button>
+      {tab === "docs" && (
+        <section className="space-y-3">
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="rounded-lg border border-amber-500/30 bg-[rgba(40,8,16,0.6)] px-3 py-2 text-sm text-amber-100"
+          >
+            <option value="">Всички статуси</option>
+            {Object.entries(STATUS_LABEL).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
             ))}
-          </div>
+          </select>
 
-          <div className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(20,4,8,0.35)]">
-            <table className="w-full text-sm text-amber-100">
-              <thead className="bg-[rgba(40,8,16,0.7)] text-left text-amber-100/80">
+          <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+            <table className="w-full min-w-[900px] text-sm">
+              <thead className="bg-[rgba(40,8,16,0.75)] text-left text-amber-100/85">
                 <tr>
-                  <th className="px-4 py-3">Заглавие</th>
-                  <th className="px-4 py-3">Тип</th>
+                  <th className="px-4 py-3">№ / Документ</th>
                   <th className="px-4 py-3">Клиент</th>
                   <th className="px-4 py-3">Имот</th>
+                  <th className="px-4 py-3">Сума</th>
                   <th className="px-4 py-3">Статус</th>
-                  <th className="px-4 py-3">Дата</th>
+                  <th className="px-4 py-3">Изпратен / Подписан</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id} className="border-t border-amber-500/10 hover:bg-amber-500/5">
-                    <td className="px-4 py-2 font-semibold">{r.title}</td>
-                    <td className="px-4 py-2 text-xs">{typeLabel(r.contract_type)}</td>
-                    <td className="px-4 py-2">{nestedLabel(r.clients, "full_name")}</td>
-                    <td className="px-4 py-2">{nestedLabel(r.properties, "title")}</td>
+                {docs.map((r) => (
+                  <tr key={r.id} className="border-t border-[#8B1A2B]/15">
                     <td className="px-4 py-2">
-                      <span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs">
-                        {statusLabel(r.status)}
+                      <span className="font-semibold">{r.doc_number ?? "—"}</span>
+                      <span className="block text-xs opacity-70">
+                        {r.title}
+                        {r.ai_used ? " · AI" : ""}
+                      </span>
+                      {Array.isArray(r.missing_fields) && r.missing_fields.length > 0 && (
+                        <span className="block text-xs text-rose-700">
+                          Липсват: {r.missing_fields.join(", ")}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">{r.clients?.full_name ?? "—"}</td>
+                    <td className="px-4 py-2 text-xs">{r.properties?.title ?? "—"}</td>
+                    <td className="px-4 py-2">{money(r.amount, r.currency)}</td>
+                    <td className="px-4 py-2">
+                      <span className="rounded bg-[#8B1A2B]/12 px-2 py-0.5 text-xs">
+                        {STATUS_LABEL[r.status] ?? r.status}
                       </span>
                     </td>
                     <td className="px-4 py-2 text-xs">
-                      {new Date(r.created_at).toLocaleDateString("bg-BG")}
+                      {dt(r.sent_at)}
+                      <span className="block opacity-70">{dt(r.signed_at)}</span>
                     </td>
-                    <td className="px-4 py-2 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setView(r)}
-                        className="mr-2 text-amber-300"
-                        title="Преглед"
-                      >
-                        <Eye className="h-4 w-4" />
+                    <td className="whitespace-nowrap px-4 py-2 text-right">
+                      <button onClick={() => setView(r)} className="mr-2 text-xs underline">
+                        Преглед
                       </button>
                       <button
-                        type="button"
-                        onClick={() => remove(r.id)}
-                        className="text-rose-400"
-                        title="Изтрий"
+                        onClick={() =>
+                          run(async () => {
+                            const res: any = await sendContractForSignature({ data: { id: r.id } });
+                            if (res?.sign_url)
+                              await navigator.clipboard?.writeText(res.sign_url).catch(() => {});
+                          }, "Линкът за подпис е готов и копиран")
+                        }
+                        className="mr-2 inline-flex items-center gap-1 text-xs underline"
+                      >
+                        <Send className="h-3 w-3" />
+                        За подпис
+                      </button>
+                      {r.status !== "signed" && (
+                        <button
+                          onClick={() => {
+                            const name = prompt("Име на подписалия:");
+                            if (name)
+                              run(
+                                () =>
+                                  markContractSignedManually({
+                                    data: { id: r.id, signatureName: name },
+                                  }),
+                                "Отбелязан като подписан",
+                              );
+                          }}
+                          className="mr-2 text-xs underline"
+                        >
+                          Подписан
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          const reason = prompt("Причина за анулиране:");
+                          if (reason)
+                            run(
+                              () => voidContractDoc({ data: { id: r.id, reason } }),
+                              "Документът е анулиран",
+                            );
+                        }}
+                        className="mr-2 text-xs underline"
+                      >
+                        Анулирай
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm("Изтриване на документа?"))
+                            run(() => deleteGeneratedContract({ data: { id: r.id } }), "Изтрит");
+                        }}
+                        className="text-rose-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </td>
                   </tr>
                 ))}
-                {!rows.length && (
+                {!docs.length && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-amber-100/40">
-                      Все още няма договори. Отвори генератора по-горе или идвай от клиентската
-                      карта.
+                    <td colSpan={7} className="px-4 py-10 text-center opacity-60">
+                      Няма документи. Използвайте таб „Генератор“.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-        </>
+        </section>
+      )}
+
+      {tab === "generator" && (
+        <section className="grid gap-4 lg:grid-cols-2">
+          <div className="space-y-3 rounded-xl border border-amber-500/20 bg-[rgba(40,8,16,0.55)] p-5">
+            <h2 className="font-display text-xl text-amber-100">Нов документ</h2>
+            <label className="block text-xs text-amber-100/70">
+              Шаблон
+              <select
+                value={genTpl}
+                onChange={(e) => setGenTpl(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-2 text-sm text-amber-100"
+              >
+                <option value="">— избери —</option>
+                {templates
+                  .filter((t) => t.is_active)
+                  .map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label className="block text-xs text-amber-100/70">
+              Клиент
+              <select
+                value={genClient}
+                onChange={(e) => setGenClient(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-2 text-sm text-amber-100"
+              >
+                <option value="">— без —</option>
+                {pickers.clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.full_name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-xs text-amber-100/70">
+              Имот
+              <select
+                value={genProperty}
+                onChange={(e) => setGenProperty(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-2 text-sm text-amber-100"
+              >
+                <option value="">— без —</option>
+                {pickers.properties.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-xs text-amber-100/70">
+              Сума / депозит
+              <input
+                value={genAmount}
+                onChange={(e) => setGenAmount(e.target.value)}
+                inputMode="decimal"
+                className="mt-1 w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-2 text-sm text-amber-100"
+              />
+            </label>
+            <label className="block text-xs text-amber-100/70">
+              Допълнителни променливи (по едно на ред: ключ=стойност)
+              <textarea
+                value={genExtra}
+                onChange={(e) => setGenExtra(e.target.value)}
+                rows={4}
+                placeholder={"seller_name=Иван Петров\nclient_egn=8001011234"}
+                className="mt-1 w-full rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.6)] px-3 py-2 text-sm text-amber-100"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-xs text-amber-100/80">
+              <input type="checkbox" checked={genAi} onChange={(e) => setGenAi(e.target.checked)} />
+              AI допълване на липсващите текстови полета
+            </label>
+            <div className="flex flex-wrap gap-2 pt-2">
+              <button
+                onClick={doPreview}
+                disabled={busy}
+                className="rounded-lg border border-amber-500/30 px-3 py-2 text-sm text-amber-100"
+              >
+                Преглед
+              </button>
+              <button
+                disabled={busy || !genTpl}
+                onClick={() =>
+                  run(
+                    () =>
+                      generateContractNow({
+                        data: {
+                          templateId: genTpl,
+                          clientId: genClient || null,
+                          propertyId: genProperty || null,
+                          variables: extraVars(),
+                          useAi: genAi,
+                        },
+                      }),
+                    "Документът е генериран",
+                  )
+                }
+                className="rounded-lg bg-amber-500/25 px-3 py-2 text-sm text-amber-50"
+              >
+                Генерирай
+              </button>
+              <button
+                disabled={busy || !genTpl}
+                onClick={() =>
+                  run(
+                    () =>
+                      enqueueContractJob({
+                        data: {
+                          templateId: genTpl,
+                          clientId: genClient || null,
+                          propertyId: genProperty || null,
+                          variables: extraVars(),
+                          autoSend: true,
+                        },
+                      }),
+                    "Добавен в опашката",
+                  )
+                }
+                className="rounded-lg border border-amber-500/30 px-3 py-2 text-sm text-amber-100"
+              >
+                В опашка + авто-изпращане
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-amber-500/20 bg-[rgba(255,255,255,0.9)] p-5">
+            <h2 className="mb-2 font-display text-xl">Преглед</h2>
+            {preview?.missing?.length ? (
+              <p className="mb-3 text-xs text-rose-700">
+                Липсващи полета: {preview.missing.join(", ")}
+              </p>
+            ) : null}
+            <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap font-serif text-sm leading-relaxed">
+              {preview?.text ?? "Изберете шаблон и натиснете „Преглед“."}
+            </pre>
+          </div>
+        </section>
+      )}
+
+      {tab === "templates" && (
+        <section className="space-y-3">
+          <button
+            onClick={() =>
+              setEditTpl({
+                name: "",
+                contract_type: "other",
+                category: "sale",
+                template_content: "",
+                is_active: true,
+                auto_trigger: "none",
+                sort_order: 100,
+              })
+            }
+            className="rounded-lg bg-amber-500/25 px-3 py-2 text-sm text-amber-50"
+          >
+            + Нов шаблон
+          </button>
+          <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead className="bg-[rgba(40,8,16,0.75)] text-left text-amber-100/85">
+                <tr>
+                  <th className="px-4 py-3">Шаблон</th>
+                  <th className="px-4 py-3">Тип</th>
+                  <th className="px-4 py-3">Тригер</th>
+                  <th className="px-4 py-3">Полета</th>
+                  <th className="px-4 py-3">Генерирани</th>
+                  <th className="px-4 py-3">Активен</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {templates.map((t) => (
+                  <tr key={t.id} className="border-t border-[#8B1A2B]/15">
+                    <td className="px-4 py-2 font-semibold">
+                      {t.name}
+                      <span className="block text-xs opacity-60">{t.code ?? "—"}</span>
+                    </td>
+                    <td className="px-4 py-2 text-xs">{t.contract_type}</td>
+                    <td className="px-4 py-2 text-xs">
+                      {TRIGGER_LABEL[t.auto_trigger ?? "none"] ?? t.auto_trigger}
+                    </td>
+                    <td className="px-4 py-2 text-xs">
+                      {Array.isArray(t.placeholders) ? t.placeholders.length : 0}
+                    </td>
+                    <td className="px-4 py-2">{t.generated_count ?? 0}</td>
+                    <td className="px-4 py-2 text-xs">{t.is_active ? "Да" : "Не"}</td>
+                    <td className="px-4 py-2 text-right">
+                      <button onClick={() => setEditTpl(t)} className="text-xs underline">
+                        Редактирай
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {tab === "queue" && (
+        <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead className="bg-[rgba(40,8,16,0.75)] text-left text-amber-100/85">
+              <tr>
+                <th className="px-4 py-3">Създаден</th>
+                <th className="px-4 py-3">Шаблон</th>
+                <th className="px-4 py-3">Клиент</th>
+                <th className="px-4 py-3">Имот</th>
+                <th className="px-4 py-3">Статус</th>
+                <th className="px-4 py-3">Опити</th>
+                <th className="px-4 py-3">Грешка</th>
+              </tr>
+            </thead>
+            <tbody>
+              {queue.map((q) => (
+                <tr key={q.id} className="border-t border-[#8B1A2B]/15">
+                  <td className="px-4 py-2 text-xs">{dt(q.created_at)}</td>
+                  <td className="px-4 py-2">
+                    {q.contract_templates?.name ?? q.template_code ?? "—"}
+                  </td>
+                  <td className="px-4 py-2">{q.clients?.full_name ?? "—"}</td>
+                  <td className="px-4 py-2 text-xs">{q.properties?.title ?? "—"}</td>
+                  <td className="px-4 py-2 text-xs">
+                    {q.status}
+                    {q.auto_send ? " · авто-изпращане" : ""}
+                  </td>
+                  <td className="px-4 py-2">{q.attempts}</td>
+                  <td className="px-4 py-2 text-xs text-rose-700">{q.last_error ?? "—"}</td>
+                </tr>
+              ))}
+              {!queue.length && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-10 text-center opacity-60">
+                    Опашката е празна.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {tab === "log" && (
+        <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead className="bg-[rgba(40,8,16,0.75)] text-left text-amber-100/85">
+              <tr>
+                <th className="px-4 py-3">Дата</th>
+                <th className="px-4 py-3">Действие</th>
+                <th className="px-4 py-3">Документ</th>
+                <th className="px-4 py-3">Статус</th>
+                <th className="px-4 py-3">Съобщение</th>
+                <th className="px-4 py-3">Актьор</th>
+              </tr>
+            </thead>
+            <tbody>
+              {log.map((l) => (
+                <tr key={l.id} className="border-t border-[#8B1A2B]/15">
+                  <td className="px-4 py-2 text-xs">{dt(l.created_at)}</td>
+                  <td className="px-4 py-2 text-xs">{l.action}</td>
+                  <td className="px-4 py-2 text-xs">
+                    {l.generated_contracts?.doc_number ?? l.generated_contracts?.title ?? "—"}
+                  </td>
+                  <td className="px-4 py-2 text-xs">{l.status}</td>
+                  <td className="px-4 py-2 text-xs">{l.message ?? "—"}</td>
+                  <td className="px-4 py-2 text-xs">{l.actor ?? "—"}</td>
+                </tr>
+              ))}
+              {!log.length && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center opacity-60">
+                    Няма записи.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {view && (
@@ -636,85 +671,224 @@ function ContractsAdmin() {
             className="max-h-[92vh] w-full max-w-4xl overflow-auto rounded-2xl bg-card p-8 shadow-2xl"
           >
             <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
-              <h2 className="font-display text-2xl text-accent-foreground">{view.title}</h2>
+              <h2 className="font-display text-2xl">{view.title}</h2>
               <div className="flex items-center gap-3">
                 <button
-                  type="button"
-                  onClick={() => {
-                    setPreview({
-                      id: view.id,
-                      title: view.title,
-                      content: view.content,
-                      contract_type: view.contract_type,
-                      template_id: view.template_id,
-                      client_id: view.client_id,
-                      property_id: view.property_id,
-                    });
-                    setWizard(true);
-                    setView(null);
-                  }}
-                  className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-sm hover:bg-muted"
-                >
-                  Редактирай
-                </button>
-                <button
-                  type="button"
-                  onClick={() => printContent(view.title, view.content)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-sm hover:bg-muted"
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-sm"
                 >
                   <Printer className="h-4 w-4" />
                   Принтирай
                 </button>
-                <button
-                  type="button"
-                  onClick={() => downloadHtml(view.title, view.content)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-input px-3 py-1.5 text-sm hover:bg-muted"
-                >
-                  <Download className="h-4 w-4" />
-                  HTML
-                </button>
-                <button type="button" onClick={() => setView(null)}>
+                <button onClick={() => setView(null)}>
                   <X className="h-5 w-5" />
                 </button>
               </div>
             </div>
-            <article className="prose prose-sm max-w-none whitespace-pre-wrap font-serif text-base text-foreground">
-              {view.content}
-            </article>
+            <article className="whitespace-pre-wrap font-serif text-base">{view.content}</article>
           </div>
         </div>
       )}
-    </div>
-  );
-}
 
-function Stat({
-  label,
-  value,
-  hint,
-  icon,
-  accent,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  icon: ReactNode;
-  accent?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-2xl border p-4 ${
-        accent
-          ? "border-amber-400/40 bg-amber-500/15"
-          : "border-amber-500/20 bg-[rgba(255,255,255,0.05)]"
-      }`}
-    >
-      <div className="flex items-center gap-2 text-amber-300">
-        {icon}
-        <span className="text-xs uppercase tracking-wide text-amber-100/55">{label}</span>
-      </div>
-      <div className="mt-1 font-display text-2xl text-amber-50">{value}</div>
-      {hint && <div className="mt-1 truncate text-[11px] text-amber-100/45">{hint}</div>}
+      {editTpl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/55 p-4"
+          onClick={() => setEditTpl(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[92vh] w-full max-w-3xl overflow-auto rounded-2xl bg-card p-6"
+            data-task-dialog
+          >
+            <h2 className="mb-4 font-display text-2xl">
+              {editTpl.id ? "Редакция на шаблон" : "Нов шаблон"}
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-xs">
+                Име
+                <input
+                  value={editTpl.name ?? ""}
+                  onChange={(e) => setEditTpl({ ...editTpl, name: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-input px-3 py-2 text-sm"
+                />
+              </label>
+              <label className="text-xs">
+                Тип (contract_type)
+                <input
+                  value={editTpl.contract_type ?? ""}
+                  onChange={(e) => setEditTpl({ ...editTpl, contract_type: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-input px-3 py-2 text-sm"
+                />
+              </label>
+              <label className="text-xs">
+                Тригер
+                <select
+                  value={editTpl.auto_trigger ?? "none"}
+                  onChange={(e) => setEditTpl({ ...editTpl, auto_trigger: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-input px-3 py-2 text-sm"
+                >
+                  {Object.entries(TRIGGER_LABEL).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-end gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={Boolean(editTpl.is_active)}
+                  onChange={(e) => setEditTpl({ ...editTpl, is_active: e.target.checked })}
+                />
+                Активен
+              </label>
+            </div>
+            <label className="mt-3 block text-xs">
+              Текст на шаблона — променливи във вид {"{{"}име{"}}"}, условия {"{{"}#if име{"}}"}…
+              {"{{"}/if{"}}"}
+              <textarea
+                value={editTpl.template_content ?? ""}
+                onChange={(e) => setEditTpl({ ...editTpl, template_content: e.target.value })}
+                rows={16}
+                className="mt-1 w-full rounded-lg border border-input px-3 py-2 font-mono text-xs"
+              />
+            </label>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setEditTpl(null)}
+                className="rounded-lg border border-input px-4 py-2 text-sm"
+              >
+                Отказ
+              </button>
+              <button
+                disabled={busy}
+                onClick={() =>
+                  run(async () => {
+                    await saveContractTemplate({
+                      data: {
+                        id: editTpl.id ?? null,
+                        name: editTpl.name,
+                        contract_type: editTpl.contract_type || "other",
+                        template_content: editTpl.template_content,
+                        is_active: Boolean(editTpl.is_active),
+                        auto_trigger: editTpl.auto_trigger ?? "none",
+                      },
+                    });
+                    setEditTpl(null);
+                  }, "Шаблонът е записан")
+                }
+                className="rounded-lg bg-[#8B1A2B] px-4 py-2 text-sm text-white"
+              >
+                Запази
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCfg && cfg && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/55 p-4"
+          onClick={() => setShowCfg(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg rounded-2xl bg-card p-6"
+            data-task-dialog
+          >
+            <h2 className="mb-4 font-display text-2xl">Настройки на автоматизацията</h2>
+            <div className="space-y-3 text-sm">
+              {(
+                [
+                  ["enabled", "Автоматизацията е включена"],
+                  ["ai_enabled", "AI допълване на полета"],
+                  ["auto_send", "Автоматично изпращане за подпис"],
+                ] as const
+              ).map(([k, label]) => (
+                <label key={k} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(cfg[k])}
+                    onChange={(e) => setCfg({ ...cfg, [k]: e.target.checked })}
+                  />
+                  {label}
+                </label>
+              ))}
+              {(
+                [
+                  ["batch_size", "Документи на цикъл"],
+                  ["retry_limit", "Макс. опити"],
+                  ["expire_days", "Валидност на линка (дни)"],
+                  ["commission", "Комисион (%)"],
+                  ["term_months", "Срок по договор (месеци)"],
+                  ["reserve_days", "Резервация (дни)"],
+                ] as const
+              ).map(([k, label]) => (
+                <label key={k} className="block text-xs">
+                  {label}
+                  <input
+                    type="number"
+                    value={Number(cfg[k] ?? 0)}
+                    onChange={(e) => setCfg({ ...cfg, [k]: Number(e.target.value) })}
+                    className="mt-1 w-full rounded-lg border border-input px-3 py-2 text-sm"
+                  />
+                </label>
+              ))}
+              {(
+                [
+                  ["number_prefix", "Префикс на номерата"],
+                  ["agency_name", "Агенция"],
+                  ["agency_city", "Град"],
+                ] as const
+              ).map(([k, label]) => (
+                <label key={k} className="block text-xs">
+                  {label}
+                  <input
+                    value={String(cfg[k] ?? "")}
+                    onChange={(e) => setCfg({ ...cfg, [k]: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-input px-3 py-2 text-sm"
+                  />
+                </label>
+              ))}
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setShowCfg(false)}
+                className="rounded-lg border border-input px-4 py-2 text-sm"
+              >
+                Отказ
+              </button>
+              <button
+                disabled={busy}
+                onClick={() =>
+                  run(async () => {
+                    await saveContractsConfig({
+                      data: {
+                        enabled: cfg.enabled,
+                        ai_enabled: cfg.ai_enabled,
+                        auto_send: cfg.auto_send,
+                        batch_size: cfg.batch_size,
+                        retry_limit: cfg.retry_limit,
+                        expire_days: cfg.expire_days,
+                        number_prefix: cfg.number_prefix,
+                        agency_name: cfg.agency_name,
+                        agency_city: cfg.agency_city,
+                        commission: cfg.commission,
+                        term_months: cfg.term_months,
+                        reserve_days: cfg.reserve_days,
+                      },
+                    });
+                    setShowCfg(false);
+                  }, "Настройките са записани")
+                }
+                className="rounded-lg bg-[#8B1A2B] px-4 py-2 text-sm text-white"
+              >
+                Запази
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,7 +8,10 @@ import coverRight from "@/assets/calendar/calendar-cover-right.jpeg.asset.json";
 /** Spiral binding rings shared by cover and opened page. */
 function SpiralBinding() {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-3 z-30 flex justify-around px-4">
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 -top-3 z-30 flex justify-around px-4"
+    >
       {Array.from({ length: 28 }).map((_, i) => (
         <span
           key={i}
@@ -38,8 +41,7 @@ function CalendarCover({ onOpen }: { onOpen: () => void }) {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(ellipse at center, #8B1A2B 0%, #6a1220 55%, #4a0a17 100%)",
+          background: "radial-gradient(ellipse at center, #8B1A2B 0%, #6a1220 55%, #4a0a17 100%)",
         }}
       />
       {/* Left side image with curved gold arc mask */}
@@ -91,7 +93,9 @@ function CalendarCover({ onOpen }: { onOpen: () => void }) {
         />
         <div className="mt-4 flex items-center gap-3 text-[#f4e2a4]">
           <span className="h-px w-8 bg-gradient-to-r from-transparent via-[#C9A84C] to-[#C9A84C]" />
-          <span aria-hidden className="text-[10px]">✦</span>
+          <span aria-hidden className="text-[10px]">
+            ✦
+          </span>
           <span className="h-px w-8 bg-gradient-to-l from-transparent via-[#C9A84C] to-[#C9A84C]" />
         </div>
         <div className="mt-2 font-display text-[clamp(14px,2.2vw,26px)] font-semibold uppercase tracking-[0.28em] text-white">
@@ -117,7 +121,7 @@ function CalendarCover({ onOpen }: { onOpen: () => void }) {
 export function DeskCalendar() {
   const [open, setOpen] = useState(false);
   return (
-    <div className="relative min-w-0 w-full" style={open ? undefined : { perspective: "2200px" }}>
+    <div className="relative" style={{ perspective: "2200px" }}>
       <AnimatePresence initial={false} mode="wait">
         {!open ? (
           <motion.div
@@ -133,14 +137,13 @@ export function DeskCalendar() {
         ) : (
           <motion.div
             key="page"
-            className="min-w-0 w-full overflow-visible"
             initial={{ rotateX: -90, opacity: 0 }}
             animate={{ rotateX: 0, opacity: 1 }}
             exit={{ rotateX: -90, opacity: 0 }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            style={{ transformOrigin: "top center" }}
+            style={{ transformOrigin: "top center", transformStyle: "preserve-3d" }}
           >
-            <div className="relative min-w-0 w-full">
+            <div className="relative">
               <div className="absolute right-3 top-2 z-40">
                 <button
                   type="button"

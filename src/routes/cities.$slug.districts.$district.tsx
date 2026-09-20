@@ -1,24 +1,21 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { DistrictPage } from "@/components/site/luxury-real-estate";
-import { SiteHeader } from "@/components/site/site-header";
-import { SiteSeoFooter } from "@/components/site/site-seo-footer";
 import { getQuarterBySlug } from "@/lib/catalog.functions";
-import { breadcrumbJsonLd, siteUrl, SITE_NAME } from "@/lib/site-config";
+import { siteUrl } from "@/lib/site-config";
 
 export const Route = createFileRoute("/cities/$slug/districts/$district")({
   loader: async ({ params }) => {
-    const data = await getQuarterBySlug({ data: { citySlug: params.slug, quarterSlug: params.district } });
+    const data = await getQuarterBySlug({
+      data: { citySlug: params.slug, quarterSlug: params.district },
+    });
     if (!data) throw notFound();
     return data;
   },
   head: ({ loaderData, params }) => {
     const url = siteUrl(`/cities/${params.slug}/districts/${params.district}`);
-    const cityName = loaderData?.city.name ?? params.slug;
-    const quarterName = loaderData?.quarter.name ?? params.district;
-    const title = `Имоти в ${quarterName}, ${cityName} | ${SITE_NAME}`;
-    const desc = loaderData?.quarter.description
-      ?? `Имоти Надежда предлага апартаменти и къщи в квартал ${quarterName}, ${cityName} — продажба и под наем.`;
+    const title = `${loaderData?.quarter.name ?? params.district} | ${loaderData?.city.name ?? params.slug} | Имоти Надежда`;
+    const desc = loaderData?.quarter.description ?? "Имоти, филтри и информация за квартала.";
     return {
       meta: [
         { title },
@@ -26,7 +23,9 @@ export const Route = createFileRoute("/cities/$slug/districts/$district")({
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:url", content: url },
-        ...(loaderData?.quarter.image_url ? [{ property: "og:image", content: loaderData.quarter.image_url }] : []),
+        ...(loaderData?.quarter.image_url
+          ? [{ property: "og:image", content: loaderData.quarter.image_url }]
+          : []),
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [
@@ -40,40 +39,19 @@ export const Route = createFileRoute("/cities/$slug/districts/$district")({
             url,
           }),
         },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify(
-            breadcrumbJsonLd([
-              { name: "Начало", path: "/" },
-              { name: `Имоти в ${cityName}`, path: `/cities/${params.slug}` },
-              { name: quarterName, path: `/cities/${params.slug}/districts/${params.district}` },
-            ]),
-          ),
-        },
       ],
     };
   },
   component: DistrictRoute,
   errorComponent: ({ error }) => (
-    <div>
-      <SiteHeader />
-      <div role="alert" className="p-10">Грешка: {error.message}</div>
+    <div role="alert" className="p-10">
+      Грешка: {error.message}
     </div>
   ),
-  notFoundComponent: () => (
-    <div>
-      <SiteHeader />
-      <div className="p-10">Кварталът не е намерен.</div>
-    </div>
-  ),
+  notFoundComponent: () => <div className="p-10">Кварталът не е намерен.</div>,
 });
 
 function DistrictRoute() {
   const data = Route.useLoaderData();
-  return (
-    <>
-      <DistrictPage data={data as any} />
-      <SiteSeoFooter />
-    </>
-  );
+  return <DistrictPage data={data as any} />;
 }

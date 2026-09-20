@@ -34,6 +34,4 @@ export const SHUMEN_VILLAGES_25KM = [
   "Върбак",
 ] as const;
 
-export const SHUMEN_VILLAGES_LOWER = SHUMEN_VILLAGES_25KM.map((n) =>
-  n.toLowerCase(),
-);
+export const SHUMEN_VILLAGES_LOWER = SHUMEN_VILLAGES_25KM.map((n) => n.toLowerCase());

@@ -5,6 +5,8 @@ import { shouldPlayHeroVideo } from "@/lib/device-perf";
 export function AutoPlayVideo(
   props: VideoHTMLAttributes<HTMLVideoElement> & {
     src?: string;
+    /** Preferred webm source (listed before mp4 when both exist). */
+    webmSrc?: string;
     fallbackSrc?: string;
     onPermanentError?: () => void;
     /** How the video/poster fills the container. Default: "cover". */
@@ -16,6 +18,7 @@ export function AutoPlayVideo(
   const {
     src,
     fallbackSrc,
+    webmSrc,
     onPermanentError,
     onError,
     poster,
@@ -28,7 +31,8 @@ export function AutoPlayVideo(
   } = props;
   const ref = useRef<HTMLVideoElement | null>(null);
   const [activeSrc, setActiveSrc] = useState(src);
-  const [mountVideo, setMountVideo] = useState(false);
+  const [activeWebm, setActiveWebm] = useState(webmSrc);
+  const [mountVideo, setMountVideo] = useState(!!(src || webmSrc));
   const [videoReady, setVideoReady] = useState(false);
   const [allowVideo, setAllowVideo] = useState(true);
   const [focalPosition, setFocalPosition] = useState(objectPosition);
@@ -45,29 +49,22 @@ export function AutoPlayVideo(
 
   useEffect(() => {
     setActiveSrc(src);
+    setActiveWebm(webmSrc);
     setVideoReady(false);
-  }, [src]);
+  }, [src, webmSrc]);
 
   useEffect(() => {
-    if (!src || !allowVideo) return;
-    let cancelled = false;
-    const schedule = (cb: () => void) => {
-      const ric = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number })
-        .requestIdleCallback;
-      if (typeof ric === "function") return ric(() => !cancelled && cb(), { timeout: 200 });
-      return window.setTimeout(() => !cancelled && cb(), 0);
-    };
-    const raf = requestAnimationFrame(() => schedule(() => setMountVideo(true)));
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(raf);
-    };
-  }, [src, allowVideo]);
+    if (!allowVideo) {
+      setMountVideo(false);
+      return;
+    }
+    if (src || webmSrc) setMountVideo(true);
+  }, [src, webmSrc, allowVideo]);
 
   useEffect(() => {
     if (!mountVideo) return;
     const el = ref.current;
-    if (!el || !activeSrc) return;
+    if (!el || (!activeSrc && !activeWebm)) return;
     el.muted = true;
     el.defaultMuted = true;
     el.setAttribute("muted", "");
@@ -117,12 +114,17 @@ export function AutoPlayVideo(
       document.removeEventListener("visibilitychange", onVisibility);
       el.removeEventListener("canplay", tryPlay);
     };
-  }, [activeSrc, mountVideo]);
+  }, [activeSrc, activeWebm, mountVideo]);
 
   const handleError: VideoHTMLAttributes<HTMLVideoElement>["onError"] = (event) => {
     onError?.(event);
+    if (activeWebm && activeSrc) {
+      setActiveWebm(undefined);
+      return;
+    }
     if (fallbackSrc && activeSrc !== fallbackSrc) {
       setActiveSrc(fallbackSrc);
+      setActiveWebm(undefined);
       return;
     }
     onPermanentError?.();
@@ -149,19 +151,20 @@ export function AutoPlayVideo(
           fetchPriority="high"
         />
       ) : null}
-      {mountVideo && activeSrc ? (
+      {mountVideo && (activeSrc || activeWebm) ? (
         <video
-          key={activeSrc}
+          key={`${activeWebm ?? ""}|${activeSrc ?? ""}`}
           ref={ref}
           {...videoProps}
           autoPlay
           loop
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
           poster={typeof poster === "string" ? poster : undefined}
-          src={activeSrc}
+          src={activeWebm ? undefined : activeSrc}
           onError={handleError}
+          onLoadedData={() => setVideoReady(true)}
           onCanPlay={() => setVideoReady(true)}
           onLoadedMetadata={(e) => {
             // Adapt focal point when a portrait source lands in a landscape
@@ -185,9 +188,12 @@ export function AutoPlayVideo(
               /* ignore */
             }
           }}
-          className="absolute inset-0 transition-opacity duration-500"
+          className="absolute inset-0 transition-opacity duration-150"
           style={{ ...mediaFit, opacity: videoReady ? 1 : 0 }}
-        />
+        >
+          {activeWebm ? <source src={activeWebm} type="video/webm" /> : null}
+          {activeSrc ? <source src={activeSrc} type="video/mp4" /> : null}
+        </video>
       ) : null}
     </div>
   );

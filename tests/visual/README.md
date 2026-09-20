@@ -23,7 +23,7 @@ bun run visual:district -- --url=https://imotinadezhda.lovable.app/cities/burgas
 
 - `tests/visual/baseline/` — одобрени референции (commit-нати).
 - `tests/visual/current/` — последен capture (gitignored).
-- `tests/visual/diff/`    — diff визуализации (gitignored).
+- `tests/visual/diff/` — diff визуализации (gitignored).
 
 ## Праг
 
@@ -34,6 +34,7 @@ bun run visual:district -- --url=https://imotinadezhda.lovable.app/cities/burgas
 ## Зависимости
 
 Изисква Playwright Chromium:
+
 ```bash
 bun add -d playwright && bunx playwright install chromium
 ```

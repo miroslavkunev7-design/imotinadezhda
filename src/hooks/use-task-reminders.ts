@@ -34,7 +34,7 @@ export function useTaskReminders() {
     if (typeof window === "undefined") return;
     // Build a small beep using a data URI so we don't ship an audio file
     const a = new Audio(
-      "data:audio/mpeg;base64,SUQzAwAAAAAAFlRJVDIAAAAMAAAAAGJlZXAAAAAAAAA=" // tiny placeholder
+      "data:audio/mpeg;base64,SUQzAwAAAAAAFlRJVDIAAAAMAAAAAGJlZXAAAAAAAAA=", // tiny placeholder
     );
     audioRef.current = a;
   }, []);
@@ -46,7 +46,9 @@ export function useTaskReminders() {
       const nowIso = new Date().toISOString();
       const { data, error } = await supabase
         .from("broker_tasks")
-        .select("id, title, description, due_at, reminder_minutes, reminded_at, is_completed, brokers:broker_id(full_name)")
+        .select(
+          "id, title, description, due_at, reminder_minutes, reminded_at, is_completed, brokers:broker_id(full_name)",
+        )
         .eq("is_completed", false)
         .is("reminded_at", null)
         .not("due_at", "is", null)
@@ -83,22 +85,16 @@ export function useTaskReminders() {
           /* ignore */
         }
       }
-
-      try {
-        const { processViewingReminders } = await import("@/lib/viewings.functions");
-        const viewing = await processViewingReminders();
-        for (const n of viewing.notifications ?? []) {
-          fireReminder({ title: n.title, body: n.body, audio: audioRef.current });
-        }
-      } catch {
-        /* viewings table or auth not ready */
-      }
     };
 
     // First check shortly after mount, then every 60s
     const t0 = setTimeout(check, 4000);
     const iv = setInterval(check, 60_000);
-    return () => { cancelled = true; clearTimeout(t0); clearInterval(iv); };
+    return () => {
+      cancelled = true;
+      clearTimeout(t0);
+      clearInterval(iv);
+    };
   }, []);
 }
 
@@ -111,23 +107,34 @@ function fireReminder(opts: { title: string; body: string; audio: HTMLAudioEleme
 
   // 2) Native browser notification (works on Android Chrome + Desktop)
   try {
-    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+    if (
+      typeof window !== "undefined" &&
+      "Notification" in window &&
+      Notification.permission === "granted"
+    ) {
       const n = new Notification(opts.title, {
         body: opts.body,
         tag: opts.title,
         requireInteraction: true,
         silent: false,
       });
-      n.onclick = () => { window.focus(); n.close(); };
+      n.onclick = () => {
+        window.focus();
+        n.close();
+      };
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   // 3) Vibrate on mobile
   try {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       (navigator as any).vibrate?.([400, 200, 400, 200, 800]);
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   // 4) Beep using Web Audio (no asset needed)
   try {
@@ -139,10 +146,18 @@ function fireReminder(opts: { title: string; body: string; audio: HTMLAudioEleme
       o.type = "sine";
       o.frequency.value = 880;
       g.gain.value = 0.15;
-      o.connect(g); g.connect(ctx.destination);
+      o.connect(g);
+      g.connect(ctx.destination);
       o.start();
-      setTimeout(() => { o.frequency.value = 660; }, 250);
-      setTimeout(() => { o.stop(); ctx.close().catch(() => {}); }, 700);
+      setTimeout(() => {
+        o.frequency.value = 660;
+      }, 250);
+      setTimeout(() => {
+        o.stop();
+        ctx.close().catch(() => {});
+      }, 700);
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }

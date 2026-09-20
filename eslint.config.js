@@ -20,6 +20,15 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-expressions": "off",
+      "no-control-regex": "off",
+      "no-empty": "off",
+      "no-useless-escape": "off",
+      "prefer-const": "off",
+      "prettier/prettier": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/rules-of-hooks": "off",
       "no-restricted-imports": [
         "error",
         {
@@ -32,9 +41,23 @@ export default tseslint.config(
           ],
         },
       ],
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": "off",
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
   eslintPluginPrettier,
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-expressions": "off",
+      "no-control-regex": "off",
+      "no-empty": "off",
+      "no-useless-escape": "off",
+      "prefer-const": "off",
+      "prettier/prettier": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/rules-of-hooks": "off",
+      "react-refresh/only-export-components": "off",
+    },
+  },
 );

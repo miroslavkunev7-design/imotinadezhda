@@ -25,15 +25,27 @@ function DnsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">DNS статус</h1>
-          <p className="text-muted-foreground">Автоматична проверка на A и TXT записите за домейна. Обновява се на всеки 60 секунди.</p>
+          <p className="text-muted-foreground">
+            Автоматична проверка на A и TXT записите за домейна. Обновява се на всеки 60 секунди.
+          </p>
         </div>
         <Button onClick={() => refetch()} disabled={isFetching} variant="outline">
-          {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          {isFetching ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
           <span className="ml-2">Провери сега</span>
         </Button>
       </div>
 
-      {error && <Card><CardContent className="p-4 text-destructive">Грешка при проверка: {String((error as Error).message)}</CardContent></Card>}
+      {error && (
+        <Card>
+          <CardContent className="p-4 text-destructive">
+            Грешка при проверка: {String((error as Error).message)}
+          </CardContent>
+        </Card>
+      )}
 
       {data && (
         <>
@@ -41,7 +53,9 @@ function DnsPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Общ статус</CardTitle>
               {data.allOk ? (
-                <Badge className="bg-green-600 hover:bg-green-700">Готово — DNS разпространен</Badge>
+                <Badge className="bg-green-600 hover:bg-green-700">
+                  Готово — DNS разпространен
+                </Badge>
               ) : (
                 <Badge variant="destructive">Изчакване на разпространение</Badge>
               )}
@@ -58,20 +72,42 @@ function DnsPage() {
               <Card key={`${r.name}-${r.type}`}>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-lg flex items-center gap-2">
-                    {r.ok ? <CheckCircle2 className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5 text-destructive" />}
+                    {r.ok ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-destructive" />
+                    )}
                     <span className="font-mono">{r.type}</span> {r.name}
                   </CardTitle>
                   <Badge variant={r.ok ? "default" : "secondary"}>{r.ok ? "OK" : "Изчаква"}</Badge>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  <div>Очаквана стойност: <code className="font-mono">{r.expected}</code></div>
+                  <div>
+                    Очаквана стойност: <code className="font-mono">{r.expected}</code>
+                  </div>
                   <div>
                     <strong>Cloudflare DNS:</strong>{" "}
-                    {r.cloudflare.length ? r.cloudflare.map((v) => <code key={v} className="font-mono mr-2">{v}</code>) : <span className="text-muted-foreground">няма отговор</span>}
+                    {r.cloudflare.length ? (
+                      r.cloudflare.map((v) => (
+                        <code key={v} className="font-mono mr-2">
+                          {v}
+                        </code>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground">няма отговор</span>
+                    )}
                   </div>
                   <div>
                     <strong>Google DNS:</strong>{" "}
-                    {r.google.length ? r.google.map((v) => <code key={v} className="font-mono mr-2">{v}</code>) : <span className="text-muted-foreground">няма отговор</span>}
+                    {r.google.length ? (
+                      r.google.map((v) => (
+                        <code key={v} className="font-mono mr-2">
+                          {v}
+                        </code>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground">няма отговор</span>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -79,7 +115,9 @@ function DnsPage() {
           </div>
 
           <Card>
-            <CardHeader><CardTitle className="text-base">Указания</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base">Указания</CardTitle>
+            </CardHeader>
             <CardContent className="text-sm text-muted-foreground space-y-1">
               <p>1. В регистратора добави A запис @ → 185.158.133.1</p>
               <p>2. Добави A запис www → 185.158.133.1</p>

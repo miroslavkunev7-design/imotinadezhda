@@ -36,9 +36,9 @@ describe("scanClientFromImage admin gate", () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(
-      scanClientFromImageHandler(validInput, { userId: "non-admin" }),
-    ).rejects.toThrow(/Forbidden/);
+    await expect(scanClientFromImageHandler(validInput, { userId: "non-admin" })).rejects.toThrow(
+      /Forbidden/,
+    );
 
     expect(fetchMock).not.toHaveBeenCalled();
   });

@@ -3,7 +3,12 @@ import JSZip from "jszip";
 type Row = any;
 
 function sanitize(s: string | null | undefined, fallback = "imot") {
-  return (s ?? fallback).trim().replace(/[\/\\:*?"<>|]+/g, "-").slice(0, 80) || fallback;
+  return (
+    (s ?? fallback)
+      .trim()
+      .replace(/[\/\\:*?"<>|]+/g, "-")
+      .slice(0, 80) || fallback
+  );
 }
 
 async function fetchImage(url: string): Promise<{ blob: Blob; ext: string } | null> {

@@ -4,7 +4,13 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
 
-type ImageProvider = { id: string; url: string; key: string; model: string; header: "bearer" | "lovable" };
+type ImageProvider = {
+  id: string;
+  url: string;
+  key: string;
+  model: string;
+  header: "bearer" | "lovable";
+};
 
 /** Всички конфигурирани доставчици за генериране на изображения (без зависимост от Lovable в продукция). */
 function listImageProviders(): ImageProvider[] {
@@ -22,11 +28,14 @@ function listImageProviders(): ImageProvider[] {
   }
 
   const gatewayKey =
-    process.env["AI_GATEWAY_KEY"] ?? process.env["VERCEL_AI_GATEWAY_KEY"] ?? process.env["AI_GATEWAY_API_KEY"];
+    process.env["AI_GATEWAY_KEY"] ??
+    process.env["VERCEL_AI_GATEWAY_KEY"] ??
+    process.env["AI_GATEWAY_API_KEY"];
   if (gatewayKey) {
     out.push({
       id: "vercel-gateway",
-      url: process.env["AI_GATEWAY_IMAGE_URL"] ?? "https://ai-gateway.vercel.sh/v1/images/generations",
+      url:
+        process.env["AI_GATEWAY_IMAGE_URL"] ?? "https://ai-gateway.vercel.sh/v1/images/generations",
       key: gatewayKey,
       model: process.env["AI_GATEWAY_IMAGE_MODEL"] ?? "openai/gpt-image-1",
       header: "bearer",
@@ -96,7 +105,8 @@ export const generateAiImage = createServerFn({ method: "POST" })
 
       const json = (await res.json()) as { data?: Array<{ b64_json?: string; url?: string }> };
       const first = json.data?.[0];
-      if (first?.b64_json) return { image: `data:image/png;base64,${first.b64_json}`, provider: p.id };
+      if (first?.b64_json)
+        return { image: `data:image/png;base64,${first.b64_json}`, provider: p.id };
       if (first?.url) return { image: first.url, provider: p.id };
       lastError = `${p.id}: отговорът не съдържа изображение`;
     }

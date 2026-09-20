@@ -15,7 +15,11 @@ const propValueSchema: z.ZodType<string | number | boolean | null> = z.union([
   z.null(),
 ]);
 const sectionSchema = z.object({
-  id: z.string().min(1).max(64).regex(/^[a-z0-9_-]+$/),
+  id: z
+    .string()
+    .min(1)
+    .max(64)
+    .regex(/^[a-z0-9_-]+$/),
   visible: z.boolean(),
   title: z.string().max(200).optional(),
   subtitle: z.string().max(500).optional(),
@@ -147,10 +151,7 @@ export const resetPageLayout = createServerFn({ method: "POST" })
         note: "Преди връщане към оригинала",
       });
     }
-    const { error } = await supabase
-      .from("page_layouts")
-      .delete()
-      .eq("page_key", data.page_key);
+    const { error } = await supabase.from("page_layouts").delete().eq("page_key", data.page_key);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

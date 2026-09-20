@@ -41,7 +41,9 @@ let chromium;
 try {
   ({ chromium } = await import("playwright"));
 } catch {
-  console.error("❌ Playwright not installed. Run: bun add -d playwright && bunx playwright install chromium");
+  console.error(
+    "❌ Playwright not installed. Run: bun add -d playwright && bunx playwright install chromium",
+  );
   process.exit(2);
 }
 
@@ -63,15 +65,20 @@ const docMetrics = await page.evaluate(() => ({
   clientHeight: document.documentElement.clientHeight,
   bodyScrollHeight: document.body.scrollHeight,
 }));
-const overflow = Math.max(docMetrics.scrollHeight, docMetrics.bodyScrollHeight) - docMetrics.clientHeight;
-console.log(`  document.scrollHeight=${docMetrics.scrollHeight} clientHeight=${docMetrics.clientHeight} → overflow=${overflow}px`);
+const overflow =
+  Math.max(docMetrics.scrollHeight, docMetrics.bodyScrollHeight) - docMetrics.clientHeight;
+console.log(
+  `  document.scrollHeight=${docMetrics.scrollHeight} clientHeight=${docMetrics.clientHeight} → overflow=${overflow}px`,
+);
 if (overflow > 2) {
   issues.push(`Vertical overflow: page is ${overflow}px taller than the ${VH}px viewport.`);
 }
 
 // ---------- Check 2: Arrow ↔ CTA overlap ----------
 const overlap = await page.evaluate(() => {
-  const cta = document.querySelector('a[href*="/cities/"][href$="burgas"], a[href$="/cities/burgas"]');
+  const cta = document.querySelector(
+    'a[href*="/cities/"][href$="burgas"], a[href$="/cities/burgas"]',
+  );
   const arrow = document.querySelector('button[aria-label="Предишни"]');
   if (!cta || !arrow) return { found: false };
   const a = cta.getBoundingClientRect();
@@ -124,7 +131,9 @@ for (const name of targets) {
   const current = path.join(outDir, name);
   if (doUpdate || !fs.existsSync(baseline)) {
     fs.copyFileSync(current, baseline);
-    console.log(`📌 ${fs.existsSync(baseline) && doUpdate ? "Updated" : "Seeded"} baseline: ${baseline}`);
+    console.log(
+      `📌 ${fs.existsSync(baseline) && doUpdate ? "Updated" : "Seeded"} baseline: ${baseline}`,
+    );
     continue;
   }
   const diff = path.join(diffDir, name);
@@ -142,5 +151,7 @@ if (pixelFailed) {
   console.error(`\n❌ ${pixelFailed} pixel-diff target(s) exceeded threshold (see ${diffDir}/).`);
 }
 if (issues.length || pixelFailed) process.exit(1);
-console.log(`\n✅ Burgas visual regression passed.${updateSafe && guardsPassed ? " Baselines refreshed." : ""}`);
+console.log(
+  `\n✅ Burgas visual regression passed.${updateSafe && guardsPassed ? " Baselines refreshed." : ""}`,
+);
 process.exit(0);

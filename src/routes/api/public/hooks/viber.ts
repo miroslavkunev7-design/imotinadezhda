@@ -1,50 +1,48 @@
+// Автоматизация №16 — Viber webhook (bot чат 24/7).
 import { createFileRoute } from "@tanstack/react-router";
-import { viberAuthToken } from "@/lib/customer-channels";
-import { handleInbound } from "@/lib/customer-inbox";
+import { createHmac, timingSafeEqual } from "crypto";
 
-/**
- * Viber Public Account webhook.
- * Without VIBER_AUTH_TOKEN inbound is logged and answered in CRM only.
- */
+function verifyViber(rawBody: string, signature: string | null): boolean {
+  const token = process.env["VIBER_BOT_TOKEN"];
+  if (!token) return true; // все още неконфигуриран канал
+  if (!signature) return false;
+  const expected = createHmac("sha256", token).update(rawBody).digest("hex");
+  const a = Buffer.from(signature);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 export const Route = createFileRoute("/api/public/hooks/viber")({
   server: {
     handlers: {
-      GET: async () => {
-        const connected = Boolean(viberAuthToken());
-        return Response.json({
-          ok: true,
-          connected,
-          hint: connected
-            ? "Viber webhook е активен."
-            : "Свържи с VIBER_AUTH_TOKEN в .env — входящите се приемат, изходящите чакат токена.",
-        });
-      },
+      GET: async () => Response.json({ status: "ok", channel: "viber" }),
       POST: async ({ request }) => {
-        let body: any = {};
+        const raw = await request.text();
+        if (!verifyViber(raw, request.headers.get("x-viber-content-signature"))) {
+          return new Response("Invalid signature", { status: 401 });
+        }
+        let payload: any;
         try {
-          body = await request.json();
+          payload = JSON.parse(raw);
         } catch {
-          return Response.json({ ok: true });
+          return new Response("Bad request", { status: 400 });
         }
-        if (body?.event === "webhook" || body?.event === "subscribed") {
-          return Response.json({ ok: true });
-        }
-        if (body?.event !== "message") return Response.json({ ok: true });
-        const senderId = String(body?.sender?.id ?? "");
-        const name = body?.sender?.name ? String(body.sender.name) : null;
-        const text = body?.message?.text ?? "";
-        if (!senderId || !text) return Response.json({ ok: true });
+        if (payload?.event !== "message") return Response.json({ status: 0, status_message: "ok" });
+        const text = String(payload?.message?.text ?? "").slice(0, 2000);
+        const sender = payload?.sender ?? {};
+        if (!text || !sender.id) return Response.json({ status: 0, status_message: "ok" });
         try {
+          const { handleInbound } = await import("@/lib/omnibot.server");
           await handleInbound({
             channel: "viber",
+            externalUserId: String(sender.id),
+            displayName: sender.name ?? null,
             text,
-            externalUserId: senderId,
-            displayName: name,
           });
-        } catch (e: any) {
-          console.warn("[viber] assistant failed:", e?.message);
+        } catch (e) {
+          console.error("[viber-hook]", (e as Error).message);
         }
-        return Response.json({ ok: true });
+        return Response.json({ status: 0, status_message: "ok" });
       },
     },
   },

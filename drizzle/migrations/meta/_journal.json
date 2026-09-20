@@ -1,0 +1,90 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789844073641,
+      "tag": "0000_archived_properties_published_link",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789850217805,
+      "tag": "0001_visual_board_pages",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789850414789,
+      "tag": "0002_reactivation_staff_only_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789852642925,
+      "tag": "0003_restrict_team_messages_to_staff",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789854308075,
+      "tag": "0004_board_stages_and_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789857132277,
+      "tag": "0005_bank_branches_and_rates",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789857756299,
+      "tag": "0006_staff_only_automation_contracts_kpi",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789857798432,
+      "tag": "0007_staff_only_portal_sync",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789883071380,
+      "tag": "0008_city_local_transfer_taxes",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789883664432,
+      "tag": "0009_bank_rate_sources_and_fetch_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789884552829,
+      "tag": "0010_grant_role_check_functions_to_anon",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789884568443,
+      "tag": "0011_restore_anon_select_on_brokers",
+      "breakpoints": true
+    }
+  ]
+}

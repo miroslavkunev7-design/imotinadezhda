@@ -16,7 +16,9 @@ export const Route = createFileRoute("/api/public/hooks/task-reminders")({
         // candidates: not completed, no reminded_at, due within 24h
         const { data: tasks, error } = await supabaseAdmin
           .from("broker_tasks")
-          .select("id, title, description, due_at, reminder_minutes, broker_id, brokers:broker_id(user_id)")
+          .select(
+            "id, title, description, due_at, reminder_minutes, broker_id, brokers:broker_id(user_id)",
+          )
           .eq("is_completed", false)
           .is("reminded_at", null)
           .not("due_at", "is", null)
@@ -25,7 +27,9 @@ export const Route = createFileRoute("/api/public/hooks/task-reminders")({
         if (error) return Response.json({ error: error.message }, { status: 500 });
 
         const now = Date.now();
-        let pushed = 0, fired = 0, removed = 0;
+        let pushed = 0,
+          fired = 0,
+          removed = 0;
 
         for (const t of tasks ?? []) {
           const dueMs = new Date(t.due_at as string).getTime();
@@ -60,19 +64,17 @@ export const Route = createFileRoute("/api/public/hooks/task-reminders")({
               tag: `task-${(t as any).id}`,
             });
             if (r.ok) pushed++;
-            if (r.gone) { await supabaseAdmin.from("push_subscriptions").delete().eq("endpoint", (s as any).endpoint); removed++; }
+            if (r.gone) {
+              await supabaseAdmin
+                .from("push_subscriptions")
+                .delete()
+                .eq("endpoint", (s as any).endpoint);
+              removed++;
+            }
           }
         }
 
-        let viewings = { fired: 0, emails: 0, pushed: 0 };
-        try {
-          const { runViewingReminders } = await import("@/lib/viewings-reminders.server");
-          viewings = await runViewingReminders();
-        } catch {
-          /* viewing reminders are optional if the table is missing */
-        }
-
-        return Response.json({ ok: true, fired, pushed, removedDeadSubs: removed, viewings });
+        return Response.json({ ok: true, fired, pushed, removedDeadSubs: removed });
       },
     },
   },

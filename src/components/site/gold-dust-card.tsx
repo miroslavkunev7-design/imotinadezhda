@@ -55,13 +55,7 @@ export function GoldDustLayer({ density = 3 }: { density?: number } = {}) {
     const ro = new ResizeObserver(resize);
     ro.observe(parent);
 
-    const tints = [
-      "248,113,113",
-      "239,68,68",
-      "220,38,38",
-      "255,255,255",
-      "245,245,245",
-    ];
+    const tints = ["248,113,113", "239,68,68", "220,38,38", "255,255,255", "245,245,245"];
 
     const spawn = (clientX: number, clientY: number) => {
       const r = parent.getBoundingClientRect();

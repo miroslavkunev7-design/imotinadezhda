@@ -10,7 +10,12 @@ export type NadezhdaLogoProps = React.ImgHTMLAttributes<HTMLImageElement> & {
  * Transparent PNG: burgundy brush splash with gold dust and white houses logo.
  * Rendered as a React component so the mark can be swapped/instrumented in one place.
  */
-export function NadezhdaLogo({ alt = "Недвижими имоти Надежда", className, variant = "default", ...rest }: NadezhdaLogoProps) {
+export function NadezhdaLogo({
+  alt = "Недвижими имоти Надежда",
+  className,
+  variant = "default",
+  ...rest
+}: NadezhdaLogoProps) {
   return (
     <img
       {...rest}

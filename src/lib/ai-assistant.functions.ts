@@ -18,7 +18,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "search_clients",
-      description: "Търси клиенти в CRM по име, имейл или телефон. Връща списък с подходящи клиенти.",
+      description:
+        "Търси клиенти в CRM по име, имейл или телефон. Връща списък с подходящи клиенти.",
       parameters: {
         type: "object",
         properties: {
@@ -32,7 +33,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "get_client",
-      description: "Извлича пълните данни на конкретен клиент по ID — включително критерии за търсене, документи и съвпадащи имоти.",
+      description:
+        "Извлича пълните данни на конкретен клиент по ID — включително критерии за търсене, документи и съвпадащи имоти.",
       parameters: {
         type: "object",
         properties: { client_id: { type: "string" } },
@@ -71,12 +73,16 @@ const TOOLS = [
     type: "function",
     function: {
       name: "save_contract",
-      description: "Запазва генериран договор в базата данни. Извикай когато потребителят потвърди готов договор.",
+      description:
+        "Запазва генериран договор в базата данни. Извикай когато потребителят потвърди готов договор.",
       parameters: {
         type: "object",
         properties: {
           title: { type: "string" },
-          contract_type: { type: "string", enum: ["preliminary", "sale", "rent", "brokerage", "other"] },
+          contract_type: {
+            type: "string",
+            enum: ["preliminary", "sale", "rent", "brokerage", "other"],
+          },
           content: { type: "string", description: "Пълен текст на договора в markdown" },
           client_id: { type: "string" },
           property_id: { type: "string" },
@@ -102,17 +108,34 @@ const TOOLS = [
           surface: { type: "string", description: "Основен фон, hex/rgb()/oklch()." },
           surfaceTo: { type: "string", description: "Вторичен фон за основния градиент." },
           accent: { type: "string", description: "Акцентен цвят (бутони, активни линкове)." },
-          accentSoft: { type: "string", description: "Полупрозрачен акцент за hover (rgba препоръчително)." },
+          accentSoft: {
+            type: "string",
+            description: "Полупрозрачен акцент за hover (rgba препоръчително).",
+          },
           text: { type: "string", description: "Основен цвят на текста." },
           textMuted: { type: "string", description: "Цвят на второстепенния текст (rgba)." },
           border: { type: "string", description: "Цвят на границите." },
-          sidebar: { type: "string", description: "Цвят/слой на страничния панел (sidebar). Препоръчително rgba за прозрачност." },
-          sidebarTo: { type: "string", description: "Втори стоп за градиент на сайдбара. Опционално." },
+          sidebar: {
+            type: "string",
+            description:
+              "Цвят/слой на страничния панел (sidebar). Препоръчително rgba за прозрачност.",
+          },
+          sidebarTo: {
+            type: "string",
+            description: "Втори стоп за градиент на сайдбара. Опционално.",
+          },
           sidebarText: { type: "string", description: "Цвят на текста в сайдбара." },
           sidebarBorder: { type: "string", description: "Цвят на дясната граница на сайдбара." },
           heading: { type: "string", description: "Цвят на заглавията." },
-          heroBg: { type: "string", description: "CSS background за главното работно пространство (hex, rgba, linear-gradient(...))." },
-          fontFamily: { type: "string", description: "CSS font-family за целия CRM, например 'Inter, sans-serif'." },
+          heroBg: {
+            type: "string",
+            description:
+              "CSS background за главното работно пространство (hex, rgba, linear-gradient(...)).",
+          },
+          fontFamily: {
+            type: "string",
+            description: "CSS font-family за целия CRM, например 'Inter, sans-serif'.",
+          },
         },
       },
     },
@@ -121,7 +144,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "web_search",
-      description: "Търси в интернет в реално време (DuckDuckGo). Използвай за проучване на инвеститори, фирми, хора, пазарни данни, новини, адреси и др. неща извън CRM базата. Връща до 6 резултата с заглавие, URL и кратко описание.",
+      description:
+        "Търси в интернет в реално време (DuckDuckGo). Използвай за проучване на инвеститори, фирми, хора, пазарни данни, новини, адреси и др. неща извън CRM базата. Връща до 6 резултата с заглавие, URL и кратко описание.",
       parameters: {
         type: "object",
         properties: {
@@ -135,7 +159,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "fetch_url",
-      description: "Изтегля и връща текстовото съдържание на конкретна уеб страница (по URL от web_search или директно). Използвай за дълбоко четене след търсене.",
+      description:
+        "Изтегля и връща текстовото съдържание на конкретна уеб страница (по URL от web_search или директно). Използвай за дълбоко четене след търсене.",
       parameters: {
         type: "object",
         properties: {
@@ -149,14 +174,19 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_client",
-      description: "Създава нов клиент в CRM. Подай името задължително; останалите полета са опционални. Преди да извикаш, потвърди намерението с потребителя.",
+      description:
+        "Създава нов клиент в CRM. Подай името задължително; останалите полета са опционални. Преди да извикаш, потвърди намерението с потребителя.",
       parameters: {
         type: "object",
         properties: {
           full_name: { type: "string" },
           phone: { type: "string" },
           email: { type: "string" },
-          client_type: { type: "string", enum: ["buyer", "seller", "tenant", "landlord"], description: "По подразбиране buyer" },
+          client_type: {
+            type: "string",
+            enum: ["buyer", "seller", "tenant", "landlord"],
+            description: "По подразбиране buyer",
+          },
           status: { type: "string", enum: ["active", "paused", "closed", "lost"] },
           budget_min: { type: "number" },
           budget_max: { type: "number" },
@@ -177,7 +207,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "update_client",
-      description: "Редактира съществуващ клиент. Подай client_id + само полетата, които сменяш. Преди да извикаш, потвърди с потребителя.",
+      description:
+        "Редактира съществуващ клиент. Подай client_id + само полетата, които сменяш. Преди да извикаш, потвърди с потребителя.",
       parameters: {
         type: "object",
         properties: {
@@ -205,7 +236,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "delete_client",
-      description: "Изтрива клиент завинаги. ВИНАГИ изисквай явно потвърждение от потребителя преди да извикаш.",
+      description:
+        "Изтрива клиент завинаги. ВИНАГИ изисквай явно потвърждение от потребителя преди да извикаш.",
       parameters: {
         type: "object",
         properties: {
@@ -220,7 +252,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_property",
-      description: "Създава нов имот. Подай title и city_id задължително. Преди да извикаш, потвърди с потребителя.",
+      description:
+        "Създава нов имот. Подай title и city_id задължително. Преди да извикаш, потвърди с потребителя.",
       parameters: {
         type: "object",
         properties: {
@@ -228,7 +261,10 @@ const TOOLS = [
           description: { type: "string" },
           city_id: { type: "string" },
           quarter_id: { type: "string" },
-          property_type: { type: "string", description: "apartment, house, plot, office, commercial и т.н." },
+          property_type: {
+            type: "string",
+            description: "apartment, house, plot, office, commercial и т.н.",
+          },
           status: { type: "string", enum: ["for_sale", "for_rent", "sold", "rented", "reserved"] },
           price: { type: "number" },
           currency: { type: "string", enum: ["EUR", "BGN"] },
@@ -248,7 +284,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "update_property",
-      description: "Редактира съществуващ имот (вкл. смяна на цена, статус, описание). Подай property_id + полетата, които сменяш. Потвърди с потребителя.",
+      description:
+        "Редактира съществуващ имот (вкл. смяна на цена, статус, описание). Подай property_id + полетата, които сменяш. Потвърди с потребителя.",
       parameters: {
         type: "object",
         properties: {
@@ -276,7 +313,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "delete_property",
-      description: "Изтрива имот завинаги. ВИНАГИ изисквай явно потвърждение от потребителя преди да извикаш.",
+      description:
+        "Изтрива имот завинаги. ВИНАГИ изисквай явно потвърждение от потребителя преди да извикаш.",
       parameters: {
         type: "object",
         properties: {
@@ -291,7 +329,8 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_broker",
-      description: "Създава нов брокер. Изисква full_name. Може да се добавят email, телефон, лиценз и био.",
+      description:
+        "Създава нов брокер. Изисква full_name. Може да се добавят email, телефон, лиценз и био.",
       parameters: {
         type: "object",
         properties: {
@@ -368,7 +407,9 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-async function duckDuckGoSearch(query: string): Promise<Array<{ title: string; url: string; snippet: string }>> {
+async function duckDuckGoSearch(
+  query: string,
+): Promise<Array<{ title: string; url: string; snippet: string }>> {
   const res = await fetch("https://html.duckduckgo.com/html/?q=" + encodeURIComponent(query), {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; ILDJIA-Research/1.0)",
@@ -378,7 +419,8 @@ async function duckDuckGoSearch(query: string): Promise<Array<{ title: string; u
   if (!res.ok) throw new Error("Search failed: " + res.status);
   const html = await res.text();
   const results: Array<{ title: string; url: string; snippet: string }> = [];
-  const blockRe = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
+  const blockRe =
+    /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
   let m: RegExpExecArray | null;
   while ((m = blockRe.exec(html)) && results.length < 6) {
     let url = m[1];
@@ -395,34 +437,105 @@ function validColor(v: unknown): v is string {
 }
 
 const THEME_PRESETS: Record<string, Record<string, string>> = {
-  burgundy: { surface: "#1a0608", surfaceTo: "#3a0a12", accent: "#c9a04c", accentSoft: "rgba(201,160,76,0.18)", text: "#fde7b3", textMuted: "rgba(253,231,179,0.7)", border: "rgba(201,160,76,0.25)" },
-  midnight: { surface: "#0b1220", surfaceTo: "#111e3a", accent: "#60a5fa", accentSoft: "rgba(96,165,250,0.18)", text: "#e2e8f0", textMuted: "rgba(226,232,240,0.7)", border: "rgba(96,165,250,0.25)" },
-  forest:   { surface: "#06160f", surfaceTo: "#0d2e20", accent: "#34d399", accentSoft: "rgba(52,211,153,0.18)", text: "#d1fae5", textMuted: "rgba(209,250,229,0.7)", border: "rgba(52,211,153,0.25)" },
-  royal:    { surface: "#140820", surfaceTo: "#2a1248", accent: "#c084fc", accentSoft: "rgba(192,132,252,0.18)", text: "#ede9fe", textMuted: "rgba(237,233,254,0.7)", border: "rgba(192,132,252,0.25)" },
-  light:    { surface: "#fdfaf5", surfaceTo: "#f5ede0", accent: "#8B1A2B", accentSoft: "rgba(139,26,43,0.12)", text: "#3a1a08", textMuted: "rgba(58,26,8,0.7)", border: "rgba(139,26,43,0.2)" },
-  graphite: { surface: "#111111", surfaceTo: "#2a2a2a", accent: "#f59e0b", accentSoft: "rgba(245,158,11,0.18)", text: "#fafafa", textMuted: "rgba(250,250,250,0.65)", border: "rgba(245,158,11,0.25)" },
+  burgundy: {
+    surface: "#1a0608",
+    surfaceTo: "#3a0a12",
+    accent: "#c9a04c",
+    accentSoft: "rgba(201,160,76,0.18)",
+    text: "#fde7b3",
+    textMuted: "rgba(253,231,179,0.7)",
+    border: "rgba(201,160,76,0.25)",
+  },
+  midnight: {
+    surface: "#0b1220",
+    surfaceTo: "#111e3a",
+    accent: "#60a5fa",
+    accentSoft: "rgba(96,165,250,0.18)",
+    text: "#e2e8f0",
+    textMuted: "rgba(226,232,240,0.7)",
+    border: "rgba(96,165,250,0.25)",
+  },
+  forest: {
+    surface: "#06160f",
+    surfaceTo: "#0d2e20",
+    accent: "#34d399",
+    accentSoft: "rgba(52,211,153,0.18)",
+    text: "#d1fae5",
+    textMuted: "rgba(209,250,229,0.7)",
+    border: "rgba(52,211,153,0.25)",
+  },
+  royal: {
+    surface: "#140820",
+    surfaceTo: "#2a1248",
+    accent: "#c084fc",
+    accentSoft: "rgba(192,132,252,0.18)",
+    text: "#ede9fe",
+    textMuted: "rgba(237,233,254,0.7)",
+    border: "rgba(192,132,252,0.25)",
+  },
+  light: {
+    surface: "#fdfaf5",
+    surfaceTo: "#f5ede0",
+    accent: "#8B1A2B",
+    accentSoft: "rgba(139,26,43,0.12)",
+    text: "#3a1a08",
+    textMuted: "rgba(58,26,8,0.7)",
+    border: "rgba(139,26,43,0.2)",
+  },
+  graphite: {
+    surface: "#111111",
+    surfaceTo: "#2a2a2a",
+    accent: "#f59e0b",
+    accentSoft: "rgba(245,158,11,0.18)",
+    text: "#fafafa",
+    textMuted: "rgba(250,250,250,0.65)",
+    border: "rgba(245,158,11,0.25)",
+  },
 };
 
 async function runTool(name: string, args: any, userId: string, db: ServerDb): Promise<any> {
   if (name === "search_clients") {
     const q = String(args.query ?? "").trim();
-    let query = db.from("clients").select("id, full_name, phone, email, client_type, status, budget_min, budget_max, search_property_type, search_status, notes, cities:search_city_id(name), quarters:search_quarter_id(name)").limit(20);
+    let query = db
+      .from("clients")
+      .select(
+        "id, full_name, phone, email, client_type, status, budget_min, budget_max, search_property_type, search_status, notes, cities:search_city_id(name), quarters:search_quarter_id(name)",
+      )
+      .limit(20);
     if (q) query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`);
     const { data, error } = await query;
     if (error) return { error: error.message };
     return { clients: data ?? [] };
   }
   if (name === "get_client") {
-    const { data: client } = await db.from("clients").select("*, cities:search_city_id(name), quarters:search_quarter_id(name)").eq("id", args.client_id).maybeSingle();
+    const { data: client } = await db
+      .from("clients")
+      .select("*, cities:search_city_id(name), quarters:search_quarter_id(name)")
+      .eq("id", args.client_id)
+      .maybeSingle();
     if (!client) return { error: "Клиент не е намерен" };
     const [{ data: docs }, { data: matches }] = await Promise.all([
-      db.from("client_documents").select("document_type, file_name, notes, created_at").eq("client_id", args.client_id),
-      db.from("property_matches").select("score, status, properties:property_id(id, title, price, currency)").eq("client_id", args.client_id).order("score", { ascending: false }).limit(5),
+      db
+        .from("client_documents")
+        .select("document_type, file_name, notes, created_at")
+        .eq("client_id", args.client_id),
+      db
+        .from("property_matches")
+        .select("score, status, properties:property_id(id, title, price, currency)")
+        .eq("client_id", args.client_id)
+        .order("score", { ascending: false })
+        .limit(5),
     ]);
     return { client, documents: docs ?? [], top_matches: matches ?? [] };
   }
   if (name === "search_properties") {
-    let query = db.from("properties").select("id, title, price, currency, area_sqm, rooms, property_type, status, cities:city_id(name, slug), quarters:quarter_id(name)").eq("is_published", true).limit(20);
+    let query = db
+      .from("properties")
+      .select(
+        "id, title, price, currency, area_sqm, rooms, property_type, status, cities:city_id(name, slug), quarters:quarter_id(name)",
+      )
+      .eq("is_published", true)
+      .limit(20);
     if (args.query) query = query.ilike("title", `%${args.query}%`);
     if (args.max_price) query = query.lte("price", args.max_price);
     const { data, error } = await query;
@@ -432,30 +545,62 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
     return { properties: rows };
   }
   if (name === "get_property") {
-    const { data: prop } = await db.from("properties").select("*, cities:city_id(name, slug), quarters:quarter_id(name)").eq("id", args.property_id).maybeSingle();
+    const { data: prop } = await db
+      .from("properties")
+      .select("*, cities:city_id(name, slug), quarters:quarter_id(name)")
+      .eq("id", args.property_id)
+      .maybeSingle();
     if (!prop) return { error: "Имотът не е намерен" };
-    const { data: images } = await db.from("property_images").select("url").eq("property_id", args.property_id);
+    const { data: images } = await db
+      .from("property_images")
+      .select("url")
+      .eq("property_id", args.property_id);
     return { property: prop, images: images ?? [] };
   }
   if (name === "save_contract") {
-    const { data, error } = await db.from("generated_contracts").insert({
-      title: args.title,
-      contract_type: args.contract_type,
-      content: args.content,
-      client_id: args.client_id ?? null,
-      property_id: args.property_id ?? null,
-      created_by: userId,
-      status: "draft",
-    }).select().single();
+    const { data, error } = await db
+      .from("generated_contracts")
+      .insert({
+        title: args.title,
+        contract_type: args.contract_type,
+        content: args.content,
+        client_id: args.client_id ?? null,
+        property_id: args.property_id ?? null,
+        created_by: userId,
+        status: "draft",
+      })
+      .select()
+      .single();
     if (error) return { error: error.message };
-    return { ok: true, contract_id: data.id, message: "Договорът е запазен като чернова в /admin/contracts" };
+    return {
+      ok: true,
+      contract_id: data.id,
+      message: "Договорът е запазен като чернова в /admin/contracts",
+    };
   }
   if (name === "update_crm_theme") {
     const base = args.preset && THEME_PRESETS[args.preset] ? THEME_PRESETS[args.preset] : null;
-    const { data: profile } = await db.from("profiles").select("crm_theme").eq("id", userId).maybeSingle();
+    const { data: profile } = await db
+      .from("profiles")
+      .select("crm_theme")
+      .eq("id", userId)
+      .maybeSingle();
     const current = (profile?.crm_theme ?? {}) as Record<string, any>;
     const starting = base ? { ...base, preset: args.preset } : current;
-    const colorFields = ["surface", "surfaceTo", "accent", "accentSoft", "text", "textMuted", "border", "sidebar", "sidebarTo", "sidebarText", "sidebarBorder", "heading"] as const;
+    const colorFields = [
+      "surface",
+      "surfaceTo",
+      "accent",
+      "accentSoft",
+      "text",
+      "textMuted",
+      "border",
+      "sidebar",
+      "sidebarTo",
+      "sidebarText",
+      "sidebarBorder",
+      "heading",
+    ] as const;
     const freeFields = ["heroBg", "fontFamily"] as const;
     const overrides: Record<string, string> = {};
     const rejected: string[] = [];
@@ -469,7 +614,11 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
       if (args[f] !== undefined) {
         const v = String(args[f]).trim();
         // лимит и забрана за url()/expression/опасни конструкции
-        if (v.length > 0 && v.length <= 300 && !/url\s*\(|expression\s*\(|javascript:|<|>/i.test(v)) {
+        if (
+          v.length > 0 &&
+          v.length <= 300 &&
+          !/url\s*\(|expression\s*\(|javascript:|<|>/i.test(v)
+        ) {
           overrides[f] = v;
         } else {
           rejected.push(f);
@@ -480,7 +629,10 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
     if (!base && Object.keys(overrides).length === 0) {
       return { error: "Не са подадени валидни стойности или preset.", rejected };
     }
-    const { error } = await db.from("profiles").update({ crm_theme: next as any }).eq("id", userId);
+    const { error } = await db
+      .from("profiles")
+      .update({ crm_theme: next as any })
+      .eq("id", userId);
     if (error) return { error: error.message };
     return {
       ok: true,
@@ -505,12 +657,16 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
     if (!/^https?:\/\//i.test(url)) return { error: "Невалиден URL" };
     try {
       const res = await fetch(url, {
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; ILDJIA-Research/1.0)", "Accept-Language": "bg,en;q=0.8" },
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; ILDJIA-Research/1.0)",
+          "Accept-Language": "bg,en;q=0.8",
+        },
         signal: AbortSignal.timeout(15000),
       });
       if (!res.ok) return { error: "HTTP " + res.status };
       const ct = res.headers.get("content-type") ?? "";
-      if (!/text\/html|text\/plain|application\/xhtml/i.test(ct)) return { error: "Неподдържан тип съдържание: " + ct };
+      if (!/text\/html|text\/plain|application\/xhtml/i.test(ct))
+        return { error: "Неподдържан тип съдържание: " + ct };
       const html = await res.text();
       const titleM = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
       const text = stripHtml(html).slice(0, 6000);
@@ -522,31 +678,64 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
   // ===== WRITE TOOLS (admin-only — gated at handler entry) =====
   const pickFields = (src: Record<string, unknown>, fields: string[]) => {
     const out: Record<string, unknown> = {};
-    for (const f of fields) if (src[f] !== undefined && src[f] !== null && src[f] !== "") out[f] = src[f];
+    for (const f of fields)
+      if (src[f] !== undefined && src[f] !== null && src[f] !== "") out[f] = src[f];
     return out;
   };
 
   if (name === "create_client") {
     if (!args.full_name) return { error: "full_name е задължително" };
     const payload = pickFields(args, [
-      "full_name", "phone", "email", "client_type", "status",
-      "budget_min", "budget_max", "currency", "rooms_min", "rooms_max",
-      "area_min", "area_max", "search_property_type", "notes", "assigned_broker_id",
+      "full_name",
+      "phone",
+      "email",
+      "client_type",
+      "status",
+      "budget_min",
+      "budget_max",
+      "currency",
+      "rooms_min",
+      "rooms_max",
+      "area_min",
+      "area_max",
+      "search_property_type",
+      "notes",
+      "assigned_broker_id",
     ]);
     payload.created_by = userId;
-    const { data, error } = await db.from("clients").insert(payload as never).select("id, full_name").single();
+    const { data, error } = await db
+      .from("clients")
+      .insert(payload as never)
+      .select("id, full_name")
+      .single();
     if (error) return { error: error.message };
     return { ok: true, client: data, message: `Клиент "${data.full_name}" е създаден.` };
   }
   if (name === "update_client") {
     if (!args.client_id) return { error: "client_id е задължително" };
     const payload = pickFields(args, [
-      "full_name", "phone", "email", "client_type", "status",
-      "budget_min", "budget_max", "currency", "rooms_min", "rooms_max",
-      "area_min", "area_max", "notes", "assigned_broker_id",
+      "full_name",
+      "phone",
+      "email",
+      "client_type",
+      "status",
+      "budget_min",
+      "budget_max",
+      "currency",
+      "rooms_min",
+      "rooms_max",
+      "area_min",
+      "area_max",
+      "notes",
+      "assigned_broker_id",
     ]);
     if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
-    const { data, error } = await db.from("clients").update(payload as never).eq("id", args.client_id).select("id, full_name").maybeSingle();
+    const { data, error } = await db
+      .from("clients")
+      .update(payload as never)
+      .eq("id", args.client_id)
+      .select("id, full_name")
+      .maybeSingle();
     if (error) return { error: error.message };
     if (!data) return { error: "Клиент не е намерен." };
     return { ok: true, client: data, message: `Клиент "${data.full_name}" е обновен.` };
@@ -561,30 +750,58 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
   if (name === "create_property") {
     if (!args.title || !args.city_id) return { error: "title и city_id са задължителни" };
     const payload = pickFields(args, [
-      "title", "description", "city_id", "quarter_id", "property_type", "status",
-      "price", "currency", "area_sqm", "rooms", "floor", "address",
-      "is_published", "owner_id", "assigned_broker_id",
+      "title",
+      "description",
+      "city_id",
+      "quarter_id",
+      "property_type",
+      "status",
+      "price",
+      "currency",
+      "area_sqm",
+      "rooms",
+      "floor",
+      "address",
+      "is_published",
+      "owner_id",
+      "assigned_broker_id",
     ]);
     payload.created_by = userId;
-    const { data, error } = await db.from("properties").insert(payload as never).select("id, title").single();
+    const { data, error } = await db
+      .from("properties")
+      .insert(payload as never)
+      .select("id, title")
+      .single();
     if (error) return { error: error.message };
-    const { fillPropertyCoordinates } = await import("@/lib/property-geo");
-    await fillPropertyCoordinates(db, data.id).catch(() => null);
     return { ok: true, property: data, message: `Имот "${data.title}" е създаден.` };
   }
   if (name === "update_property") {
     if (!args.property_id) return { error: "property_id е задължително" };
     const payload = pickFields(args, [
-      "title", "description", "city_id", "quarter_id", "property_type", "status",
-      "price", "currency", "area_sqm", "rooms", "floor", "address",
-      "is_published", "assigned_broker_id",
+      "title",
+      "description",
+      "city_id",
+      "quarter_id",
+      "property_type",
+      "status",
+      "price",
+      "currency",
+      "area_sqm",
+      "rooms",
+      "floor",
+      "address",
+      "is_published",
+      "assigned_broker_id",
     ]);
     if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
-    const { data, error } = await db.from("properties").update(payload as never).eq("id", args.property_id).select("id, title").maybeSingle();
+    const { data, error } = await db
+      .from("properties")
+      .update(payload as never)
+      .eq("id", args.property_id)
+      .select("id, title")
+      .maybeSingle();
     if (error) return { error: error.message };
     if (!data) return { error: "Имотът не е намерен." };
-    const { fillPropertyCoordinates } = await import("@/lib/property-geo");
-    await fillPropertyCoordinates(db, data.id).catch(() => null);
     return { ok: true, property: data, message: `Имот "${data.title}" е обновен.` };
   }
   if (name === "delete_property") {
@@ -596,16 +813,41 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
 
   if (name === "create_broker") {
     if (!args.full_name) return { error: "full_name е задължително" };
-    const payload = pickFields(args, ["full_name", "email", "phone", "license_number", "bio", "photo_url", "is_active"]);
-    const { data, error } = await db.from("brokers").insert(payload as never).select("id, full_name").single();
+    const payload = pickFields(args, [
+      "full_name",
+      "email",
+      "phone",
+      "license_number",
+      "bio",
+      "photo_url",
+      "is_active",
+    ]);
+    const { data, error } = await db
+      .from("brokers")
+      .insert(payload as never)
+      .select("id, full_name")
+      .single();
     if (error) return { error: error.message };
     return { ok: true, broker: data, message: `Брокер "${data.full_name}" е създаден.` };
   }
   if (name === "update_broker") {
     if (!args.broker_id) return { error: "broker_id е задължително" };
-    const payload = pickFields(args, ["full_name", "email", "phone", "license_number", "bio", "photo_url", "is_active"]);
+    const payload = pickFields(args, [
+      "full_name",
+      "email",
+      "phone",
+      "license_number",
+      "bio",
+      "photo_url",
+      "is_active",
+    ]);
     if (Object.keys(payload).length === 0) return { error: "Няма полета за промяна." };
-    const { data, error } = await db.from("brokers").update(payload as never).eq("id", args.broker_id).select("id, full_name").maybeSingle();
+    const { data, error } = await db
+      .from("brokers")
+      .update(payload as never)
+      .eq("id", args.broker_id)
+      .select("id, full_name")
+      .maybeSingle();
     if (error) return { error: error.message };
     if (!data) return { error: "Брокерът не е намерен." };
     return { ok: true, broker: data, message: `Брокер "${data.full_name}" е обновен.` };
@@ -617,7 +859,10 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
     return { ok: true, message: "Брокерът е изтрит." };
   }
   if (name === "search_brokers") {
-    const { data, error } = await db.from("brokers").select("id, full_name, email, phone, is_active, license_number").order("full_name");
+    const { data, error } = await db
+      .from("brokers")
+      .select("id, full_name, email, phone, is_active, license_number")
+      .order("full_name");
     if (error) return { error: error.message };
     return { brokers: data ?? [] };
   }
@@ -628,11 +873,12 @@ async function runTool(name: string, args: any, userId: string, db: ServerDb): P
 export const aiAssistantChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      messages: z.array(messageSchema).min(1).max(60),
-      conversation_id: z.string().uuid().optional().nullable(),
-      images: z.array(z.string().min(32).max(1_800_000)).max(4).optional(),
-    }).parse(d),
+    z
+      .object({
+        messages: z.array(messageSchema).min(1).max(60),
+        conversation_id: z.string().uuid().optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const db = resolveServerDb(context.supabase);
@@ -643,10 +889,16 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
     const access = await loadUserAccess(context.userId, context.supabase, email);
     if (!access.hasCrmAccess) throw new Error("Forbidden");
 
-    if (!resolveAiProvider()) throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
+    if (!resolveAiProvider())
+      throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
 
     // Лек контекст с агрегати
-    const [{ count: clientCount }, { count: propCount }, { count: newMatchCount }, { count: newInq }] = await Promise.all([
+    const [
+      { count: clientCount },
+      { count: propCount },
+      { count: newMatchCount },
+      { count: newInq },
+    ] = await Promise.all([
       db.from("clients").select("id", { count: "exact", head: true }),
       db.from("properties").select("id", { count: "exact", head: true }),
       db.from("property_matches").select("id", { count: "exact", head: true }).eq("status", "new"),
@@ -808,22 +1060,7 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 
 ВАЖНО: Не си шаблон. Ти си опитен колега-юрист, който първо ОБЯСНЯВА, после дава ВАРИАНТИ, после ДЕЙСТВА.`;
 
-    const conversation: any[] = [
-      { role: "system", content: systemPrompt },
-      ...data.messages.map((m, i, arr) => {
-        const lastUser = m.role === "user" && !arr.slice(i + 1).some((x) => x.role === "user");
-        if (lastUser && data.images?.length) {
-          return {
-            role: "user",
-            content: [
-              { type: "text", text: m.content || "Разгледай прикачената снимка и отговори." },
-              ...data.images.map((url) => ({ type: "image_url", image_url: { url } })),
-            ],
-          };
-        }
-        return m;
-      }),
-    ];
+    const conversation: any[] = [{ role: "system", content: systemPrompt }, ...data.messages];
     let iterations = 0;
 
     while (iterations < 16) {
@@ -836,19 +1073,36 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
       if (!res.ok) {
         const text = await res.text();
         console.error("AI gateway error", res.status, text.slice(0, 300));
-        if (res.status === 429) return { reply: "⏳ Прекалено много заявки в момента. Опитайте отново след минута.", conversation_id: data.conversation_id ?? null };
-        if (res.status === 402) return { reply: "AI Асистентът временно не е наличен. Опитайте по-късно.", conversation_id: data.conversation_id ?? null };
-        return { reply: "Възникна временен проблем с AI услугата. Опитайте отново.", conversation_id: data.conversation_id ?? null };
+        if (res.status === 429)
+          return {
+            reply: "⏳ Прекалено много заявки в момента. Опитайте отново след минута.",
+            conversation_id: data.conversation_id ?? null,
+          };
+        if (res.status === 402)
+          return {
+            reply: "AI Асистентът временно не е наличен. Опитайте по-късно.",
+            conversation_id: data.conversation_id ?? null,
+          };
+        return {
+          reply: "Възникна временен проблем с AI услугата. Опитайте отново.",
+          conversation_id: data.conversation_id ?? null,
+        };
       }
       const json = await res.json();
       const msg = json?.choices?.[0]?.message;
       if (!msg) throw new Error("Празен отговор от AI");
 
       if (msg.tool_calls && msg.tool_calls.length > 0) {
-        conversation.push({ role: "assistant", content: msg.content ?? "", tool_calls: msg.tool_calls });
+        conversation.push({
+          role: "assistant",
+          content: msg.content ?? "",
+          tool_calls: msg.tool_calls,
+        });
         for (const call of msg.tool_calls) {
           let args: any = {};
-          try { args = JSON.parse(call.function.arguments ?? "{}"); } catch {}
+          try {
+            args = JSON.parse(call.function.arguments ?? "{}");
+          } catch {}
           const result = await runTool(call.function.name, args, context.userId, db);
           conversation.push({
             role: "tool",
@@ -874,10 +1128,15 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
         }
         if (convId) {
           const toInsert: Array<{ conversation_id: string; role: string; content: string }> = [];
-          if (lastUser) toInsert.push({ conversation_id: convId, role: "user", content: lastUser.content });
-          if (msg.content) toInsert.push({ conversation_id: convId, role: "assistant", content: msg.content });
+          if (lastUser)
+            toInsert.push({ conversation_id: convId, role: "user", content: lastUser.content });
+          if (msg.content)
+            toInsert.push({ conversation_id: convId, role: "assistant", content: msg.content });
           if (toInsert.length) await db.from("ai_messages").insert(toInsert);
-          await db.from("ai_conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
+          await db
+            .from("ai_conversations")
+            .update({ updated_at: new Date().toISOString() })
+            .eq("id", convId);
         }
       } catch (e) {
         console.error("ai persist failed", e);
@@ -885,7 +1144,10 @@ export const aiAssistantChat = createServerFn({ method: "POST" })
 
       return { reply: msg.content ?? "", conversation_id: convId };
     }
-    return { reply: "Прекалено много стъпки. Опитайте по-конкретен въпрос.", conversation_id: data.conversation_id ?? null };
+    return {
+      reply: "Прекалено много стъпки. Опитайте по-конкретен въпрос.",
+      conversation_id: data.conversation_id ?? null,
+    };
   });
 
 export const listAiConversations = createServerFn({ method: "GET" })
@@ -907,10 +1169,17 @@ export const getAiConversation = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const db = resolveServerDb(context.supabase);
     const { data: conv } = await db
-      .from("ai_conversations").select("id, title").eq("id", data.id).eq("user_id", context.userId).maybeSingle();
+      .from("ai_conversations")
+      .select("id, title")
+      .eq("id", data.id)
+      .eq("user_id", context.userId)
+      .maybeSingle();
     if (!conv) throw new Error("Not found");
     const { data: msgs } = await db
-      .from("ai_messages").select("role, content").eq("conversation_id", data.id).order("created_at");
+      .from("ai_messages")
+      .select("role, content")
+      .eq("conversation_id", data.id)
+      .order("created_at");
     return { conv, messages: msgs ?? [] };
   });
 

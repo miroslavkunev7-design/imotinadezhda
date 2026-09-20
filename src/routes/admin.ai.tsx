@@ -1,7 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Send, User as UserIcon, Mic, MicOff, Volume2, Square, Paperclip, FileText, X, Loader2, CheckCircle2, Plus, MessageSquare, Trash2, PanelLeftClose, PanelLeft, Camera, Image as ImageIcon, ScrollText, Download, Copy, Wand2, Search } from "lucide-react";
+import {
+  Sparkles,
+  Send,
+  User as UserIcon,
+  Mic,
+  MicOff,
+  Volume2,
+  Square,
+  Paperclip,
+  FileText,
+  X,
+  Loader2,
+  CheckCircle2,
+  Plus,
+  MessageSquare,
+  Trash2,
+  PanelLeftClose,
+  PanelLeft,
+  Camera,
+  Image as ImageIcon,
+  ScrollText,
+  Download,
+  Copy,
+  Wand2,
+} from "lucide-react";
 import {
   aiAssistantChat,
   listAiConversations,
@@ -10,7 +34,6 @@ import {
 } from "@/lib/ai-assistant.functions";
 import { cn } from "@/lib/utils";
 import { speakBG } from "@/lib/tts-utils";
-import { useSpeechInput } from "@/hooks/use-speech-input";
 import { supabase } from "@/integrations/supabase/client";
 import {
   startDocumentBatch,
@@ -45,10 +68,8 @@ type ReviewFile = {
   reasoning: string;
 };
 
-type ImageSize = "1024x1024" | "1536x1024" | "1024x1536";
-
 type Msg =
-  | { role: "user" | "assistant"; content: string; images?: string[] }
+  | { role: "user" | "assistant"; content: string }
   | { role: "review"; batch_id: string; files: ReviewFile[]; committed?: boolean }
   | { role: "image"; prompt: string; url: string }
   | {
@@ -61,62 +82,35 @@ type Msg =
     };
 
 const SUGGESTIONS = [
-  "Проучи в интернет актуалните ипотечни лихви в България",
   "Дай ми резюме на статистиката от платформата",
   "Кои нови запитвания са с най-висок приоритет?",
   "Напиши примерно описание за луксозен тристаен в Лазур, Бургас",
+  "Кои квартали имат най-висока средна цена?",
 ];
-
-function fileToChatDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Не мога да прочета файла"));
-    reader.onload = () => {
-      const raw = String(reader.result ?? "");
-      const img = new Image();
-      img.onload = () => {
-        const max = 1280;
-        let { width, height } = img;
-        if (width > max || height > max) {
-          const scale = Math.min(max / width, max / height);
-          width = Math.round(width * scale);
-          height = Math.round(height * scale);
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) { resolve(raw); return; }
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.82));
-      };
-      img.onerror = () => resolve(raw);
-      img.src = raw;
-    };
-    reader.readAsDataURL(file);
-  });
-}
 
 function AIAssistant() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [sessions, setSessions] = useState<Array<{ id: string; title: string; updated_at: string }>>([]);
+  const [sessions, setSessions] = useState<
+    Array<{ id: string; title: string; updated_at: string }>
+  >([]);
   const [loadingSession, setLoadingSession] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [listening, setListening] = useState(false);
   const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
+  const recognitionRef = useRef<any>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const notaryInputRef = useRef<HTMLInputElement>(null);
   const [attachMenu, setAttachMenu] = useState(false);
-  const [uploading, setUploading] = useState<{ done: number; total: number; label: string } | null>(null);
-  const [imageSize, setImageSize] = useState<ImageSize>("1024x1024");
-  const [pendingImages, setPendingImages] = useState<string[]>([]);
-  const chatImageInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState<{ done: number; total: number; label: string } | null>(
+    null,
+  );
 
   const refreshSessions = async () => {
     try {
@@ -142,7 +136,10 @@ function AIAssistant() {
         .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
       setMessages(loaded);
       setConversationId(id);
-      setTimeout(() => endRef.current?.scrollIntoView({ behavior: "instant" as ScrollBehavior }), 50);
+      setTimeout(
+        () => endRef.current?.scrollIntoView({ behavior: "instant" as ScrollBehavior }),
+        50,
+      );
     } catch (e: any) {
       toast.error(e?.message ?? "Не мога да заредя разговора");
     } finally {
@@ -169,13 +166,6 @@ function AIAssistant() {
     }
   };
 
-  const onSpeechTranscript = useCallback((text: string) => {
-    setInput(text);
-    setError(null);
-  }, []);
-  const onSpeechError = useCallback((message: string) => setError(message), []);
-  const { listening, toggleListen } = useSpeechInput(onSpeechTranscript, onSpeechError);
-
   const speak = (text: string, idx: number) => {
     if (typeof window === "undefined" || !window.speechSynthesis) {
       setError("Браузърът ти не поддържа глас");
@@ -193,6 +183,44 @@ function AIAssistant() {
     });
   };
 
+  const toggleListen = () => {
+    if (typeof window === "undefined") return;
+    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setError("Браузърът ти не поддържа разпознаване на реч");
+      return;
+    }
+    if (listening) {
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
+      setListening(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "bg-BG";
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onresult = (e: any) => {
+      let transcript = "";
+      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+      setInput(transcript);
+    };
+    rec.onerror = (e: any) => {
+      setError("Грешка при запис: " + (e.error || ""));
+      setListening(false);
+    };
+    rec.onend = () => setListening(false);
+    recognitionRef.current = rec;
+    setError(null);
+    setListening(true);
+    try {
+      rec.start();
+    } catch {
+      setListening(false);
+    }
+  };
+
   const makeImage = async (prompt: string) => {
     const clean = prompt.trim();
     if (!clean || busy) return;
@@ -202,7 +230,7 @@ function AIAssistant() {
     setBusy(true);
     setUploading({ done: 0, total: 1, label: "Генерирам изображение…" });
     try {
-      const res = await generateAiImage({ data: { prompt: clean, size: imageSize } });
+      const res = await generateAiImage({ data: { prompt: clean, size: "1024x1024" } });
       setMessages((prev) => [...prev, { role: "image", prompt: clean, url: res.image }]);
       setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     } catch (e: any) {
@@ -214,34 +242,23 @@ function AIAssistant() {
   };
 
   const send = async (text: string) => {
-    const imgMatch = text.trim().match(/^(?:\/img|\/image|генерирай\s+(?:изображение|снимка|картинка))\s*[:,-]?\s*(.+)$/i);
+    const imgMatch = text
+      .trim()
+      .match(/^(?:\/img|\/image|генерирай\s+(?:изображение|снимка|картинка))\s*[:,-]?\s*(.+)$/i);
     if (imgMatch?.[1]) {
       await makeImage(imgMatch[1]);
       return;
     }
-    const attached = pendingImages;
-    if ((!text.trim() && !attached.length) || busy) return;
+    if (!text.trim() || busy) return;
 
     setError(null);
-    const next = [...messages, {
-      role: "user" as const,
-      content: text.trim() || "Разгледай прикачената снимка.",
-      images: attached.length ? attached : undefined,
-    }];
+    const next = [...messages, { role: "user" as const, content: text.trim() }];
     setMessages(next);
     setInput("");
-    setPendingImages([]);
     setBusy(true);
-    const chatMessages = next
-      .filter((m): m is Extract<Msg, { role: "user" | "assistant" }> => m.role === "user" || m.role === "assistant")
-      .map((m) => ({ role: m.role, content: m.content }));
     try {
       const result = await aiAssistantChat({
-        data: {
-          messages: chatMessages,
-          conversation_id: conversationId,
-          images: attached.length ? attached : undefined,
-        },
+        data: { messages: next, conversation_id: conversationId },
       });
       if (result.conversation_id) setConversationId(result.conversation_id);
       setMessages([...next, { role: "assistant", content: result.reply }]);
@@ -257,26 +274,13 @@ function AIAssistant() {
     }
   };
 
-  const onSubmit = (e: FormEvent) => { e.preventDefault(); send(input); };
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    send(input);
+  };
 
   /* ---------- Document ingest ---------- */
   const onAttachClick = () => fileInputRef.current?.click();
-
-  const handleChatImages = async (files: FileList | null) => {
-    if (!files?.length) return;
-    const next = [...pendingImages];
-    for (const f of Array.from(files).slice(0, 4 - next.length)) {
-      if (!f.type.startsWith("image/")) continue;
-      try {
-        next.push(await fileToChatDataUrl(f));
-      } catch {
-        /* skip broken files */
-      }
-    }
-    setPendingImages(next.slice(0, 4));
-    setAttachMenu(false);
-    if (chatImageInputRef.current) chatImageInputRef.current.value = "";
-  };
 
   /** Нотариален акт → извличане на данни + договор/разписка */
   const handleNotaryFile = async (files: FileList | null) => {
@@ -287,7 +291,9 @@ function AIAssistant() {
     setUploading({ done: 0, total: 1, label: `Обработвам ${file.name}…` });
     try {
       const isImage = file.type.startsWith("image/");
-      const dataUrl = isImage ? (await enhanceDocumentImage(file)).dataUrl : await fileToDataUrl(file);
+      const dataUrl = isImage
+        ? (await enhanceDocumentImage(file)).dataUrl
+        : await fileToDataUrl(file);
       setUploading({ done: 0, total: 1, label: "Извличам данните от акта…" });
       const res = await analyzeNotaryAct({
         data: {
@@ -323,11 +329,16 @@ function AIAssistant() {
     setAttachMenu(false);
     const prepared: File[] = [];
     for (const f of Array.from(files)) {
-      if (!f.type.startsWith("image/")) { prepared.push(f); continue; }
+      if (!f.type.startsWith("image/")) {
+        prepared.push(f);
+        continue;
+      }
       try {
         const { dataUrl } = await enhanceDocumentImage(f);
         const blob = await (await fetch(dataUrl)).blob();
-        prepared.push(new File([blob], f.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" }));
+        prepared.push(
+          new File([blob], f.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" }),
+        );
       } catch {
         prepared.push(f);
       }
@@ -355,17 +366,25 @@ function AIAssistant() {
         const path = `temp/${batch_id}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${safe}`;
         const { error: upErr } = await supabase.storage
           .from("client-documents")
-          .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
-        if (upErr) { toast.error(`Грешка при качване на ${file.name}: ${upErr.message}`); continue; }
+          .upload(path, file, {
+            contentType: file.type || "application/octet-stream",
+            upsert: false,
+          });
+        if (upErr) {
+          toast.error(`Грешка при качване на ${file.name}: ${upErr.message}`);
+          continue;
+        }
 
         setUploading({ done: i, total: list.length, label: `Анализирам ${file.name}…` });
         try {
-          const res = await processBatchFile({ data: {
-            batch_id,
-            storage_path: path,
-            file_name: file.name,
-            mime_type: file.type || null,
-          }});
+          const res = await processBatchFile({
+            data: {
+              batch_id,
+              storage_path: path,
+              file_name: file.name,
+              mime_type: file.type || null,
+            },
+          });
           for (const r of res.files) aggregated.push(r as ReviewFile);
         } catch (e: any) {
           toast.error(`Анализ на ${file.name} се провали: ${e?.message ?? "неизвестна грешка"}`);
@@ -407,38 +426,50 @@ function AIAssistant() {
   const commitReview = async (mIdx: number, clientName: string) => {
     const msg = messages[mIdx];
     if (!msg || msg.role !== "review") return;
-    if (!clientName.trim()) { toast.error("Въведи име на клиента."); return; }
-    if (!msg.files.length) { toast.error("Няма файлове за запазване."); return; }
+    if (!clientName.trim()) {
+      toast.error("Въведи име на клиента.");
+      return;
+    }
+    if (!msg.files.length) {
+      toast.error("Няма файлове за запазване.");
+      return;
+    }
     setBusy(true);
     try {
-      const result = await commitDocumentBatch({ data: {
-        batch_id: msg.batch_id,
-        client_name: clientName.trim(),
-        files: msg.files.map((f) => ({
-          storage_path: f.storage_path,
-          file_name: f.file_name,
-          mime_type: f.mime_type,
-          size: f.size,
-          category: f.category,
-          period_day: f.period_day,
-          period_month: f.period_month,
-          period_year: f.period_year,
-          detected_client_name: f.detected_client_name,
-          detected_bank: f.detected_bank,
-          detected_amount: f.detected_amount,
-          confidence: f.confidence,
-          reasoning: f.reasoning,
-        })),
-      }});
-      setMessages((prev) => prev.map((m, i) => (i === mIdx && m.role === "review" ? { ...m, committed: true } : m)));
+      const result = await commitDocumentBatch({
+        data: {
+          batch_id: msg.batch_id,
+          client_name: clientName.trim(),
+          files: msg.files.map((f) => ({
+            storage_path: f.storage_path,
+            file_name: f.file_name,
+            mime_type: f.mime_type,
+            size: f.size,
+            category: f.category,
+            period_day: f.period_day,
+            period_month: f.period_month,
+            period_year: f.period_year,
+            detected_client_name: f.detected_client_name,
+            detected_bank: f.detected_bank,
+            detected_amount: f.detected_amount,
+            confidence: f.confidence,
+            reasoning: f.reasoning,
+          })),
+        },
+      });
+      setMessages((prev) =>
+        prev.map((m, i) => (i === mIdx && m.role === "review" ? { ...m, committed: true } : m)),
+      );
       toast.success(
         `${result.client_created ? "Създадох клиент" : "Записах при клиент"} „${clientName}" — ${result.count} документ${result.count === 1 ? "" : "а"}.`,
       );
-      setMessages((prev) => [...prev, {
-        role: "assistant",
-        content:
-          `Готово. ${result.client_created ? "Създадох нов клиент" : "Записах при съществуващ клиент"} „${clientName}". Запазих ${result.count} документ${result.count === 1 ? "" : "а"}, подредени по категория и период.`,
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `Готово. ${result.client_created ? "Създадох нов клиент" : "Записах при съществуващ клиент"} „${clientName}". Запазих ${result.count} документ${result.count === 1 ? "" : "а"}, подредени по категория и период.`,
+        },
+      ]);
     } catch (e: any) {
       toast.error(e?.message ?? "Запазването се провали.");
     } finally {
@@ -456,7 +487,9 @@ function AIAssistant() {
         )}
       >
         <div className="flex items-center justify-between border-b border-primary/10 px-3 py-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Разговори</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Разговори
+          </span>
           <button
             type="button"
             onClick={newChat}
@@ -469,7 +502,9 @@ function AIAssistant() {
         </div>
         <div className="flex-1 overflow-y-auto p-2">
           {sessions.length === 0 ? (
-            <p className="px-2 py-4 text-center text-xs text-muted-foreground">Няма записани разговори.</p>
+            <p className="px-2 py-4 text-center text-xs text-muted-foreground">
+              Няма записани разговори.
+            </p>
           ) : (
             <ul className="space-y-1">
               {sessions.map((s) => (
@@ -488,10 +523,16 @@ function AIAssistant() {
                   >
                     <MessageSquare className="h-3.5 w-3.5 shrink-0 opacity-60" />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-xs font-medium">{s.title || "Нов разговор"}</div>
+                      <div className="truncate text-xs font-medium">
+                        {s.title || "Нов разговор"}
+                      </div>
                       <div className="text-[10px] text-muted-foreground">
                         {new Date(s.updated_at).toLocaleString("bg-BG", {
-                          day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </div>
                     </div>
@@ -512,259 +553,274 @@ function AIAssistant() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-      <header className="mb-4 flex items-start gap-2">
-        <button
-          type="button"
-          onClick={() => setSidebarOpen((v) => !v)}
-          className="mt-1 rounded-md border border-primary/15 p-1.5 text-muted-foreground hover:bg-muted"
-          aria-label={sidebarOpen ? "Скрий панела" : "Покажи панела"}
-          title={sidebarOpen ? "Скрий панела" : "Покажи панела"}
-        >
-          {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
-        </button>
-        <div className="flex-1">
-        <h1 className="flex items-center gap-2 font-display text-4xl text-accent-foreground">
-          <Sparkles className="h-7 w-7 text-primary" /> AI Помощник
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Интелигентен експерт с пълен достъп до данните на платформата. Питай за статистики, описания, анализи, или прикачи документи/ZIP папка — AI ги подрежда по клиент, категория и месец.
-        </p>
-        </div>
-      </header>
-
-      <div className="flex-1 space-y-4 overflow-auto rounded-2xl border border-primary/15 bg-card p-6">
-        {loadingSession && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Зареждам разговора…
-          </div>
-        )}
-        {messages.length === 0 && (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Започни с примерен въпрос:</p>
-            <div className="grid gap-2 md:grid-cols-2">
-              {SUGGESTIONS.map((s) => (
-                <button key={s} onClick={() => send(s)} className="rounded-xl border border-primary/15 bg-background p-3 text-left text-sm hover:border-primary">
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {messages.map((m, i) => m.role === "review" ? (
-          <ReviewCard
-            key={i}
-            msg={m}
-            busy={busy}
-            onChangeFile={(fIdx, patch) => updateReviewFile(i, fIdx, patch)}
-            onRemove={(fIdx) => removeReviewFile(i, fIdx)}
-            onCommit={(name) => commitReview(i, name)}
-          />
-        ) : m.role === "image" ? (
-          <div key={i} className="rounded-2xl border border-primary/25 bg-background p-4">
-            <div className="flex items-center gap-2">
-              <Wand2 className="h-4 w-4 text-primary" />
-              <div className="flex-1 truncate text-sm font-semibold">Генерирано изображение</div>
-              <a
-                href={m.url}
-                download={`ai-image-${i}.png`}
-                className="flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20"
-              >
-                <Download className="h-3.5 w-3.5" /> Изтегли
-              </a>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">{m.prompt}</p>
-            <img src={m.url} alt={m.prompt} className="mt-3 w-full rounded-lg object-contain" />
-          </div>
-        ) : (
-          m.role === "legal" ? (
-            <LegalCard key={i} msg={m} />
-          ) : (
-          <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
-            {m.role === "assistant" && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"><Sparkles className="h-4 w-4" /></div>}
-            <div className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
-              {m.role === "user" && m.images?.length ? (
-                <div className="mb-2 flex flex-wrap gap-1.5">
-                  {m.images.map((src) => (
-                    <img key={src.slice(0, 40)} src={src} alt="" className="h-16 w-16 rounded-md object-cover" />
-                  ))}
-                </div>
-              ) : null}
-              {m.content}
-              {m.role === "assistant" && (
-                <button
-                  type="button"
-                  onClick={() => speak(m.content, i)}
-                  className="mt-2 flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20"
-                  aria-label={speakingIdx === i ? "Спри" : "Чуй"}
-                >
-                  {speakingIdx === i ? <Square className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-                  {speakingIdx === i ? "Спри" : "Чуй"}
-                </button>
-              )}
-            </div>
-            {m.role === "user" && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted"><UserIcon className="h-4 w-4" /></div>}
-          </div>
-          )
-        ))}
-        {busy && !uploading && <div className="text-sm text-muted-foreground">Мисля…</div>}
-        {uploading && (
-          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>{uploading.label}</span>
-            <span className="ml-auto text-xs opacity-70">{uploading.done}/{uploading.total}</span>
-          </div>
-        )}
-        {error && <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>}
-        <div ref={endRef} />
-      </div>
-
-      {pendingImages.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {pendingImages.map((src, i) => (
-            <div key={`${i}-${src.slice(-12)}`} className="relative">
-              <img src={src} alt="" className="h-16 w-16 rounded-lg object-cover ring-1 ring-primary/30" />
-              <button
-                type="button"
-                onClick={() => setPendingImages((prev) => prev.filter((_, j) => j !== i))}
-                className="absolute -right-1.5 -top-1.5 rounded-full bg-background p-0.5 text-muted-foreground ring-1 ring-border hover:text-foreground"
-                aria-label="Премахни снимката"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <form onSubmit={onSubmit} className="mt-4 flex gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*,.pdf,.zip,.jpg,.jpeg,.png,.webp,.heic"
-          onChange={(e) => handleFiles(e.target.files)}
-          className="hidden"
-        />
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={(e) => handleImageCapture(e.target.files)}
-          className="hidden"
-        />
-        <input
-          ref={galleryInputRef}
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={(e) => handleImageCapture(e.target.files)}
-          className="hidden"
-        />
-        <input
-          ref={notaryInputRef}
-          type="file"
-          accept="image/*,.pdf"
-          onChange={(e) => handleNotaryFile(e.target.files)}
-          className="hidden"
-        />
-        <input
-          ref={chatImageInputRef}
-          type="file"
-          multiple
-          accept="image/*"
-          onChange={(e) => handleChatImages(e.target.files)}
-          className="hidden"
-        />
-        <div className="relative">
-          <Button
+        <header className="mb-4 flex items-start gap-2">
+          <button
             type="button"
-            onClick={() => setAttachMenu((v) => !v)}
-            disabled={busy || !!uploading}
-            variant="outline"
-            className="px-4"
-            aria-label="Прикачи"
-            title="Прикачи файл, снимка или нотариален акт"
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="mt-1 rounded-md border border-primary/15 p-1.5 text-muted-foreground hover:bg-muted"
+            aria-label={sidebarOpen ? "Скрий панела" : "Покажи панела"}
+            title={sidebarOpen ? "Скрий панела" : "Покажи панела"}
           >
-            <Plus className={cn("h-4 w-4 transition-transform", attachMenu && "rotate-45")} />
-          </Button>
-          {attachMenu && (
-            <div className="absolute bottom-full left-0 z-30 mb-2 w-72 overflow-hidden rounded-xl border border-primary/20 bg-popover shadow-xl">
-              {[
-                { icon: Search, label: "Проучи в интернет", hint: "търсене + източници", onClick: () => {
-                    setAttachMenu(false);
-                    const q = input.trim() || window.prompt("Какво да проуча?") || "";
-                    if (q.trim()) void send(`Проучи в интернет (използвай web_search и fetch_url): ${q.trim()}`);
-                  } },
-                { icon: ImageIcon, label: "Снимка към чата", hint: "AI я вижда и анализира", onClick: () => { setAttachMenu(false); chatImageInputRef.current?.click(); } },
-                { icon: Paperclip, label: "Документи или ZIP", hint: "PDF, снимки, архив", onClick: () => { setAttachMenu(false); onAttachClick(); } },
-                { icon: Camera, label: "Снимка с камера", hint: "сканирай към документите", onClick: () => { setAttachMenu(false); cameraInputRef.current?.click(); } },
-                { icon: ScrollText, label: "Нотариален акт → договор", hint: "и разписка за депозит", onClick: () => { setAttachMenu(false); notaryInputRef.current?.click(); } },
-                { icon: Wand2, label: "Генерирай изображение", hint: `резолюция ${imageSize}`, onClick: () => {
-                    setAttachMenu(false);
-                    const p = input.trim() || window.prompt("Опиши изображението, което да генерирам:") || "";
-                    if (p.trim()) void makeImage(p);
-                  } },
-              ].map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={item.onClick}
-                  className="flex w-full items-start gap-3 px-3 py-2.5 text-left hover:bg-primary/10"
-                >
-                  <item.icon className="mt-0.5 h-4 w-4 text-primary" />
-                  <span>
-                    <span className="block text-sm font-medium">{item.label}</span>
-                    <span className="block text-xs text-muted-foreground">{item.hint}</span>
-                  </span>
-                </button>
-              ))}
-              <div className="border-t border-primary/15 px-3 py-2">
-                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Резолюция</p>
-                <div className="flex gap-1.5">
-                  {([
-                    ["1024x1024", "1:1"],
-                    ["1536x1024", "хоризонт"],
-                    ["1024x1536", "портрет"],
-                  ] as const).map(([size, label]) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => setImageSize(size)}
-                      className={cn(
-                        "rounded-md border px-2 py-1 text-[11px]",
-                        imageSize === size ? "border-primary bg-primary text-primary-foreground" : "border-primary/20 hover:border-primary",
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
+            {sidebarOpen ? (
+              <PanelLeftClose className="h-4 w-4" />
+            ) : (
+              <PanelLeft className="h-4 w-4" />
+            )}
+          </button>
+          <div className="flex-1">
+            <h1 className="flex items-center gap-2 font-display text-4xl text-accent-foreground">
+              <Sparkles className="h-7 w-7 text-primary" /> AI Помощник
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Интелигентен експерт с пълен достъп до данните на платформата. Питай за статистики,
+              описания, анализи, или прикачи документи/ZIP папка — AI ги подрежда по клиент,
+              категория и месец.
+            </p>
+          </div>
+        </header>
+
+        <div className="flex-1 space-y-4 overflow-auto rounded-2xl border border-primary/15 bg-card p-6">
+          {loadingSession && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Зареждам разговора…
+            </div>
+          )}
+          {messages.length === 0 && (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">Започни с примерен въпрос:</p>
+              <div className="grid gap-2 md:grid-cols-2">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => send(s)}
+                    className="rounded-xl border border-primary/15 bg-background p-3 text-left text-sm hover:border-primary"
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
             </div>
           )}
+          {messages.map((m, i) =>
+            m.role === "review" ? (
+              <ReviewCard
+                key={i}
+                msg={m}
+                busy={busy}
+                onChangeFile={(fIdx, patch) => updateReviewFile(i, fIdx, patch)}
+                onRemove={(fIdx) => removeReviewFile(i, fIdx)}
+                onCommit={(name) => commitReview(i, name)}
+              />
+            ) : m.role === "image" ? (
+              <div key={i} className="rounded-2xl border border-primary/25 bg-background p-4">
+                <div className="flex items-center gap-2">
+                  <Wand2 className="h-4 w-4 text-primary" />
+                  <div className="flex-1 truncate text-sm font-semibold">
+                    Генерирано изображение
+                  </div>
+                  <a
+                    href={m.url}
+                    download={`ai-image-${i}.png`}
+                    className="flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Изтегли
+                  </a>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{m.prompt}</p>
+                <img src={m.url} alt={m.prompt} className="mt-3 w-full rounded-lg object-contain" />
+              </div>
+            ) : m.role === "legal" ? (
+              <LegalCard key={i} msg={m} />
+            ) : (
+              <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
+                {m.role === "assistant" && (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}
+                >
+                  {m.content}
+                  {m.role === "assistant" && (
+                    <button
+                      type="button"
+                      onClick={() => speak(m.content, i)}
+                      className="mt-2 flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20"
+                      aria-label={speakingIdx === i ? "Спри" : "Чуй"}
+                    >
+                      {speakingIdx === i ? (
+                        <Square className="h-3.5 w-3.5" />
+                      ) : (
+                        <Volume2 className="h-3.5 w-3.5" />
+                      )}
+                      {speakingIdx === i ? "Спри" : "Чуй"}
+                    </button>
+                  )}
+                </div>
+                {m.role === "user" && (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                    <UserIcon className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+            ),
+          )}
+          {busy && !uploading && <div className="text-sm text-muted-foreground">Мисля…</div>}
+          {uploading && (
+            <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>{uploading.label}</span>
+              <span className="ml-auto text-xs opacity-70">
+                {uploading.done}/{uploading.total}
+              </span>
+            </div>
+          )}
+          {error && (
+            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+          <div ref={endRef} />
         </div>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={listening ? "Слушам…" : pendingImages.length ? "Добави въпрос към снимката…" : "Питай помощника..."}
-          disabled={busy}
-          className="flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm"
-        />
-        <Button
-          type="button"
-          onClick={toggleListen}
-          disabled={busy}
-          variant="outline"
-          className={cn("px-4", listening && "bg-red-600 text-white hover:bg-red-700 animate-pulse")}
-          aria-label={listening ? "Спри запис" : "Говори"}
-        >
-          {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-        </Button>
-        <Button type="submit" disabled={busy || (!input.trim() && !pendingImages.length)} className="gold-cta-button px-5">
-          <Send className="h-4 w-4" />
-        </Button>
-      </form>
+
+        <form onSubmit={onSubmit} className="mt-4 flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,.pdf,.zip,.jpg,.jpeg,.png,.webp,.heic"
+            onChange={(e) => handleFiles(e.target.files)}
+            className="hidden"
+          />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={(e) => handleImageCapture(e.target.files)}
+            className="hidden"
+          />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => handleImageCapture(e.target.files)}
+            className="hidden"
+          />
+          <input
+            ref={notaryInputRef}
+            type="file"
+            accept="image/*,.pdf"
+            onChange={(e) => handleNotaryFile(e.target.files)}
+            className="hidden"
+          />
+          <div className="relative">
+            <Button
+              type="button"
+              onClick={() => setAttachMenu((v) => !v)}
+              disabled={busy || !!uploading}
+              variant="outline"
+              className="px-4"
+              aria-label="Прикачи"
+              title="Прикачи файл, снимка или нотариален акт"
+            >
+              <Plus className={cn("h-4 w-4 transition-transform", attachMenu && "rotate-45")} />
+            </Button>
+            {attachMenu && (
+              <div className="absolute bottom-full left-0 z-30 mb-2 w-64 overflow-hidden rounded-xl border border-primary/20 bg-popover shadow-xl">
+                {[
+                  {
+                    icon: Paperclip,
+                    label: "Документи или ZIP",
+                    hint: "PDF, снимки, архив",
+                    onClick: () => {
+                      setAttachMenu(false);
+                      onAttachClick();
+                    },
+                  },
+                  {
+                    icon: ImageIcon,
+                    label: "Снимки от галерия",
+                    hint: "автоматично изчистване",
+                    onClick: () => {
+                      setAttachMenu(false);
+                      galleryInputRef.current?.click();
+                    },
+                  },
+                  {
+                    icon: Camera,
+                    label: "Снимка с камера",
+                    hint: "сканирай на момента",
+                    onClick: () => {
+                      setAttachMenu(false);
+                      cameraInputRef.current?.click();
+                    },
+                  },
+                  {
+                    icon: ScrollText,
+                    label: "Нотариален акт → договор",
+                    hint: "и разписка за депозит",
+                    onClick: () => {
+                      setAttachMenu(false);
+                      notaryInputRef.current?.click();
+                    },
+                  },
+                  {
+                    icon: Wand2,
+                    label: "Генерирай изображение",
+                    hint: "по твое описание",
+                    onClick: () => {
+                      setAttachMenu(false);
+                      const p =
+                        input.trim() ||
+                        window.prompt("Опиши изображението, което да генерирам:") ||
+                        "";
+                      if (p.trim()) void makeImage(p);
+                    },
+                  },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={item.onClick}
+                    className="flex w-full items-start gap-3 px-3 py-2.5 text-left hover:bg-primary/10"
+                  >
+                    <item.icon className="mt-0.5 h-4 w-4 text-primary" />
+                    <span>
+                      <span className="block text-sm font-medium">{item.label}</span>
+                      <span className="block text-xs text-muted-foreground">{item.hint}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={listening ? "Слушам…" : "Питай помощника..."}
+            disabled={busy}
+            className="flex-1 rounded-xl border border-input bg-background px-4 py-3 text-sm"
+          />
+          <Button
+            type="button"
+            onClick={toggleListen}
+            disabled={busy}
+            variant="outline"
+            className={cn(
+              "px-4",
+              listening && "bg-red-600 text-white hover:bg-red-700 animate-pulse",
+            )}
+            aria-label={listening ? "Спри запис" : "Говори"}
+          >
+            {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </Button>
+          <Button type="submit" disabled={busy || !input.trim()} className="gold-cta-button px-5">
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
       </div>
     </div>
   );
@@ -794,7 +850,8 @@ function ReviewCard({
         </div>
         <div className="flex-1">
           <div className="text-sm font-medium text-accent-foreground">
-            Анализирах {msg.files.length} документ{msg.files.length === 1 ? "" : "а"}. Провери и потвърди.
+            Анализирах {msg.files.length} документ{msg.files.length === 1 ? "" : "а"}. Провери и
+            потвърди.
           </div>
           {detected && !msg.committed && (
             <div className="mt-0.5 text-xs text-muted-foreground">
@@ -826,17 +883,23 @@ function ReviewCard({
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{f.file_name}</div>
                 {f.reasoning && (
-                  <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{f.reasoning}</div>
+                  <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                    {f.reasoning}
+                  </div>
                 )}
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <select
                     value={f.category}
-                    onChange={(e) => onChangeFile(j, { category: e.target.value as ReviewFile["category"] })}
+                    onChange={(e) =>
+                      onChangeFile(j, { category: e.target.value as ReviewFile["category"] })
+                    }
                     disabled={msg.committed || busy}
                     className="rounded border border-input bg-background px-2 py-1 text-xs"
                   >
                     {DOCUMENT_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
+                      <option key={c} value={c}>
+                        {CATEGORY_LABELS[c]}
+                      </option>
                     ))}
                   </select>
                   {(f.category === "salary_slip" || f.category === "bank_statement") && (
@@ -846,20 +909,30 @@ function ReviewCard({
                         min={1}
                         max={31}
                         value={f.period_day ?? ""}
-                        onChange={(e) => onChangeFile(j, { period_day: e.target.value ? Number(e.target.value) : null })}
+                        onChange={(e) =>
+                          onChangeFile(j, {
+                            period_day: e.target.value ? Number(e.target.value) : null,
+                          })
+                        }
                         disabled={msg.committed || busy}
                         placeholder="ден"
                         className="w-16 rounded border border-input bg-background px-2 py-1 text-xs"
                       />
                       <select
                         value={f.period_month ?? ""}
-                        onChange={(e) => onChangeFile(j, { period_month: e.target.value ? Number(e.target.value) : null })}
+                        onChange={(e) =>
+                          onChangeFile(j, {
+                            period_month: e.target.value ? Number(e.target.value) : null,
+                          })
+                        }
                         disabled={msg.committed || busy}
                         className="rounded border border-input bg-background px-2 py-1 text-xs"
                       >
                         <option value="">— месец —</option>
                         {Array.from({ length: 12 }, (_, k) => k + 1).map((m) => (
-                          <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                          <option key={m} value={m}>
+                            {String(m).padStart(2, "0")}
+                          </option>
                         ))}
                       </select>
                       <input
@@ -867,19 +940,27 @@ function ReviewCard({
                         min={2000}
                         max={2100}
                         value={f.period_year ?? ""}
-                        onChange={(e) => onChangeFile(j, { period_year: e.target.value ? Number(e.target.value) : null })}
+                        onChange={(e) =>
+                          onChangeFile(j, {
+                            period_year: e.target.value ? Number(e.target.value) : null,
+                          })
+                        }
                         disabled={msg.committed || busy}
                         placeholder="година"
                         className="w-20 rounded border border-input bg-background px-2 py-1 text-xs"
                       />
                     </>
                   )}
-                  <span className={cn(
-                    "rounded px-1.5 py-0.5 text-[10px] font-medium",
-                    f.confidence >= 0.75 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" :
-                    f.confidence >= 0.4 ? "bg-amber-500/15 text-amber-700 dark:text-amber-400" :
-                    "bg-rose-500/15 text-rose-700 dark:text-rose-400",
-                  )}>
+                  <span
+                    className={cn(
+                      "rounded px-1.5 py-0.5 text-[10px] font-medium",
+                      f.confidence >= 0.75
+                        ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                        : f.confidence >= 0.4
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                          : "bg-rose-500/15 text-rose-700 dark:text-rose-400",
+                    )}
+                  >
                     {Math.round(f.confidence * 100)}%
                   </span>
                 </div>
@@ -943,8 +1024,20 @@ function LegalCard({ msg }: { msg: Extract<Msg, { role: "legal" }> }) {
     ["Рег. №", act.act_register_number],
     ["Дата", act.act_date],
     ["Нотариус", act.notary_name],
-    ["Продавач(и)", act.sellers.map((s) => s.name).filter(Boolean).join(", ")],
-    ["Купувач(и)", act.buyers.map((s) => s.name).filter(Boolean).join(", ")],
+    [
+      "Продавач(и)",
+      act.sellers
+        .map((s) => s.name)
+        .filter(Boolean)
+        .join(", "),
+    ],
+    [
+      "Купувач(и)",
+      act.buyers
+        .map((s) => s.name)
+        .filter(Boolean)
+        .join(", "),
+    ],
     ["Вид имот", p.type],
     ["Идентификатор", p.cadastral_id],
     ["Адрес", p.address],
@@ -954,8 +1047,16 @@ function LegalCard({ msg }: { msg: Extract<Msg, { role: "legal" }> }) {
     ["Общи части", p.common_parts_sqm != null ? `${p.common_parts_sqm} кв.м` : null],
     ["Ид. части", p.ideal_parts],
     ["Етаж", p.floor],
-    ["Цена", act.price != null ? `${Number(act.price).toLocaleString("bg-BG")} ${act.currency ?? ""}` : null],
-    ["Данъчна оценка", act.tax_valuation != null ? `${Number(act.tax_valuation).toLocaleString("bg-BG")} лв.` : null],
+    [
+      "Цена",
+      act.price != null
+        ? `${Number(act.price).toLocaleString("bg-BG")} ${act.currency ?? ""}`
+        : null,
+    ],
+    [
+      "Данъчна оценка",
+      act.tax_valuation != null ? `${Number(act.tax_valuation).toLocaleString("bg-BG")} лв.` : null,
+    ],
   ];
 
   const text = tab === "contract" ? msg.contract_text : tab === "receipt" ? msg.receipt_text : null;
@@ -968,22 +1069,30 @@ function LegalCard({ msg }: { msg: Extract<Msg, { role: "legal" }> }) {
       </div>
 
       {msg.preview && (
-        <img src={msg.preview} alt={msg.file_name} className="mt-3 max-h-56 w-full rounded-lg object-contain" />
+        <img
+          src={msg.preview}
+          alt={msg.file_name}
+          className="mt-3 max-h-56 w-full rounded-lg object-contain"
+        />
       )}
 
       <div className="mt-3 flex gap-2">
-        {([
-          ["data", "Извлечени данни"],
-          ["contract", "Договор"],
-          ["receipt", "Разписка"],
-        ] as const).map(([key, label]) => (
+        {(
+          [
+            ["data", "Извлечени данни"],
+            ["contract", "Договор"],
+            ["receipt", "Разписка"],
+          ] as const
+        ).map(([key, label]) => (
           <button
             key={key}
             type="button"
             onClick={() => setTab(key)}
             className={cn(
               "rounded-lg border px-3 py-1.5 text-xs",
-              tab === key ? "border-primary bg-primary text-primary-foreground" : "border-primary/20 hover:border-primary",
+              tab === key
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-primary/20 hover:border-primary",
             )}
           >
             {label}
@@ -999,7 +1108,9 @@ function LegalCard({ msg }: { msg: Extract<Msg, { role: "legal" }> }) {
               <dd className="text-right font-medium">{value ? String(value) : "—"}</dd>
             </div>
           ))}
-          {act.notes && <p className="mt-2 text-xs text-muted-foreground md:col-span-2">{act.notes}</p>}
+          {act.notes && (
+            <p className="mt-2 text-xs text-muted-foreground md:col-span-2">{act.notes}</p>
+          )}
         </dl>
       ) : (
         <>
@@ -1012,7 +1123,10 @@ function LegalCard({ msg }: { msg: Extract<Msg, { role: "legal" }> }) {
                 type="button"
                 variant="outline"
                 className="px-3 text-xs"
-                onClick={() => { navigator.clipboard?.writeText(text); toast.success("Копирано"); }}
+                onClick={() => {
+                  navigator.clipboard?.writeText(text);
+                  toast.success("Копирано");
+                }}
               >
                 <Copy className="mr-1.5 h-3.5 w-3.5" /> Копирай
               </Button>
@@ -1020,7 +1134,9 @@ function LegalCard({ msg }: { msg: Extract<Msg, { role: "legal" }> }) {
                 type="button"
                 variant="outline"
                 className="px-3 text-xs"
-                onClick={() => download(`${tab === "contract" ? "dogovor" : "razpiska"}-${Date.now()}.txt`, text)}
+                onClick={() =>
+                  download(`${tab === "contract" ? "dogovor" : "razpiska"}-${Date.now()}.txt`, text)
+                }
               >
                 <Download className="mr-1.5 h-3.5 w-3.5" /> Изтегли
               </Button>

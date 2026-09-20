@@ -1,0 +1,1 @@
+GRANT SELECT ON public.brokers TO anon;

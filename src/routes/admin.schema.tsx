@@ -32,11 +32,20 @@ function SchemaPage() {
           </h1>
           <p className="mt-1 text-sm text-amber-100/70">
             Проверява дали всички нужни таблици и колони съществуват в базата.
-            {data?.host && <> Хост: <code className="text-amber-200">{data.host}</code></>}
+            {data?.host && (
+              <>
+                {" "}
+                Хост: <code className="text-amber-200">{data.host}</code>
+              </>
+            )}
           </p>
         </div>
         <Button onClick={() => refetch()} disabled={isFetching} className="gold-cta-button">
-          {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          {isFetching ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
           <span className="ml-2">Провери отново</span>
         </Button>
       </header>
@@ -61,24 +70,33 @@ function SchemaPage() {
                 <CheckCircle2 className="h-6 w-6" />
                 <div>
                   <div className="font-display text-lg">Всичко е наред</div>
-                  <div className="text-sm opacity-80">Всички очаквани таблици и колони съществуват.</div>
+                  <div className="text-sm opacity-80">
+                    Всички очаквани таблици и колони съществуват.
+                  </div>
                 </div>
               </div>
             ) : (
               <div className="flex items-start gap-3">
                 <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0 text-amber-300" />
                 <div className="text-sm space-y-1">
-                  <div className="font-display text-lg text-amber-100">Открити разлики от очакваната схема</div>
+                  <div className="font-display text-lg text-amber-100">
+                    Открити разлики от очакваната схема
+                  </div>
                   {missingTables.length > 0 && (
-                    <div>Липсват таблици: <b>{missingTables.map((t) => t.table).join(", ")}</b></div>
+                    <div>
+                      Липсват таблици: <b>{missingTables.map((t) => t.table).join(", ")}</b>
+                    </div>
                   )}
                   {partial.length > 0 && (
-                    <div>Таблици с липсващи колони: <b>{partial.map((t) => t.table).join(", ")}</b></div>
+                    <div>
+                      Таблици с липсващи колони: <b>{partial.map((t) => t.table).join(", ")}</b>
+                    </div>
                   )}
                   <div className="pt-2">
                     <a
                       href="https://supabase.com/dashboard/project/_/sql/new"
-                      target="_blank" rel="noreferrer"
+                      target="_blank"
+                      rel="noreferrer"
                       className="inline-block rounded-lg border border-amber-300/60 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-50 hover:bg-amber-500/30"
                     >
                       Отвори Supabase SQL Editor →
@@ -87,17 +105,23 @@ function SchemaPage() {
                 </div>
               </div>
             )}
-            <div className="mt-3 text-[11px] opacity-60">Последна проверка: {new Date(data.checkedAt).toLocaleString("bg-BG")}</div>
+            <div className="mt-3 text-[11px] opacity-60">
+              Последна проверка: {new Date(data.checkedAt).toLocaleString("bg-BG")}
+            </div>
           </div>
 
           <div className="space-y-3">
-            {data.tables.map((t) => <TableCard key={t.table} t={t} />)}
+            {data.tables.map((t) => (
+              <TableCard key={t.table} t={t} />
+            ))}
           </div>
         </>
       )}
 
       {!data && !error && (
-        <div className="flex items-center gap-2 text-amber-100/70"><Loader2 className="h-4 w-4 animate-spin" /> Проверка на схемата...</div>
+        <div className="flex items-center gap-2 text-amber-100/70">
+          <Loader2 className="h-4 w-4 animate-spin" /> Проверка на схемата...
+        </div>
       )}
     </div>
   );
@@ -122,16 +146,22 @@ function TableCard({ t }: { t: TableStatus }) {
           )}
           <div>
             <div className="font-semibold">
-              <code className="rounded bg-[rgba(139,26,43,0.1)] px-1.5 py-0.5">public.{t.table}</code>
+              <code className="rounded bg-[rgba(139,26,43,0.1)] px-1.5 py-0.5">
+                public.{t.table}
+              </code>
             </div>
             <div className="text-xs text-[#6b1626]">{t.purpose}</div>
           </div>
         </div>
-        <div className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-          fullyOk ? "bg-emerald-100 text-emerald-800" :
-          t.exists ? "bg-amber-100 text-amber-800" :
-          "bg-rose-100 text-rose-800"
-        }`}>
+        <div
+          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+            fullyOk
+              ? "bg-emerald-100 text-emerald-800"
+              : t.exists
+                ? "bg-amber-100 text-amber-800"
+                : "bg-rose-100 text-rose-800"
+          }`}
+        >
           {!t.exists ? "таблицата липсва" : `${okCount}/${total} колони`}
         </div>
       </div>
@@ -185,7 +215,8 @@ function TableCard({ t }: { t: TableStatus }) {
 
       {t.migration && !fullyOk && (
         <div className="mt-3 text-xs text-[#6b1626]">
-          Миграция: <code className="rounded bg-[rgba(139,26,43,0.08)] px-1.5 py-0.5">{t.migration}</code>
+          Миграция:{" "}
+          <code className="rounded bg-[rgba(139,26,43,0.08)] px-1.5 py-0.5">{t.migration}</code>
         </div>
       )}
     </div>

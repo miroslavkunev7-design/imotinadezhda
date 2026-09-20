@@ -19,7 +19,12 @@ const entrySchema = z.object({
 
 const groupSchema = z.object({
   id: z.string().uuid().optional(),
-  slug: z.string().trim().min(1).max(60).regex(/^[a-z0-9_-]+$/),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(60)
+    .regex(/^[a-z0-9_-]+$/),
   name: z.string().trim().min(1).max(120),
   icon: z.string().trim().max(60).optional().nullable(),
   display_order: z.number().int().min(0).max(999).optional(),
@@ -76,10 +81,7 @@ export const deleteContact = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { error } = await context.supabase
-      .from("contact_entries")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("contact_entries").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -111,10 +113,7 @@ export const deleteContactGroup = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { error } = await context.supabase
-      .from("contact_groups")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("contact_groups").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

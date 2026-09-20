@@ -32,15 +32,23 @@ function OwnersAdmin() {
 
   const load = async () => {
     const [{ data, error }, { data: cs }] = await Promise.all([
-      supabase.from("owners").select("*, cities:city_id(name)").order("created_at", { ascending: false }),
+      supabase
+        .from("owners")
+        .select("*, cities:city_id(name)")
+        .order("created_at", { ascending: false }),
       supabase.from("cities").select("id, name").order("display_order"),
     ]);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setRows((data as any) ?? []);
     setCities((cs as City[]) ?? []);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
@@ -52,7 +60,10 @@ function OwnersAdmin() {
       : supabase.from("owners").insert(payload);
     const { error } = await op;
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setEditing(null);
     load();
   };
@@ -60,7 +71,10 @@ function OwnersAdmin() {
   const remove = async (id: string) => {
     if (!confirm("Изтриване на собственика?")) return;
     const { error } = await supabase.from("owners").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     load();
   };
 
@@ -68,10 +82,13 @@ function OwnersAdmin() {
 
   const groupedByCity = useMemo(() => {
     const filtered = rows.filter((r) => {
-      const matchSearch = !search.trim() ||
+      const matchSearch =
+        !search.trim() ||
         (r.full_name + " " + (r.phone ?? "") + " " + (r.email ?? "") + " " + (r.id_number ?? ""))
-          .toLowerCase().includes(search.toLowerCase());
-      const matchCity = cityFilter === "all" || (cityFilter === "none" ? !r.city_id : r.city_id === cityFilter);
+          .toLowerCase()
+          .includes(search.toLowerCase());
+      const matchCity =
+        cityFilter === "all" || (cityFilter === "none" ? !r.city_id : r.city_id === cityFilter);
       return matchSearch && matchCity;
     });
     const groups = new Map<string, { name: string; rows: typeof rows }>();
@@ -94,9 +111,17 @@ function OwnersAdmin() {
           <p className="mt-1 text-sm text-amber-100/60">{rows.length} записа</p>
         </div>
         <div className="flex gap-2">
-          <select value={cityFilter} onChange={(e) => setCityFilter(e.target.value)} className="rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-2 text-sm text-amber-100">
+          <select
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            className="rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-2 text-sm text-amber-100"
+          >
             <option value="all">Всички градове</option>
-            {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {cities.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
             <option value="none">Без град</option>
           </select>
           <input
@@ -105,15 +130,23 @@ function OwnersAdmin() {
             placeholder="Търси..."
             className="rounded-lg border border-amber-500/30 bg-[rgba(20,4,8,0.5)] px-3 py-2 text-sm text-amber-100 placeholder:text-amber-100/40"
           />
-          <Button onClick={newOwner} className="gold-cta-button"><Plus className="h-4 w-4" /> Нов собственик</Button>
+          <Button onClick={newOwner} className="gold-cta-button">
+            <Plus className="h-4 w-4" /> Нов собственик
+          </Button>
         </div>
       </header>
 
       <div className="space-y-6">
         {groupedByCity.map((g) => (
-          <div key={g.name} className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+          <div
+            key={g.name}
+            className="overflow-hidden rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]"
+          >
             <div className="flex items-center justify-between border-b border-amber-500/15 bg-[rgba(40,8,16,0.7)] px-4 py-2 text-amber-100">
-              <div className="font-display text-lg flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-300" />{g.name}</div>
+              <div className="font-display text-lg flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-amber-300" />
+                {g.name}
+              </div>
               <span className="text-xs text-amber-100/60">{g.rows.length}</span>
             </div>
             <table className="w-full text-sm text-amber-100">
@@ -131,14 +164,28 @@ function OwnersAdmin() {
                   <tr key={r.id} className="border-t border-amber-500/10 hover:bg-amber-500/5">
                     <td className="px-4 py-2 font-semibold">{r.full_name}</td>
                     <td className="px-4 py-2 text-xs">
-                      {r.phone && <div className="flex items-center gap-1"><Phone className="h-3 w-3" />{r.phone}</div>}
-                      {r.email && <div className="flex items-center gap-1"><Mail className="h-3 w-3" />{r.email}</div>}
+                      {r.phone && (
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          {r.phone}
+                        </div>
+                      )}
+                      {r.email && (
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {r.email}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-2 text-xs">{r.id_number ?? "—"}</td>
                     <td className="px-4 py-2 text-xs">{r.address ?? "—"}</td>
                     <td className="px-4 py-2 text-right">
-                      <button className="mr-2 text-amber-300" onClick={() => setEditing(r)}><Pencil className="h-4 w-4" /></button>
-                      <button className="text-rose-400" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></button>
+                      <button className="mr-2 text-amber-300" onClick={() => setEditing(r)}>
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button className="text-rose-400" onClick={() => remove(r.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -147,48 +194,107 @@ function OwnersAdmin() {
           </div>
         ))}
         {!groupedByCity.length && (
-          <div className="rounded-2xl border border-dashed border-amber-500/30 p-10 text-center text-amber-100/50">Няма собственици.</div>
+          <div className="rounded-2xl border border-dashed border-amber-500/30 p-10 text-center text-[#ffe9c2]">
+            Няма собственици.
+          </div>
         )}
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/55 p-4" onClick={() => setEditing(null)}>
-          <form onSubmit={save} onClick={(e) => e.stopPropagation()} className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#8B1A2B]/55 p-4"
+          onClick={() => setEditing(null)}
+        >
+          <form
+            onSubmit={save}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-2xl bg-card p-6 shadow-2xl space-y-4"
+          >
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-2xl text-accent-foreground">{editing.id ? "Редакция" : "Нов собственик"}</h2>
-              <button type="button" onClick={() => setEditing(null)}><X className="h-5 w-5" /></button>
+              <h2 className="font-display text-2xl text-accent-foreground">
+                {editing.id ? "Редакция" : "Нов собственик"}
+              </h2>
+              <button type="button" onClick={() => setEditing(null)}>
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">Име *</span>
-                <input required value={editing.full_name ?? ""} onChange={(e) => setEditing({ ...editing, full_name: e.target.value })} className={iC} />
+              <label className="block md:col-span-2">
+                <span className="text-xs uppercase text-muted-foreground">Име *</span>
+                <input
+                  required
+                  value={editing.full_name ?? ""}
+                  onChange={(e) => setEditing({ ...editing, full_name: e.target.value })}
+                  className={iC}
+                />
               </label>
-              <label className="block"><span className="text-xs uppercase text-muted-foreground">Град</span>
-                <select value={editing.city_id ?? ""} onChange={(e) => setEditing({ ...editing, city_id: e.target.value || null })} className={iC}>
+              <label className="block">
+                <span className="text-xs uppercase text-muted-foreground">Град</span>
+                <select
+                  value={editing.city_id ?? ""}
+                  onChange={(e) => setEditing({ ...editing, city_id: e.target.value || null })}
+                  className={iC}
+                >
                   <option value="">—</option>
-                  {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {cities.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
                 </select>
               </label>
-              <label className="block"><span className="text-xs uppercase text-muted-foreground">Телефон</span>
-                <input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} className={iC} />
+              <label className="block">
+                <span className="text-xs uppercase text-muted-foreground">Телефон</span>
+                <input
+                  value={editing.phone ?? ""}
+                  onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
+                  className={iC}
+                />
               </label>
-              <label className="block"><span className="text-xs uppercase text-muted-foreground">Имейл</span>
-                <input type="email" value={editing.email ?? ""} onChange={(e) => setEditing({ ...editing, email: e.target.value })} className={iC} />
+              <label className="block">
+                <span className="text-xs uppercase text-muted-foreground">Имейл</span>
+                <input
+                  type="email"
+                  value={editing.email ?? ""}
+                  onChange={(e) => setEditing({ ...editing, email: e.target.value })}
+                  className={iC}
+                />
               </label>
-              <label className="block"><span className="text-xs uppercase text-muted-foreground">ЕГН / ЕИК</span>
-                <input value={editing.id_number ?? ""} onChange={(e) => setEditing({ ...editing, id_number: e.target.value })} className={iC} />
+              <label className="block">
+                <span className="text-xs uppercase text-muted-foreground">ЕГН / ЕИК</span>
+                <input
+                  value={editing.id_number ?? ""}
+                  onChange={(e) => setEditing({ ...editing, id_number: e.target.value })}
+                  className={iC}
+                />
               </label>
-              <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">Адрес</span>
-                <input value={editing.address ?? ""} onChange={(e) => setEditing({ ...editing, address: e.target.value })} className={iC} />
+              <label className="block md:col-span-2">
+                <span className="text-xs uppercase text-muted-foreground">Адрес</span>
+                <input
+                  value={editing.address ?? ""}
+                  onChange={(e) => setEditing({ ...editing, address: e.target.value })}
+                  className={iC}
+                />
               </label>
-              <label className="block md:col-span-2"><span className="text-xs uppercase text-muted-foreground">Бележки</span>
-                <textarea rows={4} value={editing.notes ?? ""} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} className={iC} />
+              <label className="block md:col-span-2">
+                <span className="text-xs uppercase text-muted-foreground">Бележки</span>
+                <textarea
+                  rows={4}
+                  value={editing.notes ?? ""}
+                  onChange={(e) => setEditing({ ...editing, notes: e.target.value })}
+                  className={iC}
+                />
               </label>
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setEditing(null)}>Отказ</Button>
-              <Button type="submit" disabled={busy} className="gold-cta-button">{busy ? "Запис..." : "Запази"}</Button>
+              <Button type="button" variant="outline" onClick={() => setEditing(null)}>
+                Отказ
+              </Button>
+              <Button type="submit" disabled={busy} className="gold-cta-button">
+                {busy ? "Запис..." : "Запази"}
+              </Button>
             </div>
           </form>
         </div>

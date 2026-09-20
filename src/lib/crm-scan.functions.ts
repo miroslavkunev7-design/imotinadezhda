@@ -44,12 +44,10 @@ const SYSTEM = `Ти си асистент за разпознаване на к
 export type ScanInput = z.infer<typeof inputSchema>;
 
 // Exported for unit testing. Performs admin gate, then calls the configured AI provider.
-export async function scanClientFromImageHandler(
-  data: ScanInput,
-  context: { userId: string },
-) {
+export async function scanClientFromImageHandler(data: ScanInput, context: { userId: string }) {
   await assertAdmin(context.userId);
-  if (!resolveAiProvider()) throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
+  if (!resolveAiProvider())
+    throw new Error("AI не е конфигуриран — задайте OPENAI_API_KEY или GEMINI_API_KEY.");
 
   const dataUrl = `data:${data.mimeType};base64,${data.imageBase64}`;
 
@@ -68,7 +66,8 @@ export async function scanClientFromImageHandler(
   });
 
   if (res.status === 429) throw new Error("Лимитът е изчерпан, моля опитай след малко.");
-  if (res.status === 402) throw new Error("Кредитите за AI са изчерпани. Зареди от Settings → Workspace → Usage.");
+  if (res.status === 402)
+    throw new Error("Кредитите за AI са изчерпани. Зареди от Settings → Workspace → Usage.");
   if (!res.ok) {
     const t = await res.text().catch(() => "");
     throw new Error(`AI грешка ${res.status}: ${t.slice(0, 200)}`);
@@ -76,7 +75,10 @@ export async function scanClientFromImageHandler(
 
   const json = await res.json();
   const raw: string = json?.choices?.[0]?.message?.content ?? "";
-  const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+  const cleaned = raw
+    .replace(/^```(?:json)?/i, "")
+    .replace(/```$/, "")
+    .trim();
   let parsed: any;
   try {
     parsed = JSON.parse(cleaned);
@@ -94,4 +96,3 @@ export const scanClientFromImage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) =>
     scanClientFromImageHandler(data, { userId: context.userId }),
   );
-

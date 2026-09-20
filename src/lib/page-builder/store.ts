@@ -29,7 +29,14 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   history: [],
   future: [],
   setDesign: (id, slug, layout) =>
-    set({ designId: id, pageSlug: slug, blocks: layout.blocks ?? [], history: [], future: [], selectedId: null }),
+    set({
+      designId: id,
+      pageSlug: slug,
+      blocks: layout.blocks ?? [],
+      history: [],
+      future: [],
+      selectedId: null,
+    }),
   snapshot: () => {
     const { blocks, history } = get();
     set({ history: [...history.slice(-30), blocks], future: [] });

@@ -5,12 +5,26 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 async function assertAdmin(userId: string) {
   const { data } = await supabaseAdmin
-    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
   if (!data) throw new Error("Forbidden — admin only");
 }
 
-function folderPath(year: number, cityName?: string | null, quarterName?: string | null, title?: string | null, id?: string) {
-  const safe = (s?: string | null) => (s ?? "—").trim().replace(/[\/\\:*?"<>|]+/g, "-").slice(0, 60);
+function folderPath(
+  year: number,
+  cityName?: string | null,
+  quarterName?: string | null,
+  title?: string | null,
+  id?: string,
+) {
+  const safe = (s?: string | null) =>
+    (s ?? "—")
+      .trim()
+      .replace(/[\/\\:*?"<>|]+/g, "-")
+      .slice(0, 60);
   return `${year}/${safe(cityName)}/${safe(quarterName)}/${safe(title) || id?.slice(0, 8) || "imot"}`;
 }
 
@@ -30,7 +44,13 @@ export const archiveExtracted = createServerFn({ method: "POST" })
     if (srcErr || !src) throw new Error(srcErr?.message ?? "Не е намерена обявата");
 
     const year = new Date().getFullYear();
-    const path = folderPath(year, (src as any).cities?.name, (src as any).quarters?.name, src.title, src.id);
+    const path = folderPath(
+      year,
+      (src as any).cities?.name,
+      (src as any).quarters?.name,
+      src.title,
+      src.id,
+    );
 
     const { data: inserted, error } = await supabase
       .from("archived_properties")
@@ -67,12 +87,14 @@ export const archiveExtracted = createServerFn({ method: "POST" })
 export const listArchive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { city_id?: string; quarter_id?: string; year?: number; search?: string }) =>
-    z.object({
-      city_id: z.string().uuid().optional(),
-      quarter_id: z.string().uuid().optional(),
-      year: z.number().int().optional(),
-      search: z.string().max(200).optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        city_id: z.string().uuid().optional(),
+        quarter_id: z.string().uuid().optional(),
+        year: z.number().int().optional(),
+        search: z.string().max(200).optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
@@ -146,14 +168,134 @@ export const updateArchive = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Позволени типове в публичната таблица `properties`. */
+const PUBLIC_TYPES = ["apartment", "house", "office", "land", "commercial"] as const;
+type PublicType = (typeof PUBLIC_TYPES)[number];
+
+/** Нормализира типа на имота (вкл. български надписи и „парцел“ → land). */
+function mapPropertyType(raw?: string | null): PublicType {
+  const t = (raw ?? "").toLowerCase().trim();
+  if ((PUBLIC_TYPES as readonly string[]).includes(t)) return t as PublicType;
+  if (/парцел|plot|земя|земеделск/.test(t)) return "land";
+  if (/къща|house|вила/.test(t)) return "house";
+  if (/офис|office/.test(t)) return "office";
+  if (/магазин|търговск|commercial|заведение/.test(t)) return "commercial";
+  return "apartment";
+}
+
+/**
+ * Публикува архивиран имот на сайта (или го скрива).
+ *
+ * На сайта отиват САМО публичните данни:
+ * `description` (описанието за сайта / AI текста) и „нашата цена“.
+ * `personal_price` и `personal_description` остават само в CRM.
+ * Ако няма въведена официална цена, използваме личната цена + 5 EUR.
+ */
+export const publishArchive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; publish: boolean }) =>
+    z.object({ id: z.string().uuid(), publish: z.boolean() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabase, userId } = context;
+
+    const { data: row, error: rowErr } = await supabase
+      .from("archived_properties")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (rowErr) throw new Error(rowErr.message);
+    if (!row) throw new Error("Не е намерен имотът");
+
+    const linkedId = (row as any).published_property_id as string | null;
+
+    // Скриване от сайта
+    if (!data.publish) {
+      if (linkedId) {
+        await supabase.from("properties").update({ is_published: false }).eq("id", linkedId);
+      }
+      await supabase.from("archived_properties").update({ is_published: false }).eq("id", data.id);
+      return { ok: true as const, published: false, property_id: linkedId };
+    }
+
+    if (!row.city_id) throw new Error("Избери град преди публикуване");
+    const personal = typeof row.personal_price === "number" ? row.personal_price : null;
+    const price =
+      typeof row.price === "number" ? row.price : personal != null ? personal + 5 : null;
+    if (price == null) throw new Error("Въведи наша или лична цена преди публикуване");
+
+    const images = ((row.images ?? []) as unknown[]).filter(
+      (u): u is string => typeof u === "string",
+    );
+    const payload = {
+      title: row.title || "Имот",
+      description: row.description ?? null,
+      city_id: row.city_id,
+      quarter_id: row.quarter_id ?? null,
+      property_type: mapPropertyType(row.property_type),
+      status: (row.status === "rent" ? "rent" : "sale") as "rent" | "sale",
+      price,
+      currency: row.currency ?? "EUR",
+      area_sqm: row.area_sqm ?? null,
+      rooms: row.rooms ?? null,
+      bedrooms: row.bedrooms ?? null,
+      floor: row.floor ?? null,
+      total_floors: row.total_floors ?? null,
+      year_built: row.year_built ?? null,
+      cover_image_url: images[0] ?? null,
+      is_published: true,
+      created_by: userId,
+    };
+
+    let propertyId = linkedId;
+    if (propertyId) {
+      const { error } = await supabase.from("properties").update(payload).eq("id", propertyId);
+      if (error) throw new Error(error.message);
+    } else {
+      const { data: ins, error } = await supabase
+        .from("properties")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      propertyId = ins.id;
+    }
+
+    // Снимките се синхронизират 1:1 с архивната папка.
+    await supabase.from("property_images").delete().eq("property_id", propertyId);
+    if (images.length) {
+      const { error: imgErr } = await supabase
+        .from("property_images")
+        .insert(
+          images.map((url, i) => ({
+            property_id: propertyId!,
+            url,
+            is_cover: i === 0,
+            display_order: i,
+          })),
+        );
+      if (imgErr) throw new Error(imgErr.message);
+    }
+
+    await supabase
+      .from("archived_properties")
+      .update({ is_published: true, published_property_id: propertyId })
+      .eq("id", data.id);
+
+    return { ok: true as const, published: true, property_id: propertyId };
+  });
+
 /** Създаване на празна папка (ръчно добавяне). */
 export const createArchive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { city_id?: string | null; quarter_id?: string | null }) =>
-    z.object({
-      city_id: z.string().uuid().nullable().optional(),
-      quarter_id: z.string().uuid().nullable().optional(),
-    }).parse(d ?? {}),
+    z
+      .object({
+        city_id: z.string().uuid().nullable().optional(),
+        quarter_id: z.string().uuid().nullable().optional(),
+      })
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
@@ -162,11 +304,19 @@ export const createArchive = createServerFn({ method: "POST" })
     let cityName: string | null = null;
     let quarterName: string | null = null;
     if (data.city_id) {
-      const { data: c } = await supabase.from("cities").select("name").eq("id", data.city_id).maybeSingle();
+      const { data: c } = await supabase
+        .from("cities")
+        .select("name")
+        .eq("id", data.city_id)
+        .maybeSingle();
       cityName = (c as any)?.name ?? null;
     }
     if (data.quarter_id) {
-      const { data: q } = await supabase.from("quarters").select("name").eq("id", data.quarter_id).maybeSingle();
+      const { data: q } = await supabase
+        .from("quarters")
+        .select("name")
+        .eq("id", data.quarter_id)
+        .maybeSingle();
       quarterName = (q as any)?.name ?? null;
     }
 
@@ -187,7 +337,10 @@ export const createArchive = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const path = folderPath(year, cityName, quarterName, "Нова папка", inserted.id);
-    await supabase.from("archived_properties").update({ drive_folder_path: path }).eq("id", inserted.id);
+    await supabase
+      .from("archived_properties")
+      .update({ drive_folder_path: path })
+      .eq("id", inserted.id);
 
     return { id: inserted.id as string };
   });

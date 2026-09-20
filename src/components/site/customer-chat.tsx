@@ -25,8 +25,6 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
   const [chatId, setChatId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [unread, setUnread] = useState(false);
-  const [visitorName, setVisitorName] = useState("");
-  const [visitorPhone, setVisitorPhone] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const token = useMemo(getVisitorToken, []);
   const storageKey = chatStorageKey(propertyId);
@@ -38,8 +36,6 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
         const parsed = JSON.parse(raw);
         setMessages(parsed.messages ?? []);
         setChatId(parsed.chatId ?? null);
-        if (parsed.visitorName) setVisitorName(parsed.visitorName);
-        if (parsed.visitorPhone) setVisitorPhone(parsed.visitorPhone);
       } else {
         setMessages([
           {
@@ -56,13 +52,17 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
 
   useEffect(() => {
     if (!messages.length) return;
-    localStorage.setItem(storageKey, JSON.stringify({ messages, chatId, visitorName, visitorPhone }));
-  }, [messages, chatId, visitorName, visitorPhone, storageKey]);
+    localStorage.setItem(storageKey, JSON.stringify({ messages, chatId }));
+  }, [messages, chatId, storageKey]);
 
   useEffect(() => {
     if (open) {
       setUnread(false);
-      setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }), 50);
+      setTimeout(
+        () =>
+          scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }),
+        50,
+      );
     }
   }, [open, messages.length]);
 
@@ -80,8 +80,6 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
         body: JSON.stringify({
           chat_id: chatId,
           visitor_token: token,
-          visitor_name: visitorName || undefined,
-          visitor_phone: visitorPhone || undefined,
           property_id: propertyId ?? null,
           page_url: typeof window !== "undefined" ? window.location.href : undefined,
           message: text,
@@ -116,7 +114,7 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="flex fixed bottom-20 right-4 z-[100] items-center gap-2 rounded-full bg-gradient-to-br from-primary to-[#5e0f1d] px-4 py-3 text-sm font-semibold text-amber-100 shadow-2xl ring-2 ring-amber-400/60 transition hover:scale-105 md:bottom-5 md:right-5 md:px-5"
+          className="hidden md:flex fixed bottom-5 right-5 z-[100] items-center gap-2 rounded-full bg-gradient-to-br from-primary to-[#5e0f1d] px-5 py-3 text-sm font-semibold text-amber-100 shadow-2xl ring-2 ring-amber-400/60 transition hover:scale-105"
           aria-label="Отвори чат"
         >
           <MessageCircle className="h-5 w-5" />
@@ -126,20 +124,29 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
       )}
 
       {open && (
-        <div className="fixed inset-x-3 bottom-20 z-[100] flex max-h-[75vh] flex-col overflow-hidden rounded-2xl border border-amber-400/40 bg-[rgba(255,251,243,0.98)] shadow-2xl backdrop-blur-md sm:inset-auto md:bottom-5 sm:right-5 sm:w-[400px] sm:bottom-5">
+        <div className="fixed inset-x-3 bottom-3 z-[100] flex max-h-[85vh] flex-col overflow-hidden rounded-2xl border border-amber-400/40 bg-[rgba(255,251,243,0.98)] shadow-2xl backdrop-blur-md sm:inset-auto sm:bottom-5 sm:right-5 sm:w-[400px]">
           <header className="flex items-center justify-between gap-2 border-b border-amber-500/20 bg-gradient-to-r from-primary to-[#5e0f1d] px-4 py-3 text-amber-100">
             <div>
-              <div className="text-[10px] uppercase tracking-widest text-amber-300/80">Виртуален консултант</div>
+              <div className="text-[10px] uppercase tracking-widest text-amber-300/80">
+                Виртуален консултант
+              </div>
               <div className="font-display text-base">Надежда · онлайн</div>
             </div>
-            <button onClick={() => setOpen(false)} className="rounded-full p-1.5 hover:bg-white/10" aria-label="Затвори">
+            <button
+              onClick={() => setOpen(false)}
+              className="rounded-full p-1.5 hover:bg-white/10"
+              aria-label="Затвори"
+            >
               <X className="h-4 w-4" />
             </button>
           </header>
 
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-3 py-4">
             {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                key={i}
+                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              >
                 <div
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm shadow ${
                     m.role === "user"
@@ -151,7 +158,11 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
                     <ReactMarkdown
                       components={{
                         a: (props) => (
-                          <a {...props} target={props.href?.startsWith("/") ? "_self" : "_blank"} rel="noreferrer" />
+                          <a
+                            {...props}
+                            target={props.href?.startsWith("/") ? "_self" : "_blank"}
+                            rel="noreferrer"
+                          />
                         ),
                       }}
                     >
@@ -169,27 +180,13 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
           </div>
 
           <div className="border-t border-amber-500/20 bg-white/60 px-3 py-2">
-            <div className="mb-2 grid grid-cols-2 gap-2">
-              <input
-                value={visitorName}
-                onChange={(e) => setVisitorName(e.target.value)}
-                placeholder="Име"
-                className="rounded-lg border border-primary/15 bg-white px-2 py-1 text-xs text-primary outline-none"
-              />
-              <input
-                value={visitorPhone}
-                onChange={(e) => setVisitorPhone(e.target.value)}
-                placeholder="Телефон"
-                className="rounded-lg border border-primary/15 bg-white px-2 py-1 text-xs text-primary outline-none"
-              />
-            </div>
             <div className="mb-2 flex items-center justify-between text-[10px] text-primary/50">
               <span>Безплатен AI консултант — без лимити и регистрация.</span>
-              <a href="tel:+359885774863" className="inline-flex items-center gap-1 text-primary hover:underline">
+              <a
+                href="tel:+359885774863"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
                 <Phone className="h-3 w-3" /> Обади се
-              </a>
-              <a href="https://wa.me/359885774863" target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                WhatsApp
               </a>
             </div>
             <div className="flex items-end gap-2">
@@ -212,7 +209,11 @@ export function CustomerChat({ propertyId }: { propertyId?: string | null }) {
                 className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50"
                 aria-label="Изпрати"
               >
-                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {sending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </button>
             </div>
           </div>

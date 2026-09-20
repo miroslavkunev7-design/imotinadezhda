@@ -76,7 +76,12 @@ async function fetchCheck(path, opts = {}) {
       (opts.expectStatus && res.status !== opts.expectStatus) ||
       (opts.mustInclude && !text.includes(opts.mustInclude)) ||
       (opts.mustNotInclude && text.includes(opts.mustNotInclude));
-    return { path, status: res.status, ok: !fail, detail: fail ? opts.failReason ?? "check failed" : "ok" };
+    return {
+      path,
+      status: res.status,
+      ok: !fail,
+      detail: fail ? (opts.failReason ?? "check failed") : "ok",
+    };
   } catch (e) {
     return { path, status: 0, ok: false, detail: String(e.message ?? e) };
   }
@@ -102,7 +107,12 @@ async function main() {
   }
 
   for (const p of props.slice(0, 4)) {
-    results.push(await fetchCheck(p, { mustNotInclude: "This page didn't load", failReason: "error boundary" }));
+    results.push(
+      await fetchCheck(p, {
+        mustNotInclude: "This page didn't load",
+        failReason: "error boundary",
+      }),
+    );
   }
 
   for (const p of MEDIA) {
@@ -144,7 +154,19 @@ async function main() {
   const passed = results.filter((r) => r.ok);
   const failed = results.filter((r) => !r.ok);
 
-  console.log(JSON.stringify({ base: BASE, total: results.length, passed: passed.length, failed: failed.length, failedItems: failed }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        base: BASE,
+        total: results.length,
+        passed: passed.length,
+        failed: failed.length,
+        failedItems: failed,
+      },
+      null,
+      2,
+    ),
+  );
   process.exit(failed.length ? 1 : 0);
 }
 

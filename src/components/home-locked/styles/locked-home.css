@@ -1,0 +1,171 @@
+/* Стилове от 01_FINAL_WORKING_APP/src/styles/global.css — същите стойности,
+   само обхватът е ограничен до .locked-home-desktop, за да не текат в мобилния
+   изглед и в останалите страници. */
+.locked-home-desktop {
+  font-family: Arial, sans-serif;
+  background: #071d2a url("/assets/OCEAN_OUTSIDE_FILL.png") center bottom/auto 220px repeat-x;
+  color: #fff;
+  color-scheme: dark;
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+.locked-home-desktop * {
+  box-sizing: border-box;
+}
+.locked-home-desktop button,
+.locked-home-desktop select,
+.locked-home-desktop input {
+  font: inherit;
+}
+.locked-home-desktop .home-artboard {
+  position: relative;
+  width: min(100vw, 1536px);
+  max-width: 1536px;
+  aspect-ratio: 3/2;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #170305;
+  contain: layout paint size;
+}
+.locked-home-desktop .locked-base {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  object-fit: fill;
+}
+.locked-home-desktop .sea-motion,
+.locked-home-desktop .sea-motion canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.locked-home-desktop .sea-motion {
+  z-index: 2;
+  overflow: hidden;
+  contain: strict;
+}
+.locked-home-desktop .sea-motion canvas:first-child {
+  z-index: 1;
+}
+.locked-home-desktop .sea-motion canvas:last-child {
+  z-index: 2;
+}
+.locked-home-desktop .hit,
+.locked-home-desktop .native-select {
+  position: absolute;
+  z-index: 8;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.locked-home-desktop .hit {
+  color: transparent;
+}
+.locked-home-desktop .native-select {
+  opacity: 0;
+  color: transparent;
+  background: transparent;
+}
+.locked-home-desktop .hit:focus {
+  outline: none;
+}
+.locked-home-desktop .hit:focus-visible,
+.locked-home-desktop .native-select:focus-visible {
+  outline: 2px solid #d69b00;
+  outline-offset: 2px;
+}
+.locked-home-desktop .map-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+.locked-home-desktop .map-hit {
+  pointer-events: auto;
+}
+.locked-home-desktop .city-menu,
+.locked-home-desktop .advanced-popover {
+  position: absolute;
+  z-index: 30;
+  background: rgba(61, 6, 8, 0.98);
+  border: 1px solid #d69b00;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  padding: 10px;
+  max-width: min(90vw, 280px);
+}
+.locked-home-desktop .city-menu {
+  left: 43%;
+  top: 17%;
+  min-width: 170px;
+}
+.locked-home-desktop .city-menu strong {
+  display: block;
+  color: #f7cf57;
+  border-bottom: 1px solid #d69b00;
+  padding: 0 0 6px;
+  margin-bottom: 4px;
+}
+.locked-home-desktop .city-menu button,
+.locked-home-desktop .advanced-popover button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  padding: 9px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.locked-home-desktop .city-menu button:hover,
+.locked-home-desktop .city-menu button:focus-visible,
+.locked-home-desktop .advanced-popover button:hover {
+  background: #530c0c;
+}
+.locked-home-desktop .menu-close {
+  border-top: 1px solid rgba(214, 155, 0, 0.5) !important;
+  margin-top: 4px !important;
+}
+.locked-home-desktop .advanced-popover {
+  left: 68%;
+  top: 66%;
+  min-width: 220px;
+}
+.locked-home-desktop .advanced-popover label {
+  display: block;
+  padding: 7px;
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .locked-home-desktop .home-artboard {
+    width: 100vw;
+  }
+  .locked-home-desktop .city-menu {
+    font-size: 13px;
+  }
+}
+@media (min-width: 1537px) {
+  .locked-home-desktop {
+    background-color: #071d2a;
+  }
+  .locked-home-desktop .home-artboard {
+    margin-top: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .locked-home-desktop .sea-motion {
+    visibility: hidden;
+  }
+}

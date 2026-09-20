@@ -62,7 +62,8 @@ function guessMime(name: string): string {
   if (ext === "webp") return "image/webp";
   if (ext === "heic") return "image/heic";
   if (ext === "pdf") return "application/pdf";
-  if (ext === "docx") return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  if (ext === "docx")
+    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
   if (ext === "xlsx") return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
   if (ext === "zip") return "application/zip";
   return "application/octet-stream";
@@ -164,7 +165,10 @@ async function classifyDocument(
 
   const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
   const raw = json.choices?.[0]?.message?.content ?? "";
-  const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  const cleaned = raw
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/```\s*$/i, "")
+    .trim();
   let parsed: Record<string, unknown> = {};
   try {
     parsed = JSON.parse(cleaned) as Record<string, unknown>;
@@ -172,13 +176,20 @@ async function classifyDocument(
     // Try to extract first JSON object substring.
     const m = cleaned.match(/\{[\s\S]*\}/);
     if (m) {
-      try { parsed = JSON.parse(m[0]) as Record<string, unknown>; } catch { /* ignore */ }
+      try {
+        parsed = JSON.parse(m[0]) as Record<string, unknown>;
+      } catch {
+        /* ignore */
+      }
     }
   }
 
-  const cat = (typeof parsed.category === "string" && (CATEGORIES as readonly string[]).includes(parsed.category)
-    ? parsed.category
-    : "other") as Category;
+  const cat = (
+    typeof parsed.category === "string" &&
+    (CATEGORIES as readonly string[]).includes(parsed.category)
+      ? parsed.category
+      : "other"
+  ) as Category;
 
   const asInt = (v: unknown, min: number, max: number): number | null => {
     const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
@@ -192,10 +203,17 @@ async function classifyDocument(
     period_day: asInt(parsed.period_day, 1, 31),
     period_month: asInt(parsed.period_month, 1, 12),
     period_year: asInt(parsed.period_year, 2000, 2100),
-    detected_client_name: typeof parsed.detected_client_name === "string" ? parsed.detected_client_name.slice(0, 200) : null,
-    detected_bank: typeof parsed.detected_bank === "string" ? parsed.detected_bank.slice(0, 100) : null,
+    detected_client_name:
+      typeof parsed.detected_client_name === "string"
+        ? parsed.detected_client_name.slice(0, 200)
+        : null,
+    detected_bank:
+      typeof parsed.detected_bank === "string" ? parsed.detected_bank.slice(0, 100) : null,
     detected_amount: typeof parsed.detected_amount === "number" ? parsed.detected_amount : null,
-    confidence: Math.min(1, Math.max(0, typeof parsed.confidence === "number" ? parsed.confidence : 0)),
+    confidence: Math.min(
+      1,
+      Math.max(0, typeof parsed.confidence === "number" ? parsed.confidence : 0),
+    ),
     reasoning: typeof parsed.reasoning === "string" ? parsed.reasoning.slice(0, 500) : "",
   };
 }
@@ -218,12 +236,14 @@ export const startDocumentBatch = createServerFn({ method: "POST" })
 export const processBatchFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      batch_id: z.string().uuid(),
-      storage_path: z.string().min(1).max(500),
-      file_name: z.string().min(1).max(255),
-      mime_type: z.string().max(120).optional().nullable(),
-    }).parse(d),
+    z
+      .object({
+        batch_id: z.string().uuid(),
+        storage_path: z.string().min(1).max(500),
+        file_name: z.string().min(1).max(255),
+        mime_type: z.string().max(120).optional().nullable(),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
@@ -251,7 +271,8 @@ export const processBatchFile = createServerFn({ method: "POST" })
       for (const [innerName, innerBytes] of Object.entries(entries)) {
         // Skip directories and macOS metadata.
         if (innerName.endsWith("/")) continue;
-        if (innerName.includes("__MACOSX/") || innerName.split("/").pop()?.startsWith(".")) continue;
+        if (innerName.includes("__MACOSX/") || innerName.split("/").pop()?.startsWith("."))
+          continue;
         if (innerBytes.length === 0) continue;
 
         const baseName = innerName.split("/").pop() ?? "file";
@@ -262,7 +283,10 @@ export const processBatchFile = createServerFn({ method: "POST" })
         const innerPath = `temp/${data.batch_id}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${safeName}`;
         const upl = await db.storage
           .from(BUCKET)
-          .upload(innerPath, innerBytes as unknown as Uint8Array, { contentType: innerMime, upsert: false });
+          .upload(innerPath, innerBytes as unknown as Uint8Array, {
+            contentType: innerMime,
+            upsert: false,
+          });
         if (upl.error) {
           console.error("[doc-ingest] inner upload failed", upl.error.message);
           continue;
@@ -316,9 +340,10 @@ export const processBatchFile = createServerFn({ method: "POST" })
           detected_bank: null,
           detected_amount: null,
           confidence: 0,
-          reasoning: arr.length > AI_MAX_BYTES
-            ? "Файлът е твърде голям за AI анализ (>15MB) — запазен като 'Друго'."
-            : "Форматът не се поддържа от AI — запазен като 'Друго'.",
+          reasoning:
+            arr.length > AI_MAX_BYTES
+              ? "Файлът е твърде голям за AI анализ (>15MB) — запазен като 'Друго'."
+              : "Форматът не се поддържа от AI — запазен като 'Друго'.",
         };
       }
       results.push({
@@ -340,30 +365,36 @@ export const processBatchFile = createServerFn({ method: "POST" })
 export const commitDocumentBatch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({
-      batch_id: z.string().uuid(),
-      client_id: z.string().uuid().optional().nullable(),
-      client_name: z.string().min(2).max(200).optional().nullable(),
-      files: z.array(
-        z.object({
-          storage_path: z.string().min(1).max(500),
-          file_name: z.string().min(1).max(255),
-          mime_type: z.string().max(120),
-          size: z.number().int().nonnegative(),
-          category: z.enum(CATEGORIES),
-          period_day: z.number().int().min(1).max(31).nullable(),
-          period_month: z.number().int().min(1).max(12).nullable(),
-          period_year: z.number().int().min(2000).max(2100).nullable(),
-          detected_client_name: z.string().max(200).nullable().optional(),
-          detected_bank: z.string().max(100).nullable().optional(),
-          detected_amount: z.number().nullable().optional(),
-          confidence: z.number().min(0).max(1),
-          reasoning: z.string().max(500).optional().default(""),
-        }),
-      ).min(1).max(200),
-    }).refine((v) => !!(v.client_id || v.client_name), {
-      message: "Липсва client_id или client_name",
-    }).parse(d),
+    z
+      .object({
+        batch_id: z.string().uuid(),
+        client_id: z.string().uuid().optional().nullable(),
+        client_name: z.string().min(2).max(200).optional().nullable(),
+        files: z
+          .array(
+            z.object({
+              storage_path: z.string().min(1).max(500),
+              file_name: z.string().min(1).max(255),
+              mime_type: z.string().max(120),
+              size: z.number().int().nonnegative(),
+              category: z.enum(CATEGORIES),
+              period_day: z.number().int().min(1).max(31).nullable(),
+              period_month: z.number().int().min(1).max(12).nullable(),
+              period_year: z.number().int().min(2000).max(2100).nullable(),
+              detected_client_name: z.string().max(200).nullable().optional(),
+              detected_bank: z.string().max(100).nullable().optional(),
+              detected_amount: z.number().nullable().optional(),
+              confidence: z.number().min(0).max(1),
+              reasoning: z.string().max(500).optional().default(""),
+            }),
+          )
+          .min(1)
+          .max(200),
+      })
+      .refine((v) => !!(v.client_id || v.client_name), {
+        message: "Липсва client_id или client_name",
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
@@ -374,13 +405,12 @@ export const commitDocumentBatch = createServerFn({ method: "POST" })
     let created = false;
     if (!clientId && data.client_name) {
       // RPC declared in manual migration; types haven't been regenerated yet.
-      const { data: rpc, error } = await (db.rpc as unknown as (
-        fn: string,
-        args: Record<string, unknown>,
-      ) => Promise<{ data: unknown; error: { message: string } | null }>)(
-        "find_or_create_client_by_name",
-        { _name: data.client_name, _created_by: context.userId },
-      );
+      const { data: rpc, error } = await (
+        db.rpc as unknown as (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{ data: unknown; error: { message: string } | null }>
+      )("find_or_create_client_by_name", { _name: data.client_name, _created_by: context.userId });
       if (error) throw new Error("Клиент не може да бъде намерен/създаден: " + error.message);
       clientId = rpc as unknown as string;
       created = true;
@@ -388,7 +418,13 @@ export const commitDocumentBatch = createServerFn({ method: "POST" })
     if (!clientId) throw new Error("Не е избран клиент.");
 
     // 2) Move each file & insert record
-    const inserted: Array<{ id: string; category: string; period_month: number | null; period_year: number | null; file_name: string }> = [];
+    const inserted: Array<{
+      id: string;
+      category: string;
+      period_month: number | null;
+      period_year: number | null;
+      file_name: string;
+    }> = [];
     for (const f of data.files) {
       const finalName = buildFinalName(f);
       const finalPath = `${clientId}/${f.category}/${finalName}`;
@@ -399,7 +435,9 @@ export const commitDocumentBatch = createServerFn({ method: "POST" })
         console.error("[doc-ingest] move failed", f.storage_path, mv.error.message);
         continue;
       }
-      const { data: signed } = await db.storage.from(BUCKET).createSignedUrl(finalPath, 60 * 60 * 24 * 365);
+      const { data: signed } = await db.storage
+        .from(BUCKET)
+        .createSignedUrl(finalPath, 60 * 60 * 24 * 365);
 
       // New columns (category, period_*, ai_*, source_batch_id, storage_path) come
       // from the manual migration; generated types don't know them yet.
@@ -425,11 +463,15 @@ export const commitDocumentBatch = createServerFn({ method: "POST" })
         source_batch_id: data.batch_id,
         uploaded_by: context.userId,
       };
-      const { data: row, error: insErr } = await (db.from("client_documents") as unknown as {
-        insert: (v: Record<string, unknown>) => {
-          select: (cols: string) => { single: () => Promise<{ data: unknown; error: { message: string } | null }> };
-        };
-      })
+      const { data: row, error: insErr } = await (
+        db.from("client_documents") as unknown as {
+          insert: (v: Record<string, unknown>) => {
+            select: (cols: string) => {
+              single: () => Promise<{ data: unknown; error: { message: string } | null }>;
+            };
+          };
+        }
+      )
         .insert(insertPayload)
         .select("id, category, period_month, period_year, file_name")
         .single();
@@ -456,14 +498,14 @@ function buildFinalName(f: {
 
   // Bulgarian slug for the category (used as the file's prefix).
   const slugMap: Record<Category, string> = {
-    id_card_front:       "лична-карта-лице",
-    id_card_back:        "лична-карта-гръб",
-    salary_slip:         "фиш",
-    bank_statement:      "извлечение",
+    id_card_front: "лична-карта-лице",
+    id_card_back: "лична-карта-гръб",
+    salary_slip: "фиш",
+    bank_statement: "извлечение",
     employment_contract: "трудов-договор",
-    property_deed:       "нотариален-акт",
-    tax_declaration:     "данъчна-декларация",
-    other:               "документ",
+    property_deed: "нотариален-акт",
+    tax_declaration: "данъчна-декларация",
+    other: "документ",
   };
   const slug = slugMap[f.category];
 
@@ -485,7 +527,11 @@ function buildFinalName(f: {
 
   if (datePart) return `${slug}-${datePart}.${ext}`;
   // No date detected → keep slug + short original stub so it's still readable.
-  const stub = f.file_name.replace(/\.[^.]+$/, "").replace(/[^\p{L}\p{N}\-_]+/gu, "_").slice(0, 40) || "документ";
+  const stub =
+    f.file_name
+      .replace(/\.[^.]+$/, "")
+      .replace(/[^\p{L}\p{N}\-_]+/gu, "_")
+      .slice(0, 40) || "документ";
   return `${slug}-${stub}.${ext}`;
 }
 
