@@ -10,6 +10,7 @@ const PUBLIC_PAGES = [
   "/search",
   "/search?status=sale",
   "/search?status=rent",
+  "/search?city_slug=shumen&quarter_slug=tsentar-shumen-bg&property_type=apartment&status=sale&price_min=100000&area_max=120",
   "/login",
   "/cities/shumen",
   "/cities/varna",

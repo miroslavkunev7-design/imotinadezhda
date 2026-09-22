@@ -13,13 +13,12 @@ import {
 
 import brushAsset from "@/assets/brush-search-bar.png.asset.json";
 import { getCities } from "@/lib/catalog.functions";
+import { ANY, buildSearchQuery, type SearchFilters } from "@/lib/search-query";
 
 /** Оригиналните пропорции на изображението — не се променят. */
 const BRUSH_ASPECT = "1634 / 898";
 
 type Option = { label: string; value: string };
-
-const ANY = "any";
 
 const TYPE_OPTIONS: Option[] = [
   { label: "Всички", value: ANY },
@@ -51,12 +50,6 @@ const STATUS_OPTIONS: Option[] = [
   { label: "Продажба", value: "sale" },
   { label: "Наем", value: "rent" },
 ];
-
-function splitRange(value: string): { min?: string; max?: string } {
-  if (!value || value === ANY) return {};
-  const [min, max] = value.split("-");
-  return { ...(min ? { min } : {}), ...(max ? { max } : {}) };
-}
 
 type FilterSelectProps = {
   id: string;
@@ -163,7 +156,7 @@ export function BrushSearchBar({
     })),
   ];
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<SearchFilters>({
     city: defaultCitySlug ?? ANY,
     type: ANY,
     price: ANY,
@@ -188,19 +181,8 @@ export function BrushSearchBar({
   const toggle = (id: string) => setOpenId((current) => (current === id ? null : id));
 
   const runSearch = () => {
-    const search: Record<string, string> = {};
-    if (filters.city !== ANY) search.city_slug = filters.city;
-    if (filters.type !== ANY) search.property_type = filters.type;
-    if (filters.status !== ANY) search.status = filters.status;
-    const price = splitRange(filters.price);
-    if (price.min) search.price_min = price.min;
-    if (price.max) search.price_max = price.max;
-    const area = splitRange(filters.area);
-    if (area.min) search.area_min = area.min;
-    if (area.max) search.area_max = area.max;
-    navigate({ to: "/search", search: search as never });
+    navigate({ to: "/search", search: buildSearchQuery(filters) as never });
   };
-
   return (
     <div
       ref={rootRef}
