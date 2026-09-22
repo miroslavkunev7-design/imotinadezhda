@@ -84,3 +84,11 @@ export const resumeCcJobFn = createServerFn({ method: "POST" })
     const { resumeCcJob } = await import("@/lib/control-center.server");
     return resumeCcJob();
   });
+
+export const getAdminDashboard = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
+    const { getAdminDashboard: loadDashboard } = await import("@/lib/control-center.server");
+    return loadDashboard();
+  });
