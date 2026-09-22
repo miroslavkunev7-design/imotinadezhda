@@ -515,6 +515,107 @@ export async function computeOverview(days = 30) {
   };
 }
 
+
+export type AdminDashboardSnapshot = {
+  kpi: { properties: number; clients: number; deals: number; revenue: number };
+  stages: Record<string, number>;
+  latest: Array<{
+    id: string;
+    title: string;
+    price: number | null;
+    currency: string;
+    is_published: boolean;
+    area_sqm: number | null;
+    rooms: number | null;
+    status: string | null;
+    address: string | null;
+    cover_image_url: string | null;
+  }>;
+  tasks: Array<{ id: string; title: string; due_at: string | null; task_type: string | null }>;
+  viewings: Array<{
+    id: string;
+    scheduled_at: string;
+    contact_name: string | null;
+    location: string | null;
+    status: string;
+  }>;
+};
+
+async function dashboardRows(table: string, columns: string, configure?: (query: any) => any) {
+  let query = db().from(table).select(columns);
+  if (configure) query = configure(query);
+  const { data, error } = await query;
+  if (error) throw new Error("Неуспешно зареждане на " + table + ": " + error.message);
+  return data ?? [];
+}
+
+async function dashboardCount(table: string, configure?: (query: any) => any) {
+  let query = db().from(table).select("id", { count: "exact", head: true });
+  if (configure) query = configure(query);
+  const { count, error } = await query;
+  if (error) throw new Error("Неуспешно зареждане на " + table + ": " + error.message);
+  return count ?? 0;
+}
+
+export async function getAdminDashboard(): Promise<AdminDashboardSnapshot> {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const [propertyCount, clientCount, activeDealCount, paidCommissions, dealStages, latest, tasks, viewings] =
+    await Promise.all([
+      dashboardCount("properties"),
+      dashboardCount("clients"),
+      dashboardCount("deals", (query) => query.neq("status", "lost")),
+      dashboardRows("deals", "commission_amount", (query) => query.eq("commission_paid", true)),
+      dashboardRows("deals", "stage_code"),
+      dashboardRows(
+        "properties",
+        "id, title, price, currency, is_published, area_sqm, rooms, status, address, cover_image_url",
+        (query) => query.order("created_at", { ascending: false }).limit(4),
+      ),
+      dashboardRows(
+        "broker_tasks",
+        "id, title, due_at, task_type",
+        (query) =>
+          query
+            .eq("is_completed", false)
+            .lte("due_at", endOfDay.toISOString())
+            .order("due_at", { ascending: true })
+            .limit(4),
+      ),
+      dashboardRows(
+        "viewings",
+        "id, scheduled_at, contact_name, location, status",
+        (query) =>
+          query
+            .gte("scheduled_at", startOfDay.toISOString())
+            .order("scheduled_at", { ascending: true })
+            .limit(3),
+      ),
+    ]);
+
+  const stages: Record<string, number> = {};
+  dealStages.forEach((row: any) => {
+    const stage = String(row.stage_code ?? "");
+    if (stage) stages[stage] = (stages[stage] ?? 0) + 1;
+  });
+
+  return {
+    kpi: {
+      properties: propertyCount,
+      clients: clientCount,
+      deals: activeDealCount,
+      revenue: paidCommissions.reduce((sum: number, row: any) => sum + Number(row.commission_amount ?? 0), 0),
+    },
+    stages,
+    latest: latest as AdminDashboardSnapshot["latest"],
+    tasks: tasks as AdminDashboardSnapshot["tasks"],
+    viewings: viewings as AdminDashboardSnapshot["viewings"],
+  };
+}
+
 // ------------------------------------------------------------------
 // Цели
 // ------------------------------------------------------------------
