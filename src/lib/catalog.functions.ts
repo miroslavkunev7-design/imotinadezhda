@@ -321,19 +321,23 @@ export const getPropertiesByIds = createServerFn({ method: "GET" })
   });
 
 export const getQuartersByCity = createServerFn({ method: "GET" })
-  .inputValidator((d) => z.object({ city_slug: z.string().max(64) }).parse(d))
-  .handler(async ({ data }) => {
-    const { data: c } = await supabaseAdmin
-      .from("cities")
-      .select("id")
-      .eq("slug", data.city_slug)
-      .maybeSingle();
-    if (!c) return [];
-    const { data: rows } = await supabaseAdmin
-      .from("quarters")
-      .select("id, slug, name")
-      .eq("city_id", c.id)
-      .eq("is_published", true)
-      .order("display_order");
-    return rows ?? [];
-  });
+    .inputValidator((d) => z.object({ city_slug: z.string().max(64) }).parse(d))
+    .handler(async ({ data }) => {
+      const { data: c, error: cityError } = await supabaseAdmin
+        .from("cities")
+        .select("id")
+        .eq("slug", data.city_slug)
+        .eq("is_published", true)
+        .maybeSingle();
+      if (cityError) throw new Error(cityError.message);
+      if (!c) return [];
+      const { data: rows, error } = await supabaseAdmin
+        .from("quarters")
+        .select("id, slug, name")
+        .eq("city_id", c.id)
+        .eq("is_published", true)
+        .order("display_order");
+      if (error) throw new Error(error.message);
+      return rows ?? [];
+    });
+    
