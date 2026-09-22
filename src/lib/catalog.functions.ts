@@ -270,22 +270,29 @@ export const searchProperties = createServerFn({ method: "GET" })
     let cityId: string | null = null;
     let quarterId: string | null = null;
     if (data.city_slug) {
-      const { data: c } = await supabaseAdmin
-        .from("cities")
-        .select("id")
-        .eq("slug", data.city_slug)
-        .maybeSingle();
-      cityId = c?.id ?? null;
-    }
-    if (data.quarter_slug && cityId) {
-      const { data: q } = await supabaseAdmin
-        .from("quarters")
-        .select("id")
-        .eq("city_id", cityId)
-        .eq("slug", data.quarter_slug)
-        .maybeSingle();
-      quarterId = q?.id ?? null;
-    }
+        const { data: c, error: cityError } = await supabaseAdmin
+          .from("cities")
+          .select("id")
+          .eq("slug", data.city_slug)
+          .eq("is_published", true)
+          .maybeSingle();
+        if (cityError) throw new Error(cityError.message);
+        if (!c) return [];
+        cityId = c.id;
+      }
+      if (data.quarter_slug) {
+        if (!cityId) return [];
+        const { data: q, error: quarterError } = await supabaseAdmin
+          .from("quarters")
+          .select("id")
+          .eq("city_id", cityId)
+          .eq("slug", data.quarter_slug)
+          .eq("is_published", true)
+          .maybeSingle();
+        if (quarterError) throw new Error(quarterError.message);
+        if (!q) return [];
+        quarterId = q.id;
+      }
     let q = supabaseAdmin
       .from("properties")
       .select(
