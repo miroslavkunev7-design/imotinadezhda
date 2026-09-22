@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getAdminDashboard } from "@/lib/control-center.functions";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Building2,
@@ -13,6 +13,7 @@ import {
   FileText,
   ArrowRight,
   ChevronRight,
+  RefreshCw,
 } from "lucide-react";
 import { DeskCalendar } from "@/components/admin/desk-calendar";
 
@@ -62,6 +63,31 @@ function dayOf(v?: string | null) {
   return d.toLocaleDateString("bg-BG", { day: "2-digit", month: "2-digit" });
 }
 
+type AdminDashboardSnapshot = {
+  kpi: { properties: number; clients: number; deals: number; revenue: number };
+  stages: Record<string, number>;
+  latest: Array<{
+    id: string;
+    title: string;
+    price: number | null;
+    currency: string;
+    is_published: boolean;
+    area_sqm: number | null;
+    rooms: number | null;
+    status: string | null;
+    address: string | null;
+    cover_image_url: string | null;
+  }>;
+  tasks: Array<{ id: string; title: string; due_at: string | null; task_type: string | null }>;
+  viewings: Array<{
+    id: string;
+    scheduled_at: string;
+    contact_name: string | null;
+    location: string | null;
+    status: string;
+  }>;
+};
+
 function PaperCard({
   className = "",
   children,
@@ -96,118 +122,66 @@ function SectionTitle({
 
 function Dashboard() {
   const { user } = useAuth();
-  const [kpi, setKpi] = useState({ properties: 0, clients: 0, deals: 0, revenue: 0 });
-  const [stages, setStages] = useState<Record<string, number>>({});
-  const [latest, setLatest] = useState<
-    Array<{
-      id: string;
-      title: string;
-      price: number | null;
-      currency: string;
-      is_published: boolean;
-      area_sqm: number | null;
-      rooms: number | null;
-      status: string | null;
-      address: string | null;
-      cover_image_url: string | null;
-    }>
-  >([]);
-  const [tasks, setTasks] = useState<
-    Array<{ id: string; title: string; due_at: string | null; task_type: string | null }>
-  >([]);
-  const [viewings, setViewings] = useState<
-    Array<{
-      id: string;
-      scheduled_at: string;
-      contact_name: string | null;
-      location: string | null;
-      status: string;
-    }>
-  >([]);
+  const [dashboard, setDashboard] = useState<AdminDashboardSnapshot | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   const firstName =
     ((user?.user_metadata?.full_name as string) || user?.email || "").split(/[\s@.]/)[0] ||
     "Мирослав";
 
   useEffect(() => {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
 
-    Promise.all([
-      supabase.from("properties").select("id", { count: "exact", head: true }),
-      supabase.from("clients").select("id", { count: "exact", head: true }),
-      supabase.from("deals").select("id", { count: "exact", head: true }).neq("status", "lost"),
-      supabase.from("deals").select("commission_amount").eq("commission_paid", true),
-    ]).then(([p, c, d, com]) => {
-      const revenue = (com.data ?? []).reduce(
-        (s: number, r: any) => s + Number(r.commission_amount ?? 0),
-        0,
-      );
-      setKpi({ properties: p.count ?? 0, clients: c.count ?? 0, deals: d.count ?? 0, revenue });
-    });
-
-    supabase
-      .from("deals")
-      .select("stage_code")
-      .then(({ data }) => {
-        const map: Record<string, number> = {};
-        (data ?? []).forEach((r: any) => {
-          map[r.stage_code] = (map[r.stage_code] ?? 0) + 1;
-        });
-        setStages(map);
+    getAdminDashboard()
+      .then((data) => {
+        if (!cancelled) setDashboard(data);
+      })
+      .catch((cause: unknown) => {
+        if (!cancelled) {
+          setError(cause instanceof Error ? cause.message : "CRM данните не могат да бъдат заредени.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
 
-    supabase
-      .from("properties")
-      .select(
-        "id, title, price, currency, is_published, area_sqm, rooms, status, address, cover_image_url",
-      )
-      .order("created_at", { ascending: false })
-      .limit(4)
-      .then(({ data }) => setLatest((data ?? []) as never));
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, reloadToken]);
 
-    supabase
-      .from("broker_tasks")
-      .select("id, title, due_at, task_type")
-      .eq("is_completed", false)
-      .lte("due_at", endOfDay.toISOString())
-      .order("due_at", { ascending: true })
-      .limit(4)
-      .then(({ data }) => setTasks((data ?? []) as never));
-
-    supabase
-      .from("viewings")
-      .select("id, scheduled_at, contact_name, location, status")
-      .gte("scheduled_at", startOfDay.toISOString())
-      .order("scheduled_at", { ascending: true })
-      .limit(3)
-      .then(({ data }) => setViewings((data ?? []) as never));
-  }, []);
+  const kpi = dashboard?.kpi;
+  const stages = dashboard?.stages ?? {};
+  const latest = dashboard?.latest ?? [];
+  const tasks = dashboard?.tasks ?? [];
+  const viewings = dashboard?.viewings ?? [];
 
   const kpiCards = [
     {
       label: "Активни имоти",
-      value: kpi.properties.toLocaleString("bg-BG"),
+      value: dashboard ? dashboard.kpi.properties.toLocaleString("bg-BG") : loading ? "…" : "—",
       icon: Building2,
       to: "/admin/properties",
     },
     {
       label: "Клиенти",
-      value: kpi.clients.toLocaleString("bg-BG"),
+      value: dashboard ? dashboard.kpi.clients.toLocaleString("bg-BG") : loading ? "…" : "—",
       icon: Users,
       to: "/admin/clients",
     },
     {
       label: "Активни сделки",
-      value: kpi.deals.toLocaleString("bg-BG"),
+      value: dashboard ? dashboard.kpi.deals.toLocaleString("bg-BG") : loading ? "…" : "—",
       icon: Handshake,
       to: "/admin/deals",
     },
     {
       label: "Приходи (комисионни)",
-      value: money(kpi.revenue),
+      value: dashboard ? money(dashboard.kpi.revenue) : loading ? "…" : "—",
       icon: Coins,
       to: "/admin/commissions",
     },
@@ -237,6 +211,23 @@ function Dashboard() {
         </h1>
         <p className="crm-section-sub mt-1 text-sm">Ето какво се случва във вашия бизнес днес.</p>
       </header>
+
+      {error ? (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-[6px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"
+        >
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => setReloadToken((value) => value + 1)}
+            disabled={loading}
+            className="inline-flex items-center gap-2 font-semibold underline disabled:opacity-50"
+          >
+            <RefreshCw className="h-4 w-4" /> Опитай отново
+          </button>
+        </div>
+      ) : null}
 
       {/* KPI — бели brush листа */}
       <div className="grid gap-x-8 gap-y-9 sm:grid-cols-2 xl:grid-cols-4">
@@ -305,8 +296,13 @@ function Dashboard() {
               action={{ to: "/admin/properties", label: "Всички имоти" }}
             />
             <div className="grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
-              {latest.map((p) => (
-                <Link key={p.id} to="/admin/properties" className="crm-paper flex flex-col p-3">
+              {loading && !dashboard ? (
+                <PaperCard className="px-5 py-7 text-center text-[13px] sm:col-span-2 lg:col-span-4">
+                  Зареждане на имотите…
+                </PaperCard>
+              ) : (
+                latest.map((p) => (
+                  <Link key={p.id} to="/admin/properties" className="crm-paper flex flex-col p-3">
                   <div className="relative mb-3 aspect-[4/3] w-full overflow-hidden rounded-[4px] bg-[#e7ded0]">
                     {p.cover_image_url ? (
                       <img
@@ -330,8 +326,9 @@ function Dashboard() {
                     {p.rooms ? <span>{p.rooms} стаи</span> : null}
                   </div>
                 </Link>
-              ))}
-              {!latest.length && (
+                ))
+              )}
+              {!loading && !latest.length && (
                 <PaperCard className="px-5 py-7 text-center text-[13px] sm:col-span-2 lg:col-span-4">
                   Няма имоти.
                 </PaperCard>
@@ -346,7 +343,10 @@ function Dashboard() {
             <SectionTitle title="Задачи за днес" />
             <PaperCard className="px-5 py-4">
               <ul className="divide-y divide-[#3c141a]/12">
-                {tasks.map((t) => {
+                {loading && !dashboard ? (
+                  <li className="py-4 text-center text-[12.5px]">Зареждане на задачите…</li>
+                ) : (
+                  tasks.map((t) => {
                   const p = prio(t.due_at);
                   return (
                     <li key={t.id} className="flex items-center gap-3 py-2.5">
@@ -362,8 +362,9 @@ function Dashboard() {
                       </span>
                     </li>
                   );
-                })}
-                {!tasks.length && (
+                  })
+                )}
+                {!loading && !tasks.length && (
                   <li className="py-4 text-center text-[12.5px]">Няма задачи за днес.</li>
                 )}
               </ul>
@@ -380,7 +381,10 @@ function Dashboard() {
             <SectionTitle title="Предстоящи огледи" />
             <PaperCard className="px-4 py-4">
               <ul className="flex flex-col gap-3">
-                {viewings.map((v) => (
+                {loading && !dashboard ? (
+                  <li className="py-3 text-center text-[12.5px]">Зареждане на огледите…</li>
+                ) : (
+                  viewings.map((v) => (
                   <li key={v.id} className="flex items-center gap-3">
                     <div className="h-12 w-16 flex-none overflow-hidden rounded-[4px] bg-[#e7ded0]" />
                     <div className="min-w-0 flex-1">
@@ -395,8 +399,9 @@ function Dashboard() {
                       </div>
                     </div>
                   </li>
-                ))}
-                {!viewings.length && (
+                  ))
+                )}
+                {!loading && !viewings.length && (
                   <li className="py-3 text-center text-[12.5px]">Няма предстоящи огледи.</li>
                 )}
               </ul>
