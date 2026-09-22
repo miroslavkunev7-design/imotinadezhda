@@ -29,13 +29,13 @@ const CITY_PANORAMA_ASSETS: Record<string, { url: string }> = {
 
 /** Stable, SSR/CSR-identical absolute og:image URL (uses /media proxy on prod). */
 function buildOgImage(slug: string, dbHero?: string | null): string {
-  const asset = CITY_PANORAMA_ASSETS[slug];
-  if (asset?.url) {
-    return `${SITE_URL}${asset.url.replace(/^\/__l5e/, "/media")}`;
-  }
   if (dbHero) {
     if (dbHero.startsWith("http")) return dbHero;
     if (dbHero.startsWith("/")) return `${SITE_URL}${dbHero.replace(/^\/__l5e/, "/media")}`;
+  }
+  const asset = CITY_PANORAMA_ASSETS[slug];
+  if (asset?.url) {
+    return `${SITE_URL}${asset.url.replace(/^\/__l5e/, "/media")}`;
   }
   return "";
 }
@@ -120,7 +120,7 @@ function renderCity(slug: string, data: any) {
     <CityLikeShumenPage
       citySlug={slug}
       cityLabel={cityLabel}
-      cityDescription={CITY_META[slug]?.description ?? data?.city?.description ?? meta.description}
+      cityDescription={data?.city?.description?.trim() || CITY_META[slug]?.description || meta.description}
       panoramaUrl={data?.city?.hero_image_url ?? meta.panoramaUrl}
       heroVideoUrl={heroVideoUrl || undefined}
       heroVideoWebmUrl={heroVideoWebmUrl}
