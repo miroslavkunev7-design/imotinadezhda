@@ -2,7 +2,7 @@ import { useState } from "react";
 import { UI_GEOMETRY as G } from "../data/uiGeometry";
 import { FILTER_OPTIONS } from "../data/filterOptions";
 import { go } from "../lib/router";
-function InvisibleSelect({ name, label, value, onChange, box }) {
+function InvisibleSelect({ name, label, value, onChange, box, options }) {
   return (
     <select
       className="native-select"
@@ -11,7 +11,7 @@ function InvisibleSelect({ name, label, value, onChange, box }) {
       value={value}
       onChange={(e) => onChange(name, e.target.value)}
     >
-      {filterOptions[name].map(([v, l]) => (
+      {options.map(([v, l]) => (
         <option key={v} value={v}>
           {l}
         </option>
@@ -48,6 +48,7 @@ export default function SearchLayer({ catalog } = {}) {
         value={filters.city}
         onChange={set}
         box={G.filters.city}
+        options={filterOptions.city}
       />
       <InvisibleSelect
         name="type"
@@ -55,6 +56,7 @@ export default function SearchLayer({ catalog } = {}) {
         value={filters.type}
         onChange={set}
         box={G.filters.type}
+        options={filterOptions.type}
       />
       <InvisibleSelect
         name="price"
@@ -62,6 +64,7 @@ export default function SearchLayer({ catalog } = {}) {
         value={filters.price}
         onChange={set}
         box={G.filters.price}
+        options={filterOptions.price}
       />
       <InvisibleSelect
         name="area"
@@ -69,6 +72,7 @@ export default function SearchLayer({ catalog } = {}) {
         value={filters.area}
         onChange={set}
         box={G.filters.area}
+        options={filterOptions.area}
       />
       <button
         className="hit"
