@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site/site-header";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { siteUrl } from "@/lib/site-config";
+import { getCities, getQuartersByCity } from "@/lib/catalog.functions";
 
 export const Route = createFileRoute("/sell")({
+  loader: async () => ({ cities: await getCities() }),
   head: () => ({
     meta: [
       { title: "Продай имот — Имоти Надежда" },
@@ -27,21 +29,51 @@ export const Route = createFileRoute("/sell")({
 });
 
 const PROPERTY_TYPES = ["Апартамент", "Къща", "Парцел", "Офис", "Магазин", "Гараж", "Друго"];
-const CITIES = ["Шумен", "Варна", "Бургас", "Нови пазар"];
-
 function SellPage() {
+  const { cities } = Route.useLoaderData();
+  const [quarterOptions, setQuarterOptions] = useState<Array<{ id: string; slug: string; name: string }>>([]);
+  const [quartersLoading, setQuartersLoading] = useState(false);
+  const [quartersError, setQuartersError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     phone: "",
     email: "",
-    city: CITIES[0],
+    city: cities[0]?.slug ?? "",
     quarter: "",
     property_type: PROPERTY_TYPES[0],
     area: "",
     price: "",
     description: "",
   });
-  const [sending, setSending] = useState(false);
+    const [sending, setSending] = useState(false);
+
+    useEffect(() => {
+      const selectedCity = cities.find((city) => city.slug === form.city);
+      if (!selectedCity) {
+        setQuarterOptions([]);
+        setQuartersError(null);
+        return;
+      }
+      let active = true;
+      setQuartersLoading(true);
+      setQuartersError(null);
+      getQuartersByCity({ data: { city_slug: selectedCity.slug } })
+        .then((rows) => {
+          if (!active) return;
+          setQuarterOptions(rows);
+        })
+        .catch(() => {
+          if (!active) return;
+          setQuarterOptions([]);
+          setQuartersError("Кварталите за този град не могат да се заредят в момента.");
+        })
+        .finally(() => {
+          if (active) setQuartersLoading(false);
+        });
+      return () => {
+        active = false;
+      };
+    }, [cities, form.city]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,8 +82,9 @@ function SellPage() {
       return;
     }
     setSending(true);
+    const cityName = cities.find((city) => city.slug === form.city)?.name ?? form.city;
     const message = [
-      `Продажба — ${form.property_type} в ${form.city}${form.quarter ? ", " + form.quarter : ""}`,
+      `Продажба — ${form.property_type} в ${cityName}${form.quarter ? ", " + form.quarter : ""}`,
       form.area && `Площ: ${form.area} м²`,
       form.price && `Очаквана цена: ${form.price} €`,
       form.description && `Описание: ${form.description}`,
@@ -128,16 +161,23 @@ function SellPage() {
             onChange={(e) => setForm({ ...form, city: e.target.value })}
             className={inputCls}
           >
-            {CITIES.map((c) => (
-              <option key={c}>{c}</option>
+            {cities.map((city) => (
+              <option key={city.slug} value={city.slug}>{city.name}</option>
             ))}
           </select>
-          <input
-            placeholder="Квартал"
-            value={form.quarter}
-            onChange={(e) => setForm({ ...form, quarter: e.target.value })}
-            className={inputCls}
-          />
+          <div className="space-y-1">
+              <input
+                list="sell-quarter-options"
+                placeholder={quartersLoading ? "Зареждане на квартали…" : "Квартал"}
+                value={form.quarter}
+                onChange={(e) => setForm({ ...form, quarter: e.target.value })}
+                className={inputCls}
+              />
+              <datalist id="sell-quarter-options">
+                {quarterOptions.map((quarter) => <option key={quarter.id} value={quarter.name} />)}
+              </datalist>
+              {quartersError ? <p className="text-xs text-[#8B1A2B]">{quartersError}</p> : null}
+            </div>
 
           <select
             value={form.property_type}
