@@ -1,13 +1,30 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 
 import { LockedHomeDesktop } from "@/components/home-locked/locked-home-desktop";
+import { getCities, getQuartersByCity } from "@/lib/catalog.functions";
 import { HomeSkeleton, PageErrorRetry } from "@/components/site/page-skeleton";
 import { SITE_URL, siteUrl } from "@/lib/site-config";
 
 import homeHeroPoster from "@/assets/home-hero-living.jpeg";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
+    loader: async () => {
+      const cities = await getCities();
+      const publishedCities = cities.filter((city) => Boolean(city.slug && city.name));
+      const quarterRows = await Promise.all(
+        publishedCities.map(async (city) => [
+          city.slug,
+          await getQuartersByCity({ data: { city_slug: city.slug } }),
+        ] as const),
+      );
+      return {
+        catalog: {
+          cities: publishedCities.map((city) => ({ slug: city.slug, name: city.name })),
+          quartersByCity: Object.fromEntries(quarterRows),
+        },
+      };
+    },
+    head: () => ({
     meta: [
       { title: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
       {
@@ -75,6 +92,7 @@ function HomeErrorRoute({ error }: { error: Error }) {
 }
 
 function HomeRoute() {
+  const { catalog } = Route.useLoaderData();
   // Новата начална страница от MASTER архива се показва на всички устройства (потвърдено от потребителя).
-  return <LockedHomeDesktop />;
+  return <LockedHomeDesktop catalog={catalog} />;
 }

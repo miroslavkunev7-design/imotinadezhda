@@ -3,7 +3,7 @@ import SearchLayer from "./SearchLayer";
 import BulgariaMapLayer from "./BulgariaMapLayer";
 import CityCardsLayer from "./CityCardsLayer";
 import SeaMotion from "./SeaMotion";
-export default function HomePage() {
+export default function HomePage({ catalog = null } = {}) {
   return (
     <main className="home-artboard" aria-label="Недвижими имоти Надежда">
       <img
@@ -14,7 +14,7 @@ export default function HomePage() {
       />
       <SeaMotion />
       <NavigationLayer />
-      <SearchLayer />
+      <SearchLayer catalog={catalog} />
       <BulgariaMapLayer />
       <CityCardsLayer />
     </main>

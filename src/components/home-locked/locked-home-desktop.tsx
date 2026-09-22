@@ -9,7 +9,7 @@ import "./styles/locked-home.css";
  * Заключената начална страница (STEP_09_FINAL_LOCK_DELIVERY / 01_FINAL_WORKING_APP).
  * Използва се само за десктоп изглед. Визуалният растер и слоевете са непроменени.
  */
-export function LockedHomeDesktop() {
+export function LockedHomeDesktop({ catalog } = {}) {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function LockedHomeDesktop() {
 
   return (
     <div className="locked-home-desktop">
-      <HomePage />
+      <HomePage catalog={catalog} />
     </div>
   );
 }
