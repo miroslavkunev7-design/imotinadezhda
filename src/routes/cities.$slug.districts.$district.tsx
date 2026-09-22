@@ -43,13 +43,25 @@ export const Route = createFileRoute("/cities/$slug/districts/$district")({
     };
   },
   component: DistrictRoute,
+  pendingComponent: () => <DistrictState title="Зареждаме квартала…" />,
   errorComponent: ({ error }) => (
-    <div role="alert" className="p-10">
-      Грешка: {error.message}
-    </div>
+    <DistrictState title="Кварталът не може да се зареди" detail={error.message} />
   ),
-  notFoundComponent: () => <div className="p-10">Кварталът не е намерен.</div>,
+  notFoundComponent: () => (
+    <DistrictState title="Кварталът не е намерен" detail="Проверете адреса или изберете друг квартал." />
+  ),
 });
+
+function DistrictState({ title, detail }: { title: string; detail?: string }) {
+  return (
+    <main className="nadezhda-marble-bg flex min-h-screen items-center justify-center px-4">
+      <div role="status" className="max-w-lg text-center text-[#600f1c]">
+        <h1 className="font-serif-nadezhda text-3xl font-bold">{title}</h1>
+        {detail ? <p className="mt-3 text-[#600f1c]/75">{detail}</p> : null}
+      </div>
+    </main>
+  );
+}
 
 function DistrictRoute() {
   const data = Route.useLoaderData();

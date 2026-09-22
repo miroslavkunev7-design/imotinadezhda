@@ -13,13 +13,6 @@ export const getCities = createServerFn({ method: "GET" }).handler(async () => {
   return data ?? [];
 });
 
-const CITY_OBLAST: Record<string, { oblast: string; municipality?: string }> = {
-  shumen: { oblast: "shumen" },
-  varna: { oblast: "varna" },
-  burgas: { oblast: "burgas" },
-  "novi-pazar": { oblast: "shumen", municipality: "novi-pazar" },
-};
-
 export const getCityBySlug = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ slug: z.string().min(1).max(64) }).parse(d))
   .handler(async ({ data }) => {
@@ -32,7 +25,7 @@ export const getCityBySlug = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!city) return null;
 
-    const [{ data: quarters }, { data: properties }, { data: liveProps }] = await Promise.all([
+    const [quartersResult, propertiesResult, livePropsResult] = await Promise.all([
       safeAdmin
         .from("quarters")
         .select(
@@ -56,6 +49,12 @@ export const getCityBySlug = createServerFn({ method: "GET" })
         .eq("city_id", city.id)
         .eq("is_published", true),
     ]);
+    if (quartersResult.error) throw new Error(quartersResult.error.message);
+    if (propertiesResult.error) throw new Error(propertiesResult.error.message);
+    if (livePropsResult.error) throw new Error(livePropsResult.error.message);
+    const quarters = quartersResult.data;
+    const properties = propertiesResult.data;
+    const liveProps = livePropsResult.data;
 
     // Live per-quarter counts
     const countsByQuarterId = new Map<string, number>();
@@ -68,22 +67,29 @@ export const getCityBySlug = createServerFn({ method: "GET" })
       quarterCounts[q.slug] = countsByQuarterId.get(q.id) ?? 0;
     }
 
-    // Live "around" count — properties tied to a village in this city's oblast
+    // Live "around" count. Prefer a municipality matching the city slug;
+    // otherwise use an oblast matching it. This keeps newly-added regional
+    // cities data-driven instead of requiring another source-code mapping.
     let aroundCount = 0;
-    const cfg = CITY_OBLAST[data.slug];
-    if (cfg) {
-      let vq = safeAdmin.from("villages").select("id").eq("oblast_slug", cfg.oblast);
-      if (cfg.municipality) vq = vq.eq("municipality_slug", cfg.municipality);
-      const { data: villageRows } = await vq;
-      const villageIds = (villageRows ?? []).map((v) => v.id);
-      if (villageIds.length) {
-        const { count } = await safeAdmin
-          .from("properties")
-          .select("id", { count: "exact", head: true })
-          .eq("is_published", true)
-          .in("village_id", villageIds);
-        aroundCount = count ?? 0;
-      }
+    const { data: municipalityVillages, error: municipalityError } = await safeAdmin
+      .from("villages")
+      .select("id")
+      .eq("municipality_slug", data.slug);
+    if (municipalityError) throw new Error(municipalityError.message);
+    const villageRows = municipalityVillages?.length
+      ? municipalityVillages
+      : (
+          await safeAdmin.from("villages").select("id").eq("oblast_slug", data.slug)
+        ).data;
+    const villageIds = (villageRows ?? []).map((v) => v.id);
+    if (villageIds.length) {
+      const { count, error: countError } = await safeAdmin
+        .from("properties")
+        .select("id", { count: "exact", head: true })
+        .eq("is_published", true)
+        .in("village_id", villageIds);
+      if (countError) throw new Error(countError.message);
+      aroundCount = count ?? 0;
     }
 
     const quartersWithLiveCounts = (quarters ?? []).map((q) => ({
@@ -203,20 +209,24 @@ export const getQuarterBySlug = createServerFn({ method: "GET" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const { data: city } = await supabaseAdmin
+    const { data: city, error: cityError } = await supabaseAdmin
       .from("cities")
       .select("id, slug, name")
       .eq("slug", data.citySlug)
+      .eq("is_published", true)
       .maybeSingle();
+    if (cityError) throw new Error(cityError.message);
     if (!city) return null;
-    const { data: quarter } = await supabaseAdmin
+    const { data: quarter, error: quarterError } = await supabaseAdmin
       .from("quarters")
       .select("*")
       .eq("city_id", city.id)
       .eq("slug", data.quarterSlug)
+      .eq("is_published", true)
       .maybeSingle();
+    if (quarterError) throw new Error(quarterError.message);
     if (!quarter) return null;
-    const [{ data: properties }, { data: gallery }] = await Promise.all([
+    const [propertiesResult, galleryResult] = await Promise.all([
       supabaseAdmin
         .from("properties")
         .select(
@@ -231,7 +241,14 @@ export const getQuarterBySlug = createServerFn({ method: "GET" })
         .eq("quarter_id", quarter.id)
         .order("display_order"),
     ]);
-    return { city, quarter, properties: properties ?? [], gallery: gallery ?? [] };
+    if (propertiesResult.error) throw new Error(propertiesResult.error.message);
+    if (galleryResult.error) throw new Error(galleryResult.error.message);
+    return {
+      city,
+      quarter,
+      properties: propertiesResult.data ?? [],
+      gallery: galleryResult.data ?? [],
+    };
   });
 
 export const searchProperties = createServerFn({ method: "GET" })

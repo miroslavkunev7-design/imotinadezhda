@@ -3,22 +3,11 @@ import { ChevronRight, MapPin, Compass } from "lucide-react";
 
 import { getVillagesAround, type VillageRow } from "@/lib/villages.functions";
 import { siteUrl } from "@/lib/site-config";
-import { resolveAssetUrl } from "@/lib/asset-url";
-import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
-import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
-import burgasHeroVideo from "@/assets/burgas-hero.mp4.asset.json";
-
-const HERO_VIDEOS: Record<string, string> = {
-  shumen: resolveAssetUrl(shumenHeroVideo),
-  varna: resolveAssetUrl(varnaHeroVideo),
-  burgas: resolveAssetUrl(burgasHeroVideo),
-  "novi-pazar": resolveAssetUrl(shumenHeroVideo),
-};
 
 export const Route = createFileRoute("/cities/$slug/around")({
   loader: async ({ params }) => {
     const data = await getVillagesAround({ data: { citySlug: params.slug } });
-    if (!data.oblast) throw notFound();
+    if (!data) throw notFound();
     return data;
   },
   head: ({ loaderData, params }) => {
@@ -38,18 +27,21 @@ export const Route = createFileRoute("/cities/$slug/around")({
     };
   },
   component: AroundCityPage,
-  errorComponent: () => <FallbackEmpty />,
-  notFoundComponent: () => <FallbackEmpty />,
+  pendingComponent: () => <AroundState title="Зареждаме населените места…" />,
+  errorComponent: ({ error }) => (
+    <AroundState title="Населените места не могат да се заредят" detail={error.message} />
+  ),
+  notFoundComponent: () => (
+    <AroundState title="Градът не е намерен" detail="Проверете адреса или изберете друг град." />
+  ),
 });
 
-function FallbackEmpty() {
+function AroundState({ title, detail }: { title: string; detail?: string }) {
   return (
-    <main className="min-h-screen nadezhda-marble-bg px-4 py-16">
-      <div className="mx-auto max-w-3xl text-center">
-        <h1 className="font-serif-nadezhda text-3xl font-bold text-[#600f1c]">
-          Списъкът ще се появи скоро
-        </h1>
-        <p className="mt-3 text-[#600f1c]/80">Опитайте отново след малко.</p>
+    <main className="nadezhda-marble-bg flex min-h-screen items-center justify-center px-4">
+      <div role="status" className="max-w-lg text-center text-[#600f1c]">
+        <h1 className="font-serif-nadezhda text-3xl font-bold">{title}</h1>
+        {detail ? <p className="mt-3 text-[#600f1c]/75">{detail}</p> : null}
       </div>
     </main>
   );
@@ -59,22 +51,12 @@ function AroundCityPage() {
   const { slug } = Route.useParams();
   const { cityLabel, municipality, villages } = Route.useLoaderData();
   const scopeText = municipality ? `община ${cityLabel}` : `област ${cityLabel}`;
-  const videoUrl = HERO_VIDEOS[slug] ?? resolveAssetUrl(shumenHeroVideo);
 
   return (
     <main className="min-h-screen nadezhda-marble-bg">
-      {/* HERO with video background */}
-      <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
-        <video
-          src={videoUrl}
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#260108]/55 via-[#260108]/65 to-[#260108]/85" />
-        <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-end px-4 pb-10 md:pb-14">
+      <section className="relative min-h-[360px] w-full overflow-hidden bg-[#600f1c]">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#260108]/35 via-[#600f1c]/70 to-[#260108]/90" />
+        <div className="relative z-10 mx-auto flex min-h-[360px] max-w-6xl flex-col justify-end px-4 pb-10 md:pb-14">
           <Link
             to="/cities/$slug"
             params={{ slug } as never}
@@ -86,10 +68,16 @@ function AroundCityPage() {
             <Compass className="h-8 w-8 text-[#f4d07d]" />
             Около {cityLabel}
           </h1>
-          <p className="mt-3 max-w-2xl text-sm text-white/90 md:text-base">
-            Всички села в {scopeText} — {villages.length} населени места, подредени по близост до{" "}
-            {cityLabel}.
-          </p>
+          {villages.length ? (
+            <p className="mt-3 max-w-2xl text-sm text-white/90 md:text-base">
+              Всички села в {scopeText} — {villages.length} населени места, подредени по близост до{" "}
+              {cityLabel}.
+            </p>
+          ) : (
+            <p className="mt-3 max-w-2xl text-sm text-white/90 md:text-base">
+              Все още няма публикувани населени места около {cityLabel}.
+            </p>
+          )}
         </div>
       </section>
 

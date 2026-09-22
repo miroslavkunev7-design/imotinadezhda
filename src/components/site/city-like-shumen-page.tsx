@@ -24,39 +24,6 @@ import { AutoPlayVideo } from "@/components/site/auto-play-video";
 import { SiteHeader } from "@/components/site/site-header";
 import { InstallCrmButton } from "@/components/site/install-crm-button";
 
-// Shumen quarter photo tiles (label baked into the image).
-import qTsentar from "@/assets/shumen-quarters/tsentar.jpeg.asset.json";
-import qTrakiya from "@/assets/shumen-quarters/trakiya.png.asset.json";
-import qBoyan1 from "@/assets/shumen-quarters/boyan-1.png.asset.json";
-import qBoyan2 from "@/assets/shumen-quarters/boyan-2.png.asset.json";
-import qBolnitsata from "@/assets/shumen-quarters/bolnitsata.png.asset.json";
-import qHerson from "@/assets/shumen-quarters/herson.png.asset.json";
-import qPazara from "@/assets/shumen-quarters/pazara.png.asset.json";
-import qDobrudzhanski from "@/assets/shumen-quarters/dobrudzhanski.png.asset.json";
-import qPozharnata from "@/assets/shumen-quarters/pozharnata.png.asset.json";
-import qVoenno from "@/assets/shumen-quarters/voenno.png.asset.json";
-
-// Only quarters with a real photo tile have image set — the rest render as empty burgundy cards with title.
-const SHUMEN_QUARTERS: Array<{ slug: string; name: string; image: string; fill?: boolean }> = [
-  { slug: "tsentar", name: "Център", image: qTsentar.url },
-  { slug: "boyan-balgaranov-1", name: "Боян Българанов 1", image: qBoyan1.url },
-  { slug: "boyan-balgaranov-2", name: "Боян Българанов 2", image: qBoyan2.url },
-  { slug: "bolnitsata", name: "Болницата", image: qBolnitsata.url },
-  { slug: "trakiya", name: "Тракия", image: "" },
-  { slug: "herson", name: "Херсон", image: "" },
-  { slug: "pazara", name: "Пазара", image: "" },
-  { slug: "dobrudzhanski", name: "Добруджански", image: "" },
-  { slug: "pozharnata", name: "Пожарната", image: "" },
-  { slug: "voenno-uchilishte", name: "Военно училище", image: "" },
-];
-// Silence unused-import warnings for the remaining quarter pointers (kept for future use).
-void qTrakiya;
-void qHerson;
-void qPazara;
-void qDobrudzhanski;
-void qPozharnata;
-void qVoenno;
-
 export type CityHomeProps = {
   citySlug: string;
   cityLabel: string;
@@ -400,39 +367,27 @@ export function CityLikeShumenPage(p: CityHomeProps) {
               ref={scrollRef}
               className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory pb-3 [scrollbar-width:thin] scroll-smooth"
             >
-              {(p.citySlug === "shumen"
-                ? SHUMEN_QUARTERS.map((fixed) => {
-                    const dbMatch = p.quarters.find((x) => x.slug === fixed.slug);
-                    return {
-                      slug: fixed.slug,
-                      name: dbMatch?.name ?? fixed.name,
-                      image: fixed.image,
-                      count: p.quarterCounts?.[fixed.slug] ?? dbMatch?.count ?? 0,
-                      fill: fixed.fill,
-                    };
-                  })
-                : p.quarters.map((q) => ({
-                    slug: q.slug,
-                    name: q.name,
-                    image: q.image,
-                    count: p.quarterCounts?.[q.slug] ?? q.count ?? 0,
-                    fill: false,
-                  }))
-              ).map((q) => (
-                <div
-                  key={q.slug}
-                  className="snap-start shrink-0 w-[70%] sm:w-[38%] md:w-[26%] lg:w-[calc((100%-4*1.25rem)/5)]"
-                >
-                  <QuarterCard
-                    image={q.image}
-                    title={q.name}
-                    count={q.count}
-                    slug={q.slug}
-                    citySlug={p.citySlug}
-                    fill={q.fill}
-                  />
+              {p.quarters.length ? (
+                p.quarters.map((q) => (
+                  <div
+                    key={q.slug}
+                    className="snap-start shrink-0 w-[70%] sm:w-[38%] md:w-[26%] lg:w-[calc((100%-4*1.25rem)/5)]"
+                  >
+                    <QuarterCard
+                      image={q.image}
+                      title={q.name}
+                      count={q.count}
+                      slug={q.slug}
+                      citySlug={p.citySlug}
+                      fill={false}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="flex min-h-44 w-full items-center justify-center rounded-2xl border border-[#C9A84C]/35 bg-white/75 px-6 text-center text-[#600f1c]/75">
+                  Все още няма публикувани квартали за {p.cityLabel}.
                 </div>
-              ))}
+              )}
             </div>
           </div>
           <div className="flex flex-col justify-between gap-4 order-2">

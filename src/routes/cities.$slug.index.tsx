@@ -1,7 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { CityLikeShumenPage } from "@/components/site/city-like-shumen-page";
-import { ShumenImposedPage, VarnaImposedPage } from "@/components/site/shumen-imposed-page";
 import { getCityBySlug } from "@/lib/catalog.functions";
 import {
   resolveCityHeroMp4,
@@ -93,17 +92,19 @@ const CITY_META: Record<string, CityMeta> = {
 };
 
 function renderCity(slug: string, data: any) {
-  if (slug === "shumen") return <ShumenImposedPage />;
-  if (slug === "varna") return <VarnaImposedPage />;
-
   const quarterCounts: Record<string, number> = data?.quarterCounts ?? {};
   const aroundCount: number = data?.aroundCount ?? 0;
   const meta = CITY_META[slug] ?? {
     name: data?.city?.name ?? slug,
     panoramaUrl: data?.city?.hero_image_url ?? "",
     description: data?.city?.description ?? "Имоти и квартали от Имоти Надежда.",
-    region: "България",
-    stats: { population: "—", area: "—" },
+    region: data?.city?.region ?? "България",
+    stats: {
+      population: data?.city?.population
+        ? `≈ ${new Intl.NumberFormat("bg-BG").format(data.city.population)}`
+        : "—",
+      area: data?.city?.area_km2 ? `${data.city.area_km2} km²` : "—",
+    },
   };
   const cityLabel = data?.city?.name ?? meta.name;
   const heroVideoUrl = resolveCityHeroMp4(slug, data?.city?.hero_video_url);
@@ -120,15 +121,17 @@ function renderCity(slug: string, data: any) {
       citySlug={slug}
       cityLabel={cityLabel}
       cityDescription={CITY_META[slug]?.description ?? data?.city?.description ?? meta.description}
-      panoramaUrl={meta.panoramaUrl}
+      panoramaUrl={data?.city?.hero_image_url ?? meta.panoramaUrl}
       heroVideoUrl={heroVideoUrl || undefined}
       heroVideoWebmUrl={heroVideoWebmUrl}
       heroVideoFallbackUrl={heroVideoFallbackUrl}
-      regionLabel={meta.region}
+      regionLabel={data?.city?.region ?? meta.region}
       stats={{
-        population: meta.stats.population,
-        area: meta.stats.area,
-        activeProperties: String(data?.activePropertiesTotal ?? "—"),
+        population: data?.city?.population
+          ? `≈ ${new Intl.NumberFormat("bg-BG").format(data.city.population)}`
+          : meta.stats.population,
+        area: data?.city?.area_km2 ? `${data.city.area_km2} km²` : meta.stats.area,
+        activeProperties: String(data?.activePropertiesTotal ?? 0),
       }}
       quarters={quarters}
       quarterCounts={quarterCounts}
@@ -137,18 +140,27 @@ function renderCity(slug: string, data: any) {
   );
 }
 
-function CityFallbackRoute() {
-  const { slug } = Route.useParams();
-  const meta = CITY_META[slug];
-  const fallback = meta
-    ? { name: meta.name, description: meta.description, region: meta.region }
-    : { name: "Град", description: "Имоти и квартали от Имоти Надежда.", region: "България" };
-  const cityData = {
-    city: { slug, ...fallback, hero_image_url: null, hero_video_url: null },
-    quarters: [],
-    properties: [],
-  };
-  return renderCity(slug, cityData);
+function CityLoading() {
+  return <RouteState title="Зареждаме града…" />;
+}
+
+function CityError({ error }: { error: Error }) {
+  return <RouteState title="Градът не може да се зареди" detail={error.message} />;
+}
+
+function CityNotFound() {
+  return <RouteState title="Градът не е намерен" detail="Проверете адреса или изберете друг град." />;
+}
+
+function RouteState({ title, detail }: { title: string; detail?: string }) {
+  return (
+    <main className="nadezhda-marble-bg flex min-h-screen items-center justify-center px-4">
+      <div role="status" className="max-w-lg text-center text-[#600f1c]">
+        <h1 className="font-serif-nadezhda text-3xl font-bold">{title}</h1>
+        {detail ? <p className="mt-3 text-[#600f1c]/75">{detail}</p> : null}
+      </div>
+    </main>
+  );
 }
 
 export const Route = createFileRoute("/cities/$slug/")({
@@ -224,8 +236,9 @@ export const Route = createFileRoute("/cities/$slug/")({
     };
   },
   component: CityRoute,
-  errorComponent: CityFallbackRoute,
-  notFoundComponent: CityFallbackRoute,
+  pendingComponent: CityLoading,
+  errorComponent: CityError,
+  notFoundComponent: CityNotFound,
 });
 
 function CityRoute() {

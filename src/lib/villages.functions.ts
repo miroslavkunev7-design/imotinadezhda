@@ -4,14 +4,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdmin } from "@/lib/auth/assert-admin";
 
-// Mapping: city slug → which oblast / municipality to query.
-const CITY_TO_OBLAST: Record<string, { oblast: string; municipality?: string; label: string }> = {
-  shumen: { oblast: "shumen", label: "Шумен" },
-  varna: { oblast: "varna", label: "Варна" },
-  burgas: { oblast: "burgas", label: "Бургас" },
-  "novi-pazar": { oblast: "shumen", municipality: "novi-pazar", label: "Нови пазар" },
-};
-
 const OBLAST_LABEL: Record<string, string> = { shumen: "Шумен", varna: "Варна", burgas: "Бургас" };
 
 export type VillageRow = {
@@ -27,26 +19,37 @@ export type VillageRow = {
 export const getVillagesAround = createServerFn({ method: "GET" })
   .inputValidator((d) => z.object({ citySlug: z.string().min(1).max(60) }).parse(d))
   .handler(async ({ data }) => {
-    const cfg = CITY_TO_OBLAST[data.citySlug];
-    if (!cfg)
-      return {
-        cityLabel: data.citySlug,
-        oblast: null,
-        municipality: null,
-        villages: [] as VillageRow[],
-      };
-
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let q = supabaseAdmin
+    const { data: city, error: cityError } = await supabaseAdmin
+      .from("cities")
+      .select("slug, name")
+      .eq("slug", data.citySlug)
+      .eq("is_published", true)
+      .maybeSingle();
+    if (cityError) throw new Error(cityError.message);
+    if (!city) return null;
+
+    const { data: municipalityRows, error: municipalityError } = await supabaseAdmin
       .from("villages")
       .select("id, name, slug, oblast_slug, municipality_slug, distance_km")
-      .eq("oblast_slug", cfg.oblast)
+      .eq("municipality_slug", data.citySlug)
       .order("distance_km", { ascending: true, nullsFirst: false })
       .order("name", { ascending: true });
-    if (cfg.municipality) q = q.eq("municipality_slug", cfg.municipality);
+    if (municipalityError) throw new Error(municipalityError.message);
 
-    const { data: rows, error } = await q;
-    if (error) throw new Error(error.message);
+    let rows = municipalityRows ?? [];
+    let municipality: string | null = rows.length ? data.citySlug : null;
+    if (!rows.length) {
+      const { data: oblastRows, error: oblastError } = await supabaseAdmin
+        .from("villages")
+        .select("id, name, slug, oblast_slug, municipality_slug, distance_km")
+        .eq("oblast_slug", data.citySlug)
+        .order("distance_km", { ascending: true, nullsFirst: false })
+        .order("name", { ascending: true });
+      if (oblastError) throw new Error(oblastError.message);
+      rows = oblastRows ?? [];
+      municipality = null;
+    }
 
     // Live property counts per village.
     const villageIds = (rows ?? []).map((v) => v.id);
@@ -69,9 +72,9 @@ export const getVillagesAround = createServerFn({ method: "GET" })
     }));
 
     return {
-      cityLabel: cfg.label,
-      oblast: cfg.oblast,
-      municipality: cfg.municipality ?? null,
+      cityLabel: city.name,
+      oblast: rows[0]?.oblast_slug ?? null,
+      municipality,
       villages,
     };
   });
