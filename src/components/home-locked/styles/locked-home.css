@@ -176,7 +176,7 @@
   z-index: 9;
   left: 3%;
   right: 3%;
-  bottom: 2.5%;
+  top: 62%;
 }
 .locked-home-desktop .city-cards-grid {
   display: grid;
@@ -259,7 +259,7 @@
   color: rgba(255, 255, 255, 0.72);
 }
 @media (max-width: 560px) {
-  .locked-home-desktop .city-cards-layer { left: 2%; right: 2%; bottom: 2%; }
+  .locked-home-desktop .city-cards-layer { left: 2%; right: 2%; top: 62%; }
   .locked-home-desktop .city-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .locked-home-desktop .city-card__trigger { min-height: 42px; padding: 6px 8px; }
 }
