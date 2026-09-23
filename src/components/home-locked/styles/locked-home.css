@@ -187,7 +187,7 @@
 .locked-home-desktop .city-card { position: relative; min-width: 0; }
 .locked-home-desktop .city-card__trigger {
   display: flex;
-  min-height: clamp(46px, 5.2vw, 78px);
+  min-height: clamp(96px, 10vw, 150px);
   width: 100%;
   flex-direction: column;
   align-items: center;
@@ -196,7 +196,7 @@
   padding: 8px 12px;
   border: 1px solid rgba(214, 155, 0, 0.9);
   border-radius: 10px;
-  background: rgba(45, 5, 8, 0.92);
+  background: rgba(45, 5, 8, 0.98);
   color: #fff;
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
