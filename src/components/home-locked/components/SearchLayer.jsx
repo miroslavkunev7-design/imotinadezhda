@@ -21,18 +21,16 @@ function InvisibleSelect({ name, label, value, onChange, box, options }) {
 }
 export default function SearchLayer({ catalog } = {}) {
     const [filters, setFilters] = useState({ city: "", type: "", price: "", area: "" });
-    const cityOptions = catalog
-      ? [
-          ["", "Избери град"],
-          ...catalog.cities.flatMap((city) => [
-            [city.slug, city.name],
-            ...(catalog.quartersByCity[city.slug] || []).map((quarter) => [
-              city.slug + ":" + quarter.slug,
-              city.name + " — " + quarter.name,
-            ]),
-          ]),
-        ]
-      : FILTER_OPTIONS.city;
+  const cityOptions = [
+    ["", "Избери град"],
+    ...(catalog?.cities || []).flatMap((city) => [
+      [city.slug, city.name],
+      ...(catalog.quartersByCity[city.slug] || []).map((quarter) => [
+        city.slug + ":" + quarter.slug,
+        city.name + " — " + quarter.name,
+      ]),
+    ]),
+  ];
     const filterOptions = { ...FILTER_OPTIONS, city: cityOptions };
   const [advanced, setAdvanced] = useState(false);
   const set = (k, v) => setFilters((x) => ({ ...x, [k]: v }));

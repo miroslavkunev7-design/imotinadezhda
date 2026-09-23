@@ -15,8 +15,8 @@ export default function HomePage({ catalog = null } = {}) {
       <SeaMotion />
       <NavigationLayer />
       <SearchLayer catalog={catalog} />
-      <BulgariaMapLayer />
-      <CityCardsLayer />
+      <BulgariaMapLayer catalog={catalog} />
+      <CityCardsLayer catalog={catalog} />
     </main>
   );
 }
