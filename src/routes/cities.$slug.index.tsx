@@ -9,6 +9,7 @@ import {
 } from "@/lib/city-hero-videos";
 import { citySeo, siteUrl, SITE_NAME, SITE_URL } from "@/lib/site-config";
 import { resolveAssetUrl } from "@/lib/asset-url";
+import { getVerifiedQuarterImageCredit } from "@/lib/quarter-image-map";
 import shumenPanorama from "@/assets/city-photos/shumen.jpeg.asset.json";
 import varnaPanorama from "@/assets/city-photos/varna.jpeg.asset.json";
 import burgasPanorama from "@/assets/city-photos/burgas.jpeg.asset.json";
@@ -115,6 +116,7 @@ function renderCity(slug: string, data: any) {
     slug: q.slug,
     count: quarterCounts[q.slug] ?? 0,
     image: q.image_url ?? "",
+    imageCredit: getVerifiedQuarterImageCredit(slug, q.slug),
   }));
   return (
     <CityLikeShumenPage

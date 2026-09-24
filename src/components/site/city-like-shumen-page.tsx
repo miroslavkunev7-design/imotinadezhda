@@ -23,6 +23,7 @@ import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { AutoPlayVideo } from "@/components/site/auto-play-video";
 import { SiteHeader } from "@/components/site/site-header";
 import { InstallCrmButton } from "@/components/site/install-crm-button";
+import type { QuarterImageCredit } from "@/lib/quarter-image-map";
 
 export type CityHomeProps = {
   citySlug: string;
@@ -35,7 +36,7 @@ export type CityHomeProps = {
   panoramaUrl: string;
   regionLabel?: string;
   stats: { population: string; area: string; activeProperties: string };
-  quarters: Array<{ name: string; slug: string; count: number; image: string }>;
+  quarters: Array<{ name: string; slug: string; count: number; image: string; imageCredit?: QuarterImageCredit | null }>;
   quarterCounts?: Record<string, number>;
   aroundCount?: number;
 };
@@ -88,6 +89,7 @@ function HeaderNav() {
 /* Clean quarter card — matches the reference 1:1 */
 function QuarterCard({
   image,
+  imageCredit,
   title,
   count,
   slug,
@@ -95,6 +97,7 @@ function QuarterCard({
   fill,
 }: {
   image: string;
+  imageCredit?: QuarterImageCredit | null;
   title: string;
   count: number;
   slug: string;
@@ -102,34 +105,48 @@ function QuarterCard({
   fill?: boolean;
 }) {
   return (
-    <Link
-      to="/cities/$slug/districts/$district"
-      params={{ slug: citySlug, district: slug } as never}
-      className={`group block font-sans-nadezhda quarter-card${citySlug === "shumen" ? " quarter-card--photo-label" : ""}${image ? " quarter-card--has-image" : " quarter-card--no-image"}${fill ? " quarter-card--fill" : ""}`}
-    >
-      <div className="quarter-card__image">
-        {image ? (
-          <img
-            src={image}
-            alt={title}
-            loading="lazy"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0 nadezhda-dark-red-bg" />
-        )}
-      </div>
-      <span className="quarter-card__pill">
-        <MapPin aria-hidden /> {count} имота
-      </span>
-      <h3 className="quarter-card__title">{title}</h3>
-      <FleurOrnament />
-      <span className="quarter-card__arrow" aria-hidden>
-        <ArrowRight className="w-5 h-5" strokeWidth={2.4} />
-      </span>
-    </Link>
+    <div className="relative">
+      <Link
+        to="/cities/$slug/districts/$district"
+        params={{ slug: citySlug, district: slug } as never}
+        className={`group block font-sans-nadezhda quarter-card${citySlug === "shumen" ? " quarter-card--photo-label" : ""}${image ? " quarter-card--has-image" : " quarter-card--no-image"}${fill ? " quarter-card--fill" : ""}`}
+      >
+        <div className="quarter-card__image">
+          {image ? (
+            <img
+              src={image}
+              alt={imageCredit?.altText ?? title}
+              loading="lazy"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
+              }}
+            />
+          ) : (
+            <div className="absolute inset-0 nadezhda-dark-red-bg" />
+          )}
+        </div>
+        <span className="quarter-card__pill">
+          <MapPin aria-hidden /> {count} имота
+        </span>
+        <h3 className="quarter-card__title">{title}</h3>
+        <FleurOrnament />
+        <span className="quarter-card__arrow" aria-hidden>
+          <ArrowRight className="w-5 h-5" strokeWidth={2.4} />
+        </span>
+      </Link>
+      {image && imageCredit ? (
+        <div className="absolute right-2 top-2 z-20 flex max-w-[90%] flex-wrap items-center gap-1 rounded-md bg-black/75 px-2 py-1 text-[10px] font-medium leading-tight text-white shadow">
+          <a href={imageCredit.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={"Снимка: " + imageCredit.sourceTitle + ", автор " + imageCredit.author} title={imageCredit.sourceTitle} className="underline underline-offset-2">
+            Снимка: {imageCredit.author}
+          </a>
+          <span aria-hidden="true">·</span>
+          <a href={imageCredit.licenseUrl} target="_blank" rel="license noopener noreferrer" aria-label={"Лиценз " + imageCredit.license + ", " + imageCredit.changes} title={imageCredit.changes} className="underline underline-offset-2">
+            {imageCredit.license}
+          </a>
+          <span aria-hidden="true">· уеб версия</span>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -375,6 +392,7 @@ export function CityLikeShumenPage(p: CityHomeProps) {
                   >
                     <QuarterCard
                       image={q.image}
+                      imageCredit={q.imageCredit}
                       title={q.name}
                       count={q.count}
                       slug={q.slug}
