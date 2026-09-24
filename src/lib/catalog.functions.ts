@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { safeAdmin } from "@/integrations/supabase/safe-admin";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getVerifiedQuarterImage } from "@/lib/quarter-image-map";
 
 export const getCities = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await safeAdmin
@@ -94,6 +95,7 @@ export const getCityBySlug = createServerFn({ method: "GET" })
 
     const quartersWithLiveCounts = (quarters ?? []).map((q) => ({
       ...q,
+      image_url: getVerifiedQuarterImage(data.slug, q.slug, q.image_url),
       properties_count: quarterCounts[q.slug] ?? 0,
     }));
 

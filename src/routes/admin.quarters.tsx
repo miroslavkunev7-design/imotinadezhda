@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Eye, EyeOff, Pencil, Plus, Trash2, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin/quarters")({
   component: QuartersAdmin,
@@ -52,6 +52,16 @@ function QuartersAdmin() {
     const { error } = await op;
     if (error) return toast.error(error.message);
     setEditing(null);
+    load();
+  };
+
+  const togglePublished = async (row: Q) => {
+    if (!row.id) return;
+    const { error } = await supabase
+      .from("quarters")
+      .update({ is_published: !row.is_published })
+      .eq("id", row.id);
+    if (error) return toast.error(error.message);
     load();
   };
 
@@ -106,11 +116,30 @@ function QuartersAdmin() {
                 <td className="px-4 py-2">{r.avg_price_per_sqm ?? "—"}</td>
                 <td className="px-4 py-2">{r.is_published ? "✓" : "—"}</td>
                 <td className="px-4 py-2 text-right">
-                  <button className="mr-2 text-primary" onClick={() => setEditing(r)}>
-                    <Pencil className="h-4 w-4" />
+                  <button
+                    type="button"
+                    className="mr-2 inline-flex items-center gap-1 text-primary"
+                    onClick={() => setEditing(r)}
+                    aria-label="Смени"
+                  >
+                    <Pencil className="h-4 w-4" /> Смени
                   </button>
-                  <button className="text-destructive" onClick={() => remove(r.id!)}>
-                    <Trash2 className="h-4 w-4" />
+                  <button
+                    type="button"
+                    className="mr-2 inline-flex items-center gap-1 text-muted-foreground"
+                    onClick={() => togglePublished(r)}
+                    aria-label={r.is_published ? "Скрий" : "Покажи"}
+                  >
+                    {r.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {r.is_published ? "Скрий" : "Покажи"}
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 text-destructive"
+                    onClick={() => remove(r.id!)}
+                    aria-label="Изтрий"
+                  >
+                    <Trash2 className="h-4 w-4" /> Изтрий
                   </button>
                 </td>
               </tr>
