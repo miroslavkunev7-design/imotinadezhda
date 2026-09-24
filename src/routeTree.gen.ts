@@ -26,6 +26,7 @@ import { Route as ShumenIndexRouteImport } from './routes/shumen.index'
 import { Route as BurgasIndexRouteImport } from './routes/burgas.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PropertiesPropertyIdRouteImport } from './routes/properties.$propertyId'
+import { Route as CrmClientsRouteImport } from './routes/crm.clients'
 import { Route as CrmBankRatesRouteImport } from './routes/crm.bank-rates'
 import { Route as AdminViewingsRouteImport } from './routes/admin.viewings'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
@@ -206,6 +207,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const PropertiesPropertyIdRoute = PropertiesPropertyIdRouteImport.update({
   id: '/properties/$propertyId',
   path: '/properties/$propertyId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmClientsRoute = CrmClientsRouteImport.update({
+  id: '/crm/clients',
+  path: '/crm/clients',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrmBankRatesRoute = CrmBankRatesRouteImport.update({
@@ -767,6 +773,7 @@ export interface FileRoutesByFullPath {
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/viewings': typeof AdminViewingsRoute
   '/crm/bank-rates': typeof CrmBankRatesRoute
+  '/crm/clients': typeof CrmClientsRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/burgas/': typeof BurgasIndexRoute
@@ -881,6 +888,7 @@ export interface FileRoutesByTo {
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/viewings': typeof AdminViewingsRoute
   '/crm/bank-rates': typeof CrmBankRatesRoute
+  '/crm/clients': typeof CrmClientsRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin': typeof AdminIndexRoute
   '/burgas': typeof BurgasIndexRoute
@@ -997,6 +1005,7 @@ export interface FileRoutesById {
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/viewings': typeof AdminViewingsRoute
   '/crm/bank-rates': typeof CrmBankRatesRoute
+  '/crm/clients': typeof CrmClientsRoute
   '/properties/$propertyId': typeof PropertiesPropertyIdRoute
   '/admin/': typeof AdminIndexRoute
   '/burgas/': typeof BurgasIndexRoute
@@ -1114,6 +1123,7 @@ export interface FileRouteTypes {
     | '/admin/tasks'
     | '/admin/viewings'
     | '/crm/bank-rates'
+    | '/crm/clients'
     | '/properties/$propertyId'
     | '/admin/'
     | '/burgas/'
@@ -1228,6 +1238,7 @@ export interface FileRouteTypes {
     | '/admin/tasks'
     | '/admin/viewings'
     | '/crm/bank-rates'
+    | '/crm/clients'
     | '/properties/$propertyId'
     | '/admin'
     | '/burgas'
@@ -1343,6 +1354,7 @@ export interface FileRouteTypes {
     | '/admin/tasks'
     | '/admin/viewings'
     | '/crm/bank-rates'
+    | '/crm/clients'
     | '/properties/$propertyId'
     | '/admin/'
     | '/burgas/'
@@ -1416,6 +1428,7 @@ export interface RootRouteChildren {
   SellRoute: typeof SellRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   CrmBankRatesRoute: typeof CrmBankRatesRoute
+  CrmClientsRoute: typeof CrmClientsRoute
   PropertiesPropertyIdRoute: typeof PropertiesPropertyIdRoute
   BurgasIndexRoute: typeof BurgasIndexRoute
   ShumenIndexRoute: typeof ShumenIndexRoute
@@ -1585,6 +1598,13 @@ declare module '@tanstack/react-router' {
       path: '/properties/$propertyId'
       fullPath: '/properties/$propertyId'
       preLoaderRoute: typeof PropertiesPropertyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/clients': {
+      id: '/crm/clients'
+      path: '/crm/clients'
+      fullPath: '/crm/clients'
+      preLoaderRoute: typeof CrmClientsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crm/bank-rates': {
@@ -2408,6 +2428,7 @@ const rootRouteChildren: RootRouteChildren = {
   SellRoute: SellRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   CrmBankRatesRoute: CrmBankRatesRoute,
+  CrmClientsRoute: CrmClientsRoute,
   PropertiesPropertyIdRoute: PropertiesPropertyIdRoute,
   BurgasIndexRoute: BurgasIndexRoute,
   ShumenIndexRoute: ShumenIndexRoute,
