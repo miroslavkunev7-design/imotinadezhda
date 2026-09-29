@@ -129,7 +129,7 @@ function Dashboard() {
 
   const firstName =
     ((user?.user_metadata?.full_name as string) || user?.email || "").split(/[\s@.]/)[0] ||
-    "Мирослав";
+    "колега";
 
   useEffect(() => {
     let cancelled = false;

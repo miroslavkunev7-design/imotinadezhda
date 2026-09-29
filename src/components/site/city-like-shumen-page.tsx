@@ -23,6 +23,7 @@ import logoNadezhda from "@/assets/logo-nadezhda-red.png";
 import { AutoPlayVideo } from "@/components/site/auto-play-video";
 import { SiteHeader } from "@/components/site/site-header";
 import { InstallCrmButton } from "@/components/site/install-crm-button";
+import { MobileCityScreen } from "@/components/site/mobile-opa-public";
 import type { QuarterImageCredit } from "@/lib/quarter-image-map";
 
 export type CityHomeProps = {
@@ -36,6 +37,7 @@ export type CityHomeProps = {
   panoramaUrl: string;
   regionLabel?: string;
   stats: { population: string; area: string; activeProperties: string };
+  mobileStats?: { population: string; area: string; activeProperties: string };
   quarters: Array<{ name: string; slug: string; count: number; image: string; imageCredit?: QuarterImageCredit | null }>;
   quarterCounts?: Record<string, number>;
   aroundCount?: number;
@@ -279,8 +281,18 @@ export function CityLikeShumenPage(p: CityHomeProps) {
     el.scrollBy({ left: dir * step, behavior: "smooth" });
   };
   return (
+    <>
+      <MobileCityScreen
+        citySlug={p.citySlug}
+        cityLabel={p.cityLabel}
+        cityDescription={p.cityDescription}
+        panoramaUrl={p.panoramaUrl}
+        regionLabel={regionLabel}
+        stats={p.mobileStats ?? p.stats}
+        quarters={p.quarters}
+      />
     <div
-      className={`min-h-screen relative nadezhda-marble-bg text-[#31020c] font-sans-nadezhda overflow-x-hidden ${hasHeroVideo ? "city-page--video-hero" : ""}`}
+      className={`relative hidden min-h-screen overflow-x-hidden text-[#31020c] md:block nadezhda-marble-bg font-sans-nadezhda ${hasHeroVideo ? "city-page--video-hero" : ""}`}
     >
       <div className="md:hidden">
         <SiteHeader overlay={hasHeroVideo} />
@@ -430,6 +442,7 @@ export function CityLikeShumenPage(p: CityHomeProps) {
       </section>
       <InstallCrmButton />
     </div>
+    </>
   );
 }
 
