@@ -135,6 +135,13 @@ function renderCity(slug: string, data: any) {
         area: data?.city?.area_km2 ? `${data.city.area_km2} km²` : meta.stats.area,
         activeProperties: String(data?.activePropertiesTotal ?? 0),
       }}
+      mobileStats={{
+        population: data?.city?.population
+          ? new Intl.NumberFormat("bg-BG").format(data.city.population)
+          : "—",
+        area: data?.city?.area_km2 ? `${data.city.area_km2} km²` : "—",
+        activeProperties: String(data?.activePropertiesTotal ?? 0),
+      }}
       quarters={quarters}
       quarterCounts={quarterCounts}
       aroundCount={aroundCount}

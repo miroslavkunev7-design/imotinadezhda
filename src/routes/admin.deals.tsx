@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -6,6 +6,7 @@ import {
   Brain,
   Coins,
   Gavel,
+  FolderOpen,
   KanbanSquare,
   ListChecks,
   Plus,
@@ -369,7 +370,7 @@ function DealsAdmin() {
       </div>
 
       {tab === "pipeline" && (
-        <div className="flex gap-3 overflow-x-auto pb-3">
+        <div className="flex flex-col gap-3 pb-3 md:flex-row md:overflow-x-auto">
           {activeStages.map((s) => {
             const col = deals.filter(
               (x) => x.stage_code === s.code && (s.is_final ? true : x.status === "active"),
@@ -378,7 +379,7 @@ function DealsAdmin() {
             return (
               <div
                 key={s.code}
-                className="min-w-[260px] flex-1 rounded-2xl border border-primary/15 bg-[#fffaf3] p-3"
+                className="w-full rounded-2xl border border-primary/15 bg-[#fffaf3] p-3 md:min-w-[260px] md:flex-1"
               >
                 <div className="flex items-baseline justify-between">
                   <h3 className="font-display text-lg text-primary">{s.name}</h3>
@@ -825,6 +826,13 @@ function DealsAdmin() {
                 Затвори
               </button>
             </div>
+            <Link
+              to="/admin/documents"
+              search={{ deal: openDeal.id }}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/25 bg-white px-3 py-2 text-sm font-semibold text-primary"
+            >
+              <FolderOpen className="h-4 w-4" /> Документи по сделката
+            </Link>
 
             <div className="mt-4 rounded-xl border border-primary/15 bg-white p-3">
               <div className="flex items-center justify-between">
