@@ -16,6 +16,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { DeskCalendar } from "@/components/admin/desk-calendar";
+import sectionBrush from "@/assets/mobile-opa/section-brush-dark.png";
 
 export const Route = createFileRoute("/admin/")({
   component: Dashboard,
@@ -204,7 +205,118 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex flex-col gap-9 px-1 py-2">
+    <>
+    <div className="flex flex-col gap-5 pb-4 md:hidden">
+      <header>
+        <h1 className="font-display text-3xl text-amber-50">Добре дошли, {firstName}!</h1>
+        <p className="mt-1 text-sm text-amber-100/75">Реалните числа за днес.</p>
+      </header>
+      {error ? (
+        <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() => setReloadToken((value) => value + 1)}
+            disabled={loading}
+            className="mt-2 inline-flex items-center gap-2 font-semibold underline disabled:opacity-50"
+          >
+            <RefreshCw className="h-4 w-4" /> Опитай отново
+          </button>
+        </div>
+      ) : null}
+      <section className="grid grid-cols-2 gap-3">
+        {kpiCards.map((card) => (
+          <Link key={card.label} to={card.to} className="rounded-2xl border border-amber-500/25 bg-[rgba(255,251,243,0.96)] p-3 text-primary shadow-lg">
+            <card.icon className="h-5 w-5" strokeWidth={1.6} />
+            <div className="mt-2 font-display text-2xl font-bold tabular-nums leading-none">{card.value}</div>
+            <div className="mt-1 text-[11px] font-semibold leading-tight">{card.label}</div>
+          </Link>
+        ))}
+      </section>
+      <section>
+        <div className="relative mb-3 overflow-hidden rounded-xl px-4 py-2 text-white">
+          <img src={sectionBrush} alt="" aria-hidden className="absolute inset-0 h-full w-full object-fill" />
+          <h2 className="relative font-display text-xl">Бързи действия</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {quick.map((item) => (
+            <Link key={item.label} to={item.to} className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-[rgba(255,251,243,0.96)] px-3 py-3 text-sm font-semibold text-primary">
+              <item.icon className="h-4 w-4 shrink-0" />
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </section>
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-display text-xl text-amber-50">Задачи за днес</h2>
+          <Link to="/admin/tasks" className="text-xs font-semibold text-amber-200">Всички</Link>
+        </div>
+        <ul className="divide-y divide-primary/10 overflow-hidden rounded-2xl bg-[rgba(255,251,243,0.96)] text-primary">
+          {loading && !dashboard ? <li className="px-4 py-4 text-sm">Зареждане на задачите…</li> : null}
+          {tasks.map((task) => (
+            <li key={task.id}>
+              <Link to="/admin/tasks" className="flex items-center gap-3 px-4 py-3">
+                <span className="w-12 shrink-0 text-xs font-semibold tabular-nums">{timeOf(task.due_at)}</span>
+                <span className="min-w-0 flex-1 truncate text-sm">{task.title}</span>
+                <span className="rounded px-2 py-0.5 text-[10px] font-bold text-white" style={{ background: prio(task.due_at).bg }}>
+                  {prio(task.due_at).label}
+                </span>
+              </Link>
+            </li>
+          ))}
+          {!loading && !tasks.length ? <li className="px-4 py-4 text-center text-sm">Няма задачи за днес.</li> : null}
+        </ul>
+      </section>
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-display text-xl text-amber-50">Предстоящи огледи</h2>
+          <Link to="/admin/viewings" className="text-xs font-semibold text-amber-200">Всички</Link>
+        </div>
+        <ul className="space-y-2">
+          {loading && !dashboard ? <li className="rounded-2xl bg-[rgba(255,251,243,0.96)] px-4 py-4 text-sm text-primary">Зареждане на огледите…</li> : null}
+          {viewings.map((viewing) => (
+            <li key={viewing.id}>
+              <Link to="/admin/viewings" className="block rounded-2xl bg-[rgba(255,251,243,0.96)] px-4 py-3 text-primary">
+                <div className="text-[11px] font-semibold opacity-70">{dayOf(viewing.scheduled_at)}, {timeOf(viewing.scheduled_at)}</div>
+                <div className="truncate text-sm font-semibold">{viewing.contact_name ?? "Оглед"}</div>
+                <div className="truncate text-xs opacity-70">{viewing.location ?? viewing.status}</div>
+              </Link>
+            </li>
+          ))}
+          {!loading && !viewings.length ? <li className="rounded-2xl bg-[rgba(255,251,243,0.96)] px-4 py-4 text-center text-sm text-primary">Няма предстоящи огледи.</li> : null}
+        </ul>
+      </section>
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-display text-xl text-amber-50">Календар</h2>
+          <Link to="/admin/calendar" className="text-xs font-semibold text-amber-200">Отвори</Link>
+        </div>
+        <DeskCalendar />
+      </section>
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-display text-xl text-amber-50">Последни имоти</h2>
+          <Link to="/admin/properties" className="text-xs font-semibold text-amber-200">Всички</Link>
+        </div>
+        <div className="space-y-2">
+          {latest.map((property) => (
+            <Link key={property.id} to="/admin/properties" className="flex gap-3 rounded-2xl bg-[rgba(255,251,243,0.96)] p-3 text-primary">
+              <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-[#e7ded0]">
+                {property.cover_image_url ? <img src={property.cover_image_url} alt="" className="h-full w-full object-cover" /> : null}
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold">{property.title}</div>
+                <div className="truncate text-xs opacity-70">{property.address || "—"}</div>
+                <div className="font-display text-lg font-bold">{money(property.price, property.currency)}</div>
+              </div>
+            </Link>
+          ))}
+          {!loading && !latest.length ? <p className="rounded-2xl bg-[rgba(255,251,243,0.96)] px-4 py-4 text-center text-sm text-primary">Няма имоти.</p> : null}
+        </div>
+      </section>
+    </div>
+    <div className="hidden flex-col gap-9 px-1 py-2 md:flex">
       <header>
         <h1 className="font-display text-3xl text-amber-50 md:text-4xl">
           Добре дошли, {firstName}!
@@ -421,5 +533,6 @@ function Dashboard() {
         </div>
       </div>
     </div>
+    </>
   );
 }
