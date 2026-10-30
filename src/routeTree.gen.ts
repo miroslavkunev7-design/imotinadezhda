@@ -16,6 +16,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PropertyDetailsRouteImport } from './routes/property-details'
 import { Route as OfertiRouteImport } from './routes/oferti'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as CrmHomeLockedRouteImport } from './routes/crm-home-locked'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as BuyRouteImport } from './routes/buy'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -157,6 +158,11 @@ const OfertiRoute = OfertiRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmHomeLockedRoute = CrmHomeLockedRouteImport.update({
+  id: '/crm-home-locked',
+  path: '/crm-home-locked',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactsRoute = ContactsRouteImport.update({
@@ -722,6 +728,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/buy': typeof BuyRoute
   '/contacts': typeof ContactsRoute
+  '/crm-home-locked': typeof CrmHomeLockedRoute
   '/login': typeof LoginRoute
   '/oferti': typeof OfertiRoute
   '/property-details': typeof PropertyDetailsRoute
@@ -837,6 +844,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/buy': typeof BuyRoute
   '/contacts': typeof ContactsRoute
+  '/crm-home-locked': typeof CrmHomeLockedRoute
   '/login': typeof LoginRoute
   '/oferti': typeof OfertiRoute
   '/property-details': typeof PropertyDetailsRoute
@@ -954,6 +962,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/buy': typeof BuyRoute
   '/contacts': typeof ContactsRoute
+  '/crm-home-locked': typeof CrmHomeLockedRoute
   '/login': typeof LoginRoute
   '/oferti': typeof OfertiRoute
   '/property-details': typeof PropertyDetailsRoute
@@ -1072,6 +1081,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/buy'
     | '/contacts'
+    | '/crm-home-locked'
     | '/login'
     | '/oferti'
     | '/property-details'
@@ -1187,6 +1197,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/buy'
     | '/contacts'
+    | '/crm-home-locked'
     | '/login'
     | '/oferti'
     | '/property-details'
@@ -1303,6 +1314,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/buy'
     | '/contacts'
+    | '/crm-home-locked'
     | '/login'
     | '/oferti'
     | '/property-details'
@@ -1420,6 +1432,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   BuyRoute: typeof BuyRoute
   ContactsRoute: typeof ContactsRoute
+  CrmHomeLockedRoute: typeof CrmHomeLockedRoute
   LoginRoute: typeof LoginRoute
   OfertiRoute: typeof OfertiRoute
   PropertyDetailsRoute: typeof PropertyDetailsRoute
@@ -1528,6 +1541,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm-home-locked': {
+      id: '/crm-home-locked'
+      path: '/crm-home-locked'
+      fullPath: '/crm-home-locked'
+      preLoaderRoute: typeof CrmHomeLockedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contacts': {
@@ -2420,6 +2440,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   BuyRoute: BuyRoute,
   ContactsRoute: ContactsRoute,
+  CrmHomeLockedRoute: CrmHomeLockedRoute,
   LoginRoute: LoginRoute,
   OfertiRoute: OfertiRoute,
   PropertyDetailsRoute: PropertyDetailsRoute,
