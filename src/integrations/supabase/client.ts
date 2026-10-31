@@ -44,7 +44,19 @@ function createSupabaseClient() {
     ];
     const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Connect Supabase in Lovable Cloud.`;
     console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    // Soft stub so public/preview pages can hydrate without crashing into the root
+    // error boundary (e.g. phone tunnel preview of /crm-home-locked).
+    const stubUrl = "https://placeholder.supabase.co";
+    const stubKey = "sb_publishable_preview_stub";
+    return createClient<Database>(stubUrl, stubKey, {
+      global: {
+        fetch: createSupabaseFetch(stubKey),
+      },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
