@@ -27,6 +27,9 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { CreditBlock } from "@/components/admin/credit-block";
+import type { CreditBlockData } from "@/lib/banks-catalog";
+
 import { CrmModalShell } from "./CrmModalShell";
 import { ImotiBankModal } from "./ImotiBankModal";
 import { formatImotiPrice } from "./imoti-demo-data";
@@ -79,6 +82,7 @@ function TabContent({
   loanOpen,
   onToggleLoan,
   onOpenBank,
+  onUpdateCreditBlock,
 }: {
   tab: ImotiDetailTab;
   property: ImotiProperty;
@@ -86,6 +90,7 @@ function TabContent({
   loanOpen: boolean;
   onToggleLoan: () => void;
   onOpenBank: () => void;
+  onUpdateCreditBlock: (block: CreditBlockData) => void;
 }) {
   const monthly = Math.round((property.price * 0.0045) / 10) * 10;
 
@@ -126,9 +131,20 @@ function TabContent({
                 <span>Общо по сделката</span>
                 <strong>€ {Math.round(property.price * 0.905).toLocaleString("bg-BG")}</strong>
               </div>
-              <button type="button" className="crm-imoti-primary crm-imoti-bank-cta" onClick={onOpenBank}>
-                <Landmark size={15} /> Банка
-              </button>
+              {property.creditBlock ? (
+                <div className="crm-imoti-credit-wrap">
+                  <CreditBlock
+                    data={property.creditBlock}
+                    onChangeBank={onOpenBank}
+                    onOpenDetail={onOpenBank}
+                    onUpdate={onUpdateCreditBlock}
+                  />
+                </div>
+              ) : (
+                <button type="button" className="crm-imoti-primary crm-imoti-bank-cta" onClick={onOpenBank}>
+                  <Landmark size={15} /> Банка
+                </button>
+              )}
             </SectionPanel>
             <SectionPanel tab="bank">
               <h4>Бързи действия</h4>
@@ -328,21 +344,26 @@ function TabContent({
           <h3>
             <Landmark size={16} /> Банка · кредитно досие
           </h3>
-          <p>
-            Отвори банковия модул за сравнение на лихви, месечна вноска и списък документи към този
-            имот.
-          </p>
-          <button type="button" className="crm-imoti-primary" onClick={onOpenBank}>
-            <Landmark size={14} /> Отвори Банка
-          </button>
-          <div className="crm-imoti-banks" style={{ marginTop: 12 }}>
-            {["ДСК", "УниКредит", "ОББ", "Пощенска", "Райфайзен", "ПИБ"].map((b) => (
-              <button key={b} type="button" className="crm-imoti-bank" onClick={onOpenBank}>
-                <strong>{b}</strong>
-                <span>Отвори модул</span>
+          {property.creditBlock ? (
+            <div className="crm-imoti-credit-wrap">
+              <CreditBlock
+                data={property.creditBlock}
+                onChangeBank={onOpenBank}
+                onOpenDetail={onOpenBank}
+                onUpdate={onUpdateCreditBlock}
+              />
+            </div>
+          ) : (
+            <>
+              <p>
+                Отвори банковия модул — избери банка, попълни графата и запази кредитен блок към
+                този имот.
+              </p>
+              <button type="button" className="crm-imoti-primary" onClick={onOpenBank}>
+                <Landmark size={14} /> Отвори Банка
               </button>
-            ))}
-          </div>
+            </>
+          )}
         </SectionPanel>
       );
     default: {
@@ -358,12 +379,14 @@ export function ImotiDetailModal({
   onClose,
   onToggleFavorite,
   onNavigate,
+  onSaveCreditBlock,
 }: {
   open: boolean;
   property: ImotiProperty | null;
   onClose: () => void;
   onToggleFavorite: (id: string) => void;
   onNavigate: (target: "clients" | "calendar") => void;
+  onSaveCreditBlock: (propertyId: string, block: CreditBlockData) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [tab, setTab] = useState<ImotiDetailTab>("basic");
@@ -565,6 +588,7 @@ export function ImotiDetailModal({
             loanOpen={loanOpen}
             onToggleLoan={() => setLoanOpen((v) => !v)}
             onOpenBank={() => setBankOpen(true)}
+            onUpdateCreditBlock={(block) => onSaveCreditBlock(property.id, block)}
           />
         </div>
       </div>
@@ -573,6 +597,7 @@ export function ImotiDetailModal({
         open={bankOpen}
         property={property}
         onClose={() => setBankOpen(false)}
+        onSaveCreditBlock={(block) => onSaveCreditBlock(property.id, block)}
       />
 
       {brokerOpen ? (

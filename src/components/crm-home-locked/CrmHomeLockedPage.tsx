@@ -345,6 +345,11 @@ export function CrmHomeLockedPage() {
         onClose={() => setSelectedId(null)}
         onToggleFavorite={toggleFavorite}
         onNavigate={navigateFromImoti}
+        onSaveCreditBlock={(propertyId, block) => {
+          setProperties((list) =>
+            list.map((p) => (p.id === propertyId ? { ...p, creditBlock: block } : p)),
+          );
+        }}
       />
       <ImotiUploadModal
         open={uploadOpen}

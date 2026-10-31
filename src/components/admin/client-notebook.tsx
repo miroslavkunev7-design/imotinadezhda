@@ -20,7 +20,11 @@ import stickyNote from "@/assets/notebook/sticky-note.png";
 import { MortgageDocsModal } from "@/components/admin/mortgage-docs-modal";
 import { BankFlowModal } from "@/components/admin/bank-flow-modal";
 import { ClientA4Sheet } from "@/components/admin/client-a4-sheet";
+import { CreditBlock } from "@/components/admin/credit-block";
+import { creditBlockOf, type CreditBlockData } from "@/lib/banks-catalog";
+import { updateClientDeal } from "@/lib/crm.functions";
 import { getLiveRate, type IncomeOrigin } from "@/lib/mortgage-rates";
+import { toast } from "sonner";
 
 /** 10 цвята за маркера, който подчертава реда в тетрадката. */
 const MARKER_COLORS = [
@@ -119,10 +123,21 @@ export function ClientNotebook({
   const [a4Client, setA4Client] = useState<AnyClient | null>(null);
   const [markerColor, setMarkerColor] = useState(MARKER_COLORS[0]);
   const [rowMarks, setRowMarks] = useState<Record<string, string>>({});
-  /** Локално запазени избори на банка, за да се виждат веднага след потвърждение. */
+  /** Локално запазени избори на банка / кредитен блок — веднага след запис. */
   const [bankByClient, setBankByClient] = useState<Record<string, string>>({});
+  const [creditByClient, setCreditByClient] = useState<Record<string, CreditBlockData>>({});
   const bankOf = (c: AnyClient | null): string =>
-    (c ? (bankByClient[c.id] ?? c.mortgage_data?.bank ?? "") : "") as string;
+    (c
+      ? (bankByClient[c.id] ??
+        creditByClient[c.id]?.bank ??
+        c.mortgage_data?.credit_block?.bank ??
+        c.mortgage_data?.bank ??
+        "")
+      : "") as string;
+  const creditOf = (c: AnyClient | null): CreditBlockData | null => {
+    if (!c) return null;
+    return creditByClient[c.id] ?? creditBlockOf(c);
+  };
 
   const turnPage = () => {
     if (isTurningPage) return;
@@ -583,6 +598,34 @@ export function ClientNotebook({
                       </p>
                     </div>
 
+                    {creditOf(selected) ? (
+                      <div className="nb-mb-3 mt-4">
+                        <CreditBlock
+                          data={creditOf(selected)!}
+                          onChangeBank={() => setBankClient(selected)}
+                          onOpenDetail={() => setBankClient(selected)}
+                          onUpdate={(next) => {
+                            setCreditByClient((m) => ({ ...m, [selected.id]: next }));
+                            setBankByClient((m) => ({ ...m, [selected.id]: next.bank }));
+                            void updateClientDeal({
+                              data: {
+                                id: selected.id,
+                                mortgage_data: {
+                                  ...(selected.mortgage_data ?? {}),
+                                  bank: next.bank,
+                                  credit_block: next,
+                                  rate: next.rate.toFixed(2),
+                                  term_years: next.years,
+                                },
+                              },
+                            }).catch((e: any) =>
+                              toast.error(e?.message ?? "Грешка при запис на блока"),
+                            );
+                          }}
+                        />
+                      </div>
+                    ) : null}
+
                     {(selected.interest_note || selected.notes) && (
                       <div className="nb-note pointer-events-none absolute z-30 rotate-3 drop-shadow-[0_15px_15px_rgba(0,0,0,0.2)]">
                         <img src={stickyNote} alt="" className="w-full" />
@@ -649,11 +692,18 @@ export function ClientNotebook({
             mortgage_data: {
               ...(bankClient.mortgage_data ?? {}),
               ...(bankByClient[bankClient.id] ? { bank: bankByClient[bankClient.id] } : {}),
+              ...(creditByClient[bankClient.id]
+                ? { credit_block: creditByClient[bankClient.id] }
+                : {}),
             },
           }}
           onClose={() => setBankClient(null)}
           onPicked={(bank) => {
             setBankByClient((m) => ({ ...m, [bankClient.id]: bank }));
+          }}
+          onSavedCreditBlock={(block) => {
+            setBankByClient((m) => ({ ...m, [bankClient.id]: block.bank }));
+            setCreditByClient((m) => ({ ...m, [bankClient.id]: block }));
           }}
           onAddTask={(text) =>
             setPinnedNotes((n) => [...n, { id: Date.now(), text, color: noteColor }])
