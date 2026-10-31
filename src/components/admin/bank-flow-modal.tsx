@@ -2,53 +2,42 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Building2,
+  Calculator,
   ChevronLeft,
   Eye,
   FolderOpen,
+  IdCard,
   ListTodo,
   Loader2,
   Paperclip,
-  Plus,
+  Save,
+  ShieldCheck,
   Trash2,
   Upload,
   UserPlus,
   X,
 } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { MortgageDocsModal } from "@/components/admin/mortgage-docs-modal";
 import {
   addClientDocument,
   deleteClientDocument,
   getClientDocuments,
   updateClientDeal,
 } from "@/lib/crm.functions";
+import { BANKS_CATALOG, bankMeta, type CreditBlockData } from "@/lib/banks-catalog";
+import { BGN_PER_EUR, calcNotaryFees, money } from "@/lib/mortgage-calc";
+import { MORTGAGE_DOC_REQS } from "@/lib/mortgage-docs";
 import { getLiveRate, monthlyPayment, type IncomeOrigin } from "@/lib/mortgage-rates";
 import {
+  getCityLocalTax,
   listBankBranches,
   setBankBranchImage,
-  getCityLocalTax,
   type BankBranchRow,
   type CityLocalTax,
 } from "@/lib/bank-rates.functions";
+import { supabase } from "@/integrations/supabase/client";
 
-import { BGN_PER_EUR, calcNotaryFees, money } from "@/lib/mortgage-calc";
-import { MORTGAGE_DOC_REQS } from "@/lib/mortgage-docs";
-import { MortgageDocsModal } from "@/components/admin/mortgage-docs-modal";
-
-/** Банките в града — картите от референцията, с фирмения им цвят. */
-const BANKS: { name: string; color: string; dark?: boolean }[] = [
-  { name: "Банка ДСК", color: "#0b3d2e" },
-  { name: "ОББ", color: "#0b4fa0" },
-  { name: "УниКредит Булбанк", color: "#c11007" },
-  { name: "Fibank", color: "#16356e" },
-  { name: "Пощенска банка", color: "#f4c500", dark: true },
-  { name: "Алианц Банк", color: "#003781" },
-  { name: "ЦКБ", color: "#0e7a6d" },
-  { name: "TBI Bank", color: "#e07b2a" },
-  { name: "Инвестбанк", color: "#1f5fbf" },
-];
-
-/** Типични бланки, които банката иска като образци. */
 const TYPICAL_TEMPLATES = [
   "Заявление за ипотечен кредит",
   "Декларация за семейно и имотно състояние",
@@ -66,6 +55,8 @@ type BankForm = {
   income: string;
   employer: string;
   property: string;
+  egon: string;
+  ownFunds: string;
   note: string;
 };
 
@@ -76,6 +67,8 @@ const EMPTY_FORM: BankForm = {
   income: "",
   employer: "",
   property: "",
+  egon: "",
+  ownFunds: "",
   note: "",
 };
 
@@ -83,7 +76,6 @@ function templateType(label: string) {
   return `bank_template:${label}`;
 }
 
-/** дд.мм.гггг от ISO дата. */
 function fmtDay(iso: string | null) {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -91,25 +83,27 @@ function fmtDay(iso: string | null) {
 }
 
 /**
- * Бързият път „Банка“ от картата на клиента:
- * 1) списък с банките в града (лихвата за деня),
- * 2) страница на избраната банка — табло с калкулатор и листчета,
- *    графи за ипотечен кредит, папка с образци и хора в банката.
+ * Банка от картата на клиента:
+ * 1) мрежа с всички банки
+ * 2) цветна карта според банката (ЦКР + графи + листчета)
+ * 3) „Запази кредитен блок“ → блокът седи в картата на клиента
  */
 export function BankFlowModal({
   client,
   onClose,
   onPicked,
+  onSavedCreditBlock,
   onAddTask,
 }: {
   client: any;
   onClose: () => void;
   onPicked?: (bank: string) => void;
+  onSavedCreditBlock?: (block: CreditBlockData) => void;
   onAddTask?: (text: string) => void;
 }) {
   const city: string = client?.cities?.name ?? "Шумен";
   const citySlug: string = client?.cities?.slug ?? "shumen";
-  const [bank, setBank] = useState<string | null>(client?.mortgage_data?.bank ?? null);
+  const [bank, setBank] = useState<string | null>(null);
   const [tab, setTab] = useState<"board" | "form" | "templates">("board");
   const [docsOpen, setDocsOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -144,43 +138,46 @@ export function BankFlowModal({
 
   const branchOf = (name: string) => branches.find((b) => b.bank === name) ?? null;
 
-  const openBank = async (name: string) => {
+  const openBank = (name: string) => {
     setBank(name);
     setTab("board");
-    if (client?.mortgage_data?.bank === name) return;
-    setBusy(true);
-    try {
-      const row = branchOf(name);
-      const rate = row ? (origin === "foreign" ? row.rate_foreign : row.rate_bg) : null;
-      await updateClientDeal({
-        data: {
-          id: client.id,
-          mortgage_data: {
-            ...(client.mortgage_data ?? {}),
-            bank: name,
-            income_origin: origin,
-            rate_date: new Date().toISOString().slice(0, 10),
-            rate: client?.mortgage_data?.rate_manual
-              ? client.mortgage_data.rate
-              : rate !== null
-                ? rate.toFixed(2)
-                : null,
-            rate_valid_from: row?.valid_from ?? null,
-          },
-        },
-      });
-      toast.success(`Запазена банка: ${name}`);
-      onPicked?.(name);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Грешка при запис");
-    } finally {
-      setBusy(false);
-    }
   };
 
   const addTask = (text: string) => {
     onAddTask?.(text);
     toast.success("Добавено към задачите на клиента.");
+  };
+
+  const saveCreditBlock = async (block: CreditBlockData, form?: BankForm) => {
+    setBusy(true);
+    try {
+      const md = client.mortgage_data ?? {};
+      await updateClientDeal({
+        data: {
+          id: client.id,
+          mortgage_data: {
+            ...md,
+            bank: block.bank,
+            income_origin: origin,
+            rate: block.rate.toFixed(2),
+            rate_date: new Date().toISOString().slice(0, 10),
+            term_years: block.years,
+            credit_block: { ...block, savedAt: new Date().toISOString() },
+            ...(form
+              ? { bank_forms: { ...(md.bank_forms ?? {}), [block.bank]: form } }
+              : {}),
+          },
+        },
+      });
+      onPicked?.(block.bank);
+      onSavedCreditBlock?.({ ...block, savedAt: new Date().toISOString() });
+      toast.success(`Кредитният блок за ${block.bank} е запазен.`);
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Грешка при запис");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -192,7 +189,7 @@ export function BankFlowModal({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Банки"
-        className="flex max-h-[94dvh] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-amber-500/40 bg-[#fdf6dc] shadow-2xl"
+        className="flex max-h-[94dvh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-amber-500/40 bg-[#f7f2e8] shadow-2xl"
       >
         {!bank ? (
           <BankGrid
@@ -217,10 +214,12 @@ export function BankFlowModal({
             localTax={localTax}
             tab={tab}
             setTab={setTab}
+            busy={busy}
             onBack={() => setBank(null)}
             onAddTask={() => addTask(`Ипотека за ${client.full_name} — ${bank}: документи и графи`)}
             onOpenDocs={() => setDocsOpen(true)}
             onClose={onClose}
+            onSaveCreditBlock={saveCreditBlock}
           />
         )}
       </div>
@@ -261,13 +260,31 @@ function BankGrid({
   const [rows, setRows] = useState<BankBranchRow[]>(branches);
   useEffect(() => setRows(branches), [branches]);
 
+  const cards = useMemo(() => {
+    const today = new Date();
+    return BANKS_CATALOG.map((meta) => {
+      const row = rows.find((r) => r.bank === meta.name);
+      const live = getLiveRate(meta.name, origin, today);
+      const rate =
+        origin === "foreign"
+          ? (row?.rate_foreign ?? live.rate)
+          : (row?.rate_bg ?? live.rate);
+      return {
+        meta,
+        row: row ?? null,
+        rate,
+        validFrom: row?.valid_from ?? live.validFrom,
+        image_url: row?.image_url ?? null,
+        branch_label: row?.branch_label ?? `${city} — клон ${meta.short ?? meta.name}`,
+      };
+    });
+  }, [rows, origin, city]);
+
   const uploadImage = async (row: BankBranchRow, file: File) => {
     try {
       const ext = file.name.split(".").pop() || "png";
       const path = `bank-logos/${row.city_slug}/${row.bank.replace(/[^\p{L}\p{N}]+/gu, "-")}-${Date.now()}.${ext}`;
-      const up = await supabase.storage
-        .from("property-images")
-        .upload(path, file, { upsert: true });
+      const up = await supabase.storage.from("property-images").upload(path, file, { upsert: true });
       if (up.error) throw new Error(up.error.message);
       const url = supabase.storage.from("property-images").getPublicUrl(path).data.publicUrl;
       await setBankBranchImage({
@@ -286,7 +303,7 @@ function BankGrid({
         <div>
           <div className="font-display text-xl text-[#7a1226]">Банки в {city}</div>
           <div className="text-[11px] text-[#7a1226]/70">
-            Ипотека за {client.full_name} · лихвата е тази, въведена за клона в {city}
+            Ипотека за {client.full_name} · избери банка → отваря се цветната карта
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -306,72 +323,68 @@ function BankGrid({
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-10 text-sm text-[#7a1226]">
-            <Loader2 className="h-4 w-4 animate-spin" /> Зареждам клоновете в {city}…
-          </div>
-        ) : rows.length === 0 ? (
-          <div className="rounded-md border border-[#7a1226]/20 bg-white/70 px-4 py-6 text-center text-sm text-[#7a1226]">
-            Няма въведени клонове за {city}. Добави ги от „Лихви по банки“.
+            <Loader2 className="h-4 w-4 animate-spin" /> Зареждам лихвите в {city}…
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {rows.map((b) => {
-              const rate = origin === "foreign" ? b.rate_foreign : b.rate_bg;
-              const color = b.color ?? "#7a1226";
-              const dark = color.toLowerCase() === "#f4c500";
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {cards.map((c) => {
+              const color = c.row?.color ?? c.meta.color;
+              const dark = c.meta.dark || color.toLowerCase() === "#f4c500";
               return (
                 <div
-                  key={b.bank}
-                  className="group overflow-hidden rounded-lg border border-[#7a1226]/20 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+                  key={c.meta.name}
+                  className="group overflow-hidden rounded-xl border border-[#7a1226]/15 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
                 >
                   <div className="flex items-center gap-2 bg-[#2b2f38] px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-amber-50">
                     <Building2 className="h-3.5 w-3.5 flex-none opacity-80" />
-                    <span className="truncate">{b.bank}</span>
-                    <label className="ml-auto flex-none cursor-pointer font-normal normal-case text-amber-50/70 hover:text-amber-50">
-                      <Upload className="h-3.5 w-3.5" />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          e.target.value = "";
-                          if (f) void uploadImage(b, f);
-                        }}
-                      />
-                    </label>
+                    <span className="truncate">{c.meta.name}</span>
+                    {c.row ? (
+                      <label className="ml-auto flex-none cursor-pointer font-normal normal-case text-amber-50/70 hover:text-amber-50">
+                        <Upload className="h-3.5 w-3.5" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            e.target.value = "";
+                            if (f && c.row) void uploadImage(c.row, f);
+                          }}
+                        />
+                      </label>
+                    ) : null}
                   </div>
                   <button
                     type="button"
                     disabled={busy}
-                    onClick={() => onPick(b.bank)}
+                    onClick={() => onPick(c.meta.name)}
                     style={{ backgroundColor: color, color: dark ? "#3d2f00" : "#ffffff" }}
                     className="w-full px-4 py-3 text-center disabled:opacity-60"
                   >
-                    {b.image_url && (
+                    {c.image_url ? (
                       <img
-                        src={b.image_url}
-                        alt={b.bank}
+                        src={c.image_url}
+                        alt={c.meta.name}
                         className="mx-auto mb-2 h-14 w-full object-contain"
                         loading="lazy"
                       />
+                    ) : (
+                      <div className="mx-auto mb-2 flex h-14 w-full items-center justify-center text-2xl font-black opacity-90">
+                        {c.meta.short ?? c.meta.name.slice(0, 3)}
+                      </div>
                     )}
                     <div className="text-[10px] font-semibold uppercase tracking-[0.2em] opacity-80">
                       Клон {city}
                     </div>
-                    <div className="font-display text-lg leading-tight">{b.bank}</div>
-                    <div className="mt-1 text-[11px] opacity-85">
-                      {b.branch_label ?? `${city} — клон ${b.bank}`}
+                    <div className="font-display text-lg leading-tight">{c.meta.name}</div>
+                    <div className="mt-1 text-[11px] opacity-85">{c.branch_label}</div>
+                    <div className="mt-1 text-[12px] font-bold italic opacity-95">
+                      лихва {c.rate.toFixed(2)}%
+                      {c.validFrom ? ` · към ${fmtDay(c.validFrom)}` : ""}
                     </div>
-                    <div className="mt-1 text-[11px] font-bold italic opacity-90">
-                      {rate !== null
-                        ? `лихва ${rate.toFixed(2)}% · към ${fmtDay(b.valid_from)}`
-                        : "няма въведена лихва"}
-                    </div>
-                    {b.source && rate !== null && (
-                      <div className="text-[10px] opacity-75">
-                        {b.source === "announced" ? "обявена от банката" : "оферта от клона"}
-                      </div>
-                    )}
+                    <span className="mt-2 inline-flex rounded-full bg-black/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wide">
+                      Избери банка →
+                    </span>
                   </button>
                 </div>
               );
@@ -394,10 +407,12 @@ function BankDetail({
   localTax,
   tab,
   setTab,
+  busy,
   onBack,
   onAddTask,
   onOpenDocs,
   onClose,
+  onSaveCreditBlock,
 }: {
   bank: string;
   city: string;
@@ -407,75 +422,93 @@ function BankDetail({
   localTax: CityLocalTax | null;
   tab: "board" | "form" | "templates";
   setTab: (t: "board" | "form" | "templates") => void;
+  busy: boolean;
   onBack: () => void;
   onAddTask: () => void;
   onOpenDocs: () => void;
   onClose: () => void;
+  onSaveCreditBlock: (block: CreditBlockData, form?: BankForm) => Promise<void>;
 }) {
-  const color = branch?.color ?? BANKS.find((b) => b.name === bank)?.color ?? "#7a1226";
+  const meta = bankMeta(bank);
+  const color = branch?.color ?? meta.color;
+  const fg = meta.dark ? "#3d2f00" : "#ffffff";
 
   return (
     <>
-      <div className="shrink-0 border-b border-amber-700/20 bg-[#f7e9b8] px-4 py-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onBack}
-              className="flex items-center gap-1 rounded-full border border-[#7a1226]/30 bg-white/70 px-3 py-1.5 text-[11px] font-semibold text-[#7a1226] hover:bg-[#7a1226]/10"
-            >
-              <ChevronLeft className="h-3.5 w-3.5" /> Банките
-            </button>
-            <button
-              type="button"
-              onClick={onAddTask}
-              className="flex items-center gap-1.5 rounded-full border border-[#7a1226]/30 bg-white/70 px-3 py-1.5 text-[11px] font-semibold text-[#7a1226] hover:bg-[#7a1226]/10"
-            >
-              <ListTodo className="h-3.5 w-3.5" /> Към задача
-            </button>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Затвори" className="text-[#7a1226]">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+      <div className="relative shrink-0 overflow-hidden" style={{ backgroundColor: color }}>
         <div
-          className="mt-2 rounded-md px-4 py-2.5 text-center"
-          style={{ backgroundColor: color, color: "#fff" }}
-        >
-          <div className="text-[10px] font-semibold uppercase tracking-[0.25em] opacity-80">
-            Клон {city}
-          </div>
-          <div className="font-display text-xl leading-tight">{bank}</div>
-          <div className="text-[11px] opacity-85">
-            {city} — клон {bank}
-          </div>
-        </div>
-        <div className="mt-2 rounded-md border border-[#7a1226]/15 bg-white/60 px-3 py-1.5 text-[11px] text-[#7a1226]/80">
-          Щом качиш личната карта на {client.full_name}, системата я чете, проверява ЕГН-то и
-          записва резултата за {bank}. Без карта проверката не тръгва.
-        </div>
-        <div className="mt-2 flex gap-1.5">
-          {(
-            [
-              ["board", "Табло"],
-              ["form", "Графи за ипотечен кредит"],
-              ["templates", "Папка с образци"],
-            ] as const
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTab(key)}
-              aria-pressed={tab === key}
-              className={`rounded-full px-3 py-1.5 text-[11px] font-semibold ${
-                tab === key
-                  ? "bg-[#7a1226] text-amber-50"
-                  : "border border-[#7a1226]/25 bg-white/70 text-[#7a1226] hover:bg-[#7a1226]/10"
-              }`}
-            >
-              {label}
+          className="pointer-events-none absolute inset-0 opacity-30"
+          style={{
+            background:
+              "radial-gradient(circle at 75% 30%, rgba(255,255,255,0.35), transparent 50%), linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.35))",
+          }}
+        />
+        <div className="relative px-4 pb-3 pt-3" style={{ color: fg }}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-[#3d0a15]"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" /> Банките
+              </button>
+              <button
+                type="button"
+                onClick={onAddTask}
+                className="flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1.5 text-[11px] font-semibold backdrop-blur"
+              >
+                <ListTodo className="h-3.5 w-3.5" /> Към задача
+              </button>
+            </div>
+            <button type="button" onClick={onClose} aria-label="Затвори" className="opacity-90">
+              <X className="h-5 w-5" />
             </button>
-          ))}
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
+            <div>
+              <div className="font-display text-2xl font-black uppercase tracking-wide">{bank}</div>
+              {meta.slogan ? <div className="text-sm opacity-90">{meta.slogan}</div> : null}
+            </div>
+            <div
+              className="justify-self-center rounded-xl px-4 py-2 text-center shadow-lg"
+              style={{ backgroundColor: color, color: fg, boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}
+            >
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-80">
+                Клон {city}
+              </div>
+              <div className="text-sm font-bold">{bank}</div>
+              <div className="text-[11px] opacity-85">
+                {branch?.branch_label ?? `${city} — клон / център`}
+              </div>
+            </div>
+            <div className="text-right text-sm font-semibold opacity-90">
+              {meta.motto ?? ""}
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {(
+              [
+                ["board", "Табло"],
+                ["form", "Графи за ипотечен кредит"],
+                ["templates", "Папка с образци"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTab(key)}
+                aria-pressed={tab === key}
+                className={`rounded-full px-3 py-1.5 text-[11px] font-semibold ${
+                  tab === key ? "bg-white text-[#3d0a15]" : "bg-white/20 text-inherit hover:bg-white/30"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -483,16 +516,18 @@ function BankDetail({
         {tab === "board" && (
           <BoardTab
             bank={bank}
+            color={color}
             client={client}
             origin={origin}
             branch={branch}
             city={city}
             localTax={localTax}
+            busy={busy}
             onOpenDocs={onOpenDocs}
+            onSaveCreditBlock={onSaveCreditBlock}
           />
         )}
-
-        {tab === "form" && <FormTab bank={bank} client={client} />}
+        {tab === "form" && <FormTab bank={bank} color={color} client={client} />}
         {tab === "templates" && <TemplatesTab bank={bank} client={client} />}
       </div>
     </>
@@ -503,22 +538,31 @@ function BankDetail({
 
 function BoardTab({
   bank,
+  color,
   client,
   origin,
   branch,
   city,
   localTax,
+  busy,
   onOpenDocs,
+  onSaveCreditBlock,
 }: {
   bank: string;
+  color: string;
   client: any;
   origin: IncomeOrigin;
   branch: BankBranchRow | null;
   city: string;
   localTax: CityLocalTax | null;
+  busy: boolean;
   onOpenDocs: () => void;
+  onSaveCreditBlock: (block: CreditBlockData, form?: BankForm) => Promise<void>;
 }) {
+  const meta = bankMeta(bank);
   const md = client?.mortgage_data ?? {};
+  const savedForm: BankForm = { ...EMPTY_FORM, ...(md.bank_forms?.[bank] as BankForm) };
+  const savedBlock = md.credit_block as CreditBlockData | undefined;
   const today = useMemo(() => new Date(), []);
   const fallbackBg = getLiveRate(bank, "bg", today);
   const fallbackForeign = getLiveRate(bank, "foreign", today);
@@ -532,179 +576,295 @@ function BoardTab({
   };
   const live = origin === "foreign" ? liveForeign : liveBg;
 
-  const [amount, setAmount] = useState("");
-  const [price, setPrice] = useState("");
-  const [years, setYears] = useState("25");
-  const [payment, setPayment] = useState<number | null>(null);
+  const [form, setForm] = useState<BankForm>({
+    ...savedForm,
+    price: savedForm.price || (savedBlock ? String(savedBlock.amount + savedBlock.downPayment) : ""),
+    amount: savedForm.amount || (savedBlock ? String(savedBlock.amount) : ""),
+    years: savedForm.years || (savedBlock ? String(savedBlock.years) : "25"),
+    ownFunds: savedForm.ownFunds || (savedBlock ? String(savedBlock.downPayment) : ""),
+  });
+  const [payment, setPayment] = useState<number | null>(savedBlock?.payment ?? null);
   const [notary, setNotary] = useState<ReturnType<typeof calcNotaryFees> | null>(null);
 
+  const set =
+    (key: keyof BankForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm((f) => ({ ...f, [key]: e.target.value }));
+
   const calcPayment = () => {
-    const a = Number(amount);
-    const y = Number(years);
+    const a = Number(form.amount);
+    const y = Number(form.years);
     if (!a || !y) return toast.error("Въведи сума и срок.");
     setPayment(monthlyPayment(a, live.rate, y));
   };
 
   const calcNotary = () => {
-    const p = Number(price);
+    const p = Number(form.price);
     if (!p) return toast.error("Въведи цена на имота.");
     setNotary(
       calcNotaryFees({
         price: p,
-        loanAmount: Number(amount) || undefined,
+        loanAmount: Number(form.amount) || undefined,
         currency: "EUR",
-        withMortgage: Number(amount) > 0,
+        withMortgage: Number(form.amount) > 0,
         localTaxRate: localTax?.local_tax_rate,
       }),
     );
   };
 
+  const saveBlock = async () => {
+    const amount = Number(form.amount);
+    const years = Number(form.years) || 25;
+    const downPayment = Number(form.ownFunds) || Math.max(0, Number(form.price) - amount);
+    if (!amount) return toast.error("Въведи желана сума на кредита.");
+    const pay = payment ?? monthlyPayment(amount, live.rate, years);
+    await onSaveCreditBlock(
+      {
+        bank,
+        amount,
+        downPayment,
+        years,
+        rate: live.rate,
+        payment: pay,
+      },
+      form,
+    );
+  };
+
+  const field =
+    "w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-[#3d0a15] placeholder:text-zinc-400 focus:outline-none focus:ring-2";
+  const labelCls = "text-[11px] font-bold";
+  const labelStyle = { color: "#7a1226" };
+
   return (
     <div className="space-y-3">
-      <div className="font-display text-base text-[#7a1226]">Табло — калкулатор и листчета</div>
-      <div className="grid gap-3 lg:grid-cols-3">
-        {/* Кредитен калкулатор */}
-        <div className="rounded-lg border border-[#7a1226]/20 bg-white/70 p-3">
-          <div className="text-sm font-bold text-[#3d0a15]">Кредитен калкулатор</div>
-          <p className="mt-0.5 text-[11px] text-[#7a1226]/70">
-            Смята се по избраната лихва на {bank}: {live.rate.toFixed(2)}%.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <span className="rounded-full bg-[#7a1226] px-2.5 py-1 text-[10px] font-semibold text-amber-50">
-              Пълна отг. {liveBg.rate.toFixed(2)}%
-            </span>
-            <span className="rounded-full border border-[#7a1226]/30 bg-white px-2.5 py-1 text-[10px] font-semibold text-[#7a1226]">
-              Доходи от чужбина {liveForeign.rate.toFixed(2)}%
-            </span>
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-            <label className="space-y-0.5">
-              <span className="font-semibold text-[#7a1226]/80">Сума (EUR)</span>
-              <input
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                inputMode="decimal"
-                className="w-full rounded-md border border-[#7a1226]/25 bg-white px-2 py-1.5"
-              />
-            </label>
-            <label className="space-y-0.5">
-              <span className="font-semibold text-[#7a1226]/80">Срок: {years || "—"} г.</span>
-              <input
-                value={years}
-                onChange={(e) => setYears(e.target.value)}
-                inputMode="numeric"
-                className="w-full rounded-md border border-[#7a1226]/25 bg-white px-2 py-1.5"
-              />
-            </label>
-            <label className="space-y-0.5">
-              <span className="font-semibold text-[#7a1226]/80">Цена имот (EUR)</span>
-              <input
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                inputMode="decimal"
-                className="w-full rounded-md border border-[#7a1226]/25 bg-white px-2 py-1.5"
-              />
-            </label>
-            <div className="space-y-0.5">
-              <span className="font-semibold text-[#7a1226]/80">Лихва</span>
-              <div className="rounded-md border border-[#7a1226]/15 bg-[#f7e9b8] px-2 py-1.5 font-bold">
-                {live.rate.toFixed(2)}%
-              </div>
+      <div className="grid gap-3 lg:grid-cols-[1.35fr_0.9fr]">
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <span
+                className="flex h-8 w-8 items-center justify-center rounded-full"
+                style={{ backgroundColor: `${color}22`, color }}
+              >
+                <ShieldCheck className="h-4 w-4" />
+              </span>
+              <div className="font-display text-base text-[#3d0a15]">Проверка на ЦКР</div>
             </div>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <button
-              type="button"
-              onClick={calcPayment}
-              className="flex-1 rounded-full bg-[#7a1226] px-3 py-2 text-[11px] font-bold text-amber-50"
-            >
-              Изчисли вноска
-            </button>
-            <button
-              type="button"
-              onClick={calcNotary}
-              className="flex-1 rounded-full border border-[#7a1226]/30 bg-white px-3 py-2 text-[11px] font-bold text-[#7a1226]"
-            >
-              Изчисли нотариус
-            </button>
-          </div>
-          {payment !== null && (
-            <div className="mt-2 rounded-md border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-[12px] font-semibold text-[#14532d]">
-              Месечна вноска: {money(payment, "EUR")} при {live.rate.toFixed(2)}% за {years} г.
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={onOpenDocs}
+                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-bold text-white"
+                style={{ backgroundColor: color }}
+              >
+                <IdCard className="h-3.5 w-3.5" /> Прикачи лична карта
+              </button>
+              <button
+                type="button"
+                onClick={onOpenDocs}
+                className="inline-flex items-center gap-1.5 rounded-full border bg-white px-4 py-2 text-[11px] font-bold"
+                style={{ borderColor: color, color }}
+              >
+                Проверка на ЦКР
+              </button>
             </div>
-          )}
-          {notary && (
-            <div className="mt-2 space-y-1 rounded-md border border-[#7a1226]/20 bg-[#fdf6dc] px-3 py-2 text-[11px] text-[#3d0a15]">
-              {notary.lines.map((l) => (
-                <div key={l.key} className="flex justify-between gap-2">
-                  <span>{l.label}</span>
-                  <span className="font-semibold">{money(l.amount, "EUR")}</span>
-                </div>
-              ))}
-              <div className="flex justify-between gap-2 border-t border-[#7a1226]/15 pt-1 font-bold">
-                <span>Общо</span>
-                <span>{money(notary.total, "EUR")}</span>
-              </div>
-              <div className="flex justify-between gap-2 border-t border-[#7a1226]/15 pt-1">
-                <span>Общо в лева</span>
-                <span className="font-semibold">{money(notary.total * BGN_PER_EUR, "BGN")}</span>
-              </div>
-              <p className="pt-1 text-[10px] leading-snug text-[#7a1226]/70">
-                Местен данък {city}:{" "}
-                {localTax ? `${localTax.local_tax_rate.toFixed(2)}%` : "по подразбиране"}
-                {localTax?.note ? ` · ${localTax.note}` : ""}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Листче за деня */}
-        <div className="relative -rotate-1 rounded-sm border border-amber-700/25 bg-[#f7ecc0] p-3 pt-5 shadow-md">
-          <span className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full border border-black/20 bg-red-700 shadow" />
-          <div className="handwriting text-base font-bold text-[#3d0a15]">
-            Днес — {today.toLocaleDateString("bg-BG")}
-          </div>
-          <div className="handwriting mt-1 text-sm text-[#3d0a15]/90">
-            EUR → BGN: 1 = {BGN_PER_EUR.toFixed(5)}
-          </div>
-          <div className="mt-2 border-t border-[#3d0a15]/15 pt-2">
-            <div className="handwriting text-sm font-bold text-[#3d0a15]">Лихва {bank} днес:</div>
-            <div className="font-display text-3xl text-[#7a1226]">{liveBg.rate.toFixed(2)}%</div>
-            <p className="mt-1 text-[10px] leading-snug text-[#7a1226]/70">
-              взета автоматично днес · валидна от{" "}
-              {new Date(liveBg.validFrom).toLocaleDateString("bg-BG")} · доходи от България
+            <p className="mt-2 text-[11px] leading-snug text-zinc-500">
+              Щом качиш личната карта на {client.full_name}, системата я чете, проверява ЕГН-то и
+              записва резултата за {bank}. Без карта проверката не тръгва.
             </p>
           </div>
-          <div className="mt-2 border-t border-[#3d0a15]/15 pt-2">
-            <div className="handwriting text-sm font-bold text-[#3d0a15]">Доходи от чужбина:</div>
-            <div className="font-display text-3xl text-[#7a1226]">
-              {liveForeign.rate.toFixed(2)}%
+
+          <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <span
+                className="flex h-8 w-8 items-center justify-center rounded-full"
+                style={{ backgroundColor: `${color}22`, color }}
+              >
+                <Calculator className="h-4 w-4" />
+              </span>
+              <div className="font-display text-base text-[#3d0a15]">Графи за ипотечен кредит</div>
             </div>
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              <label className="space-y-1">
+                <span className={labelCls} style={labelStyle}>
+                  Цена на имота / сделката (EUR)
+                </span>
+                <input value={form.price} onChange={set("price")} inputMode="decimal" className={field} style={{ ["--tw-ring-color" as string]: color }} />
+              </label>
+              <label className="space-y-1">
+                <span className={labelCls} style={labelStyle}>
+                  Желана сума (EUR)
+                </span>
+                <input value={form.amount} onChange={set("amount")} inputMode="decimal" className={field} />
+              </label>
+              <label className="space-y-1">
+                <span className={labelCls} style={labelStyle}>
+                  Срок (години)
+                </span>
+                <input value={form.years} onChange={set("years")} inputMode="numeric" className={field} />
+              </label>
+              <label className="space-y-1">
+                <span className={labelCls} style={labelStyle}>
+                  Месечен доход (EUR)
+                </span>
+                <input value={form.income} onChange={set("income")} inputMode="decimal" className={field} />
+              </label>
+              <label className="space-y-1">
+                <span className={labelCls} style={labelStyle}>
+                  Работодател
+                </span>
+                <input value={form.employer} onChange={set("employer")} className={field} />
+              </label>
+              <label className="space-y-1">
+                <span className={labelCls} style={labelStyle}>
+                  ЕГН
+                </span>
+                <input value={form.egon} onChange={set("egon")} className={field} />
+              </label>
+              <label className="space-y-1">
+                <span className={labelCls} style={labelStyle}>
+                  Имот / адрес
+                </span>
+                <input value={form.property} onChange={set("property")} className={field} />
+              </label>
+              <label className="space-y-1">
+                <span className={labelCls} style={labelStyle}>
+                  Собствени средства (EUR)
+                </span>
+                <input value={form.ownFunds} onChange={set("ownFunds")} inputMode="decimal" className={field} />
+              </label>
+            </div>
+            <label className="mt-2.5 block space-y-1">
+              <span className={labelCls} style={labelStyle}>
+                Бележка към банката
+              </span>
+              <textarea value={form.note} onChange={set("note")} rows={3} className={`${field} resize-none`} />
+            </label>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={calcPayment}
+                className="rounded-full px-4 py-2 text-[11px] font-bold text-white"
+                style={{ backgroundColor: color }}
+              >
+                Изчисли вноска
+              </button>
+              <button
+                type="button"
+                onClick={calcNotary}
+                className="rounded-full border bg-white px-4 py-2 text-[11px] font-bold"
+                style={{ borderColor: color, color }}
+              >
+                Изчисли нотариус
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void saveBlock()}
+                className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-[#7a1226] px-4 py-2 text-[11px] font-bold text-amber-50 disabled:opacity-60"
+              >
+                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                Запази кредитен блок
+              </button>
+            </div>
+
+            {payment !== null ? (
+              <div
+                className="mt-2 rounded-md border px-3 py-2 text-[12px] font-semibold"
+                style={{ borderColor: `${color}55`, backgroundColor: `${color}12`, color }}
+              >
+                Месечна вноска: {money(payment, "EUR")} при {live.rate.toFixed(2)}% за {form.years} г.
+              </div>
+            ) : null}
+            {notary ? (
+              <div className="mt-2 space-y-1 rounded-md border border-zinc-200 bg-[#fdf6dc] px-3 py-2 text-[11px] text-[#3d0a15]">
+                {notary.lines.map((l) => (
+                  <div key={l.key} className="flex justify-between gap-2">
+                    <span>{l.label}</span>
+                    <span className="font-semibold">{money(l.amount, "EUR")}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between gap-2 border-t border-[#7a1226]/15 pt-1 font-bold">
+                  <span>Общо</span>
+                  <span>{money(notary.total, "EUR")}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span>Общо в лева</span>
+                  <span className="font-semibold">{money(notary.total * BGN_PER_EUR, "BGN")}</span>
+                </div>
+                <p className="pt-1 text-[10px] text-[#7a1226]/70">
+                  Местен данък {city}:{" "}
+                  {localTax ? `${localTax.local_tax_rate.toFixed(2)}%` : "по подразбиране"}
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
 
-        {/* Документи за ипотека */}
-        <div className="relative rotate-1 rounded-sm border border-amber-700/25 bg-[#f3e3b0] p-3 pt-5 shadow-md">
-          <span className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full border border-black/20 bg-red-700 shadow" />
-          <div className="handwriting text-base font-bold text-[#3d0a15]">
-            Документи за ипотека — {bank}
+        <div className="space-y-3">
+          <div className="relative -rotate-1 rounded-sm border border-amber-700/25 bg-[#f7ecc0] p-3 pt-5 shadow-md">
+            <span className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full border border-black/20 bg-red-700 shadow" />
+            <div className="handwriting text-base font-bold text-[#3d0a15]">
+              Днес — {today.toLocaleDateString("bg-BG")}
+            </div>
+            <div className="handwriting mt-1 text-sm text-[#3d0a15]/90">
+              EUR → BGN: 1 = {BGN_PER_EUR.toFixed(5)}
+            </div>
+            <div className="mt-2 border-t border-[#3d0a15]/15 pt-2">
+              <div className="handwriting text-sm font-bold text-[#3d0a15]">Лихва {bank} днес:</div>
+              <div className="font-display text-3xl" style={{ color }}>
+                {liveBg.rate.toFixed(2)}%
+              </div>
+              <p className="mt-1 text-[10px] leading-snug text-[#7a1226]/70">
+                валидна от {new Date(liveBg.validFrom).toLocaleDateString("bg-BG")} · доходи от
+                България
+              </p>
+            </div>
+            <div className="mt-2 border-t border-[#3d0a15]/15 pt-2">
+              <div className="handwriting text-sm font-bold text-[#3d0a15]">Доходи от чужбина:</div>
+              <div className="font-display text-3xl" style={{ color }}>
+                {liveForeign.rate.toFixed(2)}%
+              </div>
+            </div>
           </div>
-          <div className="handwriting mt-1 text-sm font-bold text-[#3d0a15]/80">
-            Доходи от България
+
+          <div className="relative rotate-1 rounded-sm border border-amber-700/25 bg-[#f3e3b0] p-3 pt-5 shadow-md">
+            <span className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full border border-black/20 bg-red-700 shadow" />
+            <div className="handwriting text-base font-bold text-[#3d0a15]">
+              Документи за ипотека — {meta.short ?? bank}
+            </div>
+            <div className="handwriting mt-1 text-sm font-bold text-[#3d0a15]/80">
+              Доходи от България
+            </div>
+            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] text-[#3d0a15]/90">
+              {MORTGAGE_DOC_REQS.map((r) => (
+                <li key={r.id}>{r.label}</li>
+              ))}
+              <li>Нотариален акт / скица</li>
+              <li>Съгласие GDPR / ЦКР</li>
+            </ul>
+            <button
+              type="button"
+              onClick={onOpenDocs}
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-2 text-[11px] font-bold text-white"
+              style={{ backgroundColor: color }}
+            >
+              <Paperclip className="h-3.5 w-3.5" /> Качи документите на {client.full_name}
+            </button>
           </div>
-          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[11px] text-[#3d0a15]/90">
-            {MORTGAGE_DOC_REQS.map((r) => (
-              <li key={r.id}>{r.label}</li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            onClick={onOpenDocs}
-            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md bg-[#7a1226] px-3 py-2 text-[11px] font-bold text-amber-50"
-          >
-            <Paperclip className="h-3.5 w-3.5" /> Качи документите на {client.full_name}
-          </button>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[11px] text-zinc-600">
+        <span>
+          Сравняваме условията на водещите банки в {city}, за да намерим най-доброто решение.
+        </span>
+        <a
+          href={`tel:${client.phone || ""}`}
+          className="rounded-full bg-[#7a1226] px-4 py-2 text-[11px] font-bold text-amber-50"
+        >
+          Свържи се с нас →
+        </a>
       </div>
     </div>
   );
@@ -712,9 +872,9 @@ function BoardTab({
 
 /* ---------------------------------------------------------------- графи */
 
-function FormTab({ bank, client }: { bank: string; client: any }) {
-  const saved: BankForm = (client?.mortgage_data?.bank_forms?.[bank] as BankForm) ?? EMPTY_FORM;
-  const [form, setForm] = useState<BankForm>({ ...EMPTY_FORM, ...saved });
+function FormTab({ bank, color, client }: { bank: string; color: string; client: any }) {
+  const saved: BankForm = { ...EMPTY_FORM, ...(client?.mortgage_data?.bank_forms?.[bank] as BankForm) };
+  const [form, setForm] = useState<BankForm>(saved);
   const [busy, setBusy] = useState(false);
 
   const set =
@@ -740,66 +900,43 @@ function FormTab({ bank, client }: { bank: string; client: any }) {
   };
 
   const field =
-    "w-full rounded-md border border-[#7a1226]/25 bg-white px-3 py-2 text-sm text-[#3d0a15] placeholder:text-[#7a1226]/40 focus:outline-none";
+    "w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-[#3d0a15] focus:outline-none";
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4">
       <div>
-        <div className="font-display text-base text-[#7a1226]">Графи за ипотечен кредит</div>
-        <p className="text-[11px] text-[#7a1226]/70">Пазят се при клиента за {bank}.</p>
+        <div className="font-display text-base text-[#3d0a15]">Графи за ипотечен кредит</div>
+        <p className="text-[11px] text-zinc-500">Пазят се при клиента за {bank}.</p>
       </div>
       <div className="grid gap-2.5 sm:grid-cols-2">
-        <label className="space-y-1">
-          <span className="text-[11px] font-bold text-[#3d0a15]">
-            Цена на имота / сделката (EUR)
-          </span>
-          <input value={form.price} onChange={set("price")} inputMode="decimal" className={field} />
-        </label>
-        <label className="space-y-1">
-          <span className="text-[11px] font-bold text-[#3d0a15]">Желана сума (EUR)</span>
-          <input
-            value={form.amount}
-            onChange={set("amount")}
-            inputMode="decimal"
-            className={field}
-          />
-        </label>
-        <label className="space-y-1">
-          <span className="text-[11px] font-bold text-[#3d0a15]">Срок (години)</span>
-          <input value={form.years} onChange={set("years")} inputMode="numeric" className={field} />
-        </label>
-        <label className="space-y-1">
-          <span className="text-[11px] font-bold text-[#3d0a15]">Месечен доход (EUR)</span>
-          <input
-            value={form.income}
-            onChange={set("income")}
-            inputMode="decimal"
-            className={field}
-          />
-        </label>
-        <label className="space-y-1">
-          <span className="text-[11px] font-bold text-[#3d0a15]">Работодател</span>
-          <input value={form.employer} onChange={set("employer")} className={field} />
-        </label>
-        <label className="space-y-1">
-          <span className="text-[11px] font-bold text-[#3d0a15]">Имот / адрес</span>
-          <input value={form.property} onChange={set("property")} className={field} />
-        </label>
+        {(
+          [
+            ["price", "Цена на имота / сделката (EUR)"],
+            ["amount", "Желана сума (EUR)"],
+            ["years", "Срок (години)"],
+            ["income", "Месечен доход (EUR)"],
+            ["employer", "Работодател"],
+            ["egon", "ЕГН"],
+            ["property", "Имот / адрес"],
+            ["ownFunds", "Собствени средства (EUR)"],
+          ] as const
+        ).map(([key, label]) => (
+          <label key={key} className="space-y-1">
+            <span className="text-[11px] font-bold text-[#7a1226]">{label}</span>
+            <input value={form[key]} onChange={set(key)} className={field} />
+          </label>
+        ))}
       </div>
       <label className="block space-y-1">
-        <span className="text-[11px] font-bold text-[#3d0a15]">Бележка към банката</span>
-        <textarea
-          value={form.note}
-          onChange={set("note")}
-          rows={3}
-          className={`${field} resize-none`}
-        />
+        <span className="text-[11px] font-bold text-[#7a1226]">Бележка към банката</span>
+        <textarea value={form.note} onChange={set("note")} rows={3} className={`${field} resize-none`} />
       </label>
       <button
         type="button"
         onClick={save}
         disabled={busy}
-        className="flex items-center gap-2 rounded-full bg-[#7a1226] px-5 py-2.5 text-xs font-bold text-amber-50 disabled:opacity-60"
+        className="flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold text-white disabled:opacity-60"
+        style={{ backgroundColor: color }}
       >
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderOpen className="h-4 w-4" />}
         Запази графата
@@ -979,11 +1116,7 @@ function TemplatesTab({ bank, client }: { bank: string; client: any }) {
           onClick={() => fileInput.current?.click()}
           className="flex flex-none items-center gap-1.5 rounded-full bg-[#7a1226] px-4 py-2 text-[11px] font-bold text-amber-50 disabled:opacity-50"
         >
-          {busy ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Upload className="h-3.5 w-3.5" />
-          )}
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
           Качи
         </button>
         <input
@@ -999,7 +1132,6 @@ function TemplatesTab({ bank, client }: { bank: string; client: any }) {
         />
       </div>
 
-      {/* Хора в банката */}
       <div className="rounded-lg border border-[#7a1226]/15 bg-white/60 p-3">
         <div className="text-sm font-bold text-[#3d0a15]">Хора в банката</div>
         {contacts.length > 0 && (
@@ -1056,7 +1188,7 @@ function TemplatesTab({ bank, client }: { bank: string; client: any }) {
           <input
             value={draft.email}
             onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
-            placeholder="Имейл (напр. ...@abv.bg)"
+            placeholder="Имейл"
             className={field}
           />
         </div>
