@@ -1,12 +1,11 @@
-import { Building2, Calendar, Home, Sparkles, Users } from "lucide-react";
+import { Building2, Calendar, Home, Users } from "lucide-react";
 
-export type NavKey = "home" | "clients" | "properties" | "ai" | "calendar";
+export type NavKey = "home" | "clients" | "properties" | "calendar";
 
 const ITEMS: { key: NavKey; label: string; icon: typeof Home }[] = [
   { key: "home", label: "Начало", icon: Home },
   { key: "clients", label: "Клиенти", icon: Users },
   { key: "properties", label: "Имоти", icon: Building2 },
-  { key: "ai", label: "AI асистент", icon: Sparkles },
   { key: "calendar", label: "Календар", icon: Calendar },
 ];
 

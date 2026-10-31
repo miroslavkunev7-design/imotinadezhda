@@ -4,12 +4,12 @@ import {
   Calendar,
   CalendarClock,
   Handshake,
-  Sparkles,
   UserRound,
   Users,
 } from "lucide-react";
 
 import "./crm-home-locked.css";
+import { AiAssistChat, AiAssistFab } from "./AiAssistChat";
 import { BottomMenuSheet } from "./BottomMenuSheet";
 import { BrokerBadge } from "./BrokerBadge";
 import { GlassStatCard } from "./GlassStatCard";
@@ -54,13 +54,6 @@ const CARDS: SectionSheetData[] = [
 const NAV_SECTIONS: Partial<Record<NavKey, SectionSheetData>> = {
   clients: CARDS[0],
   properties: CARDS[1],
-  ai: {
-    title: "AI асистент",
-    value: "24/7",
-    photoUrl: "/crm-home-locked/card-imoti.jpg",
-    description: "AI помощник за запитвания, описания и следващи действия в CRM.",
-    icon: <Sparkles size={18} strokeWidth={1.6} />,
-  },
   calendar: {
     title: "Календар",
     value: "Днес",
@@ -89,11 +82,13 @@ export function CrmHomeLockedPage() {
   const [activeNav, setActiveNav] = useState<NavKey>("home");
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [section, setSection] = useState<SectionSheetData | null>(null);
 
   const closeOverlays = useCallback(() => {
     setMenuOpen(false);
     setNotificationsOpen(false);
+    setAiOpen(false);
     setSection(null);
   }, []);
 
@@ -102,6 +97,7 @@ export function CrmHomeLockedPage() {
       setActiveNav(key);
       setMenuOpen(false);
       setNotificationsOpen(false);
+      setAiOpen(false);
       if (key === "home") {
         setSection(null);
         return;
@@ -113,6 +109,7 @@ export function CrmHomeLockedPage() {
 
   const openMenu = useCallback(() => {
     setNotificationsOpen(false);
+    setAiOpen(false);
     setSection(null);
     setMenuOpen(true);
   }, []);
@@ -152,18 +149,32 @@ export function CrmHomeLockedPage() {
         </main>
 
         <footer className="crm-locked-bottom">
-          <BrokerBadge
-            onOpen={() => {
-              setMenuOpen(false);
-              setNotificationsOpen(false);
-              setSection(PROFILE_SHEET);
-            }}
-          />
+          <div className="crm-locked-bottom__left">
+            <AiAssistFab
+              active={aiOpen}
+              onToggle={() => {
+                setMenuOpen(false);
+                setNotificationsOpen(false);
+                setSection(null);
+                setAiOpen((v) => !v);
+              }}
+            />
+            <BrokerBadge
+              onOpen={() => {
+                setMenuOpen(false);
+                setNotificationsOpen(false);
+                setAiOpen(false);
+                setSection(PROFILE_SHEET);
+              }}
+            />
+            <AiAssistChat open={aiOpen} onClose={() => setAiOpen(false)} />
+          </div>
           <UtilityDock
             theme={theme}
             onToggleTheme={onToggleTheme}
             onOpenNotifications={() => {
               setMenuOpen(false);
+              setAiOpen(false);
               setSection(null);
               setNotificationsOpen(true);
             }}
