@@ -42,8 +42,21 @@ function createSupabaseAdminClient() {
       ...(!SUPABASE_SERVICE_ROLE_KEY ? ["SUPABASE_SERVICE_ROLE_KEY"] : []),
     ];
     const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    // Soft stub — public/preview routes must not hard-crash into "Бавна връзка"
+    // when local/tunnel env is incomplete. Real admin ops still need the key.
+    console.warn(`[Supabase] ${message} Using preview stub admin client.`);
+    const stubUrl = SUPABASE_URL || "https://placeholder.supabase.co";
+    const stubKey = SUPABASE_SERVICE_ROLE_KEY || "sb_secret_preview_stub";
+    return createClient<Database>(stubUrl, stubKey, {
+      global: {
+        fetch: createSupabaseFetch(stubKey),
+      },
+      auth: {
+        storage: undefined,
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {

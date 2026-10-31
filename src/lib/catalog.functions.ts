@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { safeAdmin } from "@/integrations/supabase/safe-admin";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { safeAdmin, supabaseAdmin } from "@/integrations/supabase/safe-admin";
 import { getVerifiedQuarterImage } from "@/lib/quarter-image-map";
 
 export const getCities = createServerFn({ method: "GET" }).handler(async () => {
