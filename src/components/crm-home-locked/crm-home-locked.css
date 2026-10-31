@@ -29,20 +29,20 @@
 }
 
 .crm-locked-root[data-theme="light"] {
-  /* Day contrast: frosted white glass + satin burgundy accents */
+  /* Day contrast: denser frost + satin burgundy accents against villa */
   --crm-accent: #600f1c;
   --crm-accent-soft: rgba(96, 15, 28, 0.14);
   --crm-accent-glow: rgba(96, 15, 28, 0.45);
   --crm-glass-veil: linear-gradient(
     to right,
-    rgba(255, 255, 255, 0.52) 0%,
-    rgba(255, 255, 255, 0.28) 38%,
+    rgba(18, 12, 16, 0.42) 0%,
+    rgba(18, 12, 16, 0.22) 34%,
     rgba(255, 255, 255, 0.08) 55%,
-    transparent 70%
+    transparent 72%
   );
-  --crm-card-bg: rgba(255, 255, 255, 0.22);
-  --crm-card-border: rgba(255, 255, 255, 0.95);
-  --crm-card-glow: rgba(255, 255, 255, 0.7);
+  --crm-card-bg: rgba(255, 255, 255, 0.34);
+  --crm-card-border: rgba(255, 255, 255, 0.98);
+  --crm-card-glow: rgba(255, 255, 255, 0.82);
 }
 
 .crm-locked-fallback-bg {
@@ -55,6 +55,18 @@
   object-position: center;
   pointer-events: none;
   transition: opacity 0.35s ease;
+}
+
+/* Soft scene grade so frosted cards lift off the bright villa (light only) */
+.crm-locked-root[data-theme="light"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 72% 58%, rgba(12, 8, 10, 0.34) 0%, transparent 58%),
+    linear-gradient(90deg, rgba(8, 10, 14, 0.08) 0%, transparent 42%, rgba(8, 10, 14, 0.28) 100%);
 }
 
 .crm-locked-ui {
@@ -187,15 +199,39 @@
 
 .crm-locked-root[data-theme="light"] .crm-locked-card {
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.05) 100%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.28) 42%, rgba(20, 12, 16, 0.18) 100%),
     var(--crm-card-bg);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.55),
-    0 12px 32px rgba(40, 20, 24, 0.28),
-    0 0 28px var(--crm-card-glow),
-    0 0 56px rgba(255, 255, 255, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -18px 36px rgba(255, 255, 255, 0.16);
+    0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 14px 36px rgba(20, 10, 14, 0.42),
+    0 0 30px var(--crm-card-glow),
+    0 0 64px rgba(255, 255, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    inset 0 -20px 40px rgba(255, 255, 255, 0.18);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.85),
+    0 18px 42px rgba(20, 10, 14, 0.48),
+    0 0 38px var(--crm-card-glow),
+    0 0 72px rgba(255, 255, 255, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -20px 40px rgba(255, 255, 255, 0.22);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__value,
+.crm-locked-root[data-theme="light"] .crm-locked-card__title {
+  text-shadow:
+    0 1px 2px rgba(10, 6, 8, 0.55),
+    0 0 16px rgba(255, 255, 255, 0.35);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__sub {
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 2px rgba(10, 6, 8, 0.45);
 }
 
 .crm-locked-card:hover {
