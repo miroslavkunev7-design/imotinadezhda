@@ -65,12 +65,13 @@
 }
 
 .crm-locked-logo {
-  width: clamp(168px, 16vw, 260px);
+  /* Match former baked-in logo footprint (roofs only, no text duplicate) */
+  width: clamp(200px, 20vw, 320px);
   height: auto;
   object-fit: contain;
   object-position: left top;
-  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 1))
-    drop-shadow(0 0 28px rgba(255, 255, 255, 0.6));
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 1))
+    drop-shadow(0 0 32px rgba(255, 255, 255, 0.65));
   pointer-events: none;
   user-select: none;
 }
@@ -128,23 +129,26 @@
   align-items: flex-end;
   justify-content: flex-end;
   /* Keep 2x2 grid, but lower it so the villa shows above */
-  padding: clamp(22vh, 26vh, 30vh) 0 clamp(8px, 1.5vh, 16px);
+  padding: clamp(18vh, 22vh, 26vh) 0 clamp(8px, 1.5vh, 16px);
+  perspective: 1400px;
 }
 
 .crm-locked-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(14px, 1.4vw, 20px);
-  width: min(48vw, 560px);
+  gap: clamp(16px, 1.6vw, 22px);
+  width: min(56vw, 680px);
+  transform: rotateY(-6deg) rotateX(2deg);
+  transform-style: preserve-3d;
 }
 
 .crm-locked-card {
   position: relative;
   display: block;
   width: 100%;
-  min-height: clamp(130px, 18vh, 168px);
-  border-radius: 24px;
-  border: 1.5px solid rgba(255, 255, 255, 0.88);
+  min-height: clamp(168px, 24vh, 220px);
+  border-radius: 26px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
   overflow: hidden;
   text-decoration: none;
   text-align: left;
@@ -152,26 +156,32 @@
   font: inherit;
   cursor: pointer;
   isolation: isolate;
-  background: var(--crm-card-bg);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 42%, rgba(8, 12, 20, 0.28) 100%),
+    var(--crm-card-bg);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.25),
-    0 0 22px rgba(255, 255, 255, 0.55),
-    0 0 48px rgba(255, 255, 255, 0.22),
-    inset 0 0 18px rgba(255, 255, 255, 0.12);
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 10px 28px rgba(0, 0, 0, 0.35),
+    0 0 26px rgba(255, 255, 255, 0.55),
+    0 0 60px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -18px 36px rgba(255, 255, 255, 0.08);
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
 }
 
 .crm-locked-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px) translateZ(12px) scale(1.015);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.35),
-    0 0 28px rgba(255, 255, 255, 0.7),
-    0 0 56px rgba(255, 255, 255, 0.28),
-    inset 0 0 18px rgba(255, 255, 255, 0.16);
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 16px 36px rgba(0, 0, 0, 0.4),
+    0 0 34px rgba(255, 255, 255, 0.75),
+    0 0 72px rgba(255, 255, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -18px 36px rgba(255, 255, 255, 0.12);
 }
 
 .crm-locked-card__photo {
@@ -553,7 +563,8 @@
 
 @media (max-width: 900px) {
   .crm-locked-grid {
-    width: min(92vw, 420px);
+    width: min(94vw, 460px);
+    transform: none;
   }
 
   .crm-locked-nav span {
@@ -563,10 +574,15 @@
   .crm-locked-main {
     justify-content: center;
     align-items: flex-end;
-    padding-top: clamp(20vh, 24vh, 28vh);
+    padding-top: clamp(18vh, 22vh, 26vh);
+    perspective: none;
   }
 
   .crm-locked-card {
-    min-height: clamp(120px, 16vh, 148px);
+    min-height: clamp(140px, 18vh, 176px);
+  }
+
+  .crm-locked-logo {
+    width: clamp(160px, 42vw, 220px);
   }
 }

@@ -10,8 +10,8 @@ export function LockedLogo({ onClick }: { onClick?: () => void }) {
         src="/crm-home-locked/logo-mark-white.png"
         alt="Недвижими имоти Надежда"
         className="crm-locked-logo"
-        width={260}
-        height={106}
+        width={320}
+        height={130}
         decoding="async"
         draggable={false}
       />
