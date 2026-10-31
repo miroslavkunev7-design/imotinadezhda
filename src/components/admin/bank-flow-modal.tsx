@@ -55,7 +55,7 @@ type BankForm = {
   income: string;
   employer: string;
   property: string;
-  egon: string;
+  egn: string;
   ownFunds: string;
   note: string;
 };
@@ -67,7 +67,7 @@ const EMPTY_FORM: BankForm = {
   income: "",
   employer: "",
   property: "",
-  egon: "",
+  egn: "",
   ownFunds: "",
   note: "",
 };
@@ -718,7 +718,7 @@ function BoardTab({
                 <span className={labelCls} style={labelStyle}>
                   ЕГН
                 </span>
-                <input value={form.egon} onChange={set("egon")} className={field} />
+                <input value={form.egn} onChange={set("egn")} className={field} />
               </label>
               <label className="space-y-1">
                 <span className={labelCls} style={labelStyle}>
@@ -916,7 +916,7 @@ function FormTab({ bank, color, client }: { bank: string; color: string; client:
             ["years", "Срок (години)"],
             ["income", "Месечен доход (EUR)"],
             ["employer", "Работодател"],
-            ["egon", "ЕГН"],
+            ["egn", "ЕГН"],
             ["property", "Имот / адрес"],
             ["ownFunds", "Собствени средства (EUR)"],
           ] as const
