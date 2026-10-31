@@ -32,7 +32,7 @@ export function LockedNav({
             aria-current={isActive ? "page" : undefined}
             onClick={() => onSelect(item.key)}
           >
-            <Icon size={20} strokeWidth={1.6} />
+            <Icon size={28} strokeWidth={1.75} className="crm-locked-nav__icon" />
             <span>{item.label}</span>
           </button>
         );
