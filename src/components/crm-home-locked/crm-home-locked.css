@@ -12,6 +12,10 @@
 }
 
 .crm-locked-root[data-theme="dark"] {
+  /* Night contrast: dark glass + white neon glow against villa */
+  --crm-accent: #ffffff;
+  --crm-accent-fill: rgba(255, 255, 255, 0.1);
+  --crm-accent-glow: rgba(255, 255, 255, 0.55);
   --crm-glass-veil: linear-gradient(
     to right,
     rgba(10, 14, 22, 0.58) 0%,
@@ -20,17 +24,30 @@
     transparent 68%
   );
   --crm-card-bg: rgba(8, 12, 20, 0.3);
+  --crm-card-border: rgba(255, 255, 255, 0.92);
+  --crm-card-glow: rgba(255, 255, 255, 0.55);
 }
 
 .crm-locked-root[data-theme="light"] {
+  /* Day contrast: frosted white glass + satin burgundy accents */
+  --crm-accent: #600f1c;
+  --crm-accent-fill: linear-gradient(
+    160deg,
+    #8b1a2b 0%,
+    #600f1c 48%,
+    #4a0b15 100%
+  );
+  --crm-accent-glow: rgba(96, 15, 28, 0.55);
   --crm-glass-veil: linear-gradient(
     to right,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0.18) 40%,
-    rgba(255, 255, 255, 0.05) 55%,
-    transparent 68%
+    rgba(255, 255, 255, 0.52) 0%,
+    rgba(255, 255, 255, 0.28) 38%,
+    rgba(255, 255, 255, 0.08) 55%,
+    transparent 70%
   );
-  --crm-card-bg: rgba(255, 255, 255, 0.14);
+  --crm-card-bg: rgba(255, 255, 255, 0.22);
+  --crm-card-border: rgba(255, 255, 255, 0.95);
+  --crm-card-glow: rgba(255, 255, 255, 0.7);
 }
 
 .crm-locked-fallback-bg {
@@ -148,7 +165,7 @@
   width: 100%;
   min-height: clamp(168px, 24vh, 220px);
   border-radius: 26px;
-  border: 2px solid rgba(255, 255, 255, 0.92);
+  border: 2px solid var(--crm-card-border);
   overflow: hidden;
   text-decoration: none;
   text-align: left;
@@ -164,7 +181,7 @@
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.35),
     0 10px 28px rgba(0, 0, 0, 0.35),
-    0 0 26px rgba(255, 255, 255, 0.55),
+    0 0 26px var(--crm-card-glow),
     0 0 60px rgba(255, 255, 255, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
     inset 0 -18px 36px rgba(255, 255, 255, 0.08);
@@ -173,12 +190,25 @@
     box-shadow 0.22s ease;
 }
 
+.crm-locked-root[data-theme="light"] .crm-locked-card {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.16) 45%, rgba(255, 255, 255, 0.05) 100%),
+    var(--crm-card-bg);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 12px 32px rgba(40, 20, 24, 0.28),
+    0 0 28px var(--crm-card-glow),
+    0 0 56px rgba(255, 255, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -18px 36px rgba(255, 255, 255, 0.16);
+}
+
 .crm-locked-card:hover {
   transform: translateY(-4px) translateZ(12px) scale(1.015);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.5),
     0 16px 36px rgba(0, 0, 0, 0.4),
-    0 0 34px rgba(255, 255, 255, 0.75),
+    0 0 34px var(--crm-card-glow),
     0 0 72px rgba(255, 255, 255, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.7),
     inset 0 -18px 36px rgba(255, 255, 255, 0.12);
@@ -236,9 +266,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 14px var(--crm-accent-glow);
   background: rgba(255, 255, 255, 0.08);
   margin-bottom: 6px;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__icon {
+  border-color: rgba(255, 236, 240, 0.55);
+  color: #fff;
+  background: var(--crm-accent-fill);
+  box-shadow:
+    0 0 16px var(--crm-accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.25);
 }
 
 .crm-locked-card__value {
@@ -270,8 +310,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 14px var(--crm-accent-glow);
   background: rgba(255, 255, 255, 0.1);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__arrow {
+  border-color: rgba(255, 236, 240, 0.55);
+  color: #fff;
+  background: var(--crm-accent-fill);
+  box-shadow:
+    0 0 16px var(--crm-accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.25);
 }
 
 .crm-locked-bottom {
@@ -304,6 +354,13 @@
   box-shadow: 0 0 14px rgba(255, 255, 255, 0.7);
 }
 
+.crm-locked-root[data-theme="light"] .crm-locked-avatar {
+  border-color: #600f1c;
+  box-shadow:
+    0 0 14px var(--crm-accent-glow),
+    0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
 .crm-locked-broker__meta {
   display: flex;
   flex-direction: column;
@@ -323,6 +380,11 @@
   border-radius: 999px;
   background: linear-gradient(90deg, #f0d78c, rgba(255, 255, 255, 0.9));
   box-shadow: 0 0 8px rgba(240, 215, 140, 0.8);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-name-line {
+  background: linear-gradient(90deg, #8b1a2b, #600f1c 70%, rgba(96, 15, 28, 0.25));
+  box-shadow: 0 0 8px var(--crm-accent-glow);
 }
 
 .crm-locked-dock {
@@ -360,9 +422,26 @@
     border-color 0.2s ease;
 }
 
+.crm-locked-root[data-theme="light"] .crm-locked-fab {
+  border-color: rgba(255, 236, 240, 0.45);
+  color: #fff;
+  background: var(--crm-accent-fill);
+  box-shadow:
+    0 0 18px var(--crm-accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.28);
+}
+
 .crm-locked-fab:hover {
   transform: translateY(-1px);
   box-shadow: 0 0 22px rgba(255, 255, 255, 0.65);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-fab:hover {
+  box-shadow:
+    0 0 24px var(--crm-accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.28);
 }
 
 .crm-locked-fab:active {
@@ -381,10 +460,31 @@
   border-color: #f0d78c;
 }
 
+.crm-locked-root[data-theme="light"] .crm-locked-fab--theme {
+  border-color: rgba(240, 215, 140, 0.75);
+  box-shadow:
+    0 0 18px var(--crm-accent-glow),
+    0 0 14px rgba(240, 215, 140, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.28);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-fab--theme-active {
+  background: var(--crm-accent-fill);
+  border-color: #f0d78c;
+}
+
 .crm-locked-fab--menu {
   width: 56px;
   height: 56px;
   box-shadow: 0 0 22px rgba(255, 255, 255, 0.65);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-fab--menu {
+  box-shadow:
+    0 0 22px var(--crm-accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.28);
 }
 
 .crm-locked-overlay {
