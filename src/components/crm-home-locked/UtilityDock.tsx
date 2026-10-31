@@ -13,27 +13,23 @@ export function UtilityDock({
   onOpenNotifications: () => void;
   onOpenMenu: () => void;
 }) {
+  const isLight = theme === "light";
+
   return (
     <div className="crm-locked-dock">
-      {theme === "light" ? (
-        <button
-          type="button"
-          className="crm-locked-fab"
-          aria-label="Превключи към тъмна тема"
-          onClick={onToggleTheme}
-        >
-          <Sun size={20} strokeWidth={1.7} />
-        </button>
-      ) : (
-        <button
-          type="button"
-          className="crm-locked-fab"
-          aria-label="Превключи към светла тема"
-          onClick={onToggleTheme}
-        >
+      <button
+        type="button"
+        className={`crm-locked-fab crm-locked-fab--theme${isLight ? "" : " crm-locked-fab--theme-active"}`}
+        aria-label={isLight ? "Нощна версия" : "Дневна версия"}
+        title={isLight ? "Нощна версия" : "Дневна версия"}
+        onClick={onToggleTheme}
+      >
+        {isLight ? (
           <Moon size={20} strokeWidth={1.7} />
-        </button>
-      )}
+        ) : (
+          <Sun size={20} strokeWidth={1.7} />
+        )}
+      </button>
       <button
         type="button"
         className="crm-locked-fab"

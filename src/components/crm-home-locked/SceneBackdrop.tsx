@@ -14,9 +14,13 @@ function PhotoPlane({ url }: { url: string }) {
   );
 }
 
+const BG: Record<ThemeMode, string> = {
+  dark: "/crm-home-locked/bg-dark.jpg",
+  light: "/crm-home-locked/bg-light.jpg",
+};
+
 export function SceneBackdrop({ theme }: { theme: ThemeMode }) {
-  const url =
-    theme === "dark" ? "/crm-home-locked/bg-dark.jpg" : "/crm-home-locked/bg-light.jpg";
+  const url = BG[theme];
   const [webglOk, setWebglOk] = useState(true);
 
   useEffect(() => {
@@ -31,10 +35,17 @@ export function SceneBackdrop({ theme }: { theme: ThemeMode }) {
 
   return (
     <>
-      {/* Exact cover parity with locked screenshots */}
-      <img key={url} src={url} alt="" className="crm-locked-fallback-bg" />
+      {/* DOM cover — primary visible backdrop; remounts on theme change */}
+      <img
+        key={`bg-${theme}`}
+        src={url}
+        alt=""
+        className="crm-locked-fallback-bg"
+        data-theme-bg={theme}
+      />
       {webglOk ? (
         <Canvas
+          key={`r3f-${theme}`}
           className="crm-locked-r3f"
           orthographic
           camera={{ position: [0, 0, 5], zoom: 70 }}

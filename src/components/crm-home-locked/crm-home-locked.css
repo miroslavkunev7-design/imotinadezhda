@@ -42,6 +42,7 @@
   object-fit: cover;
   object-position: center;
   pointer-events: none;
+  transition: opacity 0.35s ease;
 }
 
 .crm-locked-r3f {
@@ -61,10 +62,14 @@
 }
 
 .crm-locked-logo {
-  width: clamp(64px, 5.5vw, 88px);
+  width: clamp(168px, 16vw, 260px);
   height: auto;
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.85))
-    drop-shadow(0 0 16px rgba(255, 255, 255, 0.45));
+  object-fit: contain;
+  object-position: left top;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 1))
+    drop-shadow(0 0 28px rgba(255, 255, 255, 0.6));
+  pointer-events: none;
+  user-select: none;
 }
 
 .crm-locked-top {
@@ -290,14 +295,19 @@
 }
 
 .crm-locked-dock {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
   gap: 12px;
+  pointer-events: auto;
 }
 
 .crm-locked-fab {
   width: 48px;
   height: 48px;
+  min-width: 48px;
+  min-height: 48px;
   border-radius: 999px;
   border: 1.5px solid rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.08);
@@ -309,14 +319,35 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
   transition:
     transform 0.15s ease,
-    box-shadow 0.15s ease;
+    box-shadow 0.15s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .crm-locked-fab:hover {
   transform: translateY(-1px);
   box-shadow: 0 0 22px rgba(255, 255, 255, 0.65);
+}
+
+.crm-locked-fab:active {
+  transform: scale(0.96);
+}
+
+.crm-locked-fab--theme {
+  border-color: rgba(240, 215, 140, 0.95);
+  box-shadow:
+    0 0 16px rgba(255, 255, 255, 0.35),
+    0 0 18px rgba(240, 215, 140, 0.45);
+}
+
+.crm-locked-fab--theme-active {
+  background: rgba(240, 215, 140, 0.18);
+  border-color: #f0d78c;
 }
 
 .crm-locked-fab--menu {

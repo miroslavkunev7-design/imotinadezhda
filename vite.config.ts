@@ -21,6 +21,8 @@ export default defineConfig({
     server: {
       host: "::",
       port: 8080,
+      // Allow Cloudflare quick tunnels / phone preview hosts.
+      allowedHosts: true,
     },
   },
 });

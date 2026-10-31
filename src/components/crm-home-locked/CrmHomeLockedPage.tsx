@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, startTransition } from "react";
 import { Building2, CalendarClock, Handshake, Users } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -68,6 +68,12 @@ export function CrmHomeLockedPage() {
     [navigate],
   );
 
+  const onToggleTheme = useCallback(() => {
+    startTransition(() => {
+      setTheme((t) => (t === "light" ? "dark" : "light"));
+    });
+  }, []);
+
   return (
     <div className="crm-locked-root" data-theme={theme}>
       <SceneBackdrop theme={theme} />
@@ -89,7 +95,7 @@ export function CrmHomeLockedPage() {
           <BrokerBadge />
           <UtilityDock
             theme={theme}
-            onToggleTheme={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
+            onToggleTheme={onToggleTheme}
             onOpenNotifications={() => setNotificationsOpen(true)}
             onOpenMenu={() => setMenuOpen(true)}
           />
