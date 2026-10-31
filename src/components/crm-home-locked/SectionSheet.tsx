@@ -1,13 +1,11 @@
-import { ArrowRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
 
 export type SectionSheetData = {
   title: string;
   value: string | number;
   subtitle?: string;
   photoUrl: string;
-  to: string;
   description: string;
   icon: ReactNode;
 };
@@ -55,10 +53,9 @@ export function SectionSheet({
           <p className="crm-locked-sheet__desc">{data.description}</p>
           <p className="crm-locked-card__sub">{data.subtitle ?? "Реални данни"}</p>
 
-          <Link to={data.to} className="crm-locked-sheet__cta" onClick={onClose}>
-            Отвори таб „{data.title}“
-            <ArrowRight size={16} strokeWidth={2} />
-          </Link>
+          <button type="button" className="crm-locked-sheet__cta" onClick={onClose}>
+            Затвори картата
+          </button>
         </div>
       </div>
     </div>

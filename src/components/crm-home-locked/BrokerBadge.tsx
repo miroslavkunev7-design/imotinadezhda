@@ -1,8 +1,11 @@
-import { Link } from "@tanstack/react-router";
-
-export function BrokerBadge() {
+export function BrokerBadge({ onOpen }: { onOpen: () => void }) {
   return (
-    <Link to="/admin/profile" className="crm-locked-broker" aria-label="Профил Мирослав Канев">
+    <button
+      type="button"
+      className="crm-locked-broker"
+      aria-label="Профил Мирослав Канев"
+      onClick={onOpen}
+    >
       <img
         src="/crm-home-locked/avatar-miroslav.jpg"
         alt=""
@@ -15,6 +18,6 @@ export function BrokerBadge() {
         <span className="crm-locked-broker__name">Мирослав Канев</span>
         <span className="crm-locked-name-line" aria-hidden />
       </div>
-    </Link>
+    </button>
   );
 }

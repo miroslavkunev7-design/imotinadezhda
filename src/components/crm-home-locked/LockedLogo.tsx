@@ -1,8 +1,11 @@
-import { Link } from "@tanstack/react-router";
-
-export function LockedLogo() {
+export function LockedLogo({ onClick }: { onClick?: () => void }) {
   return (
-    <Link to="/crm-home-locked" className="crm-locked-logo-link" aria-label="Начало — CRM">
+    <button
+      type="button"
+      className="crm-locked-logo-link"
+      aria-label="Начало — CRM"
+      onClick={onClick}
+    >
       <img
         src="/crm-home-locked/logo-mark-white.png"
         alt="Недвижими имоти Надежда"
@@ -12,6 +15,6 @@ export function LockedLogo() {
         decoding="async"
         draggable={false}
       />
-    </Link>
+    </button>
   );
 }

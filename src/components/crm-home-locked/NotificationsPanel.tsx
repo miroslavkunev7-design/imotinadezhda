@@ -1,24 +1,33 @@
 import { ArrowRight, CalendarCheck, Handshake, X } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 
 const NOTICES = [
   {
     id: "viewings",
     title: "Огледи",
     body: "Няма насрочени огледи за днес.",
-    to: "/admin/viewings",
+    section: "ogledi" as const,
     icon: CalendarCheck,
   },
   {
     id: "deals",
     title: "Сделки",
     body: "Няма активни сделки, които изискват действие.",
-    to: "/admin/deals",
+    section: "sdelki" as const,
     icon: Handshake,
   },
 ] as const;
 
-export function NotificationsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+export type NoticeSection = (typeof NOTICES)[number]["section"];
+
+export function NotificationsPanel({
+  open,
+  onClose,
+  onOpenSection,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onOpenSection: (section: NoticeSection) => void;
+}) {
   if (!open) return null;
 
   return (
@@ -33,7 +42,15 @@ export function NotificationsPanel({ open, onClose }: { open: boolean; onClose: 
         {NOTICES.map((n) => {
           const Icon = n.icon;
           return (
-            <Link key={n.id} to={n.to} className="crm-locked-notify__item" onClick={onClose}>
+            <button
+              key={n.id}
+              type="button"
+              className="crm-locked-notify__item"
+              onClick={() => {
+                onOpenSection(n.section);
+                onClose();
+              }}
+            >
               <span className="crm-locked-notify__icon" aria-hidden>
                 <Icon size={16} strokeWidth={1.7} />
               </span>
@@ -42,7 +59,7 @@ export function NotificationsPanel({ open, onClose }: { open: boolean; onClose: 
                 <span>{n.body}</span>
               </span>
               <ArrowRight size={14} strokeWidth={2} aria-hidden />
-            </Link>
+            </button>
           );
         })}
       </div>

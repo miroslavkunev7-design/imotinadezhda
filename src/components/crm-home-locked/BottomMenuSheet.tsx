@@ -1,49 +1,16 @@
-import {
-  Briefcase,
-  Building2,
-  Calendar,
-  CalendarCheck,
-  CheckSquare,
-  FileText,
-  Home,
-  MessageCircle,
-  Settings,
-  Sparkles,
-  Users,
-  Wallet,
-  X,
-} from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { NAV_ROUTES, type NavKey } from "./LockedNav";
-
-const MENU_LINKS: {
-  label: string;
-  to: string;
-  icon: typeof Home;
-  navKey?: NavKey;
-}[] = [
-  { label: "Начало", to: NAV_ROUTES.home, icon: Home, navKey: "home" },
-  { label: "Клиенти", to: NAV_ROUTES.clients, icon: Users, navKey: "clients" },
-  { label: "Имоти", to: NAV_ROUTES.properties, icon: Building2, navKey: "properties" },
-  { label: "Сделки", to: "/admin/deals", icon: Briefcase },
-  { label: "Огледи", to: "/admin/viewings", icon: CalendarCheck },
-  { label: "Календар", to: NAV_ROUTES.calendar, icon: Calendar, navKey: "calendar" },
-  { label: "Задачи", to: "/admin/tasks", icon: CheckSquare },
-  { label: "Чат", to: "/admin/chat", icon: MessageCircle },
-  { label: "Документи", to: "/admin/documents", icon: FileText },
-  { label: "Банка / лихви", to: "/admin/bank-rates", icon: Wallet },
-  { label: "AI асистент", to: NAV_ROUTES.ai, icon: Sparkles, navKey: "ai" },
-  { label: "Настройки", to: "/admin/settings", icon: Settings },
-];
+import { X } from "lucide-react";
+import { LOCKED_NAV_ITEMS, type NavKey } from "./LockedNav";
 
 export function BottomMenuSheet({
   open,
   active,
   onClose,
+  onSelect,
 }: {
   open: boolean;
   active: NavKey;
   onClose: () => void;
+  onSelect: (key: NavKey) => void;
 }) {
   if (!open) return null;
 
@@ -63,23 +30,26 @@ export function BottomMenuSheet({
           </button>
         </div>
         <div className="crm-locked-sheet__list">
-          {MENU_LINKS.map((item) => {
+          {LOCKED_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = item.navKey ? active === item.navKey : false;
+            const isActive = active === item.key;
             return (
-              <Link
-                key={item.to}
-                to={item.to}
+              <button
+                key={item.key}
+                type="button"
                 className={
                   isActive
                     ? "crm-locked-sheet__item crm-locked-sheet__item--active"
                     : "crm-locked-sheet__item"
                 }
-                onClick={onClose}
+                onClick={() => {
+                  onSelect(item.key);
+                  onClose();
+                }}
               >
                 <Icon size={18} strokeWidth={1.7} />
                 {item.label}
-              </Link>
+              </button>
             );
           })}
         </div>
