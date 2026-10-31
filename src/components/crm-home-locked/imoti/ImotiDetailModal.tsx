@@ -28,6 +28,7 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { CrmModalShell } from "./CrmModalShell";
+import { ImotiBankModal } from "./ImotiBankModal";
 import { formatImotiPrice } from "./imoti-demo-data";
 import {
   IMOTI_SECTION_BG,
@@ -77,12 +78,14 @@ function TabContent({
   onJump,
   loanOpen,
   onToggleLoan,
+  onOpenBank,
 }: {
   tab: ImotiDetailTab;
   property: ImotiProperty;
   onJump: (t: ImotiDetailTab) => void;
   loanOpen: boolean;
   onToggleLoan: () => void;
+  onOpenBank: () => void;
 }) {
   const monthly = Math.round((property.price * 0.0045) / 10) * 10;
 
@@ -123,6 +126,9 @@ function TabContent({
                 <span>Общо по сделката</span>
                 <strong>€ {Math.round(property.price * 0.905).toLocaleString("bg-BG")}</strong>
               </div>
+              <button type="button" className="crm-imoti-primary crm-imoti-bank-cta" onClick={onOpenBank}>
+                <Landmark size={15} /> Банка
+              </button>
             </SectionPanel>
             <SectionPanel tab="bank">
               <h4>Бързи действия</h4>
@@ -136,8 +142,8 @@ function TabContent({
                 <button type="button" onClick={() => onJump("contract")}>
                   <Scale size={14} /> Нотариус
                 </button>
-                <button type="button" onClick={() => onJump("bank")}>
-                  <Landmark size={14} /> Банки
+                <button type="button" onClick={onOpenBank}>
+                  <Landmark size={14} /> Банка
                 </button>
               </div>
               {loanOpen ? (
@@ -322,11 +328,18 @@ function TabContent({
           <h3>
             <Landmark size={16} /> Банка · кредитно досие
           </h3>
-          <div className="crm-imoti-banks">
+          <p>
+            Отвори банковия модул за сравнение на лихви, месечна вноска и списък документи към този
+            имот.
+          </p>
+          <button type="button" className="crm-imoti-primary" onClick={onOpenBank}>
+            <Landmark size={14} /> Отвори Банка
+          </button>
+          <div className="crm-imoti-banks" style={{ marginTop: 12 }}>
             {["ДСК", "УниКредит", "ОББ", "Пощенска", "Райфайзен", "ПИБ"].map((b) => (
-              <button key={b} type="button" className="crm-imoti-bank">
+              <button key={b} type="button" className="crm-imoti-bank" onClick={onOpenBank}>
                 <strong>{b}</strong>
-                <span>Провери оферти</span>
+                <span>Отвори модул</span>
               </button>
             ))}
           </div>
@@ -358,6 +371,7 @@ export function ImotiDetailModal({
   const [toast, setToast] = useState<string | null>(null);
   const [brokerOpen, setBrokerOpen] = useState(false);
   const [loanOpen, setLoanOpen] = useState(false);
+  const [bankOpen, setBankOpen] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -550,9 +564,16 @@ export function ImotiDetailModal({
             onJump={setTab}
             loanOpen={loanOpen}
             onToggleLoan={() => setLoanOpen((v) => !v)}
+            onOpenBank={() => setBankOpen(true)}
           />
         </div>
       </div>
+
+      <ImotiBankModal
+        open={bankOpen}
+        property={property}
+        onClose={() => setBankOpen(false)}
+      />
 
       {brokerOpen ? (
         <div className="crm-imoti-sheet" role="dialog" aria-label="Контакт с брокер">

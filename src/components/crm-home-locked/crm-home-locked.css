@@ -3157,6 +3157,403 @@
   position: relative;
 }
 
+/* —— AI skills row —— */
+.crm-locked-ai-skills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-ai-skills {
+  border-bottom-color: rgba(96, 15, 28, 0.1);
+}
+
+.crm-locked-ai-skills__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 700 10px/1 var(--crm-locked-font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 220, 160, 0.85);
+  margin-right: 2px;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-ai-skills__label {
+  color: #600f1c;
+}
+
+.crm-locked-ai-skill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(255, 220, 160, 0.35);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(255, 248, 230, 0.12);
+  color: #ffe7b0;
+  font: 600 11px/1.2 var(--crm-locked-font);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.crm-locked-ai-skill:hover {
+  background: rgba(255, 220, 160, 0.22);
+  border-color: rgba(255, 220, 160, 0.55);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-ai-skill {
+  border-color: rgba(96, 15, 28, 0.22);
+  background: rgba(96, 15, 28, 0.06);
+  color: #600f1c;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-ai-skill:hover {
+  background: rgba(96, 15, 28, 0.12);
+}
+
+/* —— Property info card → Банка CTA —— */
+.crm-imoti-bank-cta {
+  width: 100%;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+/* —— Bank module overlay (property card) —— */
+.crm-imoti-bank-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(8, 10, 16, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.crm-imoti-bank-modal {
+  width: min(720px, 96vw);
+  max-height: min(88dvh, 860px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(122, 18, 38, 0.22);
+  background: #fdf8ec;
+  color: #3d0a15;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+}
+
+.crm-imoti-bank-modal__head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(122, 18, 38, 0.15);
+  background: #f7e9b8;
+}
+
+.crm-imoti-bank-modal__head strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 16px/1.2 var(--crm-locked-font);
+  color: #7a1226;
+}
+
+.crm-imoti-bank-modal__head p {
+  margin: 4px 0 0;
+  font: 500 11px/1.35 var(--crm-locked-font);
+  color: rgba(122, 18, 38, 0.72);
+}
+
+.crm-imoti-bank-modal__head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.crm-imoti-bank-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px;
+}
+
+.crm-imoti-bank-modal__hint {
+  margin: 0 0 12px;
+  font: 500 12px/1.4 var(--crm-locked-font);
+  color: rgba(122, 18, 38, 0.75);
+}
+
+.crm-imoti-bank-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.crm-imoti-bank-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(122, 18, 38, 0.18);
+  border-radius: 10px;
+  padding: 0;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crm-imoti-bank-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(61, 10, 21, 0.15);
+}
+
+.crm-imoti-bank-card__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #2b2f38;
+  color: #fff8e7;
+  font: 700 10px/1.2 var(--crm-locked-font);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.crm-imoti-bank-card__bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crm-imoti-bank-card__face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.crm-imoti-bank-card__city {
+  font: 600 9px/1.2 var(--crm-locked-font);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.crm-imoti-bank-card__face strong {
+  font: 700 14px/1.2 var(--crm-locked-font);
+}
+
+.crm-imoti-bank-card__face em {
+  font: italic 600 11px/1.2 var(--crm-locked-font);
+  opacity: 0.9;
+}
+
+.crm-imoti-bank-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.crm-imoti-bank-banner span {
+  font: 600 9px/1.2 var(--crm-locked-font);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.crm-imoti-bank-banner strong {
+  font: 800 18px/1.15 var(--crm-locked-font) !important;
+  color: inherit !important;
+}
+
+.crm-imoti-bank-banner em {
+  font: 500 11px/1.2 var(--crm-locked-font);
+  opacity: 0.85;
+}
+
+.crm-imoti-bank-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.crm-imoti-bank-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(122, 18, 38, 0.25);
+  border-radius: 999px;
+  padding: 6px 11px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #7a1226;
+  font: 600 11px/1.2 var(--crm-locked-font);
+  cursor: pointer;
+}
+
+.crm-imoti-bank-tabs button.is-on {
+  border-color: transparent;
+  background: #7a1226;
+  color: #fff8e7;
+}
+
+.crm-imoti-bank-board h3 {
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 15px/1.25 var(--crm-locked-font);
+  color: #7a1226;
+}
+
+.crm-imoti-bank-origin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.crm-imoti-bank-origin button {
+  border: 1px solid rgba(122, 18, 38, 0.28);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: #fff;
+  color: #7a1226;
+  font: 600 10px/1.2 var(--crm-locked-font);
+  cursor: pointer;
+}
+
+.crm-imoti-bank-origin button.is-on {
+  border-color: transparent;
+  background: #7a1226;
+  color: #fff8e7;
+}
+
+.crm-imoti-bank-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.crm-imoti-bank-fields--stack {
+  grid-template-columns: 1fr;
+}
+
+.crm-imoti-bank-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font: 600 11px/1.2 var(--crm-locked-font);
+  color: rgba(122, 18, 38, 0.8);
+}
+
+.crm-imoti-bank-fields input,
+.crm-imoti-bank-fields textarea {
+  border: 1px solid rgba(122, 18, 38, 0.25);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+  color: #3d0a15;
+  font: 500 13px/1.3 var(--crm-locked-font);
+  outline: none;
+}
+
+.crm-imoti-bank-fields input:focus,
+.crm-imoti-bank-fields textarea:focus {
+  border-color: #7a1226;
+}
+
+.crm-imoti-bank-rate {
+  border: 1px solid rgba(122, 18, 38, 0.15);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #f7e9b8;
+  font: 700 13px/1.3 var(--crm-locked-font);
+  color: #3d0a15;
+}
+
+.crm-imoti-bank-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.crm-imoti-bank-result {
+  border: 1px solid rgba(122, 18, 38, 0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fdf6dc;
+  font: 500 12px/1.4 var(--crm-locked-font);
+  color: #3d0a15;
+  margin-top: 8px;
+}
+
+.crm-imoti-bank-result--ok {
+  border-color: rgba(20, 83, 45, 0.3);
+  background: rgba(16, 185, 129, 0.12);
+  color: #14532d;
+  font-weight: 650;
+}
+
+.crm-imoti-bank-result__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 0;
+}
+
+.crm-imoti-bank-result__row--total {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(122, 18, 38, 0.15);
+  font-weight: 700;
+}
+
+.crm-imoti-bank-docs {
+  margin: 8px 0 0;
+  padding: 0 0 0 18px;
+  font: 500 12.5px/1.55 var(--crm-locked-font);
+  color: #3d0a15;
+}
+
+.crm-imoti-bank-docs li {
+  margin-bottom: 4px;
+}
+
+.crm-imoti-bank-modal .crm-imoti-icon-btn {
+  color: #7a1226;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(122, 18, 38, 0.2);
+}
+
+.crm-imoti-bank-modal .crm-imoti-ghost {
+  color: #7a1226;
+  border-color: rgba(122, 18, 38, 0.28);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 560px) {
+  .crm-imoti-bank-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .crm-locked-sky-copy {
     position: relative;

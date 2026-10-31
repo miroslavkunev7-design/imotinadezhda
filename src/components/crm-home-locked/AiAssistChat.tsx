@@ -1,5 +1,6 @@
 import {
   Bot,
+  Building2,
   Camera,
   FileUp,
   History,
@@ -9,9 +10,13 @@ import {
   Minimize2,
   Plus,
   Send,
+  Sparkles,
+  Users,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { AI_ASSIST_SKILLS, matchSkill, type AiSkillId } from "./imoti/ai-skills";
 
 type ChatRole = "user" | "assistant";
 
@@ -69,6 +74,11 @@ function draftReply(prompt: string, attachmentNames: string[]): string {
       ? `\nПолучих файл(ове): ${attachmentNames.join(", ")}. Ще ги ползвам в задачата.`
       : "";
 
+  const skill = matchSkill(prompt);
+  if (skill) {
+    return [skill.reply, attached].filter(Boolean).join("\n");
+  }
+
   if (text.includes("предварителен договор") || text.includes("предварителен")) {
     return [
       "Чернова — предварителен договор:",
@@ -94,7 +104,7 @@ function draftReply(prompt: string, attachmentNames: string[]): string {
   }
   return [
     "Готов съм. Аз съм личният ти CRM асистент — каквото ми кажеш и каквото ми дадеш (текст, файл, снимка), мога да работя с него.",
-    "Примери: предварителен договор, нов клиент, оглед, архив, капари.",
+    "Skills: „Качване на имот“ · „Събиране на имоти и клиенти“. Или: предварителен договор, оглед, архив.",
     attached,
   ]
     .filter(Boolean)
@@ -141,9 +151,11 @@ export function AiAssistFab({
 export function AiAssistChat({
   open,
   onClose,
+  onSkill,
 }: {
   open: boolean;
   onClose: () => void;
+  onSkill?: (id: AiSkillId) => void;
 }) {
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -250,6 +262,9 @@ export function AiAssistChat({
 
     await new Promise((r) => window.setTimeout(r, 380));
 
+    const skill = matchSkill(text);
+    if (skill) onSkill?.(skill.id);
+
     const reply: ChatMessage = {
       id: uid("m"),
       role: "assistant",
@@ -266,7 +281,39 @@ export function AiAssistChat({
     );
     persist(withReply);
     setBusy(false);
-  }, [active, busy, draft, pendingFiles, persist, threads]);
+  }, [active, busy, draft, onSkill, pendingFiles, persist, threads]);
+
+  const runSkill = useCallback(
+    (id: AiSkillId) => {
+      const skill = AI_ASSIST_SKILLS.find((s) => s.id === id);
+      if (!skill || !active) return;
+      onSkill?.(id);
+      const userMsg: ChatMessage = {
+        id: uid("m"),
+        role: "user",
+        content: skill.prompt,
+        at: Date.now(),
+      };
+      const reply: ChatMessage = {
+        id: uid("m"),
+        role: "assistant",
+        content: skill.reply,
+        at: Date.now(),
+      };
+      const next = threads.map((t) =>
+        t.id === active.id
+          ? {
+              ...t,
+              title: skill.title,
+              updatedAt: Date.now(),
+              messages: [...t.messages, userMsg, reply],
+            }
+          : t,
+      );
+      persist(next);
+    },
+    [active, onSkill, persist, threads],
+  );
 
   const onDictate = useCallback(() => {
     const w = window as unknown as {
@@ -383,6 +430,24 @@ export function AiAssistChat({
           ))}
         </div>
       ) : null}
+
+      <div className="crm-locked-ai-skills" aria-label="AI skills">
+        <span className="crm-locked-ai-skills__label">
+          <Sparkles size={12} /> Skills
+        </span>
+        {AI_ASSIST_SKILLS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            className="crm-locked-ai-skill"
+            title={s.short}
+            onClick={() => runSkill(s.id)}
+          >
+            {s.id === "upload-property" ? <Building2 size={13} /> : <Users size={13} />}
+            {s.title}
+          </button>
+        ))}
+      </div>
 
       <div className="crm-locked-ai-messages" ref={listRef}>
         {(active?.messages ?? []).map((m) => (

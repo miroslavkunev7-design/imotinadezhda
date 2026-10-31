@@ -304,7 +304,18 @@ export function CrmHomeLockedPage() {
                 setSection(PROFILE_SHEET);
               }}
             />
-            <AiAssistChat open={aiOpen} onClose={() => setAiOpen(false)} />
+            <AiAssistChat
+              open={aiOpen}
+              onClose={() => setAiOpen(false)}
+              onSkill={(id) => {
+                if (id === "upload-property") {
+                  setAiOpen(false);
+                  setImotiOpen(true);
+                  setActiveNav("properties");
+                  setUploadOpen(true);
+                }
+              }}
+            />
           </div>
           <UtilityDock
             theme={theme}
