@@ -182,6 +182,11 @@
   transform-style: preserve-3d;
 }
 
+/* Evening: a bit more 3D angle on the deck */
+.crm-locked-root[data-theme="dark"] .crm-locked-grid {
+  transform: rotateY(-15deg) rotateX(6deg);
+}
+
 .crm-locked-card {
   position: relative;
   display: block;
@@ -324,6 +329,38 @@
   );
 }
 
+/* Evening: keep the same horizontal melt, but show the full broker scene */
+.crm-locked-root[data-theme="dark"] .crm-locked-card__photo {
+  background-size: cover;
+  background-position: center 42%;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.22) 22%,
+    rgba(0, 0, 0, 0.62) 42%,
+    #000 56%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.22) 22%,
+    rgba(0, 0, 0, 0.62) 42%,
+    #000 56%,
+    #000 100%
+  );
+}
+
+.crm-locked-root[data-theme="dark"] {
+  --crm-glass-veil: linear-gradient(
+    to right,
+    rgba(10, 14, 22, 0.48) 0%,
+    rgba(10, 14, 22, 0.28) 36%,
+    rgba(10, 14, 22, 0.08) 54%,
+    transparent 70%
+  );
+}
+
 .crm-locked-card__veil {
   position: absolute;
   inset: 0;
@@ -368,7 +405,7 @@
 }
 
 .crm-locked-card__value {
-  font-size: clamp(40px, 4.2vw, 54px);
+  font-size: clamp(44px, 4.6vw, 60px);
   font-weight: 800;
   line-height: 1;
   color: #fff;
@@ -376,7 +413,7 @@
 }
 
 .crm-locked-card__title {
-  font-size: clamp(18px, 1.55vw, 22px);
+  font-size: clamp(19px, 1.7vw, 24px);
   font-weight: 600;
   color: #fff;
 }
@@ -763,23 +800,50 @@
 
 @media (max-width: 900px) {
   .crm-locked-grid {
-    width: min(94vw, 460px);
-    transform: none;
+    width: min(94vw, 520px);
+    gap: 14px 16px;
+    transform: rotateY(-4deg) rotateX(2deg);
+  }
+
+  .crm-locked-nav {
+    gap: 18px;
   }
 
   .crm-locked-nav span {
     display: none;
   }
 
+  .crm-locked-nav__icon {
+    width: 26px;
+    height: 26px;
+  }
+
   .crm-locked-main {
     justify-content: center;
     align-items: flex-end;
-    padding-top: clamp(18vh, 22vh, 26vh);
-    perspective: none;
+    padding-top: clamp(16vh, 20vh, 24vh);
+    perspective: 1200px;
   }
 
   .crm-locked-card {
-    min-height: clamp(140px, 18vh, 176px);
+    min-height: clamp(156px, 20vh, 198px);
+    border-width: 3px;
+  }
+
+  .crm-locked-grid > .crm-locked-card:nth-child(1) {
+    transform: translateY(-8px) translateZ(16px);
+  }
+
+  .crm-locked-grid > .crm-locked-card:nth-child(2) {
+    transform: translateY(6px) translateZ(8px);
+  }
+
+  .crm-locked-grid > .crm-locked-card:nth-child(3) {
+    transform: translateY(-6px) translateZ(12px);
+  }
+
+  .crm-locked-grid > .crm-locked-card:nth-child(4) {
+    transform: translateY(8px) translateZ(4px);
   }
 
   .crm-locked-logo {
