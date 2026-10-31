@@ -1,11 +1,15 @@
 import { useCallback, useState, startTransition } from "react";
 import {
+  Archive,
   Building2,
   Calendar,
   CalendarClock,
   Handshake,
+  KeyRound,
+  Upload,
   UserRound,
   Users,
+  Wallet,
 } from "lucide-react";
 
 import "./crm-home-locked.css";
@@ -14,7 +18,11 @@ import { BottomMenuSheet } from "./BottomMenuSheet";
 import { BrokerBadge } from "./BrokerBadge";
 import { GlassStatCard } from "./GlassStatCard";
 import { LockedLogo } from "./LockedLogo";
-import { LockedNav, type NavKey } from "./LockedNav";
+import {
+  LockedNav,
+  type NavKey,
+  type PropertyMenuKey,
+} from "./LockedNav";
 import { NotificationsPanel, type NoticeSection } from "./NotificationsPanel";
 import { SceneBackdrop } from "./SceneBackdrop";
 import { SectionSheet, type SectionSheetData } from "./SectionSheet";
@@ -63,6 +71,37 @@ const NAV_SECTIONS: Partial<Record<NavKey, SectionSheetData>> = {
   },
 };
 
+const PROPERTY_SECTIONS: Record<PropertyMenuKey, SectionSheetData> = {
+  rentals: {
+    title: "Управление на наеми",
+    value: "Наеми",
+    photoUrl: "/crm-home-locked/card-imoti.jpg",
+    description: "Договори за наем, наематели, срокове и плащания.",
+    icon: <KeyRound size={18} strokeWidth={1.6} />,
+  },
+  archive: {
+    title: "Архив Имоти",
+    value: "Архив",
+    photoUrl: "/crm-home-locked/card-imoti.jpg",
+    description: "Архивирани и приключени имоти за справка.",
+    icon: <Archive size={18} strokeWidth={1.6} />,
+  },
+  upload: {
+    title: "Качване на имот",
+    value: "Нов",
+    photoUrl: "/crm-home-locked/card-imoti.jpg",
+    description: "Добави нов имот със снимки, цена и описание.",
+    icon: <Upload size={18} strokeWidth={1.6} />,
+  },
+  deposits: {
+    title: "Депозирани/Капарирани Имоти",
+    value: "Капари",
+    photoUrl: "/crm-home-locked/card-sdelki.jpg",
+    description: "Имоти с депозит или капаро — статуси и следващи стъпки.",
+    icon: <Wallet size={18} strokeWidth={1.6} />,
+  },
+};
+
 const NOTICE_SECTIONS: Record<NoticeSection, SectionSheetData> = {
   ogledi: CARDS[3],
   sdelki: CARDS[2],
@@ -107,6 +146,14 @@ export function CrmHomeLockedPage() {
     [],
   );
 
+  const onSelectPropertyMenu = useCallback((key: PropertyMenuKey) => {
+    setActiveNav("properties");
+    setMenuOpen(false);
+    setNotificationsOpen(false);
+    setAiOpen(false);
+    setSection(PROPERTY_SECTIONS[key]);
+  }, []);
+
   const openMenu = useCallback(() => {
     setNotificationsOpen(false);
     setAiOpen(false);
@@ -126,7 +173,11 @@ export function CrmHomeLockedPage() {
       <div className="crm-locked-ui">
         <header className="crm-locked-top">
           <LockedLogo onClick={() => onSelectNav("home")} />
-          <LockedNav active={activeNav} onSelect={onSelectNav} />
+          <LockedNav
+            active={activeNav}
+            onSelect={onSelectNav}
+            onSelectPropertyMenu={onSelectPropertyMenu}
+          />
         </header>
 
         <main className="crm-locked-main">

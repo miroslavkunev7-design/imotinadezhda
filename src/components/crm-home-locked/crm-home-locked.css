@@ -114,6 +114,72 @@
   gap: clamp(28px, 3vw, 48px);
 }
 
+.crm-locked-nav__dropdown {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.crm-locked-nav__label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.crm-locked-nav__menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 240px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  background: rgba(10, 14, 22, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.4),
+    0 0 18px rgba(255, 255, 255, 0.18);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-nav__menu {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(96, 15, 28, 0.22);
+  box-shadow:
+    0 14px 34px rgba(40, 16, 22, 0.22),
+    0 0 16px rgba(96, 15, 28, 0.12);
+}
+
+.crm-locked-nav__menu-item {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  padding: 10px 12px;
+  cursor: pointer;
+  font: 600 12.5px/1.25 var(--crm-locked-font);
+}
+
+.crm-locked-nav__menu-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-nav__menu-item {
+  color: #2b1418;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-nav__menu-item:hover {
+  background: rgba(96, 15, 28, 0.08);
+  color: #600f1c;
+}
+
 .crm-locked-nav__item {
   display: flex;
   flex-direction: column;
@@ -534,6 +600,20 @@
     0 0 24px rgba(255, 255, 255, 0.18);
   color: #fff;
   overflow: hidden;
+  z-index: 30;
+}
+
+.crm-locked-ai-panel--expanded {
+  position: fixed;
+  inset: 16px;
+  left: 16px;
+  right: 16px;
+  top: 16px;
+  bottom: 16px;
+  width: auto;
+  max-height: none;
+  border-radius: 22px;
+  z-index: 80;
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-ai-panel {
@@ -659,21 +739,118 @@
 
 .crm-locked-ai-bubble--assistant {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(160deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }
 
 .crm-locked-ai-bubble--user {
   align-self: flex-end;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-ai-bubble--assistant {
-  background: rgba(96, 15, 28, 0.08);
+  background: linear-gradient(160deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%);
+  color: #fff;
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-ai-bubble--user {
-  background: rgba(96, 15, 28, 0.16);
-  color: #600f1c;
+  background: rgba(96, 15, 28, 0.12);
+  color: #2b1418;
+}
+
+.crm-locked-ai-attach-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.crm-locked-ai-attach-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.crm-locked-ai-attach-chip,
+.crm-locked-ai-pending .crm-locked-ai-attach-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: rgba(59, 130, 246, 0.22);
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  font-size: 11px;
+}
+
+.crm-locked-ai-attach-chip button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.crm-locked-ai-pending {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 8px;
+}
+
+.crm-locked-ai-compose__left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.crm-locked-ai-attach-wrap {
+  position: relative;
+}
+
+.crm-locked-ai-attach-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(10, 14, 22, 0.95);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  z-index: 5;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-ai-attach-menu {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(96, 15, 28, 0.18);
+}
+
+.crm-locked-ai-attach-menu button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  padding: 8px 10px;
+  cursor: pointer;
+  font: 600 12px/1.2 var(--crm-locked-font);
+  text-align: left;
+}
+
+.crm-locked-ai-attach-menu button:hover {
+  background: rgba(59, 130, 246, 0.18);
 }
 
 .crm-locked-ai-compose {

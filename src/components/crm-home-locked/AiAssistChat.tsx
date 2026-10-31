@@ -1,13 +1,33 @@
-import { Bot, History, Mic, Plus, Send, X } from "lucide-react";
+import {
+  Bot,
+  Camera,
+  FileUp,
+  History,
+  ImagePlus,
+  Maximize2,
+  Mic,
+  Minimize2,
+  Plus,
+  Send,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type ChatRole = "user" | "assistant";
+
+type ChatAttachment = {
+  id: string;
+  name: string;
+  kind: "image" | "file" | "camera";
+  previewUrl?: string;
+};
 
 type ChatMessage = {
   id: string;
   role: ChatRole;
   content: string;
   at: number;
+  attachments?: ChatAttachment[];
 };
 
 type ChatThread = {
@@ -17,7 +37,7 @@ type ChatThread = {
   messages: ChatMessage[];
 };
 
-const STORAGE_KEY = "crm-locked-ai-assist-threads-v1";
+const STORAGE_KEY = "crm-locked-ai-assist-threads-v2";
 
 function uid(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -42,39 +62,43 @@ function saveThreads(threads: ChatThread[]) {
   }
 }
 
-function draftReply(prompt: string): string {
+function draftReply(prompt: string, attachmentNames: string[]): string {
   const text = prompt.trim().toLowerCase();
+  const attached =
+    attachmentNames.length > 0
+      ? `\nПолучих файл(ове): ${attachmentNames.join(", ")}. Ще ги ползвам в задачата.`
+      : "";
+
   if (text.includes("предварителен договор") || text.includes("предварителен")) {
     return [
-      "Чернова — предварителен договор (кратко):",
-      "",
-      "1) Страни: продавач / купувач + ЕГН/ЕИК",
-      "2) Имот: адрес, площ, № по имотен регистър",
-      "3) Цена и капаро; срок за окончателен договор",
-      "4) Условия за отказ и неустойка",
-      "",
-      "Мога да попълня полетата, ако ми продиктуваш данните.",
-    ].join("\n");
+      "Чернова — предварителен договор:",
+      "1) Страни  2) Имот  3) Цена/капаро  4) Срокове  5) Неустойка",
+      "Кажи ми данните или прикачи снимка/файл — имам достъп до каквото ми дадеш.",
+      attached,
+    ]
+      .filter(Boolean)
+      .join("\n");
   }
   if (text.includes("клиент") || text.includes("запиши")) {
     return [
-      "Записвам нов клиент. Кажи ми на глас или напиши:",
-      "• име и телефон",
-      "• град / квартал",
-      "• търси: покупка или наем",
-      "• бюджет и срокове",
-      "",
-      "Щом ми ги дадеш, ще ги подредя като CRM бележка.",
+      "Записвам нов клиент. Продиктувай или прикачи визитка/снимка:",
+      "име, телефон, град, покупка/наем, бюджет.",
+      attached || "Слушам.",
     ].join("\n");
   }
   if (text.includes("оглед")) {
-    return "Добре — за оглед ми кажи имот, дата/час и кой клиент. Ще ти върна готов текст за SMS/имейл.";
+    return `За оглед ми кажи имот, дата/час и клиент.${attached}`;
+  }
+  if (attachmentNames.length > 0 && !text) {
+    return `Приех прикачения материал (${attachmentNames.join(", ")}). Кажи какво да направя с него — договор, нов клиент, описание на имот и т.н.`;
   }
   return [
-    "Слушам. Можеш да пишеш или да продиктуваш.",
-    "Примери: „предварителен договор ми напиши“, „запиши нов клиент, бързам“.",
-    "Ще запомня разговора в този панел.",
-  ].join(" ");
+    "Готов съм. Аз съм личният ти CRM асистент — каквото ми кажеш и каквото ми дадеш (текст, файл, снимка), мога да работя с него.",
+    "Примери: предварителен договор, нов клиент, оглед, архив, капари.",
+    attached,
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function emptyThread(): ChatThread {
@@ -82,7 +106,7 @@ function emptyThread(): ChatThread {
     id: uid("m"),
     role: "assistant",
     content:
-      "Здравей! Аз съм AI помощникът в CRM. Питай ме за договор, нов клиент, оглед или бележка — мога и да приемам диктовка.",
+      "Здравей! Аз съм личният ти асистент в CRM — имам достъп до това, което ми споделиш (текст, файлове, снимки) и мога да изпълнявам задачи по твоите инструкции. Пиши, диктувай или прикачи нещо с +.",
     at: Date.now(),
   };
   return {
@@ -124,10 +148,16 @@ export function AiAssistChat({
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<ChatAttachment[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -142,6 +172,8 @@ export function AiAssistChat({
       setActiveId(existing[0]?.id ?? null);
     }
     setHistoryOpen(false);
+    setAttachOpen(false);
+    setExpanded(false);
     window.setTimeout(() => inputRef.current?.focus(), 60);
   }, [open]);
 
@@ -155,7 +187,7 @@ export function AiAssistChat({
     const el = listRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [open, active?.messages.length, busy]);
+  }, [open, active?.messages.length, busy, expanded]);
 
   const persist = useCallback((next: ChatThread[]) => {
     setThreads(next);
@@ -168,25 +200,45 @@ export function AiAssistChat({
     setActiveId(next.id);
     setHistoryOpen(false);
     setDraft("");
+    setPendingFiles([]);
   }, [persist, threads]);
+
+  const ingestFiles = useCallback((files: FileList | null, kind: ChatAttachment["kind"]) => {
+    if (!files?.length) return;
+    const next: ChatAttachment[] = [];
+    Array.from(files).forEach((file) => {
+      const isImage = file.type.startsWith("image/");
+      next.push({
+        id: uid("a"),
+        name: file.name || (kind === "camera" ? "Моментна снимка" : "Файл"),
+        kind: isImage && kind === "file" ? "image" : kind,
+        previewUrl: isImage ? URL.createObjectURL(file) : undefined,
+      });
+    });
+    setPendingFiles((prev) => [...prev, ...next]);
+    setAttachOpen(false);
+  }, []);
 
   const send = useCallback(async () => {
     const text = draft.trim();
-    if (!text || !active || busy) return;
+    if ((!text && pendingFiles.length === 0) || !active || busy) return;
     setDraft("");
+    const attachments = pendingFiles;
+    setPendingFiles([]);
     setBusy(true);
 
     const userMsg: ChatMessage = {
       id: uid("m"),
       role: "user",
-      content: text,
+      content: text || (attachments.length ? "Прикачих материал." : ""),
       at: Date.now(),
+      attachments,
     };
 
     const withUser = threads.map((t) => {
       if (t.id !== active.id) return t;
-      const title =
-        t.title === "Нов разговор" ? text.slice(0, 42) || t.title : t.title;
+      const titleSeed = text || attachments[0]?.name || t.title;
+      const title = t.title === "Нов разговор" ? titleSeed.slice(0, 42) : t.title;
       return {
         ...t,
         title,
@@ -201,7 +253,10 @@ export function AiAssistChat({
     const reply: ChatMessage = {
       id: uid("m"),
       role: "assistant",
-      content: draftReply(text),
+      content: draftReply(
+        text,
+        attachments.map((a) => a.name),
+      ),
       at: Date.now(),
     };
     const withReply = withUser.map((t) =>
@@ -211,7 +266,7 @@ export function AiAssistChat({
     );
     persist(withReply);
     setBusy(false);
-  }, [active, busy, draft, persist, threads]);
+  }, [active, busy, draft, pendingFiles, persist, threads]);
 
   const onDictate = useCallback(() => {
     const w = window as unknown as {
@@ -250,11 +305,16 @@ export function AiAssistChat({
   if (!open) return null;
 
   return (
-    <div className="crm-locked-ai-panel" role="dialog" aria-label="AI помощник">
+    <div
+      className={`crm-locked-ai-panel${expanded ? " crm-locked-ai-panel--expanded" : ""}`}
+      role="dialog"
+      aria-label="Личен AI асистент"
+      aria-modal={expanded}
+    >
       <div className="crm-locked-ai-panel__head">
         <span className="crm-locked-ai-panel__title">
           <Bot size={16} strokeWidth={1.8} aria-hidden />
-          AI помощник
+          Личен асистент
         </span>
         <div className="crm-locked-ai-panel__actions">
           <button
@@ -262,7 +322,10 @@ export function AiAssistChat({
             className="crm-locked-ai-icon-btn"
             aria-label="Предишни разговори"
             title="Предишни разговори"
-            onClick={() => setHistoryOpen((v) => !v)}
+            onClick={() => {
+              setAttachOpen(false);
+              setHistoryOpen((v) => !v);
+            }}
           >
             <History size={16} />
           </button>
@@ -278,8 +341,20 @@ export function AiAssistChat({
           <button
             type="button"
             className="crm-locked-ai-icon-btn"
+            aria-label={expanded ? "Свий" : "Цял екран"}
+            title={expanded ? "Свий" : "Цял екран"}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
+          <button
+            type="button"
+            className="crm-locked-ai-icon-btn"
             aria-label="Затвори"
-            onClick={onClose}
+            onClick={() => {
+              setExpanded(false);
+              onClose();
+            }}
           >
             <X size={16} />
           </button>
@@ -320,6 +395,24 @@ export function AiAssistChat({
             }
           >
             {m.content}
+            {m.attachments?.length ? (
+              <div className="crm-locked-ai-attach-list">
+                {m.attachments.map((a) =>
+                  a.previewUrl ? (
+                    <img
+                      key={a.id}
+                      src={a.previewUrl}
+                      alt={a.name}
+                      className="crm-locked-ai-attach-thumb"
+                    />
+                  ) : (
+                    <span key={a.id} className="crm-locked-ai-attach-chip">
+                      {a.name}
+                    </span>
+                  ),
+                )}
+              </div>
+            ) : null}
           </div>
         ))}
         {busy ? (
@@ -327,12 +420,29 @@ export function AiAssistChat({
         ) : null}
       </div>
 
+      {pendingFiles.length > 0 ? (
+        <div className="crm-locked-ai-pending">
+          {pendingFiles.map((a) => (
+            <span key={a.id} className="crm-locked-ai-attach-chip">
+              {a.name}
+              <button
+                type="button"
+                aria-label={`Премахни ${a.name}`}
+                onClick={() => setPendingFiles((prev) => prev.filter((x) => x.id !== a.id))}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
+
       <div className="crm-locked-ai-compose">
         <textarea
           ref={inputRef}
           className="crm-locked-ai-input"
-          rows={2}
-          placeholder="Напр. предварителен договор ми напиши…"
+          rows={expanded ? 3 : 2}
+          placeholder="Кажи какво да направя… (договор, клиент, оглед…)"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -343,20 +453,57 @@ export function AiAssistChat({
           }}
         />
         <div className="crm-locked-ai-compose__row">
-          <button
-            type="button"
-            className="crm-locked-ai-icon-btn"
-            aria-label="Диктовка"
-            title="Диктовка"
-            onClick={onDictate}
-          >
-            <Mic size={16} />
-          </button>
+          <div className="crm-locked-ai-compose__left">
+            <div className="crm-locked-ai-attach-wrap">
+              <button
+                type="button"
+                className="crm-locked-ai-icon-btn"
+                aria-label="Прикачи"
+                title="Прикачи изображение, файл или снимка"
+                onClick={() => {
+                  setHistoryOpen(false);
+                  setAttachOpen((v) => !v);
+                }}
+              >
+                <Plus size={16} />
+              </button>
+              {attachOpen ? (
+                <div className="crm-locked-ai-attach-menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => imageRef.current?.click()}
+                  >
+                    <ImagePlus size={14} /> Изображение
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>
+                    <FileUp size={14} /> Файл
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => cameraRef.current?.click()}
+                  >
+                    <Camera size={14} /> Моментна снимка
+                  </button>
+                </div>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              className="crm-locked-ai-icon-btn"
+              aria-label="Диктовка"
+              title="Диктовка"
+              onClick={onDictate}
+            >
+              <Mic size={16} />
+            </button>
+          </div>
           <button
             type="button"
             className="crm-locked-ai-send"
             aria-label="Изпрати"
-            disabled={!draft.trim() || busy}
+            disabled={(!draft.trim() && pendingFiles.length === 0) || busy}
             onClick={() => void send()}
           >
             <Send size={16} />
@@ -364,6 +511,37 @@ export function AiAssistChat({
           </button>
         </div>
       </div>
+
+      <input
+        ref={imageRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          ingestFiles(e.target.files, "image");
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={fileRef}
+        type="file"
+        hidden
+        onChange={(e) => {
+          ingestFiles(e.target.files, "file");
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={(e) => {
+          ingestFiles(e.target.files, "camera");
+          e.target.value = "";
+        }}
+      />
     </div>
   );
 }
