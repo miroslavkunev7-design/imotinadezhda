@@ -160,7 +160,11 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const hideChat = pathname.startsWith("/admin") || pathname.startsWith("/login");
+  const hideChat =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/crm-home-locked");
+  const hideChrome = pathname.startsWith("/crm-home-locked");
   const propertyMatch = pathname.match(/^\/properties\/([0-9a-f-]{36})/i);
   const propertyId = propertyMatch?.[1] ?? null;
 
@@ -184,9 +188,11 @@ function RootComponent() {
             </Suspense>
           )}
           <SectionEditorOverlay />
-          <MobileBottomNav />
+          {!hideChrome && <MobileBottomNav />}
           {/* Настройки на страницата — само за влязъл екип през CRM. */}
-          {!pathname.startsWith("/admin") && !pathname.startsWith("/login") && <CrmSiteOverlay />}
+          {!pathname.startsWith("/admin") &&
+            !pathname.startsWith("/login") &&
+            !hideChrome && <CrmSiteOverlay />}
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

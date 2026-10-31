@@ -15,7 +15,8 @@ on:
 
 jobs:
   visual:
-    runs-on: ubuntu-latest
+    # Pin 24.04: ubuntu-latest can be 26.04, which Playwright 1.60 cannot install chromium on.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

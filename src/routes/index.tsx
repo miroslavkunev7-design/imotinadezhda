@@ -9,20 +9,31 @@ import homeHeroPoster from "@/assets/home-hero-living.jpeg";
 
 export const Route = createFileRoute("/")({
     loader: async () => {
-      const cities = await getCities();
-      const publishedCities = cities.filter((city) => Boolean(city.slug && city.name));
-      const quarterRows = await Promise.all(
-        publishedCities.map(async (city) => [
-          city.slug,
-          await getQuartersByCity({ data: { city_slug: city.slug } }),
-        ] as const),
-      );
-      return {
-        catalog: {
-          cities: publishedCities.map((city) => ({ slug: city.slug, name: city.name })),
-          quartersByCity: Object.fromEntries(quarterRows),
-        },
-      };
+      try {
+        const cities = await getCities();
+        const publishedCities = cities.filter((city) => Boolean(city.slug && city.name));
+        const quarterRows = await Promise.all(
+          publishedCities.map(async (city) => [
+            city.slug,
+            await getQuartersByCity({ data: { city_slug: city.slug } }),
+          ] as const),
+        );
+        return {
+          catalog: {
+            cities: publishedCities.map((city) => ({ slug: city.slug, name: city.name })),
+            quartersByCity: Object.fromEntries(quarterRows),
+          },
+        };
+      } catch (error) {
+        // Preview / missing env must not block the public home shell.
+        console.warn("[home] catalog loader degraded:", error);
+        return {
+          catalog: {
+            cities: [] as Array<{ slug: string; name: string }>,
+            quartersByCity: {} as Record<string, unknown>,
+          },
+        };
+      }
     },
     head: () => ({
     meta: [

@@ -21,6 +21,11 @@ export default defineConfig({
     server: {
       host: "::",
       port: 8080,
+      // Allow Cloudflare quick tunnels / phone preview hosts.
+      allowedHosts: true,
+      // Quick tunnels break Vite HMR websockets on phones → client hydrate fails
+      // into the root "Try again" error page. Keep SSR/dev modules, skip HMR.
+      hmr: false,
     },
   },
 });
