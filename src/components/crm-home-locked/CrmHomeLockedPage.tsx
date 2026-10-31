@@ -1,6 +1,5 @@
 import { useCallback, useState, startTransition } from "react";
 import { Building2, CalendarClock, Handshake, Users } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
 
 import "./crm-home-locked.css";
 import { BottomMenuSheet } from "./BottomMenuSheet";
@@ -10,14 +9,16 @@ import { LockedLogo } from "./LockedLogo";
 import { LockedNav, type NavKey } from "./LockedNav";
 import { NotificationsPanel } from "./NotificationsPanel";
 import { SceneBackdrop } from "./SceneBackdrop";
+import { SectionSheet, type SectionSheetData } from "./SectionSheet";
 import { UtilityDock, type ThemeMode } from "./UtilityDock";
 
-const CARDS = [
+const CARDS: SectionSheetData[] = [
   {
     title: "Клиенти",
     value: 1,
     photoUrl: "/crm-home-locked/card-klienti.jpg",
     to: "/admin/clients",
+    description: "Отвори таба с клиенти — картотека, бележки и следващи стъпки.",
     icon: <Users size={18} strokeWidth={1.6} />,
   },
   {
@@ -25,6 +26,7 @@ const CARDS = [
     value: 1,
     photoUrl: "/crm-home-locked/card-imoti.jpg",
     to: "/admin/properties",
+    description: "Отвори таба с активни имоти — обяви, снимки и статуси.",
     icon: <Building2 size={18} strokeWidth={1.6} />,
   },
   {
@@ -32,6 +34,7 @@ const CARDS = [
     value: 0,
     photoUrl: "/crm-home-locked/card-sdelki.jpg",
     to: "/admin/deals",
+    description: "Отвори таба със сделки — етапи до нотариус и комисионни.",
     icon: <Handshake size={18} strokeWidth={1.6} />,
   },
   {
@@ -39,34 +42,17 @@ const CARDS = [
     value: 0,
     photoUrl: "/crm-home-locked/card-ogledi.jpg",
     to: "/admin/viewings",
+    description: "Отвори таба с огледи — насрочване и напомняния.",
     icon: <CalendarClock size={18} strokeWidth={1.6} />,
   },
-] as const;
-
-const NAV_ROUTES: Record<NavKey, string> = {
-  home: "/crm-home-locked",
-  clients: "/admin/clients",
-  properties: "/admin/properties",
-  ai: "/admin/omnibot",
-  calendar: "/admin/calendar",
-};
+];
 
 export function CrmHomeLockedPage() {
-  const navigate = useNavigate();
-  const [theme, setTheme] = useState<ThemeMode>("light");
-  const [activeNav, setActiveNav] = useState<NavKey>("home");
+  const [theme, setTheme] = useState<ThemeMode>("dark");
+  const [activeNav] = useState<NavKey>("home");
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-
-  const onSelectNav = useCallback(
-    (key: NavKey) => {
-      setActiveNav(key);
-      if (key !== "home") {
-        void navigate({ to: NAV_ROUTES[key] });
-      }
-    },
-    [navigate],
-  );
+  const [section, setSection] = useState<SectionSheetData | null>(null);
 
   const onToggleTheme = useCallback(() => {
     startTransition(() => {
@@ -80,13 +66,20 @@ export function CrmHomeLockedPage() {
       <div className="crm-locked-ui">
         <header className="crm-locked-top">
           <LockedLogo />
-          <LockedNav active={activeNav} onSelect={onSelectNav} />
+          <LockedNav active={activeNav} />
         </header>
 
         <main className="crm-locked-main">
           <section className="crm-locked-grid" aria-label="CRM показатели">
             {CARDS.map((card) => (
-              <GlassStatCard key={card.title} {...card} />
+              <GlassStatCard
+                key={card.title}
+                title={card.title}
+                value={card.value}
+                photoUrl={card.photoUrl}
+                icon={card.icon}
+                onOpen={() => setSection(card)}
+              />
             ))}
           </section>
         </main>
@@ -96,8 +89,16 @@ export function CrmHomeLockedPage() {
           <UtilityDock
             theme={theme}
             onToggleTheme={onToggleTheme}
-            onOpenNotifications={() => setNotificationsOpen(true)}
-            onOpenMenu={() => setMenuOpen(true)}
+            onOpenNotifications={() => {
+              setMenuOpen(false);
+              setSection(null);
+              setNotificationsOpen(true);
+            }}
+            onOpenMenu={() => {
+              setNotificationsOpen(false);
+              setSection(null);
+              setMenuOpen(true);
+            }}
           />
         </footer>
       </div>
@@ -110,7 +111,11 @@ export function CrmHomeLockedPage() {
         open={menuOpen}
         active={activeNav}
         onClose={() => setMenuOpen(false)}
-        onSelect={onSelectNav}
+      />
+      <SectionSheet
+        open={section !== null}
+        data={section}
+        onClose={() => setSection(null)}
       />
     </div>
   );

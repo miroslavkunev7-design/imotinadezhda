@@ -1,14 +1,13 @@
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
 
 export type GlassStatCardProps = {
   title: string;
   value: string | number;
   subtitle?: string;
   photoUrl: string;
-  to: string;
   icon: ReactNode;
+  onOpen: () => void;
 };
 
 export function GlassStatCard({
@@ -16,11 +15,16 @@ export function GlassStatCard({
   value,
   subtitle = "Реални данни",
   photoUrl,
-  to,
   icon,
+  onOpen,
 }: GlassStatCardProps) {
   return (
-    <Link to={to} className="crm-locked-card" aria-label={`${title}: ${value}`}>
+    <button
+      type="button"
+      className="crm-locked-card"
+      aria-label={`Отвори карта ${title}: ${value}`}
+      onClick={onOpen}
+    >
       <div
         className="crm-locked-card__photo"
         style={{ backgroundImage: `url(${photoUrl})` }}
@@ -36,6 +40,6 @@ export function GlassStatCard({
           <ArrowRight size={16} strokeWidth={2} />
         </span>
       </div>
-    </Link>
+    </button>
   );
 }

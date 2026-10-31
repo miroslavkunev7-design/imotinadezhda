@@ -1,40 +1,42 @@
 import { Building2, Calendar, Home, Sparkles, Users } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export type NavKey = "home" | "clients" | "properties" | "ai" | "calendar";
 
-const ITEMS: { key: NavKey; label: string; icon: typeof Home }[] = [
-  { key: "home", label: "Начало", icon: Home },
-  { key: "clients", label: "Клиенти", icon: Users },
-  { key: "properties", label: "Имоти", icon: Building2 },
-  { key: "ai", label: "AI асистент", icon: Sparkles },
-  { key: "calendar", label: "Календар", icon: Calendar },
+export const NAV_ROUTES: Record<NavKey, string> = {
+  home: "/crm-home-locked",
+  clients: "/admin/clients",
+  properties: "/admin/properties",
+  ai: "/admin/omnibot",
+  calendar: "/admin/calendar",
+};
+
+const ITEMS: { key: NavKey; label: string; icon: typeof Home; to: string }[] = [
+  { key: "home", label: "Начало", icon: Home, to: NAV_ROUTES.home },
+  { key: "clients", label: "Клиенти", icon: Users, to: NAV_ROUTES.clients },
+  { key: "properties", label: "Имоти", icon: Building2, to: NAV_ROUTES.properties },
+  { key: "ai", label: "AI асистент", icon: Sparkles, to: NAV_ROUTES.ai },
+  { key: "calendar", label: "Календар", icon: Calendar, to: NAV_ROUTES.calendar },
 ];
 
-export function LockedNav({
-  active,
-  onSelect,
-}: {
-  active: NavKey;
-  onSelect: (key: NavKey) => void;
-}) {
+export function LockedNav({ active }: { active: NavKey }) {
   return (
     <nav className="crm-locked-nav" aria-label="CRM навигация">
       {ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive = active === item.key;
         return (
-          <button
+          <Link
             key={item.key}
-            type="button"
+            to={item.to}
             className={
               isActive ? "crm-locked-nav__item crm-locked-nav__item--active" : "crm-locked-nav__item"
             }
             aria-current={isActive ? "page" : undefined}
-            onClick={() => onSelect(item.key)}
           >
             <Icon size={20} strokeWidth={1.6} />
             <span>{item.label}</span>
-          </button>
+          </Link>
         );
       })}
     </nav>
