@@ -45,13 +45,6 @@
   transition: opacity 0.35s ease;
 }
 
-.crm-locked-r3f {
-  position: absolute !important;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
 .crm-locked-ui {
   position: relative;
   z-index: 1;
