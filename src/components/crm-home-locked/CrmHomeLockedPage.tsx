@@ -17,6 +17,9 @@ import { AiAssistChat, AiAssistFab } from "./AiAssistChat";
 import { BottomMenuSheet } from "./BottomMenuSheet";
 import { BrokerBadge } from "./BrokerBadge";
 import { GlassStatCard } from "./GlassStatCard";
+import { ImotiCatalogModal } from "./imoti/ImotiCatalogModal";
+import { ImotiDetailModal } from "./imoti/ImotiDetailModal";
+import type { ImotiProperty } from "./imoti/imoti-types";
 import { LockedLogo } from "./LockedLogo";
 import {
   LockedNav,
@@ -123,12 +126,32 @@ export function CrmHomeLockedPage() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [section, setSection] = useState<SectionSheetData | null>(null);
+  const [imotiOpen, setImotiOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<ImotiProperty | null>(
+    null,
+  );
 
   const closeOverlays = useCallback(() => {
     setMenuOpen(false);
     setNotificationsOpen(false);
     setAiOpen(false);
     setSection(null);
+  }, []);
+
+  const openImotiCatalog = useCallback(() => {
+    setMenuOpen(false);
+    setNotificationsOpen(false);
+    setAiOpen(false);
+    setSection(null);
+    setSelectedProperty(null);
+    setActiveNav("properties");
+    setImotiOpen(true);
+  }, []);
+
+  const closeImotiCatalog = useCallback(() => {
+    setImotiOpen(false);
+    setSelectedProperty(null);
+    setActiveNav("home");
   }, []);
 
   const onSelectNav = useCallback(
@@ -139,8 +162,18 @@ export function CrmHomeLockedPage() {
       setAiOpen(false);
       if (key === "home") {
         setSection(null);
+        setImotiOpen(false);
+        setSelectedProperty(null);
         return;
       }
+      if (key === "properties") {
+        setSection(null);
+        setSelectedProperty(null);
+        setImotiOpen(true);
+        return;
+      }
+      setImotiOpen(false);
+      setSelectedProperty(null);
       setSection(NAV_SECTIONS[key] ?? null);
     },
     [],
@@ -151,6 +184,8 @@ export function CrmHomeLockedPage() {
     setMenuOpen(false);
     setNotificationsOpen(false);
     setAiOpen(false);
+    setImotiOpen(false);
+    setSelectedProperty(null);
     setSection(PROPERTY_SECTIONS[key]);
   }, []);
 
@@ -190,8 +225,15 @@ export function CrmHomeLockedPage() {
                 photoUrl={card.photoUrl}
                 icon={card.icon}
                 onOpen={() => {
+                  if (card.title === "Имоти") {
+                    openImotiCatalog();
+                    return;
+                  }
                   setMenuOpen(false);
                   setNotificationsOpen(false);
+                  setAiOpen(false);
+                  setImotiOpen(false);
+                  setSelectedProperty(null);
                   setSection(card);
                 }}
               />
@@ -246,6 +288,17 @@ export function CrmHomeLockedPage() {
         onSelect={onSelectNav}
       />
       <SectionSheet open={section !== null} data={section} onClose={closeOverlays} />
+      <ImotiCatalogModal
+        open={imotiOpen}
+        onClose={closeImotiCatalog}
+        onOpenProperty={(property) => setSelectedProperty(property)}
+      />
+      <ImotiDetailModal
+        key={selectedProperty?.id ?? "imoti-detail"}
+        open={selectedProperty !== null}
+        property={selectedProperty}
+        onClose={() => setSelectedProperty(null)}
+      />
     </div>
   );
 }
