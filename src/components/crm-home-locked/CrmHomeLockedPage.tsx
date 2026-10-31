@@ -37,7 +37,7 @@ const CARDS: SectionSheetData[] = [
     icon: <Users size={18} strokeWidth={1.6} />,
   },
   {
-    title: "Активни имоти",
+    title: "Имоти",
     value: 1,
     photoUrl: "/crm-home-locked/card-imoti.jpg",
     description: "Активни обяви, снимки и статуси на имотите.",
