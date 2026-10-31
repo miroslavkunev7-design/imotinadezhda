@@ -127,26 +127,22 @@
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  /* Push cards down so the villa stays visible in the upper half */
-  padding: clamp(28vh, 32vh, 36vh) 0 clamp(8px, 1.5vh, 16px);
+  /* Keep 2x2 grid, but lower it so the villa shows above */
+  padding: clamp(22vh, 26vh, 30vh) 0 clamp(8px, 1.5vh, 16px);
 }
 
 .crm-locked-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(10px, 1.2vh, 14px);
-  width: min(38vw, 360px);
-  max-height: min(52vh, 520px);
-  overflow-y: auto;
-  padding-right: 2px;
-  scrollbar-width: thin;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 1.4vw, 20px);
+  width: min(48vw, 560px);
 }
 
 .crm-locked-card {
   position: relative;
   display: block;
   width: 100%;
-  min-height: clamp(108px, 14vh, 132px);
+  min-height: clamp(130px, 18vh, 168px);
   border-radius: 24px;
   border: 1.5px solid rgba(255, 255, 255, 0.88);
   overflow: hidden;
@@ -233,14 +229,14 @@
 }
 
 .crm-locked-card__value {
-  font-size: clamp(28px, 3.2vw, 36px);
+  font-size: clamp(34px, 3.6vw, 46px);
   font-weight: 800;
   line-height: 1;
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
 }
 
 .crm-locked-card__title {
-  font-size: clamp(15px, 1.3vw, 18px);
+  font-size: clamp(16px, 1.4vw, 20px);
   font-weight: 600;
 }
 
@@ -480,6 +476,7 @@
   font: 600 14px/1.2 var(--crm-locked-font);
   padding: 12px 16px;
   box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+  cursor: pointer;
 }
 
 .crm-locked-sheet__cta:hover {
@@ -511,11 +508,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   padding: 10px;
+  border: 0;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
   text-decoration: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
 }
 
 .crm-locked-notify__item:hover {
@@ -551,8 +553,7 @@
 
 @media (max-width: 900px) {
   .crm-locked-grid {
-    width: min(88vw, 340px);
-    max-height: min(48vh, 460px);
+    width: min(92vw, 420px);
   }
 
   .crm-locked-nav span {
@@ -562,10 +563,10 @@
   .crm-locked-main {
     justify-content: center;
     align-items: flex-end;
-    padding-top: clamp(24vh, 28vh, 32vh);
+    padding-top: clamp(20vh, 24vh, 28vh);
   }
 
   .crm-locked-card {
-    min-height: clamp(96px, 13vh, 118px);
+    min-height: clamp(120px, 16vh, 148px);
   }
 }
