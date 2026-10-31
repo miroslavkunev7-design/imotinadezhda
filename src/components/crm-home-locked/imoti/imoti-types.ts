@@ -18,8 +18,13 @@ export type ImotiProperty = {
   condition: string;
   coverUrl: string;
   gallery: string[];
+  /** Public / site-facing description */
   description: string;
+  /** Private note — shown only on Owner tab */
+  descriptionOwner?: string;
   features: Array<{ label: string; value: string }>;
+  favorite?: boolean;
+  createdAt?: number;
 };
 
 export type ImotiDetailTab =
@@ -33,3 +38,18 @@ export type ImotiDetailTab =
   | "deal"
   | "contract"
   | "bank";
+
+export type ImotiSortKey = "newest" | "price-asc" | "price-desc" | "area-desc";
+
+export const IMOTI_SECTION_BG: Record<ImotiDetailTab, string> = {
+  basic: "/crm-home-locked/card-imoti.jpg",
+  media: "/crm-home-locked/bg-light.jpg",
+  features: "/crm-home-locked/card-sdelki.jpg",
+  location: "/crm-home-locked/bg-dark.jpg",
+  documents: "/crm-home-locked/card-ogledi.jpg",
+  owner: "/crm-home-locked/card-klienti.jpg",
+  history: "/crm-home-locked/bg-dark.jpg",
+  deal: "/crm-home-locked/card-sdelki.jpg",
+  contract: "/crm-home-locked/card-ogledi.jpg",
+  bank: "/crm-home-locked/card-imoti.jpg",
+};

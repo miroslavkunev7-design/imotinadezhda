@@ -28,7 +28,7 @@ export function CrmModalShell({
 
   return (
     <div
-      className="crm-imoti-overlay"
+      className={`crm-imoti-overlay${expanded ? " crm-imoti-overlay--expanded" : ""}`}
       style={{ zIndex }}
       role="dialog"
       aria-modal="true"
@@ -57,7 +57,11 @@ export function CrmModalShell({
               type="button"
               className="crm-imoti-icon-btn"
               aria-label={expanded ? "Свий" : "Цял екран"}
-              onClick={onToggleExpand}
+              title={expanded ? "Свий" : "Цял екран"}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleExpand();
+              }}
             >
               {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
             </button>

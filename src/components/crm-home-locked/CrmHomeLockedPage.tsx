@@ -17,8 +17,10 @@ import { AiAssistChat, AiAssistFab } from "./AiAssistChat";
 import { BottomMenuSheet } from "./BottomMenuSheet";
 import { BrokerBadge } from "./BrokerBadge";
 import { GlassStatCard } from "./GlassStatCard";
+import { IMOTI_DEMO } from "./imoti/imoti-demo-data";
 import { ImotiCatalogModal } from "./imoti/ImotiCatalogModal";
 import { ImotiDetailModal } from "./imoti/ImotiDetailModal";
+import { ImotiUploadModal } from "./imoti/ImotiUploadModal";
 import type { ImotiProperty } from "./imoti/imoti-types";
 import { LockedLogo } from "./LockedLogo";
 import {
@@ -127,9 +129,13 @@ export function CrmHomeLockedPage() {
   const [aiOpen, setAiOpen] = useState(false);
   const [section, setSection] = useState<SectionSheetData | null>(null);
   const [imotiOpen, setImotiOpen] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState<ImotiProperty | null>(
-    null,
-  );
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [properties, setProperties] = useState<ImotiProperty[]>(() => [...IMOTI_DEMO]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const selectedProperty = selectedId
+    ? (properties.find((p) => p.id === selectedId) ?? null)
+    : null;
 
   const closeOverlays = useCallback(() => {
     setMenuOpen(false);
@@ -143,49 +149,64 @@ export function CrmHomeLockedPage() {
     setNotificationsOpen(false);
     setAiOpen(false);
     setSection(null);
-    setSelectedProperty(null);
+    setSelectedId(null);
+    setUploadOpen(false);
     setActiveNav("properties");
     setImotiOpen(true);
   }, []);
 
   const closeImotiCatalog = useCallback(() => {
     setImotiOpen(false);
-    setSelectedProperty(null);
+    setSelectedId(null);
+    setUploadOpen(false);
     setActiveNav("home");
   }, []);
 
-  const onSelectNav = useCallback(
-    (key: NavKey) => {
-      setActiveNav(key);
-      setMenuOpen(false);
-      setNotificationsOpen(false);
-      setAiOpen(false);
-      if (key === "home") {
-        setSection(null);
-        setImotiOpen(false);
-        setSelectedProperty(null);
-        return;
-      }
-      if (key === "properties") {
-        setSection(null);
-        setSelectedProperty(null);
-        setImotiOpen(true);
-        return;
-      }
+  const onSelectNav = useCallback((key: NavKey) => {
+    setActiveNav(key);
+    setMenuOpen(false);
+    setNotificationsOpen(false);
+    setAiOpen(false);
+    setUploadOpen(false);
+    if (key === "home") {
+      setSection(null);
       setImotiOpen(false);
-      setSelectedProperty(null);
-      setSection(NAV_SECTIONS[key] ?? null);
-    },
-    [],
-  );
+      setSelectedId(null);
+      return;
+    }
+    if (key === "properties") {
+      setSection(null);
+      setSelectedId(null);
+      setImotiOpen(true);
+      return;
+    }
+    setImotiOpen(false);
+    setSelectedId(null);
+    setSection(NAV_SECTIONS[key] ?? null);
+  }, []);
+
+  const navigateFromImoti = useCallback((target: "clients" | "calendar") => {
+    setImotiOpen(false);
+    setSelectedId(null);
+    setUploadOpen(false);
+    setActiveNav(target);
+    setSection(NAV_SECTIONS[target] ?? null);
+  }, []);
 
   const onSelectPropertyMenu = useCallback((key: PropertyMenuKey) => {
     setActiveNav("properties");
     setMenuOpen(false);
     setNotificationsOpen(false);
     setAiOpen(false);
+    setSelectedId(null);
+    if (key === "upload") {
+      setSection(null);
+      setImotiOpen(true);
+      setUploadOpen(true);
+      return;
+    }
     setImotiOpen(false);
-    setSelectedProperty(null);
+    setUploadOpen(false);
     setSection(PROPERTY_SECTIONS[key]);
   }, []);
 
@@ -201,6 +222,14 @@ export function CrmHomeLockedPage() {
       setTheme((t) => (t === "light" ? "dark" : "light"));
     });
   }, []);
+
+  const toggleFavorite = useCallback((id: string) => {
+    setProperties((list) =>
+      list.map((p) => (p.id === id ? { ...p, favorite: !p.favorite } : p)),
+    );
+  }, []);
+
+  const imotiValue = properties.length;
 
   return (
     <div className="crm-locked-root" data-theme={theme}>
@@ -221,7 +250,7 @@ export function CrmHomeLockedPage() {
               <GlassStatCard
                 key={card.title}
                 title={card.title}
-                value={card.value}
+                value={card.title === "Имоти" ? imotiValue : card.value}
                 photoUrl={card.photoUrl}
                 icon={card.icon}
                 onOpen={() => {
@@ -233,7 +262,8 @@ export function CrmHomeLockedPage() {
                   setNotificationsOpen(false);
                   setAiOpen(false);
                   setImotiOpen(false);
-                  setSelectedProperty(null);
+                  setSelectedId(null);
+                  setUploadOpen(false);
                   setSection(card);
                 }}
               />
@@ -290,14 +320,29 @@ export function CrmHomeLockedPage() {
       <SectionSheet open={section !== null} data={section} onClose={closeOverlays} />
       <ImotiCatalogModal
         open={imotiOpen}
+        properties={properties}
         onClose={closeImotiCatalog}
-        onOpenProperty={(property) => setSelectedProperty(property)}
+        onOpenProperty={(property) => setSelectedId(property.id)}
+        onAddProperty={() => setUploadOpen(true)}
+        onToggleFavorite={toggleFavorite}
+        onNavigate={navigateFromImoti}
       />
       <ImotiDetailModal
         key={selectedProperty?.id ?? "imoti-detail"}
         open={selectedProperty !== null}
         property={selectedProperty}
-        onClose={() => setSelectedProperty(null)}
+        onClose={() => setSelectedId(null)}
+        onToggleFavorite={toggleFavorite}
+        onNavigate={navigateFromImoti}
+      />
+      <ImotiUploadModal
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onSave={(property) => {
+          setProperties((list) => [property, ...list]);
+          setSelectedId(property.id);
+          setImotiOpen(true);
+        }}
       />
     </div>
   );

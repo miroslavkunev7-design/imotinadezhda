@@ -23,12 +23,21 @@ import {
   Bookmark,
   Layers3,
   UserRound,
+  X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { CrmModalShell } from "./CrmModalShell";
 import { formatImotiPrice } from "./imoti-demo-data";
-import type { ImotiDetailTab, ImotiProperty } from "./imoti-types";
+import {
+  IMOTI_SECTION_BG,
+  type ImotiDetailTab,
+  type ImotiProperty,
+} from "./imoti-types";
+
+function HandshakeIcon(props: { size?: number; strokeWidth?: number }) {
+  return <Building2 {...props} />;
+}
 
 const TABS: Array<{ key: ImotiDetailTab; label: string; icon: typeof Home }> = [
   { key: "basic", label: "Основна информация", icon: Home },
@@ -43,24 +52,45 @@ const TABS: Array<{ key: ImotiDetailTab; label: string; icon: typeof Home }> = [
   { key: "bank", label: "Банка", icon: Landmark },
 ];
 
-function HandshakeIcon(props: { size?: number; strokeWidth?: number }) {
-  return <Building2 {...props} />;
+function SectionPanel({
+  tab,
+  children,
+  className = "",
+}: {
+  tab: ImotiDetailTab;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`crm-imoti-panel crm-imoti-panel--section crm-imoti-panel--${tab}${className ? ` ${className}` : ""}`}
+      style={{ ["--crm-imoti-section-bg" as string]: `url(${IMOTI_SECTION_BG[tab]})` }}
+    >
+      {children}
+    </div>
+  );
 }
 
 function TabContent({
   tab,
   property,
-  onJumpBank,
+  onJump,
+  loanOpen,
+  onToggleLoan,
 }: {
   tab: ImotiDetailTab;
   property: ImotiProperty;
-  onJumpBank: () => void;
+  onJump: (t: ImotiDetailTab) => void;
+  loanOpen: boolean;
+  onToggleLoan: () => void;
 }) {
+  const monthly = Math.round((property.price * 0.0045) / 10) * 10;
+
   switch (tab) {
     case "basic":
       return (
         <div className="crm-imoti-detail__split">
-          <div className="crm-imoti-panel">
+          <SectionPanel tab="basic">
             <h3>
               <Home size={16} /> Основна информация
             </h3>
@@ -73,9 +103,9 @@ function TabContent({
                 </div>
               ))}
             </div>
-          </div>
+          </SectionPanel>
           <aside className="crm-imoti-side">
-            <div className="crm-imoti-panel crm-imoti-panel--accent">
+            <SectionPanel tab="basic" className="crm-imoti-panel--accent">
               <h4>Цена и разходи</h4>
               <div className="crm-imoti-money">
                 <span>Официална цена</span>
@@ -89,30 +119,42 @@ function TabContent({
                 <span>Комисионна 3%</span>
                 <strong>€ {Math.round(property.price * 0.03).toLocaleString("bg-BG")}</strong>
               </div>
-            </div>
-            <div className="crm-imoti-panel">
+              <div className="crm-imoti-money crm-imoti-money--total">
+                <span>Общо по сделката</span>
+                <strong>€ {Math.round(property.price * 0.905).toLocaleString("bg-BG")}</strong>
+              </div>
+            </SectionPanel>
+            <SectionPanel tab="bank">
               <h4>Бързи действия</h4>
               <div className="crm-imoti-quick">
-                <button type="button" onClick={onJumpBank}>
+                <button type="button" onClick={onToggleLoan}>
                   <Calculator size={14} /> Изчисли вноска
                 </button>
-                <button type="button">
+                <button type="button" onClick={() => onJump("bank")}>
                   <Shield size={14} /> Провери ЦКР
                 </button>
-                <button type="button">
+                <button type="button" onClick={() => onJump("contract")}>
                   <Scale size={14} /> Нотариус
                 </button>
-                <button type="button" onClick={onJumpBank}>
+                <button type="button" onClick={() => onJump("bank")}>
                   <Landmark size={14} /> Банки
                 </button>
               </div>
-            </div>
+              {loanOpen ? (
+                <div className="crm-imoti-loan">
+                  <p>
+                    Примерна месечна вноска при 80% финансиране · ~{" "}
+                    <strong>€ {monthly.toLocaleString("bg-BG")}</strong>
+                  </p>
+                </div>
+              ) : null}
+            </SectionPanel>
           </aside>
         </div>
       );
     case "media":
       return (
-        <div className="crm-imoti-panel">
+        <SectionPanel tab="media">
           <h3>
             <ImageIcon size={16} /> Снимки и медия · {property.gallery.length} файла
           </h3>
@@ -121,11 +163,11 @@ function TabContent({
               <img key={`${src}-${i}`} src={src} alt="" />
             ))}
           </div>
-        </div>
+        </SectionPanel>
       );
     case "features":
       return (
-        <div className="crm-imoti-panel">
+        <SectionPanel tab="features">
           <h3>
             <Layers3 size={16} /> Характеристики
           </h3>
@@ -155,11 +197,11 @@ function TabContent({
               </div>
             ))}
           </div>
-        </div>
+        </SectionPanel>
       );
     case "location":
       return (
-        <div className="crm-imoti-panel">
+        <SectionPanel tab="location">
           <h3>
             <MapPin size={16} /> Локация
           </h3>
@@ -167,11 +209,11 @@ function TabContent({
             {property.city}, {property.quarter}. Точният адрес е поверителен и се показва само на
             упълномощени служители.
           </p>
-        </div>
+        </SectionPanel>
       );
     case "documents":
       return (
-        <div className="crm-imoti-panel">
+        <SectionPanel tab="documents">
           <h3>
             <FileText size={16} /> Документи
           </h3>
@@ -189,11 +231,11 @@ function TabContent({
               <p>Няма качени файлове.</p>
             </details>
           </div>
-        </div>
+        </SectionPanel>
       );
     case "owner":
       return (
-        <div className="crm-imoti-panel">
+        <SectionPanel tab="owner">
           <h3>
             <UserRound size={16} /> Собственик (поверително)
           </h3>
@@ -215,11 +257,19 @@ function TabContent({
               <strong>€ {Math.round(property.price * 0.875).toLocaleString("bg-BG")}</strong>
             </div>
           </div>
-        </div>
+          {property.descriptionOwner ? (
+            <div className="crm-imoti-owner-note">
+              <h4>Лично описание</h4>
+              <p>{property.descriptionOwner}</p>
+            </div>
+          ) : (
+            <p>Няма лично описание за този имот.</p>
+          )}
+        </SectionPanel>
       );
     case "history":
       return (
-        <div className="crm-imoti-panel">
+        <SectionPanel tab="history">
           <h3>
             <History size={16} /> История
           </h3>
@@ -234,11 +284,11 @@ function TabContent({
               <Banknote size={14} /> Зададена официална цена · днес
             </li>
           </ul>
-        </div>
+        </SectionPanel>
       );
     case "deal":
       return (
-        <div className="crm-imoti-panel">
+        <SectionPanel tab="deal">
           <h3>
             <Building2 size={16} /> Сделка
           </h3>
@@ -252,11 +302,11 @@ function TabContent({
               ),
             )}
           </div>
-        </div>
+        </SectionPanel>
       );
     case "contract":
       return (
-        <div className="crm-imoti-panel">
+        <SectionPanel tab="contract">
           <h3>
             <Scale size={16} /> Договор
           </h3>
@@ -264,11 +314,11 @@ function TabContent({
           <button type="button" className="crm-imoti-primary">
             Създай договор
           </button>
-        </div>
+        </SectionPanel>
       );
     case "bank":
       return (
-        <div className="crm-imoti-panel">
+        <SectionPanel tab="bank">
           <h3>
             <Landmark size={16} /> Банка · кредитно досие
           </h3>
@@ -280,7 +330,7 @@ function TabContent({
               </button>
             ))}
           </div>
-        </div>
+        </SectionPanel>
       );
     default: {
       const _exhaustive: never = tab;
@@ -293,14 +343,27 @@ export function ImotiDetailModal({
   open,
   property,
   onClose,
+  onToggleFavorite,
+  onNavigate,
 }: {
   open: boolean;
   property: ImotiProperty | null;
   onClose: () => void;
+  onToggleFavorite: (id: string) => void;
+  onNavigate: (target: "clients" | "calendar") => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [tab, setTab] = useState<ImotiDetailTab>("basic");
   const [imageIdx, setImageIdx] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
+  const [brokerOpen, setBrokerOpen] = useState(false);
+  const [loanOpen, setLoanOpen] = useState(false);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 2200);
+    return () => window.clearTimeout(t);
+  }, [toast]);
 
   const gallery = property?.gallery ?? [];
   const current = gallery[imageIdx] ?? property?.coverUrl ?? "";
@@ -319,6 +382,20 @@ export function ImotiDetailModal({
 
   if (!property) return null;
 
+  const share = async () => {
+    const text = `${property.title} · ${formatImotiPrice(property)} · ${property.city}, ${property.quarter}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setToast("Копирано в клипборда");
+    } catch {
+      setToast("Неуспешно копиране");
+    }
+  };
+
+  const printDetail = () => {
+    window.print();
+  };
+
   return (
     <CrmModalShell
       open={open}
@@ -332,18 +409,31 @@ export function ImotiDetailModal({
           <button type="button" className="crm-imoti-topnav__item crm-imoti-topnav__item--active">
             Имоти
           </button>
-          <button type="button" className="crm-imoti-topnav__item">
+          <button
+            type="button"
+            className="crm-imoti-topnav__item"
+            onClick={() => onNavigate("clients")}
+          >
             Клиенти
           </button>
-          <button type="button" className="crm-imoti-topnav__item">
+          <button
+            type="button"
+            className="crm-imoti-topnav__item"
+            onClick={() => onNavigate("calendar")}
+          >
             Календар
           </button>
         </nav>
       }
       headerRight={
         <>
-          <button type="button" className="crm-imoti-icon-btn" aria-label="Любим">
-            <Heart size={15} />
+          <button
+            type="button"
+            className={`crm-imoti-icon-btn${property.favorite ? " is-fav" : ""}`}
+            aria-label="Любим"
+            onClick={() => onToggleFavorite(property.id)}
+          >
+            <Heart size={15} fill={property.favorite ? "currentColor" : "none"} />
           </button>
         </>
       }
@@ -410,16 +500,24 @@ export function ImotiDetailModal({
               })}
             </div>
             <div className="crm-imoti-detail__actions">
-              <button type="button" className="crm-imoti-primary">
+              <button
+                type="button"
+                className="crm-imoti-primary"
+                onClick={() => setBrokerOpen(true)}
+              >
                 <Phone size={14} /> Свържи се с брокер
               </button>
-              <button type="button" className="crm-imoti-ghost">
-                <Bookmark size={14} /> Запази
+              <button
+                type="button"
+                className="crm-imoti-ghost"
+                onClick={() => onToggleFavorite(property.id)}
+              >
+                <Bookmark size={14} /> {property.favorite ? "Запазен" : "Запази"}
               </button>
-              <button type="button" className="crm-imoti-ghost">
+              <button type="button" className="crm-imoti-ghost" onClick={() => void share()}>
                 <Share2 size={14} /> Сподели
               </button>
-              <button type="button" className="crm-imoti-ghost">
+              <button type="button" className="crm-imoti-ghost" onClick={printDetail}>
                 <Printer size={14} /> Печат
               </button>
             </div>
@@ -446,9 +544,41 @@ export function ImotiDetailModal({
         </div>
 
         <div className="crm-imoti-detail__tabbody" role="tabpanel">
-          <TabContent tab={tab} property={property} onJumpBank={() => setTab("bank")} />
+          <TabContent
+            tab={tab}
+            property={property}
+            onJump={setTab}
+            loanOpen={loanOpen}
+            onToggleLoan={() => setLoanOpen((v) => !v)}
+          />
         </div>
       </div>
+
+      {brokerOpen ? (
+        <div className="crm-imoti-sheet" role="dialog" aria-label="Контакт с брокер">
+          <div className="crm-imoti-sheet__card">
+            <button
+              type="button"
+              className="crm-imoti-icon-btn"
+              aria-label="Затвори"
+              onClick={() => setBrokerOpen(false)}
+            >
+              <X size={14} />
+            </button>
+            <img src="/crm-home-locked/avatar-miroslav.jpg" alt="" className="crm-imoti-avatar" />
+            <strong>Мирослав Канев</strong>
+            <span>Брокер · Имоти Надежда</span>
+            <a className="crm-imoti-primary" href="tel:+359888000000">
+              <Phone size={14} /> +359 888 000 000
+            </a>
+            <a className="crm-imoti-ghost" href="mailto:miroslav@imotinadezhda.bg">
+              miroslav@imotinadezhda.bg
+            </a>
+          </div>
+        </div>
+      ) : null}
+
+      {toast ? <div className="crm-imoti-toast">{toast}</div> : null}
     </CrmModalShell>
   );
 }
