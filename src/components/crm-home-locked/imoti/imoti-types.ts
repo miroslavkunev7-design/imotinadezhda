@@ -1,3 +1,5 @@
+import type { CreditBlockData } from "@/lib/banks-catalog";
+
 export type ImotiDeal = "sale" | "rent";
 
 export type ImotiProperty = {
@@ -25,6 +27,8 @@ export type ImotiProperty = {
   features: Array<{ label: string; value: string }>;
   favorite?: boolean;
   createdAt?: number;
+  /** Запазен кредитен блок от банковия модул */
+  creditBlock?: CreditBlockData | null;
 };
 
 export type ImotiDetailTab =
