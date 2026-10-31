@@ -137,7 +137,7 @@ function FilterDropdown({
                 </button>
               ))}
             </div>,
-            document.body,
+            document.querySelector(".crm-locked-root") ?? document.body,
           )
         : null}
     </div>
@@ -220,7 +220,7 @@ function RangeDropdown({
                 />
               </label>
             </div>,
-            document.body,
+            document.querySelector(".crm-locked-root") ?? document.body,
           )
         : null}
     </div>
@@ -350,7 +350,7 @@ export function ImotiFilterBar({
                   </button>
                 ))}
               </div>,
-              document.body,
+              document.querySelector(".crm-locked-root") ?? document.body,
             )
           : null}
       </div>

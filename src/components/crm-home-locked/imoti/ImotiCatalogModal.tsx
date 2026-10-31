@@ -215,27 +215,28 @@ export function ImotiCatalogModal({
       }
     >
       <div className="crm-imoti-catalog">
-        <div className="crm-imoti-catalog__hero" aria-hidden>
-          <div className="crm-imoti-catalog__hero-veil" />
-        </div>
-
-        <div className="crm-imoti-catalog__intro">
-          <div>
-            <h2>Имоти</h2>
-            <p>Всички имоти в портфолиото · {filtered.length} активни</p>
+        <div className="crm-imoti-catalog__hero">
+          <div className="crm-imoti-catalog__hero-photo" aria-hidden />
+          <div className="crm-imoti-catalog__hero-veil" aria-hidden />
+          <div className="crm-imoti-catalog__intro">
+            <div>
+              <h2>Имоти</h2>
+              <p>Всички имоти в портфолиото · {filtered.length} активни</p>
+            </div>
+            <button
+              type="button"
+              className="crm-imoti-primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddProperty();
+              }}
+            >
+              <Plus size={16} /> Добави имот
+            </button>
           </div>
-          <button
-            type="button"
-            className="crm-imoti-primary"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddProperty();
-            }}
-          >
-            <Plus size={16} /> Добави имот
-          </button>
         </div>
 
+        <div className="crm-imoti-catalog__main">
         <div className="crm-imoti-searchbar">
           <Search size={16} />
           <input
@@ -317,6 +318,7 @@ export function ImotiCatalogModal({
               onToggleFavorite={onToggleFavorite}
             />
           )}
+        </div>
         </div>
       </div>
     </CrmModalShell>

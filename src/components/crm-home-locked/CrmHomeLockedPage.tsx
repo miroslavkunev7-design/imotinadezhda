@@ -245,6 +245,20 @@ export function CrmHomeLockedPage() {
         </header>
 
         <main className="crm-locked-main">
+          {theme === "light" ? (
+            <div className="crm-locked-sky-copy" aria-hidden={false}>
+              <span className="crm-locked-sky-moon" aria-hidden />
+              <p className="crm-locked-sky-kicker">Недвижими имоти Надежда</p>
+              <h1 className="crm-locked-sky-title">
+                Домът, който търсите —
+                <br />
+                започва с доверие
+              </h1>
+              <p className="crm-locked-sky-sub">
+                Портфолио, клиенти и сделки на едно място. Ясно, бързо и с грижа към всеки оглед.
+              </p>
+            </div>
+          ) : null}
           <section className="crm-locked-grid" aria-label="CRM показатели">
             {CARDS.map((card) => (
               <GlassStatCard
