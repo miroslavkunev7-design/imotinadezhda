@@ -9,6 +9,30 @@
   color: #fff;
   font-family: var(--crm-locked-font);
   background: #05070c;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Kill click/focus rectangle outlines on this locked page only */
+.crm-locked-root *:focus,
+.crm-locked-root *:focus-visible,
+.crm-locked-root button:focus,
+.crm-locked-root button:focus-visible,
+.crm-locked-root a:focus,
+.crm-locked-root a:focus-visible,
+.crm-locked-root input:focus,
+.crm-locked-root input:focus-visible,
+.crm-locked-root textarea:focus,
+.crm-locked-root textarea:focus-visible {
+  outline: none !important;
+  box-shadow: none;
+}
+
+.crm-locked-root button,
+.crm-locked-root a,
+.crm-locked-root [role="button"],
+.crm-locked-root [role="menuitem"] {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 
 .crm-locked-root[data-theme="dark"] {
