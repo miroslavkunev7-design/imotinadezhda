@@ -24,7 +24,7 @@ export function CrmModalShell({
   headerLeft?: ReactNode;
   headerCenter?: ReactNode;
   headerRight?: ReactNode;
-  /** When false, only floating close/expand (catalog). Detail restores top chrome. */
+  /** When false, only floating close/expand — no topnav strip (catalog + detail). */
   showTop?: boolean;
 }) {
   if (!open) return null;

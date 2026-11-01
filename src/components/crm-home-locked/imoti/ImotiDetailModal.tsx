@@ -350,7 +350,7 @@ export function ImotiDetailModal({
   property,
   onClose,
   onToggleFavorite,
-  onNavigate,
+  onNavigate: _onNavigate,
   onSaveCreditBlock,
 }: {
   open: boolean;
@@ -426,39 +426,7 @@ export function ImotiDetailModal({
       onToggleExpand={() => setExpanded((v) => !v)}
       onClose={onClose}
       zIndex={70}
-      headerCenter={
-        <nav className="crm-imoti-topnav" aria-label="Имоти навигация">
-          <button type="button" className="crm-imoti-topnav__item crm-imoti-topnav__item--active">
-            Имоти
-          </button>
-          <button
-            type="button"
-            className="crm-imoti-topnav__item"
-            onClick={() => onNavigate("clients")}
-          >
-            Клиенти
-          </button>
-          <button
-            type="button"
-            className="crm-imoti-topnav__item"
-            onClick={() => onNavigate("calendar")}
-          >
-            Календар
-          </button>
-        </nav>
-      }
-      headerRight={
-        <>
-          <button
-            type="button"
-            className={`crm-imoti-icon-btn${property.favorite ? " is-fav" : ""}`}
-            aria-label="Любим"
-            onClick={() => onToggleFavorite(property.id)}
-          >
-            <Heart size={15} fill={property.favorite ? "currentColor" : "none"} />
-          </button>
-        </>
-      }
+      showTop={false}
     >
       <div className="crm-imoti-detail">
         <div className="crm-imoti-detail__hero">
@@ -502,61 +470,77 @@ export function ImotiDetailModal({
             </div>
           </div>
 
-          <div className="crm-imoti-detail__summary">
-            <h2>{property.title}</h2>
-            <p className="crm-imoti-card__loc crm-imoti-card__loc--accent">
-              <MapPin size={14} /> {property.city}, {property.quarter}
-            </p>
-            <div className="crm-imoti-detail__price">
-              {formatImotiPrice(property)}
-              <small>
-                Официална цена <Info size={12} />
-              </small>
+          <div
+            className="crm-imoti-detail__summary crm-melt-section crm-melt-section--summary"
+            style={{ ["--crm-melt-photo" as string]: `url(${current || property.coverUrl})` }}
+          >
+            <div className="crm-melt-section__copy">
+              <div className="crm-imoti-detail__summary-top">
+                <h2>{property.title}</h2>
+                <button
+                  type="button"
+                  className={`crm-imoti-icon-btn${property.favorite ? " is-fav" : ""}`}
+                  aria-label="Любим"
+                  onClick={() => onToggleFavorite(property.id)}
+                >
+                  <Heart size={15} fill={property.favorite ? "currentColor" : "none"} />
+                </button>
+              </div>
+              <p className="crm-imoti-card__loc crm-imoti-card__loc--accent">
+                <MapPin size={14} /> {property.city}, {property.quarter}
+              </p>
+              <div className="crm-imoti-detail__price">
+                {formatImotiPrice(property)}
+                <small>
+                  Официална цена <Info size={12} />
+                </small>
+              </div>
+              <div className="crm-imoti-detail__stats crm-imoti-detail__stats--grid">
+                {stats.map((s) => {
+                  const Icon = s.icon;
+                  return (
+                    <span key={s.label} className="crm-imoti-detail__stat">
+                      <Icon size={15} strokeWidth={1.8} />
+                      <em>{s.label}</em>
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="crm-imoti-detail__actions">
+                <button
+                  type="button"
+                  className="crm-imoti-primary"
+                  onClick={() => setBrokerOpen(true)}
+                >
+                  <Phone size={14} /> Свържи се с брокер
+                </button>
+                <button
+                  type="button"
+                  className="crm-imoti-ghost crm-imoti-ghost--square"
+                  aria-label="Запази"
+                  onClick={() => onToggleFavorite(property.id)}
+                >
+                  <Bookmark size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="crm-imoti-ghost crm-imoti-ghost--square"
+                  aria-label="Сподели"
+                  onClick={() => void share()}
+                >
+                  <Share2 size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="crm-imoti-ghost crm-imoti-ghost--square"
+                  aria-label="Печат"
+                  onClick={printDetail}
+                >
+                  <Printer size={16} />
+                </button>
+              </div>
             </div>
-            <div className="crm-imoti-detail__stats crm-imoti-detail__stats--grid">
-              {stats.map((s) => {
-                const Icon = s.icon;
-                return (
-                  <span key={s.label} className="crm-imoti-detail__stat">
-                    <Icon size={15} strokeWidth={1.8} />
-                    <em>{s.label}</em>
-                  </span>
-                );
-              })}
-            </div>
-            <div className="crm-imoti-detail__actions">
-              <button
-                type="button"
-                className="crm-imoti-primary"
-                onClick={() => setBrokerOpen(true)}
-              >
-                <Phone size={14} /> Свържи се с брокер
-              </button>
-              <button
-                type="button"
-                className="crm-imoti-ghost crm-imoti-ghost--square"
-                aria-label="Запази"
-                onClick={() => onToggleFavorite(property.id)}
-              >
-                <Bookmark size={16} />
-              </button>
-              <button
-                type="button"
-                className="crm-imoti-ghost crm-imoti-ghost--square"
-                aria-label="Сподели"
-                onClick={() => void share()}
-              >
-                <Share2 size={16} />
-              </button>
-              <button
-                type="button"
-                className="crm-imoti-ghost crm-imoti-ghost--square"
-                aria-label="Печат"
-                onClick={printDetail}
-              >
-                <Printer size={16} />
-              </button>
-            </div>
+            <div className="crm-melt-section__media" aria-hidden />
           </div>
         </div>
 
