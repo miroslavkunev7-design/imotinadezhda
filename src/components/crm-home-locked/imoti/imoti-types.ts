@@ -2,6 +2,44 @@ import type { CreditBlockData } from "@/lib/banks-catalog";
 
 export type ImotiDeal = "sale" | "rent";
 
+/** CRM listing lifecycle (Spec 1 §2 Status) */
+export type ImotiListingStatus = "draft" | "published" | "archive";
+
+export const IMOTI_TYPE_OPTIONS = [
+  "гарсониера",
+  "едностаен",
+  "двустаен",
+  "тристаен",
+  "четиристаен",
+  "многостаен",
+  "мезонет",
+  "1+1",
+  "студио",
+  "ателие/таван",
+  "къща",
+  "вила",
+  "етаж от къща",
+  "парцел",
+  "земеделска земя",
+  "офис",
+  "магазин",
+  "склад",
+  "гараж",
+  "хотел/заведение",
+  "друго",
+] as const;
+
+export const IMOTI_CONSTRUCTION_OPTIONS = [
+  "тухла",
+  "панел",
+  "ЕПК",
+  "гредоред",
+  "монолит",
+  "друго",
+] as const;
+
+export const AGENCY_PUBLIC_PHONE = "0898977370";
+
 export type ImotiProperty = {
   id: string;
   title: string;
@@ -9,21 +47,49 @@ export type ImotiProperty = {
   typeLabel: string;
   city: string;
   quarter: string;
+  /** Official / site price */
   price: number;
-  currency: "EUR";
+  currency: "EUR" | "BGN" | "USD";
   priceSuffix?: string;
   areaSqm: number;
+  /** Built / clean / total when known */
+  areaBuiltSqm?: number | null;
+  areaCleanSqm?: number | null;
+  areaTotalSqm?: number | null;
   rooms: number;
+  bedrooms?: number | null;
   floor: string;
+  totalFloors?: number | null;
   baths: number;
+  terraces?: string;
+  view?: string;
+  elevator?: string;
+  basement?: string;
+  attic?: string;
   year: number;
   condition: string;
   coverUrl: string;
   gallery: string[];
+  videos?: string[];
   /** Public / site-facing description */
   description: string;
   /** Private note — shown only on Owner tab */
   descriptionOwner?: string;
+  /** Personal / owner asking price (never public) */
+  ownerPrice?: number | null;
+  commission?: string;
+  exclusive?: boolean;
+  /** Personal address fields — never public */
+  streetAddress?: string;
+  blockEntrance?: string;
+  mapPin?: string;
+  landmark?: string;
+  ownerName?: string;
+  ownerPhones?: string[];
+  ownerNotes?: string;
+  listingStatus?: ImotiListingStatus;
+  responsibleBroker?: string;
+  publishLinks?: string[];
   features: Array<{ label: string; value: string }>;
   favorite?: boolean;
   createdAt?: number;
@@ -83,3 +149,20 @@ export const FEATURE_EMOJI: Record<string, string> = {
   "Официална цена": "💶",
   "Цена към собственика": "🏷",
 };
+
+export function listingStatusLabel(status: ImotiListingStatus | undefined): string {
+  switch (status) {
+    case "archive":
+      return "Архив";
+    case "draft":
+      return "Чернова";
+    case "published":
+      return "Публикуван";
+    case undefined:
+      return "Активна";
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}

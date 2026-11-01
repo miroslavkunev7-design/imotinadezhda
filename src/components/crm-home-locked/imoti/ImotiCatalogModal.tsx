@@ -21,7 +21,7 @@ import {
   ImotiFilterBar,
   type ImotiFilters,
 } from "./ImotiFilterBar";
-import type { ImotiDeal, ImotiProperty } from "./imoti-types";
+import { listingStatusLabel, type ImotiDeal, type ImotiProperty } from "./imoti-types";
 
 function PropertyMiniCard({
   property,
@@ -43,7 +43,9 @@ function PropertyMiniCard({
           style={{ backgroundImage: `url(${property.coverUrl})` }}
         >
           <span className="crm-imoti-card__id">ID: {shortId}</span>
-          <span className="crm-imoti-card__status">Активна</span>
+          <span className="crm-imoti-card__status">
+            {listingStatusLabel(property.listingStatus)}
+          </span>
           <div className="crm-imoti-card__melt">
             <strong>{property.title}</strong>
             <span className="crm-imoti-card__loc">
@@ -169,6 +171,7 @@ export function ImotiCatalogModal({
     [properties, filters, query, dealTab],
   );
 
+  const activeCount = filtered.filter((p) => p.listingStatus !== "archive").length;
   const sales = filtered.filter((p) => p.deal === "sale");
   const rents = filtered.filter((p) => p.deal === "rent");
 
@@ -192,7 +195,7 @@ export function ImotiCatalogModal({
           <div className="crm-imoti-catalog__intro">
             <div>
               <h2>Имоти</h2>
-              <p>Всички имоти в портфолиото · {filtered.length} активни</p>
+              <p>Всички имоти в портфолиото · {activeCount} активни</p>
             </div>
             <button
               type="button"
