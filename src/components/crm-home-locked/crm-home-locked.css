@@ -1759,40 +1759,63 @@
 .crm-imoti-row__arrow--right { right: 6px; }
 
 .crm-imoti-card {
-  flex: 0 0 min(240px, 72vw);
+  flex: 0 0 min(300px, 82vw);
   scroll-snap-align: start;
   text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 22px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
   padding: 0;
   cursor: pointer;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
 }
 
 .crm-imoti-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
 }
 
 .crm-locked-root[data-theme="light"] .crm-imoti-card {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 12px 30px rgba(40, 18, 24, 0.16),
+    0 0 0 1px rgba(96, 15, 28, 0.05) inset;
 }
 
 .crm-imoti-card__media {
   position: relative;
-  aspect-ratio: 16 / 11;
+  aspect-ratio: 2.35 / 1;
+  height: auto;
+  max-height: 118px;
   overflow: hidden;
+}
+
+.crm-imoti-card__media::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 55%;
+  background: linear-gradient(180deg, transparent 0%, rgba(12, 14, 20, 0.55) 100%);
+  pointer-events: none;
+}
+
+.crm-locked-root[data-theme="light"] .crm-imoti-card__media::after {
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.72) 100%);
 }
 
 .crm-imoti-card__media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
+  transform: scale(1.03);
 }
 
 .crm-imoti-card__badge {
@@ -1825,8 +1848,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 12px 14px;
+  gap: 2px;
+  padding: 8px 12px 10px;
+  margin-top: -14px;
+  z-index: 1;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.92) 28%, #ffffff 100%);
 }
 
 .crm-imoti-card__body strong {
@@ -2504,7 +2530,12 @@
 }
 
 .crm-imoti-card__body {
-  background: #ffffff !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.88) 22%,
+    #ffffff 48%
+  ) !important;
   color: #1a1216;
 }
 
@@ -2580,10 +2611,16 @@
 }
 
 .crm-imoti-catalog--list .crm-imoti-card__media {
-  width: 180px;
-  flex: 0 0 180px;
-  aspect-ratio: auto;
-  height: 120px;
+  width: 220px;
+  flex: 0 0 220px;
+  aspect-ratio: 2.35 / 1;
+  height: auto;
+  max-height: 96px;
+}
+
+.crm-imoti-catalog--list .crm-imoti-card__body {
+  margin-top: 0;
+  background: #ffffff;
 }
 
 .crm-imoti-panel--section {
@@ -3680,4 +3717,89 @@
   .crm-locked-sky-sub {
     max-width: none;
   }
+}
+
+/* ---- Imoti shell without top chrome + blended toolbar + flatter cards ---- */
+
+.crm-imoti-shell--no-top {
+  grid-template-rows: 1fr;
+}
+
+.crm-imoti-shell__float {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crm-imoti-shell__float .crm-imoti-icon-btn {
+  background: rgba(12, 14, 20, 0.45);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+  backdrop-filter: blur(8px);
+}
+
+.crm-locked-root[data-theme="light"] .crm-imoti-shell__float .crm-imoti-icon-btn {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(96, 15, 28, 0.14);
+  color: #1a1216;
+}
+
+.crm-imoti-catalog__hero {
+  min-height: clamp(170px, 26vh, 260px);
+}
+
+.crm-imoti-catalog__toolbar {
+  position: relative;
+  z-index: 3;
+  margin: -34px clamp(14px, 2vw, 28px) 10px;
+  padding: 12px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(22, 24, 32, 0.88);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px) saturate(1.05);
+}
+
+.crm-locked-root[data-theme="light"] .crm-imoti-catalog__toolbar {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(96, 15, 28, 0.1);
+  box-shadow: 0 14px 34px rgba(40, 18, 24, 0.14);
+}
+
+.crm-imoti-catalog__toolbar .crm-imoti-searchbar {
+  margin-bottom: 0;
+  border: 0;
+  background: transparent;
+  padding: 4px 2px 10px;
+  border-radius: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.crm-locked-root[data-theme="light"] .crm-imoti-catalog__toolbar .crm-imoti-searchbar {
+  background: transparent;
+  border-bottom-color: rgba(96, 15, 28, 0.1);
+}
+
+.crm-imoti-catalog__toolbar .crm-imoti-chips-row {
+  margin: 10px 0 0;
+}
+
+.crm-imoti-row__track > .crm-imoti-card:nth-child(odd) {
+  transform: rotate(-0.6deg);
+}
+
+.crm-imoti-row__track > .crm-imoti-card:nth-child(even) {
+  transform: rotate(0.55deg) translateY(4px);
+}
+
+.crm-imoti-row__track > .crm-imoti-card:hover {
+  transform: translateY(-3px) scale(1.015) rotate(0deg);
+}
+
+.crm-imoti-catalog__main {
+  padding-top: 4px;
 }
