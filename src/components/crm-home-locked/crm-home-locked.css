@@ -4710,6 +4710,54 @@
   display: none;
 }
 
+.crm-locked-root[data-theme="light"] .crm-locked-ai-skills {
+  border-bottom-color: rgba(96, 15, 28, 0.1);
+}
+
+.crm-locked-ai-skills__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 700 10px/1 var(--crm-locked-font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 220, 160, 0.85);
+  margin-right: 2px;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-ai-skills__label {
+  color: #600f1c;
+}
+
+.crm-locked-ai-skill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(255, 220, 160, 0.35);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(255, 248, 230, 0.12);
+  color: #ffe7b0;
+  font: 600 11px/1.2 var(--crm-locked-font);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.crm-locked-ai-skill:hover {
+  background: rgba(255, 220, 160, 0.22);
+  border-color: rgba(255, 220, 160, 0.55);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-ai-skill {
+  border-color: rgba(96, 15, 28, 0.22);
+  background: rgba(96, 15, 28, 0.06);
+  color: #600f1c;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-ai-skill:hover {
+  background: rgba(96, 15, 28, 0.12);
+}
+
 /* —— Property info card → Банка CTA / credit block —— */
 .crm-imoti-bank-cta {
   width: 100%;

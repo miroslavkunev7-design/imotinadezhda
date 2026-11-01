@@ -1,4 +1,5 @@
 import {
+  Banknote,
   Bath,
   BedDouble,
   Bookmark,
@@ -177,7 +178,11 @@ function TabContent({
                     onUpdate={onUpdateCreditBlock}
                   />
                 </div>
-              ) : null}
+              ) : (
+                <button type="button" className="crm-imoti-primary crm-imoti-bank-cta" onClick={onOpenBank}>
+                  <Landmark size={15} /> Банка
+                </button>
+              )}
             </SectionPanel>
             <SectionPanel
               tab="bank"
@@ -305,34 +310,27 @@ function TabContent({
             <UserRound size={16} /> Собственик (поверително)
           </h3>
           <div className="crm-imoti-feature-grid">
-            <div className="crm-imoti-feature">
-              <span className="crm-imoti-feature__emoji" aria-hidden>
-                {featureEmoji("Име")}
-              </span>
-              <span>Име</span>
-              <strong>Скрито · достъп по права</strong>
-            </div>
-            <div className="crm-imoti-feature">
-              <span className="crm-imoti-feature__emoji" aria-hidden>
-                {featureEmoji("Телефон")}
-              </span>
-              <span>Телефон</span>
-              <strong>•••••</strong>
-            </div>
-            <div className="crm-imoti-feature">
-              <span className="crm-imoti-feature__emoji" aria-hidden>
-                {featureEmoji("Официална цена")}
-              </span>
-              <span>Официална цена</span>
-              <strong>{formatImotiPrice(property)}</strong>
-            </div>
-            <div className="crm-imoti-feature">
-              <span className="crm-imoti-feature__emoji" aria-hidden>
-                {featureEmoji("Цена към собственика")}
-              </span>
-              <span>Цена към собственика</span>
-              <strong>€ {Math.round(property.price * 0.875).toLocaleString("bg-BG")}</strong>
-            </div>
+            {(
+              [
+                { label: "Име", value: "Скрито · достъп по права", icon: UserRound },
+                { label: "Телефон", value: "•••••", icon: Phone },
+                { label: "Официална цена", value: formatImotiPrice(property), icon: Banknote },
+                {
+                  label: "Цена към собственика",
+                  value: `€ ${Math.round(property.price * 0.875).toLocaleString("bg-BG")}`,
+                  icon: Banknote,
+                },
+              ] as const
+            ).map((row) => {
+              const Icon = row.icon;
+              return (
+                <div key={row.label} className="crm-imoti-feature crm-imoti-feature--ref">
+                  <Icon size={18} strokeWidth={1.9} className="crm-imoti-feature__icon" />
+                  <span>{row.label}</span>
+                  <strong>{row.value}</strong>
+                </div>
+              );
+            })}
           </div>
           {property.descriptionOwner ? (
             <div className="crm-imoti-owner-note">
