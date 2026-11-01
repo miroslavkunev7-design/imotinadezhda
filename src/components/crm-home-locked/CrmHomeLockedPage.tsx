@@ -21,7 +21,7 @@ import { IMOTI_DEMO } from "./imoti/imoti-demo-data";
 import { ImotiCatalogModal } from "./imoti/ImotiCatalogModal";
 import { ImotiDetailModal } from "./imoti/ImotiDetailModal";
 import { ImotiUploadModal } from "./imoti/ImotiUploadModal";
-import type { ImotiProperty } from "./imoti/imoti-types";
+import type { ImotiAvailability, ImotiProperty } from "./imoti/imoti-types";
 import { LockedLogo } from "./LockedLogo";
 import {
   LockedNav,
@@ -229,6 +229,10 @@ export function CrmHomeLockedPage() {
     );
   }, []);
 
+  const changeAvailability = useCallback((id: string, availability: ImotiAvailability) => {
+    setProperties((list) => list.map((p) => (p.id === id ? { ...p, availability } : p)));
+  }, []);
+
   const imotiValue = properties.length;
 
   return (
@@ -236,15 +240,45 @@ export function CrmHomeLockedPage() {
       <SceneBackdrop theme={theme} />
       <div className="crm-locked-ui">
         <header className="crm-locked-top">
-          <LockedLogo onClick={() => onSelectNav("home")} />
+          {theme === "dark" ? (
+            <div className="crm-locked-top__brand">
+              <LockedLogo onClick={() => onSelectNav("home")} />
+              <div className="crm-locked-brand-copy">
+                <p className="crm-locked-brand-copy__line">Недвижими имоти</p>
+                <p className="crm-locked-brand-copy__name">
+                  <span className="crm-locked-brand-copy__dot" aria-hidden />
+                  Надежда
+                  <span className="crm-locked-brand-copy__dot" aria-hidden />
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="crm-locked-top__brand crm-locked-top__brand--empty" aria-hidden />
+          )}
+          <div className="crm-locked-top__spacer" aria-hidden />
           <LockedNav
             active={activeNav}
             onSelect={onSelectNav}
             onSelectPropertyMenu={onSelectPropertyMenu}
           />
+          {theme === "light" ? (
+            <div className="crm-locked-top__logo-end">
+              <LockedLogo onClick={() => onSelectNav("home")} />
+            </div>
+          ) : null}
         </header>
 
         <main className="crm-locked-main">
+          {theme === "light" ? (
+            <div className="crm-locked-brand-copy crm-locked-brand-copy--sky">
+              <p className="crm-locked-brand-copy__line">Недвижими имоти</p>
+              <p className="crm-locked-brand-copy__name">
+                <span className="crm-locked-brand-copy__dot" aria-hidden />
+                Надежда
+                <span className="crm-locked-brand-copy__dot" aria-hidden />
+              </p>
+            </div>
+          ) : null}
           <section className="crm-locked-grid" aria-label="CRM показатели">
             {CARDS.map((card) => (
               <GlassStatCard
@@ -330,12 +364,13 @@ export function CrmHomeLockedPage() {
       />
       <SectionSheet open={section !== null} data={section} onClose={closeOverlays} />
       <ImotiCatalogModal
-        open={imotiOpen}
+        open={imotiOpen && selectedId === null}
         properties={properties}
         onClose={closeImotiCatalog}
         onOpenProperty={(property) => setSelectedId(property.id)}
         onAddProperty={() => setUploadOpen(true)}
         onToggleFavorite={toggleFavorite}
+        onChangeAvailability={changeAvailability}
         onNavigate={navigateFromImoti}
       />
       <ImotiDetailModal

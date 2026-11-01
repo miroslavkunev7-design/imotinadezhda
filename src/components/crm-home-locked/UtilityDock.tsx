@@ -1,5 +1,3 @@
-import { Bell, Menu, Moon, Sun } from "lucide-react";
-
 export type ThemeMode = "dark" | "light";
 
 export function UtilityDock({
@@ -24,11 +22,9 @@ export function UtilityDock({
         title={isLight ? "Нощна версия" : "Дневна версия"}
         onClick={onToggleTheme}
       >
-        {isLight ? (
-          <Moon size={20} strokeWidth={1.7} />
-        ) : (
-          <Sun size={20} strokeWidth={1.7} />
-        )}
+        <span className="crm-locked-fab__emoji" aria-hidden>
+          {isLight ? "🌙" : "☀️"}
+        </span>
       </button>
       <button
         type="button"
@@ -36,7 +32,9 @@ export function UtilityDock({
         aria-label="Известия"
         onClick={onOpenNotifications}
       >
-        <Bell size={20} strokeWidth={1.7} />
+        <span className="crm-locked-fab__emoji" aria-hidden>
+          🔔
+        </span>
       </button>
       <button
         type="button"
@@ -44,7 +42,9 @@ export function UtilityDock({
         aria-label="Отвори меню"
         onClick={onOpenMenu}
       >
-        <Menu size={22} strokeWidth={1.8} />
+        <span className="crm-locked-fab__emoji" aria-hidden>
+          ☰
+        </span>
       </button>
     </div>
   );

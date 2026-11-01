@@ -10,8 +10,8 @@ export function BrokerBadge({ onOpen }: { onOpen: () => void }) {
         src="/crm-home-locked/avatar-miroslav.jpg"
         alt=""
         className="crm-locked-avatar"
-        width={60}
-        height={60}
+        width={96}
+        height={96}
         decoding="async"
       />
       <div className="crm-locked-broker__meta">
