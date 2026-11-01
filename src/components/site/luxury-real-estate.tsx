@@ -226,6 +226,7 @@ import burgasHero from "@/assets/burgas-hero.jpeg";
 import burgasPier from "@/assets/burgas-pier.jpeg";
 import homeHero from "@/assets/home-hero-living.jpeg";
 import homeHeroVideo from "@/assets/home-hero-2026.mp4.asset.json";
+import homeHeroWebm from "@/assets/home-hero-2026.webm.asset.json";
 import burgasHeroVideo from "@/assets/burgas-hero.mp4.asset.json";
 import shumenHeroVideo from "@/assets/shumen-hero.mp4.asset.json";
 import varnaHeroVideo from "@/assets/varna-hero.mp4.asset.json";
@@ -1604,6 +1605,7 @@ export function HomePage({
         />
         <AutoPlayVideo
           src={resolveAssetUrl(homeHeroVideo) || homeHero}
+          webmSrc={resolveAssetUrl(homeHeroWebm) || undefined}
           poster={homeHero}
           preload="metadata"
           className="hidden md:absolute md:inset-0 md:block md:h-full md:w-full md:object-contain bg-[#0f0a0b]"
