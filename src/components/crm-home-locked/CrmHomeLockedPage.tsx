@@ -240,9 +240,37 @@ export function CrmHomeLockedPage() {
       <SceneBackdrop theme={theme} />
       <div className="crm-locked-ui">
         <header className="crm-locked-top">
-          <div className="crm-locked-top__brand">
-            <LockedLogo onClick={() => onSelectNav("home")} />
-            <div className="crm-locked-brand-copy">
+          {theme === "dark" ? (
+            <div className="crm-locked-top__brand">
+              <LockedLogo onClick={() => onSelectNav("home")} />
+              <div className="crm-locked-brand-copy">
+                <p className="crm-locked-brand-copy__line">Недвижими имоти</p>
+                <p className="crm-locked-brand-copy__name">
+                  <span className="crm-locked-brand-copy__dot" aria-hidden />
+                  Надежда
+                  <span className="crm-locked-brand-copy__dot" aria-hidden />
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="crm-locked-top__brand crm-locked-top__brand--empty" aria-hidden />
+          )}
+          <div className="crm-locked-top__spacer" aria-hidden />
+          <LockedNav
+            active={activeNav}
+            onSelect={onSelectNav}
+            onSelectPropertyMenu={onSelectPropertyMenu}
+          />
+          {theme === "light" ? (
+            <div className="crm-locked-top__logo-end">
+              <LockedLogo onClick={() => onSelectNav("home")} />
+            </div>
+          ) : null}
+        </header>
+
+        <main className="crm-locked-main">
+          {theme === "light" ? (
+            <div className="crm-locked-brand-copy crm-locked-brand-copy--sky">
               <p className="crm-locked-brand-copy__line">Недвижими имоти</p>
               <p className="crm-locked-brand-copy__name">
                 <span className="crm-locked-brand-copy__dot" aria-hidden />
@@ -250,16 +278,7 @@ export function CrmHomeLockedPage() {
                 <span className="crm-locked-brand-copy__dot" aria-hidden />
               </p>
             </div>
-          </div>
-          <div className="crm-locked-top__spacer" aria-hidden />
-          <LockedNav
-            active={activeNav}
-            onSelect={onSelectNav}
-            onSelectPropertyMenu={onSelectPropertyMenu}
-          />
-        </header>
-
-        <main className="crm-locked-main">
+          ) : null}
           <section className="crm-locked-grid" aria-label="CRM показатели">
             {CARDS.map((card) => (
               <GlassStatCard

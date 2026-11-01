@@ -75,8 +75,8 @@
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-fallback-bg {
-  /* Keep villa architecture readable in the left open sky */
-  object-position: 18% center;
+  /* Villa primary mass stays in left 40–50%; calm sky/garden on the right */
+  object-position: left center;
 }
 
 /* Soft scene grade so frosted cards lift off the bright villa (light only) */
@@ -146,6 +146,15 @@
   z-index: 4;
 }
 
+.crm-locked-top__brand--empty {
+  margin-left: 0;
+  max-width: 0;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .crm-locked-top__brand .crm-locked-logo-link {
   display: inline-flex;
   justify-content: center;
@@ -172,6 +181,20 @@
 
 .crm-locked-top .crm-locked-logo-link {
   flex: 0 0 auto;
+}
+
+/* Light: logo sits top-right, beside nav / dock empty space */
+.crm-locked-top__logo-end {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  margin-left: clamp(10px, 1.2vw, 18px);
+  z-index: 4;
+}
+
+.crm-locked-top__logo-end .crm-locked-logo {
+  width: clamp(96px, 9vw, 148px);
 }
 
 .crm-locked-nav {
@@ -339,6 +362,7 @@
   perspective: 1600px;
 }
 
+
 .crm-locked-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -502,14 +526,26 @@
   );
 }
 
-/* Light cards: full photo, white glassy melt on the info side */
+/* Light cards: wider photo zone, full image visible, soft edge into glass */
 .crm-locked-root[data-theme="light"] .crm-locked-card__photo {
-  inset: 0;
+  inset: 0 0 0 28%;
   background-size: cover;
   background-repeat: no-repeat;
-  background-position: 68% center;
-  -webkit-mask-image: none;
-  mask-image: none;
+  background-position: center;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 8%,
+    #000 22%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 8%,
+    #000 22%,
+    #000 100%
+  );
   border-radius: 0;
   filter: saturate(1.05);
 }
@@ -4567,6 +4603,19 @@
   color: #fff;
 }
 
+/* Light-only brand in the open left sky (must follow base to win cascade) */
+.crm-locked-brand-copy.crm-locked-brand-copy--sky {
+  position: absolute;
+  left: clamp(12px, 3vw, 48px);
+  top: clamp(4vh, 8vh, 12vh);
+  z-index: 3;
+  width: min(44vw, 380px);
+  max-width: calc(100% - min(58vw, 700px) - 24px);
+  margin-inline: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
 .crm-locked-brand-copy__line {
   margin: 0;
   font-size: clamp(13px, 1.35vw, 18px);
@@ -4624,31 +4673,36 @@
 .crm-locked-root[data-theme="light"] .crm-locked-brand-copy,
 .crm-locked-root[data-theme="light"] .crm-locked-brand-copy__line,
 .crm-locked-root[data-theme="light"] .crm-locked-brand-copy__name {
-  color: #c42845;
+  color: #600f1c;
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-brand-copy__line {
+  font-size: clamp(15px, 1.55vw, 22px);
+  font-weight: 800;
+  letter-spacing: 0.16em;
   text-shadow:
-    0 1px 0 rgba(255, 235, 238, 0.75),
-    0 0 10px rgba(196, 40, 69, 0.75),
-    0 0 22px rgba(154, 24, 48, 0.55),
-    0 0 36px rgba(196, 40, 69, 0.35);
+    0 1px 0 rgba(255, 248, 246, 0.9),
+    0 2px 10px rgba(96, 15, 28, 0.28);
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-brand-copy__name {
+  margin-top: 12px;
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  gap: clamp(12px, 1.4vw, 18px);
   text-shadow:
-    0 1px 0 rgba(255, 235, 238, 0.8),
-    0 0 12px rgba(196, 40, 69, 0.85),
-    0 0 26px rgba(154, 24, 48, 0.6),
-    0 0 40px rgba(196, 40, 69, 0.4);
+    0 1px 0 rgba(255, 248, 246, 0.92),
+    0 2px 12px rgba(96, 15, 28, 0.32);
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-brand-copy__dot {
-  background: linear-gradient(160deg, #d43350, #9a1830);
+  width: clamp(12px, 1.15vw, 16px);
+  height: clamp(12px, 1.15vw, 16px);
+  background: #600f1c;
   box-shadow:
-    0 0 12px rgba(196, 40, 69, 0.9),
-    0 0 22px rgba(154, 24, 48, 0.55),
-    0 0 0 2px rgba(196, 40, 69, 0.28);
+    0 0 0 2px rgba(96, 15, 28, 0.22),
+    0 2px 8px rgba(96, 15, 28, 0.35);
 }
 
 /* —— AI skills row (hidden — skills live in compose + weapons menu) —— */
@@ -5112,6 +5166,10 @@
     order: 1;
   }
 
+  .crm-locked-top__brand--empty {
+    display: none;
+  }
+
   .crm-locked-top__spacer {
     display: none;
   }
@@ -5122,8 +5180,24 @@
     margin-right: auto;
   }
 
+  .crm-locked-top__logo-end {
+    order: 3;
+    margin-left: auto;
+  }
+
   .crm-locked-brand-copy {
     text-align: left;
+  }
+
+  .crm-locked-brand-copy.crm-locked-brand-copy--sky {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: min(92vw, 320px);
+    max-width: 100%;
+    margin: 0 0 12px;
+    align-self: flex-start;
+    text-align: center;
   }
 
 }
