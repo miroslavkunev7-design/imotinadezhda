@@ -4,7 +4,18 @@ import { useServerFn } from "@tanstack/react-start";
 import { listArchive, deleteArchive, createArchive } from "@/lib/archive.functions";
 import { supabase } from "@/integrations/supabase/client";
 
-import { Database, Trash2, Search, Download, Loader2, ArrowLeft, Folder, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  Database,
+  Download,
+  Eye,
+  Folder,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { downloadPropertyZip, downloadBulkZip } from "@/lib/download-archive";
 import cityBurgas from "@/assets/city-burgas.jpeg";
@@ -164,12 +175,166 @@ function DatabasePage() {
   const finalRows = rowsForDeal
     .filter((r) => (!cityId || r.city_id === cityId) && (!quarterId || r.quarter_id === quarterId))
     .filter((r) => !search || (r.title ?? "").toLowerCase().includes(search.toLowerCase()));
+  const mobileRows = rows
+    .filter((r) => (!deal || dealOf(r) === deal))
+    .filter((r) => (!cityId || r.city_id === cityId) && (!quarterId || r.quarter_id === quarterId))
+    .filter((r) => !search || (r.title ?? "").toLowerCase().includes(search.toLowerCase()));
 
   const cityImage = (c: { slug: string; hero_image_url: string | null }) =>
     c.hero_image_url || CITY_FALLBACK[c.slug] || cityBurgas;
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-4 md:hidden">
+        <header className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">
+              Реален CRM архив
+            </p>
+            <h1 className="font-display text-3xl text-amber-50">Имоти</h1>
+            <p className="text-xs text-amber-100/70">
+              {loading ? "Зареждане…" : `${mobileRows.length} намерени`}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={loading}
+            aria-label="Обнови имотите"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-400/30 bg-[#4f0314] text-amber-200 disabled:opacity-50"
+          >
+            <RefreshCw className={`h-5 w-5 ${loading ? "animate-spin" : ""}`} />
+          </button>
+        </header>
+
+        <section className="rounded-2xl border border-amber-500/25 bg-[rgba(255,251,243,0.96)] p-3 text-primary shadow-lg">
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-[11px] font-semibold text-primary/65">
+              Град
+              <select
+                value={cityId}
+                onChange={(event) => {
+                  setCityId(event.target.value);
+                  setQuarterId("");
+                }}
+                className="mt-1 w-full rounded-xl border border-primary/20 bg-white px-3 py-2.5 text-sm text-primary"
+              >
+                <option value="">Всички градове</option>
+                {cities.map((city) => (
+                  <option key={city.id} value={city.id}>{city.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-[11px] font-semibold text-primary/65">
+              Квартал
+              <select
+                value={quarterId}
+                onChange={(event) => setQuarterId(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-primary/20 bg-white px-3 py-2.5 text-sm text-primary"
+              >
+                <option value="">Всички квартали</option>
+                {visibleQuarters.map((quarter) => (
+                  <option key={quarter.id} value={quarter.id}>{quarter.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-[11px] font-semibold text-primary/65">
+              Вид
+              <select
+                value={deal}
+                onChange={(event) => setDeal(event.target.value as Deal | "")}
+                className="mt-1 w-full rounded-xl border border-primary/20 bg-white px-3 py-2.5 text-sm text-primary"
+              >
+                <option value="">Всички видове</option>
+                {Object.entries(DEAL_META).map(([value, meta]) => (
+                  <option key={value} value={value}>{meta.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="text-[11px] font-semibold text-primary/65">
+              Търсене
+              <span className="relative mt-1 block">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary/40" />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Заглавие"
+                  className="w-full rounded-xl border border-primary/20 bg-white py-2.5 pl-9 pr-3 text-sm text-primary"
+                />
+              </span>
+            </label>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const result = await create({
+                  data: { city_id: cityId || null, quarter_id: quarterId || null },
+                });
+                await load();
+                setOpenId(result.id);
+              } catch (cause) {
+                toast.error(cause instanceof Error ? cause.message : "Грешка при създаване");
+              }
+            }}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-amber-50"
+          >
+            <Plus className="h-4 w-4" /> Нов имот
+          </button>
+        </section>
+
+        <section className="space-y-3">
+          {mobileRows.map((row) => (
+            <article
+              key={row.id}
+              className="rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.96)] p-3 text-primary shadow-lg"
+            >
+              <button type="button" onClick={() => setOpenId(row.id)} className="flex w-full items-start gap-3 text-left">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-primary/8">
+                  <Folder className="h-9 w-9 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h2 className="line-clamp-2 text-sm font-bold">{row.title || "Без заглавие"}</h2>
+                    {row.is_published ? (
+                      <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-800">Публикуван</span>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 font-display text-lg font-bold">
+                    {row.price ? `${Number(row.price).toLocaleString("bg-BG")} ${row.currency ?? "EUR"}` : "Без цена"}
+                  </p>
+                  <p className="text-[11px] text-primary/60">
+                    {[row.cities?.name, row.quarters?.name, row.area_sqm ? `${row.area_sqm} м²` : null].filter(Boolean).join(" · ") || "Няма въведена локация"}
+                  </p>
+                </div>
+              </button>
+              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-primary/10 pt-3">
+                <button type="button" onClick={() => setOpenId(row.id)} className="flex items-center justify-center gap-1 rounded-lg border border-primary/20 py-2 text-xs font-semibold">
+                  <Eye className="h-3.5 w-3.5" /> Отвори
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void onDownload(row)}
+                  disabled={downloadingId === row.id}
+                  className="flex items-center justify-center gap-1 rounded-lg border border-primary/20 py-2 text-xs font-semibold disabled:opacity-50"
+                >
+                  {downloadingId === row.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />} ZIP
+                </button>
+                <button type="button" onClick={() => void onDelete(row.id)} className="flex items-center justify-center gap-1 rounded-lg border border-rose-300 py-2 text-xs font-semibold text-rose-700">
+                  <Trash2 className="h-3.5 w-3.5" /> Изтрий
+                </button>
+              </div>
+            </article>
+          ))}
+          {!loading && !mobileRows.length ? (
+            <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255,251,243,0.96)] p-8 text-center text-sm text-primary/60">
+              Няма имоти по избраните филтри.
+            </div>
+          ) : null}
+        </section>
+      </div>
+
+    <div className="hidden space-y-6 md:block">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-[10px] uppercase tracking-widest text-amber-200">
@@ -472,6 +637,7 @@ function DatabasePage() {
           </div>
         </>
       )}
+    </div>
 
       {openId && (
         <PropertyDetailModal
@@ -481,6 +647,6 @@ function DatabasePage() {
           onChanged={() => load()}
         />
       )}
-    </div>
+    </>
   );
 }

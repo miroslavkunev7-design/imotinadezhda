@@ -187,7 +187,16 @@ export const getClientDocuments = createServerFn({ method: "GET" })
       .eq("client_id", data.client_id)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return Promise.all(
+      (rows ?? []).map(async (row) => {
+        if (!row.storage_path) return row;
+        const { data: signed, error: signedError } = await context.supabase.storage
+          .from("client-documents")
+          .createSignedUrl(row.storage_path, 300);
+        if (signedError) throw new Error(signedError.message);
+        return { ...row, file_url: signed?.signedUrl ?? row.file_url };
+      }),
+    );
   });
 
 export const addClientDocument = createServerFn({ method: "POST" })
@@ -198,6 +207,7 @@ export const addClientDocument = createServerFn({ method: "POST" })
         client_id: z.string().uuid(),
         document_type: z.string().min(1).max(64),
         file_url: z.string().url(),
+        storage_path: z.string().max(500).optional().nullable(),
         file_name: z.string().min(1).max(255),
         file_size: z.number().int().optional().nullable(),
         mime_type: z.string().max(120).optional().nullable(),
@@ -221,6 +231,18 @@ export const deleteClientDocument = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const db = crmDb(context);
     await assertAdmin(context.userId, context.supabase, authEmail(context.claims));
+    const { data: document, error: selectError } = await db
+      .from("client_documents")
+      .select("storage_path")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (selectError) throw new Error(selectError.message);
+    if (document?.storage_path) {
+      const { error: storageError } = await context.supabase.storage
+        .from("client-documents")
+        .remove([document.storage_path]);
+      if (storageError) throw new Error(storageError.message);
+    }
     const { error } = await db.from("client_documents").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };

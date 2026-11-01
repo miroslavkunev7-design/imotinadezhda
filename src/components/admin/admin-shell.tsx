@@ -156,6 +156,41 @@ const QUICK_NAV: { to: string; label: string }[] = [
   { to: "/admin/owner-reports", label: "Справки" },
 ];
 
+function CrmMobileNav({ path }: { path: string }) {
+  const items = [
+    { to: "/admin", label: "Табло", icon: LayoutDashboard },
+    { to: "/admin/properties", label: "Имоти", icon: Building2 },
+    { to: "/admin/deals", label: "Сделки", icon: Gavel },
+    { to: "/admin/documents", label: "Документи", icon: FolderOpen },
+    { to: "/admin/chat", label: "Чат", icon: MessageCircle },
+  ];
+
+  return (
+    <nav
+      aria-label="CRM мобилна навигация"
+      className="fixed inset-x-0 bottom-0 z-40 grid h-[calc(4.75rem+env(safe-area-inset-bottom,0px))] grid-cols-5 border-t border-amber-500/25 bg-[rgba(20,4,8,0.96)] pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-14px_32px_rgba(20,4,8,0.35)] backdrop-blur-md md:hidden"
+    >
+      {items.map((item) => {
+        const active = item.to === "/admin" ? path === "/admin" : path.startsWith(item.to);
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "flex min-w-0 flex-col items-center justify-center gap-1 px-0.5 text-[10px] transition",
+              active ? "text-amber-300" : "text-amber-100/70",
+            )}
+          >
+            <item.icon className="h-5 w-5 shrink-0" />
+            <span className="max-w-full truncate leading-none">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 function AdminShellInner({ children, breadcrumb }: { children: ReactNode; breadcrumb?: string }) {
   const { settings, editMode, previewMode, setPreviewMode } = useCrmPageSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -635,8 +670,10 @@ function AdminShellInner({ children, breadcrumb }: { children: ReactNode; breadc
         );
       })()}
 
-      {/* Mobile bottom navigation */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid h-[calc(4.75rem+env(safe-area-inset-bottom,0px))] grid-cols-5 border-t border-amber-500/25 bg-[rgba(20,4,8,0.96)] pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-14px_32px_rgba(20,4,8,0.35)] backdrop-blur-md lg:hidden">
+      <CrmMobileNav path={path} />
+
+      {/* Preserve the existing tablet navigation at 768–1023 px. */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 hidden h-[calc(4.75rem+env(safe-area-inset-bottom,0px))] grid-cols-5 border-t border-amber-500/25 bg-[rgba(20,4,8,0.96)] pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-14px_32px_rgba(20,4,8,0.35)] backdrop-blur-md md:grid lg:hidden">
         {[
           { to: "/admin/properties", label: "Имоти", icon: Building2 },
           { to: "/admin/clients", label: "Клиенти", icon: Users },

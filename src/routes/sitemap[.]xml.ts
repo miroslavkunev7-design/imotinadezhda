@@ -21,7 +21,7 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { path: "/cities/shumen", changefreq: "daily", priority: "0.9" },
   { path: "/cities/varna", changefreq: "daily", priority: "0.9" },
   { path: "/cities/burgas", changefreq: "daily", priority: "0.9" },
-  { path: "/cities/nov-pazar", changefreq: "daily", priority: "0.9" },
+  { path: "/cities/novi-pazar", changefreq: "daily", priority: "0.9" },
 ];
 
 function buildSitemapXml(entries: SitemapEntry[]) {

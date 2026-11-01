@@ -2,12 +2,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
   CheckCircle2,
   ClipboardList,
   Download,
   FolderOpen,
   Import,
+  Eye,
   Link2,
   ListChecks,
   RefreshCw,
@@ -41,8 +43,18 @@ import {
   saveDocumentRequirement,
   saveDocumentsSettings,
 } from "@/lib/documents.functions";
+import {
+  documentAccept,
+  safeDocumentFileName,
+  validateDocumentUpload,
+} from "@/lib/document-upload";
+import documentSendBrush from "@/assets/mobile-opa/document-send-brush.png";
 
-export const Route = createFileRoute("/admin/documents")({ component: DocumentsAdmin });
+export const Route = createFileRoute("/admin/documents")({
+  validateSearch: (search) =>
+    z.object({ deal: z.string().uuid().optional() }).parse(search),
+  component: DocumentsAdmin,
+});
 
 const STATUS_LABEL: Record<string, string> = {
   uploaded: "Качен",
@@ -76,6 +88,7 @@ const kb = (v?: number | null) =>
   v == null ? "—" : `${Math.max(1, Math.round(Number(v) / 1024))} KB`;
 
 function DocumentsAdmin() {
+  const routeSearch = Route.useSearch();
   const [tab, setTab] = useState<
     "docs" | "checklist" | "requests" | "requirements" | "scanner" | "log"
   >("docs");
@@ -86,19 +99,22 @@ function DocumentsAdmin() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [cfg, setCfg] = useState<any>(null);
   const [job, setJob] = useState<any>(null);
-  const [pickers, setPickers] = useState<{ clients: any[]; properties: any[] }>({
+  const [pickers, setPickers] = useState<{ clients: any[]; properties: any[]; deals: any[] }>({
     clients: [],
     properties: [],
+    deals: [],
   });
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [showCfg, setShowCfg] = useState(false);
   const [editReq, setEditReq] = useState<any | null>(null);
   const [view, setView] = useState<any | null>(null);
+  const [preview, setPreview] = useState<{ url: string; document: any } | null>(null);
 
   // чеклист / заявки
   const [clientId, setClientId] = useState("");
   const [propertyId, setPropertyId] = useState("");
+  const [dealId, setDealId] = useState(routeSearch.deal ?? "");
   const [checklist, setChecklist] = useState<any[]>([]);
   const [picked, setPicked] = useState<string[]>([]);
   const [message, setMessage] = useState("");
@@ -129,21 +145,33 @@ function DocumentsAdmin() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!dealId) return;
+    const deal = pickers.deals.find((candidate) => candidate.id === dealId);
+    if (!deal) return;
+    setClientId(deal.client_id ?? "");
+    setPropertyId(deal.property_id ?? "");
+  }, [dealId, pickers.deals]);
+
   const loadChecklist = useCallback(async () => {
-    if (!clientId && !propertyId) {
+    if (!clientId && !propertyId && !dealId) {
       setChecklist([]);
       return;
     }
     try {
       const r = await getDocumentChecklist({
-        data: { clientId: clientId || null, propertyId: propertyId || null },
+        data: {
+          clientId: clientId || null,
+          propertyId: propertyId || null,
+          dealId: dealId || null,
+        },
       });
       setChecklist(r as any[]);
       setPicked([]);
     } catch (e: any) {
       toast.error(e.message);
     }
-  }, [clientId, propertyId]);
+  }, [clientId, dealId, propertyId]);
 
   useEffect(() => {
     loadChecklist();
@@ -163,21 +191,43 @@ function DocumentsAdmin() {
     }
   };
 
-  const openFile = async (id: string) => {
+  const previewFile = async (document: any) => {
     try {
-      const r: any = await documentSignedUrl({ data: { id } });
-      if (r?.url) window.open(r.url, "_blank", "noopener");
+      const r: any = await documentSignedUrl({ data: { id: document.id } });
+      if (r?.url) setPreview({ url: r.url, document });
       else toast.error("Няма прикачен файл.");
     } catch (e: any) {
       toast.error(e.message);
     }
   };
 
-  const uploadFromCrm = async (file: File, requirementCode: string | null) => {
-    if (!clientId && !propertyId) return toast.error("Изберете клиент или имот.");
-    setBusy(true);
+  const downloadFile = async (document: any) => {
     try {
-      const path = `crm/${clientId || propertyId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const r: any = await documentSignedUrl({ data: { id: document.id, download: true } });
+      if (!r?.url) throw new Error("Няма прикачен файл.");
+      const anchor = window.document.createElement("a");
+      anchor.href = r.url;
+      anchor.download = document.file_name || "document";
+      anchor.rel = "noopener";
+      anchor.click();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const uploadFromCrm = async (
+    file: File,
+    requirementCode: string | null,
+    acceptedTypes?: string | null,
+  ) => {
+    if (!clientId && !propertyId && !dealId)
+      return toast.error("Изберете клиент, имот или сделка.");
+    const validationError = validateDocumentUpload(file, Number(cfg?.max_file_mb ?? 0), acceptedTypes);
+    if (validationError) return toast.error(validationError);
+    setBusy(true);
+    let path: string | null = null;
+    try {
+      path = `crm/${dealId || clientId || propertyId}/${crypto.randomUUID()}-${safeDocumentFileName(file.name)}`;
       const { error } = await supabase.storage
         .from("crm-documents")
         .upload(path, file, { contentType: file.type });
@@ -187,6 +237,7 @@ function DocumentsAdmin() {
           requirementCode,
           clientId: clientId || null,
           propertyId: propertyId || null,
+          dealId: dealId || null,
           fileName: file.name,
           storagePath: path,
           fileSize: file.size,
@@ -197,6 +248,7 @@ function DocumentsAdmin() {
       await load();
       await loadChecklist();
     } catch (e: any) {
+      if (path) await supabase.storage.from("crm-documents").remove([path]).catch(() => {});
       toast.error(e.message);
     } finally {
       setBusy(false);
@@ -211,6 +263,7 @@ function DocumentsAdmin() {
         data: {
           clientId: clientId || null,
           propertyId: propertyId || null,
+          dealId: dealId || null,
           requirementCodes: picked,
           message: message || null,
         },
@@ -347,7 +400,93 @@ function DocumentsAdmin() {
             ))}
           </select>
 
-          <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+          <div className="space-y-3 md:hidden">
+            {docs.map((document) => (
+              <article
+                key={document.id}
+                className="rounded-2xl border border-amber-500/20 bg-[rgba(255,253,248,0.96)] p-4 text-[#3d1119] shadow-lg"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="line-clamp-2 text-sm font-bold">{document.title}</h2>
+                    <p className="mt-1 truncate text-xs opacity-65">
+                      {document.file_name} · v{document.version} · {kb(document.file_size)}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-[#8b1a2b]/10 px-2 py-1 text-[10px] font-bold text-[#8b1a2b]">
+                    {STATUS_LABEL[document.status] ?? document.status}
+                  </span>
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-[#8b1a2b]/5 p-3 text-xs">
+                  <div>
+                    <dt className="opacity-55">Клиент</dt>
+                    <dd className="truncate font-semibold">{document.clients?.full_name ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-55">Имот</dt>
+                    <dd className="truncate font-semibold">{document.properties?.title ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-55">Сделка</dt>
+                    <dd className="truncate font-semibold">{document.deals?.title ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-55">Валиден до</dt>
+                    <dd>{d(document.expires_at)}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-55">AI статус</dt>
+                    <dd>{document.ai_status ?? "—"}</dd>
+                  </div>
+                </dl>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => previewFile(document)} className="flex items-center justify-center gap-1 rounded-lg border border-[#8b1a2b]/20 py-2 text-[11px] font-semibold">
+                    <Eye className="h-3.5 w-3.5" /> Преглед
+                  </button>
+                  <button type="button" onClick={() => downloadFile(document)} className="flex items-center justify-center gap-1 rounded-lg border border-[#8b1a2b]/20 py-2 text-[11px] font-semibold">
+                    <Download className="h-3.5 w-3.5" /> Изтегли
+                  </button>
+                  <button type="button" onClick={() => setView(document)} className="rounded-lg border border-[#8b1a2b]/20 py-2 text-[11px] font-semibold">
+                    Детайли
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => run(() => aiReviewDocumentItem({ data: { id: document.id } }), "AI проверката е готова")}
+                    disabled={busy}
+                    className="flex items-center justify-center gap-1 rounded-lg border border-[#8b1a2b]/20 py-2 text-[11px] font-semibold disabled:opacity-50"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" /> AI
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => run(() => reviewDocumentItem({ data: { id: document.id, decision: "approved" } }), "Одобрен")}
+                    disabled={busy}
+                    className="flex items-center justify-center gap-1 rounded-lg bg-emerald-700 py-2 text-[11px] font-semibold text-white disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Одобри
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm("Изтриване на документа?"))
+                        run(() => deleteDocumentItem({ data: { id: document.id } }), "Изтрит");
+                    }}
+                    disabled={busy}
+                    className="flex items-center justify-center gap-1 rounded-lg border border-rose-300 py-2 text-[11px] font-semibold text-rose-700 disabled:opacity-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Изтрий
+                  </button>
+                </div>
+              </article>
+            ))}
+            {!docs.length ? (
+              <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255,253,248,0.96)] p-8 text-center text-sm text-[#3d1119]/60">
+                Няма документи. Използвайте „Чеклист“, за да поискате или качите файлове.
+              </div>
+            ) : null}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)] md:block">
             <table className="w-full min-w-[980px] text-sm">
               <thead className="bg-[rgba(40,8,16,0.75)] text-left text-amber-100/85">
                 <tr>
@@ -372,6 +511,7 @@ function DocumentsAdmin() {
                     <td className="px-4 py-2 text-xs">
                       {r.clients?.full_name ?? "—"}
                       <span className="block opacity-70">{r.properties?.title ?? ""}</span>
+                      <span className="block opacity-70">{r.deals?.title ?? ""}</span>
                     </td>
                     <td className="px-4 py-2">
                       <span className="rounded bg-[#8B1A2B]/12 px-2 py-0.5 text-xs">
@@ -399,11 +539,18 @@ function DocumentsAdmin() {
                         Детайли
                       </button>
                       <button
-                        onClick={() => openFile(r.id)}
+                        onClick={() => previewFile(r)}
+                        className="mr-2 inline-flex items-center gap-1 text-xs underline"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Преглед
+                      </button>
+                      <button
+                        onClick={() => downloadFile(r)}
                         className="mr-2 inline-flex items-center gap-1 text-xs underline"
                       >
                         <Download className="h-3 w-3" />
-                        Файл
+                        Изтегли
                       </button>
                       <button
                         onClick={() =>
@@ -477,7 +624,10 @@ function DocumentsAdmin() {
               Клиент
               <select
                 value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
+                onChange={(e) => {
+                  setClientId(e.target.value);
+                  setDealId("");
+                }}
                 className="mt-1 w-full rounded-lg border border-amber-500/30 bg-[rgba(255,255,255,0.92)] px-3 py-2 text-sm text-[#3d1119]"
               >
                 <option value="">— без —</option>
@@ -492,7 +642,10 @@ function DocumentsAdmin() {
               Имот
               <select
                 value={propertyId}
-                onChange={(e) => setPropertyId(e.target.value)}
+                onChange={(e) => {
+                  setPropertyId(e.target.value);
+                  setDealId("");
+                }}
                 className="mt-1 w-full rounded-lg border border-amber-500/30 bg-[rgba(255,255,255,0.92)] px-3 py-2 text-sm text-[#3d1119]"
               >
                 <option value="">— без —</option>
@@ -502,6 +655,32 @@ function DocumentsAdmin() {
                   </option>
                 ))}
               </select>
+            </label>
+            <label className="block text-xs text-amber-100/70 sm:col-span-2">
+              Сделка
+              <select
+                value={dealId}
+                onChange={(e) => {
+                  const nextId = e.target.value;
+                  const deal = pickers.deals.find((candidate) => candidate.id === nextId);
+                  setDealId(nextId);
+                  if (deal) {
+                    setClientId(deal.client_id ?? "");
+                    setPropertyId(deal.property_id ?? "");
+                  }
+                }}
+                className="mt-1 w-full rounded-lg border border-amber-500/30 bg-[rgba(255,255,255,0.92)] px-3 py-2 text-sm text-[#3d1119]"
+              >
+                <option value="">— без —</option>
+                {pickers.deals.map((deal) => (
+                  <option key={deal.id} value={deal.id}>
+                    {deal.deal_number ? `${deal.deal_number} · ` : ""}{deal.title}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-[10px] text-amber-100/55">
+                Изборът на сделка свързва автоматично нейния клиент и имот.
+              </span>
             </label>
             <label className="block text-xs text-amber-100/70 sm:col-span-2">
               Съобщение към клиента
@@ -516,9 +695,17 @@ function DocumentsAdmin() {
             </label>
             <div className="sm:col-span-2">
               <button
+                type="button"
                 onClick={sendRequests}
                 disabled={busy || !picked.length}
-                className="inline-flex items-center gap-2 rounded-lg bg-amber-500/25 px-4 py-2 text-sm text-amber-50 disabled:opacity-50"
+                className="w-full disabled:opacity-50 md:hidden"
+              >
+                <img src={documentSendBrush} alt={`Изпрати документите (${picked.length})`} className="mx-auto h-14 w-full max-w-md object-contain" />
+              </button>
+              <button
+                onClick={sendRequests}
+                disabled={busy || !picked.length}
+                className="hidden items-center gap-2 rounded-lg bg-amber-500/25 px-4 py-2 text-sm text-amber-50 disabled:opacity-50 md:inline-flex"
               >
                 <Link2 className="h-4 w-4" />
                 Изпрати заявка ({picked.length})
@@ -526,7 +713,75 @@ function DocumentsAdmin() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+          <div className="space-y-3 md:hidden">
+            {checklist.map((row) => (
+              <article key={row.requirement.id} className="rounded-2xl border border-amber-500/20 bg-[rgba(255,253,248,0.96)] p-4 text-[#3d1119] shadow-lg">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    aria-label={`Избери ${row.requirement.name}`}
+                    checked={picked.includes(row.requirement.code)}
+                    onChange={(event) =>
+                      setPicked((current) =>
+                        event.target.checked
+                          ? [...current, row.requirement.code]
+                          : current.filter((code) => code !== row.requirement.code),
+                      )
+                    }
+                    className="mt-1 h-5 w-5 accent-[#8b1a2b]"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h2 className="text-sm font-bold">{row.requirement.name}</h2>
+                      <span className="shrink-0 rounded-full bg-[#8b1a2b]/10 px-2 py-1 text-[10px] font-bold text-[#8b1a2b]">
+                        {STATE_LABEL[row.state] ?? row.state}
+                      </span>
+                    </div>
+                    {row.requirement.description ? <p className="mt-1 text-xs opacity-65">{row.requirement.description}</p> : null}
+                    <p className="mt-2 text-xs opacity-65">
+                      {SCOPE_LABEL[row.requirement.scope] ?? row.requirement.scope} · {row.versions} версии · валиден до {d(row.document?.expires_at)}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[#8b1a2b]/10 pt-3">
+                  <label className="flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-[#8b1a2b] py-2.5 text-xs font-semibold text-white">
+                    <Upload className="h-3.5 w-3.5" /> Качи файл
+                    <input
+                      type="file"
+                      accept={documentAccept(row.requirement.accepted_types)}
+                      className="hidden"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file)
+                          uploadFromCrm(
+                            file,
+                            row.requirement.code,
+                            row.requirement.accepted_types,
+                          );
+                        event.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                  {row.document ? (
+                    <button type="button" onClick={() => previewFile(row.document)} className="flex items-center justify-center gap-1 rounded-lg border border-[#8b1a2b]/20 py-2.5 text-xs font-semibold">
+                      <Eye className="h-3.5 w-3.5" /> Преглед
+                    </button>
+                  ) : (
+                    <button type="button" disabled className="rounded-lg border border-[#8b1a2b]/10 py-2.5 text-xs opacity-45">
+                      Няма файл
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+            {!checklist.length ? (
+              <div className="rounded-2xl border border-amber-500/20 bg-[rgba(255,253,248,0.96)] p-8 text-center text-sm text-[#3d1119]/60">
+                Изберете клиент или имот, за да видите чеклиста.
+              </div>
+            ) : null}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)] md:block">
             <table className="w-full min-w-[820px] text-sm">
               <thead className="bg-[rgba(40,8,16,0.75)] text-left text-amber-100/85">
                 <tr>
@@ -580,17 +835,23 @@ function DocumentsAdmin() {
                         Качи
                         <input
                           type="file"
+                          accept={documentAccept(row.requirement.accepted_types)}
                           className="hidden"
                           onChange={(e) => {
                             const f = e.target.files?.[0];
-                            if (f) uploadFromCrm(f, row.requirement.code);
+                            if (f)
+                              uploadFromCrm(
+                                f,
+                                row.requirement.code,
+                                row.requirement.accepted_types,
+                              );
                             e.currentTarget.value = "";
                           }}
                         />
                       </label>
                       {row.document && (
                         <button
-                          onClick={() => openFile(row.document.id)}
+                          onClick={() => previewFile(row.document)}
                           className="text-xs underline"
                         >
                           Отвори
@@ -613,7 +874,59 @@ function DocumentsAdmin() {
       )}
 
       {tab === "requests" && (
-        <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+        <>
+        <div className="space-y-3 md:hidden">
+          {requests.map((request) => (
+            <article key={request.id} className="rounded-2xl border border-amber-500/20 bg-[rgba(255,253,248,0.96)] p-4 text-[#3d1119] shadow-lg">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold">{request.requirement_name}</h2>
+                  <p className="mt-1 truncate text-xs opacity-65">
+                    {request.clients?.full_name ?? "Без клиент"}{request.properties?.title ? ` · ${request.properties.title}` : ""}{request.deals?.title ? ` · ${request.deals.title}` : ""}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-[#8b1a2b]/10 px-2 py-1 text-[10px] font-bold text-[#8b1a2b]">
+                  {REQ_STATUS[request.status] ?? request.status}
+                </span>
+              </div>
+              <p className="mt-3 text-xs opacity-65">
+                Срок: {d(request.due_at)} · Напомняния: {request.reminders_sent}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(request.link);
+                      toast.success("Линкът е копиран.");
+                    } catch {
+                      toast.error("Линкът не можа да бъде копиран.");
+                    }
+                  }}
+                  className="flex items-center justify-center gap-1 rounded-lg border border-[#8b1a2b]/20 py-2.5 text-xs font-semibold"
+                >
+                  <Link2 className="h-3.5 w-3.5" /> Копирай линк
+                </button>
+                {!["cancelled", "approved"].includes(request.status) ? (
+                  <button
+                    type="button"
+                    onClick={() => run(() => cancelDocumentRequest({ data: { id: request.id } }), "Заявката е отменена")}
+                    disabled={busy}
+                    className="rounded-lg border border-rose-300 py-2.5 text-xs font-semibold text-rose-700 disabled:opacity-50"
+                  >
+                    Отмени
+                  </button>
+                ) : (
+                  <button type="button" disabled className="rounded-lg border border-[#8b1a2b]/10 py-2.5 text-xs opacity-45">
+                    Приключена
+                  </button>
+                )}
+              </div>
+            </article>
+          ))}
+          {!requests.length ? <div className="rounded-2xl bg-white/90 p-8 text-center text-sm text-[#3d1119]/60">Няма заявки.</div> : null}
+        </div>
+        <div className="hidden overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)] md:block">
           <table className="w-full min-w-[920px] text-sm">
             <thead className="bg-[rgba(40,8,16,0.75)] text-left text-amber-100/85">
               <tr>
@@ -637,6 +950,7 @@ function DocumentsAdmin() {
                     <span className="block opacity-70">
                       {r.clients?.phone ?? r.clients?.email ?? ""}
                     </span>
+                    <span className="block opacity-70">{r.deals?.title ?? ""}</span>
                   </td>
                   <td className="px-4 py-2">
                     <span className="rounded bg-[#8B1A2B]/12 px-2 py-0.5 text-xs">
@@ -683,6 +997,7 @@ function DocumentsAdmin() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {tab === "requirements" && (
@@ -702,7 +1017,28 @@ function DocumentsAdmin() {
           >
             + Ново изискване
           </button>
-          <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+          <div className="space-y-3 md:hidden">
+            {requirements.map((requirement) => (
+              <article key={requirement.id} className="rounded-2xl border border-amber-500/20 bg-[rgba(255,253,248,0.96)] p-4 text-[#3d1119] shadow-lg">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-bold">{requirement.name}</h2>
+                    <p className="mt-1 text-xs opacity-65">{requirement.description || requirement.code}</p>
+                  </div>
+                  <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${requirement.is_active ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-600"}`}>
+                    {requirement.is_active ? "Активно" : "Неактивно"}
+                  </span>
+                </div>
+                <p className="mt-3 text-xs opacity-65">
+                  {SCOPE_LABEL[requirement.scope] ?? requirement.scope} · {requirement.category} · {requirement.valid_months ? `${requirement.valid_months} мес.` : "безсрочен"}
+                </p>
+                <button type="button" onClick={() => setEditReq(requirement)} className="mt-3 w-full rounded-lg border border-[#8b1a2b]/20 py-2.5 text-xs font-semibold">
+                  Редакция
+                </button>
+              </article>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)] md:block">
             <table className="w-full min-w-[820px] text-sm">
               <thead className="bg-[rgba(40,8,16,0.75)] text-left text-amber-100/85">
                 <tr>
@@ -749,7 +1085,21 @@ function DocumentsAdmin() {
       )}
 
       {tab === "log" && (
-        <div className="overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)]">
+        <>
+        <div className="space-y-3 md:hidden">
+          {log.map((event) => (
+            <article key={event.id} className="rounded-2xl border border-amber-500/20 bg-[rgba(255,253,248,0.96)] p-4 text-xs text-[#3d1119] shadow-lg">
+              <div className="flex items-start justify-between gap-3">
+                <strong>{event.action}</strong>
+                <span className="opacity-60">{dt(event.created_at)}</span>
+              </div>
+              <p className="mt-2">{event.message ?? "—"}</p>
+              <p className="mt-2 opacity-60">{event.status} · {event.actor}</p>
+            </article>
+          ))}
+          {!log.length ? <div className="rounded-2xl bg-white/90 p-8 text-center text-sm text-[#3d1119]/60">Няма записи.</div> : null}
+        </div>
+        <div className="hidden overflow-x-auto rounded-xl border border-amber-500/15 bg-[rgba(255,255,255,0.85)] md:block">
           <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-[rgba(40,8,16,0.75)] text-left text-amber-100/85">
               <tr>
@@ -779,6 +1129,38 @@ function DocumentsAdmin() {
               )}
             </tbody>
           </table>
+        </div>
+        </>
+      )}
+
+      {preview && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Преглед на ${preview.document.file_name}`}
+          className="fixed inset-0 z-[90] flex flex-col bg-black/90 p-3 pb-[max(.75rem,env(safe-area-inset-bottom))]"
+        >
+          <div className="flex items-center justify-between gap-3 py-2 text-white">
+            <p className="min-w-0 truncate text-sm font-semibold">{preview.document.file_name}</p>
+            <button type="button" onClick={() => setPreview(null)} aria-label="Затвори прегледа" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-hidden rounded-xl bg-white">
+            {String(preview.document.mime_type ?? "").startsWith("image/") ? (
+              <img src={preview.url} alt={preview.document.title} className="h-full w-full object-contain" />
+            ) : preview.document.mime_type === "application/pdf" || /\.pdf$/i.test(preview.document.file_name ?? "") ? (
+              <iframe title={preview.document.file_name} src={preview.url} className="h-full w-full border-0" />
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center text-[#3d1119]">
+                <FolderOpen className="h-14 w-14 text-[#8b1a2b]" />
+                <p>Този формат се отваря чрез изтегляне.</p>
+              </div>
+            )}
+          </div>
+          <button type="button" onClick={() => downloadFile(preview.document)} className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-amber-400 py-3 text-sm font-bold text-[#3d1119]">
+            <Download className="h-4 w-4" /> Изтегли файла
+          </button>
         </div>
       )}
 
@@ -814,6 +1196,10 @@ function DocumentsAdmin() {
                 <dd>{view.properties?.title ?? "—"}</dd>
               </div>
               <div>
+                <dt className="text-xs opacity-70">Сделка</dt>
+                <dd>{view.deals?.title ?? "—"}</dd>
+              </div>
+              <div>
                 <dt className="text-xs opacity-70">Издаден</dt>
                 <dd>{d(view.issued_at)}</dd>
               </div>
@@ -844,7 +1230,7 @@ function DocumentsAdmin() {
               <p className="mt-2 text-sm text-rose-700">Отхвърлен: {view.rejected_reason}</p>
             )}
             <button
-              onClick={() => openFile(view.id)}
+              onClick={() => previewFile(view)}
               className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#8B1A2B] px-4 py-2 text-sm text-white"
             >
               <Download className="h-4 w-4" />
