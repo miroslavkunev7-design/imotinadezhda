@@ -71,10 +71,11 @@ function SectionPanel({
 }) {
   return (
     <div
-      className={`crm-imoti-panel crm-imoti-panel--section crm-imoti-panel--${tab}${className ? ` ${className}` : ""}`}
-      style={{ ["--crm-imoti-section-bg" as string]: `url(${IMOTI_SECTION_BG[tab]})` }}
+      className={`crm-melt-section crm-melt-section--${tab}${className ? ` ${className}` : ""}`}
+      style={{ ["--crm-melt-photo" as string]: `url(${IMOTI_SECTION_BG[tab]})` }}
     >
-      {children}
+      <div className="crm-melt-section__copy">{children}</div>
+      <div className="crm-melt-section__media" aria-hidden />
     </div>
   );
 }
@@ -101,82 +102,49 @@ function TabContent({
   switch (tab) {
     case "basic":
       return (
-        <div className="crm-imoti-detail__split">
-          <SectionPanel tab="basic">
-            <h3>
-              <Home size={16} /> Основна информация
-            </h3>
-            <p>{property.description}</p>
-            <div className="crm-imoti-feature-grid">
-              {property.features.map((f) => (
-                <div key={f.label} className="crm-imoti-feature">
-                  <span>{f.label}</span>
-                  <strong>{f.value}</strong>
-                </div>
-              ))}
+        <SectionPanel tab="basic">
+          <h3>
+            <Home size={18} /> Основна информация
+          </h3>
+          <p>{property.description}</p>
+          <div className="crm-imoti-feature-grid">
+            {property.features.map((f) => (
+              <div key={f.label} className="crm-imoti-feature">
+                <span>{f.label}</span>
+                <strong>{f.value}</strong>
+              </div>
+            ))}
+          </div>
+          <div className="crm-imoti-quick crm-imoti-quick--inline">
+            <button type="button" onClick={onToggleLoan}>
+              <Calculator size={14} /> Изчисли вноска
+            </button>
+            <button type="button" onClick={() => onJump("bank")}>
+              <Shield size={14} /> Провери ЦКР
+            </button>
+            <button type="button" onClick={onOpenBank}>
+              <Landmark size={14} /> Банка
+            </button>
+          </div>
+          {loanOpen ? (
+            <div className="crm-imoti-loan">
+              <p>
+                Примерна месечна вноска при 80% финансиране · ~{" "}
+                <strong>€ {monthly.toLocaleString("bg-BG")}</strong>
+              </p>
             </div>
-          </SectionPanel>
-          <aside className="crm-imoti-side">
-            <SectionPanel tab="basic" className="crm-imoti-panel--accent">
-              <h4>Цена и разходи</h4>
-              <div className="crm-imoti-money">
-                <span>Официална цена</span>
-                <strong>{formatImotiPrice(property)}</strong>
-              </div>
-              <div className="crm-imoti-money">
-                <span>Цена към собственика</span>
-                <strong>€ {Math.round(property.price * 0.875).toLocaleString("bg-BG")}</strong>
-              </div>
-              <div className="crm-imoti-money">
-                <span>Комисионна 3%</span>
-                <strong>€ {Math.round(property.price * 0.03).toLocaleString("bg-BG")}</strong>
-              </div>
-              <div className="crm-imoti-money crm-imoti-money--total">
-                <span>Общо по сделката</span>
-                <strong>€ {Math.round(property.price * 0.905).toLocaleString("bg-BG")}</strong>
-              </div>
-              {property.creditBlock ? (
-                <div className="crm-imoti-credit-wrap">
-                  <CreditBlock
-                    data={property.creditBlock}
-                    onChangeBank={onOpenBank}
-                    onOpenDetail={onOpenBank}
-                    onUpdate={onUpdateCreditBlock}
-                  />
-                </div>
-              ) : (
-                <button type="button" className="crm-imoti-primary crm-imoti-bank-cta" onClick={onOpenBank}>
-                  <Landmark size={15} /> Банка
-                </button>
-              )}
-            </SectionPanel>
-            <SectionPanel tab="bank">
-              <h4>Бързи действия</h4>
-              <div className="crm-imoti-quick">
-                <button type="button" onClick={onToggleLoan}>
-                  <Calculator size={14} /> Изчисли вноска
-                </button>
-                <button type="button" onClick={() => onJump("bank")}>
-                  <Shield size={14} /> Провери ЦКР
-                </button>
-                <button type="button" onClick={() => onJump("contract")}>
-                  <Scale size={14} /> Нотариус
-                </button>
-                <button type="button" onClick={onOpenBank}>
-                  <Landmark size={14} /> Банка
-                </button>
-              </div>
-              {loanOpen ? (
-                <div className="crm-imoti-loan">
-                  <p>
-                    Примерна месечна вноска при 80% финансиране · ~{" "}
-                    <strong>€ {monthly.toLocaleString("bg-BG")}</strong>
-                  </p>
-                </div>
-              ) : null}
-            </SectionPanel>
-          </aside>
-        </div>
+          ) : null}
+          {property.creditBlock ? (
+            <div className="crm-imoti-credit-wrap">
+              <CreditBlock
+                data={property.creditBlock}
+                onChangeBank={onOpenBank}
+                onOpenDetail={onOpenBank}
+                onUpdate={onUpdateCreditBlock}
+              />
+            </div>
+          ) : null}
+        </SectionPanel>
       );
     case "media":
       return (
@@ -536,19 +504,22 @@ export function ImotiDetailModal({
 
           <div className="crm-imoti-detail__summary">
             <h2>{property.title}</h2>
-            <p className="crm-imoti-card__loc">
+            <p className="crm-imoti-card__loc crm-imoti-card__loc--accent">
               <MapPin size={14} /> {property.city}, {property.quarter}
             </p>
             <div className="crm-imoti-detail__price">
               {formatImotiPrice(property)}
-              <small>Официална цена</small>
+              <small>
+                Официална цена <Info size={12} />
+              </small>
             </div>
-            <div className="crm-imoti-detail__stats">
+            <div className="crm-imoti-detail__stats crm-imoti-detail__stats--grid">
               {stats.map((s) => {
                 const Icon = s.icon;
                 return (
-                  <span key={s.label}>
-                    <Icon size={14} /> {s.label}
+                  <span key={s.label} className="crm-imoti-detail__stat">
+                    <Icon size={15} strokeWidth={1.8} />
+                    <em>{s.label}</em>
                   </span>
                 );
               })}
@@ -563,16 +534,27 @@ export function ImotiDetailModal({
               </button>
               <button
                 type="button"
-                className="crm-imoti-ghost"
+                className="crm-imoti-ghost crm-imoti-ghost--square"
+                aria-label="Запази"
                 onClick={() => onToggleFavorite(property.id)}
               >
-                <Bookmark size={14} /> {property.favorite ? "Запазен" : "Запази"}
+                <Bookmark size={16} />
               </button>
-              <button type="button" className="crm-imoti-ghost" onClick={() => void share()}>
-                <Share2 size={14} /> Сподели
+              <button
+                type="button"
+                className="crm-imoti-ghost crm-imoti-ghost--square"
+                aria-label="Сподели"
+                onClick={() => void share()}
+              >
+                <Share2 size={16} />
               </button>
-              <button type="button" className="crm-imoti-ghost" onClick={printDetail}>
-                <Printer size={14} /> Печат
+              <button
+                type="button"
+                className="crm-imoti-ghost crm-imoti-ghost--square"
+                aria-label="Печат"
+                onClick={printDetail}
+              >
+                <Printer size={16} />
               </button>
             </div>
           </div>

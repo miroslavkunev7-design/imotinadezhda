@@ -171,6 +171,7 @@ export function ImotiCatalogModal({
       onToggleExpand={() => setExpanded((v) => !v)}
       onClose={onClose}
       zIndex={60}
+      showTop={false}
     >
       <div className="crm-imoti-catalog">
         <div className="crm-imoti-catalog__hero">

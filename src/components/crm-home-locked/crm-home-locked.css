@@ -483,13 +483,16 @@
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-card__icon {
-  border-color: var(--crm-accent);
-  color: var(--crm-accent);
-  background: rgba(255, 255, 255, 0.55);
-  box-shadow:
-    0 0 16px var(--crm-accent-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -8px 14px var(--crm-accent-soft);
+  border-color: #980018;
+  color: #fff;
+  background: #980018;
+  box-shadow: 0 0 18px rgba(152, 0, 24, 0.55);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__title {
+  color: #980018;
+  font-weight: 700;
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.35);
 }
 
 .crm-locked-card__value {
@@ -526,13 +529,69 @@
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-card__arrow {
-  border-color: var(--crm-accent);
-  color: var(--crm-accent);
-  background: rgba(255, 255, 255, 0.55);
+  border-color: #980018;
+  color: #fff;
+  background: #980018;
+  align-self: flex-end;
+  box-shadow: 0 8px 22px rgba(152, 0, 24, 0.45);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card {
+  border-color: rgba(255, 255, 255, 0.98);
   box-shadow:
-    0 0 16px var(--crm-accent-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -8px 14px var(--crm-accent-soft);
+    0 0 0 1.5px rgba(255, 255, 255, 0.9),
+    0 0 28px rgba(255, 255, 255, 0.55),
+    0 18px 40px rgba(20, 10, 14, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-fab,
+.crm-locked-root[data-theme="light"] .crm-locked-fab--theme,
+.crm-locked-root[data-theme="light"] .crm-locked-fab--menu {
+  background: #980018;
+  border-color: #980018;
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(152, 0, 24, 0.4);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-avatar {
+  border-color: #980018;
+  box-shadow: 0 0 16px rgba(152, 0, 24, 0.45);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-broker__name {
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-name-line {
+  background: #980018;
+}
+
+@media (max-width: 820px) {
+  .crm-melt-section {
+    grid-template-columns: 1fr;
+    min-height: 280px;
+  }
+
+  .crm-melt-section__media {
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 42%, #000 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 42%, #000 100%);
+    background-position: center 30%;
+  }
+
+  .crm-melt-section__media::after {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 252, 250, 0.94) 0%,
+      rgba(255, 252, 250, 0.55) 38%,
+      transparent 100%
+    );
+  }
+
+  .crm-imoti-detail__stats--grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .crm-locked-bottom {
@@ -1917,10 +1976,27 @@
 
 .crm-imoti-gallery__main {
   position: relative;
-  border-radius: 18px;
+  border-radius: 20px;
   overflow: hidden;
-  aspect-ratio: 16 / 11;
+  aspect-ratio: 16 / 10;
   background: rgba(0, 0, 0, 0.25);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 78%, transparent 100%);
+}
+
+.crm-imoti-detail__summary {
+  border-radius: 22px;
+  padding: 18px 18px 16px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 14px 36px rgba(40, 18, 24, 0.12);
+}
+
+.crm-locked-root[data-theme="dark"] .crm-imoti-detail__summary {
+  background: rgba(18, 20, 28, 0.72);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .crm-imoti-gallery__main img {
@@ -1987,16 +2063,16 @@
 
 .crm-imoti-detail__price {
   margin: 12px 0;
-  font-size: clamp(24px, 2.6vw, 34px);
-  font-weight: 800;
-  color: #600f1c;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 850;
+  color: #980018 !important;
   display: flex;
   flex-direction: column;
   line-height: 1.1;
 }
 
 .crm-locked-root[data-theme="dark"] .crm-imoti-detail__price {
-  color: #fff;
+  color: #ff4d6d !important;
 }
 
 .crm-imoti-detail__price small {
@@ -2013,16 +2089,51 @@
   margin-bottom: 14px;
 }
 
-.crm-imoti-detail__stats span {
+.crm-imoti-detail__stats--grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.crm-imoti-detail__stats span,
+.crm-imoti-detail__stat {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(152, 0, 24, 0.14);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 650;
+  color: #1a1216;
+}
+
+.crm-imoti-detail__stat svg {
+  color: #980018;
+  flex: 0 0 auto;
+}
+
+.crm-imoti-detail__stat em {
+  font-style: normal;
+  font-weight: 650;
+}
+
+.crm-imoti-card__loc--accent {
+  color: #980018;
+  opacity: 1;
+  font-weight: 700;
+}
+
+.crm-imoti-ghost--square {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(152, 0, 24, 0.12);
+  color: #600f1c;
 }
 
 .crm-imoti-detail__actions {
@@ -2046,27 +2157,37 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 0;
-  background: transparent;
-  color: inherit;
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
-  padding: 8px 12px;
+  font-weight: 650;
+  padding: 9px 14px;
   border-radius: 999px;
-  opacity: 0.65;
   cursor: pointer;
   white-space: nowrap;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: #4a3a40;
+  opacity: 1;
+  box-shadow: 0 4px 14px rgba(40, 18, 24, 0.08);
 }
 
 .crm-imoti-tabs button.is-active {
   opacity: 1;
-  background: rgba(96, 15, 28, 0.14);
-  color: #600f1c;
+  background: #980018;
+  border-color: #980018;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(152, 0, 24, 0.35);
+}
+
+.crm-locked-root[data-theme="dark"] .crm-imoti-tabs button {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .crm-locked-root[data-theme="dark"] .crm-imoti-tabs button.is-active {
-  background: rgba(255, 255, 255, 0.16);
+  background: #980018;
+  border-color: #980018;
   color: #fff;
 }
 
@@ -2118,6 +2239,26 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
+}
+
+.crm-melt-section .crm-imoti-feature-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+.crm-melt-section .crm-imoti-feature {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(152, 0, 24, 0.1);
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 16px rgba(40, 18, 24, 0.06);
+}
+
+.crm-imoti-quick--inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .crm-imoti-feature {
@@ -2621,6 +2762,114 @@
 .crm-imoti-catalog--list .crm-imoti-card__body {
   margin-top: 0;
   background: #ffffff;
+}
+
+/* Shared horizontal photo melt for Imoti detail roster sections (shot 1) */
+.crm-melt-section {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(180px, 0.95fr);
+  min-height: clamp(220px, 32vh, 340px);
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  box-shadow:
+    0 16px 40px rgba(40, 18, 24, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.35) inset;
+}
+
+.crm-melt-section__copy {
+  position: relative;
+  z-index: 2;
+  padding: 22px clamp(16px, 2vw, 28px);
+  color: #1a1216;
+}
+
+.crm-melt-section__copy h3,
+.crm-melt-section__copy h4 {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 800;
+  color: #1a1216;
+}
+
+.crm-melt-section__copy p {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(26, 18, 22, 0.72);
+}
+
+.crm-melt-section__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--crm-melt-photo);
+  background-size: cover;
+  background-position: 70% center;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    transparent 38%,
+    rgba(0, 0, 0, 0.45) 52%,
+    #000 68%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    transparent 38%,
+    rgba(0, 0, 0, 0.45) 52%,
+    #000 68%,
+    #000 100%
+  );
+}
+
+.crm-melt-section__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 252, 250, 0.92) 0%,
+    rgba(255, 252, 250, 0.55) 42%,
+    rgba(255, 255, 255, 0.08) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.crm-locked-root[data-theme="dark"] .crm-melt-section {
+  background: rgba(18, 20, 28, 0.72);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #f7f4f2;
+}
+
+.crm-locked-root[data-theme="dark"] .crm-melt-section__copy,
+.crm-locked-root[data-theme="dark"] .crm-melt-section__copy h3,
+.crm-locked-root[data-theme="dark"] .crm-melt-section__copy h4 {
+  color: #f7f4f2;
+}
+
+.crm-locked-root[data-theme="dark"] .crm-melt-section__copy p {
+  color: rgba(247, 244, 242, 0.78);
+}
+
+.crm-locked-root[data-theme="dark"] .crm-melt-section__media::after {
+  background: linear-gradient(
+    90deg,
+    rgba(12, 14, 20, 0.92) 0%,
+    rgba(12, 14, 20, 0.55) 42%,
+    rgba(12, 14, 20, 0.12) 70%,
+    transparent 100%
+  );
 }
 
 .crm-imoti-panel--section {
@@ -3170,14 +3419,19 @@
 
 .crm-locked-sky-title {
   margin: 0;
-  font-size: clamp(28px, 3.4vw, 44px);
-  line-height: 1.12;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: #140e12;
+  margin-left: auto;
+  align-self: flex-start;
+  padding-top: 2px;
+  font-family: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  font-size: clamp(52px, 7.5vw, 92px);
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #fff;
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.75),
-    0 10px 28px rgba(255, 255, 255, 0.35);
+    0 0 24px rgba(255, 255, 255, 0.8),
+    0 0 56px rgba(255, 255, 255, 0.45),
+    0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .crm-locked-sky-sub {

@@ -9,9 +9,10 @@ export function CrmModalShell({
   onClose,
   zIndex = 60,
   children,
-  headerLeft: _headerLeft,
-  headerCenter: _headerCenter,
-  headerRight: _headerRight,
+  headerLeft,
+  headerCenter,
+  headerRight,
+  showTop = true,
 }: {
   open: boolean;
   title: string;
@@ -23,6 +24,8 @@ export function CrmModalShell({
   headerLeft?: ReactNode;
   headerCenter?: ReactNode;
   headerRight?: ReactNode;
+  /** When false, only floating close/expand (catalog). Detail restores top chrome. */
+  showTop?: boolean;
 }) {
   if (!open) return null;
 
@@ -36,31 +39,70 @@ export function CrmModalShell({
       onClick={onClose}
     >
       <div
-        className={`crm-imoti-shell crm-imoti-shell--no-top${expanded ? " crm-imoti-shell--expanded" : ""}`}
+        className={`crm-imoti-shell${showTop ? "" : " crm-imoti-shell--no-top"}${expanded ? " crm-imoti-shell--expanded" : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="crm-imoti-shell__float">
-          <button
-            type="button"
-            className="crm-imoti-icon-btn"
-            aria-label={expanded ? "Свий" : "Цял екран"}
-            title={expanded ? "Свий" : "Цял екран"}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleExpand();
-            }}
-          >
-            {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
-          <button
-            type="button"
-            className="crm-imoti-icon-btn"
-            aria-label="Затвори"
-            onClick={onClose}
-          >
-            <X size={16} />
-          </button>
-        </div>
+        {showTop ? (
+          <header className="crm-imoti-shell__top">
+            <div className="crm-imoti-shell__top-left">
+              {headerLeft ?? (
+                <img
+                  src="/crm-home-locked/logo-mark-white.png"
+                  alt="Имоти Надежда"
+                  className="crm-imoti-shell__logo"
+                  draggable={false}
+                />
+              )}
+            </div>
+            <div className="crm-imoti-shell__top-center">{headerCenter}</div>
+            <div className="crm-imoti-shell__top-right">
+              {headerRight}
+              <button
+                type="button"
+                className="crm-imoti-icon-btn"
+                aria-label={expanded ? "Свий" : "Цял екран"}
+                title={expanded ? "Свий" : "Цял екран"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleExpand();
+                }}
+              >
+                {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              </button>
+              <button
+                type="button"
+                className="crm-imoti-icon-btn"
+                aria-label="Затвори"
+                onClick={onClose}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </header>
+        ) : (
+          <div className="crm-imoti-shell__float">
+            <button
+              type="button"
+              className="crm-imoti-icon-btn"
+              aria-label={expanded ? "Свий" : "Цял екран"}
+              title={expanded ? "Свий" : "Цял екран"}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleExpand();
+              }}
+            >
+              {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
+            <button
+              type="button"
+              className="crm-imoti-icon-btn"
+              aria-label="Затвори"
+              onClick={onClose}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
         <div className="crm-imoti-shell__body">{children}</div>
       </div>
     </div>
