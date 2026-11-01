@@ -1,4 +1,3 @@
-import { Bot } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AI_ASSIST_SKILLS, matchSkill, type AiSkillId } from "./imoti/ai-skills";
@@ -144,7 +143,59 @@ export function AiAssistFab({
       title="AI помощник"
       onClick={onToggle}
     >
-      <Bot size={22} strokeWidth={1.7} />
+      <span className="crm-locked-ai-fab__emoji" aria-hidden>
+        <svg
+          className="crm-locked-ai-fab__bot"
+          viewBox="0 0 64 64"
+          width="28"
+          height="28"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="crmAiBotFace" x1="12" y1="14" x2="52" y2="54" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#ffffff" />
+              <stop offset="0.55" stopColor="#f4f8ff" />
+              <stop offset="1" stopColor="#dbe7ff" />
+            </linearGradient>
+            <filter id="crmAiBotGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="1.4" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <path
+            d="M32 8v8"
+            stroke="#fff"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            filter="url(#crmAiBotGlow)"
+          />
+          <circle cx="32" cy="6.5" r="3.2" fill="#fff" filter="url(#crmAiBotGlow)" />
+          <rect
+            x="11"
+            y="16"
+            width="42"
+            height="34"
+            rx="14"
+            fill="url(#crmAiBotFace)"
+            filter="url(#crmAiBotGlow)"
+          />
+          <circle cx="23.5" cy="31" r="4.2" fill="#9a1830" />
+          <circle cx="40.5" cy="31" r="4.2" fill="#9a1830" />
+          <circle cx="23.5" cy="30.2" r="1.5" fill="#fff" />
+          <circle cx="40.5" cy="30.2" r="1.5" fill="#fff" />
+          <path
+            d="M24 41c2.4 2.6 5.2 3.8 8 3.8s5.6-1.2 8-3.8"
+            stroke="#9a1830"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+          />
+          <path d="M8 30h5M51 30h5" stroke="#fff" strokeWidth="3" strokeLinecap="round" filter="url(#crmAiBotGlow)" />
+        </svg>
+      </span>
     </button>
   );
 }
