@@ -186,7 +186,6 @@ function AutoPlayVideo(
   );
 }
 import { Link, useNavigate } from "@tanstack/react-router";
-import { CityBrushCard } from "@/components/site/city-brush-card";
 import { AGENCY } from "@/lib/contact-config";
 import { useFavorites, shareProperty } from "@/hooks/use-favorites";
 import { toast } from "sonner";
@@ -1150,16 +1149,16 @@ function CityCardImpl({
       />
       <div className="absolute bottom-2 left-2.5 right-2.5 md:bottom-6 md:left-6 md:right-6 flex justify-between items-end gap-2 md:gap-4">
         <div className="min-w-0">
-          <p className="hidden md:block text-[#D9B06F] text-[18px] md:text-sm uppercase tracking-[0.15em] font-display">
-            Виж града
+          <p className="hidden md:block text-[#D9B06F] text-[11px] md:text-sm uppercase tracking-[0.18em] font-display">
+            ВИЖ ГРАДА
           </p>
           <h3 className="text-white text-[18px] md:text-4xl leading-[1.02] font-display font-extrabold tracking-tight truncate">
             {name}
           </h3>
         </div>
         <span
-          className="flex-none w-7 h-7 md:w-14 md:h-14 rounded-full flex items-center justify-center transition md:group-hover:bg-[#d9b06f] md:group-hover:text-[#4b0018]"
-          style={{ border: "2px solid #D9B06F", color: "#D9B06F", background: "transparent" }}
+          className="flex-none w-7 h-7 md:w-14 md:h-14 rounded-full flex items-center justify-center transition md:group-hover:brightness-110"
+          style={{ background: "#D9B06F", color: "#4b0018" }}
           aria-hidden
         >
           <ChevronRight className="w-4 h-4 md:w-6 md:h-6" strokeWidth={2.6} />
@@ -1547,10 +1546,11 @@ export function HomePage({
             className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5"
           >
             {cityList.map((city) => (
-              <CityBrushCard
+              <CityCard
                 key={city.slug}
                 name={city.name}
                 image={city.image}
+                href="/cities/$slug"
                 params={{ slug: city.slug }}
               />
             ))}
@@ -1608,7 +1608,9 @@ export function HomePage({
           webmSrc={resolveAssetUrl(homeHeroWebm) || undefined}
           poster={homeHero}
           preload="metadata"
-          className="hidden md:absolute md:inset-0 md:block md:h-full md:w-full md:object-contain bg-[#0f0a0b]"
+          objectFit="cover"
+          objectPosition="center 40%"
+          className="hidden md:absolute md:inset-0 md:block md:h-full md:w-full bg-[#0f0a0b]"
         />
         <div
           aria-hidden
