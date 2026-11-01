@@ -31,6 +31,7 @@ export const IMOTI_DEMO: ImotiProperty[] = [
       "Представителен апартамент с високи тавани, панорамни прозорци и завършен луксозен интериор. Подходящ за собствено ползване или инвестиция.",
     descriptionOwner: "Лична бележка: собственикът предпочита вечерни огледи.",
     listingStatus: "published",
+    availability: "active",
     createdAt: 1700000000000,
     features: [
       { label: "Тип", value: "Апартамент" },
@@ -67,6 +68,7 @@ export const IMOTI_DEMO: ImotiProperty[] = [
     description: "Просторна къща с двор, гараж и отделна дневна зона. Тиха локация близо до морето.",
     descriptionOwner: "Лична бележка: ключ при портиера; обади се предварително.",
     listingStatus: "published",
+    availability: "active",
     createdAt: 1700086400000,
     features: [
       { label: "Тип", value: "Къща" },
@@ -103,6 +105,7 @@ export const IMOTI_DEMO: ImotiProperty[] = [
     description: "Модерна вила с басейн, градина и панорамна гледка. Готова за нанасяне.",
     descriptionOwner: "Лична бележка: продава поради преместване в чужбина.",
     listingStatus: "published",
+    availability: "active",
     createdAt: 1700172800000,
     features: [
       { label: "Тип", value: "Вила" },
@@ -140,6 +143,7 @@ export const IMOTI_DEMO: ImotiProperty[] = [
     description: "Напълно обзаведен апартамент с морска гледка, подходящ за дългосрочен наем.",
     descriptionOwner: "Лична бележка: дългосрочен наем мин. 12 месеца.",
     listingStatus: "published",
+    availability: "active",
     createdAt: 1700259200000,
     features: [
       { label: "Тип", value: "Апартамент" },
@@ -177,6 +181,7 @@ export const IMOTI_DEMO: ImotiProperty[] = [
     description: "Функционален офис с рецепция, open space и две кабинети. Близо до метро.",
     descriptionOwner: "Лична бележка: офисът е свободен от 1-во число.",
     listingStatus: "published",
+    availability: "active",
     createdAt: 1700345600000,
     features: [
       { label: "Тип", value: "Офис" },
@@ -214,6 +219,7 @@ export const IMOTI_DEMO: ImotiProperty[] = [
     description: "Стилен мезонет с голяма тераса в оживена, но спокойна вечерна зона.",
     descriptionOwner: "Лична бележка: собственикът живее в чужбина.",
     listingStatus: "published",
+    availability: "active",
     createdAt: 1700432000000,
     features: [
       { label: "Тип", value: "Мезонет" },

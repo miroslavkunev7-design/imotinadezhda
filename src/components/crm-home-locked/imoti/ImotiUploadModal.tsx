@@ -430,6 +430,7 @@ export function ImotiUploadModal({
           .filter(Boolean),
         ownerNotes: form.ownerNotes.trim() || undefined,
         listingStatus,
+        availability: listingStatus === "archive" ? "active" : "active",
         responsibleBroker: form.responsibleBroker.trim() || undefined,
         createdAt: Date.now(),
         features: [

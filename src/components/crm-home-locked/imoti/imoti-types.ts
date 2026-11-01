@@ -5,6 +5,18 @@ export type ImotiDeal = "sale" | "rent";
 /** CRM listing lifecycle (Spec 1 §2 Status) */
 export type ImotiListingStatus = "draft" | "published" | "archive";
 
+/** Catalog card availability badge (Актуален / Депозиран / Закупен) */
+export type ImotiAvailability = "active" | "deposited" | "sold";
+
+export const IMOTI_AVAILABILITY_OPTIONS: Array<{
+  value: ImotiAvailability;
+  label: string;
+}> = [
+  { value: "active", label: "Актуален" },
+  { value: "deposited", label: "Депозиран" },
+  { value: "sold", label: "Закупен" },
+];
+
 export const IMOTI_TYPE_OPTIONS = [
   "гарсониера",
   "едностаен",
@@ -88,6 +100,8 @@ export type ImotiProperty = {
   ownerPhones?: string[];
   ownerNotes?: string;
   listingStatus?: ImotiListingStatus;
+  /** Card badge: Актуален (green) / Депозиран (yellow) / Закупен (red) */
+  availability?: ImotiAvailability;
   responsibleBroker?: string;
   publishLinks?: string[];
   features: Array<{ label: string; value: string }>;
@@ -160,6 +174,22 @@ export function listingStatusLabel(status: ImotiListingStatus | undefined): stri
       return "Публикуван";
     case undefined:
       return "Активна";
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
+  }
+}
+
+export function availabilityLabel(status: ImotiAvailability | undefined): string {
+  switch (status) {
+    case "deposited":
+      return "Депозиран";
+    case "sold":
+      return "Закупен";
+    case "active":
+    case undefined:
+      return "Актуален";
     default: {
       const _exhaustive: never = status;
       return _exhaustive;

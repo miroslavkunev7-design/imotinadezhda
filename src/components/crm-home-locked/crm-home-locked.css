@@ -2272,10 +2272,10 @@
   display: block;
 }
 
-.crm-imoti-card__id,
-.crm-imoti-card__status {
+.crm-imoti-card__id {
   position: absolute;
   top: 14px;
+  left: 14px;
   z-index: 2;
   padding: 6px 11px;
   border-radius: 999px;
@@ -2283,20 +2283,123 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   backdrop-filter: blur(8px);
-}
-
-.crm-imoti-card__id {
-  left: 14px;
   background: rgba(255, 255, 255, 0.92);
   color: #5a1020;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
-.crm-imoti-card__status {
+.crm-imoti-card__status-wrap {
+  position: absolute;
+  top: 14px;
   right: 14px;
-  background: #6a1424;
+  z-index: 4;
+}
+
+.crm-imoti-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
   color: #fff;
-  box-shadow: 0 4px 14px rgba(90, 16, 32, 0.35);
+  cursor: pointer;
+  backdrop-filter: blur(12px) saturate(1.35);
+  -webkit-backdrop-filter: blur(12px) saturate(1.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crm-imoti-card__status:hover {
+  transform: translateY(-1px);
+}
+
+.crm-imoti-card__status--active {
+  background: linear-gradient(135deg, rgba(46, 180, 110, 0.72), rgba(22, 140, 78, 0.55));
+  color: #f4fff8;
+  text-shadow: 0 1px 2px rgba(0, 40, 20, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(120, 255, 180, 0.35),
+    0 0 18px rgba(56, 220, 130, 0.55),
+    0 6px 16px rgba(12, 80, 40, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.crm-imoti-card__status--deposited {
+  background: linear-gradient(135deg, rgba(240, 200, 70, 0.82), rgba(210, 160, 30, 0.7));
+  color: #3d2a00;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(255, 230, 140, 0.45),
+    0 0 16px rgba(240, 200, 60, 0.55),
+    0 6px 16px rgba(120, 80, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.crm-imoti-card__status--sold {
+  background: linear-gradient(135deg, rgba(190, 40, 60, 0.88), rgba(120, 18, 36, 0.78));
+  color: #fff;
+  box-shadow:
+    0 0 0 1px rgba(255, 140, 160, 0.35),
+    0 0 16px rgba(200, 40, 70, 0.45),
+    0 6px 16px rgba(90, 16, 32, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.crm-imoti-card__status-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(18, 16, 18, 0.88);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+}
+
+.crm-locked-root[data-theme="light"] .crm-imoti-card__status-menu {
+  background: rgba(255, 252, 248, 0.94);
+  border-color: rgba(90, 16, 32, 0.12);
+}
+
+.crm-imoti-card__status-option {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  background: transparent;
+}
+
+.crm-imoti-card__status-option--active {
+  color: #1a7a48;
+}
+
+.crm-imoti-card__status-option--deposited {
+  color: #b8860b;
+}
+
+.crm-imoti-card__status-option--sold {
+  color: #9a1830;
+}
+
+.crm-imoti-card__status-option:hover,
+.crm-imoti-card__status-option.is-active {
+  background: rgba(212, 175, 55, 0.16);
 }
 
 .crm-imoti-card__badge {

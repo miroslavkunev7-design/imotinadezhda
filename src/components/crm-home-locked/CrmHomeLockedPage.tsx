@@ -21,7 +21,7 @@ import { IMOTI_DEMO } from "./imoti/imoti-demo-data";
 import { ImotiCatalogModal } from "./imoti/ImotiCatalogModal";
 import { ImotiDetailModal } from "./imoti/ImotiDetailModal";
 import { ImotiUploadModal } from "./imoti/ImotiUploadModal";
-import type { ImotiProperty } from "./imoti/imoti-types";
+import type { ImotiAvailability, ImotiProperty } from "./imoti/imoti-types";
 import { LockedLogo } from "./LockedLogo";
 import {
   LockedNav,
@@ -229,6 +229,10 @@ export function CrmHomeLockedPage() {
     );
   }, []);
 
+  const changeAvailability = useCallback((id: string, availability: ImotiAvailability) => {
+    setProperties((list) => list.map((p) => (p.id === id ? { ...p, availability } : p)));
+  }, []);
+
   const imotiValue = properties.length;
 
   return (
@@ -347,6 +351,7 @@ export function CrmHomeLockedPage() {
         onOpenProperty={(property) => setSelectedId(property.id)}
         onAddProperty={() => setUploadOpen(true)}
         onToggleFavorite={toggleFavorite}
+        onChangeAvailability={changeAvailability}
         onNavigate={navigateFromImoti}
       />
       <ImotiDetailModal

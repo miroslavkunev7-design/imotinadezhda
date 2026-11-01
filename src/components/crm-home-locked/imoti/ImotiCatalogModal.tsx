@@ -1,5 +1,6 @@
 import {
   BedDouble,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Filter,
@@ -11,7 +12,7 @@ import {
   Search,
   Star,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { CrmModalShell } from "./CrmModalShell";
 import { formatImotiPrice } from "./imoti-demo-data";
@@ -21,19 +22,39 @@ import {
   ImotiFilterBar,
   type ImotiFilters,
 } from "./ImotiFilterBar";
-import { listingStatusLabel, type ImotiDeal, type ImotiProperty } from "./imoti-types";
+import {
+  availabilityLabel,
+  IMOTI_AVAILABILITY_OPTIONS,
+  type ImotiAvailability,
+  type ImotiDeal,
+  type ImotiProperty,
+} from "./imoti-types";
 
 function PropertyMiniCard({
   property,
   onOpen,
   onToggleFavorite,
+  onChangeAvailability,
 }: {
   property: ImotiProperty;
   onOpen: () => void;
   onToggleFavorite: () => void;
+  onChangeAvailability: (status: ImotiAvailability) => void;
 }) {
   const shortId = property.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || property.id.slice(0, 8);
   const bedrooms = Math.max(1, property.rooms - 1);
+  const availability = property.availability ?? "active";
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [menuOpen]);
 
   return (
     <div className="crm-imoti-card crm-imoti-card--poster">
@@ -43,9 +64,6 @@ function PropertyMiniCard({
           style={{ backgroundImage: `url(${property.coverUrl})` }}
         >
           <span className="crm-imoti-card__id">ID: {shortId}</span>
-          <span className="crm-imoti-card__status">
-            {listingStatusLabel(property.listingStatus)}
-          </span>
           <div className="crm-imoti-card__melt">
             <strong>{property.title}</strong>
             <span className="crm-imoti-card__loc">
@@ -63,6 +81,44 @@ function PropertyMiniCard({
           </div>
         </div>
       </button>
+
+      <div className="crm-imoti-card__status-wrap" ref={menuRef}>
+        <button
+          type="button"
+          className={`crm-imoti-card__status crm-imoti-card__status--${availability}`}
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((v) => !v);
+          }}
+        >
+          {availabilityLabel(availability)}
+          <ChevronDown size={12} strokeWidth={2.4} />
+        </button>
+        {menuOpen ? (
+          <div className="crm-imoti-card__status-menu" role="menu">
+            {IMOTI_AVAILABILITY_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                role="menuitem"
+                className={`crm-imoti-card__status-option crm-imoti-card__status-option--${opt.value}${
+                  availability === opt.value ? " is-active" : ""
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChangeAvailability(opt.value);
+                  setMenuOpen(false);
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
       <button
         type="button"
         className={`crm-imoti-card__fab${property.favorite ? " is-on" : ""}`}
@@ -84,11 +140,13 @@ function PropertyRow({
   items,
   onOpen,
   onToggleFavorite,
+  onChangeAvailability,
 }: {
   title: string;
   items: ImotiProperty[];
   onOpen: (p: ImotiProperty) => void;
   onToggleFavorite: (id: string) => void;
+  onChangeAvailability: (id: string, status: ImotiAvailability) => void;
 }) {
   const scroller = useRef<HTMLDivElement>(null);
   const scrollBy = (dir: -1 | 1) => {
@@ -122,6 +180,7 @@ function PropertyRow({
                 property={p}
                 onOpen={() => onOpen(p)}
                 onToggleFavorite={() => onToggleFavorite(p.id)}
+                onChangeAvailability={(status) => onChangeAvailability(p.id, status)}
               />
             ))
           ) : (
@@ -148,6 +207,7 @@ export function ImotiCatalogModal({
   onOpenProperty,
   onAddProperty,
   onToggleFavorite,
+  onChangeAvailability,
   onNavigate: _onNavigate,
 }: {
   open: boolean;
@@ -156,6 +216,7 @@ export function ImotiCatalogModal({
   onOpenProperty: (property: ImotiProperty) => void;
   onAddProperty: () => void;
   onToggleFavorite: (id: string) => void;
+  onChangeAvailability: (id: string, status: ImotiAvailability) => void;
   onNavigate: (target: "clients" | "calendar") => void;
 }) {
   void _onNavigate;
@@ -283,6 +344,7 @@ export function ImotiCatalogModal({
                 items={sales}
                 onOpen={onOpenProperty}
                 onToggleFavorite={onToggleFavorite}
+                onChangeAvailability={onChangeAvailability}
               />
             )}
             {(dealTab === "all" || dealTab === "rent") && (
@@ -291,6 +353,7 @@ export function ImotiCatalogModal({
                 items={rents}
                 onOpen={onOpenProperty}
                 onToggleFavorite={onToggleFavorite}
+                onChangeAvailability={onChangeAvailability}
               />
             )}
           </div>
