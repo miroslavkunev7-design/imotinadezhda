@@ -1,22 +1,23 @@
-import {
-  Bot,
-  Building2,
-  Camera,
-  FileUp,
-  History,
-  ImagePlus,
-  Maximize2,
-  Mic,
-  Minimize2,
-  Plus,
-  Send,
-  Sparkles,
-  Users,
-  X,
-} from "lucide-react";
+import { Bot } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AI_ASSIST_SKILLS, matchSkill, type AiSkillId } from "./imoti/ai-skills";
+
+const SKILL_WEAPON: Record<
+  AiSkillId,
+  { emoji: string; label: string; hint: string }
+> = {
+  "upload-property": {
+    emoji: "🏰",
+    label: "Качване на имот",
+    hint: "Оръжие · снимки и описание",
+  },
+  "collect-leads": {
+    emoji: "🧲",
+    label: "Събиране на имоти и клиенти",
+    hint: "Оръжие · лийдове от текст/файл",
+  },
+};
 
 type ChatRole = "user" | "assistant";
 
@@ -104,7 +105,7 @@ function draftReply(prompt: string, attachmentNames: string[]): string {
   }
   return [
     "Готов съм. Аз съм личният ти CRM асистент — каквото ми кажеш и каквото ми дадеш (текст, файл, снимка), мога да работя с него.",
-    "Skills: „Качване на имот“ · „Събиране на имоти и клиенти“. Или: предварителен договор, оглед, архив.",
+    "Отвори + за оръжия (skills) или кажи: предварителен договор, оглед, архив.",
     attached,
   ]
     .filter(Boolean)
@@ -116,7 +117,7 @@ function emptyThread(): ChatThread {
     id: uid("m"),
     role: "assistant",
     content:
-      "Здравей! Аз съм личният ти асистент в CRM — имам достъп до това, което ми споделиш (текст, файлове, снимки) и мога да изпълнявам задачи по твоите инструкции. Пиши, диктувай или прикачи нещо с +.",
+      "Здравей! Аз съм личният ти асистент в CRM — пиши, диктувай или отвори + за оръжия (skills) и прикачвания.",
     at: Date.now(),
   };
   return {
@@ -287,6 +288,8 @@ export function AiAssistChat({
     (id: AiSkillId) => {
       const skill = AI_ASSIST_SKILLS.find((s) => s.id === id);
       if (!skill || !active) return;
+      setAttachOpen(false);
+      setHistoryOpen(false);
       onSkill?.(id);
       const userMsg: ChatMessage = {
         id: uid("m"),
@@ -360,13 +363,15 @@ export function AiAssistChat({
     >
       <div className="crm-locked-ai-panel__head">
         <span className="crm-locked-ai-panel__title">
-          <Bot size={16} strokeWidth={1.8} aria-hidden />
+          <span className="crm-locked-ai-emoji crm-locked-ai-emoji--title" aria-hidden>
+            🤖
+          </span>
           Личен асистент
         </span>
         <div className="crm-locked-ai-panel__actions">
           <button
             type="button"
-            className="crm-locked-ai-icon-btn"
+            className="crm-locked-ai-icon-btn crm-locked-ai-icon-btn--neon"
             aria-label="Предишни разговори"
             title="Предишни разговори"
             onClick={() => {
@@ -374,36 +379,44 @@ export function AiAssistChat({
               setHistoryOpen((v) => !v);
             }}
           >
-            <History size={16} />
+            <span className="crm-locked-ai-emoji" aria-hidden>
+              🕑
+            </span>
           </button>
           <button
             type="button"
-            className="crm-locked-ai-icon-btn"
+            className="crm-locked-ai-icon-btn crm-locked-ai-icon-btn--neon"
             aria-label="Нов разговор"
             title="Нов разговор"
             onClick={startNew}
           >
-            <Plus size={16} />
+            <span className="crm-locked-ai-emoji" aria-hidden>
+              ✨
+            </span>
           </button>
           <button
             type="button"
-            className="crm-locked-ai-icon-btn"
+            className="crm-locked-ai-icon-btn crm-locked-ai-icon-btn--neon"
             aria-label={expanded ? "Свий" : "Цял екран"}
             title={expanded ? "Свий" : "Цял екран"}
             onClick={() => setExpanded((v) => !v)}
           >
-            {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            <span className="crm-locked-ai-emoji" aria-hidden>
+              {expanded ? "🗗" : "⛶"}
+            </span>
           </button>
           <button
             type="button"
-            className="crm-locked-ai-icon-btn"
+            className="crm-locked-ai-icon-btn crm-locked-ai-icon-btn--neon"
             aria-label="Затвори"
             onClick={() => {
               setExpanded(false);
               onClose();
             }}
           >
-            <X size={16} />
+            <span className="crm-locked-ai-emoji" aria-hidden>
+              ✕
+            </span>
           </button>
         </div>
       </div>
@@ -430,24 +443,6 @@ export function AiAssistChat({
           ))}
         </div>
       ) : null}
-
-      <div className="crm-locked-ai-skills" aria-label="AI skills">
-        <span className="crm-locked-ai-skills__label">
-          <Sparkles size={12} /> Skills
-        </span>
-        {AI_ASSIST_SKILLS.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            className="crm-locked-ai-skill"
-            title={s.short}
-            onClick={() => runSkill(s.id)}
-          >
-            {s.id === "upload-property" ? <Building2 size={13} /> : <Users size={13} />}
-            {s.title}
-          </button>
-        ))}
-      </div>
 
       <div className="crm-locked-ai-messages" ref={listRef}>
         {(active?.messages ?? []).map((m) => (
@@ -522,56 +517,99 @@ export function AiAssistChat({
             <div className="crm-locked-ai-attach-wrap">
               <button
                 type="button"
-                className="crm-locked-ai-icon-btn"
-                aria-label="Прикачи"
-                title="Прикачи изображение, файл или снимка"
+                className="crm-locked-ai-icon-btn crm-locked-ai-icon-btn--neon"
+                aria-label="Оръжия и прикачвания"
+                title="Skills / прикачи файл"
+                aria-expanded={attachOpen}
                 onClick={() => {
                   setHistoryOpen(false);
                   setAttachOpen((v) => !v);
                 }}
               >
-                <Plus size={16} />
+                <span className="crm-locked-ai-emoji" aria-hidden>
+                  ➕
+                </span>
               </button>
               {attachOpen ? (
                 <div className="crm-locked-ai-attach-menu" role="menu">
+                  <div className="crm-locked-ai-attach-menu__section" aria-hidden>
+                    Оръжия · Skills
+                  </div>
+                  {AI_ASSIST_SKILLS.map((s) => {
+                    const weapon = SKILL_WEAPON[s.id];
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        role="menuitem"
+                        className="crm-locked-ai-attach-menu__weapon"
+                        title={weapon.hint}
+                        onClick={() => runSkill(s.id)}
+                      >
+                        <span className="crm-locked-ai-emoji crm-locked-ai-emoji--weapon" aria-hidden>
+                          {weapon.emoji}
+                        </span>
+                        <span className="crm-locked-ai-attach-menu__weapon-text">
+                          <strong>{weapon.label}</strong>
+                          <em>{weapon.hint}</em>
+                        </span>
+                      </button>
+                    );
+                  })}
+                  <div className="crm-locked-ai-attach-menu__section" aria-hidden>
+                    Прикачи
+                  </div>
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => imageRef.current?.click()}
                   >
-                    <ImagePlus size={14} /> Изображение
+                    <span className="crm-locked-ai-emoji" aria-hidden>
+                      🖼
+                    </span>
+                    Изображение
                   </button>
                   <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>
-                    <FileUp size={14} /> Файл
+                    <span className="crm-locked-ai-emoji" aria-hidden>
+                      📎
+                    </span>
+                    Файл
                   </button>
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => cameraRef.current?.click()}
                   >
-                    <Camera size={14} /> Моментна снимка
+                    <span className="crm-locked-ai-emoji" aria-hidden>
+                      📷
+                    </span>
+                    Моментна снимка
                   </button>
                 </div>
               ) : null}
             </div>
             <button
               type="button"
-              className="crm-locked-ai-icon-btn"
+              className="crm-locked-ai-icon-btn crm-locked-ai-icon-btn--neon"
               aria-label="Диктовка"
               title="Диктовка"
               onClick={onDictate}
             >
-              <Mic size={16} />
+              <span className="crm-locked-ai-emoji" aria-hidden>
+                🎙
+              </span>
             </button>
           </div>
           <button
             type="button"
-            className="crm-locked-ai-send"
+            className="crm-locked-ai-send crm-locked-ai-send--neon"
             aria-label="Изпрати"
             disabled={(!draft.trim() && pendingFiles.length === 0) || busy}
             onClick={() => void send()}
           >
-            <Send size={16} />
+            <span className="crm-locked-ai-emoji" aria-hidden>
+              🚀
+            </span>
             Изпрати
           </button>
         </div>
