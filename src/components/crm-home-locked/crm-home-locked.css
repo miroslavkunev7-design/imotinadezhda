@@ -2786,79 +2786,54 @@
   color: #9a1830;
 }
 
-.crm-imoti-tabs button {
+.crm-imoti-tabs button,
+.crm-imoti-tabs button.is-active,
+.crm-imoti-tabs button[aria-selected="true"],
+.crm-imoti-tabs button[aria-selected="false"],
+.crm-locked-root[data-theme="light"] .crm-imoti-tabs button,
+.crm-locked-root[data-theme="dark"] .crm-imoti-tabs button {
   position: relative;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid rgba(180, 140, 60, 0.45);
-  border-right-width: 0;
-  background: linear-gradient(180deg, #f0d78a 0%, #d4af37 48%, #b8922a 100%);
-  color: #9a1830;
+  margin-right: 6px;
+  border: 1.5px solid rgba(154, 24, 48, 0.28) !important;
+  background: linear-gradient(180deg, #f0d78a 0%, #d4af37 48%, #b8922a 100%) !important;
+  color: #9a1830 !important;
   font: inherit;
   font-size: 12px;
   font-weight: 700;
   padding: 9px 12px;
-  border-radius: 0;
-  opacity: 1;
+  border-radius: 999px !important;
+  opacity: 1 !important;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: inset 0 1px 0 rgba(255, 245, 200, 0.55);
+  box-shadow:
+    0 2px 8px rgba(140, 100, 30, 0.18),
+    inset 0 1px 0 rgba(255, 245, 200, 0.55) !important;
   text-shadow:
     0 0 8px rgba(196, 40, 69, 0.25),
     0 1px 0 rgba(255, 235, 238, 0.3);
 }
 
-.crm-imoti-tabs button:first-child {
-  border-radius: 999px 0 0 999px;
-  border-left-width: 1px;
-}
-
 .crm-imoti-tabs button:last-child {
-  border-radius: 0 999px 999px 0;
-  border-right-width: 1px;
+  margin-right: 0;
 }
 
-.crm-imoti-tabs button + button::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 18%;
-  bottom: 18%;
-  width: 1px;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(154, 24, 48, 0.35),
-    transparent
-  );
-  pointer-events: none;
-}
-
-.crm-imoti-tabs button.is-active {
-  opacity: 1;
-  background: linear-gradient(180deg, #ffe7a8 0%, #e0bc45 45%, #c9a12c 100%);
-  color: #c42845;
+.crm-imoti-tabs button.is-active,
+.crm-imoti-tabs button[aria-selected="true"],
+.crm-locked-root[data-theme="light"] .crm-imoti-tabs button.is-active,
+.crm-locked-root[data-theme="light"] .crm-imoti-tabs button[aria-selected="true"],
+.crm-locked-root[data-theme="dark"] .crm-imoti-tabs button.is-active,
+.crm-locked-root[data-theme="dark"] .crm-imoti-tabs button[aria-selected="true"] {
+  background: linear-gradient(180deg, #ffe7a8 0%, #e0bc45 45%, #c9a12c 100%) !important;
+  color: #c42845 !important;
   box-shadow:
     0 0 0 1px rgba(196, 40, 69, 0.28),
     0 0 14px rgba(240, 215, 140, 0.55),
-    inset 0 1px 0 rgba(255, 250, 220, 0.75);
+    inset 0 1px 0 rgba(255, 250, 220, 0.75) !important;
   z-index: 1;
-}
-
-.crm-locked-root[data-theme="dark"] .crm-imoti-tabs button,
-.crm-locked-root[data-theme="dark"] .crm-imoti-tabs button.is-active {
-  background: linear-gradient(180deg, #f0d78a 0%, #d4af37 48%, #b8922a 100%);
-  color: #9a1830;
-  box-shadow:
-    0 0 0 1px rgba(180, 140, 60, 0.35),
-    inset 0 1px 0 rgba(255, 245, 200, 0.55);
-}
-
-.crm-locked-root[data-theme="dark"] .crm-imoti-tabs button.is-active {
-  color: #c42845;
-  background: linear-gradient(180deg, #ffe7a8 0%, #e0bc45 45%, #c9a12c 100%);
 }
 
 .crm-imoti-panel {
@@ -3135,31 +3110,47 @@
   gap: 2px;
   padding: 14px 8px;
   border-radius: 14px;
-  background: rgba(0, 0, 0, 0.12);
+  background: linear-gradient(180deg, #f0d78a 0%, #d4af37 48%, #b8922a 100%);
+  border: 1px solid rgba(180, 140, 60, 0.55);
+  box-shadow:
+    0 4px 12px rgba(140, 100, 30, 0.2),
+    inset 0 1px 0 rgba(255, 245, 200, 0.65);
+  color: #9a1830;
 }
 
 .crm-imoti-big-stats strong {
   font-size: 20px;
   font-weight: 800;
+  color: #9a1830;
 }
 
 .crm-imoti-big-stats span {
   font-size: 11px;
-  opacity: 0.65;
+  opacity: 0.85;
+  color: #9a1830;
+  font-weight: 650;
 }
 
 .crm-imoti-accordion details {
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(180, 140, 60, 0.45);
   border-radius: 12px;
   padding: 10px 12px;
   margin-bottom: 8px;
-  background: rgba(0, 0, 0, 0.08);
+  background: linear-gradient(180deg, #f0d78a 0%, #d4af37 48%, #b8922a 100%);
+  color: #9a1830;
+  box-shadow: inset 0 1px 0 rgba(255, 245, 200, 0.55);
 }
 
 .crm-imoti-accordion summary {
   cursor: pointer;
-  font-weight: 650;
+  font-weight: 700;
   font-size: 13px;
+  color: #9a1830;
+}
+
+.crm-imoti-accordion details p {
+  color: #6a1424;
+  opacity: 0.9;
 }
 
 .crm-imoti-timeline {
@@ -3574,7 +3565,7 @@
   z-index: 1;
 }
 
-/* Photo only on the left half, melts into white like property map cards */
+/* Photo on left half → melts right-to-left into white (map-card style) */
 .crm-imoti-panel--section::before {
   content: "";
   position: absolute;
@@ -3582,24 +3573,24 @@
   z-index: 0;
   background-image: var(--crm-imoti-section-bg);
   background-size: cover;
-  background-position: 28% center;
-  opacity: 0.92;
-  filter: saturate(1.05) brightness(0.98);
+  background-position: 22% center;
+  opacity: 1;
+  filter: saturate(1.08) brightness(1);
   -webkit-mask-image: linear-gradient(
     90deg,
     #000 0%,
-    #000 28%,
-    rgba(0, 0, 0, 0.72) 42%,
-    rgba(0, 0, 0, 0.28) 58%,
-    transparent 78%
+    #000 34%,
+    rgba(0, 0, 0, 0.78) 48%,
+    rgba(0, 0, 0, 0.32) 64%,
+    transparent 82%
   );
   mask-image: linear-gradient(
     90deg,
     #000 0%,
-    #000 28%,
-    rgba(0, 0, 0, 0.72) 42%,
-    rgba(0, 0, 0, 0.28) 58%,
-    transparent 78%
+    #000 34%,
+    rgba(0, 0, 0, 0.78) 48%,
+    rgba(0, 0, 0, 0.32) 64%,
+    transparent 82%
   );
 }
 
@@ -3611,9 +3602,9 @@
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.18) 0%,
-    rgba(255, 255, 255, 0.55) 38%,
-    rgba(255, 255, 255, 0.92) 62%,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.42) 42%,
+    rgba(255, 255, 255, 0.88) 66%,
     #ffffff 100%
   );
 }
@@ -3657,8 +3648,14 @@
 }
 
 .crm-locked-root[data-theme="light"] .crm-imoti-panel--section::before {
-  opacity: 0.95;
-  filter: saturate(1.05) brightness(1);
+  opacity: 1;
+  filter: saturate(1.08) brightness(1);
+}
+
+/* Never show logo/topnav chrome inside detail property card */
+.crm-imoti-shell--detail-merge .crm-imoti-topnav,
+.crm-imoti-shell--detail-merge .crm-imoti-shell__logo {
+  display: none !important;
 }
 
 .crm-locked-root[data-theme="dark"] .crm-imoti-panel--section {
@@ -3898,17 +3895,24 @@
   margin-top: 14px;
   padding: 12px;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, #f0d78a 0%, #d4af37 48%, #b8922a 100%);
+  border: 1px solid rgba(180, 140, 60, 0.5);
+  box-shadow:
+    0 4px 12px rgba(140, 100, 30, 0.18),
+    inset 0 1px 0 rgba(255, 245, 200, 0.6);
+  color: #9a1830;
 }
 
 .crm-imoti-owner-note h4 {
   margin: 0 0 6px;
   font-size: 13px;
+  color: #9a1830;
+  font-weight: 800;
 }
 
 .crm-imoti-owner-note p {
   margin: 0;
+  color: #6a1424;
 }
 
 .crm-imoti-loan {

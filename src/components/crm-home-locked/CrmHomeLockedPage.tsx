@@ -341,7 +341,7 @@ export function CrmHomeLockedPage() {
       />
       <SectionSheet open={section !== null} data={section} onClose={closeOverlays} />
       <ImotiCatalogModal
-        open={imotiOpen}
+        open={imotiOpen && selectedId === null}
         properties={properties}
         onClose={closeImotiCatalog}
         onOpenProperty={(property) => setSelectedId(property.id)}
