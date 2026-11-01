@@ -5349,22 +5349,22 @@
 .crm-locked-root[data-theme="light"] .crm-imoti-detail__stats--ref {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px 12px;
-  margin: 4px 0 18px;
+  gap: 14px 16px;
+  margin: 8px 0 20px;
 }
 
 .crm-locked-root[data-theme="light"] .crm-imoti-detail__stats--ref span {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 6px;
   padding: 0;
   border: 0;
   background: transparent;
   box-shadow: none;
   text-shadow: none;
   color: #1a1216;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 650;
   font-style: normal;
 }
