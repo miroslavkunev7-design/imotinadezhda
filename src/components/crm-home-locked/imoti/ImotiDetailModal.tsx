@@ -28,10 +28,14 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { CreditBlock } from "@/components/admin/credit-block";
+import { BankMortgageDesk, type BankDeskSavedPayload } from "@/components/admin/bank-mortgage-desk";
 import type { CreditBlockData } from "@/lib/banks-catalog";
 
 import { CrmModalShell } from "./CrmModalShell";
-import { ImotiBankModal } from "./ImotiBankModal";
+import {
+  deskSaveToCreditBlock,
+  imotiPropertyToDeskClient,
+} from "./imoti-bank-desk-bridge";
 import { formatImotiPrice } from "./imoti-demo-data";
 import {
   IMOTI_SECTION_BG,
@@ -404,6 +408,19 @@ export function ImotiDetailModal({
 
   const gallery = property?.gallery ?? [];
   const current = gallery[imageIdx] ?? property?.coverUrl ?? "";
+  const deskClient = useMemo(
+    () => (property ? imotiPropertyToDeskClient(property) : null),
+    [property],
+  );
+
+  const handleDeskSaved = (payload?: BankDeskSavedPayload) => {
+    if (!property || !payload) return;
+    const block = deskSaveToCreditBlock(payload, property.price);
+    if (block) {
+      onSaveCreditBlock(property.id, block);
+      setToast("Кредитен блок е запазен към имота");
+    }
+  };
 
   const stats = useMemo(() => {
     if (!property) return [];
@@ -593,12 +610,14 @@ export function ImotiDetailModal({
         </div>
       </div>
 
-      <ImotiBankModal
-        open={bankOpen}
-        property={property}
-        onClose={() => setBankOpen(false)}
-        onSaveCreditBlock={(block) => onSaveCreditBlock(property.id, block)}
-      />
+      {deskClient ? (
+        <BankMortgageDesk
+          client={deskClient}
+          open={bankOpen}
+          onClose={() => setBankOpen(false)}
+          onSaved={handleDeskSaved}
+        />
+      ) : null}
 
       {brokerOpen ? (
         <div className="crm-imoti-sheet" role="dialog" aria-label="Контакт с брокер">

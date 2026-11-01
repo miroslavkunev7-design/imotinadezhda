@@ -37,6 +37,20 @@ type ClientLite = {
   mortgage_data?: any;
 };
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isUuidClientId(id: string) {
+  return UUID_RE.test(id);
+}
+
+export type BankDeskSavedPayload = {
+  mortgage_data: ClientLite["mortgage_data"];
+  bank: ShumenBank;
+  form: Record<string, string>;
+  dayRate?: DayBankRate;
+};
+
 const ROLES: BankRole[] = ["кредитен консултант", "управител", "клонов мениджър", "друг"];
 
 export function BankMortgageDesk({
@@ -48,7 +62,7 @@ export function BankMortgageDesk({
   client: ClientLite;
   open: boolean;
   onClose: () => void;
-  onSaved?: () => void;
+  onSaved?: (payload?: BankDeskSavedPayload) => void;
 }) {
   const [bank, setBank] = useState<ShumenBank | null>(null);
   const [dayRates, setDayRates] = useState<Record<string, DayBankRate>>({});
@@ -195,7 +209,7 @@ function BankWindow({
   client: ClientLite;
   onBack: () => void;
   onClose: () => void;
-  onSaved?: () => void;
+  onSaved?: (payload?: BankDeskSavedPayload) => void;
   onAddTask?: () => void;
 }) {
   const saved = loadBankDesk(bank.id);
@@ -219,26 +233,35 @@ function BankWindow({
   const saveForm = async () => {
     setBusy(true);
     try {
+      const mortgage_data = {
+        ...(client.mortgage_data ?? {}),
+        bank_apps: { ...(client.mortgage_data?.bank_apps ?? {}), [bank.id]: form },
+        started_deal: true,
+        bank_case: {
+          bankId: bank.id,
+          bankName: bank.name,
+          worker: (client.mortgage_data?.bank_case?.worker as string) ?? "",
+          sent: (client.mortgage_data?.bank_case?.sent as string) ?? "",
+          progress: (client.mortgage_data?.bank_case?.progress as string) ?? "подадена графа",
+        },
+      };
+      const payload: BankDeskSavedPayload = { mortgage_data, bank, form, dayRate };
+
+      if (!isUuidClientId(client.id)) {
+        toast.success("Графата за ипотеката е записана локално.");
+        onSaved?.(payload);
+        return;
+      }
+
       await updateClientDeal({
         data: {
           id: client.id,
           deal_stage: "mortgage",
-          mortgage_data: {
-            ...(client.mortgage_data ?? {}),
-            bank_apps: { ...(client.mortgage_data?.bank_apps ?? {}), [bank.id]: form },
-            started_deal: true,
-            bank_case: {
-              bankId: bank.id,
-              bankName: bank.name,
-              worker: (client.mortgage_data?.bank_case?.worker as string) ?? "",
-              sent: (client.mortgage_data?.bank_case?.sent as string) ?? "",
-              progress: (client.mortgage_data?.bank_case?.progress as string) ?? "подадена графа",
-            },
-          },
+          mortgage_data,
         },
       });
       toast.success("Графата за ипотеката е записана.");
-      onSaved?.();
+      onSaved?.(payload);
     } catch (e: any) {
       toast.error(e?.message ?? "Грешка при запис");
     } finally {
@@ -486,7 +509,7 @@ function BankCkrPanel({
   client: ClientLite;
   form: Record<string, string>;
   setForm: (next: Record<string, string>) => void;
-  onSaved?: () => void;
+  onSaved?: (payload?: BankDeskSavedPayload) => void;
 }) {
   const [docs, setDocs] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
