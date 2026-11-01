@@ -236,26 +236,28 @@ export function CrmHomeLockedPage() {
       <SceneBackdrop theme={theme} />
       <div className="crm-locked-ui">
         <header className="crm-locked-top">
-          <div className="crm-locked-top__spacer" aria-hidden />
+          <div className="crm-locked-top__brand">
+            <LockedLogo onClick={() => onSelectNav("home")} />
+            {theme === "light" ? (
+              <div className="crm-locked-brand-copy">
+                <p className="crm-locked-brand-copy__line">Недвижими имоти</p>
+                <p className="crm-locked-brand-copy__name">
+                  <span className="crm-locked-brand-copy__dot" aria-hidden />
+                  Надежда
+                  <span className="crm-locked-brand-copy__dot" aria-hidden />
+                </p>
+              </div>
+            ) : null}
+          </div>
           <LockedNav
             active={activeNav}
             onSelect={onSelectNav}
             onSelectPropertyMenu={onSelectPropertyMenu}
           />
-          <LockedLogo onClick={() => onSelectNav("home")} />
+          <div className="crm-locked-top__spacer" aria-hidden />
         </header>
 
         <main className="crm-locked-main">
-          {theme === "light" ? (
-            <div className="crm-locked-brand-copy">
-              <p className="crm-locked-brand-copy__line">Недвижими имоти</p>
-              <p className="crm-locked-brand-copy__name">
-                <span className="crm-locked-brand-copy__dot" aria-hidden />
-                Надежда
-                <span className="crm-locked-brand-copy__dot" aria-hidden />
-              </p>
-            </div>
-          ) : null}
           <section className="crm-locked-grid" aria-label="CRM показатели">
             {CARDS.map((card) => (
               <GlassStatCard

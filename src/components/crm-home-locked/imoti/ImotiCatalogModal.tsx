@@ -1,15 +1,16 @@
 import {
-  ArrowRight,
+  BedDouble,
   Bell,
   ChevronLeft,
   ChevronRight,
   Filter,
   Grid2X2,
-  Heart,
   LayoutList,
   MapPin,
+  Maximize2,
   Plus,
   Search,
+  Star,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
@@ -32,39 +33,46 @@ function PropertyMiniCard({
   onOpen: () => void;
   onToggleFavorite: () => void;
 }) {
+  const shortId = property.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) || property.id.slice(0, 8);
+  const bedrooms = Math.max(1, property.rooms - 1);
+
   return (
-    <div className="crm-imoti-card">
+    <div className="crm-imoti-card crm-imoti-card--poster">
       <button type="button" className="crm-imoti-card__hit" onClick={onOpen}>
-        <div className="crm-imoti-card__media">
-          <img src={property.coverUrl} alt="" />
-          <span className="crm-imoti-card__badge">{property.typeLabel}</span>
-        </div>
-        <div className="crm-imoti-card__body">
-          <strong>{property.title}</strong>
-          <span className="crm-imoti-card__loc">
-            <MapPin size={12} /> {property.city}, {property.quarter}
-          </span>
-          <span className="crm-imoti-card__price">{formatImotiPrice(property)}</span>
-          <div className="crm-imoti-card__meta">
-            <span>{property.areaSqm} m²</span>
-            <span>{property.rooms} стаи</span>
-            <span>Етаж {property.floor}</span>
+        <div
+          className="crm-imoti-card__media"
+          style={{ backgroundImage: `url(${property.coverUrl})` }}
+        >
+          <span className="crm-imoti-card__id">ID: {shortId}</span>
+          <span className="crm-imoti-card__status">Активна</span>
+          <div className="crm-imoti-card__melt">
+            <strong>{property.title}</strong>
+            <span className="crm-imoti-card__loc">
+              <MapPin size={13} strokeWidth={2.2} /> {property.city}, {property.quarter}
+            </span>
+            <div className="crm-imoti-card__specs">
+              <span>
+                <Maximize2 size={13} strokeWidth={2.2} /> {property.areaSqm} кв.м
+              </span>
+              <span>
+                <BedDouble size={13} strokeWidth={2.2} /> {bedrooms} спални
+              </span>
+            </div>
+            <span className="crm-imoti-card__price">{formatImotiPrice(property)}</span>
           </div>
-          <span className="crm-imoti-card__go" aria-hidden>
-            <ArrowRight size={14} />
-          </span>
         </div>
       </button>
       <button
         type="button"
-        className={`crm-imoti-card__fav${property.favorite ? " is-on" : ""}`}
+        className={`crm-imoti-card__fab${property.favorite ? " is-on" : ""}`}
         aria-label={property.favorite ? "Премахни от любими" : "Добави в любими"}
         onClick={(e) => {
           e.stopPropagation();
           onToggleFavorite();
         }}
       >
-        <Heart size={14} fill={property.favorite ? "currentColor" : "none"} />
+        <Plus size={11} strokeWidth={2.6} />
+        <Star size={12} strokeWidth={2.2} fill={property.favorite ? "currentColor" : "none"} />
       </button>
     </div>
   );

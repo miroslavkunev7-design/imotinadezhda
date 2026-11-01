@@ -114,7 +114,7 @@
   width: clamp(160px, 16vw, 260px);
   height: auto;
   object-fit: contain;
-  object-position: right top;
+  object-position: left top;
   filter: drop-shadow(0 0 14px rgba(255, 255, 255, 1))
     drop-shadow(0 0 32px rgba(255, 255, 255, 0.65));
   pointer-events: none;
@@ -128,6 +128,15 @@
   gap: 24px;
 }
 
+.crm-locked-top__brand {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: min(42vw, 360px);
+}
+
 .crm-locked-top__spacer {
   flex: 1 1 auto;
   min-width: 0;
@@ -135,11 +144,12 @@
 
 .crm-locked-top .crm-locked-nav {
   flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .crm-locked-top .crm-locked-logo-link {
   flex: 0 0 auto;
-  margin-left: clamp(12px, 2vw, 28px);
+  margin-left: 0;
 }
 
 .crm-locked-nav {
@@ -431,24 +441,38 @@
   );
 }
 
-/* Light: wider photo pane, full scene visible (no harsh melt crop) */
+/* Light: photo ~right half, full scene via contain, soft melt at left edge */
 .crm-locked-root[data-theme="light"] .crm-locked-card__photo {
-  inset: 0 0 0 22%;
-  background-size: cover;
-  background-position: center center;
-  -webkit-mask-image: none;
-  mask-image: none;
-  border-radius: 0 24px 24px 0;
+  inset: 8% 4% 8% 48%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center right;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 18%,
+    rgba(0, 0, 0, 0.75) 42%,
+    #000 62%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 18%,
+    rgba(0, 0, 0, 0.75) 42%,
+    #000 62%,
+    #000 100%
+  );
+  border-radius: 0;
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-card__veil {
-  /* Keep glass readability on the left; leave the wider photo pane clearer */
   background: linear-gradient(
     90deg,
-    rgba(18, 10, 14, 0.55) 0%,
-    rgba(18, 10, 14, 0.28) 34%,
-    rgba(18, 10, 14, 0.08) 58%,
-    transparent 78%
+    rgba(18, 10, 14, 0.52) 0%,
+    rgba(18, 10, 14, 0.3) 38%,
+    rgba(18, 10, 14, 0.1) 58%,
+    transparent 76%
   );
 }
 
@@ -1800,33 +1824,42 @@
 .crm-imoti-row__arrow--right { right: 6px; }
 
 .crm-imoti-card {
-  flex: 0 0 min(240px, 72vw);
+  flex: 0 0 min(248px, 72vw);
   scroll-snap-align: start;
   text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 18px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
+  border: 0;
+  border-radius: 28px;
+  overflow: visible;
+  background: transparent;
   color: inherit;
   padding: 0;
   cursor: pointer;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
+  position: relative;
 }
 
 .crm-imoti-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
 }
 
-.crm-locked-root[data-theme="light"] .crm-imoti-card {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(255, 255, 255, 0.9);
+.crm-imoti-card--poster {
+  box-shadow: 0 18px 40px rgba(12, 10, 16, 0.28);
+}
+
+.crm-imoti-card--poster .crm-imoti-card__hit {
+  border-radius: 28px;
+  overflow: hidden;
 }
 
 .crm-imoti-card__media {
   position: relative;
-  aspect-ratio: 16 / 11;
+  aspect-ratio: 3 / 3.85;
   overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: clamp(300px, 42vh, 360px);
+  min-height: 0;
 }
 
 .crm-imoti-card__media img {
@@ -1834,6 +1867,33 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.crm-imoti-card__id,
+.crm-imoti-card__status {
+  position: absolute;
+  top: 14px;
+  z-index: 2;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(8px);
+}
+
+.crm-imoti-card__id {
+  left: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #5a1020;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.crm-imoti-card__status {
+  right: 14px;
+  background: #6a1424;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(90, 16, 32, 0.35);
 }
 
 .crm-imoti-card__badge {
@@ -1849,17 +1909,90 @@
   backdrop-filter: blur(6px);
 }
 
-.crm-imoti-card__fav {
+.crm-imoti-card__melt {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  padding: 72px 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(255, 255, 255, 0.88) 38%,
+    rgba(255, 255, 255, 0.35) 72%,
+    transparent 100%
+  );
+  color: #152038;
+}
+
+.crm-imoti-card__melt strong {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #152038;
+  padding-right: 42px;
+}
+
+.crm-imoti-card__loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d2740;
+}
+
+.crm-imoti-card__loc svg {
+  color: #b01d33;
+  flex: none;
+}
+
+.crm-imoti-card__specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #1d2740;
+}
+
+.crm-imoti-card__specs span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.crm-imoti-card__price {
+  font-size: 22px;
+  font-weight: 800;
+  margin-top: 2px;
+  color: #6a1424 !important;
+  letter-spacing: -0.02em;
+}
+
+.crm-imoti-card__fab {
   position: absolute;
   right: 10px;
-  top: 10px;
-  width: 28px;
-  height: 28px;
+  bottom: 10px;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: rgba(12, 14, 20, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  background: #6a1424;
   color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(90, 16, 32, 0.4);
+}
+
+.crm-imoti-card__fab.is-on {
+  background: #8b1c30;
 }
 
 .crm-imoti-card__body {
@@ -1870,31 +2003,6 @@
   padding: 12px 12px 14px;
 }
 
-.crm-imoti-card__body strong {
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.crm-imoti-card__loc {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  opacity: 0.7;
-}
-
-.crm-imoti-card__price {
-  font-size: 15px;
-  font-weight: 750;
-  margin-top: 2px;
-  color: #600f1c;
-}
-
-.crm-locked-root[data-theme="dark"] .crm-imoti-card__price {
-  color: #fff;
-}
-
 .crm-imoti-card__meta {
   display: flex;
   gap: 8px;
@@ -1902,24 +2010,6 @@
   font-size: 11px;
   opacity: 0.68;
   margin-top: 2px;
-}
-
-.crm-imoti-card__go {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: rgba(96, 15, 28, 0.12);
-  color: #600f1c;
-}
-
-.crm-locked-root[data-theme="dark"] .crm-imoti-card__go {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
 }
 
 /* Detail modal */
@@ -1938,11 +2028,22 @@
   background: rgba(0, 0, 0, 0.25);
 }
 
+.crm-imoti-gallery__open {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
 .crm-imoti-gallery__main img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  pointer-events: none;
 }
 
 .crm-imoti-gallery__count {
@@ -1996,48 +2097,73 @@
 .crm-imoti-detail__summary h2 {
   margin: 0 0 6px;
   font-size: clamp(20px, 2.2vw, 28px);
-  font-weight: 750;
+  font-weight: 800;
   letter-spacing: -0.02em;
 }
 
+.crm-imoti-detail__loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(26, 18, 22, 0.72);
+}
+
+.crm-imoti-detail__loc svg {
+  color: #b01d33;
+  flex: none;
+}
+
 .crm-imoti-detail__price {
-  margin: 12px 0;
-  font-size: clamp(24px, 2.6vw, 34px);
+  margin: 14px 0;
+  font-size: clamp(28px, 3vw, 40px);
   font-weight: 800;
-  color: #600f1c;
+  color: #c01830;
   display: flex;
   flex-direction: column;
-  line-height: 1.1;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
 }
 
 .crm-locked-root[data-theme="dark"] .crm-imoti-detail__price {
-  color: #fff;
+  color: #ff5a6e;
 }
 
 .crm-imoti-detail__price small {
   font-size: 12px;
   font-weight: 550;
   opacity: 0.65;
-  margin-top: 4px;
+  margin-top: 6px;
+  letter-spacing: 0;
+  color: inherit;
 }
 
 .crm-imoti-detail__stats {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .crm-imoti-detail__stats span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  gap: 7px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(96, 15, 28, 0.1);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 650;
+  color: #1a1216;
+}
+
+.crm-locked-root[data-theme="dark"] .crm-imoti-detail__stats span {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 
 .crm-imoti-detail__actions {
@@ -2076,13 +2202,20 @@
 
 .crm-imoti-tabs button.is-active {
   opacity: 1;
-  background: rgba(96, 15, 28, 0.14);
-  color: #600f1c;
+  background: #6a1424;
+  color: #fff;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 0 14px rgba(255, 255, 255, 0.55),
+    0 0 28px rgba(255, 255, 255, 0.28);
 }
 
 .crm-locked-root[data-theme="dark"] .crm-imoti-tabs button.is-active {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 0 16px rgba(255, 255, 255, 0.35);
 }
 
 .crm-imoti-panel {
@@ -2119,8 +2252,93 @@
 
 .crm-imoti-detail__split {
   display: grid;
-  grid-template-columns: 1.4fr 0.9fr;
+  grid-template-columns: 1.25fr 0.75fr 0.95fr;
   gap: 14px;
+  align-items: start;
+}
+
+.crm-imoti-detail__midshot {
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: 280px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 28px rgba(12, 10, 16, 0.16);
+}
+
+.crm-imoti-detail__midshot img {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  object-fit: cover;
+  display: block;
+}
+
+.crm-imoti-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 8, 14, 0.88);
+  backdrop-filter: blur(10px);
+  padding: 48px 64px;
+}
+
+.crm-imoti-lightbox__img {
+  max-width: min(92vw, 1200px);
+  max-height: min(86vh, 900px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.crm-imoti-lightbox__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+}
+
+.crm-imoti-lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+}
+
+.crm-imoti-lightbox__nav--prev { left: 18px; }
+.crm-imoti-lightbox__nav--next { right: 18px; }
+
+.crm-imoti-lightbox__count {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
 }
 
 .crm-imoti-side {
@@ -2342,6 +2560,15 @@
     grid-template-columns: 1fr;
   }
 
+  .crm-imoti-detail__midshot {
+    min-height: 200px;
+    max-height: 280px;
+  }
+
+  .crm-imoti-detail__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .crm-imoti-big-stats {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2542,51 +2769,9 @@
   padding: 0;
   cursor: pointer;
   font: inherit;
+  width: 100%;
 }
 
-.crm-imoti-card__body {
-  background: #ffffff !important;
-  color: #1a1216;
-}
-
-.crm-imoti-card__body strong {
-  color: #1a1216;
-}
-
-.crm-locked-root[data-theme="dark"] .crm-imoti-card__price,
-.crm-imoti-card__price {
-  color: #600f1c !important;
-  text-shadow: none !important;
-}
-
-.crm-imoti-card__loc,
-.crm-imoti-card__meta {
-  color: rgba(26, 18, 22, 0.72);
-  opacity: 1;
-}
-
-.crm-imoti-card__go {
-  background: rgba(96, 15, 28, 0.1) !important;
-  color: #600f1c !important;
-}
-
-.crm-imoti-card__fav {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  z-index: 2;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  border: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(12, 14, 20, 0.55);
-  color: #fff;
-  cursor: pointer;
-}
-
-.crm-imoti-card__fav.is-on,
 .crm-imoti-icon-btn.is-fav {
   color: #f43f5e;
 }
@@ -2611,20 +2796,21 @@
 
 .crm-imoti-catalog--list .crm-imoti-card {
   flex: 1 1 auto;
-  width: 100%;
-  max-width: none;
-  flex-direction: row;
+  width: min(100%, 360px);
+  max-width: 360px;
+  flex-direction: column;
 }
 
 .crm-imoti-catalog--list .crm-imoti-card__hit {
-  flex-direction: row;
+  flex-direction: column;
 }
 
 .crm-imoti-catalog--list .crm-imoti-card__media {
-  width: 180px;
-  flex: 0 0 180px;
-  aspect-ratio: auto;
-  height: 120px;
+  width: 100%;
+  flex: 1 1 auto;
+  aspect-ratio: 3 / 3.85;
+  min-height: 0;
+  height: clamp(300px, 42vh, 360px);
 }
 
 .crm-imoti-panel--section {
@@ -2809,20 +2995,15 @@
   background: rgba(255, 255, 255, 0.96) !important;
 }
 
-.crm-imoti-card {
-  background: #ffffff !important;
-  color: #1a1216 !important;
+.crm-imoti-card--poster {
+  background: transparent !important;
+  color: #152038 !important;
 }
 
-.crm-locked-root[data-theme="light"] .crm-imoti-card {
-  background: #ffffff !important;
-  color: #1a1216 !important;
-}
-
-.crm-locked-root[data-theme="dark"] .crm-imoti-card {
-  background: #ffffff !important;
-  color: #1a1216 !important;
-  border-color: rgba(255, 255, 255, 0.55) !important;
+.crm-locked-root[data-theme="light"] .crm-imoti-card--poster,
+.crm-locked-root[data-theme="dark"] .crm-imoti-card--poster {
+  background: transparent !important;
+  border-color: transparent !important;
 }
 
 .crm-imoti-feature {
@@ -3097,7 +3278,8 @@
   .crm-imoti-catalog--list .crm-imoti-card__media {
     width: 100%;
     height: auto;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 3 / 4.15;
+    min-height: 280px;
   }
 }
 
@@ -3126,56 +3308,61 @@
 }
 
 
-/* Light home brand in open left sky */
+/* Light home brand under logo — white neon */
 .crm-locked-brand-copy {
-  position: absolute;
-  left: clamp(18px, 4vw, 56px);
-  top: clamp(22%, 26vh, 34%);
+  position: relative;
+  left: auto;
+  top: auto;
   z-index: 3;
-  width: min(40vw, 420px);
-  max-width: calc(100% - min(64vw, 820px) - 48px);
+  width: 100%;
+  max-width: none;
   pointer-events: none;
-  text-align: center;
-  color: #600f1c;
+  text-align: left;
+  color: #fff;
 }
 
 .crm-locked-brand-copy__line {
   margin: 0;
-  font-size: clamp(18px, 2.1vw, 28px);
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: clamp(13px, 1.35vw, 18px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   line-height: 1.15;
+  color: #fff;
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.75),
-    0 8px 24px rgba(255, 255, 255, 0.35);
+    0 0 8px rgba(255, 255, 255, 0.95),
+    0 0 18px rgba(255, 255, 255, 0.7),
+    0 0 32px rgba(255, 255, 255, 0.45);
 }
 
 .crm-locked-brand-copy__name {
-  margin: 14px 0 0;
+  margin: 8px 0 0;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: clamp(12px, 1.4vw, 18px);
-  font-size: clamp(26px, 3vw, 40px);
+  justify-content: flex-start;
+  gap: clamp(10px, 1.1vw, 14px);
+  font-size: clamp(18px, 2vw, 28px);
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   line-height: 1;
+  color: #fff;
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8),
-    0 10px 28px rgba(255, 255, 255, 0.4);
+    0 0 10px rgba(255, 255, 255, 1),
+    0 0 22px rgba(255, 255, 255, 0.75),
+    0 0 40px rgba(255, 255, 255, 0.5);
 }
 
 .crm-locked-brand-copy__dot {
   display: inline-block;
-  width: clamp(10px, 1.1vw, 14px);
-  height: clamp(10px, 1.1vw, 14px);
+  width: clamp(8px, 0.9vw, 11px);
+  height: clamp(8px, 0.9vw, 11px);
   border-radius: 50%;
-  background: #600f1c;
+  background: #fff;
   box-shadow:
-    0 0 0 3px rgba(96, 15, 28, 0.18),
-    0 2px 0 rgba(255, 255, 255, 0.55);
+    0 0 8px rgba(255, 255, 255, 1),
+    0 0 16px rgba(255, 255, 255, 0.7),
+    0 0 0 2px rgba(255, 255, 255, 0.35);
   flex: none;
 }
 
@@ -3688,35 +3875,30 @@
 }
 
 @media (max-width: 900px) {
-  .crm-locked-brand-copy {
-    position: relative;
-    left: auto;
-    top: auto;
-    width: min(92vw, 420px);
-    max-width: none;
-    margin: 4px auto 14px;
-    text-align: center;
-  }
-
   .crm-locked-top {
     flex-wrap: wrap;
+  }
+
+  .crm-locked-top__brand {
+    max-width: min(92vw, 320px);
+    order: 1;
   }
 
   .crm-locked-top__spacer {
     display: none;
   }
 
-  .crm-locked-top .crm-locked-logo-link {
-    margin-left: auto;
-    order: 2;
-  }
-
   .crm-locked-top .crm-locked-nav {
-    order: 1;
+    order: 2;
+    margin-left: 0;
     margin-right: auto;
   }
 
+  .crm-locked-brand-copy {
+    text-align: left;
+  }
+
   .crm-locked-root[data-theme="light"] .crm-locked-card__photo {
-    inset: 0 0 0 18%;
+    inset: 10% 6% 10% 42%;
   }
 }
