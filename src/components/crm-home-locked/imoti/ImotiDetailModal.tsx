@@ -39,9 +39,11 @@ import {
 import { formatImotiPrice } from "./imoti-demo-data";
 import {
   IMOTI_SECTION_BG,
+  IMOTI_SUMMARY_MELT_BG,
   type ImotiDetailTab,
   type ImotiProperty,
 } from "./imoti-types";
+
 
 function HandshakeIcon(props: { size?: number; strokeWidth?: number }) {
   return <Building2 {...props} />;
@@ -472,7 +474,7 @@ export function ImotiDetailModal({
 
           <div
             className="crm-imoti-detail__summary crm-melt-section crm-melt-section--summary"
-            style={{ ["--crm-melt-photo" as string]: `url(${current || property.coverUrl})` }}
+            style={{ ["--crm-melt-photo" as string]: `url(${IMOTI_SUMMARY_MELT_BG})` }}
           >
             <div className="crm-melt-section__copy">
               <div className="crm-imoti-detail__summary-top">

@@ -73,6 +73,13 @@
   transition: opacity 0.35s ease;
 }
 
+/* Light: frame villa on the LEFT so right-side 2×2 cards clear the house */
+.crm-locked-root[data-theme="light"] .crm-locked-fallback-bg[data-theme-bg="light"] {
+  object-position: 8% center;
+  transform: scale(1.12);
+  transform-origin: left center;
+}
+
 /* Soft scene grade so frosted cards lift off the bright villa (light only) */
 .crm-locked-root[data-theme="light"]::after {
   content: "";
@@ -483,10 +490,17 @@
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-card__icon {
-  border-color: #980018;
+  border: 1.5px solid rgba(255, 236, 240, 0.65);
   color: #fff;
-  background: #980018;
-  box-shadow: 0 0 18px rgba(152, 0, 24, 0.55);
+  /* Satin-lit bordo — soft top highlight + depth, not flat red blob */
+  background:
+    radial-gradient(140% 100% at 30% 18%, rgba(255, 220, 228, 0.55) 0%, transparent 46%),
+    radial-gradient(90% 80% at 78% 88%, rgba(30, 0, 8, 0.45) 0%, transparent 55%),
+    linear-gradient(155deg, #b5263a 0%, #8b1528 42%, #5c0d1a 78%, #3a0810 100%);
+  box-shadow:
+    0 7px 16px rgba(40, 10, 16, 0.38),
+    inset 0 1.5px 0 rgba(255, 236, 240, 0.7),
+    inset 0 -12px 18px rgba(30, 0, 8, 0.42);
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-card__title {
@@ -529,11 +543,16 @@
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-card__arrow {
-  border-color: #980018;
+  border-color: rgba(255, 230, 235, 0.45);
   color: #fff;
-  background: #980018;
+  background:
+    radial-gradient(120% 90% at 32% 22%, rgba(255, 210, 220, 0.38) 0%, transparent 52%),
+    linear-gradient(160deg, #a61f32 0%, #7a1020 48%, #4e0a14 100%);
   align-self: flex-end;
-  box-shadow: 0 8px 22px rgba(152, 0, 24, 0.45);
+  box-shadow:
+    0 6px 14px rgba(40, 10, 16, 0.32),
+    inset 0 1px 0 rgba(255, 230, 235, 0.5),
+    inset 0 -8px 14px rgba(40, 0, 10, 0.32);
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-card {
@@ -1409,8 +1428,16 @@
 }
 
 .crm-imoti-overlay--expanded {
-  padding: 0;
-  background: rgba(4, 6, 12, 0.72);
+  padding: 0 !important;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  place-items: stretch;
+  background: #0a0c12;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .crm-imoti-shell {
@@ -1432,13 +1459,18 @@
 }
 
 .crm-imoti-shell--expanded {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
   width: 100vw !important;
   height: 100dvh !important;
   max-width: none !important;
   max-height: none !important;
   border-radius: 0 !important;
-  border-left: 0;
-  border-right: 0;
+  border: 0 !important;
+  margin: 0 !important;
   inset: 0;
 }
 
@@ -1971,7 +2003,12 @@
   display: grid;
   grid-template-columns: 1.25fr 1fr;
   gap: 20px;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
+  align-items: start;
+}
+
+.crm-imoti-gallery {
+  min-width: 0;
 }
 
 .crm-imoti-gallery__main {
@@ -1980,8 +2017,9 @@
   overflow: hidden;
   aspect-ratio: 16 / 10;
   background: rgba(0, 0, 0, 0.25);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 78%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 78%, transparent 100%);
+  /* Soft bottom melt only — keep clear space before tabs */
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 88%, rgba(0, 0, 0, 0.55) 96%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 88%, rgba(0, 0, 0, 0.55) 96%, transparent 100%);
 }
 
 .crm-imoti-detail__summary {
@@ -2019,6 +2057,8 @@
 }
 
 .crm-imoti-gallery__thumbs {
+  position: relative;
+  z-index: 2;
   display: flex;
   gap: 8px;
   margin-top: 10px;
@@ -2144,12 +2184,15 @@
 
 .crm-imoti-tabs {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
-  padding-bottom: 10px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 4px 0 12px;
+  margin: 8px 0 16px;
+  border-bottom: 1px solid rgba(96, 15, 28, 0.1);
   scrollbar-width: none;
+  position: relative;
+  z-index: 3;
+  clear: both;
 }
 
 .crm-imoti-tabs button {
@@ -4025,24 +4068,33 @@
 
 .crm-imoti-catalog__hero {
   min-height: clamp(170px, 26vh, 260px);
+  /* Soft melt into overlapping toolbar — no hard white gap under hero */
+  padding-bottom: 28px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0, 0, 0, 0.55) 82%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0, 0, 0, 0.55) 82%, transparent 100%);
 }
 
 .crm-imoti-catalog__toolbar {
   position: relative;
   z-index: 3;
-  margin: -34px clamp(14px, 2vw, 28px) 10px;
+  margin: -56px clamp(14px, 2vw, 28px) 10px;
   padding: 12px 14px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(22, 24, 32, 0.88);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(14px) saturate(1.05);
+  background: rgba(22, 24, 32, 0.82);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.35),
+    0 -18px 40px rgba(8, 10, 16, 0.18);
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
 }
 
 .crm-locked-root[data-theme="light"] .crm-imoti-catalog__toolbar {
-  background: rgba(255, 255, 255, 0.94);
-  border-color: rgba(96, 15, 28, 0.1);
-  box-shadow: 0 14px 34px rgba(40, 18, 24, 0.14);
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 14px 34px rgba(40, 18, 24, 0.14),
+    0 -16px 36px rgba(255, 250, 248, 0.35);
 }
 
 .crm-imoti-catalog__toolbar .crm-imoti-searchbar {
@@ -4061,6 +4113,54 @@
 
 .crm-imoti-catalog__toolbar .crm-imoti-chips-row {
   margin: 10px 0 0;
+}
+
+/* Colorful filter pills — шарен фон, бял шрифт */
+.crm-imoti-catalog__toolbar .crm-imoti-chips {
+  margin-bottom: 0;
+}
+
+.crm-imoti-catalog__toolbar .crm-imoti-chip {
+  color: #fff !important;
+  border: 0 !important;
+  font-weight: 650;
+  box-shadow: 0 4px 12px rgba(20, 10, 14, 0.18);
+}
+
+.crm-imoti-catalog__toolbar .crm-imoti-chip svg {
+  color: #fff;
+  opacity: 0.95;
+}
+
+.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(1) .crm-imoti-chip {
+  background: linear-gradient(135deg, #c62828, #8e1520);
+}
+.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(2) .crm-imoti-chip {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+}
+.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(3) .crm-imoti-chip {
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+}
+.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(4) .crm-imoti-chip {
+  background: linear-gradient(135deg, #ef6c00, #e65100);
+}
+.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(5) .crm-imoti-chip {
+  background: linear-gradient(135deg, #6a1b9a, #4a148c);
+}
+.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(6) .crm-imoti-chip {
+  background: linear-gradient(135deg, #00838f, #006064);
+}
+
+.crm-imoti-catalog__toolbar .crm-imoti-chip.is-active {
+  filter: brightness(1.06);
+  box-shadow:
+    0 4px 14px rgba(20, 10, 14, 0.22),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.45);
+}
+
+.crm-locked-root[data-theme="light"] .crm-imoti-catalog__toolbar .crm-imoti-chip {
+  background: inherit;
+  color: #fff !important;
 }
 
 .crm-imoti-row__track > .crm-imoti-card:nth-child(odd) {
@@ -4087,12 +4187,17 @@
 }
 
 .crm-imoti-shell--no-top .crm-imoti-detail__hero {
-  margin: 0;
-  align-items: stretch;
+  margin: 0 0 28px;
+  padding-bottom: 4px;
+  align-items: start;
 }
 
 .crm-imoti-shell--no-top .crm-imoti-gallery__main {
   border-radius: 0 0 20px 20px;
+}
+
+.crm-imoti-shell--no-top .crm-imoti-tabs {
+  margin-top: 4px;
 }
 
 /* 2) Summary panel: melted photo ~half the panel (not plain white card) */
@@ -4287,9 +4392,18 @@
   text-shadow: none;
 }
 
-.crm-locked-root[data-theme="light"] .crm-locked-card__icon,
+.crm-locked-root[data-theme="light"] .crm-locked-card__icon {
+  box-shadow:
+    0 6px 14px rgba(40, 10, 16, 0.35),
+    inset 0 1px 0 rgba(255, 230, 235, 0.55),
+    inset 0 -10px 16px rgba(40, 0, 10, 0.35) !important;
+}
+
 .crm-locked-root[data-theme="light"] .crm-locked-card__arrow {
-  box-shadow: 0 6px 14px rgba(20, 10, 14, 0.28) !important;
+  box-shadow:
+    0 6px 14px rgba(40, 10, 16, 0.32),
+    inset 0 1px 0 rgba(255, 230, 235, 0.5),
+    inset 0 -8px 14px rgba(40, 0, 10, 0.32) !important;
 }
 
 .crm-locked-root[data-theme="light"] .crm-locked-fab,
