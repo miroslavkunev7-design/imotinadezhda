@@ -42,7 +42,7 @@ const CARDS: SectionSheetData[] = [
     icon: <Users size={18} strokeWidth={1.6} />,
   },
   {
-    title: "Имоти",
+    title: "Активни имоти",
     value: 1,
     photoUrl: "/crm-home-locked/card-imoti.jpg",
     description: "Активни обяви, снимки и статуси на имотите.",
@@ -237,11 +237,17 @@ export function CrmHomeLockedPage() {
       <div className="crm-locked-ui">
         <header className="crm-locked-top">
           <LockedLogo onClick={() => onSelectNav("home")} />
-          <LockedNav
-            active={activeNav}
-            onSelect={onSelectNav}
-            onSelectPropertyMenu={onSelectPropertyMenu}
-          />
+          {activeNav === "home" && theme === "light" ? (
+            <h1 className="crm-locked-sky-title" aria-label="Начало">
+              Начало
+            </h1>
+          ) : (
+            <LockedNav
+              active={activeNav}
+              onSelect={onSelectNav}
+              onSelectPropertyMenu={onSelectPropertyMenu}
+            />
+          )}
         </header>
 
         <main className="crm-locked-main">
@@ -250,11 +256,11 @@ export function CrmHomeLockedPage() {
               <GlassStatCard
                 key={card.title}
                 title={card.title}
-                value={card.title === "Имоти" ? imotiValue : card.value}
+                value={card.title === "Активни имоти" ? imotiValue : card.value}
                 photoUrl={card.photoUrl}
                 icon={card.icon}
                 onOpen={() => {
-                  if (card.title === "Имоти") {
+                  if (card.title === "Активни имоти") {
                     openImotiCatalog();
                     return;
                   }
@@ -273,15 +279,17 @@ export function CrmHomeLockedPage() {
 
         <footer className="crm-locked-bottom">
           <div className="crm-locked-bottom__left">
-            <AiAssistFab
-              active={aiOpen}
-              onToggle={() => {
-                setMenuOpen(false);
-                setNotificationsOpen(false);
-                setSection(null);
-                setAiOpen((v) => !v);
-              }}
-            />
+            {theme === "light" && activeNav === "home" ? null : (
+              <AiAssistFab
+                active={aiOpen}
+                onToggle={() => {
+                  setMenuOpen(false);
+                  setNotificationsOpen(false);
+                  setSection(null);
+                  setAiOpen((v) => !v);
+                }}
+              />
+            )}
             <BrokerBadge
               onOpen={() => {
                 setMenuOpen(false);

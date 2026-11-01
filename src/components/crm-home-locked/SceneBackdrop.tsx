@@ -2,7 +2,8 @@ import type { ThemeMode } from "./UtilityDock";
 
 const BG: Record<ThemeMode, string> = {
   dark: "/crm-home-locked/bg-dark.jpg",
-  light: "/crm-home-locked/bg-light.jpg",
+  /* House on LEFT so 2×2 cards on the right don't cover the villa */
+  light: "/crm-home-locked/bg-light-house-left.jpg",
 };
 
 export function SceneBackdrop({ theme }: { theme: ThemeMode }) {
