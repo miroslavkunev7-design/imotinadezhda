@@ -4000,6 +4000,30 @@
 
 .crm-imoti-shell--detail-merge .crm-imoti-detail {
   padding-top: 18px;
+  position: relative;
+  z-index: 1;
+  background: #f4f1ef;
+}
+
+.crm-locked-root[data-theme="dark"] .crm-imoti-shell--detail-merge .crm-imoti-detail {
+  background: #12141c;
+}
+
+.crm-imoti-shell--detail-merge {
+  background: #f4f1ef !important;
+}
+
+.crm-locked-root[data-theme="dark"] .crm-imoti-shell--detail-merge {
+  background: #12141c !important;
+}
+
+.crm-imoti-detail__hero--melt .crm-imoti-row__arrow--left {
+  left: 14px;
+}
+
+.crm-imoti-detail__hero--melt .crm-imoti-row__arrow--right {
+  left: auto;
+  right: calc(42% + 8px);
 }
 
 .crm-imoti-shell--detail-merge .crm-imoti-shell__top-right .crm-imoti-icon-btn {
