@@ -424,7 +424,7 @@ export function ImotiDetailModal({
   property,
   onClose,
   onToggleFavorite,
-  onNavigate,
+  onNavigate: _onNavigate,
   onSaveCreditBlock,
 }: {
   open: boolean;
@@ -434,6 +434,7 @@ export function ImotiDetailModal({
   onNavigate: (target: "clients" | "calendar") => void;
   onSaveCreditBlock: (propertyId: string, block: CreditBlockData) => void;
 }) {
+  void _onNavigate;
   const [expanded, setExpanded] = useState(false);
   const [tab, setTab] = useState<ImotiDetailTab>("basic");
   const [imageIdx, setImageIdx] = useState(0);
@@ -520,27 +521,8 @@ export function ImotiDetailModal({
       onToggleExpand={() => setExpanded((v) => !v)}
       onClose={onClose}
       zIndex={70}
-      headerCenter={
-        <nav className="crm-imoti-topnav" aria-label="Имоти навигация">
-          <button type="button" className="crm-imoti-topnav__item crm-imoti-topnav__item--active">
-            Имоти
-          </button>
-          <button
-            type="button"
-            className="crm-imoti-topnav__item"
-            onClick={() => onNavigate("clients")}
-          >
-            Клиенти
-          </button>
-          <button
-            type="button"
-            className="crm-imoti-topnav__item"
-            onClick={() => onNavigate("calendar")}
-          >
-            Календар
-          </button>
-        </nav>
-      }
+      className="crm-imoti-shell--detail-merge"
+      headerLeft={<span className="crm-imoti-shell__brand-spacer" aria-hidden />}
       headerRight={
         <>
           <button
@@ -555,7 +537,7 @@ export function ImotiDetailModal({
       }
     >
       <div className="crm-imoti-detail">
-        <div className="crm-imoti-detail__hero">
+        <div className="crm-imoti-detail__hero crm-imoti-detail__hero--melt">
           <div className="crm-imoti-gallery">
             <div className="crm-imoti-gallery__main">
               <button
@@ -611,45 +593,60 @@ export function ImotiDetailModal({
           </div>
 
           <div className="crm-imoti-detail__summary">
-            <h2>{property.title}</h2>
-            <p className="crm-imoti-detail__loc">
-              <MapPin size={14} /> {property.city}, {property.quarter}
-            </p>
-            <div className="crm-imoti-detail__price">
-              {formatImotiPrice(property)}
-              <small>Официална цена</small>
-            </div>
-            <div className="crm-imoti-detail__stats">
-              {stats.map((s) => {
-                const Icon = s.icon;
-                return (
-                  <span key={s.label}>
-                    <Icon size={15} strokeWidth={1.8} /> {s.label}
-                  </span>
-                );
-              })}
-            </div>
-            <div className="crm-imoti-detail__actions">
-              <button
-                type="button"
-                className="crm-imoti-primary"
-                onClick={() => setBrokerOpen(true)}
-              >
-                <Phone size={14} /> Свържи се с брокер
-              </button>
-              <button
-                type="button"
-                className="crm-imoti-ghost"
-                onClick={() => onToggleFavorite(property.id)}
-              >
-                <Bookmark size={14} /> {property.favorite ? "Запазен" : "Запази"}
-              </button>
-              <button type="button" className="crm-imoti-ghost" onClick={() => void share()}>
-                <Share2 size={14} /> Сподели
-              </button>
-              <button type="button" className="crm-imoti-ghost" onClick={printDetail}>
-                <Printer size={14} /> Печат
-              </button>
+            <div
+              className="crm-imoti-detail__summary-melt"
+              style={{ backgroundImage: `url(${current})` }}
+              aria-hidden
+            />
+            <div className="crm-imoti-detail__summary-body">
+              <h2>{property.title}</h2>
+              <p className="crm-imoti-detail__loc">
+                <MapPin size={14} /> {property.city}, {property.quarter}
+              </p>
+              <div className="crm-imoti-detail__price">
+                {formatImotiPrice(property)}
+                <small>Официална цена</small>
+              </div>
+              <div className="crm-imoti-detail__stats">
+                {stats.map((s) => {
+                  const Icon = s.icon;
+                  return (
+                    <span key={s.label}>
+                      <Icon size={15} strokeWidth={1.8} /> {s.label}
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="crm-imoti-detail__actions">
+                <button
+                  type="button"
+                  className="crm-imoti-primary crm-imoti-primary--gold"
+                  onClick={() => setBrokerOpen(true)}
+                >
+                  <Phone size={14} /> Свържи се с брокер
+                </button>
+                <button
+                  type="button"
+                  className="crm-imoti-ghost crm-imoti-ghost--gold"
+                  onClick={() => onToggleFavorite(property.id)}
+                >
+                  <Bookmark size={14} /> {property.favorite ? "Запазен" : "Запази"}
+                </button>
+                <button
+                  type="button"
+                  className="crm-imoti-ghost crm-imoti-ghost--gold"
+                  onClick={() => void share()}
+                >
+                  <Share2 size={14} /> Сподели
+                </button>
+                <button
+                  type="button"
+                  className="crm-imoti-ghost crm-imoti-ghost--gold"
+                  onClick={printDetail}
+                >
+                  <Printer size={14} /> Печат
+                </button>
+              </div>
             </div>
           </div>
         </div>
