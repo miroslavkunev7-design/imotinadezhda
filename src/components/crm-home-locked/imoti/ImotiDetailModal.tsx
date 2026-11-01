@@ -538,6 +538,13 @@ export function ImotiDetailModal({
     >
       <div className="crm-imoti-detail">
         <div className="crm-imoti-detail__hero crm-imoti-detail__hero--melt">
+          <div
+            className="crm-imoti-detail__hero-photo"
+            style={{ backgroundImage: `url(${current})` }}
+            aria-hidden
+          />
+          <div className="crm-imoti-detail__hero-veil" aria-hidden />
+
           <div className="crm-imoti-gallery">
             <div className="crm-imoti-gallery__main">
               <button
@@ -546,7 +553,7 @@ export function ImotiDetailModal({
                 aria-label="Отвори снимка на цял екран"
                 onClick={() => setLightboxOpen(true)}
               >
-                <img src={current} alt="" />
+                <span className="crm-imoti-gallery__hit" />
               </button>
               <span className="crm-imoti-card__badge">{property.typeLabel}</span>
               <span className="crm-imoti-gallery__count">
@@ -593,11 +600,6 @@ export function ImotiDetailModal({
           </div>
 
           <div className="crm-imoti-detail__summary">
-            <div
-              className="crm-imoti-detail__summary-melt"
-              style={{ backgroundImage: `url(${current})` }}
-              aria-hidden
-            />
             <div className="crm-imoti-detail__summary-body">
               <h2>{property.title}</h2>
               <p className="crm-imoti-detail__loc">
