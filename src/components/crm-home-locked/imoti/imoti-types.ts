@@ -46,14 +46,40 @@ export type ImotiDetailTab =
 export type ImotiSortKey = "newest" | "price-asc" | "price-desc" | "area-desc";
 
 export const IMOTI_SECTION_BG: Record<ImotiDetailTab, string> = {
-  basic: "/crm-home-locked/card-imoti.jpg",
-  media: "/crm-home-locked/bg-light.jpg",
-  features: "/crm-home-locked/card-sdelki.jpg",
-  location: "/crm-home-locked/bg-dark.jpg",
-  documents: "/crm-home-locked/card-ogledi.jpg",
-  owner: "/crm-home-locked/card-klienti.jpg",
-  history: "/crm-home-locked/bg-dark.jpg",
-  deal: "/crm-home-locked/card-sdelki.jpg",
-  contract: "/crm-home-locked/card-ogledi.jpg",
-  bank: "/crm-home-locked/card-imoti.jpg",
+  basic: "/crm-home-locked/sections/sec-basic.jpg",
+  media: "/crm-home-locked/sections/sec-media.jpg",
+  features: "/crm-home-locked/sections/sec-features.jpg",
+  location: "/crm-home-locked/sections/sec-location.jpg",
+  documents: "/crm-home-locked/sections/sec-documents.jpg",
+  owner: "/crm-home-locked/sections/sec-owner.jpg",
+  history: "/crm-home-locked/sections/sec-history.jpg",
+  deal: "/crm-home-locked/sections/sec-deal.jpg",
+  contract: "/crm-home-locked/sections/sec-contract.jpg",
+  bank: "/crm-home-locked/sections/sec-bank.jpg",
+};
+
+/** Distinct melt BGs for sidebar modules on the detail card */
+export const IMOTI_MODULE_BG = {
+  price: "/crm-home-locked/sections/mod-price.jpg",
+  quick: "/crm-home-locked/sections/mod-quick.jpg",
+  hero: "/crm-home-locked/sections/mod-hero.jpg",
+} as const;
+
+export const FEATURE_EMOJI: Record<string, string> = {
+  Тип: "🏠",
+  Площ: "📐",
+  Стаи: "🛏",
+  Бани: "🛁",
+  Етаж: "🏢",
+  Година: "📅",
+  Паркинг: "🚗",
+  Отопление: "🔥",
+  Строителство: "🧱",
+  Състояние: "✨",
+  Изложение: "☀️",
+  Обзавеждане: "🛋",
+  Име: "👤",
+  Телефон: "📞",
+  "Официална цена": "💶",
+  "Цена към собственика": "🏷",
 };

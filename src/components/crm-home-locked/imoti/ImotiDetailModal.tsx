@@ -3,7 +3,6 @@ import {
   Bath,
   BedDouble,
   Building2,
-  Calculator,
   CalendarClock,
   ChevronLeft,
   ChevronRight,
@@ -34,14 +33,12 @@ import { CrmModalShell } from "./CrmModalShell";
 import { ImotiBankModal } from "./ImotiBankModal";
 import { formatImotiPrice } from "./imoti-demo-data";
 import {
+  FEATURE_EMOJI,
+  IMOTI_MODULE_BG,
   IMOTI_SECTION_BG,
   type ImotiDetailTab,
   type ImotiProperty,
 } from "./imoti-types";
-
-function HandshakeIcon(props: { size?: number; strokeWidth?: number }) {
-  return <Building2 {...props} />;
-}
 
 const TABS: Array<{ key: ImotiDetailTab; label: string; icon: typeof Home }> = [
   { key: "basic", label: "Основна информация", icon: Home },
@@ -51,24 +48,31 @@ const TABS: Array<{ key: ImotiDetailTab; label: string; icon: typeof Home }> = [
   { key: "documents", label: "Документи", icon: FileText },
   { key: "owner", label: "Собственик", icon: UserRound },
   { key: "history", label: "История", icon: History },
-  { key: "deal", label: "Сделка", icon: HandshakeIcon },
+  { key: "deal", label: "Сделка", icon: Building2 },
   { key: "contract", label: "Договор", icon: Scale },
   { key: "bank", label: "Банка", icon: Landmark },
 ];
+
+function featureEmoji(label: string): string {
+  return FEATURE_EMOJI[label] ?? "🔹";
+}
 
 function SectionPanel({
   tab,
   children,
   className = "",
+  bgUrl,
 }: {
   tab: ImotiDetailTab;
   children: ReactNode;
   className?: string;
+  bgUrl?: string;
 }) {
+  const bg = bgUrl ?? IMOTI_SECTION_BG[tab];
   return (
     <div
       className={`crm-imoti-panel crm-imoti-panel--section crm-imoti-panel--${tab}${className ? ` ${className}` : ""}`}
-      style={{ ["--crm-imoti-section-bg" as string]: `url(${IMOTI_SECTION_BG[tab]})` }}
+      style={{ ["--crm-imoti-section-bg" as string]: `url(${bg})` }}
     >
       {children}
     </div>
@@ -100,12 +104,18 @@ function TabContent({
         <div className="crm-imoti-detail__split">
           <SectionPanel tab="basic">
             <h3>
-              <Home size={16} /> Основна информация
+              <span className="crm-imoti-emoji" aria-hidden>
+                🏠
+              </span>{" "}
+              Основна информация
             </h3>
             <p>{property.description}</p>
             <div className="crm-imoti-feature-grid">
               {property.features.map((f) => (
                 <div key={f.label} className="crm-imoti-feature">
+                  <span className="crm-imoti-feature__emoji" aria-hidden>
+                    {featureEmoji(f.label)}
+                  </span>
                   <span>{f.label}</span>
                   <strong>{f.value}</strong>
                 </div>
@@ -116,8 +126,17 @@ function TabContent({
             <img src={property.gallery[1] ?? property.coverUrl} alt="" />
           </div>
           <aside className="crm-imoti-side">
-            <SectionPanel tab="basic" className="crm-imoti-panel--accent">
-              <h4>Цена и разходи</h4>
+            <SectionPanel
+              tab="basic"
+              className="crm-imoti-panel--accent crm-imoti-panel--module-price"
+              bgUrl={IMOTI_MODULE_BG.price}
+            >
+              <h4>
+                <span className="crm-imoti-emoji" aria-hidden>
+                  🪙
+                </span>{" "}
+                Цена и разходи
+              </h4>
               <div className="crm-imoti-money">
                 <span>Официална цена</span>
                 <strong>{formatImotiPrice(property)}</strong>
@@ -149,20 +168,29 @@ function TabContent({
                 </button>
               )}
             </SectionPanel>
-            <SectionPanel tab="bank">
-              <h4>Бързи действия</h4>
+            <SectionPanel
+              tab="bank"
+              className="crm-imoti-panel--module-quick"
+              bgUrl={IMOTI_MODULE_BG.quick}
+            >
+              <h4>
+                <span className="crm-imoti-emoji" aria-hidden>
+                  ⚡
+                </span>{" "}
+                Бързи действия
+              </h4>
               <div className="crm-imoti-quick">
                 <button type="button" onClick={onToggleLoan}>
-                  <Calculator size={14} /> Изчисли вноска
+                  <span aria-hidden>🧮</span> Изчисли вноска
                 </button>
                 <button type="button" onClick={() => onJump("bank")}>
-                  <Shield size={14} /> Провери ЦКР
+                  <span aria-hidden>🛡</span> Провери ЦКР
                 </button>
                 <button type="button" onClick={() => onJump("contract")}>
-                  <Scale size={14} /> Нотариус
+                  <span aria-hidden>⚖️</span> Нотариус
                 </button>
                 <button type="button" onClick={onOpenBank}>
-                  <Landmark size={14} /> Банки
+                  <span aria-hidden>🏦</span> Банки
                 </button>
               </div>
               {loanOpen ? (
@@ -217,6 +245,9 @@ function TabContent({
           <div className="crm-imoti-feature-grid">
             {property.features.map((f) => (
               <div key={f.label} className="crm-imoti-feature">
+                <span className="crm-imoti-feature__emoji" aria-hidden>
+                  {featureEmoji(f.label)}
+                </span>
                 <span>{f.label}</span>
                 <strong>{f.value}</strong>
               </div>
@@ -266,18 +297,30 @@ function TabContent({
           </h3>
           <div className="crm-imoti-feature-grid">
             <div className="crm-imoti-feature">
+              <span className="crm-imoti-feature__emoji" aria-hidden>
+                {featureEmoji("Име")}
+              </span>
               <span>Име</span>
               <strong>Скрито · достъп по права</strong>
             </div>
             <div className="crm-imoti-feature">
+              <span className="crm-imoti-feature__emoji" aria-hidden>
+                {featureEmoji("Телефон")}
+              </span>
               <span>Телефон</span>
               <strong>•••••</strong>
             </div>
             <div className="crm-imoti-feature">
+              <span className="crm-imoti-feature__emoji" aria-hidden>
+                {featureEmoji("Официална цена")}
+              </span>
               <span>Официална цена</span>
               <strong>{formatImotiPrice(property)}</strong>
             </div>
             <div className="crm-imoti-feature">
+              <span className="crm-imoti-feature__emoji" aria-hidden>
+                {featureEmoji("Цена към собственика")}
+              </span>
               <span>Цена към собственика</span>
               <strong>€ {Math.round(property.price * 0.875).toLocaleString("bg-BG")}</strong>
             </div>
