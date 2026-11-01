@@ -111,7 +111,7 @@
 
 .crm-locked-logo {
   /* Match former baked-in logo footprint (roofs only, no text duplicate) */
-  width: clamp(160px, 16vw, 260px);
+  width: clamp(120px, 12vw, 200px);
   height: auto;
   object-fit: contain;
   object-position: left top;
@@ -133,8 +133,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
+  gap: 6px;
   max-width: min(42vw, 360px);
+  z-index: 4;
 }
 
 .crm-locked-top__spacer {
@@ -441,8 +442,25 @@
   );
 }
 
-/* Light + dark home cards share the same horizontal melt treatment */
-.crm-locked-root[data-theme="light"] .crm-locked-card__photo,
+/* Light cards: full photo, white glassy melt on the info side */
+.crm-locked-root[data-theme="light"] .crm-locked-card__photo {
+  inset: 0;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 68% center;
+  -webkit-mask-image: none;
+  mask-image: none;
+  border-radius: 0;
+  filter: saturate(1.05);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.12) 48%, rgba(20, 12, 16, 0.08) 100%),
+    rgba(255, 255, 255, 0.1);
+}
+
+/* Dark: photo melts in from the right under darker glass */
 .crm-locked-root[data-theme="dark"] .crm-locked-card__photo {
   inset: 0;
   background-size: cover;
@@ -467,16 +485,6 @@
   border-radius: 0;
 }
 
-.crm-locked-root[data-theme="light"] .crm-locked-card__veil {
-  background: linear-gradient(
-    90deg,
-    rgba(18, 10, 14, 0.5) 0%,
-    rgba(18, 10, 14, 0.28) 36%,
-    rgba(18, 10, 14, 0.08) 58%,
-    transparent 76%
-  );
-}
-
 .crm-locked-root[data-theme="dark"] .crm-locked-grid > .crm-locked-card:nth-child(1) {
   transform: translateY(-16px) translateZ(34px) rotateY(-3.5deg) rotateX(2deg);
 }
@@ -499,6 +507,44 @@
   z-index: 1;
   pointer-events: none;
   background: var(--crm-glass-veil);
+}
+
+/* White glassy info melt — must follow base veil so it wins */
+.crm-locked-root[data-theme="light"] .crm-locked-card__veil {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.94) 0%,
+      rgba(255, 255, 255, 0.82) 16%,
+      rgba(255, 255, 255, 0.48) 36%,
+      rgba(255, 255, 255, 0.16) 54%,
+      transparent 76%
+    ),
+    linear-gradient(
+      110deg,
+      rgba(255, 255, 255, 0.62) 0%,
+      rgba(255, 255, 255, 0.12) 44%,
+      transparent 68%
+    );
+  backdrop-filter: blur(12px) saturate(145%);
+  -webkit-backdrop-filter: blur(12px) saturate(145%);
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 32%,
+    rgba(0, 0, 0, 0.6) 52%,
+    transparent 80%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 32%,
+    rgba(0, 0, 0, 0.6) 52%,
+    transparent 80%
+  );
+  box-shadow:
+    inset 22px 0 42px rgba(255, 255, 255, 0.62),
+    inset 0 0 32px rgba(255, 255, 255, 0.32);
 }
 
 .crm-locked-card__body {
