@@ -38,28 +38,28 @@ const CARDS: SectionSheetData[] = [
     value: 1,
     photoUrl: "/crm-home-locked/card-klienti.jpg",
     description: "Картотека с клиенти, бележки и следващи стъпки.",
-    icon: <Users size={18} strokeWidth={1.75} color="#fff" />,
+    icon: <Users size={20} strokeWidth={1.85} color="#fff" />,
   },
   {
     title: "Активни имоти",
     value: 1,
-    photoUrl: "/crm-home-locked/card-imoti.jpg",
+    photoUrl: "/crm-home-locked/card-imoti-night.jpg",
     description: "Активни обяви, снимки и статуси на имотите.",
-    icon: <Home size={18} strokeWidth={1.75} color="#fff" />,
+    icon: <Home size={20} strokeWidth={1.85} color="#fff" />,
   },
   {
     title: "Активни сделки",
     value: 0,
     photoUrl: "/crm-home-locked/card-sdelki.jpg",
     description: "Сделки по етапи до нотариус и комисионни.",
-    icon: <Handshake size={18} strokeWidth={1.75} color="#fff" />,
+    icon: <Handshake size={20} strokeWidth={1.85} color="#fff" />,
   },
   {
     title: "Огледи",
     value: 0,
     photoUrl: "/crm-home-locked/card-ogledi.jpg",
     description: "Насрочване на огледи и напомняния.",
-    icon: <Calendar size={18} strokeWidth={1.75} color="#fff" />,
+    icon: <Calendar size={20} strokeWidth={1.85} color="#fff" />,
   },
 ];
 

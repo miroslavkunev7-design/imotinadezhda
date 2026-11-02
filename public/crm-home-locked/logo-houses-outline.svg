@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 140" fill="none" aria-hidden="true">
+  <!-- Thick white 3-house outline mark (ref CRM light home) -->
+  <g stroke="#fff" stroke-linejoin="round" stroke-linecap="round">
+    <!-- left house -->
+    <path d="M28 92 L70 42 L112 92 V118 H28 Z" stroke-width="7"/>
+    <path d="M58 42 L70 28 L82 42" stroke-width="6.5"/>
+    <rect x="62" y="78" width="16" height="16" stroke-width="4.5"/>
+    <path d="M70 78 V94 M62 86 H78" stroke-width="3.5"/>
+    <!-- center house (tallest) -->
+    <path d="M96 98 L140 28 L184 98 V124 H96 Z" stroke-width="8"/>
+    <path d="M124 28 L140 10 L156 28" stroke-width="7"/>
+    <rect x="130" y="72" width="20" height="20" stroke-width="5"/>
+    <path d="M140 72 V92 M130 82 H150" stroke-width="4"/>
+    <!-- right house -->
+    <path d="M168 94 L210 44 L252 94 V120 H168 Z" stroke-width="7"/>
+    <path d="M198 44 L210 30 L222 44" stroke-width="6.5"/>
+    <rect x="202" y="80" width="16" height="16" stroke-width="4.5"/>
+    <path d="M210 80 V96 M202 88 H218" stroke-width="3.5"/>
+    <!-- swoosh -->
+    <path d="M22 126 Q140 148 258 122" stroke-width="5.5" opacity="0.95"/>
+  </g>
+</svg>
