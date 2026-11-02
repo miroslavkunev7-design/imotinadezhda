@@ -1,10 +1,9 @@
 import { useCallback, useState, startTransition } from "react";
 import {
   Archive,
-  Building2,
   Calendar,
-  CalendarClock,
   Handshake,
+  Home,
   KeyRound,
   Upload,
   UserRound,
@@ -39,28 +38,28 @@ const CARDS: SectionSheetData[] = [
     value: 1,
     photoUrl: "/crm-home-locked/card-klienti.jpg",
     description: "Картотека с клиенти, бележки и следващи стъпки.",
-    icon: <Users size={18} strokeWidth={1.6} />,
+    icon: <Users size={18} strokeWidth={1.75} color="#fff" />,
   },
   {
     title: "Активни имоти",
     value: 1,
     photoUrl: "/crm-home-locked/card-imoti.jpg",
     description: "Активни обяви, снимки и статуси на имотите.",
-    icon: <Building2 size={18} strokeWidth={1.6} />,
+    icon: <Home size={18} strokeWidth={1.75} color="#fff" />,
   },
   {
     title: "Активни сделки",
     value: 0,
     photoUrl: "/crm-home-locked/card-sdelki.jpg",
     description: "Сделки по етапи до нотариус и комисионни.",
-    icon: <Handshake size={18} strokeWidth={1.6} />,
+    icon: <Handshake size={18} strokeWidth={1.75} color="#fff" />,
   },
   {
     title: "Огледи",
     value: 0,
     photoUrl: "/crm-home-locked/card-ogledi.jpg",
     description: "Насрочване на огледи и напомняния.",
-    icon: <CalendarClock size={18} strokeWidth={1.6} />,
+    icon: <Calendar size={18} strokeWidth={1.75} color="#fff" />,
   },
 ];
 

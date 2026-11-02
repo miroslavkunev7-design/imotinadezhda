@@ -73,14 +73,15 @@
   transition: opacity 0.35s ease;
 }
 
-/* Light: frame villa on the LEFT so right-side 2×2 cards clear the house */
+/* Light: frame villa firmly on the LEFT — cards sit on garden/pool right */
 .crm-locked-root[data-theme="light"] .crm-locked-fallback-bg[data-theme-bg="light"] {
-  object-position: 8% center;
-  transform: scale(1.12);
+  object-position: 0% center;
+  transform: scale(1.22);
   transform-origin: left center;
+  filter: saturate(1.08) contrast(1.06) brightness(0.92);
 }
 
-/* Soft scene grade so frosted cards lift off the bright villa (light only) */
+/* Deep-blue dusk grade + sunflare (top-left) — cards lift on the right */
 .crm-locked-root[data-theme="light"]::after {
   content: "";
   position: absolute;
@@ -88,8 +89,9 @@
   z-index: 1;
   pointer-events: none;
   background:
-    radial-gradient(120% 90% at 72% 58%, rgba(12, 8, 10, 0.34) 0%, transparent 58%),
-    linear-gradient(90deg, rgba(8, 10, 14, 0.08) 0%, transparent 42%, rgba(8, 10, 14, 0.28) 100%);
+    radial-gradient(55% 45% at 6% 4%, rgba(255, 210, 160, 0.55) 0%, rgba(255, 170, 90, 0.18) 28%, transparent 58%),
+    radial-gradient(90% 70% at 78% 55%, rgba(6, 10, 22, 0.22) 0%, transparent 62%),
+    linear-gradient(105deg, rgba(8, 16, 36, 0.18) 0%, transparent 38%, rgba(6, 12, 28, 0.34) 100%);
 }
 
 .crm-locked-ui {
@@ -4115,52 +4117,39 @@
   margin: 10px 0 0;
 }
 
-/* Colorful filter pills — шарен фон, бял шрифт */
+/* Filter pills — ALL satin bordo + white text (no rainbow) */
 .crm-imoti-catalog__toolbar .crm-imoti-chips {
   margin-bottom: 0;
 }
 
-.crm-imoti-catalog__toolbar .crm-imoti-chip {
+.crm-imoti-catalog__toolbar .crm-imoti-chip,
+.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd .crm-imoti-chip,
+.crm-imoti-catalog__toolbar .crm-imoti-chip.is-active,
+.crm-locked-root[data-theme="light"] .crm-imoti-catalog__toolbar .crm-imoti-chip {
   color: #fff !important;
   border: 0 !important;
   font-weight: 650;
-  box-shadow: 0 4px 12px rgba(20, 10, 14, 0.18);
+  background:
+    radial-gradient(140% 100% at 30% 18%, rgba(255, 220, 228, 0.42) 0%, transparent 48%),
+    linear-gradient(155deg, #a61f32 0%, #7a1020 48%, #4e0a14 100%) !important;
+  box-shadow:
+    0 5px 14px rgba(40, 10, 16, 0.28),
+    inset 0 1px 0 rgba(255, 230, 235, 0.55),
+    inset 0 -8px 14px rgba(30, 0, 8, 0.32);
 }
 
 .crm-imoti-catalog__toolbar .crm-imoti-chip svg {
-  color: #fff;
+  color: #fff !important;
   opacity: 0.95;
 }
 
-.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(1) .crm-imoti-chip {
-  background: linear-gradient(135deg, #c62828, #8e1520);
-}
-.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(2) .crm-imoti-chip {
-  background: linear-gradient(135deg, #1565c0, #0d47a1);
-}
-.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(3) .crm-imoti-chip {
-  background: linear-gradient(135deg, #2e7d32, #1b5e20);
-}
-.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(4) .crm-imoti-chip {
-  background: linear-gradient(135deg, #ef6c00, #e65100);
-}
-.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(5) .crm-imoti-chip {
-  background: linear-gradient(135deg, #6a1b9a, #4a148c);
-}
-.crm-imoti-catalog__toolbar .crm-imoti-chips > .crm-imoti-dd:nth-child(6) .crm-imoti-chip {
-  background: linear-gradient(135deg, #00838f, #006064);
-}
-
 .crm-imoti-catalog__toolbar .crm-imoti-chip.is-active {
-  filter: brightness(1.06);
+  filter: brightness(1.05);
   box-shadow:
-    0 4px 14px rgba(20, 10, 14, 0.22),
-    inset 0 0 0 1.5px rgba(255, 255, 255, 0.45);
-}
-
-.crm-locked-root[data-theme="light"] .crm-imoti-catalog__toolbar .crm-imoti-chip {
-  background: inherit;
-  color: #fff !important;
+    0 5px 16px rgba(40, 10, 16, 0.32),
+    inset 0 1px 0 rgba(255, 236, 240, 0.7),
+    inset 0 -8px 14px rgba(30, 0, 8, 0.35),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.35);
 }
 
 .crm-imoti-row__track > .crm-imoti-card:nth-child(odd) {
@@ -4439,4 +4428,198 @@
     -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 28%, #000 52%, #000 100%);
     mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 28%, #000 52%, #000 100%);
   }
+}
+
+/* ========== Light Начало 1:1 clone (v4) ========== */
+
+.crm-locked-root[data-theme="light"] {
+  --crm-accent: #7a1020;
+  --crm-accent-soft: rgba(122, 16, 32, 0.16);
+  --crm-accent-glow: transparent;
+  --crm-card-bg: rgba(255, 255, 255, 0.22);
+  --crm-card-border: rgba(255, 255, 255, 0.98);
+  --crm-card-glow: rgba(255, 255, 255, 0.55);
+  --crm-glass-veil: linear-gradient(
+    to right,
+    rgba(255, 252, 250, 0.72) 0%,
+    rgba(255, 252, 250, 0.42) 34%,
+    rgba(255, 255, 255, 0.08) 58%,
+    transparent 78%
+  );
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-logo {
+  width: clamp(240px, 24vw, 380px);
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.35));
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-sky-title {
+  font-family: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  font-size: clamp(64px, 8.2vw, 108px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.4);
+  filter: none;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-main {
+  justify-content: flex-end;
+  padding-top: clamp(10vh, 14vh, 18vh);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-grid {
+  width: min(58vw, 760px);
+  gap: clamp(16px, 1.6vw, 24px) clamp(18px, 1.8vw, 26px);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card {
+  min-height: clamp(210px, 30vh, 280px);
+  border-width: 3.5px;
+  border-color: rgba(255, 255, 255, 0.98) !important;
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0.14) 46%, rgba(12, 10, 16, 0.12) 100%),
+    rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(32px) saturate(175%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(175%) !important;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.85),
+    0 0 34px rgba(255, 255, 255, 0.45),
+    0 18px 42px rgba(10, 8, 16, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__photo {
+  background-size: cover;
+  background-position: 70% center;
+  opacity: 1;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    transparent 22%,
+    rgba(0, 0, 0, 0.4) 42%,
+    #000 58%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    transparent 22%,
+    rgba(0, 0, 0, 0.4) 42%,
+    #000 58%,
+    #000 100%
+  );
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 236, 240, 0.7);
+  color: #fff;
+  background:
+    radial-gradient(140% 100% at 30% 18%, rgba(255, 220, 228, 0.58) 0%, transparent 46%),
+    radial-gradient(90% 80% at 78% 88%, rgba(30, 0, 8, 0.48) 0%, transparent 55%),
+    linear-gradient(155deg, #b5263a 0%, #8b1528 42%, #5c0d1a 78%, #3a0810 100%) !important;
+  box-shadow:
+    0 7px 16px rgba(40, 10, 16, 0.4),
+    inset 0 1.5px 0 rgba(255, 236, 240, 0.75),
+    inset 0 -12px 18px rgba(30, 0, 8, 0.45) !important;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__icon svg {
+  color: #fff !important;
+  stroke: #fff;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__value {
+  font-size: clamp(48px, 5vw, 68px);
+  font-weight: 850;
+  color: #7a1020 !important;
+  text-shadow: none !important;
+  letter-spacing: -0.03em;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__title {
+  font-size: clamp(20px, 1.85vw, 26px);
+  font-weight: 750;
+  color: #7a1020 !important;
+  text-shadow: none !important;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__sub {
+  font-size: 12.5px;
+  font-weight: 550;
+  color: rgba(255, 255, 255, 0.92) !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-card__arrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 236, 240, 0.55);
+  color: #fff;
+  background:
+    radial-gradient(140% 100% at 30% 18%, rgba(255, 220, 228, 0.5) 0%, transparent 48%),
+    linear-gradient(155deg, #b5263a 0%, #8b1528 45%, #4e0a14 100%) !important;
+  box-shadow:
+    0 8px 18px rgba(40, 10, 16, 0.38),
+    inset 0 1px 0 rgba(255, 236, 240, 0.65),
+    inset 0 -10px 14px rgba(30, 0, 8, 0.4) !important;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-fab,
+.crm-locked-root[data-theme="light"] .crm-locked-fab--theme,
+.crm-locked-root[data-theme="light"] .crm-locked-fab--menu,
+.crm-locked-root[data-theme="light"] .crm-locked-fab:hover,
+.crm-locked-root[data-theme="light"] .crm-locked-fab--theme-active {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 230, 235, 0.45) !important;
+  color: #fff !important;
+  background:
+    radial-gradient(140% 100% at 30% 18%, rgba(255, 220, 228, 0.45) 0%, transparent 48%),
+    linear-gradient(155deg, #a61f32 0%, #7a1020 48%, #4e0a14 100%) !important;
+  box-shadow:
+    0 8px 20px rgba(40, 10, 16, 0.36),
+    inset 0 1px 0 rgba(255, 236, 240, 0.6),
+    inset 0 -10px 14px rgba(30, 0, 8, 0.35) !important;
+  backdrop-filter: none !important;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-fab--menu {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-avatar {
+  width: 64px;
+  height: 64px;
+  border: 2.5px solid #980018 !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 0 16px rgba(152, 0, 24, 0.45) !important;
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-broker__name {
+  color: #fff !important;
+  font-size: 17px;
+  font-weight: 650;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+.crm-locked-root[data-theme="light"] .crm-locked-name-line {
+  background: #980018 !important;
+  box-shadow: none !important;
+}
+
+/* Hide AI fab on light home — dock is sun/bell/menu only */
+.crm-locked-root[data-theme="light"] .crm-locked-ai-fab {
+  display: none !important;
 }
