@@ -3,6 +3,14 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertCrmAccess } from "@/lib/auth/crm-access";
 import { resolveServerDb } from "@/lib/supabase-server-db";
+import { fetchAllDayBankRates } from "@/lib/bank-day-rates";
+
+export type { DayBankRate, DayBankRatesResult } from "@/lib/bank-day-rates";
+
+/** Дневни лихви от moitepari (live scrape + cache) — BankMortgageDesk. */
+export const getDayBankRates = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => fetchAllDayBankRates());
 
 export type BankBranchRow = {
   bank: string;

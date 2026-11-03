@@ -18,7 +18,7 @@ import notebookSpread from "@/assets/notebook/notebook-spread.jpg";
 import logoWatermark from "@/assets/notebook/logo-watermark.png";
 import stickyNote from "@/assets/notebook/sticky-note.png";
 import { MortgageDocsModal } from "@/components/admin/mortgage-docs-modal";
-import { BankFlowModal } from "@/components/admin/bank-flow-modal";
+import { BankMortgageDesk } from "@/components/admin/bank-mortgage-desk";
 import { ClientA4Sheet } from "@/components/admin/client-a4-sheet";
 import { CreditBlock } from "@/components/admin/credit-block";
 import { creditBlockOf, type CreditBlockData } from "@/lib/banks-catalog";
@@ -686,28 +686,16 @@ export function ClientNotebook({
       {a4Client && <ClientA4Sheet client={a4Client} onClose={() => setA4Client(null)} />}
 
       {bankClient && (
-        <BankFlowModal
-          client={{
-            ...bankClient,
-            mortgage_data: {
-              ...(bankClient.mortgage_data ?? {}),
-              ...(bankByClient[bankClient.id] ? { bank: bankByClient[bankClient.id] } : {}),
-              ...(creditByClient[bankClient.id]
-                ? { credit_block: creditByClient[bankClient.id] }
-                : {}),
-            },
-          }}
+        <BankMortgageDesk
+          client={bankClient}
+          open={!!bankClient}
           onClose={() => setBankClient(null)}
-          onPicked={(bank) => {
-            setBankByClient((m) => ({ ...m, [bankClient.id]: bank }));
+          onSaved={() => {
+            const bank = bankClient.mortgage_data?.bank;
+            if (typeof bank === "string" && bank) {
+              setBankByClient((m) => ({ ...m, [bankClient.id]: bank }));
+            }
           }}
-          onSavedCreditBlock={(block) => {
-            setBankByClient((m) => ({ ...m, [bankClient.id]: block.bank }));
-            setCreditByClient((m) => ({ ...m, [bankClient.id]: block }));
-          }}
-          onAddTask={(text) =>
-            setPinnedNotes((n) => [...n, { id: Date.now(), text, color: noteColor }])
-          }
         />
       )}
     </div>
