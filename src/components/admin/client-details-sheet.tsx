@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -19,6 +19,7 @@ import {
   updateClientDepositInterest,
   searchPropertiesForLink,
 } from "@/lib/crm.functions";
+import { BankMortgageDesk } from "@/components/admin/bank-mortgage-desk";
 import {
   Phone,
   Mail,
@@ -153,6 +154,9 @@ export function ClientDetailsSheet({
   const [propResults, setPropResults] = useState<LinkableProperty[]>([]);
   const [propSearching, setPropSearching] = useState(false);
   const [savingDep, setSavingDep] = useState(false);
+  const [banksOpen, setBanksOpen] = useState(false);
+  const banksOpenRef = useRef(false);
+  banksOpenRef.current = banksOpen;
 
   useEffect(() => {
     if (!client) return;
@@ -704,10 +708,25 @@ export function ClientDetailsSheet({
   );
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+    <Sheet
+      open={open}
+      onOpenChange={(v) => {
+        if (!v && banksOpenRef.current) return;
+        if (!v) onClose();
+      }}
+    >
       <SheetContent
         side="right"
         className="w-full overflow-y-auto overscroll-contain pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-xl"
+        onInteractOutside={(e) => {
+          if (banksOpenRef.current) e.preventDefault();
+        }}
+        onPointerDownOutside={(e) => {
+          if (banksOpenRef.current) e.preventDefault();
+        }}
+        onFocusOutside={(e) => {
+          if (banksOpenRef.current) e.preventDefault();
+        }}
       >
         <SheetHeader>
           <SheetTitle className="font-display text-2xl text-primary">{client.full_name}</SheetTitle>
@@ -798,8 +817,8 @@ export function ClientDetailsSheet({
           <Button variant="outline" size="sm" onClick={() => onEdit(client)}>
             <Pencil className="h-3.5 w-3.5" /> Редакция
           </Button>
-          <Button variant="outline" size="sm" onClick={() => onMortgageSend(client)}>
-            <CreditCard className="h-3.5 w-3.5" /> Кандидатура кредит
+          <Button variant="outline" size="sm" onClick={() => setBanksOpen(true)}>
+            <CreditCard className="h-3.5 w-3.5" /> Банки / кредит
           </Button>
           <Button variant="outline" size="sm" onClick={() => onMortgageStages(client)}>
             <Handshake className="h-3.5 w-3.5" /> Етапи на ипотека
@@ -815,6 +834,22 @@ export function ClientDetailsSheet({
             </Button>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={() => setBanksOpen(true)}
+          className="mt-4 flex w-full items-center gap-3 overflow-hidden rounded-2xl border-2 border-primary/40 bg-primary text-left text-primary-foreground shadow-sm"
+        >
+          <span className="flex h-20 w-28 flex-none items-center justify-center bg-primary-foreground/10">
+            <CreditCard className="h-8 w-8 opacity-90" />
+          </span>
+          <span className="py-2 pr-3">
+            <span className="block font-display text-lg leading-tight">Банки в Шумен</span>
+            <span className="block text-[11px] opacity-90">
+              Натисни тук — отваря се прозорец за избор на банка (ДСК, ОББ…)
+            </span>
+          </span>
+        </button>
 
         {/* Sections */}
         <Accordion type="multiple" defaultValue={["notes", "docs"]} className="mt-4">
@@ -1117,6 +1152,12 @@ export function ClientDetailsSheet({
           </AccordionItem>
         </Accordion>
       </SheetContent>
+      <BankMortgageDesk
+        client={client}
+        open={banksOpen}
+        onClose={() => setBanksOpen(false)}
+        onSaved={() => onChanged()}
+      />
     </Sheet>
   );
 }
