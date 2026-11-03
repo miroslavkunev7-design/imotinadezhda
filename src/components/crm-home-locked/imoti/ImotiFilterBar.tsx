@@ -9,6 +9,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { IMOTI_FILTER_CITIES, quartersForImotiCity } from "./imoti-city-quarters";
 import type { ImotiProperty, ImotiSortKey } from "./imoti-types";
 
 export type ImotiFilters = {
@@ -243,14 +244,8 @@ export function ImotiFilterBar({
   filters: ImotiFilters;
   onChange: (next: ImotiFilters) => void;
 }) {
-  const cities = useMemo(
-    () => [...new Set(properties.map((p) => p.city))].sort(),
-    [properties],
-  );
-  const quarters = useMemo(() => {
-    const list = properties.filter((p) => !filters.city || p.city === filters.city);
-    return [...new Set(list.map((p) => p.quarter))].sort();
-  }, [properties, filters.city]);
+  const cities = useMemo(() => [...IMOTI_FILTER_CITIES], []);
+  const quarters = useMemo(() => quartersForImotiCity(filters.city), [filters.city]);
   const types = useMemo(
     () => [...new Set(properties.map((p) => p.typeLabel))].sort(),
     [properties],

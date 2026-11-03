@@ -2,7 +2,8 @@ import type { ThemeMode } from "./UtilityDock";
 
 const BG: Record<ThemeMode, string> = {
   dark: "/crm-home-locked/bg-dark.jpg",
-  light: "/crm-home-locked/bg-light.jpg",
+  /* Exact ref composition (deep-blue dusk + sunflare, warm villa LEFT, pool bottom) */
+  light: "/crm-home-locked/bg-light-ref-exact.jpg",
 };
 
 export function SceneBackdrop({ theme }: { theme: ThemeMode }) {

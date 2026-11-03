@@ -45,15 +45,19 @@ export type ImotiDetailTab =
 
 export type ImotiSortKey = "newest" | "price-asc" | "price-desc" | "area-desc";
 
+/** Distinct melt fill per detail roster tab — never reuse the live gallery hero. */
 export const IMOTI_SECTION_BG: Record<ImotiDetailTab, string> = {
-  basic: "/crm-home-locked/card-imoti.jpg",
-  media: "/crm-home-locked/bg-light.jpg",
-  features: "/crm-home-locked/card-sdelki.jpg",
-  location: "/crm-home-locked/bg-dark.jpg",
-  documents: "/crm-home-locked/card-ogledi.jpg",
+  basic: "/images/quarters/burgas/lazur.jpg",
+  media: "/images/quarters/varna/galata.jpg",
+  features: "/images/quarters/shumen/trakiya.jpg",
+  location: "/images/quarters/burgas/kraimorie.jpg",
+  documents: "/images/quarters/varna/levski.jpg",
   owner: "/crm-home-locked/card-klienti.jpg",
-  history: "/crm-home-locked/bg-dark.jpg",
+  history: "/images/quarters/shumen/centar.jpg",
   deal: "/crm-home-locked/card-sdelki.jpg",
-  contract: "/crm-home-locked/card-ogledi.jpg",
-  bank: "/crm-home-locked/card-imoti.jpg",
+  contract: "/images/quarters/burgas/sarafovo.jpg",
+  bank: "/images/quarters/varna/vladislavovo.jpg",
 };
+
+/** Summary panel melt — separate from gallery cover / current slide. */
+export const IMOTI_SUMMARY_MELT_BG = "/images/quarters/burgas/slaveykov.jpg";

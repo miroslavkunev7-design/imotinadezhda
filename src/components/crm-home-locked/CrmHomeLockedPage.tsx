@@ -1,10 +1,9 @@
 import { useCallback, useState, startTransition } from "react";
 import {
   Archive,
-  Building2,
   Calendar,
-  CalendarClock,
   Handshake,
+  Home,
   KeyRound,
   Upload,
   UserRound,
@@ -39,28 +38,28 @@ const CARDS: SectionSheetData[] = [
     value: 1,
     photoUrl: "/crm-home-locked/card-klienti.jpg",
     description: "Картотека с клиенти, бележки и следващи стъпки.",
-    icon: <Users size={18} strokeWidth={1.6} />,
+    icon: <Users size={20} strokeWidth={1.85} color="#fff" />,
   },
   {
-    title: "Имоти",
+    title: "Активни имоти",
     value: 1,
-    photoUrl: "/crm-home-locked/card-imoti.jpg",
+    photoUrl: "/crm-home-locked/card-imoti-night.jpg",
     description: "Активни обяви, снимки и статуси на имотите.",
-    icon: <Building2 size={18} strokeWidth={1.6} />,
+    icon: <Home size={20} strokeWidth={1.85} color="#fff" />,
   },
   {
     title: "Активни сделки",
     value: 0,
     photoUrl: "/crm-home-locked/card-sdelki.jpg",
     description: "Сделки по етапи до нотариус и комисионни.",
-    icon: <Handshake size={18} strokeWidth={1.6} />,
+    icon: <Handshake size={20} strokeWidth={1.85} color="#fff" />,
   },
   {
     title: "Огледи",
     value: 0,
     photoUrl: "/crm-home-locked/card-ogledi.jpg",
     description: "Насрочване на огледи и напомняния.",
-    icon: <CalendarClock size={18} strokeWidth={1.6} />,
+    icon: <Calendar size={20} strokeWidth={1.85} color="#fff" />,
   },
 ];
 
@@ -237,11 +236,17 @@ export function CrmHomeLockedPage() {
       <div className="crm-locked-ui">
         <header className="crm-locked-top">
           <LockedLogo onClick={() => onSelectNav("home")} />
-          <LockedNav
-            active={activeNav}
-            onSelect={onSelectNav}
-            onSelectPropertyMenu={onSelectPropertyMenu}
-          />
+          {activeNav === "home" && theme === "light" ? (
+            <h1 className="crm-locked-sky-title" aria-label="Начало">
+              Начало
+            </h1>
+          ) : (
+            <LockedNav
+              active={activeNav}
+              onSelect={onSelectNav}
+              onSelectPropertyMenu={onSelectPropertyMenu}
+            />
+          )}
         </header>
 
         <main className="crm-locked-main">
@@ -250,11 +255,11 @@ export function CrmHomeLockedPage() {
               <GlassStatCard
                 key={card.title}
                 title={card.title}
-                value={card.title === "Имоти" ? imotiValue : card.value}
+                value={card.title === "Активни имоти" ? imotiValue : card.value}
                 photoUrl={card.photoUrl}
                 icon={card.icon}
                 onOpen={() => {
-                  if (card.title === "Имоти") {
+                  if (card.title === "Активни имоти") {
                     openImotiCatalog();
                     return;
                   }
@@ -273,15 +278,17 @@ export function CrmHomeLockedPage() {
 
         <footer className="crm-locked-bottom">
           <div className="crm-locked-bottom__left">
-            <AiAssistFab
-              active={aiOpen}
-              onToggle={() => {
-                setMenuOpen(false);
-                setNotificationsOpen(false);
-                setSection(null);
-                setAiOpen((v) => !v);
-              }}
-            />
+            {theme === "light" && activeNav === "home" ? null : (
+              <AiAssistFab
+                active={aiOpen}
+                onToggle={() => {
+                  setMenuOpen(false);
+                  setNotificationsOpen(false);
+                  setSection(null);
+                  setAiOpen((v) => !v);
+                }}
+              />
+            )}
             <BrokerBadge
               onOpen={() => {
                 setMenuOpen(false);

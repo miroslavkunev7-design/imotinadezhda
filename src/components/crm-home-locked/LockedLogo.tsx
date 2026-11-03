@@ -7,11 +7,11 @@ export function LockedLogo({ onClick }: { onClick?: () => void }) {
       onClick={onClick}
     >
       <img
-        src="/crm-home-locked/logo-mark-white.png"
+        src="/crm-home-locked/logo-houses-outline.svg"
         alt="Недвижими имоти Надежда"
         className="crm-locked-logo"
-        width={320}
-        height={130}
+        width={380}
+        height={190}
         decoding="async"
         draggable={false}
       />

@@ -1,54 +1,24 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
 
-import { LockedHomeDesktop } from "@/components/home-locked/locked-home-desktop";
-import { getCities, getQuartersByCity } from "@/lib/catalog.functions";
+import { HomePage } from "@/components/site/luxury-real-estate";
 import { HomeSkeleton, PageErrorRetry } from "@/components/site/page-skeleton";
-import { SITE_URL, siteUrl } from "@/lib/site-config";
+import { getCities } from "@/lib/catalog.functions";
+import { getPublicPageLayout } from "@/lib/page-layouts.functions";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, siteUrl } from "@/lib/site-config";
 
 import homeHeroPoster from "@/assets/home-hero-living.jpeg";
 
+const HOME_TITLE = `${SITE_NAME} — имоти в Шумен, Варна, Бургас и Нови пазар`;
+
 export const Route = createFileRoute("/")({
-    loader: async () => {
-      try {
-        const cities = await getCities();
-        const publishedCities = cities.filter((city) => Boolean(city.slug && city.name));
-        const quarterRows = await Promise.all(
-          publishedCities.map(async (city) => [
-            city.slug,
-            await getQuartersByCity({ data: { city_slug: city.slug } }),
-          ] as const),
-        );
-        return {
-          catalog: {
-            cities: publishedCities.map((city) => ({ slug: city.slug, name: city.name })),
-            quartersByCity: Object.fromEntries(quarterRows),
-          },
-        };
-      } catch (error) {
-        // Preview / missing env must not block the public home shell.
-        console.warn("[home] catalog loader degraded:", error);
-        return {
-          catalog: {
-            cities: [] as Array<{ slug: string; name: string }>,
-            quartersByCity: {} as Record<string, unknown>,
-          },
-        };
-      }
-    },
-    head: () => ({
+  head: () => ({
     meta: [
-      { title: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
-      {
-        name: "description",
-        content:
-          "Имоти Надежда — водеща агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар.",
-      },
-      { property: "og:title", content: "Имоти Надежда — недвижими имоти в Бургас, Варна, Шумен" },
-      {
-        property: "og:description",
-        content:
-          "Имоти Надежда — водеща агенция за недвижими имоти. Апартаменти, къщи, парцели и офиси за продажба и под наем в Бургас, Варна, Шумен и Нови пазар.",
-      },
+      { title: HOME_TITLE },
+      { name: "description", content: SITE_DESCRIPTION },
+      { property: "og:title", content: HOME_TITLE },
+      { property: "og:description", content: SITE_DESCRIPTION },
       { property: "og:url", content: siteUrl("/") },
     ],
     links: [
@@ -61,11 +31,10 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "RealEstateAgent",
-          name: "Имоти Надежда",
+          name: SITE_NAME,
           alternateName: ["Imoti Nadezhda", "imoti nadezhda", "imotinadezhda"],
           url: SITE_URL,
-          description:
-            "Агенция за недвижими имоти Имоти Надежда — апартаменти, къщи, парцели и офиси в Бургас, Варна, Шумен и Нови пазар.",
+          description: SITE_DESCRIPTION,
           areaServed: ["Бургас", "Варна", "Шумен", "Нови пазар", "България"],
           address: { "@type": "PostalAddress", addressCountry: "BG" },
         }),
@@ -75,7 +44,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "Имоти Надежда",
+          name: SITE_NAME,
           alternateName: ["Imoti Nadezhda", "imoti nadezhda", "imotinadezhda.bg"],
           url: SITE_URL,
           inLanguage: "bg-BG",
@@ -103,7 +72,47 @@ function HomeErrorRoute({ error }: { error: Error }) {
 }
 
 function HomeRoute() {
-  const { catalog } = Route.useLoaderData();
-  // Новата начална страница от MASTER архива се показва на всички устройства (потвърдено от потребителя).
-  return <LockedHomeDesktop catalog={catalog} />;
+  const fetchLayout = useServerFn(getPublicPageLayout);
+  const fetchCities = useServerFn(getCities);
+  const [layout, setLayout] = useState<Awaited<ReturnType<typeof getPublicPageLayout>> | null>(
+    null,
+  );
+  const [cities, setCities] = useState<
+    Array<{ name: string; slug: string; hero_image_url?: string | null }>
+  >([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchLayout({ data: { page_key: "home" } })
+      .then((res) => {
+        if (!cancelled) setLayout(res);
+      })
+      .catch(() => {
+        /* fallback to defaults */
+      });
+    fetchCities()
+      .then((rows) => {
+        if (cancelled) return;
+        setCities(
+          (rows ?? []).map((c) => ({
+            name: c.name,
+            slug: c.slug,
+            hero_image_url: c.hero_image_url,
+          })),
+        );
+      })
+      .catch(() => {
+        /* fallback cards */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchLayout, fetchCities]);
+
+  return (
+    <HomePage
+      layout={layout ?? undefined}
+      cities={cities.map((c) => ({ name: c.name, slug: c.slug, image: c.hero_image_url }))}
+    />
+  );
 }

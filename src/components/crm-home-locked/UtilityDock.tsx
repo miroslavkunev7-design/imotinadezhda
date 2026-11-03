@@ -25,9 +25,9 @@ export function UtilityDock({
         onClick={onToggleTheme}
       >
         {isLight ? (
-          <Moon size={20} strokeWidth={1.7} />
-        ) : (
           <Sun size={20} strokeWidth={1.7} />
+        ) : (
+          <Moon size={20} strokeWidth={1.7} />
         )}
       </button>
       <button

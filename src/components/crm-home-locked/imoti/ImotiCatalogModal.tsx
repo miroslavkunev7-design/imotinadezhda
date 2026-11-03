@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  Bell,
   ChevronLeft,
   ChevronRight,
   Filter,
@@ -139,7 +138,7 @@ export function ImotiCatalogModal({
   onOpenProperty,
   onAddProperty,
   onToggleFavorite,
-  onNavigate,
+  onNavigate: _onNavigate,
 }: {
   open: boolean;
   properties: ImotiProperty[];
@@ -172,47 +171,7 @@ export function ImotiCatalogModal({
       onToggleExpand={() => setExpanded((v) => !v)}
       onClose={onClose}
       zIndex={60}
-      headerCenter={
-        <nav className="crm-imoti-topnav" aria-label="Имоти навигация">
-          <button type="button" className="crm-imoti-topnav__item crm-imoti-topnav__item--active">
-            Имоти
-          </button>
-          <button
-            type="button"
-            className="crm-imoti-topnav__item"
-            onClick={() => onNavigate("clients")}
-          >
-            Клиенти
-          </button>
-          <button
-            type="button"
-            className="crm-imoti-topnav__item"
-            onClick={() => onNavigate("calendar")}
-          >
-            Календар
-          </button>
-        </nav>
-      }
-      headerRight={
-        <>
-          <button
-            type="button"
-            className="crm-imoti-icon-btn"
-            aria-label="Търсене"
-            onClick={() => searchRef.current?.focus()}
-          >
-            <Search size={15} />
-          </button>
-          <button type="button" className="crm-imoti-icon-btn crm-imoti-icon-btn--dot" aria-label="Известия">
-            <Bell size={15} />
-          </button>
-          <img
-            src="/crm-home-locked/avatar-miroslav.jpg"
-            alt=""
-            className="crm-imoti-avatar"
-          />
-        </>
-      }
+      showTop={false}
     >
       <div className="crm-imoti-catalog">
         <div className="crm-imoti-catalog__hero">
@@ -236,89 +195,91 @@ export function ImotiCatalogModal({
           </div>
         </div>
 
+        <div className="crm-imoti-catalog__toolbar">
+          <div className="crm-imoti-searchbar">
+            <Search size={16} />
+            <input
+              ref={searchRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Търси по локация, тип, цена, ключова дума..."
+            />
+            <button
+              type="button"
+              className="crm-imoti-filter-btn"
+              onClick={() => setFilters(EMPTY_IMOTI_FILTERS)}
+              title="Изчисти филтри"
+            >
+              <Filter size={14} /> Филтри
+            </button>
+          </div>
+
+          <div className="crm-imoti-chips-row">
+            <ImotiFilterBar properties={properties} filters={filters} onChange={setFilters} />
+            <span className="crm-imoti-view-toggle">
+              <button
+                type="button"
+                className={`crm-imoti-icon-btn${view === "grid" ? " crm-imoti-icon-btn--on" : ""}`}
+                aria-label="Мрежа"
+                onClick={() => setView("grid")}
+              >
+                <Grid2X2 size={14} />
+              </button>
+              <button
+                type="button"
+                className={`crm-imoti-icon-btn${view === "list" ? " crm-imoti-icon-btn--on" : ""}`}
+                aria-label="Списък"
+                onClick={() => setView("list")}
+              >
+                <LayoutList size={14} />
+              </button>
+            </span>
+          </div>
+        </div>
+
         <div className="crm-imoti-catalog__main">
-        <div className="crm-imoti-searchbar">
-          <Search size={16} />
-          <input
-            ref={searchRef}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Търси по локация, тип, цена, ключова дума..."
-          />
-          <button
-            type="button"
-            className="crm-imoti-filter-btn"
-            onClick={() => setFilters(EMPTY_IMOTI_FILTERS)}
-            title="Изчисти филтри"
-          >
-            <Filter size={14} /> Филтри
-          </button>
-        </div>
-
-        <div className="crm-imoti-chips-row">
-          <ImotiFilterBar properties={properties} filters={filters} onChange={setFilters} />
-          <span className="crm-imoti-view-toggle">
+          <div className="crm-imoti-deal-tabs">
             <button
               type="button"
-              className={`crm-imoti-icon-btn${view === "grid" ? " crm-imoti-icon-btn--on" : ""}`}
-              aria-label="Мрежа"
-              onClick={() => setView("grid")}
+              className={dealTab === "all" ? "is-active" : undefined}
+              onClick={() => setDealTab("all")}
             >
-              <Grid2X2 size={14} />
+              Всички
             </button>
             <button
               type="button"
-              className={`crm-imoti-icon-btn${view === "list" ? " crm-imoti-icon-btn--on" : ""}`}
-              aria-label="Списък"
-              onClick={() => setView("list")}
+              className={dealTab === "sale" ? "is-active" : undefined}
+              onClick={() => setDealTab("sale")}
             >
-              <LayoutList size={14} />
+              Продажби
             </button>
-          </span>
-        </div>
+            <button
+              type="button"
+              className={dealTab === "rent" ? "is-active" : undefined}
+              onClick={() => setDealTab("rent")}
+            >
+              Наеми
+            </button>
+          </div>
 
-        <div className="crm-imoti-deal-tabs">
-          <button
-            type="button"
-            className={dealTab === "all" ? "is-active" : undefined}
-            onClick={() => setDealTab("all")}
-          >
-            Всички
-          </button>
-          <button
-            type="button"
-            className={dealTab === "sale" ? "is-active" : undefined}
-            onClick={() => setDealTab("sale")}
-          >
-            Продажби
-          </button>
-          <button
-            type="button"
-            className={dealTab === "rent" ? "is-active" : undefined}
-            onClick={() => setDealTab("rent")}
-          >
-            Наеми
-          </button>
-        </div>
-
-        <div className={view === "list" ? "crm-imoti-catalog--list" : undefined}>
-          {(dealTab === "all" || dealTab === "sale") && (
-            <PropertyRow
-              title="Продажби"
-              items={sales}
-              onOpen={onOpenProperty}
-              onToggleFavorite={onToggleFavorite}
-            />
-          )}
-          {(dealTab === "all" || dealTab === "rent") && (
-            <PropertyRow
-              title="Наеми"
-              items={rents}
-              onOpen={onOpenProperty}
-              onToggleFavorite={onToggleFavorite}
-            />
-          )}
-        </div>
+          <div className={view === "list" ? "crm-imoti-catalog--list" : undefined}>
+            {(dealTab === "all" || dealTab === "sale") && (
+              <PropertyRow
+                title="Продажби"
+                items={sales}
+                onOpen={onOpenProperty}
+                onToggleFavorite={onToggleFavorite}
+              />
+            )}
+            {(dealTab === "all" || dealTab === "rent") && (
+              <PropertyRow
+                title="Наеми"
+                items={rents}
+                onOpen={onOpenProperty}
+                onToggleFavorite={onToggleFavorite}
+              />
+            )}
+          </div>
         </div>
       </div>
     </CrmModalShell>
