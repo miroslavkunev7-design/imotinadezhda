@@ -324,6 +324,9 @@ body{background:#efc19c}
 html.no-vt #stage{animation:crmIn .34s cubic-bezier(.2,.7,.2,1) both}
 html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s ease,transform .17s ease}
 @media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root),html.no-vt #stage{animation:none}html.leaving #stage{transition:none}}
+.bank-ov{position:fixed;inset:0;z-index:80;background:rgba(40,5,12,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .22s}
+.bank-ov.show{opacity:1}.bank-ov[hidden]{display:none}
+.bank-ov iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
 </head>
@@ -737,7 +740,21 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       if(!f.length)return;var a=f[0],z=f[f.length-1];
       if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
   });
-  win.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(b)say(b.getAttribute('data-act')+' – '+(win.dataset.client||''))});
+  win.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b)return;
+    if(b.getAttribute('data-act')==='Банка'){openBank(win.dataset.client);return}
+    say(b.getAttribute('data-act')+' – '+(win.dataset.client||''))});
+  /* bank module opens over the client card, on the same page */
+  var bankBox=null;
+  function openBank(name){
+    var c=clients.filter(function(x){return x.name===name})[0]||{};
+    var q='embed=1&client='+encodeURIComponent(name||'')+(c.budget&&c.cat!=='rent'?'&price='+c.budget:'')+(c.city?'&city='+encodeURIComponent(c.city):'');
+    if(!bankBox){bankBox=document.createElement('div');bankBox.className='bank-ov';bankBox.setAttribute('role','dialog');bankBox.setAttribute('aria-modal','true');bankBox.setAttribute('aria-label','Банков модул');
+      bankBox.innerHTML='<iframe title="Банков модул" allow="fullscreen; clipboard-write"></iframe>';document.body.appendChild(bankBox)}
+    bankBox.querySelector('iframe').src='bank.html?'+q;bankBox.hidden=false;requestAnimationFrame(function(){bankBox.classList.add('show')});
+  }
+  function closeBank(){if(!bankBox)return;bankBox.classList.remove('show');setTimeout(function(){bankBox.hidden=true;bankBox.querySelector('iframe').src='about:blank'},220)}
+  addEventListener('message',function(e){if(e.data&&e.data.type==='crm-bank-close')closeBank()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&bankBox&&!bankBox.hidden){e.stopImmediatePropagation();closeBank()}},true);
 
   /* ---------- toast + misc buttons ---------- */
   var t=document.getElementById('toast'),timer;
