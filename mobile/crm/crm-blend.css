@@ -1,0 +1,12 @@
+/* Phones only: the header photo fades softly into the page and the next section overlaps its edge. */
+html:not(.desk) .top:not(.mtop){
+  box-sizing:content-box;padding-bottom:56px;
+  -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 110px),transparent 100%);
+          mask-image:linear-gradient(180deg,#000 calc(100% - 110px),transparent 100%);
+}
+/* Начало: the photo reaches down behind the tiles and slips under "Бързи действия". */
+html:not(.desk) #top{
+  padding-bottom:330px;
+  -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 380px),rgba(0,0,0,.55) calc(100% - 120px),transparent 100%);
+          mask-image:linear-gradient(180deg,#000 calc(100% - 380px),rgba(0,0,0,.55) calc(100% - 120px),transparent 100%);
+}
