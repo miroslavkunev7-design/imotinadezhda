@@ -149,6 +149,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="bg">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: `if(location.pathname==='/'&&!/[?&]desktop=1/.test(location.search)&&Math.min(screen.width,innerWidth)<=768)location.replace('/mobile/ilj.html'+location.hash)` }} />
       </head>
       <body>
         {children}
@@ -199,3 +200,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
