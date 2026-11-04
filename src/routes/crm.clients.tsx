@@ -630,7 +630,7 @@ function ClientDetail({
   useEffect(() => {
     if (tab !== "docs" || docs) return;
     fetchDocs({ data: { client_id: c.id } })
-      .then((r) => setDocs(r as typeof docs))
+      .then((r) => setDocs(r as unknown as typeof docs))
       .catch((e) => {
         toast.error(e instanceof Error ? e.message : "Грешка");
         setDocs([]);

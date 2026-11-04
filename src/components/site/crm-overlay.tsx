@@ -31,7 +31,7 @@ export function CrmSiteOverlay() {
     }
     void (async () => {
       try {
-        const { data } = await supabase.rpc("is_crm_staff", { _user_id: user.id });
+        const { data } = await (supabase.rpc as any)("is_crm_staff", { _user_id: user.id });
         if (!cancelled) setStaff(data === true);
       } catch {
         if (!cancelled) setStaff(false);

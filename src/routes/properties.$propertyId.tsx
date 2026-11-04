@@ -60,7 +60,7 @@ export const Route = createFileRoute("/properties/$propertyId")({
   component: PropertyRoute,
   errorComponent: ({ error }) => (
     <div role="alert" className="p-10">
-      Грешка: {error.message}
+      Грешка: {error instanceof Error ? error.message : String(error)}
     </div>
   ),
   notFoundComponent: () => <div className="p-10">Имотът не е намерен.</div>,
