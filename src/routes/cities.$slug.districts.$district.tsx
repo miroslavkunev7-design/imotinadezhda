@@ -45,7 +45,7 @@ export const Route = createFileRoute("/cities/$slug/districts/$district")({
   component: DistrictRoute,
   pendingComponent: () => <DistrictState title="Зареждаме квартала…" />,
   errorComponent: ({ error }) => (
-    <DistrictState title="Кварталът не може да се зареди" detail={error.message} />
+    <DistrictState title="Кварталът не може да се зареди" detail={error instanceof Error ? error.message : String(error)} />
   ),
   notFoundComponent: () => (
     <DistrictState title="Кварталът не е намерен" detail="Проверете адреса или изберете друг квартал." />

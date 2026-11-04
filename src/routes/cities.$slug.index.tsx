@@ -146,7 +146,8 @@ function CityLoading() {
   return <RouteState title="Зареждаме града…" />;
 }
 
-function CityError({ error }: { error: Error }) {
+function CityError({ error: rawError }: { error: unknown }) {
+  const error = rawError instanceof Error ? rawError : new Error(String(rawError));
   return <RouteState title="Градът не може да се зареди" detail={error.message} />;
 }
 
@@ -172,17 +173,17 @@ export const Route = createFileRoute("/cities/$slug/")({
     return data;
   },
   head: ({ loaderData, params }) => {
-    const seo = citySeo(params.slug, loaderData?.city.name);
+    const seo = citySeo(params.slug, (loaderData as any)?.city?.name);
     const url = siteUrl(`/cities/${params.slug}`);
     const meta = CITY_META[params.slug];
-    const cityName = loaderData?.city?.name ?? meta?.name ?? params.slug;
-    const activeCount = loaderData?.activePropertiesTotal ?? 0;
-    const quarterCount = (loaderData?.quarters ?? []).length;
+    const cityName = (loaderData as any)?.city?.name ?? meta?.name ?? params.slug;
+    const activeCount = (loaderData as any)?.activePropertiesTotal ?? 0;
+    const quarterCount = ((loaderData as any)?.quarters ?? []).length;
     const liveDescription =
       activeCount > 0 || quarterCount > 0
         ? `${seo.description} Актуални оферти: ${activeCount} активни имота${quarterCount ? ` в ${quarterCount} квартала` : ""}.`
         : seo.description;
-    const ogImage = buildOgImage(params.slug, loaderData?.city?.hero_image_url);
+    const ogImage = buildOgImage(params.slug, (loaderData as any)?.city?.hero_image_url);
     return {
       meta: [
         { title: seo.title },

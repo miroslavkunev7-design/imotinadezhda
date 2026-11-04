@@ -29,7 +29,7 @@ export const Route = createFileRoute("/cities/$slug/around")({
   component: AroundCityPage,
   pendingComponent: () => <AroundState title="Зареждаме населените места…" />,
   errorComponent: ({ error }) => (
-    <AroundState title="Населените места не могат да се заредят" detail={error.message} />
+    <AroundState title="Населените места не могат да се заредят" detail={error instanceof Error ? error.message : String(error)} />
   ),
   notFoundComponent: () => (
     <AroundState title="Градът не е намерен" detail="Проверете адреса или изберете друг град." />

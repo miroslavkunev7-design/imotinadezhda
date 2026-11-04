@@ -51,7 +51,7 @@ const TABS: Array<{ key: ImotiDetailTab; label: string; icon: typeof Home }> = [
   { key: "documents", label: "Документи", icon: FileText },
   { key: "owner", label: "Собственик", icon: UserRound },
   { key: "history", label: "История", icon: History },
-  { key: "deal", label: "Сделка", icon: HandshakeIcon },
+  { key: "deal", label: "Сделка", icon: Building2 },
   { key: "contract", label: "Договор", icon: Scale },
   { key: "bank", label: "Банка", icon: Landmark },
 ];

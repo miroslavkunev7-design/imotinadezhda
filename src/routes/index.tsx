@@ -97,7 +97,8 @@ export const Route = createFileRoute("/")({
   component: HomeRoute,
 });
 
-function HomeErrorRoute({ error }: { error: Error }) {
+function HomeErrorRoute({ error: rawError }: { error: unknown }) {
+  const error = rawError instanceof Error ? rawError : new Error(String(rawError));
   const router = useRouter();
   return <PageErrorRetry error={error} onRetry={() => router.invalidate()} />;
 }
@@ -105,5 +106,5 @@ function HomeErrorRoute({ error }: { error: Error }) {
 function HomeRoute() {
   const { catalog } = Route.useLoaderData();
   // Новата начална страница от MASTER архива се показва на всички устройства (потвърдено от потребителя).
-  return <LockedHomeDesktop catalog={catalog} />;
+  return <LockedHomeDesktop catalog={catalog as never} />;
 }

@@ -93,7 +93,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
-    "@lovable.dev/vite-tanstack-config": "2.23.1",
+    "@lovable.dev/vite-tanstack-config": "2.26.5",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
@@ -118,5 +118,9 @@
     "typescript-eslint": "^8.56.1",
     "vite": "^7.3.1",
     "vitest": "^4.1.8"
+  },
+  "overrides": {
+    "@tanstack/router-core": "1.171.39",
+    "@tanstack/react-router": "1.170.46"
   }
 }
