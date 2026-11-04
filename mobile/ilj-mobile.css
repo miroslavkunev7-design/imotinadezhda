@@ -1,0 +1,103 @@
+/* Mobile-only fixes. Never applies above 768px, so desktop is untouched. */
+@media (max-width: 768px) {
+  html, body { width: 100%; max-width: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html body main.city-landing.city-landing {
+    background-size: cover !important;
+    background-position: 32% top !important;
+    background-repeat: no-repeat !important;
+    min-height: 100svh !important;
+    width: 100% !important;
+  }
+  .reference-header nav { white-space: nowrap; }
+  input, select, textarea { font-size: 16px !important; }
+  img { max-width: 100%; }
+
+  /* Client window: name and phone only, big, in the top bar; second block removed */
+  .client-detail .client-detail-top { display: none !important; }
+  .client-detail .premium-modal-header .premium-header-copy h2 { display: none !important; }
+  .client-detail .premium-modal-header .premium-header-copy p {
+    font-size: 26px !important; line-height: 1.2 !important; font-weight: 800 !important;
+    color: #ffe492 !important; margin: 0 !important; opacity: 1 !important;
+  }
+
+  /* CRM home: original sidebar and red satin header kept; content just fits */
+  html body main.crm-content { min-width: 0 !important; }
+  html body main.crm-content > div { padding-left: 14px !important; padding-right: 14px !important; gap: 12px !important; }
+  html body main.crm-content > div.grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  html body .crm-stat-card { flex-direction: column !important; align-items: flex-start !important; padding: 14px !important; gap: 6px !important; border-radius: 18px !important; }
+  html body .crm-stat-card svg { width: 34px !important; height: 34px !important; }
+  html body .crm-stat-card p { font-size: 14px !important; line-height: 1.2 !important; }
+  html body .crm-stat-card span.text-4xl { font-size: 26px !important; }
+  html body .crm-main-card { aspect-ratio: 0.85 !important; border-radius: 22px !important; }
+  html body .crm-main-card-overlay { padding: 14px !important; }
+  html body .crm-main-card-overlay svg.w-14 { width: 30px !important; height: 30px !important; margin-bottom: 4px !important; }
+  html body .crm-main-card-overlay h3 { font-size: 24px !important; }
+  html body .crm-main-card-overlay p { font-size: 13px !important; margin-bottom: 6px !important; }
+  html body .crm-main-card .circle-arrow { width: 34px !important; height: 34px !important; }
+  html body main.crm-content > div.flex-wrap { flex-direction: column !important; margin-top: 24px !important; }
+  html body .crm-action-btn { width: 100% !important; justify-content: flex-start !important; font-size: 16px !important; }
+}
+
+/* AI assistant: round bordeaux bubble bottom-right, opens chat card */
+.crm-assistant-fab{position:fixed;right:18px;bottom:18px;z-index:9998;width:64px;height:64px;border-radius:50%;border:2px solid #d4a343;background:radial-gradient(circle at 30% 30%,#9b1b30,#5a0a1a);box-shadow:0 8px 24px rgba(90,10,26,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.crm-assistant-fab span{font-size:32px;line-height:1;filter:sepia(1) saturate(4) hue-rotate(5deg) brightness(1.1) drop-shadow(0 0 4px rgba(255,214,120,.6))}
+.crm-assistant-window{position:fixed;right:18px;bottom:96px;z-index:9999;width:min(400px,calc(100vw - 24px));height:min(600px,calc(100svh - 120px));display:flex;flex-direction:column;background:#fffaf0;border:2px solid #d4a343;border-radius:22px;box-shadow:0 20px 50px rgba(0,0,0,.35);overflow:hidden;font-family:inherit;color:#2a1a10}
+.crm-assistant-window.is-maximized{inset:10px;width:auto;height:auto}
+.crm-assistant-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(90deg,#5a0a1a,#9b1b30);color:#ffe492}
+.crm-assistant-avatar{font-size:28px}.crm-assistant-heading{flex:1;display:flex;flex-direction:column}.crm-assistant-heading small{opacity:.8;font-size:12px}
+.crm-assistant-head button{background:none;border:0;color:#ffe492;cursor:pointer;width:32px;height:32px;padding:4px}.crm-assistant-head svg{width:20px;height:20px}
+.crm-assistant-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.crm-assistant-msg{max-width:85%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.4;white-space:pre-wrap;background:#f1e4c8;align-self:flex-start}
+.crm-assistant-msg.user{background:#7a1426;color:#fff;align-self:flex-end}
+.crm-assistant-msg time{display:block;font-size:10px;opacity:.6;margin-top:3px}
+.crm-assistant-attachment{display:inline-flex;gap:4px;align-items:center;font-size:12px;background:rgba(0,0,0,.08);border-radius:8px;padding:2px 6px;margin:3px 3px 0 0}.crm-assistant-attachment svg{width:14px;height:14px}
+.crm-assistant-quick{display:flex;gap:6px;overflow-x:auto;padding:6px 10px}.crm-assistant-quick button{flex:0 0 auto;border:1px solid #d4a343;background:#fff;border-radius:14px;padding:5px 10px;font-size:12px;cursor:pointer}
+.crm-assistant-composer{position:relative;display:flex;gap:6px;align-items:flex-end;padding:8px 10px;border-top:1px solid #e8d6ad}
+.crm-assistant-compose-wrap{flex:1}.crm-assistant-compose-wrap textarea{width:100%;min-height:40px;max-height:120px;border:1px solid #d4a343;border-radius:12px;padding:8px;resize:none;font-family:inherit}
+.crm-assistant-plus,.crm-assistant-send{width:40px;height:40px;border-radius:50%;border:0;background:#7a1426;color:#ffe492;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}.crm-assistant-send svg{width:20px;height:20px}
+.crm-assistant-upload-menu{position:absolute;bottom:56px;left:10px;background:#fff;border:1px solid #d4a343;border-radius:12px;padding:6px;display:flex;flex-direction:column}.crm-assistant-upload-menu button{display:flex;gap:6px;align-items:center;background:none;border:0;padding:8px;cursor:pointer}.crm-assistant-upload-menu svg{width:16px;height:16px}
+.crm-assistant-file{display:none}
+.crm-assistant-note{font-size:10px;opacity:.6;padding:0 10px 8px}
+
+/* CRM home: Shumen monument background (from Marble Key) */
+html body main.crm-content{background:linear-gradient(rgba(255,250,240,.35),rgba(255,250,240,.35)),url(/mobile/bg-shumen-desktop.jpg) center/cover no-repeat fixed !important}
+@media (max-width:768px){html body main.crm-content{background:linear-gradient(rgba(255,250,240,.3),rgba(255,250,240,.3)),url(/mobile/bg-shumen-mobile.jpg) center/cover no-repeat scroll !important}}
+
+/* Mobile: CRM home sidebar becomes icon rail (like Clients) so content gets full width; header text fits */
+@media (max-width:768px){
+  html body .crm-sidebar{width:64px !important;border-right-width:2px !important}
+  html body .crm-sidebar-logo{height:110px !important;margin-bottom:12px !important;padding:0 4px !important}
+  html body .crm-sidebar-logo img{max-height:56px !important}
+  html body .crm-nav-item{font-size:0 !important;gap:0 !important;justify-content:center !important;padding:12px 0 !important}
+  html body .crm-nav-item.active{margin:5px 6px !important}
+  html body .crm-nav-item svg{width:28px !important;height:28px !important;flex-shrink:0}
+  html body .crm-header{height:auto !important;min-height:200px !important;padding:28px 16px !important;overflow:hidden}
+  html body .crm-header h1{font-size:40px !important;line-height:1.05 !important}
+  html body .crm-header p{font-size:16px !important;line-height:1.3 !important}
+  html body .crm-stat-card *{min-width:0;overflow-wrap:anywhere}
+  html body .clients-header{margin-right:0 !important;overflow:hidden}
+  html body .clients-header h1,html body .clients-header p{overflow-wrap:anywhere}
+}
+@media (max-width:768px){
+  html body .crm-sidebar-logo:before,html body .crm-sidebar-logo:after{transform:scale(.42);transform-origin:top left}
+  html body .crm-sidebar-logo{justify-content:flex-start !important;align-items:flex-start !important;padding-top:8px !important}
+  html body .crm-sidebar-logo img{max-height:40px !important;max-width:56px !important}
+}
+@media (max-width:768px){
+  html body .crm-header{min-height:0 !important;padding:72px 16px 20px 20px !important}
+  html body .crm-header + *{margin-top:16px !important}
+}
+
+/* Header panel of all windows: keep the logo inside the white (cream) corner — all screen sizes (user request). */
+.premium-modal-header .premium-brand-zone {
+  width: 25% !important; padding: 0 0 34px 3% !important;
+  justify-content: flex-start !important; align-items: center !important;
+}
+.premium-modal-header .premium-brand-zone img {
+  max-width: 100% !important; max-height: 58px !important; object-position: left center !important;
+}
+@media (max-width: 768px) {
+  .premium-modal-header { padding-left: 38% !important; }
+  .premium-modal-header .premium-brand-zone { width: 29% !important; padding: 0 0 36px 3% !important; }
+  .premium-modal-header .premium-brand-zone img { max-height: 38px !important; }
+}
