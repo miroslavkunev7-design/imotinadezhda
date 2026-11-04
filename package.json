@@ -118,5 +118,9 @@
     "typescript-eslint": "^8.56.1",
     "vite": "^7.3.1",
     "vitest": "^4.1.8"
+  },
+  "overrides": {
+    "@tanstack/router-core": "1.171.39",
+    "@tanstack/react-router": "1.170.46"
   }
 }
