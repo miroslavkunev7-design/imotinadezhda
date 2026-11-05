@@ -290,7 +290,7 @@
 
   /* logo on every photo of a property from a folder (bottom right), resized to max 2000 px */
   var logoP = null;
-  function logo() { return logoP || (logoP = new Promise(function (ok) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { ok(null); }; im.src = "/mobile/home-assets/logo-roofs.svg"; })); }
+  function logo() { return logoP || (logoP = new Promise(function (ok) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { ok(null); }; im.src = "/mobile/crm/assets/logo.png"; })); }
   function watermark(file) {
     return Promise.all([readAsDataURL(file), logo()]).then(function (r) {
       return new Promise(function (ok) {
@@ -298,13 +298,15 @@
         im.onload = function () {
           var k = Math.min(1, 2000 / Math.max(im.width, im.height)), c = document.createElement("canvas"), W = c.width = Math.round(im.width * k), H = c.height = Math.round(im.height * k), g = c.getContext("2d");
           g.drawImage(im, 0, 0, W, H);
-          var u = Math.max(W, H) / 1000, bw = 250 * u, bh = 74 * u, x = W - bw - 22 * u, y = H - bh - 22 * u;
-          g.globalAlpha = 0.82; g.fillStyle = "#fffaf3"; g.beginPath();
-          if (g.roundRect) g.roundRect(x, y, bw, bh, 16 * u); else g.rect(x, y, bw, bh); g.fill();
-          g.globalAlpha = 1; g.strokeStyle = "#e2a33b"; g.lineWidth = 2.5 * u; g.stroke();
-          if (r[1]) g.drawImage(r[1], x + 10 * u, y + 13 * u, 74 * u, 48 * u);
-          g.fillStyle = "#680019"; g.textBaseline = "middle"; g.font = "700 " + Math.round(25 * u) + "px Georgia, serif";
-          g.fillText("ИМОТИ", x + 94 * u, y + 25 * u); g.fillText("НАДЕЖДА", x + 94 * u, y + 52 * u);
+          /* our logo, pale and medium-sized, in the lower right corner (it hides nothing important) */
+          var u = Math.max(W, H) / 1000, lw = 300 * u, lh = lw * 296 / 560, x = W - lw - 28 * u, y = H - lh - 26 * u;
+          if (r[1]) {
+            g.save(); g.globalAlpha = 0.28; g.shadowColor = "rgba(255,255,255,.95)"; g.shadowBlur = 18 * u;
+            g.drawImage(r[1], x, y, lw, lh); g.globalAlpha = 0.42; g.shadowBlur = 0; g.drawImage(r[1], x, y, lw, lh); g.restore();
+          } else {
+            g.save(); g.globalAlpha = 0.45; g.fillStyle = "#680019"; g.textBaseline = "bottom"; g.textAlign = "right"; g.font = "700 " + Math.round(34 * u) + "px Georgia, serif";
+            g.shadowColor = "rgba(255,255,255,.9)"; g.shadowBlur = 10 * u; g.fillText("НЕДВИЖИМИ ИМОТИ НАДЕЖДА", W - 28 * u, H - 26 * u); g.restore();
+          }
           c.toBlob(function (b) { ok(b ? new File([b], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" }) : file); }, "image/jpeg", 0.88);
         };
         im.onerror = function () { ok(file); };

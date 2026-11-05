@@ -112,6 +112,14 @@
     "#nd-fwin .ndg-f{position:relative;margin-left:26px;padding:0 24px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:16px 22px;align-items:center}",
     "#nd-fwin .ndg.noimg .ndg-f{margin-left:26px}",
     "#nd-fwin .ndg.one .ndg-f{grid-template-columns:1fr}",
+    "#nd-fwin.widecv .fcv{width:1500px}",
+    "#nd-fwin.widecv .f-body{grid-template-columns:1fr 1fr 1fr;gap:4px 26px}",
+    "#nd-fwin.widecv .ndg-f{grid-template-columns:1fr 1fr 1fr}",
+    "#nd-fwin.widecv .ndg.one .ndg-f{grid-template-columns:1fr}",
+    "#nd-fwin.widecv .ndg{padding-top:70px;margin-bottom:16px;min-height:0}",
+    "#nd-fwin.widecv .ef{margin-bottom:14px}",
+    "#nd-fwin.widecv .ndphotos{grid-template-columns:repeat(6,1fr)}",
+    "#nd-fwin.widecv .f-photo{height:120px}",
     "#nd-fwin .ndg .ef{display:grid;grid-template-columns:var(--lw,128px) 1fr;align-items:center;gap:12px;margin:0;min-width:0}",
     "#nd-fwin .ndg .ef.wide{grid-column:1/-1}",
     "#nd-fwin .ndg .ef.top{align-items:start}",
@@ -228,7 +236,11 @@
     var root = document.documentElement, desk = root.classList.contains("desk");
     if (desk) {
       var vw = root.clientWidth - (window.NDRAIL || 0), dh = parseFloat(getComputedStyle(root).getPropertyValue("--dockH")) || (window.NDRAIL ? 0 : 100), ah = innerHeight - dh - 14;
-      var aw = full ? vw - 16 : Math.min(vw * (window.NDRAIL ? 0.8 : 0.6), window.NDRAIL ? 1500 : 1100), av = full ? ah - 8 : ah * (window.NDRAIL ? 0.97 : 0.94), z = Math.min(aw / 1024, window.NDRAIL ? 1.45 : 1.1), w = 1024 * z, h = Math.min(av, (cv.offsetHeight || 1000) * z);
+      /* desktop: a wider canvas (3 columns) scaled so the whole window is visible at once; it may grow only to natural size */
+      var CW = window.NDRAIL ? 1500 : 1024, aw = full ? vw - 16 : Math.min(vw * (window.NDRAIL ? 0.9 : 0.6), window.NDRAIL ? 1700 : 1100), av = full ? ah - 8 : ah * (window.NDRAIL ? 0.97 : 0.94);
+      W.classList.toggle("widecv", !!window.NDRAIL);
+      var CH = cv.offsetHeight || 1000, z = Math.min(aw / CW, av / CH, window.NDRAIL ? 1 : 1.1); z = Math.max(z, window.NDRAIL ? Math.min(0.62, aw / CW) : z);
+      var w = CW * z, h = Math.min(av, CH * z);
       W.style.width = w + "px"; W.style.height = h + "px"; W.style.left = (vw - w) / 2 + "px"; W.style.top = Math.max(6, (ah - h) / 2) + "px";
       cv.style.zoom = z;
     } else {
@@ -306,25 +318,36 @@
 
   if (document.body) boot(); else document.addEventListener("DOMContentLoaded", boot);
   /* bank module over any page (same overlay as in the client card) */
-  var bankBox = null;
-  function bank(params) {
-    boot();
+  var bankBox = null, bankHost = null, bankOnOffer = null;
+  function bank(params, opts) {
+    boot(); opts = opts || {};
     if (!document.getElementById("nd-bank-css")) {
       var st = document.createElement("style"); st.id = "nd-bank-css";
-      st.textContent = ".nd-bank{position:fixed;inset:0;z-index:80;background:rgba(40,5,12,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .22s}.nd-bank.show{opacity:1}.nd-bank[hidden]{display:none}.nd-bank iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}";
+      st.textContent = ".nd-bank{position:fixed;inset:0;z-index:80;background:rgba(40,5,12,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .22s}.nd-bank.show{opacity:1}.nd-bank[hidden]{display:none}.nd-bank iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}" +
+        ".nd-bank.inhost{position:absolute;inset:0;z-index:30;border-radius:inherit;overflow:hidden;background:linear-gradient(180deg,#fff7ef,#f6dcc4);-webkit-backdrop-filter:none;backdrop-filter:none}.nd-bank.inhost iframe{background:#fbeee2}" +
+        ".nd-bank .nd-bank-back{position:absolute;left:14px;top:12px;z-index:2;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 12px;border:0;border-radius:20px;cursor:pointer;font:700 16px/1 var(--cond,Arial);color:#fff3dc;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);box-shadow:0 0 0 1.5px #edc47a,0 0 10px rgba(255,190,120,.6)}.nd-bank .nd-bank-back svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2}";
       document.head.appendChild(st);
-      addEventListener("message", function (e) { if (e.data && e.data.type === "crm-bank-close") closeBank(); });
+      addEventListener("message", function (e) {
+        if (!e.data) return;
+        if (e.data.type === "crm-bank-close") closeBank();
+        if (e.data.type === "crm-bank-offer" && bankOnOffer) bankOnOffer(e.data.offer);
+      });
       document.addEventListener("keydown", function (e) { if (e.key === "Escape" && bankBox && !bankBox.hidden) { e.stopImmediatePropagation(); closeBank(); } }, true);
     }
+    var host = opts.host || null;
+    if (bankBox && bankHost !== host) { bankBox.remove(); bankBox = null; }
     if (!bankBox) {
-      bankBox = document.createElement("div"); bankBox.className = "nd-bank"; bankBox.setAttribute("role", "dialog"); bankBox.setAttribute("aria-modal", "true"); bankBox.setAttribute("aria-label", "Банков модул");
-      bankBox.innerHTML = '<iframe title="Банков модул" allow="fullscreen; clipboard-write"></iframe>'; document.body.appendChild(bankBox);
+      bankBox = document.createElement("div"); bankBox.className = "nd-bank" + (host ? " inhost" : ""); bankBox.setAttribute("role", host ? "region" : "dialog"); if (!host) bankBox.setAttribute("aria-modal", "true"); bankBox.setAttribute("aria-label", "Банков модул");
+      bankBox.innerHTML = (host ? '<button type="button" class="nd-bank-back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Назад към картата</button>' : "") + '<iframe title="Банков модул" allow="fullscreen; clipboard-write"></iframe>';
+      (host || document.body).appendChild(bankBox); bankHost = host;
+      var bk = bankBox.querySelector(".nd-bank-back"); if (bk) bk.addEventListener("click", closeBank);
     }
-    var q = "embed=1"; Object.keys(params || {}).forEach(function (k) { if (params[k] != null && params[k] !== "") q += "&" + k + "=" + encodeURIComponent(params[k]); });
+    bankOnOffer = opts.onOffer || null;
+    var q = "embed=1" + (host ? "&inhost=1" : ""); Object.keys(params || {}).forEach(function (k) { if (params[k] != null && params[k] !== "") q += "&" + k + "=" + encodeURIComponent(params[k]); });
     bankBox.querySelector("iframe").src = "bank.html?" + q; bankBox.hidden = false;
     requestAnimationFrame(function () { bankBox.classList.add("show"); });
   }
-  function closeBank() { if (!bankBox) return; bankBox.classList.remove("show"); setTimeout(function () { bankBox.hidden = true; bankBox.querySelector("iframe").src = "about:blank"; }, 220); }
+  function closeBank() { if (!bankBox) return; bankBox.classList.remove("show"); setTimeout(function () { if (!bankBox) return; bankBox.hidden = true; bankBox.querySelector("iframe").src = "about:blank"; }, 220); }
   /* calculator block used inside the deal windows: price and commission come from the deal fields */
   function calcHtml(rent, noComm) {
     return group(noComm ? "Кредитен калкулатор" : "Калкулатор", "calculator", "nd/ph09.jpg",

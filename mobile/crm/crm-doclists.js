@@ -36,7 +36,7 @@
   };
   function sv(n, c) { return '<svg class="' + (c || "dli") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (SV[n] || SV.doc) + "</svg>"; }
   var css =
-    ".ndl{grid-column:1/-1;font-family:'Roboto Condensed',Arial,sans-serif;zoom:1.6;padding:0 6px}" +
+    ".ndl{grid-column:1/-1;font-family:'Roboto Condensed',Arial,sans-serif;zoom:1.6;padding:0 6px}html.desk .ndl{zoom:1.15}html.desk .ndl .ndl-rows2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}" +
     ".ndl-f .dlf{flex:none;width:20px;height:20px;color:#7a0f22}" +
     ".ndl-sel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}" +
     ".ndl-sel label{display:block;font:700 13px/1.2 'Roboto Condensed',sans-serif;color:#6b0a1c;margin:0 0 4px 4px}" +
@@ -242,7 +242,7 @@
         '<div class="ndl-top"><span class="sum">Задължителни: <b>' + done + " / " + req + '</b> прикачени</span><button type="button" class="ndl-add ndl-send" data-send>' + sv("up") + "Изпрати документите</button>" + '<button type="button" class="ndl-add" data-addrow>' + sv("plus") + "Създай нова графа</button></div>" +
         (sendOpen ? sendHtml(gs) : "") +
         '<div class="ndl-bar"><i style="width:' + (req ? Math.round(done / req * 100) : 0) + '%"></i></div>' +
-        gs.map(function (g) { return '<div class="ndl-grp">' + esc(g[0]) + "</div>" + g[1].map(rowHtml).join(""); }).join("") +
+        gs.map(function (g) { return '<div class="ndl-grp">' + esc(g[0]) + '</div><div class="ndl-rows2">' + g[1].map(rowHtml).join("") + "</div>"; }).join("") +
         (other.length ? '<div class="ndl-grp">Други документи</div>' + rowHtml(R("__other", "Други документи", "Качени по-рано или без графа", "folder", "nd/ph20.jpg", true)).replace(/data-k="__other"/, 'data-k="__other" data-other') : "") +
         "</div>";
     }

@@ -8,7 +8,7 @@
 <style>html:not(.ready) #stage,html:not(.ready) #dock{opacity:0}html.ready #stage,html.ready #dock{transition:opacity .18s ease}#dock{z-index:60}
 </style>
 <title>Клиенти · Имоти Надежда</title>
-<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html"><link rel="prefetch" href="crm-sdelki.html">
+<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html"><link rel="prefetch" href="crm-sdelki.html"><link rel="prefetch" href="crm-dogovori.html">
 <style>
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+20AC,U+2013-2014,U+2018-201E,U+2026}
@@ -620,7 +620,7 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
       <button class="nv" data-nav="Календар" data-href="crm-kalendar.html"><svg class="i"><use href="#calendar"/></svg><span>Календар</span></button>
       <button class="nv" data-nav="Компании" data-href="crm-kompanii.html"><svg class="i"><use href="#building-2"/></svg><span>Компании</span></button>
       <button class="nv" data-nav="Сделки" data-href="crm-sdelki.html"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span></button>
-      <button class="nv" data-nav="Документи"><svg class="i"><use href="#file-text"/></svg><span>Документи</span></button>
+      <button class="nv" data-nav="Договори" data-href="crm-dogovori.html"><svg class="i"><use href="#file-pen"/></svg><span>Договори</span></button>
       <button class="nv chart" data-nav="Отчети"><svg class="i"><use href="#chart"/></svg><span>Отчети</span></button>
     </nav>
     <div class="home-ind" aria-hidden="true"></div>
@@ -924,13 +924,10 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
   var bankBox=null;
   function openBank(name){
     var c=clients.filter(function(x){return x.name===name})[0]||{};
-    var q='embed=1&client='+encodeURIComponent(name||'')+(c.budget&&c.cat!=='rent'?'&price='+c.budget:'')+(c.city?'&city='+encodeURIComponent(c.city):'');
-    if(!bankBox){bankBox=document.createElement('div');bankBox.className='bank-ov';bankBox.setAttribute('role','dialog');bankBox.setAttribute('aria-modal','true');bankBox.setAttribute('aria-label','Банков модул');
-      bankBox.innerHTML='<iframe title="Банков модул" allow="fullscreen; clipboard-write"></iframe>';document.body.appendChild(bankBox)}
-    bankBox.querySelector('iframe').src='bank.html?'+q;bankBox.hidden=false;requestAnimationFrame(function(){bankBox.classList.add('show')});
+    window.NDUI.bank({client:name||'',price:c.budget&&c.cat!=='rent'?c.budget:'',city:c.city||'',ref:c.id?'client:'+c.id:''},{host:win,onOffer:function(o){
+      if(!c.id||!window.NDKTabs)return;var txt='Запазена оферта: '+(o.bank||'')+' · кредит '+Number(o.loan||0).toLocaleString('bg-BG')+' € · вноска € '+(o.payment||'')+(o.rate!=null?' · лихва '+String(o.rate).replace('.',',')+'%':'');
+      window.NDKTabs.log(c,'landmark',txt).then(function(){say('Офертата е записана в картата на клиента');if(typeof refreshActs==='function')refreshActs(c)}).catch(function(){})}});
   }
-  function closeBank(){if(!bankBox)return;bankBox.classList.remove('show');setTimeout(function(){bankBox.hidden=true;bankBox.querySelector('iframe').src='about:blank'},220)}
-  addEventListener('message',function(e){if(e.data&&e.data.type==='crm-bank-close')closeBank()});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&bankBox&&!bankBox.hidden){e.stopImmediatePropagation();closeBank()}},true);
 
   /* ---------- toast + misc buttons ---------- */

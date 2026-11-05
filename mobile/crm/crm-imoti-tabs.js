@@ -179,7 +179,7 @@
     function bind() {
       var pi = ctx.q("p-picin"), di = ctx.q("p-docin");
       var cs = ctx.q("p-city"), hl = ctx.q("p-hoods"); if (cs && hl) cs.onchange = function () { hl.innerHTML = hoodOpts(cs.value); var pl = ctx.q("p-places"), pi2 = ctx.q("p-place"); if (pl) pl.innerHTML = placeOpts(cs.value); if (pi2 && (!pi2.value || PL.cities.indexOf(pi2.value) >= 0)) pi2.value = cs.value; var h = ctx.q("p-hood"); if (h && h.value) h.value = PL.hood(cs.value, h.value); };
-      if (pi) pi.onchange = function () { [].forEach.call(pi.files, function (f) { addNew(f); }); rerender(); };
+      if (pi) pi.onchange = function () { [].forEach.call(pi.files, function (f) { addNew(f, true); }); rerender(); };
       if (di) di.onchange = function () { [].forEach.call(di.files, function (f) { pendingDocs.push({ file: f, name: f.name }); }); rerender(); };
       var ph = ctx.q("p-pics");
       if (ph) {

@@ -8,7 +8,7 @@
 <style>html:not(.ready) #stage,html:not(.ready) #dock{opacity:0}html.ready #stage,html.ready #dock{transition:opacity .18s ease}#dock{z-index:60}
 </style>
 <title>Имоти · Имоти Надежда</title>
-<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html"><link rel="prefetch" href="crm-sdelki.html">
+<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html"><link rel="prefetch" href="crm-sdelki.html"><link rel="prefetch" href="crm-dogovori.html">
 <style>
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+20AC,U+2013-2014,U+2018-201E,U+2026}
@@ -505,7 +505,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 .acc .body .bankbtn{margin-top:14px;height:66px;padding:0 30px;border-radius:33px;display:inline-flex;align-items:center;gap:16px;color:#fff;font:700 30px/1 var(--cond);
   background:linear-gradient(180deg,#a3213a,#6a0a1d);box-shadow:0 0 0 2px #e6b866,0 0 10px rgba(255,200,120,.5)}
 .acc .note{font-size:26px;color:#7a5a52;margin-top:10px}
-.pm-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:30px 22px 0}.pm-actions .pa span{text-align:center;line-height:1.05}
+.pm-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:30px 22px 0}.pm-actions .pa span{text-align:center;line-height:1.05}
 .pa{height:163px;border-radius:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font:700 32px/1 var(--cond);color:#2b1414;
   background:linear-gradient(180deg,#fffdf9 0%,#fbefe4 100%);box-shadow:0 0 0 1.5px rgba(231,196,160,.6),0 0 14px rgba(255,226,196,.9),0 5px 12px rgba(120,50,20,.22),inset 0 -2px 3px rgba(230,190,160,.3)}
 .pa svg.i{font-size:56px;color:#8c0d22;stroke-width:1.7}
@@ -527,7 +527,7 @@ html.desk .pm-right{position:absolute;left:1036px;top:16px;width:1000px;height:1
 html.desk .pm-right .pm-sec{margin:0 0 16px}
 html.desk .pm-right .pm-sec:first-child{margin-top:68px}
 html.desk .pm-acc{padding:0}
-html.desk .pm-actions{position:absolute;left:0;top:1074px;width:1024px;padding:0 22px;grid-template-columns:repeat(7,1fr);gap:10px}
+html.desk .pm-actions{position:absolute;left:0;top:1074px;width:1024px;padding:0 22px;grid-template-columns:repeat(6,1fr);gap:10px}
 html.desk .pm-actions .pa{height:150px}
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
@@ -767,7 +767,6 @@ html.desk .pm-actions .pa{height:150px}
 
       <div class="pm-actions">
         <button class="pa" data-pa="edit"><svg class="i"><use href="#pencil"/></svg>Редактирай</button>
-        <button class="pa" data-pa="share"><svg class="i"><use href="#share-2"/></svg>Сподели</button>
         <button class="pa hot" data-pa="publish"><svg class="i"><use href="#megaphone"/></svg><span>Публикувай на сайта</span></button>
         <button class="pa" data-pa="archive"><svg class="i"><use href="#archive"/></svg><span>Запази в архив</span></button>
         <button class="pa hot" data-pa="all"><svg class="i"><use href="#globe"/></svg><span>Публикувай навсякъде</span></button>
@@ -790,7 +789,7 @@ html.desk .pm-actions .pa{height:150px}
       <button class="nv" data-nav="Календар" data-href="crm-kalendar.html"><svg class="i"><use href="#calendar"/></svg><span>Календар</span></button>
       <button class="nv" data-nav="Компании" data-href="crm-kompanii.html"><svg class="i"><use href="#building-2"/></svg><span>Компании</span></button>
       <button class="nv" data-nav="Сделки" data-href="crm-sdelki.html"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span></button>
-      <button class="nv" data-nav="Документи"><svg class="i"><use href="#file-text"/></svg><span>Документи</span></button>
+      <button class="nv" data-nav="Договори" data-href="crm-dogovori.html"><svg class="i"><use href="#file-pen"/></svg><span>Договори</span></button>
       <button class="nv chart" data-nav="Отчети"><svg class="i"><use href="#chart"/></svg><span>Отчети</span></button>
     </nav>
     <div class="home-ind" aria-hidden="true"></div>
@@ -1055,6 +1054,18 @@ html.desk .pm-actions .pa{height:150px}
   $('pm-full').addEventListener('click',function(){setPFull(!pfull)});
   $('pm-close').addEventListener('click',closeProp);
   pback.addEventListener('click',closeProp);
+  /* click on the photo: full-screen viewer with arrows and keyboard */
+  (function(){
+    var lb=null;
+    function build(){lb=document.createElement('div');lb.className='nd-lb';lb.innerHTML='<button type="button" class="lb-x" aria-label="Затвори">✕</button><button type="button" class="lb-p" aria-label="Предишна">‹</button><img alt=""><button type="button" class="lb-n" aria-label="Следваща">›</button><div class="lb-c"></div>';document.body.appendChild(lb);
+      lb.addEventListener('click',function(e){if(e.target===lb||e.target.closest('.lb-x'))hide();else if(e.target.closest('.lb-p'))step(-1);else if(e.target.closest('.lb-n'))step(1)});
+      document.addEventListener('keydown',function(e){if(!lb||!lb.classList.contains('show'))return;if(e.key==='Escape'){e.stopImmediatePropagation();hide()}if(e.key==='ArrowLeft')step(-1);if(e.key==='ArrowRight')step(1)},true);
+      var st=document.createElement('style');st.textContent='.nd-lb{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;background:rgba(20,2,8,.92);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}.nd-lb.show{display:flex}.nd-lb img{max-width:94vw;max-height:92vh;border-radius:18px;box-shadow:0 0 0 2px #edc47a,0 0 40px rgba(255,214,150,.45);object-fit:contain}.nd-lb button{position:absolute;border:0;cursor:pointer;color:#fff3dc;background:linear-gradient(180deg,#a3213a,#55071a);box-shadow:0 0 0 2px #edc47a,0 0 16px rgba(255,190,120,.6);border-radius:50%;width:58px;height:58px;font:700 34px/1 Georgia,serif;display:grid;place-items:center}.nd-lb .lb-x{right:20px;top:18px;font-size:26px}.nd-lb .lb-p{left:20px;top:50%;transform:translateY(-50%)}.nd-lb .lb-n{right:20px;top:50%;transform:translateY(-50%)}.nd-lb .lb-c{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);padding:8px 18px;border-radius:18px;font:700 18px var(--cond,Arial);color:#fff3dc;background:rgba(80,10,20,.75);box-shadow:0 0 0 1px rgba(237,196,122,.7)}';document.head.appendChild(st)}
+    function show(){if(!lb)build();var g=det[cur.id].gallery;lb.querySelector('img').src=img(g[gi]);lb.querySelector('.lb-c').textContent=(gi+1)+' / '+g.length;lb.querySelector('.lb-p').style.display=lb.querySelector('.lb-n').style.display=g.length>1?'':'none';lb.classList.add('show')}
+    function hide(){if(lb)lb.classList.remove('show')}
+    function step(d){var n=det[cur.id].gallery.length;gi=(gi+d+n)%n;showPhoto();show()}
+    $('pm-img').style.cursor='zoom-in';$('pm-img').addEventListener('click',function(){if(det[cur.id]&&det[cur.id].gallery.length)show()});
+  })();
   $('pm-prev').addEventListener('click',function(){var n=det[cur.id].gallery.length;gi=(gi-1+n)%n;showPhoto()});
   $('pm-next').addEventListener('click',function(){var n=det[cur.id].gallery.length;gi=(gi+1)%n;showPhoto()});
   $('pm-thumbs').addEventListener('click',function(e){
@@ -1068,7 +1079,7 @@ html.desk .pm-actions .pa{height:150px}
     if(a==='all'){var pp=cur;window.NDPublish.open(window.NDProps.stored(pp),{publishSite:function(){return pp.status==='Публикуван'?null:window.NDProps.setStatus(pp,'Публикуван')},save:function(patch){var fresh=props.filter(function(x){return x.id===pp.id})[0]||pp;var o=window.NDProps.stored(fresh);Object.keys(patch).forEach(function(k){o[k]=patch[k]});return ND.put('properties',o).then(loadAll)}});return}
     if(a==='archive'){if(cur.status==='Архивиран'){say('Имотът вече е в архива');return}window.NDProps.setStatus(cur,'Архивиран');return}
     if(a==='owner'){window.NDProps.owner(cur);return}
-    if(a==='bank'){var cov=(cur.pics&&cur.pics.length)?img(cur.pics[(cur.cover||0)]||cur.pics[0]):'';window.NDUI.bank({client:cur.client,price:cur.deal==='sale'?cur.price:'',city:cur.city,hood:cur.hood,title:cur.title,code:cur.code,area:cur.area,rooms:cur.rooms,floor:cur.floor,photo:/^(https?:|blob:|data:)/.test(cov)?cov:''});return}
+    if(a==='bank'){var cov=(cur.pics&&cur.pics.length)?img(cur.pics[(cur.cover||0)]||cur.pics[0]):'';var pp=cur;window.NDUI.bank({client:cur.client,price:cur.deal==='sale'?cur.price:'',city:cur.city,hood:cur.hood,title:cur.title,code:cur.code,area:cur.area,rooms:cur.rooms,floor:cur.floor,photo:/^(https?:|blob:|data:)/.test(cov)?cov:'',ref:'property:'+(cur.code||cur.id)},{host:pwin,onOffer:function(o){var s=window.NDProps.stored(pp);s.log=(s.log||[]).slice(0,49);s.log.unshift({icon:'landmark',text:'Запазена оферта: '+(o.bank||'')+' · кредит '+Number(o.loan||0).toLocaleString('bg-BG')+' € · вноска € '+(o.payment||''),at:new Date().toISOString()});pp.log=s.log;ND.put('properties',s).then(function(){say('Офертата е записана в картата на имота')}).catch(function(){})}});return}
     if(a==='pdocs'&&window.NDDocs){var pp=cur;window.NDDocs.property(pp,{say:say,save:function(patch){var o=window.NDProps.stored(pp);Object.keys(patch).forEach(function(k){o[k]=patch[k]});return ND.put('properties',o)},onUpload:function(t,n){var o=window.NDProps.stored(pp);o.log=(o.log||[]).slice(0,49);o.log.unshift({icon:'file-text',text:'Прикачен документ: '+t+(n>1?' ('+n+' файла)':''),at:new Date().toISOString()});pp.log=o.log;ND.put('properties',o).catch(function(){})}});return}
     say(t)});
   $('pm-acc').addEventListener('click',function(e){var r=e.target.closest('[data-doc]');if(!r||!cur)return;var d=cur.docs[+r.getAttribute('data-doc')];if(!d)return;var w=window.open('','_blank');ND.fileUrl(d.path).then(function(u){if(w)w.location=u;else location.href=u})});

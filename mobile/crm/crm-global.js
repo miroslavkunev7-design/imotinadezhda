@@ -284,7 +284,7 @@
     });
   }
 
-  var NAV = { "Сделки": deals, "Документи": documents, "Отчети": reports };
+  var NAV = { "Сделки": deals, "Документи": documents, "Договори": function () { location.href = "crm-dogovori.html"; }, "Отчети": reports };
   var MSG = { "Известия": notifications, "Търсене": search, "Настройки": settings, "Сделки": deals, "Нова сделка": function () { deals({ focusNew: true }); }, "Калкулатор": function () { deals({ focusCalc: true }); }, "Документи": documents, "Всички дейности": activities, "Банка": function () { U.bank({}); } };
   document.addEventListener("click", function (e) {
     if (!e.target.closest) return;
