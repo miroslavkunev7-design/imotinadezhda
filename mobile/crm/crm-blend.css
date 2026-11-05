@@ -51,3 +51,29 @@ html:not(.desk) #top{
   html:not(.desk) #dock::after{content:"";position:absolute;left:0;right:0;top:100%;height:env(safe-area-inset-bottom,0px);background:#3e0d16}
   html:not(.desk) #stage{padding-bottom:env(safe-area-inset-bottom,0px)}
 }
+
+
+/* ===== Desktop: side menu instead of the bottom dock ===== */
+html.rail #dock{display:none!important}
+html.rail #stage{margin-left:var(--rail,112px)}
+html.rail .mwin,html.rail #nd-fwin{margin-left:var(--rail,112px)}
+#ndside{position:fixed;left:0;top:0;bottom:0;width:var(--rail,112px);z-index:58;display:flex;flex-direction:column;align-items:center;padding:14px 0 12px;
+  background:linear-gradient(180deg,#5a1020 0%,#4a0f1a 40%,#3d0e17 100%);box-shadow:inset -1px 0 0 rgba(237,196,122,.55),4px 0 18px rgba(30,0,8,.35);isolation:isolate}
+#ndside::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(120% 60% at 50% 0%,rgba(255,214,150,.18),transparent 60%),radial-gradient(120% 50% at 50% 100%,rgba(163,33,58,.45),transparent 60%)}
+#ndside::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,transparent,#edc47a 20%,#f6d68c 50%,#edc47a 80%,transparent)}
+#ndside .sb-logo{display:block;width:86px;height:70px;margin:0 0 8px;border-radius:18px;background:linear-gradient(180deg,#fffaf3,#fbeee2);box-shadow:0 0 0 1.5px rgba(237,196,122,.9),0 0 14px rgba(255,214,150,.6);display:grid;place-items:center;transition:transform .3s,box-shadow .3s}
+#ndside .sb-logo img{width:76px;height:60px;object-fit:contain}
+#ndside .sb-logo:hover{transform:translateY(-2px);box-shadow:0 0 0 1.5px #f6d68c,0 0 20px rgba(255,214,150,.9)}
+#ndside .sb-nav{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;width:100%;padding:6px 10px;overflow:auto}
+#ndside .nv{position:relative;width:100%;height:auto;min-height:66px;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:0;border-radius:18px;background:none;color:#fff;font:400 14px/1 var(--sans,Arial);cursor:pointer;white-space:nowrap;animation:none;transition:background .25s,box-shadow .25s,transform .25s}
+#ndside .nv svg.i{width:28px;height:28px;font-size:28px;stroke-width:1.9;color:#fff}
+#ndside .nv:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
+#ndside .nv.on{background:linear-gradient(180deg,#a3213a,#55071a);box-shadow:0 0 0 1.5px #edc47a,0 0 16px rgba(255,190,120,.65),inset 0 1px 0 rgba(255,255,255,.2);color:#fff3dc}
+#ndside .nv.on svg.i{color:#f5d58f}
+#ndside .nv.on::after{display:none}
+#ndside .sb-foot{width:100%;padding:8px 10px 0;border-top:1px solid rgba(237,196,122,.35)}
+#ndside .sb-ted{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border:0;border-radius:18px;background:none;color:#fff;font:400 14px/1 var(--sans,Arial);cursor:pointer;transition:background .25s}
+#ndside .sb-ted img{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,#a3213a,#55071a);box-shadow:0 0 0 2px #edc47a,0 0 12px rgba(255,190,120,.6)}
+#ndside .sb-ted:hover{background:rgba(255,255,255,.08)}
+@media (max-height:760px){#ndside .nv{min-height:56px;font-size:13px}#ndside .nv svg.i{width:24px;height:24px}#ndside .sb-logo{height:58px}}
+html.rail .nda-fab{display:none}

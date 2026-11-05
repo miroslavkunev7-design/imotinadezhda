@@ -860,7 +860,7 @@ html.desk .pm-actions .pa{height:150px}
   function fit(){
     desk=isDesk();root.classList.toggle('desk',desk);
     if(desk){
-      var vw=root.clientWidth,vh=innerHeight,BW=2072,BH=1200,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
+      var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1200,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
       var Hh=380+Math.min(exH*.5,160),G=24+Math.min(exW*.15,80),xL=(Wc-2000-G)/2;
       canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height=Hc+'px';canvas.style.paddingTop=Hh+'px';
       top.style.height=Hh+'px';
@@ -874,7 +874,7 @@ html.desk .pm-actions .pa{height:150px}
     }
     canvas.style.width=canvas.style.height=canvas.style.paddingTop='';top.style.height='';
     texts.forEach(function(o){o.el.style.top=o.top+'px'});photo.style.width=photo.style.left=photo.style.top='';ctrls.forEach(function(el){el.style.left=''});
-    var vw2=root.clientWidth,k2=vw2/W,off=(root.clientWidth-vw2)/2;
+    var vw2=(root.clientWidth-(window.NDRAIL||0)),k2=vw2/W,off=((root.clientWidth-(window.NDRAIL||0))-vw2)/2;
     canvas.style.zoom=k2;canvas.style.marginLeft=(off/k2)+'px';
     dockC.style.transform='scale('+k2+')';dockC.style.left=off+'px';
     dock.style.height=(DOCK*k2)+'px';stage.style.paddingBottom=(DOCK*k2)+'px';
@@ -975,7 +975,7 @@ html.desk .pm-actions .pa{height:150px}
 
   $('plist').addEventListener('click',function(e){
     var f=e.target.closest('[data-fav]');if(f){e.stopPropagation();var id=f.getAttribute('data-fav');favs[id]=!favs[id];f.classList.toggle('on',favs[id]);f.setAttribute('aria-pressed',favs[id]);
-      try{localStorage.setItem('imoti-favs',JSON.stringify(favs))}catch(x){};say(favs[id]?'Добавен в любими':'Премахнат от любими');return}
+      try{localStorage.setItem('imoti-favs',JSON.stringify(favs))}catch(x){};if(window.ND)ND.setPref('favs-properties',favs).catch(function(){});say(favs[id]?'Добавен в любими':'Премахнат от любими');return}
     var m=e.target.closest('[data-menu]');if(m){e.stopPropagation();var mp=props.filter(function(x){return x.id===m.getAttribute('data-menu')})[0];if(mp)window.NDProps.edit(mp);return}
     var c=e.target.closest('.pc');if(c)openProp(c.getAttribute('data-id'),c)});
   $('plist').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.classList.contains('pc'))e.target.click()});
@@ -1046,7 +1046,7 @@ html.desk .pm-actions .pa{height:150px}
   function fitProp(){
     if(pwin.hidden)return;
     if(desk){
-      var vw=root.clientWidth,dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
+      var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
       var aw=pfull?vw-16:vw*.94,av=pfull?ah-8:ah*.94,z=Math.min(aw/2048,av/1250),w=2048*z,h=1250*z;
       pwin.style.width=w+'px';pwin.style.height=h+'px';pwin.style.left=((vw-w)/2)+'px';pwin.style.top=Math.max(6,(ah-h)/2)+'px';pmcv.style.zoom=z;
     }else{pwin.style.width=pwin.style.height=pwin.style.left=pwin.style.top='';pmcv.style.zoom=pwin.clientWidth/1024}
@@ -1092,7 +1092,7 @@ html.desk .pm-actions .pa{height:150px}
   window.NDProps.init({say:say,list:function(){return props},clientNames:function(){return Object.keys(CL)},refresh:loadAll,
     reopen:function(id){if(!pwin.hidden&&cur&&cur.id===id)openProp(id,plast);else if(pwin.hidden)openProp(id)},closeCard:function(){if(!pwin.hidden)closeProp()}});
   ND.busy(1);
-  ND.ready().then(loadAll).then(function(){ND.busy(0);var hh=(location.hash||'').slice(1);if(hh==='new'){try{history.replaceState(null,'',location.pathname)}catch(x){}setTimeout(function(){var nb=document.querySelector('.ia[data-view="new"]');if(nb)nb.click()},250)}else if(det[hh])openProp(hh)}).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
+  ND.ready().then(function(){return ND.pref('favs-properties',null)}).then(function(f){if(f&&typeof f==='object'){favs=f;try{localStorage.setItem('imoti-favs',JSON.stringify(favs))}catch(x){}}}).then(loadAll).then(function(){ND.busy(0);var hh=(location.hash||'').slice(1);if(hh==='new'){try{history.replaceState(null,'',location.pathname)}catch(x){}setTimeout(function(){var nb=document.querySelector('.ia[data-view="new"]');if(nb)nb.click()},250)}else if(det[hh])openProp(hh)}).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>

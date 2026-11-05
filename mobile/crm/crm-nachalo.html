@@ -419,7 +419,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   var hdr={photo:top.querySelector('.photo'),ctrls:[].slice.call(top.querySelectorAll('.ctrl,.avatar'))};
   function isDesk(){return root.clientWidth>=1024&&root.clientWidth/innerHeight>=1.2}
   function fitDesk(){
-    var vw=root.clientWidth,vh=innerHeight,BW=2072,BH=1173;
+    var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1173;
     var k=Math.min(vw/BW,vh/BH),W=vw/k,Hc=vh/k,exH=Hc-BH,exW=W-BW;
     var Hh=430+Math.min(exH*.5,160);
     var G=24+Math.min(exW*.15,80),xL=(W-2000-G)/2,xR=xL+1000+G;

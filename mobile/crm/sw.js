@@ -1,6 +1,6 @@
 /* Service worker for the installable CRM app. Network first (always fresh data);
    the page shell is kept for offline start, data always comes live from the database. */
-var CACHE = "nd-crm-v23";
+var CACHE = "nd-crm-v24";
 var SHELL = ["crm-nachalo.html", "crm-klienti.html", "crm-imoti.html", "crm-brokeri.html", "crm-kalendar.html", "crm-kompanii.html",
   "crm-data.js", "crm-ui.js", "crm-global.js", "crm-klienti-tabs.js", "crm-imoti-tabs.js", "assets/logo.png", "assets/app-icon3-round-192.png"];
 self.addEventListener("install", function (e) {
@@ -12,6 +12,15 @@ self.addEventListener("activate", function (e) {
 self.addEventListener("fetch", function (e) {
   var r = e.request;
   if (r.method !== "GET" || new URL(r.url).origin !== location.origin) return;
+  var u = new URL(r.url), shell = /\/mobile\/(crm\/)?[^?]*\.(html|js|css|webp|jpg|png|svg)$/.test(u.pathname) && u.pathname.indexOf("/api/") < 0;
+  if (shell) {
+    /* page shell: serve the cached copy at once, refresh it in the background (the cache name changes with every release) */
+    e.respondWith(caches.match(r).then(function (hit) {
+      var net = fetch(r).then(function (res) { if (res.ok && res.type === "basic") { var cp = res.clone(); caches.open(CACHE).then(function (c) { c.put(r, cp); }); } return res; }).catch(function () { return hit; });
+      return hit || net;
+    }));
+    return;
+  }
   e.respondWith(fetch(r).then(function (res) {
     if (res.ok && res.type === "basic") { var cp = res.clone(); caches.open(CACHE).then(function (c) { c.put(r, cp); }); }
     return res;

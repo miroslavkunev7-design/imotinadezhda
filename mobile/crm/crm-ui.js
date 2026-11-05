@@ -221,7 +221,7 @@
     if (!W || W.hidden) return;
     var root = document.documentElement, desk = root.classList.contains("desk");
     if (desk) {
-      var vw = root.clientWidth, dh = parseFloat(getComputedStyle(root).getPropertyValue("--dockH")) || 100, ah = innerHeight - dh - 14;
+      var vw = root.clientWidth - (window.NDRAIL || 0), dh = parseFloat(getComputedStyle(root).getPropertyValue("--dockH")) || 100, ah = innerHeight - dh - 14;
       var aw = full ? vw - 16 : Math.min(vw * 0.6, 1100), av = full ? ah - 8 : ah * 0.94, z = Math.min(aw / 1024, 1.1), w = 1024 * z, h = Math.min(av, (cv.offsetHeight || 1000) * z);
       W.style.width = w + "px"; W.style.height = h + "px"; W.style.left = (vw - w) / 2 + "px"; W.style.top = Math.max(6, (ah - h) / 2) + "px";
       cv.style.zoom = z;
@@ -421,5 +421,43 @@
     });
     run(); return run;
   }
+
+  /* ---------- desktop: the bottom menu becomes a side panel on the left ---------- */
+  var RAIL = 112;
+  function sideRail() {
+    var root = document.documentElement, dock = document.getElementById("dock");
+    if (!dock) return;
+    var side = document.getElementById("ndside");
+    function build() {
+      if (side) return side;
+      side = document.createElement("aside"); side.id = "ndside"; side.setAttribute("aria-label", "Меню");
+      var logo = document.querySelector(".logo-img, img.logo") || null;
+      var top = document.createElement("a"); top.className = "sb-logo"; top.href = "/"; top.title = "Към сайта";
+      top.innerHTML = '<img src="' + (logo ? logo.getAttribute("src") : "assets/logo.png") + '" alt="Недвижими Имоти Надежда">';
+      side.appendChild(top);
+      var nav = document.createElement("nav"); nav.className = "sb-nav"; nav.setAttribute("aria-label", "Основна навигация");
+      [].forEach.call(dock.querySelectorAll(".nv"), function (b) { var c = b.cloneNode(true); c.classList.add("sb-i"); nav.appendChild(c); });
+      side.appendChild(nav);
+      var foot = document.createElement("div"); foot.className = "sb-foot";
+      foot.innerHTML = '<button type="button" class="sb-ted" data-ted title="Тед Асистент"><img src="assets/ash-bot.png" alt=""><span>Тед</span></button>';
+      side.appendChild(foot);
+      document.body.appendChild(side);
+      side.addEventListener("click", function (e) { if (e.target.closest("[data-ted]") && window.NDAsh) { e.preventDefault(); NDAsh.open(); } });
+      /* warm the next pages while the pointer is over the menu */
+      side.addEventListener("mouseover", function (e) { var b = e.target.closest(".nv[data-href]"); if (!b || b._pf) return; b._pf = 1; var l = document.createElement("link"); l.rel = "prefetch"; l.href = b.getAttribute("data-href"); document.head.appendChild(l); });
+      return side;
+    }
+    function apply() {
+      var desk = root.clientWidth >= 1024 && root.clientWidth / innerHeight >= 1.2;
+      var was = window.NDRAIL || 0;
+      window.NDRAIL = desk ? RAIL : 0;
+      root.style.setProperty("--rail", window.NDRAIL + "px");
+      root.classList.toggle("rail", desk);
+      if (desk) build();
+      if (was !== window.NDRAIL) dispatchEvent(new Event("resize"));
+    }
+    apply(); addEventListener("resize", apply);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sideRail); else sideRail();
   window.NDUI = { commHtml: commHtml, commBind: commBind, commSave: commSave, commTotal: commTotal, calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
 })();

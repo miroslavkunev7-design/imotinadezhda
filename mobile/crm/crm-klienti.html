@@ -690,7 +690,7 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
   var desk=false,DH=1420;
   function isDesk(){return root.clientWidth>=1024&&root.clientWidth/innerHeight>=1.2}
   function fitDesk(){
-    var vw=root.clientWidth,vh=innerHeight,BW=2072,BH=1190;
+    var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1190;
     var k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
     var Hh=395+Math.min(exH*.5,160),G=24+Math.min(exW*.15,80),xL=(Wc-2000-G)/2;
     canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height=Hc+'px';canvas.style.paddingTop=Hh+'px';
@@ -713,7 +713,7 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
     desk=isDesk();root.classList.toggle('desk',desk);
     if(desk){fitDesk();return}
     clearDesk();
-    var vw=root.clientWidth,k=vw/W,off=(root.clientWidth-vw)/2;
+    var vw=(root.clientWidth-(window.NDRAIL||0)),k=vw/W,off=((root.clientWidth-(window.NDRAIL||0))-vw)/2;
     canvas.style.zoom=k;canvas.style.marginLeft=(off/k)+'px';
     dockC.style.transform='scale('+k+')';dockC.style.left=off+'px';
     dock.style.height=(DOCK*k)+'px';
@@ -726,7 +726,7 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
   function fitModal(){
     if(win.hidden)return;
     if(desk){
-      var vw=root.clientWidth,dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
+      var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
       var aw=full?vw-16:vw*.94,av=full?ah-8:ah*.94,z=Math.min(aw/2048,av/Math.max(1420,DH)),w=2048*z,h=Math.max(1420,DH)*z;mcv.style.height=Math.max(1420,DH)+"px";
       win.style.width=w+'px';win.style.height=h+'px';win.style.left=((vw-w)/2)+'px';win.style.top=Math.max(6,(ah-h)/2)+'px';
       mcv.style.zoom=z;

@@ -8,7 +8,7 @@
   var KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
   var TABLE = {
     clients: "nd_clients", properties: "nd_properties", brokers: "nd_brokers", events: "nd_events",
-    companies: "nd_companies", deals: "nd_deals", activities: "nd_activities", documents: "nd_documents", leads: "nd_leads", collected: "nd_collected"
+    companies: "nd_companies", deals: "nd_deals", activities: "nd_activities", documents: "nd_documents", leads: "nd_leads", collected: "nd_collected", prefs: "nd_prefs"
   };
   var sb = null, session = null, readyP = null, snap = {};
 
@@ -197,6 +197,13 @@
       return client().auth.resetPasswordForEmail(email, { redirectTo: location.origin + "/mobile/crm/crm-nachalo.html" }).then(function (r) {
         return r.error ? r.error.message : "Изпратихме ви имейл за нова парола.";
       });
+    },
+    /* small settings kept in the database (favourites, bank margins, saved offers) – shared between devices */
+    pref: function (key, fallback) {
+      return client().from("nd_prefs").select("data").eq("id", key).maybeSingle().then(function (r) { return r.error || !r.data ? fallback : r.data.data; }).catch(function () { return fallback; });
+    },
+    setPref: function (key, data) {
+      return client().from("nd_prefs").upsert({ id: key, data: data }).then(function (r) { if (r.error) throw r.error; return data; });
     },
     token: function () {
       return client().auth.getSession().then(function (r) { return r.data.session ? r.data.session.access_token : null; });

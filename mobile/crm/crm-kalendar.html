@@ -1186,7 +1186,7 @@ html.desk .ewin .mscroll{overflow:hidden}
   function fit(){
     desk=isDesk();root.classList.toggle('desk',desk);
     if(desk){
-      var vw=root.clientWidth,vh=innerHeight,BW=2072,BH=1180,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
+      var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1180,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
       var Hh=360+Math.min(exH*.4,140),xL=24+Math.min(exW*.5,200);
       canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height=Hc+'px';canvas.style.paddingTop=Hh+'px';
       top.style.height=Hh+'px';
@@ -1201,7 +1201,7 @@ html.desk .ewin .mscroll{overflow:hidden}
       rowH=30;
       canvas.style.width=canvas.style.height=canvas.style.paddingTop='';top.style.height='';
       texts.forEach(function(o){o.el.style.top=o.top+'px'});photo.style.width=photo.style.left=photo.style.top='';ctrls.forEach(function(el){el.style.left=''});
-      var vw2=root.clientWidth,k2=vw2/W,off=(root.clientWidth-vw2)/2;
+      var vw2=(root.clientWidth-(window.NDRAIL||0)),k2=vw2/W,off=((root.clientWidth-(window.NDRAIL||0))-vw2)/2;
       canvas.style.zoom=k2;canvas.style.marginLeft=(off/k2)+'px';
       dockC.style.transform='scale('+k2+')';dockC.style.left=off+'px';
       dock.style.height=(DOCK*k2)+'px';stage.style.paddingBottom=(DOCK*k2)+'px';root.style.setProperty('--dockH',(118*k2)+'px');
@@ -1303,7 +1303,7 @@ html.desk .ewin .mscroll{overflow:hidden}
   function fitE(){
     if(ewin.hidden)return;
     if(desk){
-      var vw=root.clientWidth,dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
+      var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
       var H=evcv.offsetHeight||1100,aw=efull?vw-16:vw*.7,av=efull?ah-8:ah*.94,z=Math.min(aw/1024,av/H),w=1024*z,h=H*z;
       ewin.style.width=w+'px';ewin.style.height=h+'px';ewin.style.left=((vw-w)/2)+'px';ewin.style.top=Math.max(6,(ah-h)/2)+'px';evcv.style.zoom=z;
     }else{ewin.style.width=ewin.style.height=ewin.style.left=ewin.style.top='';var zz=ewin.clientWidth/1024;evcv.style.zoom=zz;ewin.style.setProperty('--ez',zz)}

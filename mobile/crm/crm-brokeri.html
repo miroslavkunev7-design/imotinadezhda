@@ -1029,7 +1029,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   function fit(){
     desk=isDesk();root.classList.toggle('desk',desk);
     if(desk){
-      var vw=root.clientWidth,vh=innerHeight,BW=2072,BH=1230,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
+      var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1230,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
       var Hh=360+Math.min(exH*.5,160),xL=24+Math.min(exW*.5,200);
       canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height=Hc+'px';canvas.style.paddingTop=Hh+'px';
       top.style.height=Hh+'px';
@@ -1043,7 +1043,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     }else{
       canvas.style.width=canvas.style.height=canvas.style.paddingTop='';top.style.height='';
       texts.forEach(function(o){o.el.style.top=o.top+'px'});photo.style.width=photo.style.left=photo.style.top='';ctrls.forEach(function(el){el.style.left=''});
-      var vw2=root.clientWidth,k2=vw2/W,off=(root.clientWidth-vw2)/2;
+      var vw2=(root.clientWidth-(window.NDRAIL||0)),k2=vw2/W,off=((root.clientWidth-(window.NDRAIL||0))-vw2)/2;
       canvas.style.zoom=k2;canvas.style.marginLeft=(off/k2)+'px';render();
       dockC.style.transform='scale('+k2+')';dockC.style.left=off+'px';
       dock.style.height=(DOCK*k2)+'px';stage.style.paddingBottom=(DOCK*k2)+'px';root.style.setProperty('--dockH',(118*k2)+'px');
@@ -1093,7 +1093,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   $('bgrid').addEventListener('click',function(e){
     if(e.target.closest('[data-stop]'))return;
     var f=e.target.closest('[data-fav]');if(f){var id=f.getAttribute('data-fav');favs[id]=!favs[id];f.classList.toggle('on',favs[id]);f.setAttribute('aria-pressed',favs[id]);
-      try{localStorage.setItem('crm-broker-favs',JSON.stringify(favs))}catch(x){};say(favs[id]?'Добавен в любими':'Премахнат от любими');return}
+      try{localStorage.setItem('crm-broker-favs',JSON.stringify(favs))}catch(x){};if(window.ND)ND.setPref('favs-brokers',favs).catch(function(){});say(favs[id]?'Добавен в любими':'Премахнат от любими');return}
     var c=e.target.closest('.bk');if(c)openB(c.getAttribute('data-id'),c)});
   $('bgrid').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.classList.contains('bk'))e.target.click()});
 
@@ -1151,7 +1151,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   function fitB(){
     if(bwin.hidden)return;
     if(desk){
-      var vw=root.clientWidth,dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
+      var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
       var aw=bfull?vw-16:vw*.94,av=bfull?ah-8:ah*.94,z=Math.min(aw/2048,av/1010),w=2048*z,h=1010*z;
       bwin.style.width=w+'px';bwin.style.height=h+'px';bwin.style.left=((vw-w)/2)+'px';bwin.style.top=Math.max(6,(ah-h)/2)+'px';bmcv.style.zoom=z;
     }else{bwin.style.width=bwin.style.height=bwin.style.left=bwin.style.top='';var zz=bwin.clientWidth/1024;bmcv.style.zoom=zz;bwin.style.setProperty('--bz',zz)}
@@ -1222,7 +1222,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
         brokers.push(b);return ND.sync('brokers',brokers).then(function(){render();say('Брокерът е добавен');setTimeout(function(){openB(b.id)},260)})}});
   });
   ND.busy(1);
-  ND.ready().then(function(){return Promise.all([ND.load('brokers'),ND.load('clients')])}).then(function(r){
+  ND.ready().then(function(){return ND.pref('favs-brokers',null)}).then(function(f){if(f&&typeof f==='object'){favs=f;try{localStorage.setItem('crm-broker-favs',JSON.stringify(favs))}catch(x){}}}).then(function(){return Promise.all([ND.load('brokers'),ND.load('clients')])}).then(function(r){
     ND.busy(0);
     CLIENTS.length=0;r[1].forEach(function(c){if(c.name)CLIENTS.push(c.name)});
     if(!r[0].length){brokers=base.map(function(b){return Object.assign({},b)});return ND.sync('brokers',brokers)}

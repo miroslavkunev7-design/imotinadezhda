@@ -1111,7 +1111,7 @@ html.desk .fwin .mscroll{overflow:hidden}
   function fit(){
     desk=isDesk();root.classList.toggle('desk',desk);
     if(desk){
-      var vw=root.clientWidth,vh=innerHeight,BW=2072,BH=1180,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
+      var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1180,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
       var Hh=320+Math.min(exH*.4,140),xL=24+Math.min(exW*.5,200);
       canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height=Hc+'px';canvas.style.paddingTop=Hh+'px';
       top.style.height=Hh+'px';
@@ -1124,7 +1124,7 @@ html.desk .fwin .mscroll{overflow:hidden}
     }else{
       canvas.style.width=canvas.style.height=canvas.style.paddingTop='';top.style.height='';
       texts.forEach(function(o){o.el.style.top=o.top+'px'});photo.style.width=photo.style.left=photo.style.top='';ctrls.forEach(function(el){el.style.left=''});
-      var vw2=root.clientWidth,k2=vw2/W,off=(root.clientWidth-vw2)/2;
+      var vw2=(root.clientWidth-(window.NDRAIL||0)),k2=vw2/W,off=((root.clientWidth-(window.NDRAIL||0))-vw2)/2;
       canvas.style.zoom=k2;canvas.style.marginLeft=(off/k2)+'px';
       dockC.style.transform='scale('+k2+')';dockC.style.left=off+'px';
       dock.style.height=(DOCK*k2)+'px';stage.style.paddingBottom=(DOCK*k2)+'px';root.style.setProperty('--dockH',(118*k2)+'px');
@@ -1224,7 +1224,7 @@ html.desk .fwin .mscroll{overflow:hidden}
     b.setAttribute('aria-label',v?'Възстанови размера':'На цял екран');b.title=b.getAttribute('aria-label');fitF();setTimeout(fitF,280)}
   function fitF(){
     if(fwin.hidden)return;
-    if(desk){var vw=root.clientWidth,dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
+    if(desk){var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
       var H=fcv.offsetHeight||1000,aw=ffull?vw-16:vw*.6,av=ffull?ah-8:ah*.94,z=Math.min(aw/1024,av/H),w=1024*z,h=H*z;
       fwin.style.width=w+'px';fwin.style.height=h+'px';fwin.style.left=((vw-w)/2)+'px';fwin.style.top=Math.max(6,(ah-h)/2)+'px';fcv.style.zoom=z}
     else{fwin.style.width=fwin.style.height=fwin.style.left=fwin.style.top='';var zz=fwin.clientWidth/1024;fcv.style.zoom=zz;fwin.style.setProperty('--fz',zz)}

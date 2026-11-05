@@ -95,7 +95,13 @@ const notaryFee=eur=>{const v=eur*EUR_BGN;let f;if(v<=100)f=30;else if(v<=1000)f
 /* местен данък придобиване по наредбите на общините */
 const ACQ_TAX={'Шумен':.03,'Варна':.03,'Бургас':.03,'София':.03,'Пловдив':.03};
 const loadJSON=(k,f)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?f:v}catch{return f}};
-const saveJSON=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+/* settings live in the database (nd_prefs) and are mirrored in localStorage for instant start */
+const SBU='https://hyvwfsmjbaynozceookv.supabase.co',SBK='sb-publishable-placeholder'.replace('sb-publishable-placeholder','sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni');
+const sbTok=()=>{try{const s=JSON.parse(localStorage.getItem('nd-crm-auth')||'null');return s&&s.access_token||(window.parent!==window&&window.parent.localStorage&&JSON.parse(window.parent.localStorage.getItem('nd-crm-auth')||'null')||{}).access_token||null}catch{return null}};
+const sbH=()=>{const t=sbTok();return t?{apikey:SBK,Authorization:'Bearer '+t,'Content-Type':'application/json'}:null};
+const dbGet=async(k)=>{const h=sbH();if(!h)return undefined;try{const r=await fetch(SBU+'/rest/v1/nd_prefs?id=eq.'+encodeURIComponent(k)+'&select=data',{headers:h});const j=await r.json();return Array.isArray(j)&&j[0]?j[0].data:undefined}catch{return undefined}};
+const dbSet=(k,v)=>{const h=sbH();if(!h)return;fetch(SBU+'/rest/v1/nd_prefs',{method:'POST',headers:{...h,Prefer:'resolution=merge-duplicates'},body:JSON.stringify({id:k,data:v})}).catch(()=>{})};
+const saveJSON=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{};dbSet('bank:'+k,v)};
 const sofiaNow=()=>{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Sofia',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());const g=t=>p.find(x=>x.type===t).value;return {date:g('year')+'-'+g('month')+'-'+g('day'),mins:(+g('hour'))*60+(+g('minute'))}};
 const annuity=(L,ratePct,years)=>{const n=years*12;if(L<=0||n<=0)return 0;const r=ratePct/100/12;return r===0?L/n:L*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1)};
 const pct2=v=>(v==null||!isFinite(v))?'—':v.toFixed(2).replace('.',',')+'%';
@@ -119,6 +125,8 @@ const refreshOpen=clock.mins>=9*60+30;
 const refreshedToday=rates&&rates.day===clock.date;
 const fetchRates=async(manual)=>{setLoadingRates(true);try{const r=await fetch('/api/rates',{cache:'no-store'});const d=await r.json();if(!r.ok||!d.euribor6m||d.euribor6m.value==null)throw new Error('no data');const rec={...d,day:sofiaNow().date};setRates(rec);saveJSON('crm-bank-rates',rec);if(manual)notify('Лихвата е обновена към '+new Date().toLocaleDateString('bg-BG'))}catch(e){notify('Лихвите не можаха да се заредят. Опитайте отново.')}finally{setLoadingRates(false)}};
 useEffect(()=>{if(!rates)fetchRates(false)},[]);
+useEffect(()=>{(async()=>{const m=await dbGet('bank:crm-bank-margins');if(m&&typeof m==='object'){setMargins(m);try{localStorage.setItem('crm-bank-margins',JSON.stringify(m))}catch{}}
+  const o=await dbGet('bank:mortgage-offer');if(o&&typeof o==='object'){setOffer(o);try{localStorage.setItem('mortgage-offer',JSON.stringify(o))}catch{}}})()},[]);
 const refreshRates=()=>{if(!refreshOpen){notify('Обновяването е достъпно всеки ден след 09:30');return}fetchRates(true)};
 const setMargin=v=>{const n=parseFloat(String(v).replace(',','.'));if(!isFinite(n))return;const next={...margins,[bankData[bank][0]]:n};setMargins(next);saveJSON('crm-bank-margins',next)};
 const notify=(s)=>{setToast(s);clearTimeout(toastTimer.current);toastTimer.current=setTimeout(()=>setToast(''),3500)};
@@ -130,7 +138,7 @@ const fmtPay=p=>p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractio
 useEffect(()=>{if(rate!=null&&price>0&&Number(down)<Number(price)){setPayment(fmtPay(annuity(loan,rate,Number(years))));setFeePrice(Number(price));setFeeLoan(loan)}},[rate,price,down,years]);
 const calculate=()=>{if(price<=0||down<0||Number(down)>=Number(price)){notify('Въведете валидна цена и самоучастие под цената на имота');return}if(rate==null){notify('Няма заредена лихва – натиснете „Обнови лихвата“');return}const p=annuity(loan,rate,Number(years));setPayment(fmtPay(p));setFeePrice(Number(price));setFeeLoan(loan);notify('Вноска от € '+fmtPay(p)+(rateHi!==rate?' до € '+fmtPay(annuity(loan,rateHi,Number(years))):'')+' (лихва '+pct2(rate)+(rateHi!==rate?' – '+pct2(rateHi):'')+')')};
 const handleCommissionChange=(e)=>{const val=parseFloat(e.target.value.replace('%',''));if(!isNaN(val))setCommission(val)};
-const saveOffer=()=>{const data={price,down,loan,years,payment,client,rate,bank:bankData[bank][0],date:new Date().toLocaleDateString('bg-BG')};setOffer(data);localStorage.setItem('mortgage-offer',JSON.stringify(data));notify('Офертата е запазена в таб „Оферта“')};
+const saveOffer=()=>{const data={price,down,loan,years,payment,client,rate,bank:bankData[bank][0],date:new Date().toLocaleDateString('bg-BG')};setOffer(data);saveJSON('mortgage-offer',data);notify('Офертата е запазена в таб „Оферта“')};
 const tx=ACQ_TAX[city]!=null?ACQ_TAX[city]:.03;
 const fees=[['doc','Нотариална такса (с ДДС)',notaryFee(feePrice),'по тарифа'],['home','Такса вписване',feePrice*.001,'0.10%'],['coins','Местен данък придобиване – '+city,feePrice*tx,(tx*100).toFixed(2)+'%'],['scale','Нотариална такса ипотека (с ДДС)',notaryFee(feeLoan),'по тарифа'],['home','Вписване на ипотеката',feeLoan*.001,'0.10%'],['bank','Банкова такса разглеждане',300,'—'],['home','Оценка на имота',350,'—'],['shield','Застраховка имот (годишна)',feePrice*.002,'0.20%'],['folder','Други разходи',200,'—']];
 const total=fees.reduce((a,r)=>a+r[2],0);
