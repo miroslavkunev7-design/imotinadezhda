@@ -286,6 +286,19 @@ button:active{filter:brightness(.96);transform:translateY(1px)}
 .arow svg.i{font-size:36px;color:#7b1020;stroke-width:1.8;margin-left:8px}
 .arow .at{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .arow .tm{white-space:nowrap}
+.nstate{position:absolute;right:36px;top:20px;font:700 24px/1 var(--cond);color:#5a0a12}
+.nbox{margin:12px 18px 22px;padding:16px;border-radius:24px;background:linear-gradient(180deg,rgba(255,252,249,.97),rgba(252,240,231,.95));box-shadow:0 2px 6px rgba(140,70,40,.18),0 0 0 1px rgba(231,196,160,.5),0 0 14px rgba(255,226,190,.7)}
+.ntext{display:block;width:100%;box-sizing:border-box;min-height:320px;resize:vertical;border-radius:20px;border:1.5px solid rgba(226,176,120,.85);background:#fffdfa;padding:18px 20px;font:400 27px/1.35 var(--cond);color:#1f1111;outline:none;box-shadow:inset 0 2px 5px rgba(120,50,20,.1)}
+.ntext:focus{border-color:#d9a248;box-shadow:inset 0 2px 5px rgba(120,50,20,.1),0 0 0 3px rgba(227,178,94,.35),0 0 14px rgba(255,214,150,.7)}
+.nrow{display:flex;gap:14px;margin-top:14px}
+.nbtn{height:72px;padding:0 24px;border-radius:20px;display:flex;align-items:center;justify-content:center;gap:12px;font:700 25px/1 var(--cond);color:#3b0a0e;
+  background:linear-gradient(180deg,#fffcf9,#fbefe5);box-shadow:0 3px 8px rgba(140,70,40,.3),0 0 0 1px rgba(231,196,160,.6),0 0 10px rgba(255,230,200,.8)}
+.nbtn svg.i{font-size:34px;color:#7d1222;stroke-width:2}
+.nbtn.nsave{flex:1;color:#fff3dc;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);box-shadow:0 0 0 2px #edc47a,0 0 14px rgba(255,190,120,.6),0 4px 10px rgba(60,10,5,.35)}
+.nbtn.nsave svg.i{color:#ffe1a6}
+.nbtn.nmic.rec{color:#fff;background:radial-gradient(circle at 35% 30%,#e0425f,#a3112f 60%,#6b0a1c);animation:nRec 1.2s ease-in-out infinite}.nbtn.nmic.rec svg.i{color:#fff}
+@keyframes nRec{0%,100%{box-shadow:0 0 0 0 rgba(224,66,95,.55)}50%{box-shadow:0 0 0 12px rgba(224,66,95,0)}}
+.nbtn:disabled{opacity:.55}
 html.locked,html.locked body{overflow:hidden}
 @media (prefers-reduced-motion:reduce){.mwin,.mback{transition:none}}
 #dock{z-index:50}
@@ -301,7 +314,7 @@ html.desk .cgrid{padding:15px 8px 4px;height:var(--gh,420px);overflow-y:auto;ali
 html:not(.desk) .mbtn{width:32px;height:32px;font-size:17px}
 html.desk .mscroll{overflow:hidden}
 html.desk .mwin,html.desk .mwin.full{right:auto;bottom:auto;border-radius:26px;border-width:2px}
-html.desk .mcv{width:2048px;height:866px;padding:0}
+html.desk .mcv{width:2048px;height:1260px;padding:0}
 html.desk .mtop{left:12px;top:12px;width:1000px;height:730px;border-radius:24px;overflow:hidden;box-shadow:0 0 0 2px #efc57a,0 0 18px rgba(255,200,120,.45)}
 html.desk .mtop .photo{left:-250px!important;top:0!important;width:1300px!important}
 html.desk .mtop .shade{background:linear-gradient(0deg,rgba(60,8,20,.9) 0%,rgba(60,8,20,0) 42%),linear-gradient(90deg,rgba(64,10,22,.75) 0%,rgba(64,10,22,0) 55%)}
@@ -310,6 +323,9 @@ html.desk .m-phone{top:626px}
 html.desk .m-actions{position:absolute;left:12px;top:762px;width:1000px;padding:0}
 html.desk .m-data{position:absolute;left:1036px;top:12px;width:1000px;margin:0}
 html.desk .m-act{position:absolute;left:1036px;top:585px;width:1000px;margin:0}
+html.desk .m-notes{position:absolute;left:12px;top:880px;width:2024px;margin:0}
+html.desk .m-notes .mribbon{width:1000px}
+html.desk .m-notes .ntext{min-height:230px;height:230px}
 @media (hover:hover){button:hover{filter:brightness(1.06)}.ccard:hover,.ma:hover,.fcell:hover{transform:translateY(-2px);transition:transform .18s}}
 
 /* ================= SMOOTH PAGE-TO-PAGE TRANSITION (shared by all CRM pages) ================= */
@@ -524,6 +540,24 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
         <button class="mall" data-act="Всички активности">Виж всички<svg class="i"><use href="#chev-r"/></svg></button>
         <div class="alist" id="m-acts"></div>
       </section>
+
+      <section class="mpanel m-notes" aria-labelledby="m-notes-t">
+        <svg class="mribbon" viewBox="0 0 700 64" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z" fill="url(#ribbonFill)"/>
+          <path d="M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z" fill="url(#satin)" opacity=".45"/>
+          <path d="M700 1 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
+        </svg>
+        <h3 class="mtitle" id="m-notes-t"><svg class="i"><use href="#file-pen"/></svg>Бележки</h3>
+        <span class="nstate" id="m-nstate" aria-live="polite"></span>
+        <div class="nbox">
+          <textarea id="m-notes" class="ntext" placeholder="Запишете бележка за клиента: разговор, изисквания, договорки, следваща стъпка…" aria-label="Бележки за клиента"></textarea>
+          <div class="nrow">
+            <button type="button" class="nbtn nmic" id="m-nmic" aria-label="Диктувай бележка"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 17v5M8 22h8"/></svg><span>Диктувай</span></button>
+            <button type="button" class="nbtn nstamp" id="m-nstamp" aria-label="Добави дата и час"><svg class="i"><use href="#clock"/></svg><span>Дата и час</span></button>
+            <button type="button" class="nbtn nsave" id="m-nsave"><svg class="i"><use href="#save"/></svg><span>Запази бележките</span></button>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </section>
@@ -645,7 +679,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     if(win.hidden)return;
     if(desk){
       var vw=root.clientWidth,dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
-      var aw=full?vw-16:vw*.94,av=full?ah-8:ah*.94,z=Math.min(aw/2048,av/866),w=2048*z,h=866*z;
+      var aw=full?vw-16:vw*.94,av=full?ah-8:ah*.94,z=Math.min(aw/2048,av/1260),w=2048*z,h=1260*z;
       win.style.width=w+'px';win.style.height=h+'px';win.style.left=((vw-w)/2)+'px';win.style.top=Math.max(6,(ah-h)/2)+'px';
       mcv.style.zoom=z;
       ctlBox.style.top='';
@@ -705,7 +739,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   var lastFocus=null,full=false;
   function field(icon,label,value,pic,h,raw){
     return '<div class="fcell" style="--fh:'+h+'px"><span class="fp" style="background-image:url('+img(pic)+')"></span>'+
-      '<span class="fi">'+ic(icon)+'</span><span class="fl">'+label+'</span><span class="fv">'+(raw?value:esc(value))+'</span></div>'}
+      '<span class="fi">'+ic(icon)+'</span><span class="fl">'+label+'</span><span class="fv">'+(raw?value:esc(value==null||value===''||/^undefined|, undefined$/.test(String(value))?'—':value))+'</span></div>'}
   function open(id,from){
     var c=clients.filter(function(x){return x.id===id})[0];if(!c)return;
     lastFocus=from||document.activeElement;
@@ -718,6 +752,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       field('coins','Бюджет',budget(c),'field-budget.webp',99),field('calendar-check','Дата на контакт',c.contact,'field-calendar.webp',99),
       field('users','Статус',st,'field-status.webp',104,true),field('tag','Източник',c.source,'field-source.webp',104)].join('');
     document.getElementById('m-acts').innerHTML=c.acts.length?c.acts.map(function(a){return '<div class="arow">'+ic(a[0])+'<span class="at">'+esc(a[1])+'</span><span class="tm">'+esc(a[2])+'</span></div>'}).join(''):'<div class="arow">'+ic('clock')+'<span class="at">Още няма записана активност</span></div>';
+    var nt=document.getElementById('m-notes');nt.value=c.notes||'';nt.dataset.orig=nt.value;document.getElementById('m-nstate').textContent='';
     win.dataset.client=c.name;win.dataset.id=c.id;
     back.hidden=false;win.hidden=false;root.classList.add('locked');
     fitModal();mscroll.scrollTop=0;
@@ -786,7 +821,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       prep();REF.sales();REF.rent();window.__ndClientNames=clients.map(function(c){return c.name}).filter(Boolean);
     });
   }
-  window.NDKTabs.init({say:say,refresh:loadAll,reopen:function(id){if(!win.hidden&&win.dataset.id===id)open(id,lastFocus);},closeCard:function(){if(!win.hidden)close()}});
+  window.NDKTabs.init({say:say,list:function(){return clients},refresh:loadAll,reopen:function(id){if(!win.hidden&&win.dataset.id===id)open(id,lastFocus);},closeCard:function(){if(!win.hidden)close()}});
   document.querySelectorAll('[data-new]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();var cat=b.getAttribute('data-new');window.NDScan.menu(b,'client',{manual:function(){window.NDKTabs.edit(null,cat)},scanned:function(f,file){window.NDKTabs.edit(null,(f&&(f.cat==='rent'||f.cat==='sales'))?f.cat:cat,f,file)}})})});
   ND.busy(1);
   ND.ready().then(loadAll).then(function(){

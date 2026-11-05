@@ -125,6 +125,60 @@
     });
   }
 
+
+  /* ---------- big "Бележки" block on the client card: write, dictate, save ---------- */
+  function notesBlock() {
+    var ta = document.getElementById("m-notes"); if (!ta || ta._nd) return; ta._nd = true;
+    var st = document.getElementById("m-nstate"), save = document.getElementById("m-nsave"), mic = document.getElementById("m-nmic"), stamp = document.getElementById("m-nstamp");
+    function cur() { var w = ta.closest("[data-id]"), id = w && w.dataset.id; return id ? (K.list() || []).filter(function (x) { return x.id === id; })[0] : null; }
+    function dirty() { st.textContent = ta.value !== (ta.dataset.orig || "") ? "• незапазено" : ""; }
+    ta.addEventListener("input", dirty);
+    stamp.onclick = function () {
+      var d = new Date(), t = ("0" + d.getDate()).slice(-2) + "." + ("0" + (d.getMonth() + 1)).slice(-2) + "." + d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+      ta.value = (ta.value.replace(/\s+$/, "") + (ta.value.trim() ? "\n\n" : "") + "— " + t + ": "); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); dirty();
+    };
+    save.onclick = function () {
+      var c = cur(); if (!c) return;
+      var o = strip(c); o.notes = ta.value.trim(); save.disabled = true; st.textContent = "Записване…";
+      D.put("clients", o).then(function () {
+        c.notes = o.notes; ta.dataset.orig = ta.value;
+        return D.put("activities", { client_id: c.id, client: c.name, icon: "file-pen", text: "Обновени бележки", at: new Date().toISOString() }).catch(function () {});
+      }).then(function () { st.textContent = "✔ Запазено"; K.say("Бележките са запазени"); setTimeout(function () { if (st.textContent === "✔ Запазено") st.textContent = ""; }, 2500); return K.refresh().then(function () { K.reopen(c.id); }); })
+        .catch(function (e) { st.textContent = "Грешка"; K.say("Грешка при запис: " + ((e && e.message) || e)); })
+        .then(function () { save.disabled = false; });
+    };
+    /* dictation: tap, speak, tap again – the text is added to the notes */
+    var rec = null, chunks = [], stream = null, t0 = 0;
+    function mm() { var c = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac"]; for (var i = 0; i < c.length; i++) if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(c[i])) return c[i]; return ""; }
+    function label(t) { mic.querySelector("span").textContent = t; }
+    mic.onclick = function () {
+      if (rec && rec.state === "recording") { rec.stop(); return; }
+      if (!navigator.mediaDevices || !window.MediaRecorder) { K.say("Браузърът не поддържа запис на глас"); return; }
+      navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(function (s) {
+        stream = s; chunks = []; var type = mm();
+        rec = type ? new MediaRecorder(s, { mimeType: type }) : new MediaRecorder(s);
+        rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+        rec.onstop = function () {
+          mic.classList.remove("rec"); stream.getTracks().forEach(function (t) { t.stop(); });
+          if (Date.now() - t0 < 700 || !chunks.length) { label("Диктувай"); return; }
+          var mime = (rec.mimeType || type || "audio/webm").split(";")[0], r = new FileReader();
+          label("Разпознавам…"); mic.disabled = true;
+          r.onload = function () {
+            D.token().then(function (tok) {
+              return fetch("/api/transcribe", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ mime: mime, data: String(r.result).split(",")[1] }) });
+            }).then(function (x) { return x.json(); }).then(function (j) {
+              if (j.ok && j.text) { ta.value = ta.value.replace(/\s+$/, "") + (ta.value.trim() && !/: $/.test(ta.value) ? "\n" : (ta.value && !/ $/.test(ta.value) ? " " : "")) + j.text; dirty(); }
+              else K.say(j.error || "Не чух ясно – опитайте пак");
+            }).catch(function () { K.say("Няма връзка"); }).then(function () { mic.disabled = false; label("Диктувай"); });
+          };
+          r.readAsDataURL(new Blob(chunks, { type: mime }));
+        };
+        rec.start(); t0 = Date.now(); mic.classList.add("rec"); label("■ Спри");
+        setTimeout(function () { if (rec && rec.state === "recording") rec.stop(); }, 180000);
+      }).catch(function () { K.say("Разрешете микрофона за сайта"); });
+    };
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", notesBlock); else notesBlock();
   /* ---------- Срещи (events shared with Календар) ---------- */
   function meetings(c) {
     var list = [], editing = null;
