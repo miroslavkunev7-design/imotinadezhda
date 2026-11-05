@@ -97,6 +97,7 @@ module.exports = async (req, res) => {
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
   const auth = String(req.headers["authorization"] || ""); const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   const user = await staffOf(token).catch(() => null);
+  if (!user) return send(res, 401, { ok: false, error: "Тед Асистент работи само в CRM – влезте в профила си." });
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!key) return send(res, 500, { ok: false, error: "Няма настроен ключ за AI (GEMINI_API_KEY)." });
   const ctx = { staff: !!user, token, actions: [], origin: "https://" + (req.headers["x-forwarded-host"] || req.headers.host || "imotinadezhda.bg") };

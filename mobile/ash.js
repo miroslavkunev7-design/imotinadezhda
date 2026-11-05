@@ -130,7 +130,7 @@
         var p = player.play(); if (p && p.catch) p.catch(function () { speakLocal(text, b); });
       };
       if (b._url) return go(b._url);
-      fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: text }) })
+      token().then(function (tk) { return fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ text: text }) }); })
         .then(function (r) { if (!r.ok) throw new Error("tts"); return r.blob(); })
         .then(function (bl) { b._url = URL.createObjectURL(bl); go(b._url); })
         .catch(function () { if (playingBtn === b) speakLocal(text, b); });
@@ -246,5 +246,5 @@
     show: function () { if (win) { win.hidden = false; fab.hidden = true; list.scrollTop = list.scrollHeight; } },
     boot: boot
   };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+  if (!window.NDAshNoWidget) { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot(); }
 })();

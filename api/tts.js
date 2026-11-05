@@ -13,6 +13,10 @@ function wav(pcm, rate) {
 module.exports = async (req, res) => {
   const fail = (s, e) => { res.statusCode = s; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.end(JSON.stringify({ ok: false, error: e })); };
   if (req.method !== "POST") return fail(405, "POST only");
+  const auth = String(req.headers["authorization"] || ""); const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  const SB = "https://hyvwfsmjbaynozceookv.supabase.co", K = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
+  const okStaff = token && await fetch(SB + "/rest/v1/rpc/nd_is_staff", { method: "POST", headers: { apikey: K, Authorization: "Bearer " + token, "Content-Type": "application/json" }, body: "{}" }).then((r) => r.ok ? r.json() : false).catch(() => false);
+  if (okStaff !== true) return fail(401, "Само за CRM");
   let b; try { b = await readBody(req); } catch (e) { return fail(400, "Невалидни данни"); }
   const text = String(b.text || "").replace(/\s+/g, " ").trim().slice(0, 2500);
   if (!text) return fail(400, "Няма текст");

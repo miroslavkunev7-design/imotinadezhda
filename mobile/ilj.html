@@ -280,5 +280,5 @@ function App(){
 (window.__ND_READY||Promise.resolve()).then(()=>{properties.push(...(window.__ND_LISTINGS||[]).filter(p=>!properties.includes(p)));properties.forEach(p=>{if(!p.img)p.img=ASSETS.exterior});ReactDOM.createRoot(document.getElementById('root')).render(<App/>)});
 </script>
 
-<script src="/mobile/ash.js" defer></script>
+<script>window.NDAshNoWidget=true</script><script src="/mobile/ash.js" defer></script>
 </body></html>
