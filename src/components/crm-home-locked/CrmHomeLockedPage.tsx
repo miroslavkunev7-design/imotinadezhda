@@ -236,7 +236,7 @@ export function CrmHomeLockedPage() {
       <SceneBackdrop theme={theme} />
       <div className="crm-locked-ui">
         <header className="crm-locked-top">
-          <LockedLogo onClick={() => onSelectNav("home")} />
+          <LockedLogo />
           <LockedNav
             active={activeNav}
             onSelect={onSelectNav}

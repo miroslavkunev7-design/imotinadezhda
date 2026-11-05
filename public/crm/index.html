@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4a0f18">
+<link rel="expect" href="#page-ready" blocking="render">
+<style>html:not(.ready) #stage,html:not(.ready) #dock{opacity:0}html.ready #stage,html.ready #dock{transition:opacity .18s ease}#dock{z-index:60}
+</style>
+<title>CRM Начало · Имоти Надежда</title>
+<link rel="prefetch" href="/crm"><link rel="prefetch" href="/crm/klienti"><link rel="prefetch" href="/crm/imoti"><link rel="prefetch" href="/crm/brokeri"><link rel="prefetch" href="/crm/kalendar"><link rel="prefetch" href="/crm/kompanii">
+<style>
+@font-face{font-family:'PT Serif Local';font-weight:700;font-display:swap;src:url(/crm/assets/fonts/pt-serif-cyrillic-700-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'PT Serif Local';font-weight:700;font-display:swap;src:url(/crm/assets/fonts/pt-serif-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-2014,U+2018-201E}
+:root{}
+@font-face{font-family:'PT Serif Local';font-weight:400;font-display:swap;src:url(/crm/assets/fonts/pt-serif-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'PT Serif Local';font-weight:400;font-display:swap;src:url(/crm/assets/fonts/pt-serif-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-2014,U+2018-201E}
+:root{
+  --wine-950:#2e0610;--wine-900:#430c16;--wine-800:#5c0d1c;--wine-700:#7a1023;--ruby:#b8163f;--glint:#f27a98;
+  --gold-600:#b8843a;--gold-500:#d9a95a;--gold-300:#f6d993;--gold-100:#fff1c9;
+  --cream:#fbe9d9;--cream-2:#fdf3ea;--ivory:#fffaf5;--peach:#f2c7a3;
+  --ink:#2b1414;--ink-wine:#5a0a12;--value:#8c0d22;
+  --serif:Georgia,'PT Serif Local','Times New Roman',serif;--sans:Arial,Helvetica,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#3e0d16;min-height:100%}
+body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* ---------- scaling stage: the design is drawn on a 1024 px canvas and scaled to the phone width ---------- */
+#stage{position:relative;width:100%;overflow:hidden;
+  background:radial-gradient(120% 60% at 50% 55%,#f6d3b6 0%,#efc19c 55%,#e2a882 100%)}
+#canvas{position:absolute;left:0;top:0;width:1024px;height:1536px;transform-origin:0 0}
+.abs{position:absolute}
+
+/* ---------- header / hero ---------- */
+.top{left:0;top:0;width:1024px;height:380px;overflow:hidden;
+  background:linear-gradient(180deg,#5a1424 0%,#4a0f1b 22%,#3f0d17 100%)}
+.top .photo{left:236px;top:76px;width:790px;height:auto;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,rgba(0,0,0,.55) 9%,#000 24%),linear-gradient(180deg,transparent 0,#000 13%);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0,rgba(0,0,0,.55) 9%,#000 24%),linear-gradient(180deg,transparent 0,#000 13%);mask-composite:intersect}
+.top .shade{inset:0;background:
+  linear-gradient(90deg,rgba(64,10,22,.92) 0%,rgba(64,10,22,.55) 30%,rgba(64,10,22,0) 52%),
+  linear-gradient(0deg,rgba(242,199,163,.35) 0%,rgba(242,199,163,0) 10%)}
+.top .swoosh{left:0;top:0;width:1024px;height:380px}
+.top .logo{left:64px;top:62px;width:212px;height:auto;display:block}.top .logo img{display:block;width:100%;height:auto;mix-blend-mode:multiply}
+.status{left:0;top:0;width:1024px;height:52px;color:#fff;font:700 26px/1 var(--sans)}
+.status .time{position:absolute;left:62px;top:15px;letter-spacing:.5px}
+.status .right{position:absolute;right:52px;top:13px;display:flex;align-items:center;gap:14px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:26px}
+.bars i{display:block;width:6px;background:#fff;border-radius:2px}
+.bars i:nth-child(1){height:9px}.bars i:nth-child(2){height:14px}.bars i:nth-child(3){height:19px}.bars i:nth-child(4){height:25px}
+.battery{display:flex;align-items:center;gap:3px}
+.battery b{display:grid;place-items:center;width:50px;height:28px;border-radius:9px;background:#fff;color:#2a0a10;font:800 20px/1 var(--sans)}
+.battery i{width:4px;height:10px;border-radius:0 3px 3px 0;background:#fff;opacity:.85}
+.ctrl{top:72px;width:44px;height:44px;display:grid;place-items:center;color:#f4c766;font-size:44px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+.ctrl svg.i{stroke-width:1.75}
+.ctrl.bell{left:675px}.ctrl.search{left:751px}.ctrl.gear{left:831px}
+.ctrl.bell:after{content:'';position:absolute;right:-1px;top:-2px;width:15px;height:15px;border-radius:50%;background:#ee1c25;box-shadow:0 0 0 1px #ffb3b3 inset}
+.avatar{left:904px;top:59px;width:76px;height:76px;border-radius:50%;padding:4px;
+  background:linear-gradient(145deg,#fff3c9,#d49d48 40%,#fbe3a3 65%,#a8702e);box-shadow:0 4px 10px rgba(0,0,0,.45)}
+.avatar img{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover}
+.hero-title{left:47px;top:222px;font:700 57px/1.05 var(--serif);letter-spacing:.2px;
+  background:linear-gradient(180deg,#fff4d4 0%,#f6d99b 38%,#d9a254 62%,#f7dca2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 3px 3px rgba(40,0,8,.75))}
+.hero-sub{left:49px;top:286px;color:#fff;font:400 22.5px/1.27 var(--sans);text-shadow:0 2px 4px rgba(0,0,0,.6)}
+.hero-line{left:48px;top:351px;width:300px;height:3px;border-radius:2px;
+  background:linear-gradient(90deg,#f8dc98 0%,#d6a24f 55%,rgba(214,162,79,0) 100%)}
+
+/* ---------- feature tiles ---------- */
+.tile{--th:136px;width:484px;height:var(--th);border-radius:22px;overflow:hidden;text-align:left;color:#fff;
+  background:#560b19;border:2px solid #f4cf85;
+  box-shadow:0 0 0 1px rgba(255,236,190,.55),0 0 14px rgba(255,214,140,.55),0 8px 16px rgba(80,15,10,.45)}
+.tile .ph{position:absolute;max-width:none}
+.tile .veil{position:absolute;inset:0;background:
+  linear-gradient(90deg,#580b1b 0%,#5a0c1c 30%,rgba(92,12,30,.78) 44%,rgba(92,12,30,.25) 62%,rgba(92,12,30,0) 78%),
+  linear-gradient(0deg,rgba(60,6,16,.35),rgba(60,6,16,0) 45%)}
+.tile .gloss{position:absolute;inset:0;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 30%);pointer-events:none}
+.tile .ic{position:absolute;left:34px;top:calc(var(--th) - 124px);font-size:50px;color:#f2c56a;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.tile .ic svg.i{stroke-width:1.7}
+.tile h3{position:absolute;left:34px;top:calc(var(--th) - 78px);font:700 35px/1 var(--serif);color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.55);letter-spacing:.2px}
+.tile p{position:absolute;left:34px;top:calc(var(--th) - 37px);font:400 19.5px/1 var(--sans);color:#fff4ea;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.tile .go{position:absolute;right:16px;top:calc(var(--th) - 54px);width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#2b0c0c;font-size:26px;
+  background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%);box-shadow:0 3px 6px rgba(0,0,0,.45),0 0 0 1px #fff2c4 inset}
+.tile .go svg.i{stroke-width:2.6}
+
+/* ---------- cream glass panels ---------- */
+.panel{left:12px;width:1000px;border-radius:24px;
+  background:linear-gradient(180deg,rgba(255,247,240,.96) 0%,rgba(252,236,222,.95) 100%);
+  border:1.5px solid rgba(255,255,255,.95);
+  box-shadow:0 0 0 1px rgba(226,176,120,.35),0 0 18px rgba(255,236,214,.9),0 10px 22px rgba(120,50,20,.22),inset 0 1px 0 #fff}
+.ptitle{position:absolute;display:flex;align-items:center;gap:16px;font:700 27px/1 var(--serif);color:#3b0a0e}
+.ptitle svg.i{color:#7b1020;font-size:31px;stroke-width:2.2}
+
+.qa-row{position:absolute;left:24px;top:44px;display:flex;gap:12px}
+.qa{width:150px;height:78px;border-radius:17px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:10px;gap:8px;
+  background:linear-gradient(180deg,#fffcf9 0%,#fcf0e6 100%);border:1px solid rgba(255,255,255,.95);
+  box-shadow:0 3px 7px rgba(140,70,40,.22),0 0 0 1px rgba(231,196,160,.55),inset 0 -2px 3px rgba(230,190,160,.35);
+  font:700 18.5px/1 var(--sans);color:#2c1012}
+.qa svg.i{font-size:37px;color:#7d1222;stroke-width:2}
+
+.datepill{position:absolute;right:12px;top:6px;width:235px;height:39px;border-radius:20px;display:flex;align-items:center;gap:12px;padding:0 16px 0 22px;
+  background:linear-gradient(180deg,#fffaf5,#f9eadd);box-shadow:0 2px 5px rgba(140,70,40,.25),0 0 0 1px rgba(231,196,160,.6);font:400 20px/1 var(--sans);color:#2b1414}
+.datepill svg.i{font-size:28px;color:#7b1020;stroke-width:1.8}.datepill .dn{margin-left:auto;font-size:22px;color:#3a1212}
+.metrics{position:absolute;left:20px;top:47px;width:958px;height:98px;border-radius:18px;display:grid;grid-template-columns:repeat(4,1fr);
+  background:linear-gradient(180deg,rgba(255,251,247,.95),rgba(253,241,232,.9));box-shadow:inset 0 0 0 1px rgba(255,255,255,.9),0 2px 6px rgba(150,80,40,.15)}
+.metric{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:2px}
+.metric+.metric:before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:1.5px;background:linear-gradient(180deg,rgba(90,20,20,0),rgba(90,20,20,.55),rgba(90,20,20,0))}
+.metric svg.i{font-size:34px;color:#7b1020;stroke-width:2}
+.metric b{font:700 31px/1.05 var(--sans);color:var(--value);margin-top:3px}
+.metric span{font:400 19.5px/1.1 var(--sans);color:#2b1414;margin-top:2px}
+
+/* satin title ribbon */
+.ribbon{position:absolute;left:-1px;top:-1px;width:575px;height:58px;pointer-events:none}
+.rtitle{position:absolute;left:38px;top:12px;display:flex;align-items:center;gap:20px;color:#fff;font:400 28.5px/1 var(--serif);text-shadow:0 2px 3px rgba(40,0,8,.55)}
+.rtitle svg.i{font-size:34px;color:#f3c56a;stroke-width:1.7}
+.pillbtn{position:absolute;right:20px;top:9px;height:36px;border-radius:18px;display:flex;align-items:center;gap:12px;padding:0 20px 0 22px;
+  background:linear-gradient(180deg,#fffaf5,#f9eadd);box-shadow:0 2px 5px rgba(140,70,40,.25),0 0 0 1px rgba(231,196,160,.6);font:700 19px/1 var(--sans);color:#5a0a12}
+.pillbtn svg.i{font-size:26px;color:#7b1020;stroke-width:1.8}
+.linkbtn{position:absolute;right:26px;top:12px;display:flex;align-items:center;gap:10px;font:700 21px/1 var(--sans);color:#5a0a12}
+.linkbtn svg.i{font-size:24px;stroke-width:2.6}
+
+.daycard{position:absolute;left:22px;top:59px;width:136px;height:84px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#fffcf9,#fbefe5);box-shadow:0 2px 6px rgba(140,70,40,.22),0 0 0 1px rgba(231,196,160,.5);color:#3b0a0e}
+.daycard .d1{font:700 20px/1 var(--sans)}.daycard .d2{font:700 35px/1.02 var(--sans);margin:3px 0 2px}.daycard .d3{font:400 19px/1 var(--sans)}
+.tl{position:absolute;left:178px;top:72px;width:14px;height:56px}
+.tl i{position:absolute;left:0;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d24a5e,#7d0f20 65%);box-shadow:0 0 0 2px #f1c37f}
+.tl i:first-child{top:0}.tl i:last-child{bottom:0}.tl:before{content:'';position:absolute;left:6px;top:10px;bottom:10px;width:2px;background:#8b1a2a}
+.ev{position:absolute;left:203px;width:776px;height:39px;border-radius:20px;display:flex;align-items:center;
+  background:linear-gradient(180deg,#fffcf9,#fcf0e7);box-shadow:0 2px 5px rgba(140,70,40,.2),0 0 0 1px rgba(231,196,160,.5);font:400 20.5px/1 var(--sans);color:#2b1414;text-align:left}
+.ev .t{width:98px;height:31px;margin-left:10px;border-radius:16px;display:grid;place-items:center;color:#fff;font:400 20.5px/1 var(--sans);
+  background:linear-gradient(180deg,#a3213a 0%,#7d0f22 45%,#5e0716 100%);box-shadow:inset 0 1px 1px rgba(255,170,180,.6),0 1px 2px rgba(0,0,0,.3)}
+.ev .n{margin-left:20px;flex:1}
+.ev .c{display:flex;align-items:center;gap:9px;width:150px}
+.ev .c svg.i{font-size:24px;color:#7b1020;stroke-width:1.8}
+.ev .ch{width:40px;display:grid;place-items:center;font-size:24px;color:#3a1212}.ev .ch svg.i{stroke-width:2.6}
+
+.act{position:absolute;left:18px;width:970px;height:49px;border-radius:14px;display:flex;align-items:center;text-align:left;
+  background:linear-gradient(180deg,rgba(255,252,249,.97),rgba(252,240,231,.95));box-shadow:0 2px 5px rgba(140,70,40,.18),0 0 0 1px rgba(231,196,160,.45)}
+.act .ib{width:90px;height:41px;margin-left:4px;border-radius:12px;display:grid;place-items:center;font-size:34px;color:#7b1020;
+  background:linear-gradient(180deg,#fbeee3,#f5ddc8)}
+.act .ib svg.i{stroke-width:2}
+.act .tx{margin-left:16px;flex:1}
+.act .tx b{display:block;font:700 20.5px/1.05 var(--sans);color:#5a0a12}
+.act .tx span{display:block;font:400 18.5px/1.1 var(--sans);color:#1f1111;margin-top:2px}
+.act .tm{font:400 17.5px/1 var(--sans);color:#2b1414}
+.act .ch{width:52px;display:grid;place-items:center;font-size:24px;color:#5a0a12}.act .ch svg.i{stroke-width:2.6}
+
+/* ---------- bottom navigation ---------- */
+#dock{position:fixed;left:0;bottom:0;width:100%;z-index:20;pointer-events:none}
+#dockCanvas{position:absolute;left:0;bottom:0;width:1024px;height:160px;transform-origin:0 100%;pointer-events:auto}
+.dock-bg{position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(180deg,rgba(74,15,26,0) 0%,#4a0f1a 35%,#3d0e17 100%)}
+.nav{position:absolute;left:12px;top:12px;width:1000px;height:110px;border-radius:46px;display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 18px;
+  background:linear-gradient(180deg,#8e1a2c 0%,#6a0f1f 30%,#4b0915 70%,#5d0c1a 100%);
+  border:2.5px solid #e6b866;box-shadow:0 0 0 1px rgba(255,230,170,.5),0 0 16px rgba(255,200,120,.45),0 -6px 18px rgba(60,5,15,.35),inset 0 2px 2px rgba(255,170,180,.35)}
+.nav:before{content:'';position:absolute;left:20px;right:20px;top:3px;height:40%;border-radius:40px 40px 10px 10px;background:linear-gradient(180deg,rgba(255,180,190,.18),rgba(255,255,255,0));pointer-events:none}
+.nv{position:relative;width:104px;height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:#fff;font:400 17px/1 var(--sans);border-radius:20px;white-space:nowrap}
+.nv svg.i{font-size:38px;stroke-width:1.9;color:#fff}
+.nv.chart svg.i{color:#f2c56a}
+.nv.on{width:106px;background:linear-gradient(180deg,#a31a2e 0%,#7c0f20 50%,#650b1a 100%);border:2px solid #f0c06e;
+  box-shadow:0 0 12px rgba(255,190,110,.75),inset 0 0 10px rgba(255,140,150,.45)}
+.nv.on svg.i,.nv.on span{color:#ffe7b5}
+.nv.on span{color:#fff2d6}
+.home-ind{position:absolute;left:364px;bottom:12px;width:298px;height:7px;border-radius:4px;background:#fff}
+
+/* hide simulated phone chrome on real touch phones (the phone draws its own) */
+@media (pointer:coarse) and (max-width:600px){.status,.home-ind{display:none}}
+
+/* small feedback toast */
+.toast{position:fixed;left:50%;bottom:calc(var(--dockH,110px) + 14px);transform:translateX(-50%) translateY(10px);opacity:0;z-index:30;
+  max-width:88vw;padding:10px 16px;border-radius:14px;background:rgba(60,8,18,.92);color:#fff4df;font:600 14px/1.3 var(--sans);
+  border:1px solid #d9a95a;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+button:active{filter:brightness(.96);transform:translateY(1px)}
+
+/* ================= DESKTOP (same file, same sections, same order) ================= */
+html.desk,html.desk body{height:100%;overflow:hidden}
+html.desk #stage{height:100vh!important}
+html.desk .status,html.desk .home-ind,html.desk .dock-bg{display:none}
+html.desk .top{width:100%!important}
+@media (hover:hover){button:hover{filter:brightness(1.06)}.tile:hover,.qa:hover,.act:hover,.ev:hover{transform:translateY(-2px);transition:transform .18s}}
+
+/* ================= SMOOTH PAGE-TO-PAGE TRANSITION (shared by all CRM pages) ================= */
+@view-transition{navigation:auto}
+body{background:#efc19c}
+#dock{view-transition-name:crm-dock}
+::view-transition-old(root){animation:crmOut .22s ease both}
+::view-transition-new(root){animation:crmIn .36s cubic-bezier(.2,.7,.2,1) both}
+::view-transition-group(crm-dock){animation-duration:.3s}
+@keyframes crmOut{to{opacity:0}}
+@keyframes crmIn{from{opacity:0;transform:translateY(10px)}}
+html.no-vt #stage{animation:crmIn .34s cubic-bezier(.2,.7,.2,1) both}
+html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s ease,transform .17s ease}
+@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root),html.no-vt #stage{animation:none}html.leaving #stage{transition:none}}
+</style>
+<link rel="stylesheet" href="/crm/crm-blend.css"/>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="house" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="handshake" viewBox="0 0 24 24"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></symbol>
+    <symbol id="handshake-plus" viewBox="0 0 28 24"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/><path d="M25 2v6M22 5h6"/></symbol>
+    <symbol id="calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 15h8"/></symbol>
+    <symbol id="calendar-days" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></symbol>
+    <symbol id="zap" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
+    <symbol id="user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></symbol>
+    <symbol id="house-plus" viewBox="0 0 24 24"><path d="M13.22 2.416a2 2 0 0 0-2.511.057l-7 5.999A2 2 0 0 0 3 10v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7.354"/><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M15 6h6"/><path d="M18 3v6"/></symbol>
+    <symbol id="calculator" viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></symbol>
+    <symbol id="landmark" viewBox="0 0 24 24"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></symbol>
+    <symbol id="file-text" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+    <symbol id="chart" viewBox="0 0 24 24"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></symbol>
+    <symbol id="chev-d" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="chev-r" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+    <symbol id="file-pen" viewBox="0 0 24 24"><path d="m18 5-2.414-2.414A2 2 0 0 0 14.172 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2"/><path d="M21.378 12.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/><path d="M8 18h1"/></symbol>
+    <symbol id="bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol>
+    <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <linearGradient id="satin" x1="0" y1="0" x2="1" y2="0.35">
+      <stop offset="0" stop-color="#4a0614"/><stop offset=".18" stop-color="#8f0f2c"/><stop offset=".34" stop-color="#d0285a"/><stop offset=".42" stop-color="#f48aa6"/>
+      <stop offset=".5" stop-color="#a5143a"/><stop offset=".68" stop-color="#5a0717"/><stop offset=".84" stop-color="#b21a42"/><stop offset="1" stop-color="#6a0a1d"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a8702c"/><stop offset=".25" stop-color="#ffe9ad"/><stop offset=".5" stop-color="#c88f3d"/><stop offset=".75" stop-color="#fff0c0"/><stop offset="1" stop-color="#b37a32"/>
+    </linearGradient>
+    <linearGradient id="creamg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffaf4"/><stop offset=".6" stop-color="#fbe9d7"/><stop offset="1" stop-color="#f3d4bc"/>
+    </linearGradient>
+    <linearGradient id="ribbonFill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c0a1d"/><stop offset=".55" stop-color="#8d1129"/><stop offset=".8" stop-color="#b2193d"/><stop offset="1" stop-color="#e34f72"/>
+    </linearGradient>
+<symbol id="star" viewBox="0 0 24 24"> <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol>
+<symbol id="shield" viewBox="0 0 24 24"> <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
+<symbol id="lock" viewBox="0 0 24 24"> <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/> <path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="trash-2" viewBox="0 0 24 24"> <path d="M3 6h18"/> <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/> <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/> <line x1="10" x2="10" y1="11" y2="17"/> <line x1="14" x2="14" y1="11" y2="17"/></symbol>
+<symbol id="save" viewBox="0 0 24 24"> <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/> <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/> <path d="M7 3v4a1 1 0 0 0 1 1h7"/></symbol>
+<symbol id="contact-round" viewBox="0 0 24 24"> <path d="M16 2v2"/> <path d="M17.915 22a6 6 0 0 0-12 0"/> <path d="M8 2v2"/> <circle cx="12" cy="12" r="4"/> <rect x="3" y="4" width="18" height="18" rx="2"/></symbol>
+<symbol id="circle-x" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10"/> <path d="m15 9-6 6"/> <path d="m9 9 6 6"/></symbol>
+<symbol id="user-round" viewBox="0 0 24 24"> <circle cx="12" cy="8" r="5"/> <path d="M20 21a8 8 0 0 0-16 0"/></symbol>
+<symbol id="briefcase-business" viewBox="0 0 24 24"> <path d="M12 12h.01"/> <path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/> <path d="M22 13a18.15 18.15 0 0 1-20 0"/> <rect width="20" height="14" x="2" y="6" rx="2"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"> <path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="building-2" viewBox="0 0 24 24"> <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/> <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/> <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/> <path d="M10 6h4"/> <path d="M10 10h4"/> <path d="M10 14h4"/> <path d="M10 18h4"/></symbol>
+<symbol id="hard-hat" viewBox="0 0 24 24"> <path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/> <path d="M14 6a6 6 0 0 1 6 6v3"/> <path d="M4 15v-3a6 6 0 0 1 6-6"/> <rect x="2" y="15" width="20" height="4" rx="1"/></symbol>
+<symbol id="armchair" viewBox="0 0 24 24"> <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"/> <path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z"/> <path d="M5 18v2"/> <path d="M19 18v2"/></symbol>
+<symbol id="link" viewBox="0 0 24 24"> <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/> <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+<symbol id="chevron-up" viewBox="0 0 24 24"> <path d="m18 15-6-6-6 6"/></symbol>
+<symbol id="globe" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10"/> <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/> <path d="M2 12h20"/></symbol>
+<symbol id="funnel" viewBox="0 0 24 24"> <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+  </defs>
+</svg>
+
+<div id="stage">
+<div id="canvas">
+
+  <!-- ============ HEADER + HERO ============ -->
+  <section class="abs top" id="top" aria-label="CRM Начало">
+    <img class="abs photo" src="/crm/assets/hero-villa.jpg" alt="">
+    <div class="abs shade"></div>
+    <svg class="abs swoosh" viewBox="0 0 1024 380" aria-hidden="true">
+      <!-- red satin sweep -->
+      <path d="M0 258 C 70 214 190 200 262 186 C 330 172 352 130 392 92 C 440 46 530 24 640 8 C 680 3 712 0 735 0 L 600 0 C 500 6 420 24 372 60 C 330 92 312 150 250 170 C 180 192 70 196 0 232 Z" fill="url(#satin)"/>
+      <path d="M0 258 C 70 214 190 200 262 186 C 330 172 352 130 392 92 C 440 46 530 24 640 8 C 680 3 712 0 735 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
+      <!-- cream logo plate -->
+      <path d="M0 74 C 0 56 10 47 30 46 L 438 44 C 392 52 352 84 330 126 C 306 170 270 182 226 189 C 150 200 60 205 0 236 Z" fill="url(#creamg)"/>
+      <path d="M438 44 C 392 52 352 84 330 126 C 306 170 270 182 226 189 C 150 200 60 205 0 236" fill="none" stroke="url(#gold)" stroke-width="4"/>
+      <path d="M0 236 C 60 205 150 200 226 189" fill="none" stroke="#fff6d6" stroke-width="1.2" opacity=".8"/>
+    </svg>
+    <a class="abs logo" href="/" aria-label="Към началната страница на сайта"><img src="/crm/assets/logo.png" alt="Недвижими имоти Надежда"></a>
+
+    <div class="abs status" aria-hidden="true"><span class="time">08:57</span>
+      <span class="right"><span class="bars"><i></i><i></i><i></i><i></i></span><span>5G</span><span class="battery"><b>100</b><i></i></span></span></div>
+
+    <button class="abs ctrl bell" aria-label="Известия" data-msg="Известия"><svg class="i"><use href="#bell"/></svg></button>
+    <button class="abs ctrl search" aria-label="Търсене" data-msg="Търсене"><svg class="i"><use href="#search"/></svg></button>
+    <button class="abs ctrl gear" aria-label="Настройки" data-msg="Настройки"><svg class="i"><use href="#settings"/></svg></button>
+    <button class="abs avatar" aria-label="Моят профил" data-msg="Моят профил"><img src="/crm/assets/avatar.jpg" alt=""></button>
+
+    <h1 class="abs hero-title" data-hero>CRM Начало</h1>
+    <p class="abs hero-sub" data-hero>Управление на имоти,<br>клиенти и сделки</p>
+    <div class="abs hero-line" data-hero></div>
+  </section>
+
+  <!-- ============ FEATURE TILES ============ -->
+  <button class="abs tile" data-row="1" style="left:18px;top:378px" data-href="/crm/klienti">
+    <img class="ph" src="/crm/assets/card-clients.jpg" alt="" style="left:150px;top:-52px;width:470px">
+    <span class="veil"></span><span class="gloss"></span>
+    <span class="ic"><svg class="i"><use href="#users"/></svg></span><h3>Клиенти</h3><p>Досие и комуникация</p>
+    <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
+  </button>
+  <button class="abs tile" data-row="1" style="left:522px;top:378px" data-href="/crm/imoti">
+    <img class="ph" src="/crm/assets/card-properties.jpg" alt="" style="left:104px;top:-14px;width:400px">
+    <span class="veil"></span><span class="gloss"></span>
+    <span class="ic"><svg class="i"><use href="#house"/></svg></span><h3>Имоти</h3><p>Добавяне и управление</p>
+    <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
+  </button>
+  <button class="abs tile" data-row="2" style="left:18px;top:529px" data-msg="Сделки">
+    <img class="ph" src="/crm/assets/card-deals.jpg" alt="" style="left:190px;top:-16px;width:300px">
+    <span class="veil"></span><span class="gloss"></span>
+    <span class="ic"><svg class="i"><use href="#handshake"/></svg></span><h3>Сделки</h3><p>Проследяване и статус</p>
+    <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
+  </button>
+  <button class="abs tile" data-row="2" style="left:522px;top:529px" data-href="/crm/kalendar">
+    <img class="ph" src="/crm/assets/card-viewings.jpg" alt="" style="left:160px;top:-22px;width:330px">
+    <span class="veil"></span><span class="gloss"></span>
+    <span class="ic"><svg class="i"><use href="#calendar"/></svg></span><h3>Огледи</h3><p>График и срещи</p>
+    <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
+  </button>
+
+  <!-- ============ QUICK ACTIONS ============ -->
+  <section class="abs panel" data-row="3" style="top:677px;height:132px" aria-label="Бързи действия">
+    <h2 class="ptitle" style="left:36px;top:12px"><svg class="i"><use href="#zap"/></svg>Бързи действия</h2>
+    <div class="qa-row">
+      <button class="qa" data-href="/crm/klienti"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
+      <button class="qa" data-href="/crm/imoti"><svg class="i"><use href="#house-plus"/></svg>Нов имот</button>
+      <button class="qa" data-msg="Нова сделка" style="width:157px"><svg class="i" style="width:1.2em"><use href="#handshake-plus"/></svg>Нова сделка</button>
+      <button class="qa" data-msg="Калкулатор"><svg class="i"><use href="#calculator"/></svg>Калкулатор</button>
+      <button class="qa" data-msg="Банка"><svg class="i"><use href="#landmark"/></svg>Банка</button>
+      <button class="qa" data-msg="Документи"><svg class="i"><use href="#file-text"/></svg>Документи</button>
+    </div>
+  </section>
+
+  <!-- ============ OVERVIEW ============ -->
+  <section class="abs panel" data-row="4" style="top:816px;height:156px" aria-label="Обзор днес">
+    <h2 class="ptitle" style="left:32px;top:12px"><svg class="i"><use href="#chart"/></svg>Обзор днес</h2>
+    <button class="datepill" data-msg="Избор на дата"><svg class="i"><use href="#calendar-days"/></svg><span id="today">03.11.2026 г.</span><svg class="i dn"><use href="#chev-d"/></svg></button>
+    <div class="metrics">
+      <div class="metric"><svg class="i"><use href="#house"/></svg><b>850+</b><span>Активни имота</span></div>
+      <div class="metric"><svg class="i"><use href="#users"/></svg><b>1 240+</b><span>Клиенти</span></div>
+      <div class="metric"><svg class="i"><use href="#handshake"/></svg><b>460+</b><span>Сделки</span></div>
+      <div class="metric"><svg class="i"><use href="#chart"/></svg><b>98%</b><span>Успеваемост</span></div>
+    </div>
+  </section>
+
+  <!-- ============ CALENDAR ============ -->
+  <section class="abs panel" data-row="5" style="top:982px;height:158px;overflow:hidden" aria-label="Моят календар – Днес">
+    <svg class="ribbon" viewBox="0 0 575 58" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 0 H 575 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0 Z" fill="url(#ribbonFill)"/>
+      <path d="M0 0 H 575 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0 Z" fill="url(#satin)" opacity=".45"/>
+      <path d="M575 1 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
+    </svg>
+    <h2 class="rtitle"><svg class="i"><use href="#calendar-days"/></svg>Моят календар – Днес</h2>
+    <button class="pillbtn" data-href="/crm/kalendar"><svg class="i"><use href="#calendar-days"/></svg>Виж календара</button>
+    <div class="daycard"><span class="d1" id="dw">Вт</span><span class="d2" id="dd">03</span><span class="d3" id="dm">Ноем</span></div>
+    <div class="tl"><i></i><i></i></div>
+    <button class="ev" style="top:57px" data-msg="Оглед – апартамент, Лазур"><span class="t">10:00</span><span class="n">Оглед – апартамент, Лазур</span><span class="c"><svg class="i"><use href="#pin"/></svg>Бургас</span><span class="ch"><svg class="i"><use href="#chev-r"/></svg></span></button>
+    <button class="ev" style="top:100px" data-msg="Среща с клиент – покупка"><span class="t">12:30</span><span class="n">Среща с клиент – покупка</span><span class="c"><svg class="i"><use href="#pin"/></svg>София</span><span class="ch"><svg class="i"><use href="#chev-r"/></svg></span></button>
+  </section>
+
+  <!-- ============ LATEST ACTIVITY ============ -->
+  <section class="abs panel" data-row="6" style="top:1145px;height:222px;overflow:hidden" aria-label="Последни дейности">
+    <svg class="ribbon" viewBox="0 0 575 58" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 0 H 575 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0 Z" fill="url(#ribbonFill)"/>
+      <path d="M0 0 H 575 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0 Z" fill="url(#satin)" opacity=".45"/>
+      <path d="M575 1 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
+    </svg>
+    <h2 class="rtitle" style="left:34px"><svg class="i"><use href="#history"/></svg>Последни дейности</h2>
+    <button class="linkbtn" data-msg="Всички дейности">Виж всички<svg class="i"><use href="#chev-r"/></svg></button>
+    <button class="act" style="top:56px" data-href="/crm/imoti"><span class="ib"><svg class="i"><use href="#house"/></svg></span><span class="tx"><b>Добавен нов имот</b><span>Апартамент, Център – € 320 000</span></span><span class="tm">преди 15 мин</span><span class="ch"><svg class="i"><use href="#chev-r"/></svg></span></button>
+    <button class="act" style="top:108px" data-href="/crm/klienti#maria"><span class="ib"><svg class="i"><use href="#users"/></svg></span><span class="tx"><b>Нов клиент</b><span>Мария Димитрова</span></span><span class="tm">преди 42 мин</span><span class="ch"><svg class="i"><use href="#chev-r"/></svg></span></button>
+    <button class="act" style="top:160px" data-msg="Обновена сделка"><span class="ib"><svg class="i"><use href="#file-pen"/></svg></span><span class="tx"><b>Обновена сделка</b><span>Продажба – №SD-1048</span></span><span class="tm">преди 1 ч</span><span class="ch"><svg class="i"><use href="#chev-r"/></svg></span></button>
+  </section>
+
+</div>
+</div>
+
+<!-- ============ BOTTOM NAVIGATION (fixed) ============ -->
+<div id="dock">
+  <div id="dockCanvas">
+    <div class="dock-bg"></div>
+    <nav class="nav" aria-label="Основна навигация">
+      <button class="nv on" aria-current="page" data-nav="Начало"><svg class="i"><use href="#house"/></svg><span>Начало</span></button>
+      <button class="nv" data-nav="Имоти" data-href="/crm/imoti"><svg class="i"><use href="#house"/></svg><span>Имоти</span></button>
+      <button class="nv" data-nav="Клиенти" data-href="/crm/klienti"><svg class="i"><use href="#users"/></svg><span>Клиенти</span></button>
+      <button class="nv" data-nav="Брокери" data-href="/crm/brokeri"><svg class="i"><use href="#contact-round"/></svg><span>Брокери</span></button>
+      <button class="nv" data-nav="Календар" data-href="/crm/kalendar"><svg class="i"><use href="#calendar"/></svg><span>Календар</span></button>
+      <button class="nv" data-nav="Компании" data-href="/crm/kompanii"><svg class="i"><use href="#building-2"/></svg><span>Компании</span></button>
+      <button class="nv" data-nav="Сделки"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span></button>
+      <button class="nv" data-nav="Документи"><svg class="i"><use href="#file-text"/></svg><span>Документи</span></button>
+      <button class="nv chart" data-nav="Отчети"><svg class="i"><use href="#chart"/></svg><span>Отчети</span></button>
+    </nav>
+    <div class="home-ind" aria-hidden="true"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* smooth navigation between CRM pages: native cross-page transition where supported, a soft fade elsewhere */
+(function(){
+  var root=document.documentElement,vt=('onpagereveal' in window);
+  if(!vt)root.classList.add('no-vt');
+  window.goTo=function(url){
+    if(vt){location.href=url;return}
+    root.classList.add('leaving');setTimeout(function(){location.href=url},170);
+  };
+  addEventListener('pageshow',function(){root.classList.remove('leaving')});
+  /* nav-capture: the bottom menu always navigates, even if a page script fails */
+  document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('.nv[data-href]');if(!b)return;e.preventDefault();e.stopPropagation();window.goTo(b.getAttribute('data-href'))},true);
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a[href]');if(!a||e.metaKey||e.ctrlKey||e.shiftKey)return;
+    var h=a.getAttribute('href');if(/^(\/crm(?:\/[\w-]*)?|crm-[\w-]+\.html)(#[\w-]+)?$/.test(h)){e.preventDefault();window.goTo(h)}
+  });
+})();
+</script>
+<script>
+(function(){
+  var W=1024,H=1536,DOCK=160;
+  var stage=document.getElementById('stage'),canvas=document.getElementById('canvas'),dock=document.getElementById('dock'),dockC=document.getElementById('dockCanvas');
+  var rows=[].slice.call(document.querySelectorAll('[data-row]')).map(function(el){return {el:el,top:parseFloat(el.style.top),row:+el.getAttribute('data-row')}});
+  var heros=[].slice.call(document.querySelectorAll('[data-hero]')).map(function(el){return {el:el,top:parseFloat(getComputedStyle(el).top)}});
+  var top=document.getElementById('top');
+  var root=document.documentElement;
+  var tiles=[].slice.call(document.querySelectorAll('.tile')).map(function(el){var im=el.querySelector('.ph');return {el:el,left:parseFloat(el.style.left),im:im,il:parseFloat(im.style.left),it:parseFloat(im.style.top),iw:parseFloat(im.style.width)}});
+  var panels=[].slice.call(document.querySelectorAll('.panel[data-row]'));
+  var hdr={photo:top.querySelector('.photo'),ctrls:[].slice.call(top.querySelectorAll('.ctrl,.avatar'))};
+  function isDesk(){return root.clientWidth>=1024&&root.clientWidth/innerHeight>=1.2}
+  function fitDesk(){
+    var vw=root.clientWidth,vh=innerHeight,BW=2072,BH=1173;
+    var k=Math.min(vw/BW,vh/BH),W=vw/k,Hc=vh/k,exH=Hc-BH,exW=W-BW;
+    var Hh=430+Math.min(exH*.5,160);
+    var G=24+Math.min(exW*.15,80),xL=(W-2000-G)/2,xR=xL+1000+G;
+    var C=Hc-Hh-16-162;                       /* height for the two columns above the navigation */
+    var gv=Math.max(16,Math.min((C-536)/2,90)),yR=Hh+16+Math.max(0,(C-536-2*gv)/2);
+    var th=Math.max(136,Math.min((C-132-2*gv)/2,330)),yL=Hh+16+Math.max(0,(C-(2*th+132+2*gv))/2);
+    canvas.style.width=W+'px';canvas.style.height=Hc+'px';canvas.style.left='0px';canvas.style.transform='scale('+k+')';
+    top.style.height=Hh+'px';
+    heros.forEach(function(o){o.el.style.top=(o.top+(Hh-380)*.75)+'px'});
+    var ph=Hh*1.55,pw=ph*1.777;hdr.photo.style.width=pw+'px';hdr.photo.style.left=(W-pw+20)+'px';hdr.photo.style.top=(30-.16*ph)+'px';
+    hdr.ctrls.forEach(function(el){if(el.dataset.l==null)el.dataset.l=parseFloat(getComputedStyle(el).left);el.style.left=(W-1024+(+el.dataset.l))+'px'});
+    var s=th/136;
+    tiles.forEach(function(o){
+      var row=+o.el.getAttribute('data-row');
+      o.el.style.left=(xL+(o.left-12))+'px';o.el.style.top=(yL+(row-1)*(th+gv))+'px';o.el.style.setProperty('--th',th+'px');
+      o.im.style.width=(o.iw*s)+'px';o.im.style.left=(484-(484-o.il)*s)+'px';o.im.style.top=(o.it*s)+'px'});
+    var qa=panels[0];qa.style.left=xL+'px';qa.style.top=(yL+2*th+2*gv)+'px';
+    var y=yR;[panels[1],panels[2],panels[3]].forEach(function(el){el.style.left=xR+'px';el.style.top=y+'px';y+=el.offsetHeight+gv});
+    dockC.style.transform='scale('+k+')';dockC.style.left=((vw-1024*k)/2)+'px';
+    dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(118*k)+'px');
+  }
+  function clearDesk(){
+    canvas.style.width='';top.style.height='';hdr.photo.style.left=hdr.photo.style.top=hdr.photo.style.width='';
+    hdr.ctrls.forEach(function(el){el.style.left=''});
+    tiles.forEach(function(o){o.el.style.left=o.left+'px';o.el.style.removeProperty('--th');o.im.style.width=o.iw+'px';o.im.style.left=o.il+'px';o.im.style.top=o.it+'px'});
+    panels.forEach(function(el){el.style.left=''});
+  }
+  function fit(){
+    var desk=isDesk();root.classList.toggle('desk',desk);
+    if(desk){fitDesk();return}
+    clearDesk();
+    var vw=document.documentElement.clientWidth;
+    var k=vw/W, vh=window.innerHeight;
+    /* taller phones: grow the hero photo first, then open up the gaps between sections */
+    var extra=Math.max(0,vh/k-H), h=Math.min(extra*.45,140), g=Math.min((extra-h)/7,42);
+    top.style.height=(380+h)+'px';
+    heros.forEach(function(o){o.el.style.top=(o.top+h)+'px'});
+    rows.forEach(function(o){o.el.style.top=(o.top+h+g*o.row)+'px'});
+    var endH=1367+h+g*7+26;
+    canvas.style.height=endH+'px';
+    canvas.style.transform='scale('+k+')';
+    dockC.style.transform='scale('+k+')';
+    var offset=(document.documentElement.clientWidth-vw)/2;
+    canvas.style.left=offset+'px';dockC.style.left=offset+'px';
+    var dockH=DOCK*k;
+    stage.style.height=Math.max(endH*k+dockH-40*k,vh)+'px';
+    dock.style.height=dockH+'px';
+    document.documentElement.style.setProperty('--dockH',(118*k)+'px');
+  }
+  fit();addEventListener('resize',fit);addEventListener('orientationchange',fit);
+
+  /* today's date in the overview pill and the calendar card */
+  try{
+    var d=new Date(),dd=('0'+d.getDate()).slice(-2),mm=('0'+(d.getMonth()+1)).slice(-2);
+    var wd=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()];
+    var mn=['Ян','Фев','Март','Апр','Май','Юни','Юли','Авг','Сеп','Окт','Ноем','Дек'][d.getMonth()];
+    document.getElementById('today').textContent=dd+'.'+mm+'.'+d.getFullYear()+' г.';
+    document.getElementById('dw').textContent=wd;document.getElementById('dd').textContent=dd;document.getElementById('dm').textContent=mn;
+  }catch(e){}
+
+  /* demo feedback — replace with real CRM routes */
+  var t=document.getElementById('toast'),timer;
+  function say(s){t.textContent=s;t.classList.add('show');clearTimeout(timer);timer=setTimeout(function(){t.classList.remove('show')},2200)}
+  document.querySelectorAll('[data-msg]').forEach(function(b){b.addEventListener('click',function(){say(b.getAttribute('data-msg'))})});
+  document.querySelectorAll('[data-href]').forEach(function(b){b.addEventListener('click',function(e){e.stopImmediatePropagation();window.goTo(b.getAttribute('data-href'))},true)});
+  document.querySelectorAll('[data-nav]').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('.nv').forEach(function(x){x.classList.remove('on');x.removeAttribute('aria-current')});
+    b.classList.add('on');b.setAttribute('aria-current','page');say(b.getAttribute('data-nav'));
+  })});
+})();
+</script>
+<script>document.documentElement.classList.add("ready")</script>
+<div id="page-ready" hidden></div>
+</body>
+</html>
