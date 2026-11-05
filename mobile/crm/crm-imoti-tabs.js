@@ -4,6 +4,7 @@
   "use strict";
   var U = window.NDUI, D = window.ND;
   var PL = window.NDPlaces || { cities: [], PLACES: {}, city: function (x) { return String(x || "").trim(); }, hood: function (c, x) { return String(x || "").trim(); } };
+  function placeOpts(c) { var R = (PL.REGION || {})[PL.city(c)]; if (!R) return ""; return [["Град", R.towns || []], ["Курорт", R.resorts || []], ["Село", R.villages || []]].map(function (g) { return g[1].map(function (n) { return '<option value="' + U.esc(n) + '">' + g[0] + "</option>"; }).join(""); }).join(""); }
   function hoodOpts(c) { return (PL.PLACES[PL.city(c)] || []).map(function (n) { return '<option value="' + U.esc(n) + '">'; }).join(""); }
   var esc = U.esc, ic = U.ic, fld = U.fld, row = U.row, section = U.section;
   var P = null; /* page hooks */
@@ -24,7 +25,7 @@
   }
   function stored(p) {
     var o = {};
-    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "ownerEmail", "ownerEgn", "ownerAddr", "ownerIban", "ownerShare", "coOwners", "ownerPaid", "ownerComm", "contractDate", "contractUntil", "ownerContact", "ownerNotes", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
+    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "ownerEmail", "ownerEgn", "ownerAddr", "ownerIban", "ownerShare", "coOwners", "ownerPaid", "ownerComm", "contractDate", "contractUntil", "ownerContact", "ownerNotes", "portals", "place", "num", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
     if (p.id) o.id = p.id;
     return o;
   }
@@ -105,6 +106,8 @@
         G("Локация", "pin", "nd/ph19.jpg",
           fld({ id: "p-region", label: "Област", icon: "map", value: p.region, ph: "напр. Варна" }) +
           fld({ id: "p-city", label: "Град", icon: "pin", type: "select", value: p.city || "", required: true, options: [["", "Изберете град"]].concat(PL.cities, p.city && PL.cities.indexOf(p.city) < 0 ? [p.city] : []) }) +
+          fld({ id: "p-place", label: "Населено място", icon: "map", value: p.place || p.city, list: "p-places", ph: "град, курорт или село в областта" }) +
+          '<datalist id="p-places">' + placeOpts(p.city) + "</datalist>" +
           fld({ id: "p-hood", label: "Квартал", icon: "pin", value: p.hood, list: "p-hoods", ph: "изберете или въведете" }) +
           '<datalist id="p-hoods">' + hoodOpts(p.city) + "</datalist>" +
           fld({ id: "p-addr", label: "Адрес", icon: "map-pin-house", value: p.address }), { lw: 110 }) +
@@ -128,7 +131,7 @@
       var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
       p.title = g("p-title"); p.deal = g("p-deal"); p.type = g("p-type"); p.price = n("p-price"); p.area = n("p-area");
       p.rooms = n("p-rooms"); p.beds = n("p-beds"); p.baths = n("p-baths"); p.floor = g("p-floor"); p.build = g("p-build"); p.year = n("p-year");
-      p.cond = g("p-cond"); p.status = g("p-status"); p.city = PL.city(g("p-city")); p.hood = PL.hood(p.city, g("p-hood")); p.region = g("p-region") || p.city;
+      p.cond = g("p-cond"); p.status = g("p-status"); p.city = PL.city(g("p-city")); p.place = g("p-place") || p.city; p.hood = PL.hood(p.city, g("p-hood")); p.region = g("p-region") || p.city;
       p.address = g("p-addr"); p.client = g("p-client"); p.desc = g("p-desc");
       if (ctx && ctx.q("p-expo")) { p.expo = g("p-expo"); p.heat = g("p-heat"); p.parking = g("p-park"); p.elevator = g("p-elev") === "1"; p.terraces = n("p-terr"); p.act = g("p-act");
         p.keys = g("p-keys") === "1"; p.commission = n("p-comm"); p.freeFrom = g("p-free"); p.tour = g("p-tour"); p.features = g("p-feat"); }
@@ -138,7 +141,7 @@
     function rerender() { collect(ctx.get); ctx.rerender(html()); }
     function bind() {
       var pi = ctx.q("p-picin"), di = ctx.q("p-docin");
-      var cs = ctx.q("p-city"), hl = ctx.q("p-hoods"); if (cs && hl) cs.onchange = function () { hl.innerHTML = hoodOpts(cs.value); var h = ctx.q("p-hood"); if (h && h.value) h.value = PL.hood(cs.value, h.value); };
+      var cs = ctx.q("p-city"), hl = ctx.q("p-hoods"); if (cs && hl) cs.onchange = function () { hl.innerHTML = hoodOpts(cs.value); var pl = ctx.q("p-places"), pi2 = ctx.q("p-place"); if (pl) pl.innerHTML = placeOpts(cs.value); if (pi2 && (!pi2.value || PL.cities.indexOf(pi2.value) >= 0)) pi2.value = cs.value; var h = ctx.q("p-hood"); if (h && h.value) h.value = PL.hood(cs.value, h.value); };
       if (pi) pi.onchange = function () { [].forEach.call(pi.files, function (f) { pendingPics.push({ file: f, url: URL.createObjectURL(f), name: f.name }); }); rerender(); };
       if (di) di.onchange = function () { [].forEach.call(di.files, function (f) { pendingDocs.push({ file: f, name: f.name }); }); rerender(); };
       var ph = ctx.q("p-pics");

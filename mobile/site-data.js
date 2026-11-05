@@ -18,7 +18,8 @@
       .catch(function () { return {}; });
   }
   window.__ND_LISTINGS = [];
-  window.__ND_READY = rpc("nd_public_listings").then(function (rows) {
+  window.__ND_READY = rpc("nd_public_listings2").catch(function () { return rpc("nd_public_listings"); }).then(function (rows) {
+    rows = (rows || []).map(function (r) { return r && r.nd_public_listings2 ? r.nd_public_listings2 : r; });
     var paths = [];
     rows.forEach(function (r) { (r.pics || []).forEach(function (p) { paths.push(p); }); });
     return sign(paths).then(function (m) {
@@ -30,7 +31,7 @@
         var fresh = Date.now() - new Date(r.updated_at) < 7 * 864e5;
         return { id: String(r.id), code: r.code, name: r.title, title: r.title, price: Number(r.price) || 0, area: Number(r.area) || 0,
           rooms: r.rooms || 0, beds: r.beds || 0, baths: r.baths || 0, img: cover, gallery: gal, badge: fresh ? "НОВО" : "",
-          city: P ? P.city(r.city) : (r.city || ""), region: r.region || "", hood: P ? P.hood(r.city, r.hood) : (r.hood || ""), type: r.type || "", deal: r.deal || "sale", cond: r.cond || "", desc: r.descr || "" };
+          city: P ? P.city(r.city) : (r.city || ""), region: r.region || "", place: r.place || "", num: r.num || null, floor: r.floor || "", build: r.build || "", year: r.year || null, expo: r.expo || "", heat: r.heat || "", parking: r.parking || "", elevator: !!r.elevator, act: r.act || "", features: r.features || "", tour: r.tour || "", hood: P ? P.hood(r.city, r.hood) : (r.hood || ""), type: r.type || "", deal: r.deal || "sale", cond: r.cond || "", desc: r.descr || "" };
       });
     });
   }).catch(function () { window.__ND_LISTINGS = []; });
