@@ -1,0 +1,18 @@
+{
+  "name": "Имоти Надежда CRM",
+  "short_name": "Надежда CRM",
+  "description": "CRM на Недвижими имоти Надежда – клиенти, имоти, брокери, календар и сделки.",
+  "id": "/mobile/crm/",
+  "start_url": "/mobile/crm/crm-nachalo.html",
+  "scope": "/mobile/crm/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6d3b6",
+  "theme_color": "#4f0716",
+  "lang": "bg",
+  "icons": [
+    { "src": "assets/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

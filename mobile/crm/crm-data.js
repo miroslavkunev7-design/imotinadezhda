@@ -38,9 +38,9 @@
 
   /* ---------- sign-in window (same wine / gold / cream glass look) ---------- */
   var css =
-    ".nd-auth{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(120% 90% at 50% 0%,rgba(154,26,51,.55),rgba(40,4,12,.82));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-family:'Roboto Condensed',system-ui,sans-serif}" +
+    ".nd-auth{position:fixed;inset:0;z-index:200;display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px;background:radial-gradient(120% 90% at 50% 0%,rgba(154,26,51,.55),rgba(40,4,12,.82));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-family:'Roboto Condensed',system-ui,sans-serif}" +
     ".nd-auth[hidden]{display:none}" +
-    ".nd-card{width:min(420px,100%);border-radius:28px;padding:26px 22px 22px;background:linear-gradient(160deg,rgba(255,250,246,.96),rgba(251,236,224,.92));border:1.5px solid #e3b25e;box-shadow:0 0 0 1px rgba(243,207,134,.55) inset,0 0 26px rgba(227,178,94,.55),0 24px 60px rgba(30,0,8,.55);color:#1f1111}" +
+    ".nd-card{width:min(420px,100%);margin:max(2vh,env(safe-area-inset-top,0px)) auto 2vh;box-sizing:border-box;border-radius:28px;padding:26px 22px 22px;background:linear-gradient(160deg,rgba(255,250,246,.96),rgba(251,236,224,.92));border:1.5px solid #e3b25e;box-shadow:0 0 0 1px rgba(243,207,134,.55) inset,0 0 26px rgba(227,178,94,.55),0 24px 60px rgba(30,0,8,.55);color:#1f1111}" +
     ".nd-card img{display:block;height:58px;margin:0 auto 10px}" +
     ".nd-card h2{margin:0 0 4px;text-align:center;font:700 26px/1.15 Georgia,'PT Serif',serif;color:#6b0a1c}" +
     ".nd-card p.s{margin:0 0 16px;text-align:center;font-size:15px;color:#6b4a40}" +
@@ -51,6 +51,16 @@
     ".nd-card button:disabled{opacity:.6}" +
     ".nd-card .err{min-height:20px;margin:10px 2px 0;color:#b4142e;font-weight:700;font-size:14px}" +
     ".nd-card .lnk{display:block;margin:12px auto 0;background:none;border:0;box-shadow:none;height:auto;width:auto;color:#6b0a1c;font:700 14px 'Roboto Condensed',sans-serif;text-decoration:underline;cursor:pointer}" +
+    ".nd-apps{margin:16px 2px 0;text-align:center}" +
+    ".nd-apps>span{display:block;font-weight:700;font-size:14px;color:#6b0a1c;margin-bottom:9px}" +
+    ".nd-apps .row{display:flex;justify-content:center;gap:14px}" +
+    ".nd-card .nd-apps button.app{margin:0;width:62px;height:62px;padding:0;border-radius:50%;display:grid;place-items:center;color:#6b0a1c;background:radial-gradient(circle at 35% 28%,#fffdf9 0%,#fbefe5 55%,#f3d9bd 100%);border:1.5px solid #e3b25e;box-shadow:0 0 14px rgba(227,178,94,.6),0 4px 10px rgba(90,20,10,.25),inset 0 1px 0 #fff}" +
+    ".nd-card .nd-apps button.app svg{width:30px;height:30px}" +
+    ".nd-card .nd-apps button.app:active{transform:scale(.94)}" +
+    ".nd-apps small{display:block;margin-top:5px;font:700 12px 'Roboto Condensed',sans-serif;color:#6b4a40}" +
+    ".nd-howto{margin-top:12px;padding:12px 14px;border-radius:16px;text-align:left;font-size:14px;line-height:1.4;color:#3a1a14;background:rgba(255,255,255,.75);box-shadow:0 0 0 1px rgba(227,178,94,.6),0 0 12px rgba(227,178,94,.35)}" +
+    ".nd-howto b{color:#6b0a1c}" +
+    ".nd-howto[hidden]{display:none}" +
     ".nd-toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);z-index:210;max-width:90vw;padding:12px 18px;border-radius:16px;background:linear-gradient(180deg,#9a1a33,#4f0716);color:#fff3dc;border:1px solid #e3b25e;box-shadow:0 0 16px rgba(227,178,94,.5);font:700 15px 'Roboto Condensed',sans-serif;opacity:0;transition:.25s;pointer-events:none}" +
     ".nd-toast.show{opacity:1;transform:translateX(-50%)}" +
     ".nd-loading{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:190;padding:6px 14px;border-radius:12px;background:rgba(79,7,22,.85);color:#f3cf86;font:700 13px 'Roboto Condensed',sans-serif;border:1px solid rgba(227,178,94,.7)}";
@@ -68,8 +78,14 @@
         '<form class="nd-card" novalidate><img src="assets/logo.png" alt="Недвижими имоти Надежда"><h2>Вход в CRM</h2><p class="s">Влезте с акаунта си на брокер</p>' +
         '<label for="nd-em">Имейл</label><input id="nd-em" type="email" autocomplete="username" required>' +
         '<label for="nd-pw">Парола</label><input id="nd-pw" type="password" autocomplete="current-password" required>' +
+        '<div class="nd-apps"><span>Изтегли приложението</span><div class="row">' +
+        '<div><button type="button" class="app" data-app="ios" aria-label="Изтегли за iOS"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 12.6c-.03-2.7 2.2-4 2.3-4.07-1.26-1.84-3.21-2.09-3.9-2.12-1.66-.17-3.24.98-4.08.98-.85 0-2.14-.96-3.52-.93-1.81.03-3.48 1.05-4.41 2.67-1.88 3.26-.48 8.08 1.35 10.73.9 1.29 1.96 2.75 3.36 2.7 1.35-.05 1.86-.87 3.49-.87 1.63 0 2.09.87 3.52.84 1.45-.02 2.37-1.32 3.26-2.62 1.03-1.5 1.45-2.95 1.47-3.03-.03-.01-2.82-1.08-2.84-4.28zM13.7 4.7c.74-.9 1.24-2.15 1.1-3.4-1.07.04-2.36.71-3.13 1.61-.69.79-1.29 2.07-1.13 3.3 1.19.09 2.41-.61 3.16-1.51z"/></svg></button><small>iOS</small></div>' +
+        '<div><button type="button" class="app" data-app="android" aria-label="Изтегли за Android"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22A11.5 11.5 0 0 0 12 8.08c-1.78 0-3.46.38-4.92 1.06L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48C3.2 11.22 1.04 14.46.75 18.25h22.5c-.29-3.79-2.45-7.03-5.65-8.77zM7 15.25a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm10 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg></button><small>Android</small></div>' +
+        '<div><button type="button" class="app" data-app="windows" aria-label="Изтегли за Windows"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M2 4.3l8.2-1.1v7.9H2zm9.2-1.3L22 1.5v9.6H11.2zM2 12.1h8.2V20L2 18.9zm9.2 0H22v9.6l-10.8-1.5z"/></svg></button><small>Windows</small></div>' +
+        '</div><div class="nd-howto" role="status" hidden></div></div>' +
         '<div class="err" role="alert"></div><button type="submit">Вход</button><button type="button" class="lnk" data-reset>Забравена парола</button></form>';
       document.body.appendChild(box);
+      box.querySelector(".nd-apps").addEventListener("click", function (e) { var b = e.target.closest("[data-app]"); if (b) install(b.getAttribute("data-app"), box.querySelector(".nd-howto")); });
     }
     box.hidden = false;
     box.querySelector(".err").textContent = msg || "";
@@ -99,6 +115,36 @@
         });
       };
     });
+  }
+  /* ---------- installable app (iOS / Android / Windows) ---------- */
+  var deferred = null;
+  addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; });
+  addEventListener("appinstalled", function () { deferred = null; say("Приложението е инсталирано"); });
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+  var ua = navigator.userAgent;
+  var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/i.test(ua), isWin = /Windows/i.test(ua);
+  function install(os, howto) {
+    var standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    var show = function (h) { howto.innerHTML = h; howto.hidden = false; };
+    if (standalone) { show("<b>Приложението вече е инсталирано</b> и е отворено като приложение."); return; }
+    if (os === "ios") {
+      if (!isIOS) { show("<b>За iPhone / iPad:</b> отворете <b>imotinadezhda.bg/mobile/crm</b> в <b>Safari</b> на телефона и натиснете отново бутона с ябълката."); return; }
+      show("<b>Инсталиране на iPhone / iPad:</b><br>1. Натиснете бутона <b>Сподели</b> (квадрат със стрелка нагоре) долу в Safari.<br>2. Изберете <b>„Добави към началния екран“</b>.<br>3. Натиснете <b>„Добави“</b> – иконата „Надежда CRM“ се появява на екрана.");
+      return;
+    }
+    if (deferred && ((os === "android" && isAndroid) || (os === "windows" && !isAndroid && !isIOS))) {
+      deferred.prompt();
+      deferred.userChoice.then(function (c) { if (c.outcome === "accepted") show("<b>Готово!</b> Приложението се инсталира."); deferred = null; });
+      return;
+    }
+    if (os === "android") {
+      if (!isAndroid) { show("<b>За Android:</b> отворете <b>imotinadezhda.bg/mobile/crm</b> в <b>Chrome</b> на телефона и натиснете отново бутона с Android."); return; }
+      show("<b>Инсталиране на Android:</b><br>1. Натиснете менюто <b>⋮</b> горе вдясно в Chrome.<br>2. Изберете <b>„Инсталиране на приложението“</b> (или „Добавяне към началния екран“).<br>3. Потвърдете с <b>„Инсталиране“</b>.");
+      return;
+    }
+    if (!isWin) { show("<b>За Windows:</b> отворете <b>imotinadezhda.bg/mobile/crm</b> в <b>Microsoft Edge</b> или <b>Chrome</b> на компютъра и натиснете отново бутона с Windows."); return; }
+    show("<b>Инсталиране на Windows:</b><br>1. В <b>Edge</b> или <b>Chrome</b> натиснете иконата <b>„Инсталиране“</b> вдясно в адресната лента (монитор със стрелка).<br>2. Или от менюто <b>⋯</b> → <b>Приложения</b> → <b>„Инсталиране на този сайт като приложение“</b>.<br>3. Приложението се отваря в собствен прозорец и се появява в менюто Старт.");
   }
   function newPassword() {
     var b = authBox(""), f = b.querySelector("form"), err = b.querySelector(".err");
