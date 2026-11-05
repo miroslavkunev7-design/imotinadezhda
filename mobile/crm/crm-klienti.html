@@ -8,7 +8,7 @@
 <style>html:not(.ready) #stage,html:not(.ready) #dock{opacity:0}html.ready #stage,html.ready #dock{transition:opacity .18s ease}#dock{z-index:60}
 </style>
 <title>Клиенти · Имоти Надежда</title>
-<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html">
+<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html"><link rel="prefetch" href="crm-sdelki.html">
 <style>
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+20AC,U+2013-2014,U+2018-201E,U+2026}
@@ -340,7 +340,7 @@ html.desk .m-data .fcell .fp{width:34%}
 .fcell .fl,.fcell .fv{z-index:1;text-shadow:0 0 6px #fff8f0,0 0 2px #fff8f0}
 html.desk .m-notes{position:absolute;left:1036px;top:var(--ntop,960px);width:1000px;margin:0}
 html.desk .m-notes .mribbon{width:702px}
-html.desk .m-notes .ntext{min-height:230px;height:230px}
+html.desk .m-notes .ntext{min-height:230px;height:max(230px,calc(var(--mcvH,1420px) - var(--ntop,960px) - 230px))}
 @media (hover:hover){button:hover{filter:brightness(1.06)}.ccard:hover,.ma:hover,.fcell:hover{transform:translateY(-2px);transition:transform .18s}}
 
 /* ================= SMOOTH PAGE-TO-PAGE TRANSITION (shared by all CRM pages) ================= */
@@ -619,7 +619,7 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
       <button class="nv" data-nav="Брокери" data-href="crm-brokeri.html"><svg class="i"><use href="#contact-round"/></svg><span>Брокери</span></button>
       <button class="nv" data-nav="Календар" data-href="crm-kalendar.html"><svg class="i"><use href="#calendar"/></svg><span>Календар</span></button>
       <button class="nv" data-nav="Компании" data-href="crm-kompanii.html"><svg class="i"><use href="#building-2"/></svg><span>Компании</span></button>
-      <button class="nv" data-nav="Сделки"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span></button>
+      <button class="nv" data-nav="Сделки" data-href="crm-sdelki.html"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span></button>
       <button class="nv" data-nav="Документи"><svg class="i"><use href="#file-text"/></svg><span>Документи</span></button>
       <button class="nv chart" data-nav="Отчети"><svg class="i"><use href="#chart"/></svg><span>Отчети</span></button>
     </nav>
@@ -699,9 +699,9 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
     var ph=Hh*1.55,pw=ph*1.777;cphoto.style.width=pw+'px';cphoto.style.left=(Wc-pw+20)+'px';cphoto.style.top=(30-.16*ph)+'px';
     cctrls.forEach(function(el){if(el.dataset.l==null)el.dataset.l=parseFloat(getComputedStyle(el).left);el.style.left=(Wc-1024+(+el.dataset.l))+'px'});
     root.style.setProperty('--G',G+'px');root.style.setProperty('--xL',xL+'px');
-    root.style.setProperty('--gh',(Hc-Hh-16-197-162)+'px');
+    root.style.setProperty('--gh',(Hc-Hh-16-197-(window.NDRAIL?24:162))+'px');
     dockC.style.transform='scale('+k+')';dockC.style.left=((vw-1024*k)/2)+'px';
-    dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(118*k)+'px');
+    dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(window.NDRAIL?0:118*k)+'px');
     fitModal();
   }
   function clearDesk(){
@@ -718,7 +718,7 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
     dockC.style.transform='scale('+k+')';dockC.style.left=off+'px';
     dock.style.height=(DOCK*k)+'px';
     stage.style.paddingBottom=(DOCK*k)+'px';
-    root.style.setProperty('--dockH',(118*k)+'px');
+    root.style.setProperty('--dockH',(window.NDRAIL?0:118*k)+'px');
     fitModal();
   }
   var ctlBox=document.querySelector('.mctl');var ctlBase=0;
@@ -726,8 +726,8 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
   function fitModal(){
     if(win.hidden)return;
     if(desk){
-      var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
-      var aw=full?vw-16:vw*.94,av=full?ah-8:ah*.94,z=Math.min(aw/2048,av/Math.max(1420,DH)),w=2048*z,h=Math.max(1420,DH)*z;mcv.style.height=Math.max(1420,DH)+"px";
+      var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||(window.NDRAIL?0:100),ah=innerHeight-dh-14;
+      var aw=full?vw-16:(window.NDRAIL?vw-20:vw*.94),av=full?ah-8:(window.NDRAIL?ah-10:ah*.94),z=(full&&window.NDRAIL)?aw/2048:Math.min(aw/2048,av/Math.max(900,DH)),w=2048*z,h=(full&&window.NDRAIL)?av:Math.min(av,Math.max(900,DH)*z);var CH=Math.max(Math.max(900,DH),h/z);mcv.style.height=CH+"px";root.style.setProperty('--mcvH',CH+'px');
       win.style.width=w+'px';win.style.height=h+'px';win.style.left=((vw-w)/2)+'px';win.style.top=Math.max(6,(ah-h)/2)+'px';
       mcv.style.zoom=z;
       ctlBox.style.top='';

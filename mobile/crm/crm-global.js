@@ -72,7 +72,9 @@
         if (ed) { editing = list.filter(function (x) { return x.id === ed.getAttribute("data-ed"); })[0]; ctx.rerender(form(editing)); var t = ctx.q("s-title"); if (t) t.scrollIntoView({ behavior: "smooth", block: "center" }); }
       };
     }
+    if (!opts.inline && !/crm-sdelki\.html/.test(location.pathname)) { location.href = "crm-sdelki.html" + (opts.focusNew ? "#new" : ""); return; }
     U.open({
+      inline: opts.inline || null,
       title: "Сделки", icon: "handshake", photo: "nd/ph11.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запиши сделката", keepOpen: true, required: ["s-title"],
       ready: function (x) { ctx = x; D.ready().then(function () { return Promise.all([D.load("deals"), D.load("clients"), D.load("properties").catch(function () { return []; }), D.load("brokers").catch(function () { return []; })]); }).then(function (r) { list = r[0]; clients = r[1]; props = r[2] || []; brokers = r[3] || []; x.rerender(form()); if (opts.focusNew) { var t = x.q("s-title"); if (t) t.scrollIntoView({ block: "center" }); }
         if (opts.focusCalc) { var k = x.q("cm-cb"); if (k) { k.closest(".ndg").scrollIntoView({ block: "start" }); var sc = document.getElementById("nd-fscroll"); if (sc) sc.scrollTop -= 140; } } }); },

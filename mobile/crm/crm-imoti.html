@@ -8,7 +8,7 @@
 <style>html:not(.ready) #stage,html:not(.ready) #dock{opacity:0}html.ready #stage,html.ready #dock{transition:opacity .18s ease}#dock{z-index:60}
 </style>
 <title>Имоти · Имоти Надежда</title>
-<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html">
+<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html"><link rel="prefetch" href="crm-sdelki.html">
 <style>
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+20AC,U+2013-2014,U+2018-201E,U+2026}
@@ -789,7 +789,7 @@ html.desk .pm-actions .pa{height:150px}
       <button class="nv" data-nav="Брокери" data-href="crm-brokeri.html"><svg class="i"><use href="#contact-round"/></svg><span>Брокери</span></button>
       <button class="nv" data-nav="Календар" data-href="crm-kalendar.html"><svg class="i"><use href="#calendar"/></svg><span>Календар</span></button>
       <button class="nv" data-nav="Компании" data-href="crm-kompanii.html"><svg class="i"><use href="#building-2"/></svg><span>Компании</span></button>
-      <button class="nv" data-nav="Сделки"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span></button>
+      <button class="nv" data-nav="Сделки" data-href="crm-sdelki.html"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span></button>
       <button class="nv" data-nav="Документи"><svg class="i"><use href="#file-text"/></svg><span>Документи</span></button>
       <button class="nv chart" data-nav="Отчети"><svg class="i"><use href="#chart"/></svg><span>Отчети</span></button>
     </nav>
@@ -867,9 +867,9 @@ html.desk .pm-actions .pa{height:150px}
       texts.forEach(function(o,i){o.el.style.top=((i?298:224)+(Hh-380)*.75)+'px'});
       var ph=Hh*1.55,pw=ph*1.777;photo.style.width=pw+'px';photo.style.left=(Wc-pw+20)+'px';photo.style.top=(30-.16*ph)+'px';
       ctrls.forEach(function(el){if(el.dataset.l==null)el.dataset.l=parseFloat(getComputedStyle(el).left);el.style.left=(Wc-1024+(+el.dataset.l))+'px'});
-      root.style.setProperty('--G',G+'px');root.style.setProperty('--xL',xL+'px');root.style.setProperty('--lh',(Hc-Hh-84-162)+'px');
+      root.style.setProperty('--G',G+'px');root.style.setProperty('--xL',xL+'px');root.style.setProperty('--lh',(Hc-Hh-84-(window.NDRAIL?24:162))+'px');
       dockC.style.transform='scale('+k+')';dockC.style.left=((vw-1024*k)/2)+'px';stage.style.paddingBottom='0px';
-      dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(118*k)+'px');
+      dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(window.NDRAIL?0:118*k)+'px');
       return;
     }
     canvas.style.width=canvas.style.height=canvas.style.paddingTop='';top.style.height='';
@@ -1021,7 +1021,7 @@ html.desk .pm-actions .pa{height:150px}
     $('pm-acc').innerHTML=
       acc('docs','image','Снимки и документи ('+p.photos+')','<div class="pics">'+pics+'</div>'+(p.docs.length?p.docs.map(function(x,i){return '<div class="row" data-doc="'+i+'" role="button" tabindex="0" style="cursor:pointer">'+ic('file-text')+'<span>'+esc(x.name)+'</span><span class="r">'+Math.max(1,Math.round((x.size||0)/1024))+' KB</span></div>'}).join(''):'<div class="row">'+ic('file-text')+'<span>Няма качени документи</span></div>')+'<p class="note">Добавяне на снимки и документи – бутон „Редактирай“.</p>')+
       acc('pdocs','file-text','Документи на имота (чеклист)','<div class="row">'+ic('shield')+'<span>Нотариален акт, скица, тежести, данъчна оценка… + специални ситуации</span></div><button class="bankbtn" data-pa="pdocs">'+ic('file-text')+'Отвори документите</button>')+
-      acc('owner','user','Собственик',(p.client?'<div class="row">'+ic('user')+'<span>'+esc(p.client)+'</span><span class="r">'+(CL[p.client]?'<a href="crm-klienti.html#'+esc(CL[p.client].id)+'">Клиент</a>':'Клиент')+'</span></div><div class="row">'+ic('phone')+'<span>Телефон</span><span class="r">'+(CL[p.client]&&CL[p.client].phone?'<a href="tel:'+esc(CL[p.client].phone.replace(/\s/g,''))+'">'+esc(CL[p.client].phone)+'</a>':'няма данни')+'</span></div>':'<div class="row">'+ic('user')+'<span>Няма посочен собственик</span></div>')+'<p class="note">Данните на собственика се показват според правата на потребителя.</p>')+
+      acc('owner','user','Собственик',(p.client?'<div class="row">'+ic('user')+'<span>'+esc(p.client)+'</span><span class="r">'+(CL[p.client]?'<a href="crm-klienti.html#'+esc(CL[p.client].id)+'">Клиент</a>':'Клиент')+'</span></div><div class="row">'+ic('phone')+'<span>Телефон</span><span class="r">'+(CL[p.client]&&CL[p.client].phone?'<a href="tel:'+esc(CL[p.client].phone.replace(/\s/g,''))+'">'+esc(CL[p.client].phone)+'</a>':'няма данни')+'</span></div>':'<div class="row">'+ic('user')+'<span>Няма посочен собственик</span></div>')+(p.ownerPhone?'<div class="row">'+ic('phone')+'<span>Тел. собственик</span><span class="r"><a href="tel:'+esc(String(p.ownerPhone).replace(/[^\d+]/g,''))+'">'+esc(p.ownerPhone)+'</a></span></div>':'')+(p.ownerPrice?'<div class="row">'+ic('coins')+'<span>Цена към собственика</span><span class="r">'+esc(money(p.ownerPrice))+' €</span></div>':'')+(p.privDesc?'<div class="row" style="align-items:flex-start"><svg class="i"><use href="#lock"/></svg><span style="white-space:pre-wrap;line-height:1.35">'+esc(p.privDesc)+'</span></div>':'')+'<p class="note">Описът и данните на собственика не се публикуват.</p>')+
       acc('bank','landmark','Финансиране / Банка',(monthly?'<div class="row">'+ic('coins')+'<span>Примерна вноска (80% кредит, 30 г., 3,25%)</span><span class="r">'+monthly+' € / мес.</span></div>':'<div class="row">'+ic('coins')+'<span>Имотът е под наем – без кредит</span></div>')+'<button class="bankbtn" data-pa="bank">'+ic('landmark')+'Банков модул</button>')+
       acc('log','clock','Коментари и активност',(p.log.length?p.log.slice(0,12).map(function(l){return '<div class="row">'+ic(l.icon||'clock')+'<span>'+esc(l.text)+'</span><span class="r">'+esc(window.NDUI.bgDateTime(l.at))+'</span></div>'}).join(''):'<div class="row">'+ic('megaphone')+'<span>Статус: '+esc(p.status)+'</span></div>'));
     var pub=pwin.querySelector('[data-pa="publish"] span');pub.textContent=p.status==='Публикуван'?'Публикуван':'Публикувай';
@@ -1046,8 +1046,8 @@ html.desk .pm-actions .pa{height:150px}
   function fitProp(){
     if(pwin.hidden)return;
     if(desk){
-      var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
-      var aw=pfull?vw-16:vw*.94,av=pfull?ah-8:ah*.94,z=Math.min(aw/2048,av/1250),w=2048*z,h=1250*z;
+      var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||(window.NDRAIL?0:100),ah=innerHeight-dh-14;
+      var aw=pfull?vw-16:(window.NDRAIL?vw-20:vw*.94),av=pfull?ah-8:(window.NDRAIL?ah-10:ah*.94),z=(pfull&&window.NDRAIL)?aw/2048:Math.min(aw/2048,av/1250),w=2048*z,h=Math.min(av,1250*z);
       pwin.style.width=w+'px';pwin.style.height=h+'px';pwin.style.left=((vw-w)/2)+'px';pwin.style.top=Math.max(6,(ah-h)/2)+'px';pmcv.style.zoom=z;
     }else{pwin.style.width=pwin.style.height=pwin.style.left=pwin.style.top='';pmcv.style.zoom=pwin.clientWidth/1024}
   }
@@ -1064,7 +1064,7 @@ html.desk .pm-actions .pa{height:150px}
   pwin.addEventListener('click',function(e){var b=e.target.closest('[data-pa]');if(!b)return;var a=b.getAttribute('data-pa'),t=pwin.dataset.title;
     if(a==='share'){var u=location.href.split('#')[0]+'#'+cur.id;try{navigator.clipboard.writeText(u).then(function(){say('Линкът към имота е копиран')},function(){say('Линк: '+u)})}catch(x){say('Линк: '+u)}return}
     if(a==='edit'){window.NDProps.edit(cur);return}
-    if(a==='publish'){if(cur.status==='Публикуван'){say('Имотът вече е на сайта: '+window.NDPublish.where(cur));return}if(!cur.city){say('Посочете град / населено място – „Редактирай“');return}window.NDProps.setStatus(cur,'Публикуван').then(function(){say('Публикуван на сайта: '+window.NDPublish.where(cur))});return}
+    if(a==='publish'){if(cur.status==='Публикуван'){window.open(window.NDPublish.siteUrl(cur),'_blank');return}if(!cur.city){say('Посочете град / населено място – „Редактирай“');return}var w=window.open('','_blank');window.NDProps.setStatus(cur,'Публикуван').then(function(){say('Публикуван на сайта: '+window.NDPublish.where(cur));if(w)w.location=window.NDPublish.siteUrl(cur)},function(){if(w)w.close()});return}
     if(a==='all'){var pp=cur;window.NDPublish.open(window.NDProps.stored(pp),{publishSite:function(){return pp.status==='Публикуван'?null:window.NDProps.setStatus(pp,'Публикуван')},save:function(patch){var fresh=props.filter(function(x){return x.id===pp.id})[0]||pp;var o=window.NDProps.stored(fresh);Object.keys(patch).forEach(function(k){o[k]=patch[k]});return ND.put('properties',o).then(loadAll)}});return}
     if(a==='archive'){if(cur.status==='Архивиран'){say('Имотът вече е в архива');return}window.NDProps.setStatus(cur,'Архивиран');return}
     if(a==='owner'){window.NDProps.owner(cur);return}

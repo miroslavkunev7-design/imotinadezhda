@@ -33,6 +33,11 @@
     if (p.hood) parts.push("кв. " + p.hood);
     return parts.join(" → ") || "няма посочено място";
   }
+  /* the public page of a property, in its city (phone and desktop versions of the site) */
+  function siteUrl(p) {
+    var slug = { "Шумен": "shumen", "Варна": "varna", "Бургас": "burgas" }[p.city] || "shumen";
+    return "/mobile/ilj.html#/property/" + encodeURIComponent(p.id) + "/" + slug;
+  }
   function adText(p) {
     return [(p.title || p.type || "Имот") + " – " + where(p).replace(/ → /g, ", "),
       p.price ? "Цена: " + U.money(p.price) + " €" + (p.deal === "rent" ? " / мес." : "") : "",
@@ -96,12 +101,12 @@
         var b = ctx.body, chk = function (k) { var el = b.querySelector('[data-pc="' + k + '"]'); return el && el.checked && !el.disabled; };
         [].forEach.call(b.querySelectorAll("[data-pl]"), function (el) { var k = el.getAttribute("data-pl"); if (el.value.trim()) p.portals[k] = Object.assign({ at: new Date().toISOString() }, p.portals[k], { link: el.value.trim() }); });
         var jobs = Promise.resolve(), text = adText(p), opened = 0;
-        if (chk("site")) jobs = jobs.then(function () { return h.publishSite ? h.publishSite() : null; });
+        if (chk("site")) { var w = window.open("", "_blank"); jobs = jobs.then(function () { return h.publishSite ? h.publishSite() : null; }).then(function () { if (w) w.location = siteUrl(p); }, function (e) { if (w) w.close(); throw e; }); }
         if (chk("facebook")) jobs = jobs.then(function () { return fb({ action: "post", id: p.id }).then(function (r) { if (r.ok) { p.portals.facebook = { at: new Date().toISOString(), link: r.link }; D.say("Публикувано във Facebook (" + r.photos + " снимки)"); } else D.say(r.error || "Facebook: грешка"); }); });
         PORTALS.forEach(function (x) { if (chk(x[0])) { opened++; try { navigator.clipboard.writeText(text); } catch (e) {} window.open(x[2], "_blank"); if (!p.portals[x[0]]) p.portals[x[0]] = { at: new Date().toISOString(), link: "" }; } });
         if (opened) D.say("Текстът на обявата е копиран – поставете го в отворените страници");
         return jobs.then(function () { return h.save ? h.save({ portals: p.portals }) : null; });
       } });
   }
-  window.NDPublish = { open: open, where: where, adText: adText };
+  window.NDPublish = { open: open, where: where, adText: adText, siteUrl: siteUrl };
 })();

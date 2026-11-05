@@ -114,10 +114,10 @@ body{font-family:var(--cond);color:var(--ink)}
     <button type="submit" class="go"><svg><use href="#search"/></svg>Търси</button>
   </form>
 
-  <a class="abs card" style="left:70px;width:377px" href="/desktop.html#/city/shumen"><span class="ph" style="background-image:url(desktop-home-assets/city-shumen.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Шумен</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
-  <a class="abs card" style="left:461px;width:368px" href="/desktop.html#/city/varna"><span class="ph" style="background-image:url(desktop-home-assets/city-varna.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Варна</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
-  <a class="abs card" style="left:843px;width:369px" href="/desktop.html#/city/burgas"><span class="ph" style="background-image:url(desktop-home-assets/city-burgas.webp);background-position:center 80%"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Бургас</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
-  <a class="abs card" style="left:1225px;width:376px" href="/desktop.html#/city/shumen"><span class="ph" style="background-image:url(desktop-home-assets/city-novi-pazar.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Нов пазар</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:70px;width:377px" href="/mobile/ilj.html#/city/shumen"><span class="ph" style="background-image:url(desktop-home-assets/city-shumen.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Шумен</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:461px;width:368px" href="/mobile/ilj.html#/city/varna"><span class="ph" style="background-image:url(desktop-home-assets/city-varna.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Варна</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:843px;width:369px" href="/mobile/ilj.html#/city/burgas"><span class="ph" style="background-image:url(desktop-home-assets/city-burgas.webp);background-position:center 80%"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Бургас</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:1225px;width:376px" href="/mobile/ilj.html#/city/shumen"><span class="ph" style="background-image:url(desktop-home-assets/city-novi-pazar.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Нов пазар</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
 </div></div>
 
 <div class="ab" id="about" role="dialog" aria-modal="true" aria-labelledby="ab-t"><div>
@@ -150,7 +150,7 @@ body{font-family:var(--cond);color:var(--ink)}
   function pair(sel,list,a,b){sel.onchange=function(){var o=list.filter(function(x){return x[0]===sel.value})[0];$(a).textContent=o[1];$(b).textContent=o[2]}}
   pair($('s-price'),PR,'v-price','v-price2');pair($('s-area'),AR,'v-area','v-area2');
   function go(deal){var c=$('s-city').value;try{sessionStorage.setItem('nd-search',JSON.stringify({city:c,hood:$('s-hood').value,price:$('s-price').value,area:$('s-area').value,type:$('s-type').value,deal:deal||'sale'}))}catch(e){}
-    location.href='/desktop.html#/city/'+(CITY[c]||'shumen')}
+    location.href='/mobile/ilj.html#/city/'+(CITY[c]||'shumen')}
   $('sf').onsubmit=function(e){e.preventDefault();go()};
   $('filt').onclick=function(){go()};
   [].forEach.call(document.querySelectorAll('[data-deal]'),function(a){a.onclick=function(e){e.preventDefault();go(a.getAttribute('data-deal'))}});

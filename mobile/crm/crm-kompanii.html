@@ -8,7 +8,7 @@
 <style>html:not(.ready) #stage,html:not(.ready) #dock{opacity:0}html.ready #stage,html.ready #dock{transition:opacity .18s ease}#dock{z-index:60}
 </style>
 <title>Компании · Имоти Надежда</title>
-<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html">
+<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html"><link rel="prefetch" href="crm-sdelki.html">
 <style>
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 @font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+20AC,U+2013-2014,U+2018-201E,U+2026}
@@ -1026,7 +1026,7 @@ html.desk .fwin .mscroll{overflow:hidden}
       <button class="nv" data-nav="Брокери" data-href="crm-brokeri.html"><svg class="i"><use href="#contact-round"/></svg><span>Брокери</span></button>
       <button class="nv" data-nav="Календар" data-href="crm-kalendar.html"><svg class="i"><use href="#calendar"/></svg><span>Календар</span></button>
       <button class="nv on" aria-current="page" data-nav="Компании"><svg class="i"><use href="#building-2"/></svg><span>Компании</span></button>
-      <button class="nv" data-nav="Сделки"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span></button>
+      <button class="nv" data-nav="Сделки" data-href="crm-sdelki.html"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span></button>
       <button class="nv" data-nav="Документи"><svg class="i"><use href="#file-text"/></svg><span>Документи</span></button>
       <button class="nv chart" data-nav="Отчети"><svg class="i"><use href="#chart"/></svg><span>Отчети</span></button>
     </nav>
@@ -1118,9 +1118,9 @@ html.desk .fwin .mscroll{overflow:hidden}
       texts.forEach(function(o){o.el.style.top=(o.top+(Hh-320)*.75)+'px'});
       var ph=Hh*1.0,pw=ph*3.36;photo.style.width=pw+'px';photo.style.left=(Wc-pw)+'px';photo.style.top=(Hh-ph)+'px';
       ctrls.forEach(function(el){if(el.dataset.l==null)el.dataset.l=parseFloat(getComputedStyle(el).left);el.style.left=(Wc-1024+(+el.dataset.l))+'px'});
-      root.style.setProperty('--xL',xL+'px');root.style.setProperty('--lh',(Hc-Hh-18-62-22-162-10)+'px');
+      root.style.setProperty('--xL',xL+'px');root.style.setProperty('--lh',(Hc-Hh-18-62-22-(window.NDRAIL?24:162)-10)+'px');
       dockC.style.transform='scale('+k+')';dockC.style.left=((vw-1024*k)/2)+'px';stage.style.paddingBottom='0px';
-      dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(118*k)+'px');
+      dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(window.NDRAIL?0:118*k)+'px');
     }else{
       canvas.style.width=canvas.style.height=canvas.style.paddingTop='';top.style.height='';
       texts.forEach(function(o){o.el.style.top=o.top+'px'});photo.style.width=photo.style.left=photo.style.top='';ctrls.forEach(function(el){el.style.left=''});
@@ -1224,8 +1224,8 @@ html.desk .fwin .mscroll{overflow:hidden}
     b.setAttribute('aria-label',v?'Възстанови размера':'На цял екран');b.title=b.getAttribute('aria-label');fitF();setTimeout(fitF,280)}
   function fitF(){
     if(fwin.hidden)return;
-    if(desk){var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
-      var H=fcv.offsetHeight||1000,aw=ffull?vw-16:vw*.6,av=ffull?ah-8:ah*.94,z=Math.min(aw/1024,av/H),w=1024*z,h=H*z;
+    if(desk){var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||(window.NDRAIL?0:100),ah=innerHeight-dh-14;
+      var H=fcv.offsetHeight||1000,aw=ffull?vw-16:(window.NDRAIL?vw*.9:vw*.6),av=ffull?ah-8:(window.NDRAIL?ah-10:ah*.94),z=Math.min(aw/1024,av/H),w=1024*z,h=H*z;
       fwin.style.width=w+'px';fwin.style.height=h+'px';fwin.style.left=((vw-w)/2)+'px';fwin.style.top=Math.max(6,(ah-h)/2)+'px';fcv.style.zoom=z}
     else{fwin.style.width=fwin.style.height=fwin.style.left=fwin.style.top='';var zz=fwin.clientWidth/1024;fcv.style.zoom=zz;fwin.style.setProperty('--fz',zz)}
   }

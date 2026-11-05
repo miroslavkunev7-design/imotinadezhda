@@ -94,6 +94,12 @@
     "#nd-fwin .ndphotos .ph{position:relative;aspect-ratio:4/3;border-radius:18px;background:#f3e1d1 center/cover;box-shadow:0 0 0 1px rgba(226,176,120,.6),0 0 10px rgba(255,226,190,.8)}",
     "#nd-fwin .ndphotos .ph button{position:absolute;right:8px;top:8px;width:44px;height:44px;border:0;border-radius:50%;font-size:24px;display:grid;place-items:center;color:#a30d26;background:rgba(255,250,246,.92);box-shadow:0 2px 5px rgba(0,0,0,.3)}",
     "#nd-fwin .ndphotos .ph.cover{box-shadow:0 0 0 3px #e3b25e,0 0 14px rgba(227,178,94,.8)}",
+    "#nd-fwin .ndphotos .ph{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;transition:transform .2s,box-shadow .2s,opacity .2s}",
+    "#nd-fwin .ndphotos .ph.drag{opacity:.35;transform:scale(.96)}",
+    "#nd-fwin .ndphotos .ph.new::before{content:'нова';position:absolute;left:10px;bottom:8px;padding:4px 10px;border-radius:12px;font:700 15px/1 var(--cond);color:#fff3dc;background:linear-gradient(180deg,#a3213a,#55071a);box-shadow:0 0 0 1px #edc47a}",
+    "#nd-fwin .ndphotos .ph-main,#nd-fwin .ndphotos .ph-n{position:absolute;left:8px;top:8px;padding:5px 11px;border-radius:14px;font:700 17px/1 var(--cond);color:#6b0a1c;background:linear-gradient(180deg,#ffe9a3,#f3c65c);box-shadow:0 0 0 1.5px #fff1b8,0 0 10px rgba(255,200,90,.7)}",
+    "#nd-fwin .ndphotos .ph-n{color:#fff3dc;background:rgba(80,10,20,.72);box-shadow:0 0 0 1px rgba(237,196,122,.7)}",
+    ".ph.ghost{position:fixed;z-index:9999;pointer-events:none;border-radius:18px;background:#f3e1d1 center/cover;box-shadow:0 0 0 3px #e3b25e,0 14px 28px rgba(30,0,8,.45);transform:rotate(-2deg) scale(1.04);opacity:.95}",
     /* small '+ Нов' pill used on list pages (same glass button look) */
     ".nd-new{position:absolute;right:22px;top:12px;z-index:3;height:46px;padding:0 22px;border:1.5px solid #e3b25e;border-radius:23px;display:flex;align-items:center;gap:10px;font:700 22px/1 var(--cond);color:#fff3dc;cursor:pointer;background:linear-gradient(180deg,#a3213a 0%,#7a0f22 42%,#55071a 100%);box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 14px rgba(255,190,120,.7),inset 0 2px 3px rgba(255,170,180,.5)}",
     ".nd-new svg.i{font-size:26px;stroke-width:2.4}",
@@ -218,11 +224,11 @@
   function num(id) { var v = get(id).replace(/\s/g, ""); if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(v)) v = v.replace(/,/g, ""); v = v.replace(",", "."); return v === "" ? null : Number(v); }
 
   function fit() {
-    if (!W || W.hidden) return;
+    if (!W || W.hidden || inlineHost) return;
     var root = document.documentElement, desk = root.classList.contains("desk");
     if (desk) {
-      var vw = root.clientWidth - (window.NDRAIL || 0), dh = parseFloat(getComputedStyle(root).getPropertyValue("--dockH")) || 100, ah = innerHeight - dh - 14;
-      var aw = full ? vw - 16 : Math.min(vw * 0.6, 1100), av = full ? ah - 8 : ah * 0.94, z = Math.min(aw / 1024, 1.1), w = 1024 * z, h = Math.min(av, (cv.offsetHeight || 1000) * z);
+      var vw = root.clientWidth - (window.NDRAIL || 0), dh = parseFloat(getComputedStyle(root).getPropertyValue("--dockH")) || (window.NDRAIL ? 0 : 100), ah = innerHeight - dh - 14;
+      var aw = full ? vw - 16 : Math.min(vw * (window.NDRAIL ? 0.8 : 0.6), window.NDRAIL ? 1500 : 1100), av = full ? ah - 8 : ah * (window.NDRAIL ? 0.97 : 0.94), z = Math.min(aw / 1024, window.NDRAIL ? 1.45 : 1.1), w = 1024 * z, h = Math.min(av, (cv.offsetHeight || 1000) * z);
       W.style.width = w + "px"; W.style.height = h + "px"; W.style.left = (vw - w) / 2 + "px"; W.style.top = Math.max(6, (ah - h) / 2) + "px";
       cv.style.zoom = z;
     } else {
@@ -240,9 +246,13 @@
     ctlFull.setAttribute("aria-label", v ? "Възстанови размера" : "На цял екран"); ctlFull.title = ctlFull.getAttribute("aria-label");
     fit(); setTimeout(fit, 280);
   }
+  var inlineHost = null;
   function open(o) {
     if (!W) build();
     cur = o; last = document.activeElement;
+    /* inline: the window lives inside a page element (the Сделки page) instead of floating over it */
+    if (o.inline && o.inline !== inlineHost) { inlineHost = o.inline; inlineHost.appendChild(W); W.classList.add("inline"); W.removeAttribute("aria-modal"); W.setAttribute("role", "region"); }
+    else if (!o.inline && inlineHost) { inlineHost = null; document.body.appendChild(W); W.classList.remove("inline"); W.setAttribute("role", "dialog"); W.setAttribute("aria-modal", "true"); }
     q("nd-f-title").textContent = o.title || "";
     q("nd-f-ic").innerHTML = '<use href="#' + (o.icon || "file-text") + '"/>';
     q("nd-f-photo").style.backgroundImage = o.photo ? "url(" + img(o.photo) + ")" : "none";
@@ -252,15 +262,16 @@
     q("nd-f-del").hidden = !o.onDelete;
     var sv = q("nd-f-save"); sv.hidden = !!o.noSave; sv.querySelector("span").textContent = o.saveText || "Запази";
     q("nd-f-cancel").textContent = o.cancelText || (o.noSave ? "Затвори" : "Отказ");
-    back.hidden = false; W.hidden = false; document.documentElement.classList.add("locked");
-    fit(); scroll.scrollTop = 0;
-    requestAnimationFrame(function () { back.classList.add("show"); W.classList.add("show"); fit(); });
+    W.hidden = false;
+    if (inlineHost) { W.classList.add("show"); }
+    else { back.hidden = false; document.documentElement.classList.add("locked"); fit(); scroll.scrollTop = 0; requestAnimationFrame(function () { back.classList.add("show"); W.classList.add("show"); fit(); }); }
     if (o.ready) o.ready({ q: q, get: get, num: num, body: q("nd-f-body"), refit: fit, rerender: function (h) { q("nd-f-body").innerHTML = h; if (o.ready2) o.ready2(); fit(); } });
     setTimeout(function () { var f = W.querySelector("#nd-f-body .in"); if (f && o.focus !== false && !matchMedia("(pointer:coarse)").matches) f.focus({ preventScroll: true }); }, 80);
     return { q: q, get: get, num: num, close: close, refit: fit };
   }
   function close() {
     if (!W || W.hidden) return;
+    if (inlineHost) { var oi = cur; if (oi && oi.onClose) oi.onClose(); return; }
     W.classList.remove("show"); back.classList.remove("show");
     var o = cur; cur = null;
     setTimeout(function () { W.hidden = true; back.hidden = true; setFull(false); }, 230);
@@ -459,5 +470,60 @@
     apply(); addEventListener("resize", apply);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sideRail); else sideRail();
+
+  /* ---------- premium drop-down menus: every <select> opens our own glass list on desktop (phones keep the native sheet) ---------- */
+  (function () {
+    var box = null, sel = null, items = [], hl = -1;
+    function fine() { return matchMedia("(pointer:fine)").matches && !matchMedia("(max-width:768px)").matches; }
+    function closeMenu() { if (box) { box.remove(); box = null; } if (sel) { sel.classList.remove("ndm-open"); } sel = null; items = []; hl = -1; document.removeEventListener("pointerdown", onDoc, true); window.removeEventListener("resize", closeMenu); window.removeEventListener("scroll", closeMenu, true); }
+    function onDoc(e) { if (box && !box.contains(e.target) && e.target !== sel) closeMenu(); }
+    function place(anchor) {
+      var r = anchor.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, w = Math.max(220, Math.min(r.width, 420)), h = box.offsetHeight;
+      var left = Math.min(Math.max(8, r.left), vw - w - 8), below = vh - r.bottom - 10, top;
+      if (h <= below || below >= r.top - 10) { top = r.bottom + 6; box.style.maxHeight = Math.min(520, below) + "px"; box.classList.remove("up"); }
+      else { top = Math.max(8, r.top - 6 - Math.min(h, r.top - 16)); box.style.maxHeight = Math.min(520, r.top - 16) + "px"; box.classList.add("up"); }
+      box.style.left = left + "px"; box.style.top = top + "px"; box.style.width = w + "px";
+    }
+    function pick(i) { var o = items[i], s0 = sel; if (!o || o.disabled || !s0) return; var v = o.value, changed = s0.value !== v; s0.value = v; closeMenu(); if (changed) { s0.dispatchEvent(new Event("input", { bubbles: true })); s0.dispatchEvent(new Event("change", { bubbles: true })); } }
+    function render(q) {
+      var list = box.querySelector(".ndm-l"); list.innerHTML = ""; items = []; hl = -1;
+      var ql = (q || "").toLowerCase(), groups = sel.querySelectorAll("optgroup"), any = false;
+      function add(o) { if (o.hidden) return; var t = o.textContent.trim(); if (ql && t.toLowerCase().indexOf(ql) < 0) return; var b = document.createElement("button"); b.type = "button"; b.textContent = t || "—"; if (o.disabled) b.disabled = true; if (o.selected) { b.classList.add("on"); } b.setAttribute("data-i", items.length); items.push(o); list.appendChild(b); any = true; }
+      if (groups.length) { [].forEach.call(sel.children, function (c) { if (c.tagName === "OPTGROUP") { var g = document.createElement("div"); g.className = "ndm-g"; g.textContent = c.label; list.appendChild(g); [].forEach.call(c.children, add); } else add(c); }); }
+      else [].forEach.call(sel.options, add);
+      if (!any) { var e = document.createElement("div"); e.className = "ndm-g"; e.textContent = "Няма съвпадения"; list.appendChild(e); }
+      var on = list.querySelector("button.on"); if (on) hl = +on.getAttribute("data-i");
+    }
+    function openMenu(s, anchor) {
+      closeMenu(); sel = s; sel.classList.add("ndm-open");
+      box = document.createElement("div"); box.className = "ndmenu"; box.setAttribute("role", "listbox");
+      var many = sel.options.length > 8;
+      box.innerHTML = (many ? '<div class="ndm-q"><input type="text" placeholder="Търси…" aria-label="Търси в списъка"></div>' : "") + '<div class="ndm-l"></div>';
+      document.body.appendChild(box); render("");
+      box.addEventListener("click", function (e) { var b = e.target.closest("button[data-i]"); if (b) pick(+b.getAttribute("data-i")); });
+      box.addEventListener("keydown", keys);
+      var qi = box.querySelector(".ndm-q input"); if (qi) { qi.addEventListener("input", function () { render(qi.value); }); }
+      place(anchor); var on = box.querySelector("button.on"); if (on) on.scrollIntoView({ block: "center" });
+      setTimeout(function () { (qi || box.querySelector("button")) && (qi || box.querySelector("button")).focus({ preventScroll: true }); }, 0);
+      document.addEventListener("pointerdown", onDoc, true); window.addEventListener("resize", closeMenu); window.addEventListener("scroll", closeMenu, true);
+    }
+    function keys(e) {
+      var bs = box.querySelectorAll("button[data-i]"); if (!bs.length) return;
+      var cur = [].findIndex.call(bs, function (b) { return b.classList.contains("hl"); }); if (cur < 0) cur = [].findIndex.call(bs, function (b) { return b.classList.contains("on"); });
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); var n = e.key === "ArrowDown" ? Math.min(bs.length - 1, cur + 1) : Math.max(0, cur - 1); bs.forEach(function (b) { b.classList.remove("hl"); }); bs[n].classList.add("hl"); bs[n].scrollIntoView({ block: "nearest" }); }
+      else if (e.key === "Enter") { e.preventDefault(); if (cur >= 0) pick(+bs[cur].getAttribute("data-i")); }
+      else if (e.key === "Escape") { e.preventDefault(); var s0 = sel; closeMenu(); s0 && s0.focus(); }
+    }
+    document.addEventListener("mousedown", function (e) {
+      if (!fine()) return;
+      var s = e.target.closest && e.target.closest("select"); if (!s || s.multiple || s.size > 1 || s.disabled || s.dataset.native != null) return;
+      e.preventDefault();
+      var anchor = s.closest(".fld, .selw, .dsw, .w, .ef, .ndl-sel > div, .input-wrap, .city-select") || s;
+      if (box && sel === s) { closeMenu(); return; }
+      openMenu(s, anchor);
+    }, true);
+    document.addEventListener("keydown", function (e) { if (!fine()) return; var s = document.activeElement; if (s && s.tagName === "SELECT" && (e.key === "Enter" || e.key === " " || e.altKey && e.key === "ArrowDown")) { e.preventDefault(); openMenu(s, s.closest(".fld, .selw, .dsw, .w, .ef, .ndl-sel > div, .input-wrap, .city-select") || s); } });
+    window.NDMenuClose = closeMenu;
+  })();
   window.NDUI = { commHtml: commHtml, commBind: commBind, commSave: commSave, commTotal: commTotal, calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
 })();

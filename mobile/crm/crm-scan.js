@@ -167,6 +167,26 @@
   var PHONE_RE = /(?:\+|00)?(?:359[\s\-\/.]*|0)\(?\d{2,3}\)?(?:[\s\-\/.]*\d){5,7}/g;
   var AGENCY_PHONE = "0898977370";
   function publicText(t) { return String(t || "").replace(PHONE_RE, AGENCY_PHONE); }
+  /* the owner's price: the smaller price written in the опис (the folder name holds the official one) */
+  function pricesIn(t) {
+    var out = [], re = /(\d{1,3}(?:[ \u00a0.]\d{3})+|\d{4,7})(?:[,.](\d{1,2}))?\s*(?:€|eur|евро|e|лв\.?|лева|bgn|k|к|хил\.?)?/gi, m;
+    while ((m = re.exec(t))) {
+      var raw = m[0], v = Number(m[1].replace(/[ \u00a0.]/g, ""));
+      if (/(k|к|хил)/i.test(raw.slice(m[1].length))) v *= 1000;
+      if (/(лв|лева|bgn)/i.test(raw)) v = Math.round(v / 1.95583);
+      if (v >= 3000 && v <= 5000000) out.push(v);
+    }
+    var re2 = /(?:^|[^\d])(\d{2,3})\s*(?:k|к|хил\.?)(?![\wа-я])/gi;
+    while ((m = re2.exec(t))) out.push(Number(m[1]) * 1000);
+    return out;
+  }
+  function ownerPriceOf(text, official, aiOwner) {
+    var c = pricesIn(text || "").filter(function (v) { return !official || (v < official && v >= official * 0.5); });
+    var min = c.length ? Math.min.apply(null, c) : null, ai = Number(aiOwner) || null;
+    if (ai && official && ai >= official) ai = null;
+    if (ai && min) return Math.min(ai, min);
+    return ai || min || null;
+  }
   function phonesIn(t) { return (String(t || "").match(PHONE_RE) || []).map(function (x) { return x.replace(/[^\d+]/g, ""); }).filter(function (x, i, a) { return a.indexOf(x) === i && x.replace(/\D/g, "") !== AGENCY_PHONE.slice(1) && x !== AGENCY_PHONE; }); }
   function priceFromName(n) {
     var s = String(n || "").replace(/\.(\w{2,4})$/, ""), best = 0, m, re = /(\d{1,3}(?:[ ., ]\d{3})+|\d+)\s*(к|k|хил\.?)?/gi;
@@ -248,7 +268,7 @@
           title: f.title, deal: f.deal, type: f.type, area: f.area, rooms: f.rooms, beds: f.beds, baths: f.baths, floor: f.floor, year: f.year, build: f.build,
           region: f.region, city: f.city, hood: f.hood, address: f.address, client: f.ownerName || f.client,
           expo: f.expo, heat: f.heat, parking: f.parking, elevator: f.elevator, terraces: f.terraces, act: f.act, features: f.features, cond: f.cond,
-          price: price || f.officialPrice || f.price || null, ownerPrice: f.ownerPrice || null,
+          price: price || f.officialPrice || f.price || null, ownerPrice: ownerPriceOf(text, price || f.officialPrice || f.price || null, f.ownerPrice),
           desc: publicText(f.publicDesc || f.desc || ""), privDesc: text || f.privateDesc || "", ownerPhone: phones.join(", "),
           summary: null
         };

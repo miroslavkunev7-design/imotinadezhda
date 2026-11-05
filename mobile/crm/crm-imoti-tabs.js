@@ -56,17 +56,54 @@
     p = p ? JSON.parse(JSON.stringify(stored(p))) : Object.assign({ code: nextCode(list), deal: "sale", type: TYPES[0], status: "Чернова", cond: COND[0], pics: [], docs: [], log: [] }, fromScan(scanned));
     p.pics = p.pics || []; p.docs = p.docs || []; p.videos = p.videos || [];
     var pendingPics = [], pendingDocs = [], pendingVids = [], removed = [], ctx;
+    /* one ordered gallery: saved photos and new ones together; the first is the main photo; drag to reorder */
+    var gal = p.pics.map(function (path) { return { kind: "saved", path: path }; });
+    if (p.cover > 0 && gal[p.cover]) gal.unshift(gal.splice(p.cover, 1)[0]);
+    p.cover = 0;
+    function addNew(f, wm) { var o = { kind: "new", file: f, url: URL.createObjectURL(f), name: f.name || "photo.jpg", wm: !!wm }; pendingPics.push(o); gal.push(o); }
     if (bundle) {
-      (bundle.pics || []).forEach(function (f) { pendingPics.push({ file: f, url: URL.createObjectURL(f), name: f.name, wm: true }); });
+      (bundle.pics || []).forEach(function (f) { addNew(f, true); });
       (bundle.videos || []).forEach(function (f) { pendingVids.push({ file: f, name: f.name }); });
       (bundle.docs || []).forEach(function (f) { pendingDocs.push({ file: f, name: f.name }); });
     }
-    if (scanFile) { if (/^image\//.test(scanFile.type)) pendingPics.push({ file: scanFile, url: URL.createObjectURL(scanFile), name: scanFile.name || "scan.jpg" }); else pendingDocs.push({ file: scanFile, name: scanFile.name || "scan.pdf" }); }
+    if (scanFile) { if (/^image\//.test(scanFile.type)) addNew(scanFile); else pendingDocs.push({ file: scanFile, name: scanFile.name || "scan.pdf" }); }
     var clientNames = P.clientNames();
+    function syncPics() { p.pics = gal.filter(function (g) { return g.kind === "saved"; }).map(function (g) { return g.path; }); p.cover = 0; }
+    /* press and drag a photo (mouse or finger) to move it; the list order is the gallery order */
+    function dragSort(box) {
+      var src = null, el = null, ghost = null, start = null, moved = false;
+      box.addEventListener("pointerdown", function (e) {
+        var c = e.target.closest("[data-pi]"); if (!c || e.target.closest("button") || (e.pointerType === "mouse" && e.button !== 0)) return;
+        src = +c.getAttribute("data-pi"); el = c; start = [e.clientX, e.clientY]; moved = false;
+        c.setPointerCapture && c.setPointerCapture(e.pointerId);
+      });
+      box.addEventListener("pointermove", function (e) {
+        if (!el) return;
+        if (!moved) { if (Math.hypot(e.clientX - start[0], e.clientY - start[1]) < 8) return; moved = true; box._dragged = true; el.classList.add("drag"); ghost = el.cloneNode(true); ghost.className = "ph ghost"; ghost.style.width = el.offsetWidth + "px"; ghost.style.height = el.offsetHeight + "px"; document.body.appendChild(ghost); }
+        e.preventDefault();
+        ghost.style.left = (e.clientX - ghost.offsetWidth / 2) + "px"; ghost.style.top = (e.clientY - ghost.offsetHeight / 2) + "px";
+        var over = document.elementFromPoint(e.clientX, e.clientY), t = over && over.closest && over.closest("#p-pics [data-pi]");
+        if (!t || t === el) return;
+        var kids = [].slice.call(box.querySelectorAll("[data-pi]")), a = kids.indexOf(el), b = kids.indexOf(t);
+        if (a < 0 || b < 0) return;
+        if (a < b) t.after(el); else t.before(el);
+      });
+      function end() {
+        if (!el) return;
+        if (moved) {
+          var order = [].map.call(box.querySelectorAll("[data-pi]"), function (c) { return gal[+c.getAttribute("data-pi")]; });
+          gal = order; syncPics(); el.classList.remove("drag"); if (ghost) ghost.remove(); ghost = null; rerender();
+          setTimeout(function () { box._dragged = false; }, 50);
+        }
+        el = null; src = null;
+      }
+      box.addEventListener("pointerup", end); box.addEventListener("pointercancel", end);
+    }
     function picsHtml() {
-      var cells = p.pics.map(function (path, i) {
-        return '<div class="ph' + (i === (p.cover || 0) ? " cover" : "") + '" data-pi="' + i + '" style="background-image:url(' + (U.img(path)) + ')" title="Натиснете, за да е основна снимка"><button type="button" data-rmpic="' + i + '" aria-label="Премахни снимката">' + ic("trash-2") + "</button></div>";
-      }).concat(pendingPics.map(function (f) { return '<div class="ph" style="background-image:url(' + f.url + ')"></div>'; }));
+      var cells = gal.map(function (g, i) {
+        return '<div class="ph' + (i === 0 ? " cover" : "") + (g.kind === "new" ? " new" : "") + '" data-pi="' + i + '" draggable="false" style="background-image:url(' + (g.kind === "saved" ? U.img(g.path) : g.url) + ')" title="Задръжте и влачете, за да смените реда; първата е основна">' +
+          (i === 0 ? '<span class="ph-main">Основна</span>' : '<span class="ph-n">' + (i + 1) + "</span>") + '<button type="button" data-rmpic="' + i + '" aria-label="Премахни снимката">' + ic("trash-2") + "</button></div>";
+      });
       return '<div class="ndphotos" id="p-pics">' + (cells.join("") || '<div class="ndempty" style="grid-column:1/-1">Няма качени снимки.</div>') + "</div>";
     }
     function docsHtml() {
@@ -120,7 +157,7 @@
           fld({ id: "p-desc", label: "Описание (публично)", icon: "file-text", value: p.desc, type: "ta", wide: true }) +
           fld({ id: "p-priv", label: "Лично описание (не се публикува)", icon: "lock", value: p.privDesc, type: "ta", wide: true }), { lw: 130, one: true }) +
         G("Снимки (" + (p.pics.length + pendingPics.length) + ")", "camera", null,
-          picsHtml() + U.filebox("p-picin", "Добави снимки", "JPG / PNG · натиснете снимка, за да е основна", { icon: "image", accept: "image/*" }), { one: true }) +
+          picsHtml() + U.filebox("p-picin", "Добави снимки", "JPG / PNG · влачете снимките, за да смените реда; първата е основна", { icon: "image", accept: "image/*" }), { one: true }) +
         (p.videos.length || pendingVids.length ? '<div class="wide">' + section("Видеа (" + (p.videos.length + pendingVids.length) + ")", "camera", p.videos.map(function (v, i) {
           return row("camera", v.name, Math.max(1, Math.round((v.size || 0) / 1048576)) + " MB", U.bgDate(v.at), '<button type="button" class="rm" data-rmvid="' + i + '" aria-label="Изтрий">' + ic("trash-2") + "</button>");
         }).concat(pendingVids.map(function (f) { return row("upload", f.name, "ще се качи при запис", ""); })), "") + "</div>" : "") +
@@ -142,14 +179,18 @@
     function bind() {
       var pi = ctx.q("p-picin"), di = ctx.q("p-docin");
       var cs = ctx.q("p-city"), hl = ctx.q("p-hoods"); if (cs && hl) cs.onchange = function () { hl.innerHTML = hoodOpts(cs.value); var pl = ctx.q("p-places"), pi2 = ctx.q("p-place"); if (pl) pl.innerHTML = placeOpts(cs.value); if (pi2 && (!pi2.value || PL.cities.indexOf(pi2.value) >= 0)) pi2.value = cs.value; var h = ctx.q("p-hood"); if (h && h.value) h.value = PL.hood(cs.value, h.value); };
-      if (pi) pi.onchange = function () { [].forEach.call(pi.files, function (f) { pendingPics.push({ file: f, url: URL.createObjectURL(f), name: f.name }); }); rerender(); };
+      if (pi) pi.onchange = function () { [].forEach.call(pi.files, function (f) { addNew(f); }); rerender(); };
       if (di) di.onchange = function () { [].forEach.call(di.files, function (f) { pendingDocs.push({ file: f, name: f.name }); }); rerender(); };
       var ph = ctx.q("p-pics");
-      if (ph) ph.onclick = function (e) {
-        var rm = e.target.closest("[data-rmpic]");
-        if (rm) { var i = +rm.getAttribute("data-rmpic"); removed.push(p.pics[i]); p.pics.splice(i, 1); if ((p.cover || 0) >= p.pics.length) p.cover = 0; rerender(); return; }
-        var c = e.target.closest("[data-pi]"); if (c) { p.cover = +c.getAttribute("data-pi"); rerender(); }
-      };
+      if (ph) {
+        ph.onclick = function (e) {
+          var rm = e.target.closest("[data-rmpic]");
+          if (rm) { var i = +rm.getAttribute("data-rmpic"), g = gal[i]; if (!g) return; if (g.kind === "saved") removed.push(g.path); else pendingPics.splice(pendingPics.indexOf(g), 1); gal.splice(i, 1); syncPics(); rerender(); return; }
+          if (ph._dragged) { ph._dragged = false; return; }
+          var c = e.target.closest("[data-pi]"); if (c) { var k = +c.getAttribute("data-pi"); if (k > 0) { gal.unshift(gal.splice(k, 1)[0]); syncPics(); rerender(); P.say("Основна снимка сменена"); } }
+        };
+        dragSort(ph);
+      }
       [].forEach.call(document.querySelectorAll("[data-rmvid]"), function (b) { b.onclick = function () { var i = +b.getAttribute("data-rmvid"); removed.push(p.videos[i].path); p.videos.splice(i, 1); rerender(); }; });
       var dc = ctx.q("p-docs");
       if (dc) dc.onclick = function (e) {
@@ -167,14 +208,15 @@
         collect(g);
         var base = "properties/" + (p.code || D.newId()) + "/";
         var total = pendingPics.length, done = 0;
-        var up = pendingPics.reduce(function (pr, f) {
+        var up = gal.reduce(function (pr, g, idx) {
+          if (g.kind !== "new") return pr;
           return pr.then(function () {
-            return (f.wm && window.NDScan ? window.NDScan.watermark(f.file) : Promise.resolve(f.file)).then(function (file) {
-              var path = base + "photos/" + Date.now() + "-" + file.name.replace(/[^\w.\-]+/g, "_").slice(-60);
-              return D.upload(path, file).then(function () { p.pics.push(path); done++; if (total > 5 && done % 5 === 0) P.say("Качени снимки: " + done + " / " + total); });
+            return (g.wm && window.NDScan ? window.NDScan.watermark(g.file) : Promise.resolve(g.file)).then(function (file) {
+              var path = base + "photos/" + Date.now() + "-" + String(idx + 1).padStart(3, "0") + "-" + file.name.replace(/[^\w.\-]+/g, "_").slice(-60);
+              return D.upload(path, file).then(function () { g.kind = "saved"; g.path = path; done++; if (total > 5 && done % 5 === 0) P.say("Качени снимки: " + done + " / " + total); });
             });
           });
-        }, Promise.resolve());
+        }, Promise.resolve()).then(function () { syncPics(); });
         up = pendingVids.reduce(function (pr, f) {
           return pr.then(function () {
             var path = base + "videos/" + Date.now() + "-" + f.name.replace(/[^\w.\-]+/g, "_").slice(-60);
@@ -273,13 +315,16 @@
         f({ id: "o-cdate", label: "Подписан на", icon: "calendar", value: p.contractDate, type: "date" }) + f({ id: "o-cuntil", label: "Валиден до", icon: "calendar-check", value: p.contractUntil, type: "date" }) +
         f({ id: "o-excl", label: "Ексклузив", icon: "star", type: "select", value: p.exclusive ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
         f({ id: "o-keys", label: "Ключ при нас", icon: "key-round", type: "select", value: p.keys ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
-        f({ id: "o-notes", label: "Бележки за собственика", icon: "file-text", value: p.ownerNotes, type: "ta", wide: true }), { lw: 150 });
+        f({ id: "o-notes", label: "Бележки за собственика", icon: "file-text", value: p.ownerNotes, type: "ta", wide: true }), { lw: 150 }) +
+      G("Опис от папката", "file-text", "nd/ph20.jpg",
+        '<p class="wide" style="margin:0 0 10px;font:400 22px/1.35 var(--cond);color:#6b4a40">Текстът на описа, качен с имота. Вижда се само от нас – не се публикува.</p>' +
+        f({ id: "o-priv", label: "Опис / лично описание", icon: "lock", value: p.privDesc, type: "ta", wide: true }), { lw: 150 });
     U.open({ title: "Собственик – " + (p.title || p.code), icon: "user", photo: "nd/ph13.jpg", html: html, saveText: "Запази",
       ready: function (x) { var a = x.q("o-price"), b = x.q("o-paid"), d = x.q("o-due"); [a, b].forEach(function (e) { if (e) e.addEventListener("input", function () { p.ownerPrice = Number(a.value) || 0; p.ownerPaid = Number(b.value) || 0; d.textContent = due(); }); }); },
       onSave: function (g) {
         var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
         Object.assign(p, { client: g("o-name"), ownerPhone: g("o-phone"), ownerEmail: g("o-mail"), ownerEgn: g("o-egn"), ownerShare: n("o-share"), ownerAddr: g("o-addr"), coOwners: g("o-co"), ownerContact: g("o-cpref"),
-          ownerPrice: n("o-price"), ownerPaid: n("o-paid"), ownerComm: n("o-comm"), ownerIban: g("o-iban"), contractDate: g("o-cdate"), contractUntil: g("o-cuntil"), exclusive: g("o-excl") === "1", keys: g("o-keys") === "1", ownerNotes: g("o-notes") });
+          ownerPrice: n("o-price"), ownerPaid: n("o-paid"), ownerComm: n("o-comm"), ownerIban: g("o-iban"), contractDate: g("o-cdate"), contractUntil: g("o-cuntil"), exclusive: g("o-excl") === "1", keys: g("o-keys") === "1", ownerNotes: g("o-notes"), privDesc: g("o-priv") });
         addLog(p, "user", "Обновени данни за собственика");
         return D.put("properties", p).then(function (s) { P.say("Данните за собственика са запазени"); return P.refresh().then(function () { P.reopen(s.id); }); });
       } });
