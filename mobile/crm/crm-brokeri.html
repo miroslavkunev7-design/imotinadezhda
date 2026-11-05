@@ -1212,11 +1212,11 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   try{document.fonts.ready.then(render)}catch(e){}
   $('b-new').addEventListener('click',function(){
     var U=window.NDUI;
-    U.open({title:'Нов брокер',icon:'user-plus',photo:'b-roles.jpg',required:['nb-name'],
-      html:U.fld({id:'nb-name',label:'Име и фамилия',icon:'user-round',required:true,wide:true})+U.fld({id:'nb-title',label:'Длъжност / титла',icon:'id-card',ph:'напр. Брокер – продажби'})+
+    U.open({title:'Нов брокер',icon:'user-plus',photo:'nd/ph06.jpg',required:['nb-name'],
+      html:U.group('Основна информация','user','nd/ph15.jpg',U.fld({id:'nb-name',label:'Име и фамилия',icon:'user-round',required:true,wide:true})+U.fld({id:'nb-title',label:'Длъжност / титла',icon:'id-card',ph:'напр. Брокер – продажби'})+
         U.fld({id:'nb-role',label:'Роля',icon:'shield',type:'select',value:ROLES[0],options:ROLES})+U.fld({id:'nb-phone',label:'Телефон',icon:'phone',type:'tel'})+
         U.fld({id:'nb-mail',label:'Имейл',icon:'mail',type:'email'})+U.fld({id:'nb-office',label:'Офис',icon:'pin',type:'select',value:'Шумен',options:['Шумен','Варна','Бургас']})+
-        U.fld({id:'nb-cat',label:'Направление',icon:'tag',type:'select',value:'both',options:[['both','Продажби и наеми'],['sales','Продажби'],['rent','Наеми']]}),
+        U.fld({id:'nb-cat',label:'Направление',icon:'tag',type:'select',value:'both',options:[['both','Продажби и наеми'],['sales','Продажби'],['rent','Наеми']]}),{lw:130}),
       validate:function(g){var m=g('nb-mail');if(m&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))return 'Проверете имейла.'},
       onSave:function(g){var b={id:ND.newId(),name:g('nb-name'),title:g('nb-title')||g('nb-role'),role:g('nb-role'),pos:g('nb-role'),phone:g('nb-phone'),email:g('nb-mail'),office:g('nb-office'),
           photo:'avatar.jpg',thumb:'avatar.jpg',rating:5,reviews:0,sales:g('nb-cat')!=='rent',rent:g('nb-cat')!=='sales',active:true,perms:[],restr:[],clients:[],deals:0,listings:0};

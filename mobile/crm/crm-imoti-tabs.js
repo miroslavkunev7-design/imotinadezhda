@@ -44,30 +44,35 @@
       }).concat(pendingDocs.map(function (f) { return row("upload", f.name, "ще се качи при запис", ""); })), "Няма качени документи.") + "</div>";
     }
     function html() {
-      return fld({ id: "p-title", label: "Заглавие", icon: "house", value: p.title, required: true, wide: true, ph: "напр. Тристаен апартамент" }) +
-        fld({ id: "p-deal", label: "Сделка", icon: "tag", type: "select", value: p.deal, options: [["sale", "Продажба"], ["rent", "Наем"]] }) +
-        fld({ id: "p-type", label: "Тип имот", icon: "house", type: "select", value: p.type, options: TYPES }) +
-        fld({ id: "p-price", label: "Цена (€)", icon: "coins", value: p.price, type: "number", required: true }) +
-        fld({ id: "p-area", label: "Площ (м²)", icon: "m2", value: p.area, type: "number" }) +
-        fld({ id: "p-rooms", label: "Стаи", icon: "bed-double", value: p.rooms, type: "number" }) +
-        fld({ id: "p-beds", label: "Спални", icon: "bed-double", value: p.beds, type: "number" }) +
-        fld({ id: "p-baths", label: "Бани", icon: "bath", value: p.baths, type: "number" }) +
-        fld({ id: "p-floor", label: "Етаж", icon: "building-2", value: p.floor, ph: "напр. 3 / 6" }) +
-        fld({ id: "p-build", label: "Строителство", icon: "brick-wall", type: "select", value: p.build || BUILD[0], options: BUILD }) +
-        fld({ id: "p-year", label: "Година", icon: "calendar", value: p.year, type: "number" }) +
-        fld({ id: "p-cond", label: "Състояние", icon: "sparkles", type: "select", value: p.cond, options: COND }) +
-        fld({ id: "p-status", label: "Статус", icon: "megaphone", type: "select", value: p.status, options: STATUS }) +
-        fld({ id: "p-region", label: "Област", icon: "map", value: p.region, ph: "напр. Варна" }) +
-        fld({ id: "p-city", label: "Град", icon: "pin", value: p.city, required: true, ph: "напр. Варна" }) +
-        fld({ id: "p-hood", label: "Квартал", icon: "pin", value: p.hood, ph: "напр. Левски" }) +
-        fld({ id: "p-addr", label: "Адрес", icon: "map-pin-house", value: p.address }) +
-        fld({ id: "p-client", label: "Собственик / клиент", icon: "user", value: p.client, list: "p-clients", wide: true }) +
-        '<datalist id="p-clients">' + clientNames.map(function (n) { return '<option value="' + esc(n) + '">'; }).join("") + "</datalist>" +
-        fld({ id: "p-desc", label: "Описание", icon: "file-text", value: p.desc, type: "ta", wide: true }) +
-        '<div class="ef wide"><span class="el">' + ic("camera") + "Снимки (" + (p.pics.length + pendingPics.length) + ')</span></div>' + picsHtml() +
-        '<div class="ef wide"><label class="ndfile" style="position:relative">' + ic("image") + '<span>Добави снимки</span><input type="file" id="p-picin" accept="image/*" multiple></label></div>' +
+      var G = U.group;
+      return G("Основни данни", "house", "nd/ph07.jpg",
+          fld({ id: "p-title", label: "Заглавие", icon: "house", value: p.title, required: true, wide: true, ph: "напр. Тристаен апартамент" }) +
+          fld({ id: "p-deal", label: "Сделка", icon: "tag", type: "select", value: p.deal, options: [["sale", "Продажба"], ["rent", "Наем"]] }) +
+          fld({ id: "p-type", label: "Тип", icon: "house", type: "select", value: p.type, options: TYPES }) +
+          fld({ id: "p-price", label: "Цена €", icon: "coins", value: p.price, type: "number", required: true }) +
+          fld({ id: "p-status", label: "Статус", icon: "megaphone", type: "select", value: p.status, options: STATUS }), { lw: 110 }) +
+        G("Характеристики", "ruler", "nd/ph03.jpg",
+          fld({ id: "p-area", label: "Площ м²", icon: "m2", value: p.area, type: "number" }) +
+          fld({ id: "p-rooms", label: "Стаи", icon: "bed-double", value: p.rooms, type: "number" }) +
+          fld({ id: "p-beds", label: "Спални", icon: "bed-double", value: p.beds, type: "number" }) +
+          fld({ id: "p-baths", label: "Бани", icon: "bath", value: p.baths, type: "number" }) +
+          fld({ id: "p-floor", label: "Етаж", icon: "building-2", value: p.floor, ph: "напр. 3 / 6" }) +
+          fld({ id: "p-year", label: "Година", icon: "calendar", value: p.year, type: "number" }) +
+          fld({ id: "p-build", label: "Строителство", icon: "brick-wall", type: "select", value: p.build || BUILD[0], options: BUILD }) +
+          fld({ id: "p-cond", label: "Състояние", icon: "sparkles", type: "select", value: p.cond, options: COND }), { lw: 130 }) +
+        G("Локация", "pin", "nd/ph19.jpg",
+          fld({ id: "p-region", label: "Област", icon: "map", value: p.region, ph: "напр. Варна" }) +
+          fld({ id: "p-city", label: "Град", icon: "pin", value: p.city, required: true, ph: "напр. Варна" }) +
+          fld({ id: "p-hood", label: "Квартал", icon: "pin", value: p.hood, ph: "напр. Левски" }) +
+          fld({ id: "p-addr", label: "Адрес", icon: "map-pin-house", value: p.address }), { lw: 110 }) +
+        G("Собственик и описание", "user", "nd/ph14.jpg",
+          fld({ id: "p-client", label: "Собственик", icon: "user", value: p.client, list: "p-clients", wide: true }) +
+          '<datalist id="p-clients">' + clientNames.map(function (n) { return '<option value="' + esc(n) + '">'; }).join("") + "</datalist>" +
+          fld({ id: "p-desc", label: "Описание", icon: "file-text", value: p.desc, type: "ta", wide: true }), { lw: 130, one: true }) +
+        G("Снимки (" + (p.pics.length + pendingPics.length) + ")", "camera", null,
+          picsHtml() + U.filebox("p-picin", "Добави снимки", "JPG / PNG · натиснете снимка, за да е основна", { icon: "image", accept: "image/*" }), { one: true }) +
         docsHtml() +
-        '<div class="ef wide"><label class="ndfile" style="position:relative">' + ic("upload") + '<span>Добави документи (нотариален акт, скица…)</span><input type="file" id="p-docin" multiple></label></div>';
+        G("Прикачи документи", "upload", "nd/ph20.jpg", U.filebox("p-docin", "Прикачи файл", "Нотариален акт, скица, данъчна оценка… · плъзнете или изберете"), { one: true });
     }
     function collect(g) {
       var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
@@ -95,7 +100,7 @@
       };
     }
     U.open({
-      title: isNew ? "Нов имот " + p.code : "Редакция – " + (p.title || p.code), icon: isNew ? "house-plus" : "square-pen", photo: "g-facade.jpg", html: html(),
+      title: isNew ? "Нов имот " + p.code : "Редакция – " + (p.title || p.code), icon: isNew ? "house-plus" : "square-pen", photo: "nd/ph17.jpg", html: html(),
       required: ["p-title", "p-price", "p-city"],
       validate: function (g) { if (!(Number(g("p-price").replace(/\s/g, "").replace(",", ".")) >= 0)) return "Цената трябва да е число."; },
       ready: function (x) { ctx = x; bind(); }, ready2: bind,
@@ -141,13 +146,13 @@
   function more(cur, apply) {
     cur = cur || {};
     U.open({
-      title: "Още филтри", icon: "sliders-horizontal", photo: "g-living.jpg", saveText: "Приложи",
-      html: fld({ id: "x-beds", label: "Спални – поне", icon: "bed-double", value: cur.beds, type: "number" }) +
+      title: "Още филтри", icon: "sliders-horizontal", photo: "nd/ph15.jpg", saveText: "Приложи",
+      html: U.group("Допълнителни филтри", "sliders-horizontal", "nd/ph10.jpg", fld({ id: "x-beds", label: "Спални – поне", icon: "bed-double", value: cur.beds, type: "number" }) +
         fld({ id: "x-baths", label: "Бани – поне", icon: "bath", value: cur.baths, type: "number" }) +
         fld({ id: "x-client", label: "Собственик / клиент", icon: "user", value: cur.client, list: "x-clients" }) +
         '<datalist id="x-clients">' + P.clientNames().map(function (n) { return '<option value="' + esc(n) + '">'; }).join("") + "</datalist>" +
         fld({ id: "x-fav", label: "Само любими", icon: "heart", type: "select", value: cur.fav ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
-        fld({ id: "x-photos", label: "Само със снимки", icon: "camera", type: "select", value: cur.photos ? "1" : "", options: [["", "Не"], ["1", "Да"]] }),
+        fld({ id: "x-photos", label: "Само със снимки", icon: "camera", type: "select", value: cur.photos ? "1" : "", options: [["", "Не"], ["1", "Да"]] }), { lw: 150, one: true }),
       onSave: function (g) {
         var n = function (id) { var v = g(id); return v === "" ? null : Number(v); };
         apply({ beds: n("x-beds"), baths: n("x-baths"), client: g("x-client"), fav: g("x-fav") === "1", photos: g("x-photos") === "1" });

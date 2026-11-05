@@ -33,21 +33,25 @@
   function edit(c, cat) {
     var isNew = !c;
     c = c || { cat: cat || "sales", status: "Активен", source: SOURCES[0], type: TYPES[0] };
+    var G = U.group;
     var html =
-      fld({ id: "k-name", label: "Име и фамилия", icon: "user-round", value: c.name, required: true, wide: true }) +
-      fld({ id: "k-phone", label: "Телефон", icon: "phone", value: c.phone, type: "tel", required: true }) +
-      fld({ id: "k-mail", label: "Имейл", icon: "mail", value: c.email, type: "email" }) +
-      fld({ id: "k-cat", label: "Клиентът търси", icon: "tag", type: "select", value: c.cat, options: [["sales", "Покупка"], ["rent", "Наем"]] }) +
-      fld({ id: "k-type", label: "Вид имот", icon: "house", type: "select", value: c.type, options: TYPES }) +
-      fld({ id: "k-city", label: "Град / Област", icon: "pin", value: c.city, ph: "напр. Варна" }) +
-      fld({ id: "k-hood", label: "Квартал", icon: "pin", value: c.hood, ph: "напр. Левски" }) +
-      fld({ id: "k-budget", label: "Бюджет (€)", icon: "coins", value: c.budget, type: "number", ph: "напр. 200000" }) +
-      fld({ id: "k-egn", label: "ЕГН", icon: "id-card", value: c.egn }) +
-      fld({ id: "k-status", label: "Статус", icon: "users", type: "select", value: c.status, options: STATUSES }) +
-      fld({ id: "k-source", label: "Източник", icon: "tag", type: "select", value: c.source, options: SOURCES }) +
-      fld({ id: "k-notes", label: "Бележки", icon: "file-text", value: c.notes, type: "ta", wide: true, ph: "Изисквания, предпочитания…" });
+      G("Основна информация", "user", "nd/ph17.jpg",
+        fld({ id: "k-name", label: "Име", icon: "user-round", value: c.name, required: true, wide: true }) +
+        fld({ id: "k-phone", label: "Телефон", icon: "phone", value: c.phone, type: "tel", required: true }) +
+        fld({ id: "k-mail", label: "Имейл", icon: "mail", value: c.email, type: "email" }) +
+        fld({ id: "k-egn", label: "ЕГН", icon: "id-card", value: c.egn }), { lw: 120 }) +
+      G("Какво търси", "house", "nd/ph12.jpg",
+        fld({ id: "k-cat", label: "Търси", icon: "tag", type: "select", value: c.cat, options: [["sales", "Покупка"], ["rent", "Наем"]] }) +
+        fld({ id: "k-type", label: "Вид имот", icon: "house", type: "select", value: c.type, options: TYPES }) +
+        fld({ id: "k-city", label: "Град", icon: "pin", value: c.city, ph: "напр. Варна" }) +
+        fld({ id: "k-hood", label: "Квартал", icon: "pin", value: c.hood, ph: "напр. Левски" }) +
+        fld({ id: "k-budget", label: "Бюджет €", icon: "coins", value: c.budget, type: "number", ph: "напр. 200000", wide: true }), { lw: 120 }) +
+      G("Статус и бележки", "shield", "nd/ph02.jpg",
+        fld({ id: "k-status", label: "Статус", icon: "users", type: "select", value: c.status, options: STATUSES }) +
+        fld({ id: "k-source", label: "Източник", icon: "tag", type: "select", value: c.source, options: SOURCES }) +
+        fld({ id: "k-notes", label: "Бележки", icon: "file-text", value: c.notes, type: "ta", wide: true, ph: "Изисквания, предпочитания…" }), { lw: 120 });
     U.open({
-      title: isNew ? "Нов клиент" : "Редакция – " + c.name, icon: isNew ? "user-plus" : "square-pen", photo: "field-home.webp", html: html,
+      title: isNew ? "Нов клиент" : "Редакция – " + c.name, icon: isNew ? "user-plus" : "square-pen", photo: "nd/ph13.jpg", html: html,
       required: ["k-name", "k-phone"],
       validate: function (g) {
         var m = g("k-mail");
@@ -88,17 +92,17 @@
     function form(e) {
       e = e || { type: "meeting", date: iso(), from: "10:00", to: "11:00" };
       return '<div class="wide" id="k-mlist">' + rows() + "</div>" +
+        U.group(editing ? "Редакция на среща" : "Нова среща", "calendar-check", "nd/ph01.jpg",
         fld({ id: "m-type", label: "Вид", icon: "tag", type: "select", value: e.type, options: EVT }) +
-        fld({ id: "m-title", label: "Заглавие", icon: "pencil", value: e.title, required: true, ph: "напр. Оглед – апартамент, Левски" }) +
         fld({ id: "m-date", label: "Дата", icon: "calendar", value: e.date, type: "date", required: true }) +
-        '<div class="ef"><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">' +
-        fld({ id: "m-from", label: "От", icon: "clock", value: e.from, type: "time" }) + fld({ id: "m-to", label: "До", icon: "clock", value: e.to, type: "time" }) + "</div></div>" +
-        fld({ id: "m-prop", label: "Имот", icon: "house", value: e.prop, wide: true, ph: "напр. P-1048 · Тристаен апартамент, Шумен" }) +
-        fld({ id: "m-desc", label: "Описание", icon: "file-text", value: e.desc, type: "ta", wide: true });
+        fld({ id: "m-title", label: "Заглавие", icon: "pencil", value: e.title, required: true, wide: true, ph: "напр. Оглед – апартамент, Левски" }) +
+        fld({ id: "m-from", label: "От", icon: "clock", value: e.from, type: "time" }) + fld({ id: "m-to", label: "До", icon: "clock", value: e.to, type: "time" }) +
+        fld({ id: "m-prop", label: "Имот", icon: "house", value: e.prop, wide: true, ph: "напр. P-1048 · Тристаен, Шумен" }) +
+        fld({ id: "m-desc", label: "Описание", icon: "file-text", value: e.desc, type: "ta", wide: true }), { lw: 110 });
     }
     var ctx;
     var o = {
-      title: "Срещи – " + c.name, icon: "calendar-check", photo: "k-meeting.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запиши срещата", keepOpen: true,
+      title: "Срещи – " + c.name, icon: "calendar-check", photo: "nd/ph16.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запиши срещата", keepOpen: true,
       required: ["m-title", "m-date"],
       ready: function (x) { ctx = x; D.load("events").then(function (l) { list = l; x.rerender(form()); }); },
       ready2: bind,
@@ -142,8 +146,9 @@
         return row("file-text", d.name, (d.folder || "Документ") + " · " + Math.max(1, Math.round((d.size || 0) / 1024)) + " KB", U.bgDate(d.at),
           '<button type="button" data-open="' + esc(d.id) + '" aria-label="Отвори">' + ic("eye") + '</button><button type="button" class="rm" data-rm="' + esc(d.id) + '" aria-label="Изтрий">' + ic("trash-2") + "</button>");
       }), "Още няма качени документи.") + "</div>" +
-        fld({ id: "d-type", label: "Вид документ", icon: "tag", type: "select", value: DOCT[0], options: DOCT }) +
-        '<div class="ef"><span class="el">' + ic("upload") + 'Файл</span><label class="ndfile" style="position:relative">' + ic("upload") + '<span id="d-fname">Изберете файл (PDF, снимка, Word…)</span><input type="file" id="d-file" multiple></label></div>';
+        U.group("Прикачи файл", "upload", "nd/ph20.jpg",
+        fld({ id: "d-type", label: "Вид", icon: "tag", type: "select", value: DOCT[0], options: DOCT, wide: true }) +
+        U.filebox("d-file", "Прикачи файл", "PDF, снимка, Word… · плъзнете или изберете", { nameId: "d-fname", icon: "upload" }), { lw: 110, one: true });
     }
     function bind() {
       var f = ctx.q("d-file");
@@ -165,7 +170,7 @@
       };
     }
     U.open({
-      title: "Документи – " + c.name, icon: "file-text", photo: "k-documents.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Качи", keepOpen: true,
+      title: "Документи – " + c.name, icon: "file-text", photo: "nd/ph06.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Качи", keepOpen: true,
       ready: function (x) { ctx = x; D.load("documents", { client_id: c.id }).then(function (l) { list = l.sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); }); x.rerender(form()); }); },
       ready2: bind,
       validate: function () { var f = ctx.q("d-file"); if (!f || !f.files.length) return "Изберете файл за качване."; if ([].some.call(f.files, function (x) { return x.size > 20 * 1024 * 1024; })) return "Файлът е по-голям от 20 MB."; },
@@ -193,15 +198,16 @@
   /* ---------- Калкулатор (commission + mortgage, real math) ---------- */
   function calc(c) {
     var ctx, rent = c.cat === "rent";
-    var html =
+    var G = U.group;
+    var html = G("Параметри", "calculator", "nd/ph05.jpg",
       fld({ id: "c-price", label: rent ? "Месечен наем (€)" : "Цена на имота (€)", icon: "coins", value: c.budget || "", type: "number" }) +
       fld({ id: "c-comm", label: rent ? "Комисионна (брой наеми)" : "Комисионна (%)", icon: "handshake", value: rent ? 1 : 3, type: "number", step: "0.1" }) +
       fld({ id: "c-vat", label: "ДДС (%)", icon: "landmark", value: 20, type: "number" }) +
       (rent ? "" :
         fld({ id: "c-down", label: "Самоучастие (%)", icon: "coins", value: 20, type: "number" }) +
         fld({ id: "c-rate", label: "Годишна лихва (%)", icon: "landmark", value: 4.5, type: "number", step: "0.01" }) +
-        fld({ id: "c-years", label: "Срок (години)", icon: "calendar", value: 30, type: "number" })) +
-      '<div class="ndres" id="c-res"></div>';
+        fld({ id: "c-years", label: "Срок (години)", icon: "calendar", value: 30, type: "number" })), { lw: 170 }) +
+      G("Резултат", "coins", null, '<div class="ndres" id="c-res"></div>', { one: true });
     function r2(n) { return Math.round(n * 100) / 100; }
     function compute() {
       var n = function (id) { var v = ctx.num(id); return v == null || isNaN(v) ? 0 : v; };
@@ -219,7 +225,7 @@
       return { price: price, comm: r2(comm + cv) };
     }
     U.open({
-      title: "Калкулатор – " + c.name, icon: "calculator", photo: "k-bank.jpg", html: html, saveText: "Запиши в активността", keepOpen: true,
+      title: "Калкулатор – " + c.name, icon: "calculator", photo: "nd/ph09.jpg", html: html, saveText: "Запиши в активността", keepOpen: true,
       ready: function (x) { ctx = x; compute(); x.body.oninput = compute; },
       onSave: function () {
         var r = compute();
@@ -238,6 +244,7 @@
         return row("handshake", x.title, (x.stage || "") + (x.amount ? " · " + money(x.amount) + " €" : "") + com + (x.property ? " · " + x.property : ""), x.deadline ? "до " + U.bgDate(x.deadline + "T00:00") : "",
           '<button type="button" data-ed="' + esc(x.id) + '" aria-label="Редактирай">' + ic("pencil") + '</button><button type="button" class="rm" data-rm="' + esc(x.id) + '" aria-label="Изтрий">' + ic("trash-2") + "</button>");
       }), "Още няма сделки с този клиент.") + "</div>" +
+        U.group(editing ? "Редакция на сделка" : "Нова сделка", "handshake", "nd/ph18.jpg",
         fld({ id: "s-title", label: "Сделка", icon: "handshake", value: d.title, required: true, wide: true }) +
         fld({ id: "s-prop", label: "Имот", icon: "house", value: d.property, ph: "напр. P-1048 · Тристаен, Шумен" }) +
         fld({ id: "s-stage", label: "Етап", icon: "tag", type: "select", value: d.stage, options: STAGES }) +
@@ -245,7 +252,7 @@
         fld({ id: "s-comm", label: "Комисионна (%)", icon: "coins", value: d.commission_pct, type: "number", step: "0.1" }) +
         fld({ id: "s-dead", label: "Краен срок", icon: "calendar", value: d.deadline, type: "date" }) +
         fld({ id: "s-paid", label: "Платено (€)", icon: "coins", value: d.paid, type: "number" }) +
-        fld({ id: "s-note", label: "Бележка", icon: "file-text", value: d.note, type: "ta", wide: true });
+        fld({ id: "s-note", label: "Бележка", icon: "file-text", value: d.note, type: "ta", wide: true }), { lw: 120 });
     }
     function bind() {
       var box = ctx.q("k-deals"); if (!box) return;
@@ -263,7 +270,7 @@
       };
     }
     U.open({
-      title: "Сделка – " + c.name, icon: "handshake", photo: "k-deal.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запиши сделката", keepOpen: true,
+      title: "Сделка – " + c.name, icon: "handshake", photo: "nd/ph11.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запиши сделката", keepOpen: true,
       required: ["s-title"],
       ready: function (x) { ctx = x; D.load("deals", { client_id: c.id }).then(function (l) { list = l; x.rerender(form()); }); },
       ready2: bind,
@@ -291,8 +298,9 @@
       return '<div class="wide" id="k-alist">' + section("Всички активности", "clock", list.map(function (a) {
         return row(a.icon || "clock", a.text, "", U.bgDateTime(a.at), '<button type="button" class="rm" data-rm="' + esc(a.id) + '" aria-label="Изтрий">' + ic("trash-2") + "</button>");
       }), "Още няма записана активност.") + "</div>" +
-        fld({ id: "a-type", label: "Вид", icon: "tag", type: "select", value: "phone", options: ACTT }) +
-        fld({ id: "a-text", label: "Описание", icon: "pencil", value: "", required: true, ph: "напр. Обсъдени параметри на имот" });
+        U.group("Нова активност", "pencil", "nd/ph04.jpg",
+        fld({ id: "a-type", label: "Вид", icon: "tag", type: "select", value: "phone", options: ACTT, wide: true }) +
+        fld({ id: "a-text", label: "Описание", icon: "pencil", value: "", required: true, wide: true, ph: "напр. Обсъдени параметри на имот" }), { lw: 120, one: true });
     }
     function bind() {
       var box = ctx.q("k-alist"); if (!box) return;
@@ -304,7 +312,7 @@
       };
     }
     U.open({
-      title: "Активност – " + c.name, icon: "clock", photo: "k-notepad.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Добави", keepOpen: true,
+      title: "Активност – " + c.name, icon: "clock", photo: "nd/ph15.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Добави", keepOpen: true,
       required: ["a-text"],
       ready: function (x) { ctx = x; D.load("activities", { client_id: c.id }).then(function (l) { list = l.sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); }); x.rerender(form()); }); },
       ready2: bind,

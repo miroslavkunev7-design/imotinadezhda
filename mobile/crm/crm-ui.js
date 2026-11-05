@@ -65,7 +65,37 @@
     "#nd-fwin .ndphotos .ph.cover{box-shadow:0 0 0 3px #e3b25e,0 0 14px rgba(227,178,94,.8)}",
     /* small '+ Нов' pill used on list pages (same glass button look) */
     ".nd-new{position:absolute;right:22px;top:12px;z-index:3;height:46px;padding:0 22px;border:1.5px solid #e3b25e;border-radius:23px;display:flex;align-items:center;gap:10px;font:700 22px/1 var(--cond);color:#fff3dc;cursor:pointer;background:linear-gradient(180deg,#a3213a 0%,#7a0f22 42%,#55071a 100%);box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 14px rgba(255,190,120,.7),inset 0 2px 3px rgba(255,170,180,.5)}",
-    ".nd-new svg.i{font-size:26px;stroke-width:2.4}"
+    ".nd-new svg.i{font-size:26px;stroke-width:2.4}",
+    /* ---- section cards like the broker card: wine ribbon header + blended photo + inline fields ---- */
+    "#nd-fwin,#nd-fwin *,.nd-auth,.nd-auth *{-webkit-text-size-adjust:100%;text-size-adjust:100%}",
+    "#nd-fwin .ndg{grid-column:1/-1;position:relative;margin:0 0 22px;border-radius:28px;overflow:hidden;padding:76px 0 20px;min-height:170px;background:linear-gradient(180deg,rgba(255,250,244,.97),rgba(252,238,226,.96));border:1.5px solid rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(226,176,120,.45),0 0 18px rgba(255,230,204,.95),0 8px 18px rgba(120,50,20,.18),inset 0 1px 0 #fff}",
+    "#nd-fwin .ndg-h,#nd-fwin .ndsec>h3{position:absolute;left:-1px;top:-1px;height:60px;display:flex;align-items:center;gap:20px;margin:0;padding:0 70px 0 32px;color:#fff3dc;font:700 30px/1 var(--serif);white-space:nowrap;background:linear-gradient(100deg,#55071a 0%,#8d1530 45%,#b42446 70%,#7a1022 100%);border-radius:28px 0 60px 0;box-shadow:inset 0 2px 3px rgba(255,170,180,.45),0 3px 0 #e6b866,0 6px 12px rgba(60,5,15,.25);text-shadow:0 2px 3px rgba(30,0,8,.5);clip-path:polygon(0 0,100% 0,88% 100%,0 100%);width:auto;min-width:0}",
+    "#nd-fwin .ndg-h svg.i,#nd-fwin .ndsec>h3 svg.i{font-size:36px;color:#fff1de;stroke-width:1.8}",
+    "#nd-fwin .ndg-img{position:absolute;left:0;top:60px;bottom:0;width:210px;background-size:cover;background-position:center;-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent 100%);mask-image:linear-gradient(90deg,#000 55%,transparent 100%)}",
+    "#nd-fwin .ndg-f{position:relative;margin-left:200px;padding:0 24px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:16px 22px;align-items:center}",
+    "#nd-fwin .ndg.noimg .ndg-f{margin-left:26px}",
+    "#nd-fwin .ndg.one .ndg-f{grid-template-columns:1fr}",
+    "#nd-fwin .ndg .ef{display:grid;grid-template-columns:var(--lw,128px) 1fr;align-items:center;gap:12px;margin:0;min-width:0}",
+    "#nd-fwin .ndg .ef.wide{grid-column:1/-1}",
+    "#nd-fwin .ndg .ef.top{align-items:start}",
+    "#nd-fwin .ndg .el{margin:0;gap:10px;font:400 24px/1.1 var(--cond);color:#1f1111}",
+    "#nd-fwin .ndg .el svg.i{display:none}",
+    "#nd-fwin .ndg .in{height:52px;border-radius:26px;font-size:24px;padding:0 20px}",
+    "#nd-fwin .ndg .in.ta{height:120px;border-radius:22px;padding:12px 18px}",
+    "#nd-fwin .ndg .selw svg.i{display:block}",
+    "#nd-fwin .ndg .ndres,#nd-fwin .ndg .ndphotos,#nd-fwin .ndg .ndfile,#nd-fwin .ndg>.ndrows{grid-column:1/-1;margin:0}",
+    /* rows like the documents list: separate glass pills */
+    "#nd-fwin .ndsec{position:relative;padding:72px 0 14px;border-radius:28px;border:1.5px solid rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(226,176,120,.45),0 0 18px rgba(255,230,204,.95),0 8px 18px rgba(120,50,20,.18),inset 0 1px 0 #fff}",
+    "#nd-fwin .ndrow{margin:0 18px 12px;min-height:80px;padding:10px 18px 10px 22px;border:0;border-radius:22px;background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1.5px rgba(227,178,94,.55),0 0 10px rgba(255,226,190,.8),0 3px 6px rgba(120,50,20,.12)}",
+    "#nd-fwin .ndrow:first-of-type{border-top:0}",
+    "#nd-fwin .ndrow button,#nd-fwin .ndrow a.rb{width:58px;height:58px;background:radial-gradient(circle at 35% 28%,#fffdf9,#fbefe5 60%,#f3dcc4);box-shadow:0 0 0 1.5px rgba(227,178,94,.6),0 0 10px rgba(255,214,150,.6),0 2px 5px rgba(120,50,20,.2)}",
+    "#nd-fwin .ndempty{margin:0 18px;padding:18px 22px;border-radius:20px;background:rgba(255,255,255,.55);box-shadow:inset 0 0 0 1px rgba(227,178,94,.35)}",
+    "#nd-fwin .ndfile{flex-direction:column;gap:8px;height:auto;min-height:118px;padding:16px;border:2.5px dashed rgba(160,26,51,.55);box-shadow:0 0 10px rgba(255,226,190,.8);color:#8d1530;font-size:30px}",
+    "#nd-fwin .ndfile .row1{display:flex;align-items:center;gap:16px}",
+    "#nd-fwin .ndfile small{font:400 23px/1.2 var(--cond);color:#3a1a14}",
+    "#nd-fwin .ndfile svg.i{font-size:46px;color:#8d1530}",
+    "html:not(.desk){background:#efc19c}",
+    ""
   ].join("\n");
 
   function boot() {
@@ -165,8 +195,12 @@
       W.style.width = w + "px"; W.style.height = h + "px"; W.style.left = (vw - w) / 2 + "px"; W.style.top = Math.max(6, (ah - h) / 2) + "px";
       cv.style.zoom = z;
     } else {
-      W.style.width = W.style.height = W.style.left = W.style.top = "";
+      W.style.width = W.style.height = W.style.left = W.style.top = W.style.bottom = "";
       var zz = W.clientWidth / 1024; cv.style.zoom = zz; W.style.setProperty("--fz", zz);
+      if (!full) {
+        var avail = W.getBoundingClientRect().height, need = cv.getBoundingClientRect().height + 2;
+        if (need < avail) { W.style.bottom = "auto"; W.style.height = need + "px"; }
+      }
     }
   }
   function setFull(v) {
@@ -205,6 +239,16 @@
     if (last && last.focus) last.focus({ preventScroll: true });
   }
 
+  /* section card: ribbon header, blended photo on the left, inline label/field rows */
+  function group(title, icon, photo, inner, opts) {
+    opts = opts || {};
+    return '<div class="ndg' + (photo ? "" : " noimg") + (opts.one ? " one" : "") + '"' + (opts.lw ? ' style="--lw:' + opts.lw + 'px"' : "") + '><div class="ndg-h">' + ic(icon) + esc(title) + "</div>" +
+      (photo ? '<div class="ndg-img" style="background-image:url(' + img(photo) + ')"></div>' : "") + '<div class="ndg-f">' + inner + "</div></div>";
+  }
+  function filebox(id, title, sub, opts) {
+    opts = opts || {};
+    return '<label class="ndfile" style="position:relative"><span class="row1">' + ic(opts.icon || "upload") + "<span" + (opts.nameId ? ' id="' + opts.nameId + '"' : "") + ">" + esc(title) + "</span></span><small>" + esc(sub || "Плъзнете файл тук или изберете от устройството") + '</small><input type="file" id="' + id + '"' + (opts.accept ? ' accept="' + opts.accept + '"' : "") + " multiple></label>";
+  }
   /* list section in the same glass look */
   function section(title, icon, rows, empty) {
     return '<div class="ndsec"><h3>' + ic(icon) + esc(title) + "</h3>" + (rows && rows.length ? rows.join("") : '<div class="ndempty">' + esc(empty || "Няма записи.") + "</div>") + "</div>";
@@ -237,5 +281,5 @@
     requestAnimationFrame(function () { bankBox.classList.add("show"); });
   }
   function closeBank() { if (!bankBox) return; bankBox.classList.remove("show"); setTimeout(function () { bankBox.hidden = true; bankBox.querySelector("iframe").src = "about:blank"; }, 220); }
-  window.NDUI = { open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank };
+  window.NDUI = { open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
 })();
