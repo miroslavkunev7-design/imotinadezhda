@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 865 218" preserveAspectRatio="none">
+<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#9e5606"/><stop offset=".18" stop-color="#ffcf55"/><stop offset=".38" stop-color="#a55e09"/><stop offset=".59" stop-color="#fff0a0"/><stop offset=".78" stop-color="#efaa21"/><stop offset="1" stop-color="#8e4700"/></linearGradient><linearGradient id="cream" y1="0" y2="1" x1="0" x2="0"><stop stop-color="#fffdf8"/><stop offset="1" stop-color="#fef2e8"/></linearGradient><linearGradient id="wine" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#600011"/><stop offset="1" stop-color="#79001f"/></linearGradient></defs>
+<path d="M0 0H865V166H273Q185 166 126 186T0 211Z" fill="url(#wine)"/>
+<path d="M0 0H442C394 31 365 83 333 131 285 195 224 209 142 198 75 188 35 195 0 215Z" fill="url(#cream)"/>
+<path d="M442 0C385 35 362 87 328 139S224 215 143 203Q56 190 0 218" fill="none" stroke="url(#gold)" stroke-width="17"/>
+<path d="M442 0C385 35 362 87 328 139S224 215 143 203Q56 190 0 218" fill="none" stroke="#fff0ae" stroke-opacity=".7" stroke-width="2"/>
+<path d="M273 166H865" stroke="url(#gold)" stroke-width="4"/>
+</svg>

@@ -26,11 +26,22 @@
     p.log.unshift({ icon: icon, text: text, at: new Date().toISOString() });
   }
 
-  function edit(p) {
+  function fromScan(f) {
+    f = f || {}; var o = {}, t = function (v) { return v == null ? "" : String(v).trim(); }, n = function (v) { var x = Number(String(v == null ? "" : v).replace(/[^\d.]/g, "")); return x > 0 ? x : null; };
+    ["title", "floor", "region", "city", "hood", "address", "client", "desc"].forEach(function (k) { if (t(f[k])) o[k] = t(f[k]); });
+    if (f.deal === "sale" || f.deal === "rent") o.deal = f.deal;
+    var ty = TYPES.filter(function (x) { return x.toLowerCase() === t(f.type).toLowerCase(); })[0]; if (ty) o.type = ty;
+    var bu = BUILD.filter(function (x) { return x.toLowerCase() === t(f.build).toLowerCase(); })[0]; if (bu) o.build = bu;
+    ["price", "area", "rooms", "beds", "baths", "year"].forEach(function (k) { var v = n(f[k]); if (v != null) o[k] = v; });
+    if (t(f.summary)) o.desc = [o.desc, "Сканиран документ: " + t(f.summary)].filter(Boolean).join("\n");
+    return o;
+  }
+  function edit(p, scanned, scanFile) {
     var isNew = !p, list = P.list();
-    p = p ? JSON.parse(JSON.stringify(stored(p))) : { code: nextCode(list), deal: "sale", type: TYPES[0], status: "Чернова", cond: COND[0], pics: [], docs: [], log: [] };
+    p = p ? JSON.parse(JSON.stringify(stored(p))) : Object.assign({ code: nextCode(list), deal: "sale", type: TYPES[0], status: "Чернова", cond: COND[0], pics: [], docs: [], log: [] }, fromScan(scanned));
     p.pics = p.pics || []; p.docs = p.docs || [];
     var pendingPics = [], pendingDocs = [], removed = [], ctx;
+    if (scanFile) { if (/^image\//.test(scanFile.type)) pendingPics.push({ file: scanFile, url: URL.createObjectURL(scanFile), name: scanFile.name || "scan.jpg" }); else pendingDocs.push({ file: scanFile, name: scanFile.name || "scan.pdf" }); }
     var clientNames = P.clientNames();
     function picsHtml() {
       var cells = p.pics.map(function (path, i) {
@@ -100,7 +111,7 @@
       };
     }
     U.open({
-      title: isNew ? "Нов имот " + p.code : "Редакция – " + (p.title || p.code), icon: isNew ? "house-plus" : "square-pen", photo: "nd/ph17.jpg", html: html(),
+      title: isNew ? (scanned ? "Сканиран имот " : "Нов имот ") + p.code : "Редакция – " + (p.title || p.code), icon: isNew ? "house-plus" : "square-pen", photo: "nd/ph17.jpg", html: html(),
       required: ["p-title", "p-price", "p-city"],
       validate: function (g) { if (!(Number(g("p-price").replace(/\s/g, "").replace(",", ".")) >= 0)) return "Цената трябва да е число."; },
       ready: function (x) { ctx = x; bind(); }, ready2: bind,

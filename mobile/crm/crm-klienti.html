@@ -569,6 +569,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 <script src="crm-ui.js"></script>
 <script src="crm-global.js"></script>
 <script src="crm-klienti-tabs.js"></script>
+<script src="crm-scan.js"></script>
 <script>
 (function(){
   'use strict';
@@ -783,7 +784,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     });
   }
   window.NDKTabs.init({say:say,refresh:loadAll,reopen:function(id){if(!win.hidden&&win.dataset.id===id)open(id,lastFocus);},closeCard:function(){if(!win.hidden)close()}});
-  document.querySelectorAll('[data-new]').forEach(function(b){b.addEventListener('click',function(){window.NDKTabs.edit(null,b.getAttribute('data-new'))})});
+  document.querySelectorAll('[data-new]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();var cat=b.getAttribute('data-new');window.NDScan.menu(b,'client',{manual:function(){window.NDKTabs.edit(null,cat)},scanned:function(f,file){window.NDKTabs.edit(null,(f&&(f.cat==='rent'||f.cat==='sales'))?f.cat:cat,f,file)}})})});
   ND.busy(1);
   ND.ready().then(loadAll).then(function(){
     ND.busy(0);

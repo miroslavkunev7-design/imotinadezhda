@@ -30,9 +30,28 @@
   function after(c) { return K.refresh().then(function () { if (c) K.reopen(c.id); }); }
 
   /* ---------- Редактирай / Нов клиент ---------- */
-  function edit(c, cat) {
+  function fromScan(f) {
+    f = f || {}; var o = {}, t = function (v) { return v == null ? "" : String(v).trim(); };
+    ["name", "phone", "email", "egn", "city", "hood"].forEach(function (k) { if (t(f[k])) o[k] = t(f[k]); });
+    if (f.cat === "sales" || f.cat === "rent") o.cat = f.cat;
+    var ty = TYPES.filter(function (x) { return x.toLowerCase() === t(f.type).toLowerCase(); })[0]; if (ty) o.type = ty;
+    var b = Number(String(f.budget == null ? "" : f.budget).replace(/[^\d.]/g, "")); if (b > 0) o.budget = b;
+    var src = SOURCES.filter(function (x) { return t(f.source) && x.toLowerCase().indexOf(t(f.source).toLowerCase()) >= 0; })[0];
+    if (src) o.source = src; else if (t(f.source)) o.source = "Друго";
+    var notes = [t(f.notes), t(f.summary) ? "Сканиран документ: " + t(f.summary) : "", !src && t(f.source) ? "Източник: " + t(f.source) : ""].filter(Boolean).join("\n");
+    if (notes) o.notes = notes;
+    return o;
+  }
+  function attachScan(c, file) {
+    if (!file) return Promise.resolve();
+    var path = "clients/" + c.id + "/" + Date.now() + "-scan-" + (file.name || "scan").replace(/[^\w.\-]+/g, "_").slice(-60);
+    return D.upload(path, file).then(function () {
+      return D.put("documents", { client_id: c.id, client: c.name, name: file.name || "Сканиран документ", folder: "Сканиран документ", path: path, mime: file.type, size: file.size, at: new Date().toISOString() });
+    }).then(function () { return log(c, "file-text", "Сканиран документ: " + (file.name || "")); }).catch(function () {});
+  }
+  function edit(c, cat, scanned, scanFile) {
     var isNew = !c;
-    c = c || { cat: cat || "sales", status: "Активен", source: SOURCES[0], type: TYPES[0] };
+    c = c || Object.assign({ cat: cat || "sales", status: "Активен", source: scanned ? "Друго" : SOURCES[0], type: TYPES[0] }, fromScan(scanned));
     var G = U.group;
     var html =
       G("Основна информация", "user", "nd/ph17.jpg",
@@ -51,7 +70,7 @@
         fld({ id: "k-source", label: "Източник", icon: "tag", type: "select", value: c.source, options: SOURCES }) +
         fld({ id: "k-notes", label: "Бележки", icon: "file-text", value: c.notes, type: "ta", wide: true, ph: "Изисквания, предпочитания…" }), { lw: 120 });
     U.open({
-      title: isNew ? "Нов клиент" : "Редакция – " + c.name, icon: isNew ? "user-plus" : "square-pen", photo: "nd/ph13.jpg", html: html,
+      title: isNew ? (scanned ? "Нов клиент – сканиран" : "Нов клиент") : "Редакция – " + c.name, icon: isNew ? "user-plus" : "square-pen", photo: "nd/ph13.jpg", html: html,
       required: ["k-name", "k-phone"],
       validate: function (g) {
         var m = g("k-mail");
@@ -65,7 +84,7 @@
         o.egn = g("k-egn"); o.status = g("k-status"); o.source = g("k-source"); o.notes = g("k-notes");
         if (isNew) o.contact_at = new Date().toISOString();
         return D.put("clients", o).then(function (saved) {
-          return log(saved, isNew ? "user-plus" : "square-pen", isNew ? "Създаден клиент" : "Обновени данни на клиента").then(function () {
+          return log(saved, isNew ? "user-plus" : "square-pen", isNew ? (scanned ? "Създаден клиент от сканиране" : "Създаден клиент") : "Обновени данни на клиента").then(function () { return isNew ? attachScan(saved, scanFile) : null; }).then(function () {
             K.say(isNew ? "Клиентът е добавен" : "Промените са запазени");
             return after(saved);
           });
