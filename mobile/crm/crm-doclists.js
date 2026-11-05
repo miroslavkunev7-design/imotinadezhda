@@ -42,6 +42,12 @@
     ".ndl-sel label{display:block;font:700 13px/1.2 'Roboto Condensed',sans-serif;color:#6b0a1c;margin:0 0 4px 4px}" +
     ".ndl-sel .w{position:relative}.ndl-sel select{width:100%;height:46px;appearance:none;-webkit-appearance:none;border-radius:16px;border:1.5px solid #e3b25e;background:linear-gradient(180deg,#fffdfa,#fbefe5);padding:0 34px 0 14px;font:700 15px 'Roboto Condensed',sans-serif;color:#4e0912;box-shadow:0 0 10px rgba(255,214,150,.5)}" +
     ".ndl-sel .w svg{position:absolute;right:12px;top:14px;width:18px;height:18px;color:#7a0f22;pointer-events:none}" +
+".ndl-top{flex-wrap:wrap}.ndl-send{background:linear-gradient(150deg,#fff0aa,#f3a518)!important;color:#640319!important}.ndl-add.alt{background:linear-gradient(180deg,#fffcf9,#fbefe5)!important;color:#6b0a1c!important;border-color:#e3b25e!important}" +
+    ".ndl-snd{margin:0 0 12px;padding:10px 12px 12px;border-radius:18px;background:linear-gradient(160deg,rgba(255,250,246,.98),rgba(251,236,224,.95));border:1.5px solid #e3b25e;box-shadow:0 0 14px rgba(255,214,150,.6)}" +
+    ".ndl-snd label{display:block;font:700 13px 'Roboto Condensed',sans-serif;color:#6b0a1c;margin:8px 0 4px 2px}.ndl-snd select,.ndl-snd input[type=email],.ndl-snd input[type=text]{width:100%;box-sizing:border-box;height:42px;border-radius:14px;border:1.5px solid #e3b25e;background:#fffdfa;padding:0 12px;font:15px 'Roboto Condensed',sans-serif;color:#3a0c12}" +
+    ".ndl-snd input[type=email]{margin-top:6px}.ndl-sg{margin:6px 0;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.8);border:1px solid rgba(227,178,94,.5);font:14px 'Roboto Condensed',sans-serif}.ndl-sg b{display:block;color:#7a0f22;margin-bottom:4px}" +
+    ".ndl-ck{display:flex!important;align-items:center;gap:8px;font:400 14px 'Roboto Condensed',sans-serif!important;color:#2b1010!important;margin:3px 0!important}.ndl-ck input{accent-color:#7a0f22;width:18px;height:18px}" +
+    ".ndl-sa{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.ndl-sa .ndl-add{flex:1;justify-content:center}.ndl-note{display:block;margin-top:8px;font:12.5px/1.35 'Roboto Condensed',sans-serif;color:#6b4a40}" +
     ".ndl-top{display:flex;align-items:center;gap:10px;margin:0 0 10px}.ndl-top .sum{flex:1;font:700 14px 'Roboto Condensed',sans-serif;color:#6b0a1c}.ndl-top .sum b{color:#2f7a0d}" +
     ".ndl-bar{height:8px;border-radius:5px;background:rgba(227,178,94,.25);overflow:hidden;margin:0 0 12px}.ndl-bar i{display:block;height:100%;background:linear-gradient(90deg,#83b93b,#2f7a0d);border-radius:5px;transition:width .3s}" +
     ".ndl-add{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:14px;border:1.5px solid #edc47a;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);color:#fff3dc;font:700 14px 'Roboto Condensed',sans-serif;box-shadow:0 0 10px rgba(255,190,120,.5);cursor:pointer}.ndl-add svg{width:17px;height:17px}" +
@@ -195,7 +201,7 @@
   /* ---------------- generic checklist window ---------------- */
   function openList(cfg) {
     boot();
-    var docs = [], ctx, sel = cfg.sel.map(function (s) { return s.value || ""; }), custom = (cfg.custom || []).slice(), openKey = null;
+    var docs = [], ctx, sel = cfg.sel.map(function (s) { return s.value || ""; }), custom = (cfg.custom || []).slice(), openKey = null, sendOpen = false, recips = null, sendSel = {};
     function rows() {
       var groups = cfg.rows(sel).concat(custom.length ? [["Добавени графи", custom.map(function (c) { return R(c.key, c.title, "Добавена графа", "folder", "nd/ph20.jpg"); })]] : []);
       return groups;
@@ -220,11 +226,71 @@
       return '<div class="ndl">' + '<div class="ndl-sel">' + cfg.sel.map(function (s, i) {
           return '<div><label for="ndl-s' + i + '">' + esc(s.label) + '</label><div class="w"><select id="ndl-s' + i + '" data-si="' + i + '">' + s.options.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === sel[i] ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select>" + sv("chev") + "</div></div>";
         }).join("") + "</div>" +
-        '<div class="ndl-top"><span class="sum">Задължителни: <b>' + done + " / " + req + '</b> прикачени</span><button type="button" class="ndl-add" data-addrow>' + sv("plus") + "Създай нова графа</button></div>" +
+        '<div class="ndl-top"><span class="sum">Задължителни: <b>' + done + " / " + req + '</b> прикачени</span><button type="button" class="ndl-add ndl-send" data-send>' + sv("up") + "Изпрати документите</button>" + '<button type="button" class="ndl-add" data-addrow>' + sv("plus") + "Създай нова графа</button></div>" +
+        (sendOpen ? sendHtml(gs) : "") +
         '<div class="ndl-bar"><i style="width:' + (req ? Math.round(done / req * 100) : 0) + '%"></i></div>' +
         gs.map(function (g) { return '<div class="ndl-grp">' + esc(g[0]) + "</div>" + g[1].map(rowHtml).join(""); }).join("") +
         (other.length ? '<div class="ndl-grp">Други документи</div>' + rowHtml(R("__other", "Други документи", "Качени по-рано или без графа", "folder", "nd/ph20.jpg", true)).replace(/data-k="__other"/, 'data-k="__other" data-other') : "") +
         "</div>";
+    }
+    /* ---- send the collected documents: to an e-mail from Компании (links valid 7 days) or as real files via the phone's share sheet ---- */
+    function titleOf(key, gs) { var t = key === "other" ? "Други документи" : key; gs.forEach(function (g) { g[1].forEach(function (r) { if (r.key === key) t = r.title; }); }); custom.forEach(function (c) { if (c.key === key) t = c.title; }); return t; }
+    function sendHtml(gs) {
+      var groups = {}; docs.forEach(function (d) { (groups[d.folder] = groups[d.folder] || []).push(d); });
+      var opts = (recips || []).map(function (r) { return '<option value="' + esc(r.email) + '">' + esc(r.label) + "</option>"; }).join("");
+      return '<div class="ndl-snd"><div class="ndl-grp">Изпрати документите</div>' +
+        '<label>До (имейл от Компании или въведете)</label><div class="w"><select data-rcp><option value="">' + (recips ? "— изберете получател —" : "зареждане…") + "</option>" + opts + "</select></div>" +
+        '<input type="email" data-rcpx placeholder="или друг имейл, напр. ipoteki@bank.bg">' +
+        '<label>Тема</label><input type="text" data-subj value="' + esc("Документи – " + (cfg.who || cfg.title)) + '">' +
+        '<label>Документи (' + docs.length + ")</label>" + (docs.length ? Object.keys(groups).map(function (k) {
+          return '<div class="ndl-sg"><b>' + esc(titleOf(k, gs)) + "</b>" + groups[k].map(function (d) { var on = sendSel[d.id] !== false; return '<label class="ndl-ck"><input type="checkbox" data-sd="' + esc(d.id) + '"' + (on ? " checked" : "") + "> " + esc(d.name) + "</label>"; }).join("") + "</div>";
+        }).join("") : '<div class="ndl-sg">Още няма прикачени документи.</div>') +
+        '<div class="ndl-sa"><button type="button" class="ndl-add" data-mail>' + sv("up") + 'Изпрати по имейл</button><button type="button" class="ndl-add alt" data-share>' + sv("clip") + "Изпрати като файлове</button></div>" +
+        '<small class="ndl-note">„Изпрати по имейл“ отваря пощата с получателя, темата и линковете, групирани по документи (валидни 7 дни). „Като файлове“ прикачва самите файлове през менюто за споделяне на телефона (Mail, Gmail, Viber…); на компютър ги изтегля като .zip.</small></div>';
+    }
+    function loadRecips() {
+      if (recips) return;
+      D.load("companies").then(function (l) {
+        var out = []; if (cfg.email) out.push({ email: cfg.email, label: (cfg.who || "Клиент") + " – " + cfg.email });
+        l.forEach(function (c) {
+          if (c.email) out.push({ email: c.email, label: (c.name || "Компания") + " – " + c.email });
+          (c.emps || c.employees || []).forEach(function (e) { if (e.email) out.push({ email: e.email, label: (e.name || "") + (e.role ? " (" + e.role + ")" : "") + ", " + (c.name || "") + " – " + e.email }); });
+        });
+        recips = out; render();
+      }).catch(function () { recips = cfg.email ? [{ email: cfg.email, label: cfg.email }] : []; render(); });
+    }
+    function chosen() { return docs.filter(function (d) { return sendSel[d.id] !== false; }); }
+    function recipient() { var b = ctx.body, x = b.querySelector("[data-rcpx]"), s0 = b.querySelector("[data-rcp]"); return ((x && x.value.trim()) || (s0 && s0.value) || "").trim(); }
+    function sendMail() {
+      var list = chosen(), to = recipient(), subj = (ctx.body.querySelector("[data-subj]") || {}).value || "Документи";
+      if (!list.length) { cfg.say("Изберете поне един документ"); return; }
+      if (to && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) { cfg.say("Проверете имейла"); return; }
+      D.shareUrls(list.map(function (d) { return d.path; })).then(function (m) {
+        var gs = rows(), groups = {}, order = [];
+        list.forEach(function (d) { if (!groups[d.folder]) { groups[d.folder] = []; order.push(d.folder); } groups[d.folder].push(d); });
+        var body = "Здравейте,\n\nИзпращам документите" + (cfg.who ? " на " + cfg.who : "") + ":\n\n" + order.map(function (k) {
+          return "▪ " + titleOf(k, gs) + "\n" + groups[k].map(function (d) { return "   " + d.name + ": " + (m[d.path] || "(няма линк)"); }).join("\n");
+        }).join("\n\n") + "\n\nЛинковете са валидни 7 дни.\n\nПоздрави,\nНедвижими Имоти Надежда\n0898 977 370";
+        try { navigator.clipboard.writeText(body); } catch (e) {}
+        location.href = "mailto:" + encodeURIComponent(to) + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
+        cfg.say("Пощата се отваря – текстът е копиран и в клипборда");
+        if (cfg.onSend) cfg.onSend(to, list.length, "имейл");
+      }).catch(function (e) { cfg.say("Грешка: " + ((e && e.message) || e)); });
+    }
+    function sendFiles(btn) {
+      var list = chosen(); if (!list.length) { cfg.say("Изберете поне един документ"); return; }
+      btn.disabled = true; var old = btn.innerHTML; btn.textContent = "Подготвям файловете…";
+      var gs = rows();
+      D.shareUrls(list.map(function (d) { return d.path; }), 3600).then(function (m) {
+        return Promise.all(list.map(function (d) { return fetch(m[d.path]).then(function (r) { return r.blob(); }).then(function (b) { return new File([b], (titleOf(d.folder, gs) + " – " + d.name).replace(/[\\/:*?"<>|]+/g, "_"), { type: d.mime || b.type || "application/octet-stream" }); }); }));
+      }).then(function (files) {
+        var subj = (ctx.body.querySelector("[data-subj]") || {}).value || "Документи";
+        if (navigator.canShare && navigator.canShare({ files: files })) return navigator.share({ files: files, title: subj, text: subj + " – Недвижими Имоти Надежда" }).then(function () { if (cfg.onSend) cfg.onSend(recipient(), files.length, "файлове"); });
+        return (window.JSZip ? Promise.resolve() : new Promise(function (ok, bad) { var sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; sc.onload = ok; sc.onerror = bad; document.head.appendChild(sc); }))
+          .then(function () { var z = new window.JSZip(); files.forEach(function (f) { z.file(f.name, f); }); return z.generateAsync({ type: "blob" }); })
+          .then(function (blob) { var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = subj.replace(/[\\/:*?"<>|]+/g, "_") + ".zip"; document.body.appendChild(a); a.click(); a.remove(); cfg.say("Изтеглен .zip – прикачете го в имейла"); if (cfg.onSend) cfg.onSend(recipient(), files.length, "zip"); });
+      }).catch(function (e) { if (!(e && e.name === "AbortError")) cfg.say("Не успях да подготвя файловете: " + ((e && e.message) || e)); })
+        .then(function () { btn.disabled = false; btn.innerHTML = old; });
     }
     function render() { var y = ctx.body.parentNode ? ctx.body.scrollTop : 0; ctx.rerender(html()); }
     function fileList(key) { return key === "__other" ? docs.filter(function (d) { var all = []; rows().forEach(function (g) { g[1].forEach(function (r) { all.push(r.key); }); }); return all.indexOf(d.folder) < 0; }) : filesOf(key); }
@@ -253,6 +319,11 @@
       });
       b.onclick = function (e) {
         var row = e.target.closest("[data-k]"), key = row && row.getAttribute("data-k");
+        if (e.target.closest("[data-send]")) { sendOpen = !sendOpen; if (sendOpen) loadRecips(); render(); return; }
+        if (e.target.closest("[data-mail]")) { sendMail(); return; }
+        var shb = e.target.closest("[data-share]"); if (shb) { sendFiles(shb); return; }
+        var ck = e.target.closest("[data-sd]"); if (ck) { sendSel[ck.getAttribute("data-sd")] = ck.checked; return; }
+        if (e.target.closest(".ndl-snd")) return;
         if (e.target.closest("[data-addrow]")) {
           var t = (window.prompt("Име на новата графа (напр. „Пълномощно от съпруга“):") || "").trim(); if (!t) return;
           var k = "c_" + Date.now().toString(36); custom.push({ key: k, title: t }); openKey = k; cfg.saveSel(sel.slice(), custom.slice()); render(); return;
@@ -293,13 +364,14 @@
       },
       load: function () { return D.load("documents", { client_id: c.id }); },
       saveSel: function (s, custom) { c.credit = s[0]; c.creditIncome = s[1]; c.docRows = custom; return h.save({ credit: s[0], creditIncome: s[1], docRows: custom }).catch(function () {}); },
-      onUpload: h.onUpload, say: h.say || D.say
+      onUpload: h.onUpload, say: h.say || D.say, who: c.name, email: c.email,
+      onSend: function (to, n, how) { D.put("activities", { client_id: c.id, client: c.name, icon: "mail", text: "Изпратени документи (" + n + ", " + how + ")" + (to ? " до " + to : ""), at: new Date().toISOString() }).catch(function () {}); }
     });
   }
   function property(p, h) {
     var code = p.code || p.id;
     openList({
-      title: "Документи на имота – " + (p.code || p.title || ""), photo: "nd/ph11.jpg", base: "properties/" + code + "/docs/", link: { property_code: code, property: p.title || "" },
+      title: "Документи на имота – " + (p.code || p.title || ""), who: "имот " + (p.code || "") + (p.title ? " – " + p.title : ""), photo: "nd/ph11.jpg", base: "properties/" + code + "/docs/", link: { property_code: code, property: p.title || "" },
       sel: [{ label: "Специална ситуация", options: SITUATIONS, value: p.docSituation || "" }, { label: "Сделка", options: [["sale", "Продажба"], ["rent", "Наем"]], value: p.deal === "rent" ? "rent" : "sale" }],
       custom: p.docRows || [],
       rows: function (s) {

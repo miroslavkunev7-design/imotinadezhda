@@ -255,6 +255,10 @@
     fileUrl: function (path) {
       return client().storage.from("nd-files").createSignedUrl(path, 3600).then(function (r) { return r.data && r.data.signedUrl; });
     },
+    shareUrls: function (paths, secs) {
+      if (!paths.length) return Promise.resolve({});
+      return client().storage.from("nd-files").createSignedUrls(paths, secs || 604800).then(function (r) { var m = {}; (r.data || []).forEach(function (x) { if (x.signedUrl) m[x.path] = x.signedUrl; }); return m; });
+    },
     fileUrls: function (paths) {
       if (!paths.length) return Promise.resolve({});
       return client().storage.from("nd-files").createSignedUrls(paths, 3600).then(function (r) {
