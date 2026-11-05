@@ -44,3 +44,10 @@ html:not(.desk) #top{
   .nv.on{animation:none}
   *{transition-duration:.01ms!important}
 }
+
+/* App on the home screen: the menu sits above the iPhone home bar, the bar area keeps the dark wine colour */
+@media (display-mode:standalone){
+  html:not(.desk) #dock{bottom:env(safe-area-inset-bottom,0px)}
+  html:not(.desk) #dock::after{content:"";position:absolute;left:0;right:0;top:100%;height:env(safe-area-inset-bottom,0px);background:#3e0d16}
+  html:not(.desk) #stage{padding-bottom:env(safe-area-inset-bottom,0px)}
+}

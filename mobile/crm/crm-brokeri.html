@@ -719,7 +719,7 @@ html.desk .bm-bar{width:2048px}
 html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
-<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1012,13 +1012,9 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   var RESTR=[['own-clients','Само мои клиенти'],['no-finance','Без достъп до финансов модул'],['own-props','Само мои имоти'],['no-delete','Без изтриване на записи'],['lim-reports','Ограничен достъп до отчети'],['no-roles','Без промяна на роли']];
   var CLIENTS=[];
   var base=[
-    {id:'nadezhda',name:'Надежда Иванова',title:'Управител / Старши брокер',role:'Старши брокер',pos:'Старши брокер',phone:'+359 888 123 456',email:'nadejda@imotinadezhda.bg',office:'Шумен',photo:'broker-nadezhda-lg.jpg',thumb:'broker-nadezhda.jpg',rating:4.9,reviews:126,sales:true,rent:true,active:true,perms:['Огледи','Клиенти','Публикации'],restr:['own-clients','own-props','no-delete'],clients:['Иван Петров','Мария Стоянова','Георги Илиев','Елена Димитрова'],deals:48,listings:62},
-    {id:'miroslav',name:'Мирослав Петров',title:'Брокер недвижими имоти',role:'Брокер',pos:'Брокер',phone:'+359 888 222 333',email:'miroslav@imotinadezhda.bg',office:'Шумен',photo:'broker-miroslav.jpg',rating:4.8,reviews:94,sales:true,rent:true,active:true,perms:['Огледи','Клиенти'],restr:['own-clients','no-finance'],clients:['Мария Стоянова','Николай Стоянов'],deals:35,listings:41},
-    {id:'elena',name:'Елена Стоянова',title:'Брокер недвижими имоти',role:'Брокер',pos:'Брокер',phone:'+359 888 333 444',email:'elena@imotinadezhda.bg',office:'Варна',photo:'broker-elena.jpg',rating:4.8,reviews:87,sales:true,rent:true,active:true,perms:['Огледи','Клиенти'],restr:['own-clients'],clients:['Десислава Илиева'],deals:31,listings:38},
-    {id:'viktoria',name:'Виктория Георгиева',title:'Брокер недвижими имоти',role:'Брокер',pos:'Брокер',phone:'+359 888 444 555',email:'viktoria@imotinadezhda.bg',office:'Бургас',photo:'broker-viktoria.jpg',rating:4.7,reviews:73,sales:true,rent:true,active:true,perms:['Огледи','Клиенти'],restr:['own-clients'],clients:['Ралица Костова'],deals:27,listings:33},
-    {id:'georgi',name:'Георги Димитров',title:'Брокер недвижими имоти',role:'Брокер',pos:'Брокер',phone:'+359 888 555 666',email:'georgi@imotinadezhda.bg',office:'Шумен',photo:'broker-georgi.jpg',rating:4.7,reviews:68,sales:true,rent:false,active:true,perms:['Огледи','Публикации'],restr:['own-clients'],clients:['Петър Василев'],deals:24,listings:29},
-    {id:'maria',name:'Мария Николова',title:'Брокер недвижими имоти',role:'Брокер',pos:'Брокер',phone:'+359 888 666 777',email:'maria@imotinadezhda.bg',office:'Варна',photo:'broker-maria.jpg',rating:4.6,reviews:59,sales:false,rent:true,active:true,perms:['Огледи','Клиенти'],restr:['own-clients'],clients:[],deals:19,listings:22}
+    {id:'nadezhda',name:'Мирослав Кънев',title:'Управител / Брокер',role:'Управител',pos:'Управител',phone:'+359 898 977 370',email:'kuneto77@abv.bg',office:'Шумен',photo:'broker-kunev-lg.jpg',thumb:'broker-kunev.jpg',rating:5,reviews:0,sales:true,rent:true,active:true,perms:['Огледи','Клиенти','Публикации','Документи','Отчети'],restr:[],clients:[],deals:0,listings:0}
   ];
+  var DEMO={elena:1,georgi:1,maria:1,miroslav:1,viktoria:1};
   var favs={};
   try{favs=JSON.parse(localStorage.getItem('crm-broker-favs')||'{}')||{}}catch(e){}
   var brokers=[];
@@ -1231,6 +1227,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     CLIENTS.length=0;r[1].forEach(function(c){if(c.name)CLIENTS.push(c.name)});
     if(!r[0].length){brokers=base.map(function(b){return Object.assign({},b)});return ND.sync('brokers',brokers)}
     brokers=r[0];
+    if(brokers.some(function(b){return DEMO[b.id]})){brokers=brokers.filter(function(b){return !DEMO[b.id]});ND.sync('brokers',brokers).catch(function(){})}
     var paths=brokers.map(function(b){return b.photo}).filter(function(p){return p&&/^brokers\//.test(p)});
     return ND.fileUrls(paths).then(function(m){window.IMG=Object.assign(window.IMG||{},m)});
   }).then(function(){

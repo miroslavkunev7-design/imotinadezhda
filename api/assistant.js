@@ -30,7 +30,7 @@ async function rpc(name, args) {
 function today() { return new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Sofia" }); }
 
 function systemPrompt(staff, user, page) {
-  const base = "Ти си „Тед Асистент“ на агенция за недвижими имоти „Имоти Надежда“ (Шумен, Варна, Бургас, Нови пазар). Днес е " + today() + " (часова зона Europe/Sofia). " +
+  const base = "Ти си „Тед Асистент“ на агенция за недвижими имоти „Имоти Надежда“ (Шумен, Варна, Бургас). Днес е " + today() + " (часова зона Europe/Sofia). " +
     "Отговаряй винаги на български, кратко, ясно и учтиво. Никога не измисляй данни, цени, имоти, хора или лихви – използвай инструментите. " +
     "Не даваш правни или финансови гаранции; при правни въпроси давай обща информация и препоръчай адвокат/нотариус.";
   if (!staff) return base + " Говориш с посетител на публичния сайт. Можеш да търсиш само публикуваните обяви (функция search_listings) и да изпратиш запитване към брокер (функция send_inquiry) – " +
@@ -41,7 +41,10 @@ function systemPrompt(staff, user, page) {
     "3) След всяко записване кажи кратко какво е направено (име/код, полета). 4) Датите са YYYY-MM-DD; „утре“, „в петък“ изчислявай от днешната дата. 5) Суми в евро. " +
     "6) За качване на имот от папка със снимки и опис насочи към skill „АИ Качване на имот“ (бутонът най-горе в асистента). " +
     "7) За всичко актуално извън CRM (пазарни цени, лихви, закони, такси, новини, фирми) използвай web_search, а за конкретен линк – read_page; посочвай източника. " +
-    "8) За събиране на обяви от частни лица от сайтове насочи към skill „Събиране на имоти и клиенти“.";
+    "8) За събиране на обяви от частни лица от сайтове насочи към skill „Събиране на имоти и клиенти“. " +
+    "9) Никога не отговаряй „не мога“, ако някой инструмент може да опита. Действай сам, стъпка по стъпка, без да питаш излишно: първо CRM (clients.search, properties.search и др.), после web_search с 2–4 различни формулировки (име + град, име + фирма, име + имоти/обява, на кирилица и на латиница), после read_page на най-добрите линкове. Накрая дай обобщение с точки и източници. Ако нищо не е намерено, кажи какво точно си търсил и предложи следваща стъпка. " +
+    "10) Когато търсиш човек по име: покажи какво има в CRM и какво е публично и свързано с работа или имоти – фирма и длъжност, публични обяви, официални регистри (Търговски регистър), публикувани служебни контакти, статии. Не събирай лични подробности за частни лица (домашен адрес, семейство, лични профили, здраве) – ако такова се иска, кажи накратко, че не го събираш, и дай останалото. " +
+    "11) Ако служителят поиска нещо, което CRM инструментите позволяват (запис, редакция, среща, задача, търсене), направи го веднага и потвърди.";
 }
 function declarations(staff) {
   const web = [
@@ -129,14 +132,16 @@ module.exports = async (req, res) => {
   if (!contents.length) return send(res, 400, { ok: false, error: "Празно съобщение" });
   const sys = { parts: [{ text: systemPrompt(ctx.staff, user || {}, b.page) }] };
   const tools = [{ function_declarations: declarations(ctx.staff) }];
-  let lastErr = "";
+  let lastErr = ""; const t0 = Date.now();
   for (const model of MODELS) {
     try {
       const conv = contents.slice();
-      for (let step = 0; step < 7; step++) {
+      for (let step = 0; step < 10; step++) {
+        const last = step === 9 || Date.now() - t0 > 38000;
+        if (last && step) conv[conv.length - 1].parts.push({ text: "Спри с инструментите и дай окончателния отговор с това, което вече намери (с точки и източници)." });
         const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ system_instruction: sys, contents: conv, tools, generationConfig: { temperature: 0.3 } })
+          body: JSON.stringify(Object.assign({ system_instruction: sys, contents: conv, generationConfig: { temperature: 0.3 } }, last && step ? {} : { tools }))
         });
         const j = await r.json();
         if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
@@ -147,8 +152,7 @@ module.exports = async (req, res) => {
           return send(res, 200, { ok: true, text: text + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i, a) => x.url && a.findIndex((y) => y.url === x.url) === i).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, model });
         }
         conv.push({ role: "model", parts });
-        const results = [];
-        for (const c of calls) results.push({ functionResponse: { name: c.name, response: { result: await runTool(c, ctx) } } });
+        const results = await Promise.all(calls.map(async (c) => ({ functionResponse: { name: c.name, response: { result: await runTool(c, ctx) } } })));
         conv.push({ role: "user", parts: results });
       }
       return send(res, 200, { ok: true, text: "Задачата изисква твърде много стъпки – разделете я на по-малки.", actions: ctx.actions, staff: ctx.staff });
