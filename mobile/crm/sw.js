@@ -1,8 +1,8 @@
 /* Service worker for the installable CRM app. Network first (always fresh data);
    the page shell is kept for offline start, data always comes live from the database. */
-var CACHE = "nd-crm-v2";
+var CACHE = "nd-crm-v3";
 var SHELL = ["crm-nachalo.html", "crm-klienti.html", "crm-imoti.html", "crm-brokeri.html", "crm-kalendar.html", "crm-kompanii.html",
-  "crm-data.js", "crm-ui.js", "crm-global.js", "crm-klienti-tabs.js", "crm-imoti-tabs.js", "assets/logo.png", "assets/app-icon-round-192.png"];
+  "crm-data.js", "crm-ui.js", "crm-global.js", "crm-klienti-tabs.js", "crm-imoti-tabs.js", "assets/logo.png", "assets/app-icon3-round-192.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).catch(function () {}).then(function () { return self.skipWaiting(); }));
 });

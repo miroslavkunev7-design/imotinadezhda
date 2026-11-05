@@ -7,24 +7,24 @@
   "scope": "/mobile/crm/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f6d3b6",
+  "background_color": "#ffffff",
   "theme_color": "#4f0716",
   "lang": "bg",
   "icons": [
     {
-      "src": "assets/app-icon-round-192.png",
+      "src": "assets/app-icon3-round-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/app-icon-round-512.png",
+      "src": "assets/app-icon3-round-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/app-icon-maskable-512.png",
+      "src": "assets/app-icon3-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
