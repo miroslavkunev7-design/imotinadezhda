@@ -184,7 +184,7 @@
   }
   function q(id) { return W.querySelector("#" + id); }
   function get(id) { var el = q(id); return el ? String(el.value).trim() : ""; }
-  function num(id) { var v = get(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); }
+  function num(id) { var v = get(id).replace(/\s/g, ""); if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(v)) v = v.replace(/,/g, ""); v = v.replace(",", "."); return v === "" ? null : Number(v); }
 
   function fit() {
     if (!W || W.hidden) return;
@@ -283,5 +283,34 @@
     requestAnimationFrame(function () { bankBox.classList.add("show"); });
   }
   function closeBank() { if (!bankBox) return; bankBox.classList.remove("show"); setTimeout(function () { bankBox.hidden = true; bankBox.querySelector("iframe").src = "about:blank"; }, 220); }
-  window.NDUI = { open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
+  /* calculator block used inside the deal windows: price and commission come from the deal fields */
+  function calcHtml(rent) {
+    return group("Калкулатор", "calculator", "nd/ph09.jpg",
+      fld({ id: "k-vat", label: "ДДС върху комисионната (%)", icon: "landmark", value: 20, type: "number" }) +
+      (rent ? "" : fld({ id: "k-down", label: "Самоучастие (%)", icon: "coins", value: 20, type: "number" }) +
+        fld({ id: "k-rate", label: "Годишна лихва (%)", icon: "landmark", value: 2.5, type: "number", step: "0.01" }) +
+        fld({ id: "k-years", label: "Срок (години)", icon: "calendar", value: 30, type: "number" })) +
+      '<div class="ndres wide" id="k-res"></div>', { lw: 170 });
+  }
+  function calcBind(ctx, priceId, commId, rentId) {
+    function n(id) { var v = ctx.num(id); return v == null || isNaN(v) ? 0 : v; }
+    function r2(x) { return Math.round(x * 100) / 100; }
+    function run() {
+      var res = ctx.q("k-res"); if (!res) return;
+      var price = n(priceId), cp = n(commId), vat = n("k-vat"), comm = price * cp / 100, cv = comm * vat / 100;
+      var h = "<div><span>Комисионна без ДДС</span><b>" + money(r2(comm)) + " €</b></div><div><span>ДДС</span><b>" + money(r2(cv)) + " €</b></div>" +
+        '<div class="big"><span>Комисионна с ДДС</span><b>' + money(r2(comm + cv)) + " €</b></div>";
+      if (ctx.q("k-down")) {
+        var L = price * (1 - n("k-down") / 100), i = n("k-rate") / 100 / 12, m = Math.round(n("k-years") * 12);
+        var pay = m > 0 ? (i === 0 ? L / m : L * i / (1 - Math.pow(1 + i, -m))) : 0;
+        h += "<div><span>Размер на кредита</span><b>" + money(r2(L)) + " €</b></div><div><span>Самоучастие</span><b>" + money(r2(price - L)) + " €</b></div>" +
+          '<div class="big"><span>Месечна вноска</span><b>' + money(r2(pay)) + " €</b></div>" +
+          "<div><span>Обща сума за връщане</span><b>" + money(r2(pay * m)) + " €</b></div><div><span>Обща лихва</span><b>" + money(r2(pay * m - L)) + " €</b></div>";
+      }
+      res.innerHTML = h;
+    }
+    run(); if (ctx.body) { if (!ctx.body._calcRun) ctx.body.addEventListener("input", function () { ctx.body._calcRun(); }); ctx.body._calcRun = run; }
+    return run;
+  }
+  window.NDUI = { calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
 })();

@@ -31,7 +31,7 @@
   /* keep only stored client fields */
   function strip(c) {
     var o = { id: c.id };
-    ["cat", "name", "phone", "email", "egn", "type", "city", "hood", "budget", "status", "source", "notes", "contact_at", "broker", "rooms", "areaMin", "floorPref", "payment", "timeframe", "priority", "contactPref", "nextContact", "must", "leadType", "leadSource", "leadLink", "credit", "creditIncome", "docRows", "num"].forEach(function (k) { if (c[k] !== undefined) o[k] = c[k]; });
+    ["cat", "name", "phone", "email", "egn", "type", "city", "hood", "budget", "status", "source", "notes", "contact_at", "broker", "rooms", "areaMin", "floorPref", "payment", "timeframe", "priority", "contactPref", "nextContact", "must", "leadType", "leadSource", "leadLink", "isOwner", "ownerPrice", "ownerPaid", "ownerComm", "ownerIban", "ownerAddr", "ownerShare", "contractDate", "contractUntil", "exclusive", "ownerNotes", "ownerProps", "credit", "creditIncome", "docRows", "num"].forEach(function (k) { if (c[k] !== undefined) o[k] = c[k]; });
     return o;
   }
   function after(c) { return K.refresh().then(function () { if (c) K.reopen(c.id); }); }
@@ -344,6 +344,46 @@
     });
   }
 
+
+  /* ---------- Собственик: the client as owner – his data, properties and the amount due to him ---------- */
+  function owner(c) {
+    var G = U.group, props = [], ctx;
+    var due = function (o) { var a = Number(o.ownerPrice) || 0, b = Number(o.ownerPaid) || 0; return a ? money(Math.max(0, a - b)) + " €" : "—"; };
+    function form() {
+      var mine = props.filter(function (p) { return (p.client || "") === c.name || (c.ownerProps || []).indexOf(p.code) >= 0; });
+      return '<div class="wide">' + section("Имоти на собственика (" + mine.length + ")", "house", mine.map(function (p) {
+          return row("house", (p.num ? "И#" + p.num + " · " : "") + (p.title || p.code), [p.city, p.hood].filter(Boolean).join(", ") + (p.price ? " · " + money(p.price) + " €" : "") + (p.ownerPrice ? " · към собственика " + money(p.ownerPrice) + " €" : ""), p.status || "",
+            '<a href="crm-imoti.html#' + esc(p.id) + '" aria-label="Отвори имота">' + ic("arrow-r") + "</a>");
+        }), "Още няма имоти с този собственик – посочете го в картата на имота.") + "</div>" +
+        G("Данни на собственика", "user-round", "nd/ph14.jpg",
+          fld({ id: "w-is", label: "Собственик на имот", icon: "user", type: "select", value: c.isOwner ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
+          fld({ id: "w-share", label: "Дял от имота %", icon: "layout-grid", value: c.ownerShare, type: "number" }) +
+          fld({ id: "w-addr", label: "Адрес за кореспонденция", icon: "map-pin-house", value: c.ownerAddr, wide: true }) +
+          fld({ id: "w-props", label: "Кодове на имоти", icon: "house", value: (c.ownerProps || []).join(", "), wide: true, ph: "напр. P-1001, P-1005", list: "w-plist" }) +
+          '<datalist id="w-plist">' + props.map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.title || "") + "</option>"; }).join("") + "</datalist>", { lw: 160 }) +
+        G("Сума към собственика", "coins", "nd/ph16.jpg",
+          fld({ id: "w-price", label: "Сума към собственика €", icon: "coins", value: c.ownerPrice, type: "number" }) +
+          fld({ id: "w-paid", label: "Платено €", icon: "circle-dollar-sign", value: c.ownerPaid, type: "number" }) +
+          '<div class="ef"><label class="el">Остатък</label><b id="w-due" style="font:700 26px var(--serif);color:#7a0f22">' + due(c) + "</b></div>" +
+          fld({ id: "w-comm", label: "Комисионна от него %", icon: "coins", value: c.ownerComm, type: "number", step: "0.1" }) +
+          fld({ id: "w-iban", label: "IBAN за плащане", icon: "landmark", value: c.ownerIban, wide: true }), { lw: 160 }) +
+        G("Договор за посредничество", "file-pen", "nd/ph04.jpg",
+          fld({ id: "w-cdate", label: "Подписан на", icon: "calendar", value: c.contractDate, type: "date" }) +
+          fld({ id: "w-cuntil", label: "Валиден до", icon: "calendar-check", value: c.contractUntil, type: "date" }) +
+          fld({ id: "w-excl", label: "Ексклузив", icon: "star", type: "select", value: c.exclusive ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
+          fld({ id: "w-notes", label: "Бележки", icon: "file-text", value: c.ownerNotes, type: "ta", wide: true }), { lw: 160 });
+    }
+    U.open({ title: "Собственик – " + c.name, icon: "user-round", photo: "nd/ph13.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запази",
+      ready: function (x) { ctx = x; D.load("properties").then(function (l) { props = l; x.rerender(form()); }).catch(function () { x.rerender(form()); }); },
+      ready2: function () { var a = ctx.q("w-price"), b = ctx.q("w-paid"), d = ctx.q("w-due"); [a, b].forEach(function (e) { if (e) e.addEventListener("input", function () { d.textContent = due({ ownerPrice: ctx.num("w-price"), ownerPaid: ctx.num("w-paid") }); }); }); },
+      onSave: function (g) {
+        var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
+        var o = strip(c);
+        Object.assign(o, { isOwner: g("w-is") === "1", ownerShare: n("w-share"), ownerAddr: g("w-addr"), ownerProps: g("w-props").split(/[,;\s]+/).filter(Boolean),
+          ownerPrice: n("w-price"), ownerPaid: n("w-paid"), ownerComm: n("w-comm"), ownerIban: g("w-iban"), contractDate: g("w-cdate"), contractUntil: g("w-cuntil"), exclusive: g("w-excl") === "1", ownerNotes: g("w-notes") });
+        return D.put("clients", o).then(function (s) { return log(s, "user-round", "Обновени данни като собственик"); }).then(function () { K.say("Данните за собственика са запазени"); return after(c); });
+      } });
+  }
   /* ---------- Сделка ---------- */
   function deal(c) {
     var list = [], ctx, editing = null;
@@ -362,9 +402,11 @@
         fld({ id: "s-comm", label: "Комисионна (%)", icon: "coins", value: d.commission_pct, type: "number", step: "0.1" }) +
         fld({ id: "s-dead", label: "Краен срок", icon: "calendar", value: d.deadline, type: "date" }) +
         fld({ id: "s-paid", label: "Платено (€)", icon: "coins", value: d.paid, type: "number" }) +
-        fld({ id: "s-note", label: "Бележка", icon: "file-text", value: d.note, type: "ta", wide: true }), { lw: 120 });
+        fld({ id: "s-note", label: "Бележка", icon: "file-text", value: d.note, type: "ta", wide: true }), { lw: 120 }) +
+        U.calcHtml(c.cat === "rent");
     }
     function bind() {
+      if (ctx.q("k-res")) U.calcBind(ctx, "s-amount", "s-comm");
       var box = ctx.q("k-deals"); if (!box) return;
       box.onclick = function (ev) {
         var rm = ev.target.closest("[data-rm]"), ed = ev.target.closest("[data-ed]");
@@ -440,6 +482,7 @@
   }
 
   window.NDKTabs = {
+    owner: owner,
     init: function (hooks) { K = hooks; },
     saveField: function (c, patch) {
       var o = strip(c); Object.keys(patch).forEach(function (k) { o[k] = patch[k]; });

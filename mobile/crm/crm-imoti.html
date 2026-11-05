@@ -505,7 +505,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 .acc .body .bankbtn{margin-top:14px;height:66px;padding:0 30px;border-radius:33px;display:inline-flex;align-items:center;gap:16px;color:#fff;font:700 30px/1 var(--cond);
   background:linear-gradient(180deg,#a3213a,#6a0a1d);box-shadow:0 0 0 2px #e6b866,0 0 10px rgba(255,200,120,.5)}
 .acc .note{font-size:26px;color:#7a5a52;margin-top:10px}
-.pm-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:30px 22px 0}
+.pm-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:30px 22px 0}
 .pa{height:163px;border-radius:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font:700 32px/1 var(--cond);color:#2b1414;
   background:linear-gradient(180deg,#fffdf9 0%,#fbefe4 100%);box-shadow:0 0 0 1.5px rgba(231,196,160,.6),0 0 14px rgba(255,226,196,.9),0 5px 12px rgba(120,50,20,.22),inset 0 -2px 3px rgba(230,190,160,.3)}
 .pa svg.i{font-size:56px;color:#8c0d22;stroke-width:1.7}
@@ -527,7 +527,7 @@ html.desk .pm-right{position:absolute;left:1036px;top:16px;width:1000px;height:1
 html.desk .pm-right .pm-sec{margin:0 0 16px}
 html.desk .pm-right .pm-sec:first-child{margin-top:68px}
 html.desk .pm-acc{padding:0}
-html.desk .pm-actions{position:absolute;left:0;top:1074px;width:1024px;padding:0 22px}
+html.desk .pm-actions{position:absolute;left:0;top:1074px;width:1024px;padding:0 22px;grid-template-columns:repeat(6,1fr);gap:12px}
 html.desk .pm-actions .pa{height:150px}
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
@@ -770,6 +770,8 @@ html.desk .pm-actions .pa{height:150px}
         <button class="pa" data-pa="share"><svg class="i"><use href="#share-2"/></svg>Сподели</button>
         <button class="pa hot" data-pa="publish"><svg class="i"><use href="#megaphone"/></svg><span>Публикувай</span></button>
         <button class="pa" data-pa="archive"><svg class="i"><use href="#archive"/></svg><span>Архив</span></button>
+        <button class="pa" data-pa="pdocs"><svg class="i"><use href="#file-text"/></svg><span>Документи</span></button>
+        <button class="pa" data-pa="owner"><svg class="i"><use href="#user"/></svg><span>Собственик</span></button>
       </div>
     </div>
   </div>
@@ -1062,6 +1064,7 @@ html.desk .pm-actions .pa{height:150px}
     if(a==='edit'){window.NDProps.edit(cur);return}
     if(a==='publish'){if(cur.status==='Публикуван'){say('Имотът вече е публикуван');return}window.NDProps.setStatus(cur,'Публикуван');return}
     if(a==='archive'){window.NDProps.setStatus(cur,cur.status==='Архивиран'?'Активен':'Архивиран');return}
+    if(a==='owner'){window.NDProps.owner(cur);return}
     if(a==='bank'){window.NDUI.bank({client:cur.client,price:cur.deal==='sale'?cur.price:'',city:cur.city});return}
     if(a==='pdocs'&&window.NDDocs){var pp=cur;window.NDDocs.property(pp,{say:say,save:function(patch){var o=window.NDProps.stored(pp);Object.keys(patch).forEach(function(k){o[k]=patch[k]});return ND.put('properties',o)},onUpload:function(t,n){var o=window.NDProps.stored(pp);o.log=(o.log||[]).slice(0,49);o.log.unshift({icon:'file-text',text:'Прикачен документ: '+t+(n>1?' ('+n+' файла)':''),at:new Date().toISOString()});pp.log=o.log;ND.put('properties',o).catch(function(){})}});return}
     say(t)});

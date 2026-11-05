@@ -47,6 +47,7 @@
         fld({ id: "s-bank", label: "Банка", icon: "landmark", value: d.bank, list: "s-banks", ph: "при кредит" }) +
         '<datalist id="s-banks">' + ["Банка ДСК", "ОББ", "УниКредит Булбанк", "Fibank", "Пощенска банка", "Алианц Банк", "ЦКБ", "ПроКредит Банк", "Тексим Банк", "Инвестбанк", "БАКБ", "Общинска банка", "D Commerce Bank", "Токуда Банк"].map(function (b) { return '<option value="' + b + '">'; }).join("") + "</datalist>" +
         fld({ id: "s-loan", label: "Одобрен кредит (€)", icon: "coins", value: d.loan, type: "number" }), { lw: 140 }) +
+        U.calcHtml(false) +
         U.group("Срокове и нотариус", "calendar", "nd/ph04.jpg",
         fld({ id: "s-dview", label: "Оглед", icon: "calendar-check", value: d.d_view, type: "date" }) +
         fld({ id: "s-dpre", label: "Предварителен договор", icon: "file-pen", value: d.d_pre, type: "date" }) +
@@ -70,7 +71,7 @@
     U.open({
       title: "Сделки", icon: "handshake", photo: "nd/ph11.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запиши сделката", keepOpen: true, required: ["s-title"],
       ready: function (x) { ctx = x; D.ready().then(function () { return Promise.all([D.load("deals"), D.load("clients"), D.load("properties").catch(function () { return []; }), D.load("brokers").catch(function () { return []; })]); }).then(function (r) { list = r[0]; clients = r[1]; props = r[2] || []; brokers = r[3] || []; x.rerender(form()); if (opts.focusNew) { var t = x.q("s-title"); if (t) t.scrollIntoView({ block: "center" }); } }); },
-      ready2: bind,
+      ready2: function () { bind(); if (ctx.q("k-res")) U.calcBind(ctx, "s-amount", "s-comm"); },
       onSave: function (g) {
         var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
         var c = clients.filter(function (x) { return x.id === g("s-client"); })[0];

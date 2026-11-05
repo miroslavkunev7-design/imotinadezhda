@@ -24,7 +24,7 @@
   }
   function stored(p) {
     var o = {};
-    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
+    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "ownerEmail", "ownerEgn", "ownerAddr", "ownerIban", "ownerShare", "coOwners", "ownerPaid", "ownerComm", "contractDate", "contractUntil", "ownerContact", "ownerNotes", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
     if (p.id) o.id = p.id;
     return o;
   }
@@ -248,5 +248,38 @@
     var del = document.querySelector("#nd-f-del span"); if (del) del.textContent = "Изчисти";
   }
 
-  window.NDProps = { init: function (h) { P = h; }, ready: function () { return !!P; }, edit: edit, setStatus: setStatus, more: more, stored: stored };
+
+  /* ---------- Собственик: owner data, the amount due to the owner, contract ---------- */
+  function owner(p0) {
+    var p = JSON.parse(JSON.stringify(stored(p0))), G = U.group, f = fld, names = P.clientNames();
+    var due = function () { var a = Number(p.ownerPrice) || 0, b = Number(p.ownerPaid) || 0; return a ? U.money(Math.max(0, a - b)) + " €" : "—"; };
+    var html =
+      G("Собственик", "user", "nd/ph14.jpg",
+        f({ id: "o-name", label: "Име", icon: "user", value: p.client, list: "o-cl", wide: true }) + '<datalist id="o-cl">' + names.map(function (n) { return '<option value="' + esc(n) + '">'; }).join("") + "</datalist>" +
+        f({ id: "o-phone", label: "Телефон", icon: "phone", value: p.ownerPhone, type: "tel" }) + f({ id: "o-mail", label: "Имейл", icon: "mail", value: p.ownerEmail, type: "email" }) +
+        f({ id: "o-egn", label: "ЕГН", icon: "id-card", value: p.ownerEgn }) + f({ id: "o-share", label: "Дял от имота %", icon: "layout-grid", value: p.ownerShare, type: "number" }) +
+        f({ id: "o-addr", label: "Адрес за кореспонденция", icon: "map-pin-house", value: p.ownerAddr, wide: true }) +
+        f({ id: "o-co", label: "Съсобственици", icon: "users", value: p.coOwners, wide: true, ph: "имена и телефони, ако има" }) +
+        f({ id: "o-cpref", label: "Връзка чрез", icon: "message-square", type: "select", value: p.ownerContact || "", options: ["", "Телефон", "Viber", "WhatsApp", "Имейл", "SMS"].map(function (x) { return [x, x || "—"]; }) }), { lw: 150 }) +
+      G("Сума към собственика", "coins", "nd/ph16.jpg",
+        f({ id: "o-price", label: "Цена към собственика €", icon: "coins", value: p.ownerPrice, type: "number" }) + f({ id: "o-paid", label: "Платено на собственика €", icon: "circle-dollar-sign", value: p.ownerPaid, type: "number" }) +
+        '<div class="ef"><label class="el">Остатък</label><b id="o-due" style="font:700 26px var(--serif);color:#7a0f22">' + due() + "</b></div>" +
+        f({ id: "o-comm", label: "Комисионна от собственика %", icon: "coins", value: p.ownerComm, type: "number", step: "0.1" }) +
+        f({ id: "o-iban", label: "IBAN за плащане", icon: "landmark", value: p.ownerIban, wide: true }), { lw: 170 }) +
+      G("Договор за посредничество", "file-pen", "nd/ph04.jpg",
+        f({ id: "o-cdate", label: "Подписан на", icon: "calendar", value: p.contractDate, type: "date" }) + f({ id: "o-cuntil", label: "Валиден до", icon: "calendar-check", value: p.contractUntil, type: "date" }) +
+        f({ id: "o-excl", label: "Ексклузив", icon: "star", type: "select", value: p.exclusive ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
+        f({ id: "o-keys", label: "Ключ при нас", icon: "key-round", type: "select", value: p.keys ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
+        f({ id: "o-notes", label: "Бележки за собственика", icon: "file-text", value: p.ownerNotes, type: "ta", wide: true }), { lw: 150 });
+    U.open({ title: "Собственик – " + (p.title || p.code), icon: "user", photo: "nd/ph13.jpg", html: html, saveText: "Запази",
+      ready: function (x) { var a = x.q("o-price"), b = x.q("o-paid"), d = x.q("o-due"); [a, b].forEach(function (e) { if (e) e.addEventListener("input", function () { p.ownerPrice = Number(a.value) || 0; p.ownerPaid = Number(b.value) || 0; d.textContent = due(); }); }); },
+      onSave: function (g) {
+        var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
+        Object.assign(p, { client: g("o-name"), ownerPhone: g("o-phone"), ownerEmail: g("o-mail"), ownerEgn: g("o-egn"), ownerShare: n("o-share"), ownerAddr: g("o-addr"), coOwners: g("o-co"), ownerContact: g("o-cpref"),
+          ownerPrice: n("o-price"), ownerPaid: n("o-paid"), ownerComm: n("o-comm"), ownerIban: g("o-iban"), contractDate: g("o-cdate"), contractUntil: g("o-cuntil"), exclusive: g("o-excl") === "1", keys: g("o-keys") === "1", ownerNotes: g("o-notes") });
+        addLog(p, "user", "Обновени данни за собственика");
+        return D.put("properties", p).then(function (s) { P.say("Данните за собственика са запазени"); return P.refresh().then(function () { P.reopen(s.id); }); });
+      } });
+  }
+  window.NDProps = { owner: owner, init: function (h) { P = h; }, ready: function () { return !!P; }, edit: edit, setStatus: setStatus, more: more, stored: stored };
 })();

@@ -533,7 +533,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
         <button class="ma" data-act="Срещи"><svg class="i"><use href="#calendar-check"/></svg>Срещи</button>
         <button class="ma" data-act="Документи"><svg class="i"><use href="#file-text"/></svg>Документи</button>
         <button class="ma" data-act="Банка"><svg class="i"><use href="#landmark"/></svg>Банка</button>
-        <button class="ma" data-act="Калкулатор"><svg class="i"><use href="#calculator"/></svg>Калкулатор</button>
+        <button class="ma" data-act="Собственик"><svg class="i"><use href="#user-round"/></svg>Собственик</button>
         <button class="ma" data-act="Сделка"><svg class="i"><use href="#handshake"/></svg>Сделка</button>
       </div>
 
@@ -881,7 +881,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     var act=b.getAttribute('data-act'),cc=clients.filter(function(x){return x.id===win.dataset.id})[0];
     if(act==='Банка'){openBank(win.dataset.client);return}
     if(!cc)return;
-    var T=window.NDKTabs,map={'Редактирай':T.edit,'Срещи':T.meetings,'Документи':T.docs,'Калкулатор':T.calc,'Сделка':T.deal,'Всички активности':T.acts};
+    var T=window.NDKTabs,map={'Редактирай':T.edit,'Срещи':T.meetings,'Документи':T.docs,'Калкулатор':T.calc,'Собственик':T.owner,'Сделка':T.deal,'Всички активности':T.acts};
     if(map[act])map[act](cc);else say(act+' – '+(win.dataset.client||''))});
   /* bank module opens over the client card, on the same page */
   var bankBox=null;
