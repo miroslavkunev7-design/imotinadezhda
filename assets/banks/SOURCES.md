@@ -1,41 +1,41 @@
-# Bank card assets (Wikimedia Commons)
+# Bank card assets
 
-Official marks and real branch photographs only. Downloaded 2026-11-05.
+Official marks from Wikimedia Commons. Branch photos are **night storefronts** in the same class as the DSK office the user supplied — not Wikimedia street shots of old buildings.
 
 ## Logos
 
 | File | Bank | Commons file | License |
 | --- | --- | --- | --- |
-| logos/dsk.svg | Банка ДСК | File:DSK Bank logo.svg (source dskbank.bg) | Public domain (simple geometry) |
+| logos/dsk.svg | Банка ДСК | File:DSK Bank logo.svg | Public domain (simple geometry) |
 | logos/ubb.svg | ОББ | File:ОББ logo.svg | Public domain (simple geometry) |
 | logos/unicredit.svg | UniCredit Bulbank | File:Unicredit Bulbank logo.svg | Public domain (simple geometry) |
 | logos/fibank.svg | Fibank | File:First Investment Bank logo.svg | Public domain (simple geometry) |
 | logos/postbank.svg | Postbank | File:Postbank Bulgaria logo.svg | Public domain (simple geometry) |
-| logos/postbank-2026.png | Postbank (current wordmark, 3150×866) | File:Postbank Bulgaria logo 2026.png | Public domain |
-| logos/allianz.svg | Allianz Bank | File:Allianz logo.svg (group mark) | Public domain |
+| logos/postbank-2026.png | Postbank (current wordmark) | File:Postbank Bulgaria logo 2026.png | Public domain |
+| logos/allianz.svg | Allianz Bank | File:Allianz logo.svg | Public domain |
 | logos/ccb.png | ЦКБ | File:Ccblogo.png | CC BY-SA 4.0 |
 | logos/procredit.svg | ПроКредит Банк | File:Logo ProCredit Bank.svg | Public domain |
 | logos/raiffeisen.svg | Райфайзен Банк | File:Raiffeisen Bank International logo.svg | Public domain |
 
-Missing official logos on Commons (no invented marks used): i Bank (International Asset Bank), Тексим Банк.
+Missing official logos on Commons (no invented marks used on the card badge): i Bank, Тексим Банк. Those two cards use white backlit **name letters** on the fascia only.
 
-## Branch photos
+## Branch photos (night storefronts)
 
-JPEGs on the cards are lossless crops of the same Commons originals (entrance / fascia / signage), not new offices and not generated images. Full-frame originals are kept in the agent store at `media/banks/branches/wide/`.
+Composition: close-up night ground-floor branch, full-width glowing brand fascia, white backlit name/logo, floor-to-ceiling glass, interior lights, ATM bay.
 
-| File | Used as | Commons file | Crop size (from original) | License |
-| --- | --- | --- | --- | --- |
-| branches/dsk-sofia.jpg | DSK HQ entrance fascia, Sofia | File:DSK Bank Sofia Bulgaria.JPG | 1700×1240 from 3000×4000 | CC BY-SA 3.0 |
-| branches/dsk-varna.jpg | unused in UI (former Société Générale Expressbank, now DSK; old signage) | File:Societe Generale in Varna, with Bulgaria and EU flags.jpg | 1200×1600 uncropped | CC BY 4.0 |
-| branches/ubb-varna.jpg | ОББ / UBB storefront, Varna (WEAK shop cropped out) | File:Building on main street - Varna.jpg | 1010×752 from 2000×2179 | CC BY-SA 3.0 |
-| branches/unicredit-sofia.jpg | UniCredit Bulbank door + sign, Sofia | File:UniCredit Bulbank - Sofia Ulitsa Knjaz Aleksander IMG 0561.jpg | 1763×1705 from 2592×4608 | CC BY-SA 4.0 |
-| branches/fibank-ruse.jpg | Fibank ground-floor signage, Ruse | File:Ruse TodorBozhinov 09.08.09 (76).JPG | 1746×1056 from 2816×2112 | CC BY-SA 2.5 |
-| branches/postbank-sofia.jpg | Postbank Dondukov fascia, Sofia | File:Postbank Dondukov Offiice.JPG | 3500×900 from 5184×3456 | CC BY-SA 4.0 |
-| branches/allianz-veliko-tarnovo.jpg | Allianz canopy + door, Veliko Tarnovo | File:Marno Pole Street 2, Veliko Tarnovo.jpg | 1320×1320 from 4080×3072 | CC BY-SA 4.0 |
-| branches/ccb-varna.jpg | ЦКБ ground-floor fascia, Varna | File:20140610 Varna 08.jpg | 2370×820 from 3968×2976 | CC BY-SA 4.0 |
-| branches/ibank-yambol.jpg | International Asset Bank door, Yambol | File:City of Yambol, Bulgaria 2 - 19.05.2012.jpg | 1229×998 from 2560×1920 | CC BY-SA 3.0 |
-| branches/texim-lyubimets.jpg | Texim Bank canopy + door, Lyubimets | File:Texim Bank office in Lyubimets.jpg | 1959×1843 from 4080×3072 | CC BY-SA 4.0 |
-| branches/raiffeisen-sofia.jpg | Raiffeisen BANK letters + doors, Sofia | File:Raiffeisenbank-Bulgaria-central-office.jpg | 1452×1517 from 2592×1944 | CC BY-SA 3.0 |
-| branches/procredit-burgas.jpg | ProCredit Bank door + sign, Burgas | File:Къща, ул. Митрополит Симеон, 1 - panoramio.jpg | 1224×1371 from 2448×3264 | CC BY 3.0 |
+| File | Bank | Source | Size |
+| --- | --- | --- | --- |
+| branches/dsk-night.jpg | Банка ДСК | User-supplied DSK night storefront (exact look) | 840×645 |
+| branches/ubb-night.jpg | ОББ | Generated clone of that storefront, fascia #004a99, official ОББ mark | 1152×864 |
+| branches/unicredit-night.jpg | UniCredit | Generated clone, fascia #e2001a, UniCredit mark | 1152×864 |
+| branches/fibank-night.jpg | Fibank | Generated clone, fascia #0053a0, Fibank diamond | 1152×864 |
+| branches/postbank-night.jpg | Postbank | Generated clone, fascia #da291c, Postbank P | 1152×864 |
+| branches/allianz-night.jpg | Allianz Bank | Generated clone, fascia #003781, Allianz wordmark | 1152×864 |
+| branches/ccb-night.jpg | ЦКБ | Generated clone, fascia #005aab, CCB rings | 1152×864 |
+| branches/ibank-night.jpg | i Bank | Generated clone, fascia #0099cc, letters only (no official SVG) | 1152×864 |
+| branches/texim-night.jpg | Тексим | Generated clone, fascia #004b93, letters ТЕКСИМ only | 1152×864 |
+| branches/raiffeisen-night.jpg | Райфайзен | Generated clone, fascia #ffee00, Gable Cross | 1152×864 |
+| branches/procredit-night.jpg | ПроКредит | Generated clone, fascia #f29100, ProCredit swirl | 1152×864 |
 
-No Wikimedia photos found of Shumen branches. БНБ is in the credit-module list but omitted from public partner cards (central bank, not a mortgage lender).
+Store copies: `/cursor/stores/bc-01a19876-3883-7511-ae72-cb6e59cf6bcc/media/banks/branches/`
+DSK reference: `media/banks/ref-dsk-night-storefront.jpg`
