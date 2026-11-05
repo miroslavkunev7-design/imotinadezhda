@@ -358,6 +358,35 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 .bank-ov{position:fixed;inset:0;z-index:80;background:rgba(40,5,12,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .22s}
 .bank-ov.show{opacity:1}.bank-ov[hidden]{display:none}
 .bank-ov iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}
+
+/* Данни за клиента – one block: main fields + drop-down groups */
+.m-data{isolation:isolate}
+.m-data::after{content:'';position:absolute;right:0;top:0;bottom:0;width:55%;background:url(assets/nd/ph18.jpg) center/cover;opacity:.6;pointer-events:none;z-index:-1;-webkit-mask-image:linear-gradient(270deg,#000 20%,rgba(0,0,0,.5) 60%,transparent 100%);mask-image:linear-gradient(270deg,#000 20%,rgba(0,0,0,.5) 60%,transparent 100%);border-radius:inherit}
+.dgrid{display:block;padding:16px 18px 20px}
+.dmain,.dgb{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.ditem{display:flex;flex-direction:column;gap:7px;min-width:0;position:relative}
+.ditem.wide{grid-column:1/-1}
+.ditem .dl{display:flex;align-items:center;gap:9px;font:700 24px/1.1 var(--cond);color:#6b0a1c;padding-left:6px;text-shadow:0 0 6px #fff8f0}
+.ditem .dl svg.i{font-size:28px;color:#7b1020;stroke-width:2}
+.din,.dro{box-sizing:border-box;width:100%;height:66px;border-radius:22px;border:1.5px solid rgba(227,178,94,.85);background:linear-gradient(180deg,rgba(255,253,250,.97),rgba(251,239,229,.95));padding:0 20px;font:400 27px/1 var(--cond);color:#1f1111;box-shadow:0 0 10px rgba(255,214,150,.55),inset 0 1px 0 #fff;outline:0;transition:box-shadow .25s,border-color .25s}
+.din::placeholder{color:#9a7a6a;font-style:italic}
+.din:focus{border-color:#d9a95a;box-shadow:0 0 0 2px #edc47a,0 0 16px rgba(255,200,140,.8)}
+.dro{display:flex;align-items:center;color:#4e3a33}
+.dsw{position:relative;display:block}
+.dsw select{appearance:none;-webkit-appearance:none;padding-right:54px;cursor:pointer}
+.dsw svg.i{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:26px;color:#7a0f22;pointer-events:none}
+.ditem.saving .din{opacity:.6}
+.ditem.saved .din{border-color:#5fa82a;box-shadow:0 0 0 2px rgba(95,168,42,.6),0 0 14px rgba(120,190,60,.55)}
+.dgrp{margin-top:16px;border-radius:24px;background:rgba(255,252,248,.72);box-shadow:0 0 0 1.5px rgba(227,178,94,.6),0 0 12px rgba(255,226,190,.75)}
+.dgh{display:flex;align-items:center;gap:12px;width:100%;height:76px;padding:0 22px;border:0;background:none;cursor:pointer;font:700 28px/1 Georgia,serif;color:#690608;text-align:left}
+.dgh svg.i{font-size:30px;color:#7b1020;flex:none}
+.dgh span{flex:1;min-width:0}
+.dgh em{font:700 22px/1 var(--cond);font-style:normal;color:#6b0a1c;padding:7px 14px;border-radius:16px;background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1px rgba(227,178,94,.8)}
+.dgh svg.i:last-child{transition:transform .25s}
+.dgrp.open .dgh svg.i:last-child{transform:rotate(180deg)}
+.dgb{display:none;padding:2px 18px 20px}
+.dgrp.open .dgb{display:grid}
+html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1fr}
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
@@ -794,11 +823,11 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     ['type','house','Вид имот','field-home.webp','sel','TYPES'],['city','pin','Град','field-shumen.webp','text','city'],
     ['hood','map-pin-house','Квартал','field-location.webp','text','hood'],['budget','coins','Бюджет','field-budget.webp','num'],
     ['rooms','bed-double','Стаи – поне','nd/ph05.jpg','num'],['areaMin','m2','Площ от м²','nd/ph03.jpg','num'],
-    ['floorPref','building-2','Етаж','nd/ph09.jpg','sel','FLOORP'],['payment','circle-dollar-sign','Плащане','field-budget.webp','sel','PAY'],
+    ['floorPref','building-2','Етаж','nd/ph09.jpg','sel','FLOORP'],['payment','coins','Плащане','field-budget.webp','sel','PAY'],
     ['timeframe','clock','Срок','field-calendar.webp','sel','TIMEF'],['priority','star','Приоритет','field-status.webp','sel','PRIO'],
-    ['contactPref','message-square','Връзка чрез','field-email.webp','sel','CONTACT'],['nextContact','calendar-check','Следващ контакт','field-calendar.webp','date'],
+    ['contactPref','mail','Връзка чрез','field-email.webp','sel','CONTACT'],['nextContact','calendar-check','Следващ контакт','field-calendar.webp','date'],
     ['leadType','tag','Тип','field-source.webp','sel',[['','—'],['Търси','Търси'],['Продава се','Продава се']]],['status','users','Статус','field-status.webp','sel','STATUSES'],['source','tag','Източник','field-source.webp','sel','SOURCES'],
-    ['contact','calendar','Дата на контакт','field-calendar.webp','ro'],['must','badge-check','Задължително да има','field-notes.webp','text',null,true]];
+    ['contact','calendar','Дата на контакт','field-calendar.webp','ro'],['must','star','Задължително да има','field-notes.webp','text',null,true]];
   function fval(c,d){var k=d[0],v=c[k];
     if(k==='cat')return v==='rent'?'Наем':'Покупка';
     if(k==='budget')return budget(c);
@@ -807,44 +836,52 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     if(k==='egn'&&v)return esc(String(v).replace(/^(\d{0,6})/,function(m){return m.replace(/\d/g,'*')}));
     if((k==='rooms'||k==='areaMin')&&v)return esc(v+(k==='areaMin'?' м²':''));
     return v==null||v===''?'<span class="emp">+ добави</span>':esc(v)}
-  function renderFields(c){
-    document.getElementById('m-fields').innerHTML=FDEF.map(function(d,i){
-      return '<div class="fcell'+(d[6]?' wide':'')+(d[4]==='ro'?' ro':'')+'" style="--fh:104px" data-fk="'+i+'" role="button" tabindex="0" aria-label="'+esc(d[2])+' – промени"><span class="fp" style="background-image:url('+img(d[3])+')"></span>'+
-        '<span class="fi">'+ic(d[1])+'</span><span class="fl">'+esc(d[2])+'</span><span class="fv">'+fval(c,d)+'</span>'+(d[4]==='ro'?'':'<span class="fed">'+ic('pencil')+'</span>')+'</div>'}).join('')}
-  document.getElementById('m-fields').addEventListener('click',function(e){
-    var cell=e.target.closest('[data-fk]');if(!cell||cell.classList.contains('editing')||cell.classList.contains('ro'))return;
-    var c=clients.filter(function(x){return x.id===win.dataset.id})[0];if(!c)return;
-    var d=FDEF[+cell.getAttribute('data-fk')],k=d[0],T=window.NDKTabs,O=T.OPTS||{},v=c[k]==null?'':c[k],ed;
+  /* "Данни за клиента": one block – the main fields always open, the rest in drop-down groups; every change is saved at once */
+  var FMAIN=['phone','email','cat','type','city','hood','budget','status'];
+  var FGRP=[['Изисквания към имота','house',['rooms','areaMin','floorPref','must']],['Плащане и срокове','coins',['payment','timeframe','priority','nextContact']],['Връзка и източник','mail',['contactPref','leadType','source','contact','egn']]];
+  var fOpen={};
+  function fdef(k){return FDEF.filter(function(d){return d[0]===k})[0]}
+  function fctl(c,d){var k=d[0],T=window.NDKTabs,O=(T&&T.OPTS)||{},v=c[k]==null?'':c[k];
     var opts=Array.isArray(d[5])?d[5]:(O[d[5]]||null);
-    if(d[4]==='sel'&&opts){ed='<select class="fin">'+opts.map(function(o){var ov=Array.isArray(o)?o[0]:o,ot=Array.isArray(o)?o[1]:(o||'—');return '<option value="'+esc(ov)+'"'+(String(ov)===String(v)?' selected':'')+'>'+esc(ot)+'</option>'}).join('')+'</select>'}
-    else{var ty=d[4]==='num'?'number':d[4]==='date'?'date':d[4]==='tel'?'tel':d[4]==='email'?'email':'text';
-      var lst=d[5]==='city'?' list="fl-cities"':d[5]==='hood'?' list="fl-hoods"':'';
-      ed='<input class="fin" type="'+ty+'"'+(ty==='number'?' inputmode="decimal"':'')+lst+' value="'+esc(v)+'">'}
-    var P=window.NDPlaces,dl=d[5]==='city'&&P?'<datalist id="fl-cities">'+P.cities.map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist>':
-      d[5]==='hood'&&P?'<datalist id="fl-hoods">'+(P.PLACES[P.city(c.city)]||[]).map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist>':'';
-    cell.classList.add('editing');var fv=cell.querySelector('.fv');fv.innerHTML=ed+dl;var inp=fv.querySelector('.fin');inp.focus();if(inp.select&&inp.tagName==='INPUT')try{inp.select()}catch(x){}
-    var done=false;
-    function finish(save){if(done)return;done=true;var nv=inp.value.trim();
-      if(!save||String(nv)===String(v)){cell.classList.remove('editing');fv.innerHTML=fval(c,d);return}
-      if(d[4]==='num')nv=nv===''?null:Number(nv.replace(',','.'));
-      if(k==='phone'&&!nv){say('Телефонът е задължителен');cell.classList.remove('editing');fv.innerHTML=fval(c,d);return}
-      var patch={};patch[k]=nv;fv.innerHTML='<span class="emp">записване…</span>';
-      T.saveField(c,patch).then(function(){cell.classList.remove('editing');fv.innerHTML=fval(c,d);say('Записано: '+d[2]);
-        if(k==='name'||k==='phone'){document.getElementById('m-phone').querySelector('span').textContent=c.phone}
-        if(k==='city'){var hc=document.querySelector('[data-fk="6"] .fv');if(hc)hc.innerHTML=fval(c,FDEF[6])}
-      }).catch(function(er){cell.classList.remove('editing');fv.innerHTML=fval(c,d);say('Грешка: '+((er&&er.message)||er))})}
-    inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();finish(true)}if(ev.key==='Escape'){ev.stopPropagation();finish(false)}});
-    inp.addEventListener('blur',function(){setTimeout(function(){finish(true)},120)});
-    if(inp.tagName==='SELECT')inp.addEventListener('change',function(){finish(true)});
-  });
-  document.getElementById('m-fields').addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-fk]')){e.preventDefault();e.target.click()}});
+    if(d[4]==='ro')return '<span class="dro">'+fval(c,d)+'</span>';
+    if(d[4]==='sel'&&opts){var has=opts.some(function(o){return String(Array.isArray(o)?o[0]:o)===String(v)});
+      return '<span class="dsw"><select class="din" data-k="'+k+'">'+(has?'':'<option value="'+esc(v)+'" selected>'+esc(v||'— избери —')+'</option>')+opts.map(function(o){var ov=Array.isArray(o)?o[0]:o,ot=Array.isArray(o)?o[1]:(o||'—');return '<option value="'+esc(ov)+'"'+(String(ov)===String(v)?' selected':'')+'>'+esc(ot)+'</option>'}).join('')+'</select>'+ic('chev-d')+'</span>'}
+    var ty=d[4]==='num'?'number':d[4]==='date'?'date':d[4]==='tel'?'tel':d[4]==='email'?'email':'text',lst=d[5]==='city'?' list="fl-cities"':d[5]==='hood'?' list="fl-hoods"':'';
+    var shown=k==='egn'&&v?String(v).replace(/^(\d{0,6})/,function(m){return m.replace(/\d/g,'*')}):v;
+    return '<input class="din" data-k="'+k+'" type="'+ty+'"'+(ty==='number'?' inputmode="decimal"':'')+lst+' value="'+esc(shown)+'" placeholder="+ добави"'+(k==='egn'?' data-mask="1"':'')+'>'}
+  function fitem(c,k){var d=fdef(k);if(!d)return '';return '<label class="ditem'+(d[6]?' wide':'')+'"><span class="dl">'+ic(d[1])+esc(d[2])+'</span>'+fctl(c,d)+'</label>'}
+  function fdl(c){var P=window.NDPlaces;if(!P)return '';return '<datalist id="fl-cities">'+P.cities.map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist><datalist id="fl-hoods">'+(P.PLACES[P.city(c.city)]||[]).map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist>'}
+  function filled(c,ks){return ks.filter(function(k){return c[k]!=null&&c[k]!==''}).length}
+  function renderFields(c){var box=document.getElementById('m-fields');box.className='dgrid';
+    box.innerHTML='<div class="dmain">'+FMAIN.map(function(k){return fitem(c,k)}).join('')+'</div>'+
+      FGRP.map(function(g,i){var on=!!fOpen[i];return '<div class="dgrp'+(on?' open':'')+'" data-g="'+i+'"><button type="button" class="dgh" aria-expanded="'+on+'">'+ic(g[1])+'<span>'+esc(g[0])+'</span><em>'+filled(c,g[2])+' / '+g[2].length+'</em>'+ic('chev-d')+'</button><div class="dgb">'+g[2].map(function(k){return fitem(c,k)}).join('')+'</div></div>'}).join('')+fdl(c)}
+  function relayout(){if(!desk)return;var md=document.querySelector('.m-data'),mn=document.querySelector('.m-notes');requestAnimationFrame(function(){var nt=12+md.offsetHeight+22;mcv.style.setProperty('--ntop',nt+'px');DH=Math.max(1420,nt+mn.offsetHeight+16);fitModal()})}
+  var mf=document.getElementById('m-fields');
+  mf.addEventListener('click',function(e){var h=e.target.closest('.dgh');if(!h)return;var g=h.parentNode,i=g.getAttribute('data-g');fOpen[i]=!fOpen[i];g.classList.toggle('open',fOpen[i]);h.setAttribute('aria-expanded',String(fOpen[i]));relayout()});
+  mf.addEventListener('focusin',function(e){var t=e.target;if(t.dataset&&t.dataset.mask){var c=clients.filter(function(x){return x.id===win.dataset.id})[0];if(c)t.value=c.egn||''}});
+  function fsave(t){var c=clients.filter(function(x){return x.id===win.dataset.id})[0];if(!c||!t.dataset||!t.dataset.k)return;
+    var k=t.dataset.k,d=fdef(k),nv=t.value.trim(),old=c[k]==null?'':c[k];
+    if(d[4]==='num')nv=nv===''?null:Number(nv.replace(/\s/g,'').replace(',','.'));
+    if(String(nv==null?'':nv)===String(old)){if(t.dataset.mask)t.value=fctlMask(old);return}
+    if(k==='phone'&&!nv){say('Телефонът е задължителен');t.value=old;return}
+    var patch={};patch[k]=nv;t.closest('.ditem').classList.add('saving');
+    window.NDKTabs.saveField(c,patch).then(function(){var it=t.closest('.ditem');if(it){it.classList.remove('saving');it.classList.add('saved');setTimeout(function(){it.classList.remove('saved')},1200)}say('Записано: '+d[2]);
+      if(k==='phone'){var mp=document.getElementById('m-phone');mp.querySelector('span').textContent=c.phone;mp.href='tel:'+String(c.phone).replace(/\s/g,'')}
+      if(k==='city'||k==='hood'){var hi=mf.querySelector('[data-k="hood"]'),ci=mf.querySelector('[data-k="city"]');if(ci)ci.value=c.city||'';if(hi)hi.value=c.hood||'';var dl=document.getElementById('fl-hoods'),P=window.NDPlaces;if(dl&&P)dl.innerHTML=(P.PLACES[P.city(c.city)]||[]).map(function(n){return '<option value="'+esc(n)+'">'}).join('')}
+      if(t.dataset.mask)t.value=fctlMask(c.egn);
+      var g=t.closest('.dgrp');if(g){var gi=+g.getAttribute('data-g');g.querySelector('.dgh em').textContent=filled(c,FGRP[gi][2])+' / '+FGRP[gi][2].length}
+    }).catch(function(er){t.closest('.ditem').classList.remove('saving');say('Грешка: '+((er&&er.message)||er))})}
+  function fctlMask(v){return v?String(v).replace(/^(\d{0,6})/,function(m){return m.replace(/\d/g,'*')}):''}
+  mf.addEventListener('change',function(e){if(e.target.matches('.din'))fsave(e.target)});
+  mf.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.matches('input.din')){e.preventDefault();e.target.blur()}});
+  mf.addEventListener('focusout',function(e){var t=e.target;if(t.dataset&&t.dataset.mask){var c=clients.filter(function(x){return x.id===win.dataset.id})[0];setTimeout(function(){if(document.activeElement!==t&&c&&String(t.value)===String(c.egn||''))t.value=fctlMask(c.egn)},50)}});
   function open(id,from){
     var c=clients.filter(function(x){return x.id===id})[0];if(!c)return;
     lastFocus=from||document.activeElement;
     document.getElementById('m-name').innerHTML=(c.num?'<span class="knum big">К#'+esc(c.num)+'</span>':'')+esc(c.name);
     var ph=document.getElementById('m-phone');ph.querySelector('span').textContent=c.phone;ph.href='tel:'+c.phone.replace(/\s/g,'');
     var st=c.status==='Активен'?'<span class="pill"><i></i>'+esc(c.status)+'</span>':'<span class="pill warn"><i></i>'+esc(c.status)+'</span>';
-    renderFields(c);if(desk){var md=document.querySelector('.m-data'),mn=document.querySelector('.m-notes');requestAnimationFrame(function(){var nt=12+md.offsetHeight+22;mcv.style.setProperty('--ntop',nt+'px');DH=Math.max(1420,nt+mn.offsetHeight+16);fitModal()})}
+    renderFields(c);relayout();
     document.getElementById('m-acts').innerHTML=c.acts.length?c.acts.map(function(a){return '<div class="arow">'+ic(a[0])+'<span class="at">'+esc(a[1])+'</span><span class="tm">'+esc(a[2])+'</span></div>'}).join(''):'<div class="arow">'+ic('clock')+'<span class="at">Още няма записана активност</span></div>';
     var nt=document.getElementById('m-notes');nt.value=c.notes||'';nt.dataset.orig=nt.value;document.getElementById('m-nstate').textContent='';
     win.dataset.client=c.name;win.dataset.id=c.id;
