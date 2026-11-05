@@ -78,7 +78,20 @@
     ".ndl-up small{font:400 12.5px 'Roboto Condensed',sans-serif;color:#6b4a40}.ndl-up svg{width:24px;height:24px}.ndl-up input{position:absolute;inset:0;opacity:0;cursor:pointer}" +
     ".ndl-up.busy{opacity:.6;pointer-events:none}" +
     ".ndl-x{float:right;font:700 12px 'Roboto Condensed',sans-serif;color:#9a1a33;background:none;border:0;cursor:pointer;margin-top:4px}" +
-    "@media(max-width:420px){.ndl-sel{grid-template-columns:1fr}.ndl-h .ac button.dl{display:none}}";
+    "@media(max-width:420px){.ndl-sel{grid-template-columns:1fr}}" +
+    /* rows in the look of the bank module's client documents: title line, status + files pills, eye and download, strong blended photo */
+    ".ndl-row:before{width:78%;opacity:1;filter:saturate(1.12) contrast(1.04);-webkit-mask-image:linear-gradient(270deg,#000 0%,rgba(0,0,0,.85) 35%,rgba(0,0,0,.35) 68%,transparent 100%);mask-image:linear-gradient(270deg,#000 0%,rgba(0,0,0,.85) 35%,rgba(0,0,0,.35) 68%,transparent 100%)}" +
+    ".ndl-row:after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(255,250,245,.92) 0%,rgba(255,250,245,.55) 38%,rgba(255,250,245,0) 70%)}" +
+    ".ndl-h{grid-template-columns:34px 1fr auto;grid-template-rows:auto auto;gap:8px 10px;padding:12px 12px 12px 14px;min-height:0}" +
+    ".ndl-h .ic{grid-row:1;align-self:center}.ndl-h .ic svg{width:30px;height:30px;stroke-width:2.1}" +
+    ".ndl-h .t{grid-column:2/4;grid-row:1;font-size:20px!important;line-height:1.15;text-shadow:0 0 8px #fffaf4,0 0 3px #fffaf4,0 0 1px #fff}" +
+    ".ndl-pills{grid-column:2;grid-row:2;align-self:center}" +
+    ".ndl-h .ac{grid-column:3;grid-row:2;gap:8px}" +
+    ".ndl-h .ac button{width:42px!important;height:42px!important}" +
+    ".ndl-h .ac button svg{width:21px;height:21px;stroke-width:2.2}" +
+    ".ndl-st{height:30px!important;padding:0 13px!important;font-size:14.5px!important}" +
+    ".ndl-hint{display:flex;align-items:flex-start;gap:6px;margin:0 2px 8px;font:400 13.5px/1.35 'Roboto Condensed',sans-serif;color:#5b3a30}.ndl-hint svg{flex:none;width:15px;height:15px;margin-top:2px;color:#9c0016}" +
+    "@media (hover:hover){.ndl-row{transition:transform .3s cubic-bezier(.2,.7,.2,1),filter .3s}.ndl-row:hover{transform:translateY(-2px);filter:drop-shadow(0 0 10px rgba(255,205,140,.6))}.ndl-row:hover:before{filter:saturate(1.2) contrast(1.06) brightness(1.03)}}";
   function boot() { if (document.getElementById("ndl-css")) return; var s = document.createElement("style"); s.id = "ndl-css"; s.textContent = css; document.head.appendChild(s); }
 
   /* ---------------- catalogue of documents (real Bulgarian bank / notary requirements) ---------------- */
@@ -210,11 +223,11 @@
     function rowHtml(r) {
       var fs = filesOf(r.key), has = fs.length > 0;
       return '<div class="ndl-row' + (openKey === r.key ? " open" : "") + '" data-k="' + esc(r.key) + '" style="--ph:url(' + U.img(r.photo) + ')"><div class="ndl-h" data-tg>' +
-        '<span class="ic">' + sv(r.icon) + '</span><span class="t">' + esc(r.title) + "<small>" + esc(r.hint) + "</small></span>" +
-        '<span class="ac"><button type="button" data-view aria-label="Преглед">' + sv("eye") + '</button><button type="button" class="dl" data-dl aria-label="Изтегли">' + sv("dl") + '</button><button type="button" class="cv" aria-label="Разгъни">' + sv("chev") + "</button></span>" +
+        '<span class="ic">' + sv(r.icon) + '</span><span class="t" title="' + esc(r.hint) + '">' + esc(r.title) + "</span>" +
+        '<span class="ac"><button type="button" data-view aria-label="Преглед">' + sv("eye") + '</button><button type="button" class="dl" data-dl aria-label="Изтегли">' + sv("dl") + "</button></span>" +
         '<span class="ndl-pills">' + (has ? '<span class="ndl-st ok">' + sv("check") + "Прикачен</span>" : r.opt ? '<span class="ndl-st opt">' + sv("info") + "При нужда</span>" : '<span class="ndl-st no">' + sv("info") + "Липсва</span>") +
         (has ? '<span class="ndl-st cnt">' + sv("clip") + fs.length + (fs.length === 1 ? " файл" : " файла") + "</span>" : "") + "</span></div>" +
-        '<div class="ndl-b">' + fs.map(function (d) {
+        '<div class="ndl-b">' + (r.hint ? '<p class="ndl-hint">' + sv("info") + esc(r.hint) + "</p>" : "") + fs.map(function (d) {
           return '<div class="ndl-f">' + sv("doc", "dlf") + "<span>" + esc(d.name) + "</span><em>" + U.bgDate(d.at) + " · " + Math.max(1, Math.round((d.size || 0) / 1024)) + ' KB</em><button type="button" data-open="' + esc(d.id) + '" aria-label="Отвори">' + sv("eye") + '</button><button type="button" class="rm" data-rm="' + esc(d.id) + '" aria-label="Изтрий">' + sv("trash") + "</button></div>";
         }).join("") + '<label class="ndl-up">' + sv("up") + "Прикачи файл<small>PDF, снимка, Word · до 20 MB · може няколко</small>" + '<input type="file" multiple data-up accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"></label>' +
         (custom.some(function (c) { return c.key === r.key; }) ? '<button type="button" class="ndl-x" data-delrow>Премахни графата</button>' : "") + "</div></div>";
