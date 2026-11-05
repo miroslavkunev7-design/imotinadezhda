@@ -27,6 +27,14 @@
   ],
   "rewrites": [
     {
+      "source": "/crm",
+      "destination": "/mobile/crm/crm-nachalo.html"
+    },
+    {
+      "source": "/crm/",
+      "destination": "/mobile/crm/crm-nachalo.html"
+    },
+    {
       "source": "/",
       "has": [
         {
