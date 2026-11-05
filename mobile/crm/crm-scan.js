@@ -168,6 +168,15 @@
   var AGENCY_PHONE = "0898977370";
   function publicText(t) { return String(t || "").replace(PHONE_RE, AGENCY_PHONE); }
   /* the owner's price: the smaller price written in the опис (the folder name holds the official one) */
+  /* the neighbourhood named in the опис or the folder name, from the site's own list for that city */
+  function hoodIn(t, city) {
+    var P = window.NDPlaces; if (!P || !t) return "";
+    var c = P.city(city || ""), lists = c && P.PLACES[c] ? [[c, P.PLACES[c]]] : Object.keys(P.PLACES).map(function (k) { return [k, P.PLACES[k]]; });
+    var k = P.key(t), best = "";
+    lists.forEach(function (L) { L[1].forEach(function (h) { var hk = P.key(h); if (hk.length > 3 && k.indexOf(hk) >= 0 && hk.length > best.length) best = h; }); });
+    if (!best) { var m = k.match(/(?:кв\.?|квартал|ж\.?к\.?|жк)\s*([а-яa-z0-9 .\-]{3,30})/); if (m) best = P.hood(c || "Шумен", m[1].trim()); }
+    return best;
+  }
   function pricesIn(t) {
     var out = [], re = /(\d{1,3}(?:[ \u00a0.]\d{3})+|\d{4,7})(?:[,.](\d{1,2}))?\s*(?:€|eur|евро|e|лв\.?|лева|bgn|k|к|хил\.?)?/gi, m;
     while ((m = re.exec(t))) {
@@ -266,7 +275,7 @@
         var phones = phonesIn(text).concat([].concat(f.ownerPhones || f.ownerPhone || []).map(String)).filter(function (x, i, a) { return x && a.indexOf(x) === i; });
         var out = {
           title: f.title, deal: f.deal, type: f.type, area: f.area, rooms: f.rooms, beds: f.beds, baths: f.baths, floor: f.floor, year: f.year, build: f.build,
-          region: f.region, city: f.city, hood: f.hood, address: f.address, client: f.ownerName || f.client,
+          region: f.region, city: f.city, hood: f.hood || hoodIn(text + " " + (folder || ""), f.city), address: f.address, client: f.ownerName || f.client,
           expo: f.expo, heat: f.heat, parking: f.parking, elevator: f.elevator, terraces: f.terraces, act: f.act, features: f.features, cond: f.cond,
           price: price || f.officialPrice || f.price || null, ownerPrice: ownerPriceOf(text, price || f.officialPrice || f.price || null, f.ownerPrice),
           desc: publicText(f.publicDesc || f.desc || ""), privDesc: text || f.privateDesc || "", ownerPhone: phones.join(", "),
