@@ -37,5 +37,19 @@
       ],
       "destination": "/mobile/home.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/collect.js": {
+      "maxDuration": 60
+    },
+    "api/assistant.js": {
+      "maxDuration": 60
+    },
+    "api/scan.js": {
+      "maxDuration": 60
+    },
+    "api/tts.js": {
+      "maxDuration": 30
+    }
+  }
 }

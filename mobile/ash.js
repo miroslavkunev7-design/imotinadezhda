@@ -239,7 +239,7 @@
 
   window.NDAsh = {
     ask: ask, token: token, esc: esc, fmt: fmt,
-    addSkill: function (s, first) { if (first) skills.unshift(s); else skills.push(s); if (booted && !skill) setSkill(skills[0]); },
+    addSkill: function (s, first) { if (typeof first === "number") skills.splice(Math.min(first, skills.length), 0, s); else if (first) skills.unshift(s); else skills.push(s); if (booted && !skill) setSkill(skills[0]); },
     open: function () { boot(); fab.click(); },
     hide: function () { if (win && !win.hidden) { win.hidden = true; fab.hidden = false; } },
     show: function () { if (win) { win.hidden = false; fab.hidden = true; list.scrollTop = list.scrollHeight; } },

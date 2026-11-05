@@ -621,6 +621,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 <script src="crm-global.js"></script>
 <script src="/mobile/ash.js"></script>
 <script src="crm-assistant.js"></script>
+<script src="crm-collect.js"></script>
 <script src="../places.js"></script>
 <script src="crm-klienti-tabs.js"></script>
 <script src="crm-doclists.js"></script>
@@ -796,7 +797,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     ['floorPref','building-2','Етаж','nd/ph09.jpg','sel','FLOORP'],['payment','circle-dollar-sign','Плащане','field-budget.webp','sel','PAY'],
     ['timeframe','clock','Срок','field-calendar.webp','sel','TIMEF'],['priority','star','Приоритет','field-status.webp','sel','PRIO'],
     ['contactPref','message-square','Връзка чрез','field-email.webp','sel','CONTACT'],['nextContact','calendar-check','Следващ контакт','field-calendar.webp','date'],
-    ['status','users','Статус','field-status.webp','sel','STATUSES'],['source','tag','Източник','field-source.webp','sel','SOURCES'],
+    ['leadType','tag','Тип','field-source.webp','sel',[['','—'],['Търси','Търси'],['Продава се','Продава се']]],['status','users','Статус','field-status.webp','sel','STATUSES'],['source','tag','Източник','field-source.webp','sel','SOURCES'],
     ['contact','calendar','Дата на контакт','field-calendar.webp','ro'],['must','badge-check','Задължително да има','field-notes.webp','text',null,true]];
   function fval(c,d){var k=d[0],v=c[k];
     if(k==='cat')return v==='rent'?'Наем':'Покупка';

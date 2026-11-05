@@ -4,6 +4,7 @@
 const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
 const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+const WEB = require("./_web.js");
 const TOOLSPEC = "- clients.search: Search CRM clients by name/phone/email/city. Returns id, name, phone, email, cat (sales|rent), type, city, hood, budget, status. Input: { query: string, cat: [\"sales\", \"rent\"], limit: number }\n- clients.get: One client with activity, meetings (events), deals and documents. Input: { id: string }\n- clients.create: Create a client (cat: sales = търси покупка, rent = търси наем). Input: { name (задължително), phone, email, cat: \"sales\"|\"rent\", type, city, hood, budget (число), status, source, notes }\n- clients.update: Update client fields. Input: { id: string, и всяко поле от clients.create (по избор) }\n- clients.delete: Delete a client (requires confirm=true). Input: { id: string, confirm: true }\n- clients.add_note: Add an activity note to a client. Input: { client_id: string, body: string, kind: [\"phone\", \"mail\", \"users\", \"file-text\", \"pencil\"] }\n- properties.search: Search properties. Filters: text (title/code/city/hood/owner), city, deal (sale|rent), status, max_price, min_rooms. Input: { text: string, city: string, deal: [\"sale\", \"rent\"], status: string, max_price: number, min_rooms: number }\n- properties.create: Create a property (status Чернова). Code P-#### is assigned automatically. Input: { title (задължително), deal: \"sale\"|\"rent\", type, price, area, rooms, beds, baths, floor, region, city, hood, address, client, desc, cond }\n- properties.update: Edit property fields. Input: { id: string, и всяко поле от properties.create (по избор) }\n- properties.set_status: Set property status: Чернова, Активен, Публикуван, Резервиран, Продаден, Архивиран (requires confirm=true). Input: { id: string, status: [\"Чернова\", \"Активен\", \"Публикуван\", \"Резервиран\", \"Продаден\", \"Архивиран\"], confirm: true }\n- properties.match: Match properties to a client's needs (city, budget, deal, min_rooms) ranked by fit. Pass client_id to use that client's criteria. Input: { client_id: string, city: string, budget: number, deal: [\"sale\", \"rent\"], min_rooms: number }\n- calendar.list: List calendar events between from and to (YYYY-MM-DD). Types: meeting, viewing, bank, documents, deal, team, task. Input: { from: string, to: string, type: string }\n- calendar.create: Create a calendar event (shown in Календар and on the client card). date YYYY-MM-DD, from/to HH:MM. Input: { type: [\"meeting\", \"viewing\", \"bank\", \"documents\", \"deal\", \"team\", \"task\"], title: string, date: string, from: string, to: string, client_id: string, prop: string, desc: string }\n- calendar.update: Update or move an event. Input: { id: string, title: string, date: string, from: string, to: string, desc: string }\n- calendar.delete: Delete an event (requires confirm=true). Input: { id: string, confirm: true }\n- deals.list: List deals, optional stage (Нова, Оглед, Оферта, Предварителен договор, Нотариус, Приключена, Отказана) or client_id. Input: { stage: string, client_id: string }\n- deals.create: Create a deal for a client. Input: { title: string, client_id: string, property: string, stage: string, amount: number, commission_pct: number, deadline: string, note: string }\n- deals.update: Update a deal (stage, amount, paid, deadline…). Input: { id: string, title: string, stage: string, amount: number, commission_pct: number, paid: number, deadline: string, note: string }\n- companies.search: Search partner companies (banks, builders…) and their employees. Input: { query: string }\n- brokers.list: List brokers (team). Input: {}\n- documents.list: List documents (optional client_id). Input: { client_id: string }\n- documents.download_link: Signed download link (10 minutes) for a document id. Input: { id: string }\n- calc.mortgage: Annuity mortgage. annual_rate_pct must come from the user or the live rate (/api/rates) — never invented. Input: { principal: number, years: number, annual_rate_pct: number }\n- calc.commission: Commission with optional VAT %. Input: { price: number, commission_pct: number, vat_pct: number }\n- calc.yield: Gross/net rental yield. Input: { price: number, monthly_rent: number, annual_costs: number }\n- rates.live: Live ECB reference rates (6M EURIBOR, 3M EURIBOR, €STR). Input: {}\n- reports.summary: Totals: clients, active/published properties, open/closed deals, expected and realised commission, upcoming events. Input: {}";
 const STAFF_TOOLS = ["clients.search", "clients.get", "clients.create", "clients.update", "clients.delete", "clients.add_note", "properties.search", "properties.create", "properties.update", "properties.set_status", "properties.match", "calendar.list", "calendar.create", "calendar.update", "calendar.delete", "deals.list", "deals.create", "deals.update", "companies.search", "brokers.list", "documents.list", "documents.download_link", "calc.mortgage", "calc.commission", "calc.yield", "rates.live", "reports.summary"];
 
@@ -33,23 +34,30 @@ function systemPrompt(staff, user, page) {
     "Отговаряй винаги на български, кратко, ясно и учтиво. Никога не измисляй данни, цени, имоти, хора или лихви – използвай инструментите. " +
     "Не даваш правни или финансови гаранции; при правни въпроси давай обща информация и препоръчай адвокат/нотариус.";
   if (!staff) return base + " Говориш с посетител на публичния сайт. Можеш да търсиш само публикуваните обяви (функция search_listings) и да изпратиш запитване към брокер (функция send_inquiry) – " +
-    "преди send_inquiry поискай име и телефон и потвърждение. Телефон за контакт с агенцията: 0898977370. Не разкривай вътрешна информация.";
+    "преди send_inquiry поискай име и телефон и потвърждение. Телефон за контакт с агенцията: 0898977370. Не разкривай вътрешна информация. " +
+    "За общи въпроси (квартали, цени на пазара, процедури, такси) можеш да използваш web_search и да посочиш източника.";
   return base + " Говориш със служител на агенцията (" + (user.email || "") + "), страница: " + (page || "CRM") + ". Имаш пълен достъп до CRM чрез функцията crm(tool, input_json). " +
     "Инструменти:\n" + TOOLSPEC + "\n\nПравила: 1) За да намериш id, първо търси (clients.search / properties.search). 2) Изтриване и смяна на статус (confirm=true) – само след изрично „да“ от служителя в чата; преди това кажи точно какво ще направиш и попитай. " +
     "3) След всяко записване кажи кратко какво е направено (име/код, полета). 4) Датите са YYYY-MM-DD; „утре“, „в петък“ изчислявай от днешната дата. 5) Суми в евро. " +
-    "6) За качване на имот от папка със снимки и опис насочи към skill „АИ Качване на имот“ (бутонът най-горе в асистента).";
+    "6) За качване на имот от папка със снимки и опис насочи към skill „АИ Качване на имот“ (бутонът най-горе в асистента). " +
+    "7) За всичко актуално извън CRM (пазарни цени, лихви, закони, такси, новини, фирми) използвай web_search, а за конкретен линк – read_page; посочвай източника. " +
+    "8) За събиране на обяви от частни лица от сайтове насочи към skill „Събиране на имоти и клиенти“.";
 }
 function declarations(staff) {
-  if (staff) return [{ name: "crm", description: "Изпълнява CRM инструмент от списъка и връща резултата като JSON.",
-    parameters: { type: "OBJECT", properties: { tool: { type: "STRING", enum: STAFF_TOOLS, description: "Име на инструмента" }, input_json: { type: "STRING", description: "Входът на инструмента като JSON обект, напр. {\"query\":\"Иван\"}" } }, required: ["tool", "input_json"] } }];
-  return [
+  const web = [
+    { name: "web_search", description: "Търси в интернет (Google) актуална информация: цени на имоти, лихви, закони, такси, фирми, новини, обяви. Връща отговор и източници.", parameters: { type: "OBJECT", properties: { query: { type: "STRING" } }, required: ["query"] } },
+    { name: "read_page", description: "Прочита публична уеб страница по линк (текст, снимки, линкове) – напр. обява, сайт на банка или агенция.", parameters: { type: "OBJECT", properties: { url: { type: "STRING" } }, required: ["url"] } }
+  ];
+  if (staff) return web.concat([{ name: "crm", description: "Изпълнява CRM инструмент от списъка и връща резултата като JSON.",
+    parameters: { type: "OBJECT", properties: { tool: { type: "STRING", enum: STAFF_TOOLS, description: "Име на инструмента" }, input_json: { type: "STRING", description: "Входът на инструмента като JSON обект, напр. {\"query\":\"Иван\"}" } }, required: ["tool", "input_json"] } }]);
+  return [web[0]].concat([
     { name: "search_listings", description: "Търси сред публикуваните обяви на агенцията.", parameters: { type: "OBJECT", properties: {
       city: { type: "STRING", description: "Шумен, Варна, Бургас или Нови пазар" }, hood: { type: "STRING" }, deal: { type: "STRING", enum: ["sale", "rent"] }, type: { type: "STRING" },
       max_price: { type: "NUMBER" }, min_rooms: { type: "NUMBER" }, text: { type: "STRING" } } } },
     { name: "send_inquiry", description: "Изпраща запитване от посетителя към брокер (записва се в CRM).", parameters: { type: "OBJECT", properties: {
       name: { type: "STRING" }, phone: { type: "STRING" }, email: { type: "STRING" }, message: { type: "STRING" }, property: { type: "STRING", description: "код/заглавие на имота, ако има" },
       city: { type: "STRING" }, deal: { type: "STRING", enum: ["sale", "rent"] } }, required: ["name", "phone", "message"] } }
-  ];
+  ]);
 }
 async function runTool(call, ctx) {
   const a = call.args || {};
@@ -62,6 +70,8 @@ async function runTool(call, ctx) {
       ctx.actions.push(a.tool + (j.ok ? "" : " ✗"));
       return j;
     }
+    if (call.name === "web_search") { const r = await WEB.webSearch(a.query || ""); ctx.actions.push("интернет: " + String(a.query || "").slice(0, 40)); (ctx.sources = ctx.sources || []).push(...r.sources); return { ok: true, ...r }; }
+    if (call.name === "read_page") { const r = await WEB.readPage(String(a.url || ""), 20000); ctx.actions.push("страница: " + String(a.url || "").replace(/^https?:\/\//, "").slice(0, 40)); if (!r.blocked) (ctx.sources = ctx.sources || []).push({ title: r.title, url: r.url }); return { ok: !r.blocked, ...r, links: (r.links || []).slice(0, 60) }; }
     if (call.name === "search_listings") {
       const rows = await rpc("nd_public_listings");
       const k = (s) => String(s || "").toLowerCase().replace(/^(гр\.|кв\.|ж\.?к\.?)\s*/, "").trim();
@@ -133,7 +143,7 @@ module.exports = async (req, res) => {
         const calls = parts.filter((p) => p.functionCall).map((p) => p.functionCall);
         if (!calls.length) {
           const text = parts.map((p) => p.text || "").join("").trim() || "Не успях да формулирам отговор – опитайте отново.";
-          return send(res, 200, { ok: true, text, transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, model });
+          return send(res, 200, { ok: true, text: text + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i, a) => x.url && a.findIndex((y) => y.url === x.url) === i).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, model });
         }
         conv.push({ role: "model", parts });
         const results = [];
