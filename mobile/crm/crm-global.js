@@ -16,25 +16,48 @@
   /* ---------- Сделки ---------- */
   function deals(opts) {
     opts = opts || {};
-    var list = [], clients = [], ctx, editing = null;
+    var list = [], clients = [], props = [], brokers = [], ctx, editing = null;
+    var DKIND = ["Продажба", "Покупка", "Наем", "Отдаване под наем", "Замяна", "Лизинг"];
+    var DRISK = ["Няма", "Наследство", "Съсобственост", "Ипотека за заличаване", "Възбрана", "Пълномощник", "Купувач чужденец", "Продавач фирма", "Имот в строеж", "Отказ – задържано капаро", "Отказ – върнато капаро", "Съдебен спор", "Друго"];
     function form(d) {
       d = d || { stage: STAGES[0], commission_pct: 3 };
       var rows = list.slice().sort(function (a, b) { return String(b._updated).localeCompare(String(a._updated)); }).map(function (x) {
         var com = x.amount && x.commission_pct ? " · комисионна " + money(x.amount * x.commission_pct / 100) + " €" : "";
-        return row("handshake", x.title, (x.client ? x.client + " · " : "") + (x.stage || "") + (x.amount ? " · " + money(x.amount) + " €" : "") + com, x.deadline ? "до " + U.bgDate(x.deadline + "T00:00") : "",
+        return row("handshake", x.title, (x.kind ? x.kind + " · " : "") + (x.client ? x.client + " · " : "") + (x.stage || "") + (x.amount ? " · " + money(x.amount) + " €" : "") + com, x.deadline ? "до " + U.bgDate(x.deadline + "T00:00") : "",
           '<button type="button" data-ed="' + esc(x.id) + '" aria-label="Редактирай">' + ic("pencil") + '</button><button type="button" class="rm" data-rm="' + esc(x.id) + '" aria-label="Изтрий">' + ic("trash-2") + "</button>");
       });
       return '<div class="wide" id="g-deals">' + section("Всички сделки (" + list.length + ")", "handshake", rows, "Още няма сделки.") + "</div>" +
         U.group(editing ? "Редакция на сделка" : "Нова сделка", "handshake", "nd/ph18.jpg",
         fld({ id: "s-title", label: "Сделка", icon: "handshake", value: d.title, required: true, wide: true, ph: "напр. Продажба – тристаен, Шумен" }) +
-        fld({ id: "s-client", label: "Клиент", icon: "user", type: "select", value: d.client_id || "", options: [["", "— без клиент —"]].concat(clients.map(function (c) { return [c.id, c.name]; })) }) +
-        fld({ id: "s-prop", label: "Имот", icon: "house", value: d.property }) +
+        fld({ id: "s-kind", label: "Вид сделка", icon: "tag", type: "select", value: d.kind || "Продажба", options: DKIND }) +
         fld({ id: "s-stage", label: "Етап", icon: "tag", type: "select", value: d.stage, options: STAGES }) +
-        fld({ id: "s-amount", label: "Сума (€)", icon: "coins", value: d.amount, type: "number" }) +
+        fld({ id: "s-client", label: "Купувач / наемател", icon: "user", type: "select", value: d.client_id || "", options: [["", "— без клиент —"]].concat(clients.map(function (c) { return [c.id, (c.num ? "К#" + c.num + " · " : "") + c.name]; })) }) +
+        fld({ id: "s-seller", label: "Продавач / наемодател", icon: "user-round", value: d.seller, list: "s-clist" }) +
+        '<datalist id="s-clist">' + clients.map(function (c) { return '<option value="' + esc(c.name) + '">'; }).join("") + "</datalist>" +
+        fld({ id: "s-prop", label: "Имот", icon: "house", value: d.property, list: "s-plist", wide: true, ph: "изберете от имотите или въведете" }) +
+        '<datalist id="s-plist">' + props.map(function (p) { return '<option value="' + esc((p.num ? "И#" + p.num + " · " : "") + (p.code || "") + " · " + (p.title || "") + (p.city ? ", " + p.city : "")) + '">'; }).join("") + "</datalist>" +
+        fld({ id: "s-broker", label: "Брокер", icon: "contact-round", type: "select", value: d.broker || "", options: [["", "—"]].concat(brokers.map(function (b) { return [b.name, b.name]; })) }), { lw: 140 }) +
+        U.group("Финанси и комисионна", "coins", "nd/ph16.jpg",
+        fld({ id: "s-amount", label: "Цена по сделката (€)", icon: "coins", value: d.amount, type: "number" }) +
+        fld({ id: "s-dep", label: "Капаро / депозит (€)", icon: "circle-dollar-sign", value: d.deposit, type: "number" }) +
         fld({ id: "s-comm", label: "Комисионна (%)", icon: "coins", value: d.commission_pct, type: "number", step: "0.1" }) +
-        fld({ id: "s-dead", label: "Краен срок", icon: "calendar", value: d.deadline, type: "date" }) +
+        fld({ id: "s-cfrom", label: "Комисионна от", icon: "users", type: "select", value: d.comm_from || "", options: ["", "Купувача", "Продавача", "Двете страни", "Наемателя", "Наемодателя"].map(function (x) { return [x, x || "—"]; }) }) +
         fld({ id: "s-paid", label: "Платено (€)", icon: "coins", value: d.paid, type: "number" }) +
-        fld({ id: "s-note", label: "Бележка", icon: "file-text", value: d.note, type: "ta", wide: true }), { lw: 120 });
+        fld({ id: "s-pay", label: "Плащане", icon: "landmark", type: "select", value: d.payment || "", options: ["", "Кеш", "Банков кредит", "Кеш + кредит", "Лизинг", "Замяна"].map(function (x) { return [x, x || "—"]; }) }) +
+        fld({ id: "s-bank", label: "Банка", icon: "landmark", value: d.bank, list: "s-banks", ph: "при кредит" }) +
+        '<datalist id="s-banks">' + ["Банка ДСК", "ОББ", "УниКредит Булбанк", "Fibank", "Пощенска банка", "Алианц Банк", "ЦКБ", "ПроКредит Банк", "Тексим Банк", "Инвестбанк", "БАКБ", "Общинска банка", "D Commerce Bank", "Токуда Банк"].map(function (b) { return '<option value="' + b + '">'; }).join("") + "</datalist>" +
+        fld({ id: "s-loan", label: "Одобрен кредит (€)", icon: "coins", value: d.loan, type: "number" }), { lw: 140 }) +
+        U.group("Срокове и нотариус", "calendar", "nd/ph04.jpg",
+        fld({ id: "s-dview", label: "Оглед", icon: "calendar-check", value: d.d_view, type: "date" }) +
+        fld({ id: "s-dpre", label: "Предварителен договор", icon: "file-pen", value: d.d_pre, type: "date" }) +
+        fld({ id: "s-dnot", label: "Нотариус – дата", icon: "landmark", value: d.d_notary, type: "date" }) +
+        fld({ id: "s-dead", label: "Краен срок", icon: "calendar", value: d.deadline, type: "date" }) +
+        fld({ id: "s-notary", label: "Нотариус", icon: "user-round", value: d.notary, ph: "име / район" }) +
+        fld({ id: "s-keys", label: "Ключове предадени", icon: "key-round", type: "select", value: d.keys ? "1" : "", options: [["", "Не"], ["1", "Да"]] }), { lw: 140 }) +
+        U.group("Особени обстоятелства", "shield", "nd/ph06.jpg",
+        fld({ id: "s-risk", label: "Ситуация", icon: "shield", type: "select", value: d.risk || "Няма", options: DRISK }) +
+        fld({ id: "s-lost", label: "Причина за отказ", icon: "circle-x", value: d.lost_reason, ph: "ако сделката е отказана" }) +
+        fld({ id: "s-note", label: "Бележка", icon: "file-text", value: d.note, type: "ta", wide: true }), { lw: 140 });
     }
     function bind() {
       var box = ctx.q("g-deals"); if (!box) return;
@@ -46,13 +69,15 @@
     }
     U.open({
       title: "Сделки", icon: "handshake", photo: "nd/ph11.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запиши сделката", keepOpen: true, required: ["s-title"],
-      ready: function (x) { ctx = x; D.ready().then(function () { return Promise.all([D.load("deals"), D.load("clients")]); }).then(function (r) { list = r[0]; clients = r[1]; x.rerender(form()); if (opts.focusNew) { var t = x.q("s-title"); if (t) t.scrollIntoView({ block: "center" }); } }); },
+      ready: function (x) { ctx = x; D.ready().then(function () { return Promise.all([D.load("deals"), D.load("clients"), D.load("properties").catch(function () { return []; }), D.load("brokers").catch(function () { return []; })]); }).then(function (r) { list = r[0]; clients = r[1]; props = r[2] || []; brokers = r[3] || []; x.rerender(form()); if (opts.focusNew) { var t = x.q("s-title"); if (t) t.scrollIntoView({ block: "center" }); } }); },
       ready2: bind,
       onSave: function (g) {
         var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
         var c = clients.filter(function (x) { return x.id === g("s-client"); })[0];
         var d = editing || {}, isNew = !editing;
-        Object.assign(d, { title: g("s-title"), client_id: c ? c.id : null, client: c ? c.name : "", property: g("s-prop"), stage: g("s-stage"), amount: n("s-amount"), commission_pct: n("s-comm"), deadline: g("s-dead"), paid: n("s-paid"), note: g("s-note") });
+        Object.assign(d, { title: g("s-title"), client_id: c ? c.id : null, client: c ? c.name : "", property: g("s-prop"), stage: g("s-stage"), amount: n("s-amount"), commission_pct: n("s-comm"), deadline: g("s-dead"), paid: n("s-paid"), note: g("s-note"),
+          kind: g("s-kind"), seller: g("s-seller"), broker: g("s-broker"), deposit: n("s-dep"), comm_from: g("s-cfrom"), payment: g("s-pay"), bank: g("s-bank"), loan: n("s-loan"),
+          d_view: g("s-dview"), d_pre: g("s-dpre"), d_notary: g("s-dnot"), notary: g("s-notary"), keys: g("s-keys") === "1", risk: g("s-risk"), lost_reason: g("s-lost") });
         return D.put("deals", d).then(function (s) {
           if (isNew) list.push(s); editing = null;
           if (c) D.put("activities", { client_id: c.id, client: c.name, icon: "handshake", text: (isNew ? "Нова сделка: " : "Сделка – ") + s.title + " (" + s.stage + ")", at: new Date().toISOString() }).catch(function () {});
