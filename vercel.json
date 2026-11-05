@@ -39,7 +39,7 @@
     },
     {
       "source": "/",
-      "destination": "/desktop.html"
+      "destination": "/desktop-home.html"
     },
     {
       "source": "/index.html",

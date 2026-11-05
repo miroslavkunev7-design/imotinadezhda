@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 170" preserveAspectRatio="none"><defs>
+<linearGradient id="scg" x1="0" y1="0" x2="1" y2=".2"><stop stop-color="#b77913"/><stop offset=".15" stop-color="#fbd15d"/><stop offset=".35" stop-color="#9b5a0a"/><stop offset=".52" stop-color="#fff1ac"/><stop offset=".7" stop-color="#f8b92e"/><stop offset="1" stop-color="#8a4b07"/></linearGradient>
+<linearGradient id="scc" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fffaf4"/><stop offset="1" stop-color="#fff4e9"/></linearGradient>
+<linearGradient id="scw" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#700012"/><stop offset="1" stop-color="#7c0023"/></linearGradient></defs>
+<rect x="2" y="2" width="1096" height="166" rx="35" stroke="url(#scg)" stroke-width="3" fill="url(#scw)"/>
+<path fill="url(#scc)" d="M37 2H815C746 24 713 83 681 122 656 154 627 168 564 168H37Q2 168 2 133V37Q2 2 37 2Z"/>
+<path d="M815 2C746 24 713 83 681 122 656 154 627 168 564 168" stroke="url(#scg)" stroke-width="15" fill="none"/>
+<path d="M815 2C746 24 713 83 681 122 656 154 627 168 564 168" stroke="#fff2a5" stroke-opacity=".75" stroke-width="2" fill="none"/>
+</svg>
