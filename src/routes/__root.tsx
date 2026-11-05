@@ -165,8 +165,13 @@ function RootComponent() {
   const hideChat =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/login") ||
+    pathname === "/crm" ||
+    pathname.startsWith("/crm/") ||
     pathname.startsWith("/crm-home-locked");
-  const hideChrome = pathname.startsWith("/crm-home-locked");
+  const hideChrome =
+    pathname === "/crm" ||
+    pathname.startsWith("/crm/") ||
+    pathname.startsWith("/crm-home-locked");
   const propertyMatch = pathname.match(/^\/properties\/([0-9a-f-]{36})/i);
   const propertyId = propertyMatch?.[1] ?? null;
 

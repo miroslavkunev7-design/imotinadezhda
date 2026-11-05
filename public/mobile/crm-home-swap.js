@@ -2,7 +2,7 @@
 (function(){
   function go(){
     if(!window.matchMedia('(max-width: 768px)').matches)return;
-    if(/^#\/crm(\/|$)/.test(location.hash||''))location.replace('/mobile/crm/crm-nachalo.html');
+    if(/^#\/crm(\/|$)/.test(location.hash||''))location.replace('/crm');
   }
   window.addEventListener('hashchange',go);
   go();

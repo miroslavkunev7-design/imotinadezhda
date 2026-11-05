@@ -2,7 +2,31 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "DEPLOY_TARGET=vercel vite build",
   "framework": null,
+  "redirects": [
+    { "source": "/mobile/crm", "destination": "/crm", "permanent": true },
+    { "source": "/mobile/crm/", "destination": "/crm", "permanent": true },
+    { "source": "/mobile/crm/index.html", "destination": "/crm", "permanent": true },
+    { "source": "/mobile/crm/crm-nachalo.html", "destination": "/crm", "permanent": true },
+    { "source": "/mobile/crm/crm-klienti.html", "destination": "/crm/klienti", "permanent": true },
+    { "source": "/mobile/crm/crm-imoti.html", "destination": "/crm/imoti", "permanent": true },
+    { "source": "/mobile/crm/crm-brokeri.html", "destination": "/crm/brokeri", "permanent": true },
+    { "source": "/mobile/crm/crm-kalendar.html", "destination": "/crm/kalendar", "permanent": true },
+    { "source": "/mobile/crm/crm-kompanii.html", "destination": "/crm/kompanii", "permanent": true },
+    { "source": "/mobile/crm/assets/:path*", "destination": "/crm/assets/:path*", "permanent": true },
+    { "source": "/crm/crm-nachalo.html", "destination": "/crm", "permanent": true },
+    { "source": "/crm/crm-klienti.html", "destination": "/crm/klienti", "permanent": true },
+    { "source": "/crm/crm-imoti.html", "destination": "/crm/imoti", "permanent": true },
+    { "source": "/crm/crm-brokeri.html", "destination": "/crm/brokeri", "permanent": true },
+    { "source": "/crm/crm-kalendar.html", "destination": "/crm/kalendar", "permanent": true },
+    { "source": "/crm/crm-kompanii.html", "destination": "/crm/kompanii", "permanent": true }
+  ],
   "rewrites": [
+    { "source": "/crm", "destination": "/crm/index.html" },
+    { "source": "/crm/klienti", "destination": "/crm/klienti.html" },
+    { "source": "/crm/imoti", "destination": "/crm/imoti.html" },
+    { "source": "/crm/brokeri", "destination": "/crm/brokeri.html" },
+    { "source": "/crm/kalendar", "destination": "/crm/kalendar.html" },
+    { "source": "/crm/kompanii", "destination": "/crm/kompanii.html" },
     {
       "source": "/media/:path*",
       "destination": "https://imotinadezhda.lovable.app/__l5e/:path*"

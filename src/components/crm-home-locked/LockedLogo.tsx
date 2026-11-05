@@ -1,10 +1,9 @@
-export function LockedLogo({ onClick }: { onClick?: () => void }) {
+export function LockedLogo() {
   return (
-    <button
-      type="button"
+    <a
+      href="/"
       className="crm-locked-logo-link"
-      aria-label="Начало — CRM"
-      onClick={onClick}
+      aria-label="Към началната страница на сайта"
     >
       <img
         src="/crm-home-locked/logo-mark-white.png"
@@ -15,6 +14,6 @@ export function LockedLogo({ onClick }: { onClick?: () => void }) {
         decoding="async"
         draggable={false}
       />
-    </button>
+    </a>
   );
 }

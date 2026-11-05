@@ -42,12 +42,14 @@ export function CrmModalShell({
         <header className="crm-imoti-shell__top">
           <div className="crm-imoti-shell__top-left">
             {headerLeft ?? (
-              <img
-                src="/crm-home-locked/logo-original.png"
-                alt="Имоти Надежда"
-                className="crm-imoti-shell__logo"
-                draggable={false}
-              />
+              <a href="/" aria-label="Към началната страница на сайта">
+                <img
+                  src="/crm-home-locked/logo-original.png"
+                  alt="Имоти Надежда"
+                  className="crm-imoti-shell__logo"
+                  draggable={false}
+                />
+              </a>
             )}
           </div>
           <div className="crm-imoti-shell__top-center">{headerCenter}</div>
