@@ -6,7 +6,7 @@
   var esc = U.esc, ic = U.ic, fld = U.fld, row = U.row, section = U.section, money = U.money;
   var K = null; /* page hooks: {list(), refresh(), reopen(id), say()} */
 
-  var TYPES = ["Апартамент", "Къща", "Парцел", "Офис", "Магазин", "Гараж"];
+  var TYPES = ["Апартамент", "Мезонет", "Ателие / Таван", "Къща", "Етаж от къща", "Вила", "Парцел", "Земеделска земя", "Офис", "Магазин", "Заведение", "Склад", "Гараж", "Паркомясто", "Хотел", "Промишлен имот"];
   var STATUSES = ["Активен", "Потенциален", "В процес", "Неактивен"];
   var SOURCES = ["Сайт / Запитване", "Препоръка", "Телефонно обаждане", "Facebook", "Imot.bg", "OLX", "Друго"];
   var STAGES = ["Нова", "Оглед", "Оферта", "Предварителен договор", "Нотариус", "Приключена", "Отказана"];
@@ -31,7 +31,7 @@
   /* keep only stored client fields */
   function strip(c) {
     var o = { id: c.id };
-    ["cat", "name", "phone", "email", "egn", "type", "city", "hood", "budget", "status", "source", "notes", "contact_at", "broker", "rooms", "areaMin", "floorPref", "payment", "timeframe", "priority", "contactPref", "nextContact", "must"].forEach(function (k) { if (c[k] !== undefined) o[k] = c[k]; });
+    ["cat", "name", "phone", "email", "egn", "type", "city", "hood", "budget", "status", "source", "notes", "contact_at", "broker", "rooms", "areaMin", "floorPref", "payment", "timeframe", "priority", "contactPref", "nextContact", "must", "credit", "creditIncome", "docRows", "num"].forEach(function (k) { if (c[k] !== undefined) o[k] = c[k]; });
     return o;
   }
   function after(c) { return K.refresh().then(function () { if (c) K.reopen(c.id); }); }
@@ -242,6 +242,14 @@
 
   /* ---------- Документи (files in private storage) ---------- */
   function docs(c) {
+    /* credit document checklist (crm-doclists.js) */
+    if (window.NDDocs) {
+      return window.NDDocs.client(c, {
+        say: function (m) { K.say(m); },
+        save: function (patch) { var o = strip(c); Object.keys(patch).forEach(function (k) { o[k] = patch[k]; }); return D.put("clients", o); },
+        onUpload: function (title, n) { log(c, "file-text", "Прикачен документ: " + title + (n > 1 ? " (" + n + " файла)" : "")); }
+      });
+    }
     var list = [], ctx;
     function form() {
       return '<div class="wide" id="k-dlist">' + section("Документи на клиента", "file-text", list.map(function (d) {
@@ -433,6 +441,13 @@
 
   window.NDKTabs = {
     init: function (hooks) { K = hooks; },
+    saveField: function (c, patch) {
+      var o = strip(c); Object.keys(patch).forEach(function (k) { o[k] = patch[k]; });
+      if (PL && patch.city !== undefined) { o.city = PL.city(o.city); if (o.hood) o.hood = PL.hood(o.city, o.hood); }
+      if (PL && patch.hood !== undefined && o.city) o.hood = PL.hood(o.city, o.hood);
+      return D.put("clients", o).then(function () { Object.keys(o).forEach(function (k) { c[k] = o[k]; }); return o; });
+    },
+    OPTS: { TYPES: TYPES, STATUSES: STATUSES, SOURCES: SOURCES, PAY: PAY, TIMEF: TIMEF, PRIO: PRIO, CONTACT: CONTACT, FLOORP: FLOORP },
     edit: edit, meetings: meetings, docs: docs, calc: calc, deal: deal, acts: acts, log: log, strip: strip
   };
 })();

@@ -7,7 +7,7 @@
   function hoodOpts(c) { return (PL.PLACES[PL.city(c)] || []).map(function (n) { return '<option value="' + U.esc(n) + '">'; }).join(""); }
   var esc = U.esc, ic = U.ic, fld = U.fld, row = U.row, section = U.section;
   var P = null; /* page hooks */
-  var TYPES = ["Апартамент", "Къща", "Парцел", "Офис", "Магазин", "Гараж"];
+  var TYPES = ["Апартамент", "Мезонет", "Ателие / Таван", "Къща", "Етаж от къща", "Вила", "Парцел", "Земеделска земя", "Офис", "Магазин", "Заведение", "Склад", "Гараж", "Паркомясто", "Хотел", "Промишлен имот"];
   var STATUS = ["Чернова", "Активен", "Публикуван", "Резервиран", "Продаден", "Архивиран"];
   var COND = ["Ново строителство", "Обзаведен", "Необзаведен", "За ремонт", "Без строеж"];
   var EXPO = ["", "Юг", "Изток", "Запад", "Север", "Юг-Изток", "Юг-Запад", "Изток-Запад", "Север-Юг", "Север-Изток", "Север-Запад"];
@@ -24,7 +24,7 @@
   }
   function stored(p) {
     var o = {};
-    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
+    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
     if (p.id) o.id = p.id;
     return o;
   }
@@ -219,10 +219,29 @@
         fld({ id: "x-client", label: "Собственик / клиент", icon: "user", value: cur.client, list: "x-clients" }) +
         '<datalist id="x-clients">' + P.clientNames().map(function (n) { return '<option value="' + esc(n) + '">'; }).join("") + "</datalist>" +
         fld({ id: "x-fav", label: "Само любими", icon: "heart", type: "select", value: cur.fav ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
-        fld({ id: "x-photos", label: "Само със снимки", icon: "camera", type: "select", value: cur.photos ? "1" : "", options: [["", "Не"], ["1", "Да"]] }), { lw: 150, one: true }),
+        fld({ id: "x-photos", label: "Само със снимки", icon: "camera", type: "select", value: cur.photos ? "1" : "", options: [["", "Не"], ["1", "Да"]] }), { lw: 150, one: true }) +
+        U.group("Площ, стаи и етаж", "ruler", "nd/ph03.jpg",
+          fld({ id: "x-amin", label: "Площ от м²", icon: "m2", value: cur.areaMin, type: "number" }) +
+          fld({ id: "x-amax", label: "Площ до м²", icon: "m2", value: cur.areaMax, type: "number" }) +
+          fld({ id: "x-rooms", label: "Стаи – поне", icon: "bed-double", value: cur.rooms, type: "number" }) +
+          fld({ id: "x-ymin", label: "Година от", icon: "calendar", value: cur.yearMin, type: "number" }) +
+          fld({ id: "x-fmin", label: "Етаж от", icon: "building-2", value: cur.floorMin, type: "number" }) +
+          fld({ id: "x-fmax", label: "Етаж до", icon: "building-2", value: cur.floorMax, type: "number" }), { lw: 120 }) +
+        U.group("Удобства и условия", "sparkles", "nd/ph09.jpg",
+          fld({ id: "x-build", label: "Строителство", icon: "brick-wall", type: "select", value: cur.build || "", options: [["", "Всички"]].concat(BUILD) }) +
+          fld({ id: "x-expo", label: "Изложение", icon: "sparkles", type: "select", value: cur.expo || "", options: EXPO.map(function (x) { return [x, x || "Всички"]; }) }) +
+          fld({ id: "x-heat", label: "Отопление", icon: "zap", type: "select", value: cur.heat || "", options: HEAT.map(function (x) { return [x, x || "Всички"]; }) }) +
+          fld({ id: "x-park", label: "Паркиране", icon: "key-round", type: "select", value: cur.parking || "", options: PARK.map(function (x) { return [x, x || "Всички"]; }) }) +
+          fld({ id: "x-act", label: "Акт", icon: "badge-check", type: "select", value: cur.act || "", options: ACT.map(function (x) { return [x, x || "Всички"]; }) }) +
+          fld({ id: "x-elev", label: "Само с асансьор", icon: "building-2", type: "select", value: cur.elevator ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
+          fld({ id: "x-excl", label: "Само ексклузивни", icon: "star", type: "select", value: cur.exclusive ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
+          fld({ id: "x-keys", label: "Ключ при нас", icon: "key-round", type: "select", value: cur.keys ? "1" : "", options: [["", "Не"], ["1", "Да"]] }), { lw: 120 }),
       onSave: function (g) {
         var n = function (id) { var v = g(id); return v === "" ? null : Number(v); };
-        apply({ beds: n("x-beds"), baths: n("x-baths"), client: g("x-client"), fav: g("x-fav") === "1", photos: g("x-photos") === "1" });
+        apply({ beds: n("x-beds"), baths: n("x-baths"), client: g("x-client"), fav: g("x-fav") === "1", photos: g("x-photos") === "1",
+          areaMin: n("x-amin"), areaMax: n("x-amax"), rooms: n("x-rooms"), yearMin: n("x-ymin"), floorMin: n("x-fmin"), floorMax: n("x-fmax"),
+          build: g("x-build"), expo: g("x-expo"), heat: g("x-heat"), parking: g("x-park"), act: g("x-act"),
+          elevator: g("x-elev") === "1", exclusive: g("x-excl") === "1", keys: g("x-keys") === "1" });
       },
       onDelete: function () { apply(null); }
     });

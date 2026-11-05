@@ -333,6 +333,7 @@ html.desk .m-act{position:absolute;left:1036px;top:585px;width:1000px;margin:0}
 .ipanel .i-q{left:29px;top:68px;width:774px;height:57px;border-radius:29px;padding-left:24px;gap:18px}
 .ipanel .i-q svg.i{font-size:34px;stroke-width:2.2}
 .ipanel .i-q input{font-size:25px}
+.inum{display:inline-block;vertical-align:middle;margin-right:6px;padding:3px 10px;border-radius:12px;font:700 .62em/1.2 var(--cond,Arial);color:#fff3dc;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);box-shadow:0 0 0 1.5px #edc47a,0 0 8px rgba(255,190,120,.5)}
 .i-more{position:absolute;left:827px;top:68px;width:104px;height:57px;border-radius:20px;display:grid;place-items:center;font-size:38px;color:#7b1020;
   background:linear-gradient(180deg,#fffcf9 0%,#fbefe5 100%);box-shadow:0 2px 6px rgba(140,70,40,.25),0 0 0 1px rgba(231,196,160,.6),inset 0 1px 0 #fff}
 .i-more svg.i{stroke-width:2.1}
@@ -671,7 +672,7 @@ html.desk .pm-actions .pa{height:150px}
           <path d="M612 1 C 552 5 518 28 476 46 C 450 56 424 58 380 58 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
         </svg>
         <h2 class="ititle" id="i-ft"><svg class="i"><use href="#menu"/></svg>Търсене и филтри</h2>
-        <label class="fld i-q"><svg class="i"><use href="#search"/></svg><input id="i-q" type="search" placeholder="Търси по №, заглавие, клиент…" autocomplete="off" aria-label="Търси имот по номер, заглавие или клиент"></label>
+        <label class="fld i-q"><svg class="i"><use href="#search"/></svg><input id="i-q" type="search" placeholder="Търси по И#, №, заглавие, клиент…" autocomplete="off" aria-label="Търси имот по номер, заглавие или клиент"></label>
         <button class="i-more" id="i-more" aria-label="Още филтри" title="Още филтри"><svg class="i"><use href="#sliders-horizontal"/></svg></button>
         <div class="chips">
           <label class="fld chip"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-city" aria-label="Град"></select></label>
@@ -817,6 +818,7 @@ html.desk .pm-actions .pa{height:150px}
 <script src="crm-assistant.js"></script>
 <script src="../places.js"></script>
 <script src="crm-imoti-tabs.js"></script>
+<script src="crm-doclists.js"></script>
 <script src="crm-scan.js"></script>
 <script>
 (function(){
@@ -882,15 +884,18 @@ html.desk .pm-actions .pa{height:150px}
   function fill(s,key,opts){var cur=s.value;s.innerHTML='<option value="">'+labels[key]+'</option>'+opts.map(function(o){var v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;return '<option value="'+esc(v)+'">'+esc(t)+'</option>'}).join('');
     s.value=opts.some(function(o){return (Array.isArray(o)?o[0]:o)===cur})?cur:'';show(s)}
   function show(s){var l=s.closest('.fld');l.querySelector('.val').textContent=s.value?s.options[s.selectedIndex].text:labels[Object.keys(sel).filter(function(k){return sel[k]===s})[0]];l.classList.toggle('set',!!s.value)}
-  var prices=[['0-100000','до 100 000 €'],['100000-250000','100 000 – 250 000 €'],['250000-500000','250 000 – 500 000 €'],['500000-99999999','над 500 000 €'],['0-1500','Наем до 1 500 €'],['1500-99999','Наем над 1 500 €']];
-  var areas=[['0-80','до 80 м²'],['80-150','80 – 150 м²'],['150-300','150 – 300 м²'],['300-999999','над 300 м²']];
+  var prices=[['0-50000','до 50 000 €'],['50000-100000','50 000 – 100 000 €'],['0-100000','до 100 000 €'],['100000-150000','100 000 – 150 000 €'],['150000-250000','150 000 – 250 000 €'],['100000-250000','100 000 – 250 000 €'],['250000-500000','250 000 – 500 000 €'],['500000-99999999','над 500 000 €'],['0-1500','Наем до 1 500 €'],['1500-99999','Наем над 1 500 €']];
+  var areas=[['0-50','до 50 м²'],['50-80','50 – 80 м²'],['80-100','80 – 100 м²'],['100-150','100 – 150 м²'],['0-80','до 80 м²'],['80-150','80 – 150 м²'],['150-300','150 – 300 м²'],['300-999999','над 300 м²']];
   var sorts=[['new','Най-нови'],['pasc','Цена: възходящо'],['pdesc','Цена: низходящо'],['area','Най-голяма площ']];
   fill(sel.region,'region',uniq(props.map(function(p){return p.region})));
-  function cities(){fill(sel.city,'city',uniq(props.filter(function(p){return !sel.region.value||p.region===sel.region.value}).map(function(p){return p.city})))}
-  function hoods(){fill(sel.hood,'hood',uniq(props.filter(function(p){return (!sel.city.value||p.city===sel.city.value)&&(!sel.region.value||p.region===sel.region.value)}).map(function(p){return p.hood})))}
+  /* full lists of our territories (NDPlaces) + anything else found in the data */
+  var PLC=window.NDPlaces||{cities:[],PLACES:{}};
+  function cities(){fill(sel.city,'city',uniq((sel.region.value?[]:PLC.cities).concat(props.filter(function(p){return !sel.region.value||p.region===sel.region.value}).map(function(p){return p.city})).filter(Boolean)))}
+  function hoods(){var c=sel.city.value,base=c?(PLC.PLACES[c]||[]):[].concat.apply([],PLC.cities.map(function(x){return PLC.PLACES[x]}));
+    fill(sel.hood,'hood',uniq(base.concat(props.filter(function(p){return (!c||p.city===c)&&(!sel.region.value||p.region===sel.region.value)}).map(function(p){return p.hood})).filter(Boolean)))}
   cities();hoods();
-  fill(sel.type,'type',['Апартамент','Къща','Парцел']);fill(sel.price,'price',prices);fill(sel.area,'area',areas);
-  fill(sel.cond,'cond',['Ново строителство','Обзаведен','Без строеж']);fill(sel.status,'status',['Публикуван','Активен','Резервиран','Чернова','Архивиран']);fill(sel.sort,'sort',sorts);
+  fill(sel.type,'type',['Апартамент','Мезонет','Ателие / Таван','Къща','Етаж от къща','Вила','Парцел','Земеделска земя','Офис','Магазин','Заведение','Склад','Гараж','Паркомясто','Хотел','Промишлен имот']);fill(sel.price,'price',prices);fill(sel.area,'area',areas);
+  fill(sel.cond,'cond',['Ново строителство','Обзаведен','Необзаведен','За ремонт','Без строеж']);fill(sel.status,'status',['Публикуван','Активен','Резервиран','Продаден','Чернова','Архивиран']);fill(sel.sort,'sort',sorts);
   sel.region.addEventListener('change',function(){show(sel.region);cities();hoods()});   /* parent change clears the dependent fields */
   sel.city.addEventListener('change',function(){show(sel.city);hoods()});
   ['hood','type','price','area','cond','status'].forEach(function(k){sel[k].addEventListener('change',function(){show(sel[k])})});
@@ -904,11 +909,19 @@ html.desk .pm-actions .pa{height:150px}
   function current(){var q=$('i-q').value.trim().toLocaleLowerCase('bg');var o={q:q,deal:deal};Object.keys(sel).forEach(function(k){o[k]=sel[k].value});return o}
   function match(p,f){
     if(MORE){if(MORE.beds!=null&&!(+p.beds>=MORE.beds))return false;if(MORE.baths!=null&&!(+p.baths>=MORE.baths))return false;
-      if(MORE.client&&p.client.toLocaleLowerCase('bg').indexOf(MORE.client.toLocaleLowerCase('bg'))<0)return false;if(MORE.fav&&!favs[p.id])return false;if(MORE.photos&&!p.photos)return false}
+      if(MORE.client&&p.client.toLocaleLowerCase('bg').indexOf(MORE.client.toLocaleLowerCase('bg'))<0)return false;if(MORE.fav&&!favs[p.id])return false;if(MORE.photos&&!p.photos)return false;
+      var mq=['expo','heat','parking','act','build'];for(var mi=0;mi<mq.length;mi++){if(MORE[mq[mi]]&&p[mq[mi]]!==MORE[mq[mi]])return false}
+      if(MORE.elevator&&!p.elevator)return false;if(MORE.exclusive&&!p.exclusive)return false;if(MORE.keys&&!p.keys)return false;
+      if(MORE.rooms!=null&&!(+p.rooms>=MORE.rooms))return false;
+      var fl=parseInt(String(p.floor||''),10);if(MORE.floorMin!=null&&!(fl>=MORE.floorMin))return false;if(MORE.floorMax!=null&&!(fl<=MORE.floorMax))return false;
+      if(MORE.areaMin!=null&&!(p.area>=MORE.areaMin))return false;if(MORE.areaMax!=null&&!(p.area<=MORE.areaMax))return false;
+      if(MORE.yearMin!=null&&!(+p.year>=MORE.yearMin))return false}
     if(!f)return true;
     if(f.deal&&p.deal!==f.deal)return false;
     if(f.only&&p.status!==f.only)return false;
-    if(f.q&&(p.id+' '+p.title+' '+p.client+' '+p.city+' '+p.hood).toLocaleLowerCase('bg').indexOf(f.q)<0)return false;
+    if(f.q){var cm=/^(?:и|i)?\s*#?\s*(\d+)$/.exec(f.q.replace(/\s+/g,''));
+      if(cm&&/[#иi]/.test(f.q)){if(String(p.num)!==cm[1])return false}
+      else if((p.id+' '+p.code+' '+p.title+' '+p.client+' '+p.city+' '+p.hood+(p.num?' и#'+p.num+' #'+p.num:'')).toLocaleLowerCase('bg').indexOf(f.q)<0)return false}
     var eq=['city','region','hood','type','cond','status'];for(var i=0;i<eq.length;i++){if(f[eq[i]]&&p[eq[i]]!==f[eq[i]])return false}
     if(f.price){var r=f.price.split('-');if(p.price<+r[0]||p.price>+r[1])return false}
     if(f.area){var a=f.area.split('-');if(p.area<+a[0]||p.area>+a[1])return false}
@@ -928,7 +941,7 @@ html.desk .pm-actions .pa{height:150px}
           '<button class="hrt'+(favs[p.id]?' on':'')+'" data-fav="'+p.id+'" aria-pressed="'+!!favs[p.id]+'" aria-label="Любим имот">'+ic('heart')+'</button>'+
           '<span class="tg">'+ic(p.deal==='rent'?'key-round':'tag')+(p.deal==='rent'?'Наем':'Продажба')+'</span>'+
           '<span class="cam">'+ic('camera')+p.photos+'</span></div>'+
-        '<h3 class="tt">'+esc(p.title)+'</h3>'+
+        '<h3 class="tt">'+(p.num?'<span class="inum">И#'+esc(p.num)+'</span> ':'')+esc(p.title)+'</h3>'+
         '<p class="lc">'+ic('pin')+esc(p.city+', '+p.hood)+'</p>'+
         '<p class="sp">'+specs+'</p>'+
         '<span class="pr">'+priceText(p)+'</span>'+
@@ -987,7 +1000,7 @@ html.desk .pm-actions .pa{height:150px}
   function acc(id,icon,label,body){return '<div class="acc" data-acc="'+id+'"><button aria-expanded="false">'+ic(icon)+'<span>'+label+'</span><svg class="i cv"><use href="#chev-d"/></svg></button><div class="body">'+body+'</div></div>'}
   function openProp(id,from){
     var p=props.filter(function(x){return x.id===id})[0];if(!p)return;var d=det[id];cur=p;gi=0;plast=from||document.activeElement;
-    $('pm-id').textContent='№ ID: '+d.num;
+    $('pm-id').textContent=(p.num?'И#'+p.num+' · ':'')+'№ '+d.num;
     $('pm-title').textContent=p.title;
     $('pm-loc').querySelector('span').textContent=p.city+', кв. '+p.hood;
     $('pm-price').innerHTML=priceText(p);
@@ -1001,6 +1014,7 @@ html.desk .pm-actions .pa{height:150px}
     var monthly=p.deal==='sale'&&p.price>20000?(function(){var L=p.price*.8,r=.0325/12,n=360;return money(Math.round(L*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1)))})():null;
     $('pm-acc').innerHTML=
       acc('docs','image','Снимки и документи ('+p.photos+')','<div class="pics">'+pics+'</div>'+(p.docs.length?p.docs.map(function(x,i){return '<div class="row" data-doc="'+i+'" role="button" tabindex="0" style="cursor:pointer">'+ic('file-text')+'<span>'+esc(x.name)+'</span><span class="r">'+Math.max(1,Math.round((x.size||0)/1024))+' KB</span></div>'}).join(''):'<div class="row">'+ic('file-text')+'<span>Няма качени документи</span></div>')+'<p class="note">Добавяне на снимки и документи – бутон „Редактирай“.</p>')+
+      acc('pdocs','file-text','Документи на имота (чеклист)','<div class="row">'+ic('shield')+'<span>Нотариален акт, скица, тежести, данъчна оценка… + специални ситуации</span></div><button class="bankbtn" data-pa="pdocs">'+ic('file-text')+'Отвори документите</button>')+
       acc('owner','user','Собственик',(p.client?'<div class="row">'+ic('user')+'<span>'+esc(p.client)+'</span><span class="r">'+(CL[p.client]?'<a href="crm-klienti.html#'+esc(CL[p.client].id)+'">Клиент</a>':'Клиент')+'</span></div><div class="row">'+ic('phone')+'<span>Телефон</span><span class="r">'+(CL[p.client]&&CL[p.client].phone?'<a href="tel:'+esc(CL[p.client].phone.replace(/\s/g,''))+'">'+esc(CL[p.client].phone)+'</a>':'няма данни')+'</span></div>':'<div class="row">'+ic('user')+'<span>Няма посочен собственик</span></div>')+'<p class="note">Данните на собственика се показват според правата на потребителя.</p>')+
       acc('bank','landmark','Финансиране / Банка',(monthly?'<div class="row">'+ic('coins')+'<span>Примерна вноска (80% кредит, 30 г., 3,25%)</span><span class="r">'+monthly+' € / мес.</span></div>':'<div class="row">'+ic('coins')+'<span>Имотът е под наем – без кредит</span></div>')+'<button class="bankbtn" data-pa="bank">'+ic('landmark')+'Банков модул</button>')+
       acc('log','clock','Коментари и активност',(p.log.length?p.log.slice(0,12).map(function(l){return '<div class="row">'+ic(l.icon||'clock')+'<span>'+esc(l.text)+'</span><span class="r">'+esc(window.NDUI.bgDateTime(l.at))+'</span></div>'}).join(''):'<div class="row">'+ic('megaphone')+'<span>Статус: '+esc(p.status)+'</span></div>'));
@@ -1047,6 +1061,7 @@ html.desk .pm-actions .pa{height:150px}
     if(a==='publish'){if(cur.status==='Публикуван'){say('Имотът вече е публикуван');return}window.NDProps.setStatus(cur,'Публикуван');return}
     if(a==='archive'){window.NDProps.setStatus(cur,cur.status==='Архивиран'?'Активен':'Архивиран');return}
     if(a==='bank'){window.NDUI.bank({client:cur.client,price:cur.deal==='sale'?cur.price:'',city:cur.city});return}
+    if(a==='pdocs'&&window.NDDocs){var pp=cur;window.NDDocs.property(pp,{say:say,save:function(patch){var o=window.NDProps.stored(pp);Object.keys(patch).forEach(function(k){o[k]=patch[k]});return ND.put('properties',o)},onUpload:function(t,n){var o=window.NDProps.stored(pp);o.log=(o.log||[]).slice(0,49);o.log.unshift({icon:'file-text',text:'Прикачен документ: '+t+(n>1?' ('+n+' файла)':''),at:new Date().toISOString()});pp.log=o.log;ND.put('properties',o).catch(function(){})}});return}
     say(t)});
   $('pm-acc').addEventListener('click',function(e){var r=e.target.closest('[data-doc]');if(!r||!cur)return;var d=cur.docs[+r.getAttribute('data-doc')];if(!d)return;var w=window.open('','_blank');ND.fileUrl(d.path).then(function(u){if(w)w.location=u;else location.href=u})});
   document.addEventListener('keydown',function(e){

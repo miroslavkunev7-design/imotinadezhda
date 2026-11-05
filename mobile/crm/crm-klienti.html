@@ -203,7 +203,9 @@ button:active{filter:brightness(.96);transform:translateY(1px)}
 .fld input::-webkit-search-cancel-button{-webkit-appearance:none}
 .fld:focus-within{box-shadow:0 0 0 2px #d9a95a,0 0 12px rgba(217,169,90,.6),inset 0 1px 0 #fff}
 .f-q{left:29px;width:356px}.f-city{left:414px;width:270px}.f-hood{left:703px;width:283px}
-.f-type{left:29px;top:57px;width:462px}.f-sort{left:513px;top:57px;width:473px}
+.f-type{left:29px;top:57px;width:462px}.f-sort{left:513px;top:57px;width:330px}
+.f-more{left:860px;top:57px;width:126px;justify-content:center;font:700 22px/1 var(--sans);color:#5a0a12;border:0}
+.f-more.set{background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716)!important;color:#fff3dc}.f-more.set svg.i{color:#ffe1a6}
 .f-city .val{font-weight:700;color:#5a0a12;font-size:25px}.f-hood .val{font-size:25px}
 .f-type .val,.f-sort .val{font-size:22.5px}
 
@@ -286,6 +288,15 @@ button:active{filter:brightness(.96);transform:translateY(1px)}
 .arow svg.i{font-size:36px;color:#7b1020;stroke-width:1.8;margin-left:8px}
 .arow .at{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .arow .tm{white-space:nowrap}
+.knum{display:inline-block;vertical-align:middle;margin-right:8px;padding:2px 9px;border-radius:12px;font:700 .58em/1.3 var(--cond,Arial);color:#fff3dc;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);box-shadow:0 0 0 1.5px #edc47a,0 0 8px rgba(255,190,120,.5);text-shadow:none}
+.knum.big{font-size:.5em;padding:4px 14px;margin-right:14px}
+.fcell.wide{grid-column:1/-1}
+.fcell{cursor:pointer}
+.fcell .fed{position:absolute;right:12px;top:10px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:20px;color:#fff3dc;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);box-shadow:0 0 0 1.5px #edc47a,0 0 8px rgba(255,190,120,.55);z-index:2}
+.fcell .emp{color:#9a7a6a;font-size:21px;font-style:italic}
+.fcell.editing{box-shadow:0 0 0 2px #e3b25e,0 0 16px rgba(255,214,150,.9)}
+.fcell.editing .fv{top:52px;overflow:visible}
+.fcell .fin{width:calc(100% - 10px);height:44px;border-radius:12px;border:1.5px solid #e3b25e;background:#fffdfa;padding:0 10px;font:400 25px/1 var(--cond);color:#1f1111;position:relative;z-index:3}
 .nstate{position:absolute;right:36px;top:20px;font:700 24px/1 var(--cond);color:#5a0a12}
 .nbox{margin:12px 18px 22px;padding:16px;border-radius:24px;background:linear-gradient(180deg,rgba(255,252,249,.97),rgba(252,240,231,.95));box-shadow:0 2px 6px rgba(140,70,40,.18),0 0 0 1px rgba(231,196,160,.5),0 0 14px rgba(255,226,190,.7)}
 .ntext{display:block;width:100%;box-sizing:border-box;min-height:320px;resize:vertical;border-radius:20px;border:1.5px solid rgba(226,176,120,.85);background:#fffdfa;padding:18px 20px;font:400 27px/1.35 var(--cond);color:#1f1111;outline:none;box-shadow:inset 0 2px 5px rgba(120,50,20,.1)}
@@ -314,7 +325,7 @@ html.desk .cgrid{padding:15px 8px 4px;height:var(--gh,420px);overflow-y:auto;ali
 html:not(.desk) .mbtn{width:32px;height:32px;font-size:17px}
 html.desk .mscroll{overflow:hidden}
 html.desk .mwin,html.desk .mwin.full{right:auto;bottom:auto;border-radius:26px;border-width:2px}
-html.desk .mcv{width:2048px;height:1260px;padding:0}
+html.desk .mcv{width:2048px;height:1420px;padding:0}
 html.desk .mtop{left:12px;top:12px;width:1000px;height:730px;border-radius:24px;overflow:hidden;box-shadow:0 0 0 2px #efc57a,0 0 18px rgba(255,200,120,.45)}
 html.desk .mtop .photo{left:-250px!important;top:0!important;width:1300px!important}
 html.desk .mtop .shade{background:linear-gradient(0deg,rgba(60,8,20,.9) 0%,rgba(60,8,20,0) 42%),linear-gradient(90deg,rgba(64,10,22,.75) 0%,rgba(64,10,22,0) 55%)}
@@ -322,9 +333,12 @@ html.desk .m-name{top:540px}
 html.desk .m-phone{top:626px}
 html.desk .m-actions{position:absolute;left:12px;top:762px;width:1000px;padding:0}
 html.desk .m-data{position:absolute;left:1036px;top:12px;width:1000px;margin:0}
-html.desk .m-act{position:absolute;left:1036px;top:585px;width:1000px;margin:0}
-html.desk .m-notes{position:absolute;left:12px;top:880px;width:2024px;margin:0}
-html.desk .m-notes .mribbon{width:1000px}
+html.desk .m-act{position:absolute;left:12px;top:880px;width:1000px;margin:0}
+html.desk .m-data .fgrid{grid-template-columns:1fr 1fr 1fr}
+html.desk .m-data .fcell .fp{width:34%}
+.fcell .fl,.fcell .fv{z-index:1;text-shadow:0 0 6px #fff8f0,0 0 2px #fff8f0}
+html.desk .m-notes{position:absolute;left:1036px;top:var(--ntop,960px);width:1000px;margin:0}
+html.desk .m-notes .mribbon{width:702px}
 html.desk .m-notes .ntext{min-height:230px;height:230px}
 @media (hover:hover){button:hover{filter:brightness(1.06)}.ccard:hover,.ma:hover,.fcell:hover{transform:translateY(-2px);transition:transform .18s}}
 
@@ -452,11 +466,12 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       <h2 class="ctitle" id="t-sales"><svg class="i"><use href="#users"/></svg>Клиенти – Продажби</h2>
       <button type="button" class="nd-new" data-new="sales" aria-label="Нов клиент – продажби"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
       <div class="filters">
-        <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-sales" type="search" placeholder="Търси клиент…" autocomplete="off" aria-label="Търси клиент в продажби"></label>
+        <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-sales" type="search" placeholder="Търси клиент, телефон или К#…" autocomplete="off" aria-label="Търси клиент в продажби"></label>
         <label class="fld f-city"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="city-sales" aria-label="Град"></select></label>
         <label class="fld f-hood"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="hood-sales" aria-label="Квартал"></select></label>
         <label class="fld f-type"><svg class="i"><use href="#house"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="type-sales" aria-label="Вид имот"></select></label>
         <label class="fld f-sort"><svg class="i"><use href="#list-filter"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="sort-sales" aria-label="Сортиране"></select></label>
+        <button type="button" class="fld f-more" id="more-sales" aria-label="Още филтри – продажби"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h11M18 6h3M3 12h5M12 12h9M3 18h13M20 18h1"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Още</button>
       </div>
     </section>
     <div class="cgrid" id="grid-sales" data-h="196"></div>
@@ -471,11 +486,12 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       <h2 class="ctitle" id="t-rent"><svg class="i"><use href="#users"/></svg>Клиенти – Наеми</h2>
       <button type="button" class="nd-new" data-new="rent" aria-label="Нов клиент – наеми"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
       <div class="filters">
-        <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-rent" type="search" placeholder="Търси клиент…" autocomplete="off" aria-label="Търси клиент в наеми"></label>
+        <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-rent" type="search" placeholder="Търси клиент, телефон или К#…" autocomplete="off" aria-label="Търси клиент в наеми"></label>
         <label class="fld f-city"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="city-rent" aria-label="Град"></select></label>
         <label class="fld f-hood"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="hood-rent" aria-label="Квартал"></select></label>
         <label class="fld f-type"><svg class="i"><use href="#house"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="type-rent" aria-label="Вид имот"></select></label>
         <label class="fld f-sort"><svg class="i"><use href="#list-filter"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="sort-rent" aria-label="Сортиране"></select></label>
+        <button type="button" class="fld f-more" id="more-rent" aria-label="Още филтри – наеми"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h11M18 6h3M3 12h5M12 12h9M3 18h13M20 18h1"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Още</button>
       </div>
     </section>
     <div class="cgrid" id="grid-rent" data-h="170"></div>
@@ -606,6 +622,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 <script src="crm-assistant.js"></script>
 <script src="../places.js"></script>
 <script src="crm-klienti-tabs.js"></script>
+<script src="crm-doclists.js"></script>
 <script src="crm-scan.js"></script>
 <script>
 (function(){
@@ -639,7 +656,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   /* ---------- layout scaling ---------- */
   var ctop=document.querySelector('.ctop'),cphoto=ctop.querySelector('.photo'),cctrls=[].slice.call(ctop.querySelectorAll('.ctrl,.avatar')),
       ctexts=[].slice.call(ctop.querySelectorAll('.hero-title,.hero-sub')).map(function(el){return {el:el,top:parseFloat(el.style.top)}});
-  var desk=false;
+  var desk=false,DH=1420;
   function isDesk(){return root.clientWidth>=1024&&root.clientWidth/innerHeight>=1.2}
   function fitDesk(){
     var vw=root.clientWidth,vh=innerHeight,BW=2072,BH=1190;
@@ -679,7 +696,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     if(win.hidden)return;
     if(desk){
       var vw=root.clientWidth,dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||100,ah=innerHeight-dh-14;
-      var aw=full?vw-16:vw*.94,av=full?ah-8:ah*.94,z=Math.min(aw/2048,av/1260),w=2048*z,h=1260*z;
+      var aw=full?vw-16:vw*.94,av=full?ah-8:ah*.94,z=Math.min(aw/2048,av/Math.max(1420,DH)),w=2048*z,h=Math.max(1420,DH)*z;mcv.style.height=Math.max(1420,DH)+"px";
       win.style.width=w+'px';win.style.height=h+'px';win.style.left=((vw-w)/2)+'px';win.style.top=Math.max(6,(ah-h)/2)+'px';
       mcv.style.zoom=z;
       ctlBox.style.top='';
@@ -689,7 +706,26 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 
   /* ---------- lists with independent filters ---------- */
   var geo={sales:{h:196,name:10,phone:50,rows:[96,129,162],gob:8},rent:{h:170,name:8,phone:44,rows:[82,111,140],gob:11}};
-  var ALLC='Всички',ALLH='Всички',ALLT='Всички имоти';
+  var ALLC='Всички',ALLH='Всички',ALLT='Всички имоти',MOREK={sales:null,rent:null};
+  /* "Още" – extra client filters (priority, payment, timeframe, rooms, budget, status, source, due contact) */
+  function moreFilters(cat,btn,done){
+    var U=window.NDUI,O=(window.NDKTabs&&window.NDKTabs.OPTS)||{},X=MOREK[cat]||{},f=U.fld,opt=function(a){return [['','Всички']].concat((a||[]).filter(Boolean))};
+    U.open({title:'Още филтри – '+(cat==='rent'?'Наеми':'Продажби'),icon:'list-filter',photo:'nd/ph15.jpg',saveText:'Приложи',
+      html:U.group('Профил на клиента','users','nd/ph10.jpg',
+        f({id:'xk-prio',label:'Приоритет',icon:'star',type:'select',value:X.priority||'',options:opt(O.PRIO)})+
+        f({id:'xk-pay',label:'Плащане',icon:'coins',type:'select',value:X.payment||'',options:opt(O.PAY)})+
+        f({id:'xk-time',label:'Срок',icon:'clock',type:'select',value:X.timeframe||'',options:opt(O.TIMEF)})+
+        f({id:'xk-status',label:'Статус',icon:'users',type:'select',value:X.status||'',options:opt(O.STATUSES)})+
+        f({id:'xk-src',label:'Източник',icon:'tag',type:'select',value:X.source||'',options:opt(O.SOURCES)})+
+        f({id:'xk-rooms',label:'Стаи – поне',icon:'bed-double',value:X.rooms,type:'number'})+
+        f({id:'xk-bmin',label:'Бюджет от €',icon:'coins',value:X.bmin,type:'number'})+
+        f({id:'xk-bmax',label:'Бюджет до €',icon:'coins',value:X.bmax,type:'number'})+
+        f({id:'xk-due',label:'Само за контакт днес',icon:'calendar-check',type:'select',value:X.due?'1':'',options:[['','Не'],['1','Да']]}),{lw:130}),
+      onSave:function(g){var n=function(id){var v=g(id);return v===''?null:Number(v)};
+        var o={priority:g('xk-prio'),payment:g('xk-pay'),timeframe:g('xk-time'),status:g('xk-status'),source:g('xk-src'),rooms:n('xk-rooms'),bmin:n('xk-bmin'),bmax:n('xk-bmax'),due:g('xk-due')==='1'};
+        var any=Object.keys(o).some(function(k){return o[k]!==''&&o[k]!=null&&o[k]!==false});MOREK[cat]=any?o:null;btn.classList.toggle('set',any);done()},
+      onDelete:function(){MOREK[cat]=null;btn.classList.remove('set');done()}});
+    var del=document.querySelector('#nd-f-del span');if(del)del.textContent='Изчисти'}
   var sorts=[['new','Най-нови'],['name','Име (А–Я)'],['asc','Бюджет: възходящо'],['desc','Бюджет: низходящо']];
   function fillSelect(sel,opts,val){sel.innerHTML=opts.map(function(o){var v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;return '<option value="'+esc(v)+'"'+(v===val?' selected':'')+'>'+esc(t)+'</option>'}).join('')}
   function showVal(sel){var l=sel.closest('.fld');l.querySelector('.val').textContent=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:''}
@@ -698,10 +734,13 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     var q=document.getElementById('q-'+cat),city=document.getElementById('city-'+cat),hood=document.getElementById('hood-'+cat),
         type=document.getElementById('type-'+cat),sort=document.getElementById('sort-'+cat),grid=document.getElementById('grid-'+cat);
     var uniq=function(a){return a.filter(function(v,i){return a.indexOf(v)===i})};
-    fillSelect(city,[ALLC].concat(uniq(mine.map(function(c){return c.city}))),ALLC);
-    function hoods(){var cs=city.value;fillSelect(hood,[ALLH].concat(uniq(mine.filter(function(c){return cs===ALLC||c.city===cs}).map(function(c){return c.hood}))),ALLH);showVal(hood)}
+    var PLC=window.NDPlaces||{cities:[],PLACES:{}};   /* full lists of our territories + anything found in the data */
+    fillSelect(city,[ALLC].concat(uniq(PLC.cities.concat(mine.map(function(c){return c.city})).filter(Boolean))),ALLC);
+    function hoods(){var cs=city.value,base=cs===ALLC?[].concat.apply([],PLC.cities.map(function(x){return PLC.PLACES[x]})):(PLC.PLACES[cs]||[]);
+      fillSelect(hood,[ALLH].concat(uniq(base.concat(mine.filter(function(c){return cs===ALLC||c.city===cs}).map(function(c){return c.hood})).filter(Boolean))),ALLH);showVal(hood)}
     hoods();
-    fillSelect(type,[ALLT,'Апартамент','Къща'],ALLT);fillSelect(sort,sorts,'new');
+    var mb=document.getElementById('more-'+cat);if(mb&&!mb._nd){mb._nd=1;mb.addEventListener('click',function(e){e.preventDefault();moreFilters(cat,mb,function(){render()})})}
+    fillSelect(type,[ALLT,'Апартамент','Мезонет','Ателие / Таван','Къща','Етаж от къща','Вила','Парцел','Земеделска земя','Офис','Магазин','Заведение','Склад','Гараж','Паркомясто','Хотел','Промишлен имот'],ALLT);fillSelect(sort,sorts,'new');
     [city,hood,type,sort].forEach(showVal);
     function render(){
       var s=q.value.trim().toLocaleLowerCase('bg'),digits=s.replace(/\D/g,'');
@@ -709,14 +748,20 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
         if(city.value!==ALLC&&c.city!==city.value)return false;
         if(hood.value!==ALLH&&c.hood!==hood.value)return false;
         if(type.value!==ALLT&&c.type!==type.value)return false;
-        if(s&&c.name.toLocaleLowerCase('bg').indexOf(s)<0&&!(digits&&c.phone.replace(/\D/g,'').indexOf(digits)>=0))return false;
+        var X=MOREK[cat];if(X){if(X.priority&&c.priority!==X.priority)return false;if(X.payment&&c.payment!==X.payment)return false;if(X.timeframe&&c.timeframe!==X.timeframe)return false;
+          if(X.status&&c.status!==X.status)return false;if(X.source&&c.source!==X.source)return false;if(X.rooms!=null&&!(+c.rooms>=X.rooms))return false;
+          if(X.bmin!=null&&!(c.budget>=X.bmin))return false;if(X.bmax!=null&&!(c.budget<=X.bmax))return false;
+          if(X.due&&!(c.nextContact&&c.nextContact<=new Date().toISOString().slice(0,10)))return false}
+        var km=/^(?:к|k)?#?(\d+)$/.exec(s.replace(/\s+/g,''));
+        if(km&&/[#кk]/.test(s)){if(String(c.num)!==km[1])return false}
+        else if(s&&c.name.toLocaleLowerCase('bg').indexOf(s)<0&&!(digits&&c.phone.replace(/\D/g,'').indexOf(digits)>=0)&&!(digits&&String(c.num)===digits&&digits.length<4))return false;
         return true});
       list.sort(function(a,b){return sort.value==='name'?a.name.localeCompare(b.name,'bg'):sort.value==='asc'?a.budget-b.budget:sort.value==='desc'?b.budget-a.budget:a.days-b.days||a.order-b.order});
       var g=geo[cat];
       grid.innerHTML=list.length?list.map(function(c){
         return '<button class="ccard" data-id="'+c.id+'" style="--h:'+g.h+'px;--gob:'+g.gob+'px" aria-label="Отвори картата на '+esc(c.name)+'">'+
           '<span class="ph" style="background-image:url('+(c.photo||img('card-clients.jpg'))+')"></span>'+
-          '<span class="nm" style="top:'+g.name+'px">'+esc(c.name)+'</span>'+
+          '<span class="nm" style="top:'+g.name+'px">'+(c.num?'<span class="knum">К#'+esc(c.num)+'</span>':'')+esc(c.name)+'</span>'+
           '<span class="ph-n" style="top:'+g.phone+'px">'+ic('phone')+esc(c.phone)+'</span>'+
           '<span class="row" style="top:'+g.rows[0]+'px">'+ic('house')+esc(c.type)+'</span>'+
           '<span class="row" style="top:'+g.rows[1]+'px">'+ic('pin')+esc(c.city+', '+c.hood)+'</span>'+
@@ -731,7 +776,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     [hood,type,sort].forEach(function(s){s.addEventListener('change',function(){showVal(s);render()})});
     grid.addEventListener('click',function(e){var b=e.target.closest('.ccard');if(b)open(b.getAttribute('data-id'),b)});
     render();
-    REF[cat]=function(){mine=clients.filter(function(c){return c.cat===cat});var cv=city.value;fillSelect(city,[ALLC].concat(uniq(mine.map(function(c){return c.city}).filter(Boolean))),ALLC);if(mine.some(function(c){return c.city===cv}))city.value=cv;showVal(city);var hv=hood.value;hoods();if([].some.call(hood.options,function(o){return o.value===hv}))hood.value=hv;showVal(hood);render()};
+    REF[cat]=function(){mine=clients.filter(function(c){return c.cat===cat});var cv=city.value;fillSelect(city,[ALLC].concat(uniq(PLC.cities.concat(mine.map(function(c){return c.city})).filter(Boolean))),ALLC);if([].some.call(city.options,function(o){return o.value===cv}))city.value=cv;showVal(city);var hv=hood.value;hoods();if([].some.call(hood.options,function(o){return o.value===hv}))hood.value=hv;showVal(hood);render()};
   }
   var REF={};
 
@@ -740,17 +785,64 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   function field(icon,label,value,pic,h,raw){
     return '<div class="fcell" style="--fh:'+h+'px"><span class="fp" style="background-image:url('+img(pic)+')"></span>'+
       '<span class="fi">'+ic(icon)+'</span><span class="fl">'+label+'</span><span class="fv">'+(raw?value:esc(value==null||value===''||/^undefined|, undefined$/.test(String(value))?'—':value))+'</span></div>'}
+  /* editable "Данни за клиента": tap a cell to change it, saved straight to the database */
+  var FDEF=[
+    ['phone','phone','Телефон','field-id.webp','tel'],['email','mail','Имейл','field-email.webp','email'],
+    ['egn','id-card','ЕГН','field-id.webp','text'],['cat','tag','Търси','field-home.webp','sel',[['sales','Покупка'],['rent','Наем']]],
+    ['type','house','Вид имот','field-home.webp','sel','TYPES'],['city','pin','Град','field-shumen.webp','text','city'],
+    ['hood','map-pin-house','Квартал','field-location.webp','text','hood'],['budget','coins','Бюджет','field-budget.webp','num'],
+    ['rooms','bed-double','Стаи – поне','nd/ph05.jpg','num'],['areaMin','m2','Площ от м²','nd/ph03.jpg','num'],
+    ['floorPref','building-2','Етаж','nd/ph09.jpg','sel','FLOORP'],['payment','circle-dollar-sign','Плащане','field-budget.webp','sel','PAY'],
+    ['timeframe','clock','Срок','field-calendar.webp','sel','TIMEF'],['priority','star','Приоритет','field-status.webp','sel','PRIO'],
+    ['contactPref','message-square','Връзка чрез','field-email.webp','sel','CONTACT'],['nextContact','calendar-check','Следващ контакт','field-calendar.webp','date'],
+    ['status','users','Статус','field-status.webp','sel','STATUSES'],['source','tag','Източник','field-source.webp','sel','SOURCES'],
+    ['contact','calendar','Дата на контакт','field-calendar.webp','ro'],['must','badge-check','Задължително да има','field-notes.webp','text',null,true]];
+  function fval(c,d){var k=d[0],v=c[k];
+    if(k==='cat')return v==='rent'?'Наем':'Покупка';
+    if(k==='budget')return budget(c);
+    if(k==='status')return v==='Активен'?'<span class="pill"><i></i>'+esc(v)+'</span>':(v?'<span class="pill warn"><i></i>'+esc(v)+'</span>':'—');
+    if(k==='nextContact'&&v){var p=String(v).split('-');return esc(p[2]+'.'+p[1]+'.'+p[0])}
+    if(k==='egn'&&v)return esc(String(v).replace(/^(\d{0,6})/,function(m){return m.replace(/\d/g,'*')}));
+    if((k==='rooms'||k==='areaMin')&&v)return esc(v+(k==='areaMin'?' м²':''));
+    return v==null||v===''?'<span class="emp">+ добави</span>':esc(v)}
+  function renderFields(c){
+    document.getElementById('m-fields').innerHTML=FDEF.map(function(d,i){
+      return '<div class="fcell'+(d[6]?' wide':'')+(d[4]==='ro'?' ro':'')+'" style="--fh:104px" data-fk="'+i+'" role="button" tabindex="0" aria-label="'+esc(d[2])+' – промени"><span class="fp" style="background-image:url('+img(d[3])+')"></span>'+
+        '<span class="fi">'+ic(d[1])+'</span><span class="fl">'+esc(d[2])+'</span><span class="fv">'+fval(c,d)+'</span>'+(d[4]==='ro'?'':'<span class="fed">'+ic('pencil')+'</span>')+'</div>'}).join('')}
+  document.getElementById('m-fields').addEventListener('click',function(e){
+    var cell=e.target.closest('[data-fk]');if(!cell||cell.classList.contains('editing')||cell.classList.contains('ro'))return;
+    var c=clients.filter(function(x){return x.id===win.dataset.id})[0];if(!c)return;
+    var d=FDEF[+cell.getAttribute('data-fk')],k=d[0],T=window.NDKTabs,O=T.OPTS||{},v=c[k]==null?'':c[k],ed;
+    var opts=Array.isArray(d[5])?d[5]:(O[d[5]]||null);
+    if(d[4]==='sel'&&opts){ed='<select class="fin">'+opts.map(function(o){var ov=Array.isArray(o)?o[0]:o,ot=Array.isArray(o)?o[1]:(o||'—');return '<option value="'+esc(ov)+'"'+(String(ov)===String(v)?' selected':'')+'>'+esc(ot)+'</option>'}).join('')+'</select>'}
+    else{var ty=d[4]==='num'?'number':d[4]==='date'?'date':d[4]==='tel'?'tel':d[4]==='email'?'email':'text';
+      var lst=d[5]==='city'?' list="fl-cities"':d[5]==='hood'?' list="fl-hoods"':'';
+      ed='<input class="fin" type="'+ty+'"'+(ty==='number'?' inputmode="decimal"':'')+lst+' value="'+esc(v)+'">'}
+    var P=window.NDPlaces,dl=d[5]==='city'&&P?'<datalist id="fl-cities">'+P.cities.map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist>':
+      d[5]==='hood'&&P?'<datalist id="fl-hoods">'+(P.PLACES[P.city(c.city)]||[]).map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist>':'';
+    cell.classList.add('editing');var fv=cell.querySelector('.fv');fv.innerHTML=ed+dl;var inp=fv.querySelector('.fin');inp.focus();if(inp.select&&inp.tagName==='INPUT')try{inp.select()}catch(x){}
+    var done=false;
+    function finish(save){if(done)return;done=true;var nv=inp.value.trim();
+      if(!save||String(nv)===String(v)){cell.classList.remove('editing');fv.innerHTML=fval(c,d);return}
+      if(d[4]==='num')nv=nv===''?null:Number(nv.replace(',','.'));
+      if(k==='phone'&&!nv){say('Телефонът е задължителен');cell.classList.remove('editing');fv.innerHTML=fval(c,d);return}
+      var patch={};patch[k]=nv;fv.innerHTML='<span class="emp">записване…</span>';
+      T.saveField(c,patch).then(function(){cell.classList.remove('editing');fv.innerHTML=fval(c,d);say('Записано: '+d[2]);
+        if(k==='name'||k==='phone'){document.getElementById('m-phone').querySelector('span').textContent=c.phone}
+        if(k==='city'){var hc=document.querySelector('[data-fk="6"] .fv');if(hc)hc.innerHTML=fval(c,FDEF[6])}
+      }).catch(function(er){cell.classList.remove('editing');fv.innerHTML=fval(c,d);say('Грешка: '+((er&&er.message)||er))})}
+    inp.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();finish(true)}if(ev.key==='Escape'){ev.stopPropagation();finish(false)}});
+    inp.addEventListener('blur',function(){setTimeout(function(){finish(true)},120)});
+    if(inp.tagName==='SELECT')inp.addEventListener('change',function(){finish(true)});
+  });
+  document.getElementById('m-fields').addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-fk]')){e.preventDefault();e.target.click()}});
   function open(id,from){
     var c=clients.filter(function(x){return x.id===id})[0];if(!c)return;
     lastFocus=from||document.activeElement;
-    document.getElementById('m-name').textContent=c.name;
+    document.getElementById('m-name').innerHTML=(c.num?'<span class="knum big">К#'+esc(c.num)+'</span>':'')+esc(c.name);
     var ph=document.getElementById('m-phone');ph.querySelector('span').textContent=c.phone;ph.href='tel:'+c.phone.replace(/\s/g,'');
     var st=c.status==='Активен'?'<span class="pill"><i></i>'+esc(c.status)+'</span>':'<span class="pill warn"><i></i>'+esc(c.status)+'</span>';
-    document.getElementById('m-fields').innerHTML=[
-      field('mail','Имейл',c.email,'field-email.webp',112),field('id-card','ЕГН',c.egn,'field-id.webp',112),
-      field('house','Адрес',c.type,'field-home.webp',100),field('pin','Град / Област',c.city+', '+c.hood,'field-shumen.webp',100),
-      field('coins','Бюджет',budget(c),'field-budget.webp',99),field('calendar-check','Дата на контакт',c.contact,'field-calendar.webp',99),
-      field('users','Статус',st,'field-status.webp',104,true),field('tag','Източник',c.source,'field-source.webp',104)].join('');
+    renderFields(c);if(desk){var md=document.querySelector('.m-data'),mn=document.querySelector('.m-notes');requestAnimationFrame(function(){var nt=12+md.offsetHeight+22;mcv.style.setProperty('--ntop',nt+'px');DH=Math.max(1420,nt+mn.offsetHeight+16);fitModal()})}
     document.getElementById('m-acts').innerHTML=c.acts.length?c.acts.map(function(a){return '<div class="arow">'+ic(a[0])+'<span class="at">'+esc(a[1])+'</span><span class="tm">'+esc(a[2])+'</span></div>'}).join(''):'<div class="arow">'+ic('clock')+'<span class="at">Още няма записана активност</span></div>';
     var nt=document.getElementById('m-notes');nt.value=c.notes||'';nt.dataset.orig=nt.value;document.getElementById('m-nstate').textContent='';
     win.dataset.client=c.name;win.dataset.id=c.id;

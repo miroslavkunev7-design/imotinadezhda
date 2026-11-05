@@ -154,7 +154,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   };
   var PRICES = [["", "Без значение"], ["0-100000", "до 100 000 €"], ["100000-200000", "от 100 000 €|до 200 000 €"], ["200000-500000", "от 200 000 €|до 500 000 €"], ["500000-", "от 500 000 €"]];
   var AREAS = [["", "Без значение"], ["0-60", "до 60 м²"], ["60-100", "от 60 м²|до 100 м²"], ["100-200", "от 100 м²|до 200 м²"], ["200-", "от 200 м²"]];
-  var TYPES = ["Всички", "Апартамент", "Къща", "Парцел", "Офис", "Магазин"];
+  var TYPES = ["Всички", "Апартамент", "Мезонет", "Ателие / Таван", "Къща", "Етаж от къща", "Вила", "Парцел", "Земеделска земя", "Офис", "Магазин", "Заведение", "Склад", "Гараж", "Паркомясто", "Хотел", "Промишлен имот"];
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   function fill(sel, opts, val) { sel.innerHTML = opts.map(function (o) { var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; return '<option value="' + esc(v) + '"' + (v === val ? " selected" : "") + ">" + esc(t.replace("|", " ")) + "</option>"; }).join(""); }
   var chev = '<img src="home-assets/chevron-down.svg" alt="">';

@@ -269,3 +269,22 @@
     [].forEach.call(document.querySelectorAll(".bell b"), function (el) { el.textContent = n || ""; el.hidden = !n; });
   }).catch(function () {});
 })();
+
+/* every header logo opens the public start page – phones: the mobile home, computers: the desktop site */
+(function () {
+  function home() { return window.matchMedia("(max-width: 768px)").matches ? "/mobile/home.html" : "/"; }
+  function wire() {
+    [].forEach.call(document.querySelectorAll('a.logo-link, img.logo, img[src$="assets/logo.png"]'), function (el) {
+      var a = el.closest("a") || el;
+      if (a.tagName === "A") { a.href = home(); a.setAttribute("aria-label", "Начална страница на сайта"); }
+      else { a.style.cursor = "pointer"; a.setAttribute("role", "link"); a.setAttribute("tabindex", "0"); a.setAttribute("aria-label", "Начална страница на сайта"); }
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest && e.target.closest('a.logo-link, img.logo, img[src$="assets/logo.png"]'); if (!el) return;
+    e.preventDefault(); e.stopPropagation(); location.href = home();
+  }, true);
+  document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.matches && e.target.matches('img.logo, img[src$="assets/logo.png"]')) location.href = home(); });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wire); else wire();
+  setTimeout(wire, 1500);
+})();
