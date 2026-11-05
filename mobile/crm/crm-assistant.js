@@ -1,4 +1,4 @@
-/* CRM skill for Аш Асистент (mobile/ash.js): "АИ Качване на имот" – first in the skill list.
+/* CRM skill for Тед Асистент (mobile/ash.js): "АИ Качване на имот" – first in the skill list.
    Attach a property folder / photos + опис / a photo -> real AI analysis (/api/scan) -> the "Нов имот" card opens
    with the fields filled in -> on "Запази" the property is stored as a draft. Same code as "Нов имот → Сканиране → Прикачи папка". */
 (function () {

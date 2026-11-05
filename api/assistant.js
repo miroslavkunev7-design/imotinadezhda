@@ -1,4 +1,4 @@
-// /api/assistant — "Аш Асистент": real AI assistant for Имоти Надежда (Google Gemini + function calling).
+// /api/assistant — "Тед Асистент": real AI assistant for Имоти Надежда (Google Gemini + function calling).
 // Staff (Bearer CRM token): full CRM tools through /api/tools (same rules and validation as the n8n agent).
 // Visitors (no token): only the published listings, and an inquiry that goes to the CRM.
 const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
@@ -29,7 +29,7 @@ async function rpc(name, args) {
 function today() { return new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Sofia" }); }
 
 function systemPrompt(staff, user, page) {
-  const base = "Ти си „Аш Асистент“ на агенция за недвижими имоти „Имоти Надежда“ (Шумен, Варна, Бургас, Нови пазар). Днес е " + today() + " (часова зона Europe/Sofia). " +
+  const base = "Ти си „Тед Асистент“ на агенция за недвижими имоти „Имоти Надежда“ (Шумен, Варна, Бургас, Нови пазар). Днес е " + today() + " (часова зона Europe/Sofia). " +
     "Отговаряй винаги на български, кратко, ясно и учтиво. Никога не измисляй данни, цени, имоти, хора или лихви – използвай инструментите. " +
     "Не даваш правни или финансови гаранции; при правни въпроси давай обща информация и препоръчай адвокат/нотариус.";
   if (!staff) return base + " Говориш с посетител на публичния сайт. Можеш да търсиш само публикуваните обяви (функция search_listings) и да изпратиш запитване към брокер (функция send_inquiry) – " +
@@ -74,7 +74,7 @@ async function runTool(call, ctx) {
     }
     if (call.name === "send_inquiry") {
       if (!a.name || !a.phone) return { ok: false, error: "Нужни са име и телефон" };
-      await rpc("nd_public_inquiry", { p: { kind: "inquiry", name: a.name, phone: a.phone, email: a.email || "", message: "[Аш Асистент] " + (a.message || ""), property: a.property || "", city: a.city || "", deal: a.deal || "" } });
+      await rpc("nd_public_inquiry", { p: { kind: "inquiry", name: a.name, phone: a.phone, email: a.email || "", message: "[Тед Асистент] " + (a.message || ""), property: a.property || "", city: a.city || "", deal: a.deal || "" } });
       ctx.actions.push("send_inquiry");
       return { ok: true, saved: true };
     }

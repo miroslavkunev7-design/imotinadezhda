@@ -1,4 +1,4 @@
-/* Аш Асистент – round burgundy button (bottom right) on every page + chat window with a skill picker at the top.
+/* Тед Асистент – round burgundy button (bottom right) on every page + chat window with a skill picker at the top.
    The chat is real: /api/assistant (Gemini). Signed-in staff get full CRM tools; visitors get published listings + inquiry.
    Other scripts add skills with NDAsh.addSkill({...}) (the CRM adds "АИ Качване на имот" as the first one). */
 (function () {
@@ -90,14 +90,14 @@
   function fmt(t) { return esc(t).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/(^|\n)[*-] /g, "$1• "); }
 
   var chatSkill = {
-    id: "chat", name: "Чат с Аш Асистент", sub: "Клиенти, имоти, календар, сделки, изчисления",
+    id: "chat", name: "Чат с Тед Асистент", sub: "Клиенти, имоти, календар, сделки, изчисления",
     intro: function (api) {
       if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
-      else api.add("a", "Здравейте! Аз съм <b>Аш Асистент</b> на Имоти Надежда.\nПитайте ме за клиенти, имоти, огледи, сделки, ипотека или комисионна – работя с реалните данни в CRM." +
+      else api.add("a", "Здравейте! Аз съм <b>Тед Асистент</b> на Имоти Надежда.\nПитайте ме за клиенти, имоти, огледи, сделки, ипотека или комисионна – работя с реалните данни в CRM." +
         "\nНапример: „Намери тристайни в Шумен до 100 000 €“, „Добави клиент Мария, 0888…, търси двустаен под наем във Варна“, „Какво имам утре?“");
     },
     footer: function () {
-      return '<div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Напишете съобщение…" aria-label="Съобщение до Аш Асистент"></textarea><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
+      return '<div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Напишете съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
     },
     bind: function (api, el) {
       var ta = el.querySelector("textarea"), files = [], fl = el.querySelector(".nda-files"), busy = false;
@@ -139,10 +139,10 @@
   function boot() {
     if (booted) return; booted = true;
     var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
-    fab = document.createElement("button"); fab.type = "button"; fab.className = "nda-fab"; fab.setAttribute("aria-label", "Аш Асистент"); fab.title = "Аш Асистент";
+    fab = document.createElement("button"); fab.type = "button"; fab.className = "nda-fab"; fab.setAttribute("aria-label", "Тед Асистент"); fab.title = "Тед Асистент";
     fab.innerHTML = '<img src="' + BOT + '" alt="">';
-    win = document.createElement("section"); win.className = "nda-win"; win.hidden = true; win.setAttribute("role", "dialog"); win.setAttribute("aria-label", "Аш Асистент");
-    win.innerHTML = '<header class="nda-h"><span class="nda-av"><img src="' + BOT + '" alt=""></span><div class="nda-t"><b>Аш Асистент</b><button type="button" class="nda-skill" aria-haspopup="listbox" aria-expanded="false"><span></span>' + I.chev + "</button></div>" +
+    win = document.createElement("section"); win.className = "nda-win"; win.hidden = true; win.setAttribute("role", "dialog"); win.setAttribute("aria-label", "Тед Асистент");
+    win.innerHTML = '<header class="nda-h"><span class="nda-av"><img src="' + BOT + '" alt=""></span><div class="nda-t"><b>Тед Асистент</b><button type="button" class="nda-skill" aria-haspopup="listbox" aria-expanded="false"><span></span>' + I.chev + "</button></div>" +
       '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div>';
     document.body.appendChild(fab); document.body.appendChild(win);
     list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot");
