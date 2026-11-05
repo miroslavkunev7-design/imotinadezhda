@@ -847,6 +847,8 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   <div class="bflow">
     <div class="btools">
       <label class="fld b-q"><svg class="i"><use href="#search"/></svg><input id="b-q" type="search" placeholder="Търси брокер по име…" autocomplete="off" aria-label="Търси брокер по име"></label>
+      <style>html:not(.desk) .btools .b-q{width:520px}#b-new{left:572px;width:206px;font-size:27px;gap:10px}html.desk #b-new{left:auto;flex:0 0 230px;margin-left:auto}html.desk #b-new~#b-filt{margin-left:0}</style>
+      <button class="b-filt" id="b-new" type="button" aria-label="Нов брокер"><svg class="i"><use href="#user-plus"/></svg>Нов брокер</button>
       <button class="b-filt" id="b-filt" aria-expanded="false"><svg class="i"><use href="#sliders-horizontal"/></svg>Филтри</button>
       <div class="b-pop" id="b-pop" hidden>
         <label class="fld chip"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="b-office" aria-label="Офис"></select></label>
@@ -985,6 +987,9 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   });
 })();
 </script>
+<script src="crm-data.js"></script>
+<script src="crm-ui.js"></script>
+<script src="crm-global.js"></script>
 <script>
 (function(){
   'use strict';
@@ -1001,7 +1006,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   var ROLES=['Брокер','Старши брокер','Координатор','Офис мениджър','Администратор офис','Управител'];
   var PERMS=['Огледи','Клиенти','Публикации','Документи','Отчети'];
   var RESTR=[['own-clients','Само мои клиенти'],['no-finance','Без достъп до финансов модул'],['own-props','Само мои имоти'],['no-delete','Без изтриване на записи'],['lim-reports','Ограничен достъп до отчети'],['no-roles','Без промяна на роли']];
-  var CLIENTS=['Иван Петров','Мария Стоянова','Георги Илиев','Елена Димитрова','Николай Стоянов','Десислава Илиева','Петър Василев','Ралица Костова'];
+  var CLIENTS=[];
   var base=[
     {id:'nadezhda',name:'Надежда Иванова',title:'Управител / Старши брокер',role:'Старши брокер',pos:'Старши брокер',phone:'+359 888 123 456',email:'nadejda@imotinadezhda.bg',office:'Шумен',photo:'broker-nadezhda-lg.jpg',thumb:'broker-nadezhda.jpg',rating:4.9,reviews:126,sales:true,rent:true,active:true,perms:['Огледи','Клиенти','Публикации'],restr:['own-clients','own-props','no-delete'],clients:['Иван Петров','Мария Стоянова','Георги Илиев','Елена Димитрова'],deals:48,listings:62},
     {id:'miroslav',name:'Мирослав Петров',title:'Брокер недвижими имоти',role:'Брокер',pos:'Брокер',phone:'+359 888 222 333',email:'miroslav@imotinadezhda.bg',office:'Шумен',photo:'broker-miroslav.jpg',rating:4.8,reviews:94,sales:true,rent:true,active:true,perms:['Огледи','Клиенти'],restr:['own-clients','no-finance'],clients:['Мария Стоянова','Николай Стоянов'],deals:35,listings:41},
@@ -1010,11 +1015,10 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     {id:'georgi',name:'Георги Димитров',title:'Брокер недвижими имоти',role:'Брокер',pos:'Брокер',phone:'+359 888 555 666',email:'georgi@imotinadezhda.bg',office:'Шумен',photo:'broker-georgi.jpg',rating:4.7,reviews:68,sales:true,rent:false,active:true,perms:['Огледи','Публикации'],restr:['own-clients'],clients:['Петър Василев'],deals:24,listings:29},
     {id:'maria',name:'Мария Николова',title:'Брокер недвижими имоти',role:'Брокер',pos:'Брокер',phone:'+359 888 666 777',email:'maria@imotinadezhda.bg',office:'Варна',photo:'broker-maria.jpg',rating:4.6,reviews:59,sales:false,rent:true,active:true,perms:['Огледи','Клиенти'],restr:['own-clients'],clients:[],deals:19,listings:22}
   ];
-  var saved={},favs={};
-  try{saved=JSON.parse(localStorage.getItem('crm-brokers')||'{}')||{};favs=JSON.parse(localStorage.getItem('crm-broker-favs')||'{}')||{}}catch(e){}
-  var brokers=base.map(function(b){var s=saved[b.id];return s?Object.assign({},b,s,{photo:b.photo,thumb:b.thumb}):Object.assign({},b)});
-  function persist(){try{var o={};brokers.forEach(function(b){o[b.id]={name:b.name,title:b.title,role:b.role,pos:b.pos,phone:b.phone,email:b.email,office:b.office,active:b.active,perms:b.perms,restr:b.restr,clients:b.clients}});
-    localStorage.setItem('crm-brokers',JSON.stringify(o))}catch(e){}}
+  var favs={};
+  try{favs=JSON.parse(localStorage.getItem('crm-broker-favs')||'{}')||{}}catch(e){}
+  var brokers=[];
+  function persist(){if(window.ND)ND.sync('brokers',brokers).catch(function(){})}
   var stars=function(r){var s='';for(var i=0;i<5;i++)s+=ic('star');return '<span class="stars" aria-hidden="true">'+s+'</span>'};
 
   /* ---------- scaling ---------- */
@@ -1173,13 +1177,19 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   $('bm-clients').addEventListener('click',function(e){var b=e.target.closest('[data-rm]');if(!b)return;var n=b.getAttribute('data-rm');draft.clients=draft.clients.filter(function(c){return c!==n});clients()});
   $('bm-add').addEventListener('click',function(){var bx=$('bm-addbox');bx.hidden=!bx.hidden;if(!bx.hidden)$('bm-addsel').focus()});
   $('bm-addok').addEventListener('click',function(){var v=$('bm-addsel').value;if(!v)return;draft.clients.push(v);clients();$('bm-addbox').hidden=true;say(v+' е прикрепен')});
-  $('bm-file').addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;draft.photoURL=URL.createObjectURL(f);$('bm-photo').src=draft.photoURL;say('Снимката е сменена (само за преглед)')});
+  $('bm-file').addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;draft.photoURL=URL.createObjectURL(f);draft._file=f;$('bm-photo').src=draft.photoURL;say('Снимката ще се запази при запис')});
   $('bm-cancel').addEventListener('click',function(){draft=JSON.parse(JSON.stringify(cur));paint();say('Промените са отменени')});
   $('bm-deact').addEventListener('click',function(){draft.active=false;$('bm-status').value='Неактивен';$('bm-stat-t').textContent='Неактивен';$('bm-statw').classList.add('off');say('Брокерът ще бъде деактивиран при запис')});
   $('bm-save').addEventListener('click',function(){
     if(!draft.name.trim()){say('Въведете име на брокера');$('bi-name').focus();return}
-    delete draft.task;var keep=draft.photoURL;var i=brokers.indexOf(cur);brokers[i]=strip(draft);cur=brokers[i];draft=JSON.parse(JSON.stringify(cur));if(keep)draft.photoURL=keep;
-    persist();render();say('Промените са запазени')});
+    var task=draft.task,file=draft._file;delete draft.task;delete draft._file;var keep=draft.photoURL;var i=brokers.indexOf(cur);brokers[i]=strip(draft);cur=brokers[i];draft=JSON.parse(JSON.stringify(cur));if(keep)draft.photoURL=keep;
+    var b0=cur,up=Promise.resolve();
+    if(file){var path='brokers/'+b0.id+'/'+Date.now()+'-'+file.name.replace(/[^\w.\-]+/g,'_').slice(-50);
+      up=ND.upload(path,file).then(function(){return ND.fileUrls([path])}).then(function(m){window.IMG=Object.assign(window.IMG||{},m);b0.photo=path;b0.thumb=path;})}
+    up.then(function(){persist();render();say('Промените са запазени')});
+    if(task){var t=new Date(),ds=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);
+      ND.put('events',{type:'task',title:task+' – '+b0.name,date:ds,from:'09:00',to:'10:00',client:'',prop:'',desc:'Задача, назначена на '+b0.name,extra:'',broker:b0.name}).then(function(){say('Задачата „'+task+'“ е в календара на '+b0.name)})}
+  });
   $('bm-full').addEventListener('click',function(){setBFull(!bfull)});
   $('bm-close').addEventListener('click',closeB);bback.addEventListener('click',closeB);
   document.addEventListener('keydown',function(e){
@@ -1199,7 +1209,31 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
 
   render();fit();
   try{document.fonts.ready.then(render)}catch(e){}
-  var h=(location.hash||'').slice(1);if(brokers.some(function(b){return b.id===h}))openB(h);
+  $('b-new').addEventListener('click',function(){
+    var U=window.NDUI;
+    U.open({title:'Нов брокер',icon:'user-plus',photo:'b-roles.jpg',required:['nb-name'],
+      html:U.fld({id:'nb-name',label:'Име и фамилия',icon:'user-round',required:true,wide:true})+U.fld({id:'nb-title',label:'Длъжност / титла',icon:'id-card',ph:'напр. Брокер – продажби'})+
+        U.fld({id:'nb-role',label:'Роля',icon:'shield',type:'select',value:ROLES[0],options:ROLES})+U.fld({id:'nb-phone',label:'Телефон',icon:'phone',type:'tel'})+
+        U.fld({id:'nb-mail',label:'Имейл',icon:'mail',type:'email'})+U.fld({id:'nb-office',label:'Офис',icon:'pin',type:'select',value:'Шумен',options:['Шумен','Варна','Бургас']})+
+        U.fld({id:'nb-cat',label:'Направление',icon:'tag',type:'select',value:'both',options:[['both','Продажби и наеми'],['sales','Продажби'],['rent','Наеми']]}),
+      validate:function(g){var m=g('nb-mail');if(m&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))return 'Проверете имейла.'},
+      onSave:function(g){var b={id:ND.newId(),name:g('nb-name'),title:g('nb-title')||g('nb-role'),role:g('nb-role'),pos:g('nb-role'),phone:g('nb-phone'),email:g('nb-mail'),office:g('nb-office'),
+          photo:'avatar.jpg',thumb:'avatar.jpg',rating:5,reviews:0,sales:g('nb-cat')!=='rent',rent:g('nb-cat')!=='sales',active:true,perms:[],restr:[],clients:[],deals:0,listings:0};
+        brokers.push(b);return ND.sync('brokers',brokers).then(function(){render();say('Брокерът е добавен');setTimeout(function(){openB(b.id)},260)})}});
+  });
+  ND.busy(1);
+  ND.ready().then(function(){return Promise.all([ND.load('brokers'),ND.load('clients')])}).then(function(r){
+    ND.busy(0);
+    CLIENTS.length=0;r[1].forEach(function(c){if(c.name)CLIENTS.push(c.name)});
+    if(!r[0].length){brokers=base.map(function(b){return Object.assign({},b)});return ND.sync('brokers',brokers)}
+    brokers=r[0];
+    var paths=brokers.map(function(b){return b.photo}).filter(function(p){return p&&/^brokers\//.test(p)});
+    return ND.fileUrls(paths).then(function(m){window.IMG=Object.assign(window.IMG||{},m)});
+  }).then(function(){
+    brokers.forEach(function(b){if(!Array.isArray(b.perms))b.perms=[];if(!Array.isArray(b.restr))b.restr=[];if(!Array.isArray(b.clients))b.clients=[]});
+    render();
+    var h=(location.hash||'').slice(1);if(brokers.some(function(b){return b.id===h}))openB(h);
+  }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>

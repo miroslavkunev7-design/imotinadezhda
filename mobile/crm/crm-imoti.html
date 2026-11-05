@@ -809,6 +809,10 @@ html.desk .pm-actions .pa{height:150px}
   });
 })();
 </script>
+<script src="crm-data.js"></script>
+<script src="crm-ui.js"></script>
+<script src="crm-global.js"></script>
+<script src="crm-imoti-tabs.js"></script>
 <script>
 (function(){
   'use strict';
@@ -820,14 +824,19 @@ html.desk .pm-actions .pa{height:150px}
   var money=function(n){return new Intl.NumberFormat('fr-FR').format(n).replace(/ | /g,' ')};
 
   /* ---------- sample listings from the approved design (connect to the CRM later) ---------- */
-  var props=[
-    {id:'P-1048',title:'Тристаен апартамент',city:'Шумен',region:'Шумен',hood:'Тракия',type:'Апартамент',deal:'sale',price:200000,area:98,beds:3,baths:1,photos:12,status:'Публикуван',cond:'Ново строителство',client:'Иван Петров',img:'p-trist.jpg',days:1},
-    {id:'P-1047',title:'Къща с двор',city:'Варна',region:'Варна',hood:'Бриз',type:'Къща',deal:'sale',price:320000,area:170,beds:4,baths:2,photos:18,status:'Активен',cond:'Обзаведен',client:'Георги Николов',img:'p-kashta.jpg',days:2},
-    {id:'P-1046',title:'Двустаен апартамент',city:'Варна',region:'Варна',hood:'Левски',type:'Апартамент',deal:'rent',price:150000,area:68,beds:2,baths:1,photos:10,status:'Публикуван',cond:'Обзаведен',client:'Елена Георгиева',img:'p-dvust.jpg',days:3},
-    {id:'P-1045',title:'Парцел',city:'Шумен',region:'Шумен',hood:'Дивдядово',type:'Парцел',deal:'sale',price:60000,area:1200,photos:6,status:'Резервиран',cond:'Без строеж',client:'Петър Василев',img:'p-parcel.jpg',days:5},
-    {id:'P-1044',title:'Вила с басейн',city:'Бургас',region:'Бургас',hood:'Сарафово',type:'Къща',deal:'sale',price:850000,area:320,beds:5,baths:3,photos:24,status:'Активен',cond:'Обзаведен',client:'Мария Димитрова',img:'card-properties.jpg',days:6},
-    {id:'P-1043',title:'Модерна къща',city:'Бургас',region:'Бургас',hood:'Лазур',type:'Къща',deal:'rent',price:2200,area:240,beds:4,baths:2,photos:16,status:'Чернова',cond:'Ново строителство',client:'Николай Стоянов',img:'hero-villa.jpg',days:8}
-  ];
+  var props=[],CL={},FAV_ONLY=null;
+  function pdays(t){var x=new Date(t);if(isNaN(x))return 999;return Math.max(0,Math.round((Date.now()-x)/864e5))}
+  function prep(list){
+    list.forEach(function(p){
+      p.code=p.code||p.id;p.title=p.title||'';p.city=p.city||'';p.region=p.region||p.city;p.hood=p.hood||'';p.type=p.type||'Апартамент';
+      p.deal=p.deal==='rent'?'rent':'sale';p.price=Number(p.price)||0;p.area=Number(p.area)||0;p.beds=p.beds==null?'—':p.beds;p.baths=p.baths==null?'—':p.baths;
+      p.status=p.status||'Чернова';p.cond=p.cond||'';p.client=p.client||'';p.pics=p.pics||[];p.docs=p.docs||[];p.log=p.log||[];
+      p.photos=p.pics.length;p.img=p.pics.length?p.pics[p.cover||0]||p.pics[0]:'card-properties.jpg';p.days=pdays(p._updated||p._created);
+      det[p.id]={num:p.code,floor:p.floor||'—',kind:p.type,build:p.build||'—',year:p.year||'—',rooms:p.rooms==null?'—':p.rooms,beds:p.beds,baths:p.baths,
+        gallery:p.pics.length?p.pics.slice(p.cover||0).concat(p.pics.slice(0,p.cover||0)):['card-properties.jpg'],desc:p.desc||'Няма добавено описание.'};
+    });
+    return list;
+  }
   var priceText=function(p){return p.deal==='rent'&&p.price<20000?money(p.price)+' €<small>/ мес.</small>':money(p.price)+' €'};
 
   /* ---------- scaling (same rules as the other pages) ---------- */
@@ -889,6 +898,8 @@ html.desk .pm-actions .pa{height:150px}
 
   function current(){var q=$('i-q').value.trim().toLocaleLowerCase('bg');var o={q:q,deal:deal};Object.keys(sel).forEach(function(k){o[k]=sel[k].value});return o}
   function match(p,f){
+    if(MORE){if(MORE.beds!=null&&!(+p.beds>=MORE.beds))return false;if(MORE.baths!=null&&!(+p.baths>=MORE.baths))return false;
+      if(MORE.client&&p.client.toLocaleLowerCase('bg').indexOf(MORE.client.toLocaleLowerCase('bg'))<0)return false;if(MORE.fav&&!favs[p.id])return false;if(MORE.photos&&!p.photos)return false}
     if(!f)return true;
     if(f.deal&&p.deal!==f.deal)return false;
     if(f.only&&p.status!==f.only)return false;
@@ -926,12 +937,13 @@ html.desk .pm-actions .pa{height:150px}
     $('i-q').value='';Object.keys(sel).forEach(function(k){sel[k].value=''});cities();hoods();Object.keys(sel).forEach(function(k){show(sel[k])});
     deal='sale';document.querySelectorAll('.dl').forEach(function(x){var on=x.getAttribute('data-deal')==='sale';x.classList.toggle('on',on);x.setAttribute('aria-pressed',on)});
     setView(null);render(null)});
-  $('i-more').addEventListener('click',function(){say('Още филтри – предстои')});
+  $('i-more').addEventListener('click',function(){window.NDProps.more(MORE,function(o){MORE=o;render(applied);say(o?'Допълнителните филтри са приложени':'Допълнителните филтри са изчистени')})});
+  var MORE=null;
 
   function setView(v){document.querySelectorAll('.ia').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-view')===v)})}
   document.querySelectorAll('.ia').forEach(function(b){b.addEventListener('click',function(){
     var v=b.getAttribute('data-view');
-    if(v==='new'){say('Нов имот – формата предстои');return}
+    if(v==='new'){window.NDProps.edit(null);return}
     setView(v);render(v==='all'?null:{only:v})})});
 
   document.querySelectorAll('.vb').forEach(function(b){b.addEventListener('click',function(){
@@ -940,7 +952,7 @@ html.desk .pm-actions .pa{height:150px}
   $('plist').addEventListener('click',function(e){
     var f=e.target.closest('[data-fav]');if(f){e.stopPropagation();var id=f.getAttribute('data-fav');favs[id]=!favs[id];f.classList.toggle('on',favs[id]);f.setAttribute('aria-pressed',favs[id]);
       try{localStorage.setItem('imoti-favs',JSON.stringify(favs))}catch(x){};say(favs[id]?'Добавен в любими':'Премахнат от любими');return}
-    var m=e.target.closest('[data-menu]');if(m){e.stopPropagation();say('Действия за '+m.getAttribute('data-menu')+': редакция, публикуване, архив');return}
+    var m=e.target.closest('[data-menu]');if(m){e.stopPropagation();var mp=props.filter(function(x){return x.id===m.getAttribute('data-menu')})[0];if(mp)window.NDProps.edit(mp);return}
     var c=e.target.closest('.pc');if(c)openProp(c.getAttribute('data-id'),c)});
   $('plist').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.classList.contains('pc'))e.target.click()});
 
@@ -956,20 +968,7 @@ html.desk .pm-actions .pa{height:150px}
 
 
   /* ---------- property card window (opens on this page) ---------- */
-  var det={
-    'P-1048':{num:'7482',floor:'3 / 6',kind:'Апартамент',build:'Тухла',year:2019,rooms:3,beds:2,baths:1,gallery:['g-facade.jpg','g-living.jpg','g-kitchen.jpg','g-bedroom.jpg','g-balcony.jpg'],
-      desc:'Просторен тристаен апартамент в предпочитан район, с удобен достъп, в близост до училище, детска градина, магазини и спирки на градския транспорт. Състои се от дневна с кухня, две спални, баня с тоалетна, тераса и килер.'},
-    'P-1047':{num:'7481',floor:'2 етажа',kind:'Къща',build:'Тухла',year:2016,rooms:5,beds:4,baths:2,gallery:['p-kashta.jpg','g-living.jpg','g-kitchen.jpg','g-bedroom.jpg'],
-      desc:'Двуетажна къща с поддържан двор в кв. Бриз, на минути от морето. Просторна дневна с излаз към двора, кухня с трапезария, четири спални и две бани. Паркинг за два автомобила.'},
-    'P-1046':{num:'7479',floor:'4 / 8',kind:'Апартамент',build:'ЕПК',year:2012,rooms:2,beds:1,baths:1,gallery:['p-dvust.jpg','g-kitchen.jpg','g-bedroom.jpg','g-balcony.jpg'],
-      desc:'Светъл двустаен апартамент с голяма остъклена дневна и изглед към парка. Напълно обзаведен, с вградена кухня и уредите. Подходящ за семейство или за инвестиция под наем.'},
-    'P-1045':{num:'7476',floor:'—',kind:'Парцел',build:'—',year:'—',rooms:'—',beds:'—',baths:'—',gallery:['p-parcel.jpg'],
-      desc:'Равен парцел в регулация в с. Дивдядово, с ток и вода на границата. Удобен достъп по асфалтов път, подходящ за еднофамилна къща.'},
-    'P-1044':{num:'7470',floor:'2 етажа',kind:'Къща',build:'Тухла',year:2021,rooms:6,beds:5,baths:3,gallery:['card-properties.jpg','g-living.jpg','g-kitchen.jpg','g-bedroom.jpg','g-balcony.jpg'],
-      desc:'Луксозна вила с басейн и озеленен двор в кв. Сарафово. Пет спални, три бани, открита тераса с барбекю и гараж. На пешеходно разстояние от плажа.'},
-    'P-1043':{num:'7468',floor:'2 етажа',kind:'Къща',build:'Тухла',year:2020,rooms:5,beds:4,baths:2,gallery:['hero-villa.jpg','g-living.jpg','g-bedroom.jpg'],
-      desc:'Модерна къща под наем в кв. Лазур, обзаведена и оборудвана. Голяма дневна с панорамни прозорци, басейн и двор с автоматично поливане.'}
-  };
+  var det={};
   var docs=[['file-text','Нотариален акт','PDF · 1.2 MB'],['file-text','Скица / схема','PDF · 640 KB'],['file-text','Данъчна оценка','PDF · 210 KB'],['file-text','Енергиен сертификат','PDF · 380 KB']];
   var pwin=$('pwin'),pback=$('pback'),pmcv=$('pmcv'),pscroll=$('pscroll'),pctl=pwin.querySelector('.pctl');
   var cur=null,gi=0,pfull=false,plast=null;
@@ -996,10 +995,10 @@ html.desk .pm-actions .pa{height:150px}
     var pics=d.gallery.map(function(g){return '<span style="background-image:url('+img(g)+')"></span>'}).join('');
     var monthly=p.deal==='sale'&&p.price>20000?(function(){var L=p.price*.8,r=.0325/12,n=360;return money(Math.round(L*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1)))})():null;
     $('pm-acc').innerHTML=
-      acc('docs','image','Снимки и документи ('+p.photos+')','<div class="pics">'+pics+'</div>'+docs.map(function(x){return '<div class="row">'+ic(x[0])+'<span>'+x[1]+'</span><span class="r">'+x[2]+'</span></div>'}).join('')+'<p class="note">Примерни документи – свържете с документите на имота в CRM.</p>')+
-      acc('owner','user','Собственик','<div class="row">'+ic('user')+'<span>'+esc(p.client)+'</span><span class="r">Клиент</span></div><div class="row">'+ic('phone')+'<span>Телефон</span><span class="r">виж в картата на клиента</span></div><p class="note">Данните на собственика се показват според правата на потребителя.</p>')+
+      acc('docs','image','Снимки и документи ('+p.photos+')','<div class="pics">'+pics+'</div>'+(p.docs.length?p.docs.map(function(x,i){return '<div class="row" data-doc="'+i+'" role="button" tabindex="0" style="cursor:pointer">'+ic('file-text')+'<span>'+esc(x.name)+'</span><span class="r">'+Math.max(1,Math.round((x.size||0)/1024))+' KB</span></div>'}).join(''):'<div class="row">'+ic('file-text')+'<span>Няма качени документи</span></div>')+'<p class="note">Добавяне на снимки и документи – бутон „Редактирай“.</p>')+
+      acc('owner','user','Собственик',(p.client?'<div class="row">'+ic('user')+'<span>'+esc(p.client)+'</span><span class="r">'+(CL[p.client]?'<a href="crm-klienti.html#'+esc(CL[p.client].id)+'">Клиент</a>':'Клиент')+'</span></div><div class="row">'+ic('phone')+'<span>Телефон</span><span class="r">'+(CL[p.client]&&CL[p.client].phone?'<a href="tel:'+esc(CL[p.client].phone.replace(/\s/g,''))+'">'+esc(CL[p.client].phone)+'</a>':'няма данни')+'</span></div>':'<div class="row">'+ic('user')+'<span>Няма посочен собственик</span></div>')+'<p class="note">Данните на собственика се показват според правата на потребителя.</p>')+
       acc('bank','landmark','Финансиране / Банка',(monthly?'<div class="row">'+ic('coins')+'<span>Примерна вноска (80% кредит, 30 г., 3,25%)</span><span class="r">'+monthly+' € / мес.</span></div>':'<div class="row">'+ic('coins')+'<span>Имотът е под наем – без кредит</span></div>')+'<button class="bankbtn" data-pa="bank">'+ic('landmark')+'Банков модул</button>')+
-      acc('log','clock','Коментари и активност','<div class="row">'+ic('megaphone')+'<span>Статус: '+esc(p.status)+'</span><span class="r">днес</span></div><div class="row">'+ic('camera')+'<span>Качени '+p.photos+' снимки</span><span class="r">преди '+(p.days+1)+' дни</span></div><div class="row">'+ic('pencil')+'<span>Създаден имот '+p.id+'</span><span class="r">преди '+(p.days+2)+' дни</span></div>');
+      acc('log','clock','Коментари и активност',(p.log.length?p.log.slice(0,12).map(function(l){return '<div class="row">'+ic(l.icon||'clock')+'<span>'+esc(l.text)+'</span><span class="r">'+esc(window.NDUI.bgDateTime(l.at))+'</span></div>'}).join(''):'<div class="row">'+ic('megaphone')+'<span>Статус: '+esc(p.status)+'</span></div>'));
     var pub=pwin.querySelector('[data-pa="publish"] span');pub.textContent=p.status==='Публикуван'?'Публикуван':'Публикувай';
     pwin.dataset.title=p.title;
     pback.hidden=false;pwin.hidden=false;root.classList.add('locked');
@@ -1039,7 +1038,12 @@ html.desk .pm-actions .pa{height:150px}
   $('pm-acc').addEventListener('click',function(e){var b=e.target.closest('.acc>button');if(!b)return;var a=b.parentNode,o=!a.classList.contains('open');a.classList.toggle('open',o);b.setAttribute('aria-expanded',o)});
   pwin.addEventListener('click',function(e){var b=e.target.closest('[data-pa]');if(!b)return;var a=b.getAttribute('data-pa'),t=pwin.dataset.title;
     if(a==='share'){var u=location.href.split('#')[0]+'#'+cur.id;try{navigator.clipboard.writeText(u).then(function(){say('Линкът към имота е копиран')},function(){say('Линк: '+u)})}catch(x){say('Линк: '+u)}return}
-    say({edit:'Редактиране',publish:'Публикуване',archive:'Архивиране',bank:'Банков модул'}[a]+' – '+t+' (свържете с CRM)')});
+    if(a==='edit'){window.NDProps.edit(cur);return}
+    if(a==='publish'){if(cur.status==='Публикуван'){say('Имотът вече е публикуван');return}window.NDProps.setStatus(cur,'Публикуван');return}
+    if(a==='archive'){window.NDProps.setStatus(cur,cur.status==='Архивиран'?'Активен':'Архивиран');return}
+    if(a==='bank'){window.NDUI.bank({client:cur.client,price:cur.deal==='sale'?cur.price:'',city:cur.city});return}
+    say(t)});
+  $('pm-acc').addEventListener('click',function(e){var r=e.target.closest('[data-doc]');if(!r||!cur)return;var d=cur.docs[+r.getAttribute('data-doc')];if(!d)return;var w=window.open('','_blank');ND.fileUrl(d.path).then(function(u){if(w)w.location=u;else location.href=u})});
   document.addEventListener('keydown',function(e){
     if(pwin.hidden)return;
     if(e.key==='Escape'){e.preventDefault();closeProp();return}
@@ -1049,7 +1053,18 @@ html.desk .pm-actions .pa{height:150px}
       var a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
   });
   render(null);fit();
-  var hh=(location.hash||'').slice(1);if(det[hh])openProp(hh);
+  function refreshFilters(){fill(sel.region,'region',uniq(props.map(function(p){return p.region}).filter(Boolean)));cities();hoods();['region','city','hood'].forEach(function(k){show(sel[k])})}
+  function loadAll(){
+    return Promise.all([ND.load('properties'),ND.load('clients')]).then(function(r){
+      CL={};r[1].forEach(function(c){if(c.name)CL[c.name]=c});
+      var paths=[];r[0].forEach(function(p){(p.pics||[]).forEach(function(x){paths.push(x)})});
+      return ND.fileUrls(paths).then(function(m){window.IMG=Object.assign(window.IMG||{},m);det={};props.length=0;[].push.apply(props,prep(r[0]));refreshFilters();render(applied)});
+    });
+  }
+  window.NDProps.init({say:say,list:function(){return props},clientNames:function(){return Object.keys(CL)},refresh:loadAll,
+    reopen:function(id){if(!pwin.hidden&&cur&&cur.id===id)openProp(id,plast);else if(pwin.hidden)openProp(id)},closeCard:function(){if(!pwin.hidden)closeProp()}});
+  ND.busy(1);
+  ND.ready().then(loadAll).then(function(){ND.busy(0);var hh=(location.hash||'').slice(1);if(hh==='new'){try{history.replaceState(null,'',location.pathname)}catch(x){}window.NDProps.edit(null)}else if(det[hh])openProp(hh)}).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>

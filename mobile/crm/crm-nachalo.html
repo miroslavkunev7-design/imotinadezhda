@@ -490,6 +490,51 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   })});
 })();
 </script>
+<script src="crm-data.js"></script>
+<script src="crm-ui.js"></script>
+<script src="crm-global.js"></script>
+<script>
+/* CRM Начало — real numbers, today's calendar and latest activity from the database */
+(function(){
+  var U=window.NDUI,esc=U.esc,q=function(s){return document.querySelector(s)},qa=function(s){return [].slice.call(document.querySelectorAll(s))};
+  function iso(d){d=d||new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+  function ago(t){var m=Math.round((Date.now()-new Date(t))/6e4);if(isNaN(m))return '';if(m<1)return 'сега';if(m<60)return 'преди '+m+' мин';var h=Math.round(m/60);if(h<24)return 'преди '+h+' ч';var d=Math.round(h/24);return d===1?'вчера':'преди '+d+' дни'}
+  function link(el,href){el.removeAttribute('data-msg');el.setAttribute('data-go',href)}
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-go]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();window.goTo(b.getAttribute('data-go'))},true);
+  /* quick actions open the real forms */
+  qa('.qa[data-href="crm-klienti.html"]').forEach(function(b){b.setAttribute('data-href','crm-klienti.html#new');b.removeAttribute('data-href');b.setAttribute('data-go','crm-klienti.html#new')});
+  qa('.qa[data-href="crm-imoti.html"]').forEach(function(b){b.removeAttribute('data-href');b.setAttribute('data-go','crm-imoti.html#new')});
+  /* date pill: pick a date and open that week in the calendar */
+  var dp=q('.datepill');
+  if(dp){dp.removeAttribute('data-msg');var inp=document.createElement('input');inp.type='date';inp.value=iso();inp.setAttribute('aria-label','Избор на дата');
+    inp.style.cssText='position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer';dp.style.position=dp.style.position||'absolute';dp.appendChild(inp);
+    inp.addEventListener('change',function(){if(inp.value)window.goTo('crm-kalendar.html#d='+inp.value)});}
+  var evs=qa('.panel .ev'),acts=qa('.panel .act');
+  evs.forEach(function(b){b.style.visibility='hidden'});acts.forEach(function(b){b.style.visibility='hidden'});
+  var mets=qa('.metric b');mets.forEach(function(b){b.textContent='…'});
+  ND.ready().then(function(){return Promise.all([ND.load('properties'),ND.load('clients'),ND.load('deals'),ND.load('events'),ND.load('activities')])}).then(function(r){
+    var pr=r[0],cl=r[1],dl=r[2],ev=r[3],ac=r[4];
+    var won=dl.filter(function(d){return d.stage==='Приключена'}).length,lost=dl.filter(function(d){return d.stage==='Отказана'}).length;
+    var vals=[pr.filter(function(p){return ['Архивиран','Продаден'].indexOf(p.status)<0}).length,cl.length,dl.length,won+lost?Math.round(won*100/(won+lost))+'%':'—'];
+    mets.forEach(function(b,i){b.textContent=typeof vals[i]==='number'?new Intl.NumberFormat('fr-FR').format(vals[i]).replace(/\u202f|\u00a0/g,' '):vals[i]});
+    /* today, otherwise the next upcoming events */
+    var t=iso(),list=ev.filter(function(e){return e.date===t});var label='';
+    if(!list.length){list=ev.filter(function(e){return e.date>t});label='next'}
+    list.sort(function(a,b){return (a.date+(a.from||'')).localeCompare(b.date+(b.from||''))});
+    evs.forEach(function(b,i){var e=list[i];b.style.visibility='';
+      if(!e){if(i===0){b.querySelector('.t').textContent='';b.querySelector('.n').textContent='Няма събития днес';b.querySelector('.c').textContent='';link(b,'crm-kalendar.html')}else b.style.visibility='hidden';return}
+      b.querySelector('.t').textContent=label?U.bgDate(e.date+'T00:00').slice(0,5):(e.from||'');b.querySelector('.n').textContent=e.title||'';
+      b.querySelector('.c').textContent=e.client||(e.prop||'').split('·').pop().trim();link(b,'crm-kalendar.html#d='+e.date)});
+    /* latest activity: client log + property log */
+    var all=ac.map(function(a){return {t:a.at,b:a.text,s:a.client||'',go:a.client_id?'crm-klienti.html#'+a.client_id:'crm-klienti.html'}});
+    pr.forEach(function(p){(p.log||[]).forEach(function(l){all.push({t:l.at,b:l.text,s:(p.title||'')+(p.price?' – € '+new Intl.NumberFormat('fr-FR').format(p.price).replace(/\u202f|\u00a0/g,' '):''),go:'crm-imoti.html#'+p.id})})});
+    all.sort(function(a,b){return String(b.t).localeCompare(String(a.t))});
+    acts.forEach(function(b,i){var a=all[i];b.style.visibility='';
+      if(!a){if(i===0){b.querySelector('.tx b').textContent='Още няма дейности';b.querySelector('.tx span').textContent='Добавете клиент или имот';b.querySelector('.tm').textContent='';link(b,'crm-klienti.html#new')}else b.style.visibility='hidden';return}
+      b.querySelector('.tx b').textContent=a.b;b.querySelector('.tx span').textContent=a.s;b.querySelector('.tm').textContent=ago(a.t);b.removeAttribute('data-href');link(b,a.go)});
+  }).catch(function(e){ND.say('Грешка при зареждане: '+(e&&e.message||e))});
+})();
+</script>
 <script>document.documentElement.classList.add("ready")</script>
 <div id="page-ready" hidden></div>
 </body>

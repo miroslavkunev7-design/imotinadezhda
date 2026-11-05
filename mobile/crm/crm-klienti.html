@@ -433,6 +433,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
         <path d="M720 1 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
       </svg>
       <h2 class="ctitle" id="t-sales"><svg class="i"><use href="#users"/></svg>Клиенти – Продажби</h2>
+      <button type="button" class="nd-new" data-new="sales" aria-label="Нов клиент – продажби"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
       <div class="filters">
         <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-sales" type="search" placeholder="Търси клиент…" autocomplete="off" aria-label="Търси клиент в продажби"></label>
         <label class="fld f-city"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="city-sales" aria-label="Град"></select></label>
@@ -451,6 +452,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
         <path d="M720 1 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
       </svg>
       <h2 class="ctitle" id="t-rent"><svg class="i"><use href="#users"/></svg>Клиенти – Наеми</h2>
+      <button type="button" class="nd-new" data-new="rent" aria-label="Нов клиент – наеми"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
       <div class="filters">
         <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-rent" type="search" placeholder="Търси клиент…" autocomplete="off" aria-label="Търси клиент в наеми"></label>
         <label class="fld f-city"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="city-rent" aria-label="Град"></select></label>
@@ -562,6 +564,10 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   });
 })();
 </script>
+<script src="crm-data.js"></script>
+<script src="crm-ui.js"></script>
+<script src="crm-global.js"></script>
+<script src="crm-klienti-tabs.js"></script>
 <script>
 (function(){
   'use strict';
@@ -573,25 +579,20 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   /* ---------- demo data (sample records from the approved design; connect to the CRM later) ---------- */
   var today=new Date();
   function d(offset){var x=new Date(today);x.setDate(x.getDate()-offset);return ('0'+x.getDate()).slice(-2)+'.'+('0'+(x.getMonth()+1)).slice(-2)+'.'+x.getFullYear()}
-  var clients=[
-    {id:'ivan',cat:'sales',name:'Иван Петров',phone:'0899 765 432',type:'Къща',city:'Варна',hood:'Левски',budget:200000,email:'i.petrov@mail.bg',egn:'********8799',status:'Активен',source:'Сайт / Запитване',days:0,
-      acts:[['phone','Телефонен разговор – обсъдени параметри на имот','днес, 10:24'],['file-text','Изпратени 3 предложения','вчера, 16:40'],['calendar-check','Уговорен оглед – къща, Левски',d(0)+', 11:00']]},
-    {id:'elena',cat:'sales',name:'Елена Георгиева',phone:'0877 654 321',type:'Апартамент',city:'Варна',hood:'Левски',budget:180000,email:'e.georgieva@mail.bg',egn:'********4512',status:'Активен',source:'Препоръка',days:3},
-    {id:'georgi',cat:'sales',name:'Георги Николов',phone:'0886 111 222',type:'Къща',city:'Варна',hood:'Бриз',budget:320000,email:'g.nikolov@abv.bg',egn:'********2087',status:'Потенциален',source:'Imot.bg',days:4},
-    {id:'maria',cat:'sales',name:'Мария Димитрова',phone:'0894 555 768',type:'Апартамент',city:'Варна',hood:'Чайка',budget:150000,email:'m.dimitrova@mail.bg',egn:'********6634',status:'Активен',source:'Сайт / Запитване',days:6},
-    {id:'nikolay',cat:'rent',name:'Николай Стоянов',phone:'0898 432 109',type:'Апартамент',city:'Шумен',hood:'Тракия',budget:600,email:'n.stoyanov@mail.bg',egn:'********3390',status:'Активен',source:'Сайт / Запитване',days:1},
-    {id:'desislava',cat:'rent',name:'Десислава Илиева',phone:'0876 321 654',type:'Апартамент',city:'Шумен',hood:'Тракия',budget:550,email:'d.ilieva@gmail.com',egn:'********7716',status:'Активен',source:'Facebook',days:5},
-    {id:'petar',cat:'rent',name:'Петър Василев',phone:'0888 909 333',type:'Къща',city:'Враца',hood:'Център',budget:800,email:'p.vasilev@abv.bg',egn:'********5241',status:'В процес',source:'Телефонно обаждане',days:13},
-    {id:'ralitsa',cat:'rent',name:'Ралица Костова',phone:'0893 210 987',type:'Апартамент',city:'Враца',hood:'Дъбника',budget:500,email:'r.kostova@mail.bg',egn:'********1958',status:'Активен',source:'Сайт / Запитване',days:17}
-  ];
-  clients.forEach(function(c,i){
-    c.contact=d(c.days)+' г.';c.order=i;
-    if(!c.acts)c.acts=[['phone','Телефонен разговор – уточнени изисквания',c.days?d(c.days)+', 10:15':'днес, 09:15'],
-      ['file-text',(c.cat==='rent'?'Изпратени 2 оферти за наем':'Изпратени 2 предложения'),d(c.days+1)+', 15:20'],
-      ['calendar-check','Уговорен оглед – '+c.type.toLowerCase()+', '+c.hood,d(Math.max(c.days-1,0))+', 11:00']];
-  });
+  /* ---------- real clients (Supabase via crm-data.js) ---------- */
+  var clients=[],ACTS={};
+  function daysAgo(t){var x=new Date(t);if(isNaN(x))return 999;var a=new Date(today);a.setHours(0,0,0,0);x.setHours(0,0,0,0);return Math.max(0,Math.round((a-x)/864e5))}
+  function when(t){var x=new Date(t);if(isNaN(x))return '';var n=daysAgo(t),hm=('0'+x.getHours()).slice(-2)+':'+('0'+x.getMinutes()).slice(-2);return (n===0?'днес':n===1?'вчера':d(n))+', '+hm}
+  function prep(){
+    clients.forEach(function(c,i){
+      c.cat=c.cat==='rent'?'rent':'sales';c.name=c.name||'';c.phone=c.phone||'';c.type=c.type||'';c.city=c.city||'';c.hood=c.hood||'';
+      c.budget=c.budget==null||c.budget===''?null:Number(c.budget);
+      var last=c.contact_at||c._updated||c._created;c.days=daysAgo(last);c.contact=last?d(c.days)+' г.':'—';c.order=i;
+      c.acts=(ACTS[c.id]||[]).slice(0,3).map(function(a){return [a.icon||'clock',a.text||'',when(a.at)]});
+    });
+  }
   var money=function(n){return new Intl.NumberFormat('fr-FR').format(n).replace(/ | /g,' ')};
-  var budget=function(c){return 'до '+money(c.budget)+' €'+(c.cat==='rent'?' / мес.':'')};
+  var budget=function(c){return c.budget==null||isNaN(c.budget)?'—':'до '+money(c.budget)+' €'+(c.cat==='rent'?' / мес.':'')};
   var esc=function(s){return String(s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})};
   var img=function(n){return (window.IMG&&window.IMG[n])||('assets/'+n)};
   var ic=function(n){return '<svg class="i"><use href="#'+n+'"/></svg>'};
@@ -675,7 +676,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       var g=geo[cat];
       grid.innerHTML=list.length?list.map(function(c){
         return '<button class="ccard" data-id="'+c.id+'" style="--h:'+g.h+'px;--gob:'+g.gob+'px" aria-label="Отвори картата на '+esc(c.name)+'">'+
-          '<span class="ph" style="background-image:url('+img('card-'+c.id+'.jpg')+')"></span>'+
+          '<span class="ph" style="background-image:url('+(c.photo||img('card-clients.jpg'))+')"></span>'+
           '<span class="nm" style="top:'+g.name+'px">'+esc(c.name)+'</span>'+
           '<span class="ph-n" style="top:'+g.phone+'px">'+ic('phone')+esc(c.phone)+'</span>'+
           '<span class="row" style="top:'+g.rows[0]+'px">'+ic('house')+esc(c.type)+'</span>'+
@@ -691,7 +692,9 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     [hood,type,sort].forEach(function(s){s.addEventListener('change',function(){showVal(s);render()})});
     grid.addEventListener('click',function(e){var b=e.target.closest('.ccard');if(b)open(b.getAttribute('data-id'),b)});
     render();
+    REF[cat]=function(){mine=clients.filter(function(c){return c.cat===cat});var cv=city.value;fillSelect(city,[ALLC].concat(uniq(mine.map(function(c){return c.city}).filter(Boolean))),ALLC);if(mine.some(function(c){return c.city===cv}))city.value=cv;showVal(city);var hv=hood.value;hoods();if([].some.call(hood.options,function(o){return o.value===hv}))hood.value=hv;showVal(hood);render()};
   }
+  var REF={};
 
   /* ---------- client card window ---------- */
   var lastFocus=null,full=false;
@@ -709,8 +712,8 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       field('house','Адрес',c.type,'field-home.webp',100),field('pin','Град / Област',c.city+', '+c.hood,'field-shumen.webp',100),
       field('coins','Бюджет',budget(c),'field-budget.webp',99),field('calendar-check','Дата на контакт',c.contact,'field-calendar.webp',99),
       field('users','Статус',st,'field-status.webp',104,true),field('tag','Източник',c.source,'field-source.webp',104)].join('');
-    document.getElementById('m-acts').innerHTML=c.acts.map(function(a){return '<div class="arow">'+ic(a[0])+'<span class="at">'+esc(a[1])+'</span><span class="tm">'+esc(a[2])+'</span></div>'}).join('');
-    win.dataset.client=c.name;
+    document.getElementById('m-acts').innerHTML=c.acts.length?c.acts.map(function(a){return '<div class="arow">'+ic(a[0])+'<span class="at">'+esc(a[1])+'</span><span class="tm">'+esc(a[2])+'</span></div>'}).join(''):'<div class="arow">'+ic('clock')+'<span class="at">Още няма записана активност</span></div>';
+    win.dataset.client=c.name;win.dataset.id=c.id;
     back.hidden=false;win.hidden=false;root.classList.add('locked');
     fitModal();mscroll.scrollTop=0;
     requestAnimationFrame(function(){back.classList.add('show');win.classList.add('show')});
@@ -741,8 +744,11 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
   });
   win.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b)return;
-    if(b.getAttribute('data-act')==='Банка'){openBank(win.dataset.client);return}
-    say(b.getAttribute('data-act')+' – '+(win.dataset.client||''))});
+    var act=b.getAttribute('data-act'),cc=clients.filter(function(x){return x.id===win.dataset.id})[0];
+    if(act==='Банка'){openBank(win.dataset.client);return}
+    if(!cc)return;
+    var T=window.NDKTabs,map={'Редактирай':T.edit,'Срещи':T.meetings,'Документи':T.docs,'Калкулатор':T.calc,'Сделка':T.deal,'Всички активности':T.acts};
+    if(map[act])map[act](cc);else say(act+' – '+(win.dataset.client||''))});
   /* bank module opens over the client card, on the same page */
   var bankBox=null;
   function openBank(name){
@@ -768,8 +774,21 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 
   try{var dw=document.querySelector('.status .time');if(dw&&!matchMedia('(pointer:coarse)').matches){}}catch(e){}
   setup('sales');setup('rent');fit();
-  /* deep link: crm-klienti.html#maria opens that client's card */
-  var h=(location.hash||'').slice(1);if(h&&clients.some(function(c){return c.id===h}))open(h);
+  function loadAll(){
+    return Promise.all([ND.load('clients'),ND.load('activities')]).then(function(r){
+      clients.length=0;[].push.apply(clients,r[0]);ACTS={};
+      r[1].sort(function(a,b){return String(b.at).localeCompare(String(a.at))}).forEach(function(a){(ACTS[a.client_id]=ACTS[a.client_id]||[]).push(a)});
+      prep();REF.sales();REF.rent();
+    });
+  }
+  window.NDKTabs.init({say:say,refresh:loadAll,reopen:function(id){if(!win.hidden&&win.dataset.id===id)open(id,lastFocus);},closeCard:function(){if(!win.hidden)close()}});
+  document.querySelectorAll('[data-new]').forEach(function(b){b.addEventListener('click',function(){window.NDKTabs.edit(null,b.getAttribute('data-new'))})});
+  ND.busy(1);
+  ND.ready().then(loadAll).then(function(){
+    ND.busy(0);
+    /* deep link: crm-klienti.html#<id> opens that client's card */
+    var h=(location.hash||'').slice(1);if(h==='new'){try{history.replaceState(null,'',location.pathname)}catch(x){}window.NDKTabs.edit(null,'sales')}else if(h&&clients.some(function(c){return c.id===h}))open(h);
+  }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>

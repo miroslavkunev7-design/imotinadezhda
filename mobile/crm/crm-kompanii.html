@@ -1051,6 +1051,9 @@ html.desk .fwin .mscroll{overflow:hidden}
   });
 })();
 </script>
+<script src="crm-data.js"></script>
+<script src="crm-ui.js"></script>
+<script src="crm-global.js"></script>
 <script>
 (function(){
   'use strict';
@@ -1092,10 +1095,8 @@ html.desk .fwin .mscroll{overflow:hidden}
             {id:'i3',name:'Рая Христова',role:'Проектен мениджър',phone:'+359 887 200 302',email:'r.hristova@interiorpro.bg'},
             {id:'i4',name:'Борис Неделчев',role:'Монтаж и доставка',phone:'+359 887 200 303',email:'b.nedelchev@interiorpro.bg'}]}
   ];
-  var cos=null;
-  try{cos=JSON.parse(localStorage.getItem('crm-companies')||'null')}catch(e){}
-  if(!Array.isArray(cos))cos=JSON.parse(JSON.stringify(base));
-  function persist(){try{localStorage.setItem('crm-companies',JSON.stringify(cos))}catch(e){}}
+  var cos=[];
+  function persist(){if(window.ND)ND.sync('companies',cos).catch(function(){})}
   var empWord=function(n){return n+' '+(n===1?'служител':'служители')};
 
   /* ---------- scaling ---------- */
@@ -1267,8 +1268,13 @@ html.desk .fwin .mscroll{overflow:hidden}
     if(b.classList.contains('on')){if(!fwin.hidden)closeF();scrollTo({top:0,behavior:'smooth'});return}
     say(b.getAttribute('data-nav')+' – страницата предстои')})});
 
-  var h=(location.hash||'').slice(1);if(cos.some(function(c){return c.id===h}))sel=h;
   renderList();renderDet();fit();
+  ND.busy(1);
+  ND.ready().then(function(){return ND.load('companies')}).then(function(list){
+    ND.busy(0);cos=list;cos.forEach(function(c){if(!Array.isArray(c.emps))c.emps=[]});
+    var h=(location.hash||'').slice(1);sel=cos.some(function(c){return c.id===h})?h:(cos[0]?cos[0].id:null);
+    renderList();renderDet();
+  }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>

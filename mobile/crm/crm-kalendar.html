@@ -1114,6 +1114,9 @@ html.desk .ewin .mscroll{overflow:hidden}
   });
 })();
 </script>
+<script src="crm-data.js"></script>
+<script src="crm-ui.js"></script>
+<script src="crm-global.js"></script>
 <script>
 (function(){
   'use strict';
@@ -1140,8 +1143,8 @@ html.desk .ewin .mscroll{overflow:hidden}
     {id:'other',label:'Друго',emo:'📣',color:'yellow',icon:'calendar-days',photo:'k-other.jpg',help:'Персонализирано събитие.',extra:'Бележка'}
   ];
   var typeOf=function(id){return TYPES.filter(function(x){return x.id===id})[0]||TYPES[9]};
-  var CLIENTS=['Иван Петров','Елена Георгиева','Георги Николов','Мария Димитрова','Николай Стоянов','Десислава Илиева','Петър Василев','Ралица Костова'];
-  var PROPS=['P-1048 · Тристаен апартамент, Шумен','P-1047 · Къща с двор, Варна','P-1046 · Двустаен апартамент, Варна','P-1045 · Парцел, Шумен','P-1044 · Вила с басейн, Бургас','P-1043 · Модерна къща, Бургас'];
+  var CLIENTS=[];
+  var PROPS=[];
   var DAYS=['Понеделник','Вторник','Сряда','Четвъртък','Петък'];
   var MONTHS=['Януари','Февруари','Март','Април','Май','Юни','Юли','Август','Септември','Октомври','Ноември','Декември'];
   var pad=function(n){return ('0'+n).slice(-2)};
@@ -1168,10 +1171,8 @@ html.desk .ewin .mscroll{overflow:hidden}
     ['team','Екипна среща',4,'09:00','10:00','','',''],
     ['task','Отчет месец '+MONTHS[week0.getMonth()],4,'14:00','15:00','','','']
   ].map(function(r,i){return {id:'d'+i,type:r[0],title:r[1],date:day(r[2]),from:r[3],to:r[4],client:r[5],prop:r[6],desc:r[7],extra:''}});
-  var events=null;
-  try{var st=JSON.parse(localStorage.getItem('crm-events')||'null');if(st&&st.week===iso(week0)&&Array.isArray(st.items))events=st.items}catch(e){}
-  if(!events)events=demo;
-  function persist(){try{localStorage.setItem('crm-events',JSON.stringify({week:iso(week0),items:events}))}catch(e){}}
+  var events=[];
+  function persist(){if(window.ND)ND.sync('events',events).catch(function(){})}
 
   /* ---------- scaling ---------- */
   var top=document.querySelector('.ktop'),photo=top.querySelector('.photo'),ctrls=[].slice.call(top.querySelectorAll('.ctrl,.avatar')),
@@ -1341,6 +1342,14 @@ html.desk .ewin .mscroll{overflow:hidden}
 
   fit();
   try{document.fonts.ready.then(render)}catch(e){}
+  ND.busy(1);
+  ND.ready().then(function(){return Promise.all([ND.load('events'),ND.load('clients'),ND.load('properties')])}).then(function(r){
+    ND.busy(0);events=r[0];
+    var hm=/^#d=(\d{4}-\d\d-\d\d)$/.exec(location.hash||'');if(hm){var dd=new Date(hm[1]+'T00:00');if(!isNaN(dd))cur=monday(dd)}
+    CLIENTS.length=0;r[1].forEach(function(c){if(c.name)CLIENTS.push(c.name)});
+    PROPS.length=0;r[2].forEach(function(p){PROPS.push((p.code||p.id)+' · '+(p.title||'')+(p.city?', '+p.city:''))});
+    render();
+  }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>
