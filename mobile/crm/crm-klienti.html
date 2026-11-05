@@ -778,7 +778,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     return Promise.all([ND.load('clients'),ND.load('activities')]).then(function(r){
       clients.length=0;[].push.apply(clients,r[0]);ACTS={};
       r[1].sort(function(a,b){return String(b.at).localeCompare(String(a.at))}).forEach(function(a){(ACTS[a.client_id]=ACTS[a.client_id]||[]).push(a)});
-      prep();REF.sales();REF.rent();
+      prep();REF.sales();REF.rent();window.__ndClientNames=clients.map(function(c){return c.name}).filter(Boolean);
     });
   }
   window.NDKTabs.init({say:say,refresh:loadAll,reopen:function(id){if(!win.hidden&&win.dataset.id===id)open(id,lastFocus);},closeCard:function(){if(!win.hidden)close()}});

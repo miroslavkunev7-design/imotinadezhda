@@ -1056,7 +1056,7 @@ html.desk .pm-actions .pa{height:150px}
   function refreshFilters(){fill(sel.region,'region',uniq(props.map(function(p){return p.region}).filter(Boolean)));cities();hoods();['region','city','hood'].forEach(function(k){show(sel[k])})}
   function loadAll(){
     return Promise.all([ND.load('properties'),ND.load('clients')]).then(function(r){
-      CL={};r[1].forEach(function(c){if(c.name)CL[c.name]=c});
+      CL={};r[1].forEach(function(c){if(c.name)CL[c.name]=c});window.__ndClientNames=Object.keys(CL);
       var paths=[];r[0].forEach(function(p){(p.pics||[]).forEach(function(x){paths.push(x)})});
       return ND.fileUrls(paths).then(function(m){window.IMG=Object.assign(window.IMG||{},m);det={};props.length=0;[].push.apply(props,prep(r[0]));refreshFilters();render(applied)});
     });
