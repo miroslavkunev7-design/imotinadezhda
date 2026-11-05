@@ -10,3 +10,37 @@ html:not(.desk) #top{
   -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 380px),rgba(0,0,0,.55) calc(100% - 120px),transparent 100%);
           mask-image:linear-gradient(180deg,#000 calc(100% - 380px),rgba(0,0,0,.55) calc(100% - 120px),transparent 100%);
 }
+
+/* ===== Premium layer: same design, richer motion and glow (all CRM pages) ===== */
+::selection{background:rgba(163,33,58,.85);color:#fbefe4}
+*{scrollbar-width:thin;scrollbar-color:rgba(196,140,70,.75) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{border-radius:8px;background:linear-gradient(180deg,#edc47a,#a3213a)}::-webkit-scrollbar-track{background:transparent}
+:is(.ndrow,.ndfile,.tile,.qa,.ccard,.pc,.bk,.ev,.act,.kq,.ia,.bc,.dl,.vb,.o-filt,.b-filt,.pillbtn,.linkbtn,.datepill,.nd-new,.o-new,.i-go,.i-clear,.i-more,.ctrl,.avatar,.hrt,.ab,.nb-a,.mn,.ea,.nv){transition:transform .3s cubic-bezier(.2,.7,.2,1),filter .3s ease,box-shadow .3s ease,background-color .3s ease,opacity .3s ease}
+@media (hover:hover){
+  #nd-fwin :is(.ndrow,.ndfile):hover{transform:translateY(-2px);filter:drop-shadow(0 0 12px rgba(255,205,140,.6))}
+  :is(.tile,.qa,.ccard,.pc,.bk,.ev,.act,.kq,.ia):hover{transform:translateY(-3px);filter:brightness(1.03) drop-shadow(0 0 14px rgba(255,205,140,.55))}
+  :is(.bc,.dl,.vb,.o-filt,.b-filt,.pillbtn,.linkbtn,.datepill,.i-clear,.i-more,.ab,.mn,.ea,.nb-a):hover{filter:brightness(1.05) drop-shadow(0 0 10px rgba(255,205,140,.6))}
+  :is(.nd-new,.o-new,.i-go,.ea.hot):hover{transform:translateY(-2px);filter:brightness(1.08) drop-shadow(0 0 16px rgba(255,190,120,.7))}
+  :is(.ctrl,.avatar,.hrt):hover{transform:scale(1.07);filter:drop-shadow(0 0 12px rgba(255,214,160,.85))}
+  .nv:not(.on):hover{transform:translateY(-2px);filter:drop-shadow(0 0 10px rgba(255,214,160,.7))}
+  .kg-c:hover{filter:drop-shadow(0 0 8px rgba(255,205,140,.7));transition:filter .25s ease}
+  .tile:hover img.ph,.pc:hover img,.ccard:hover .ph img,.bk:hover img{transform:scale(1.06)}
+}
+.tile img.ph,.pc img,.ccard .ph img,.bk img{transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+:is(.tile,.qa,.ccard,.pc,.bk,.ev,.act,.kq,.ia,.bc,.dl,.vb,.nd-new,.o-new,.i-go,.ea,.nv,.ab,.hrt):active{transform:scale(.97);transition-duration:.12s}
+/* gold light sweeping across the burgundy main buttons */
+.o-new{position:relative}
+:is(.nd-new,.o-new,.i-go,.ea.hot,.nv.on)::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(105deg,rgba(255,255,255,0) 35%,rgba(255,232,190,.38) 50%,rgba(255,255,255,0) 65%) no-repeat;background-size:250% 100%;background-position:150% 0;animation:ndSweep 5.5s ease-in-out infinite}
+@keyframes ndSweep{0%,62%{background-position:150% 0}100%{background-position:-60% 0}}
+/* the active menu item breathes softly */
+.nv.on{animation:ndBreath 3.6s ease-in-out infinite}
+@keyframes ndBreath{0%,100%{filter:drop-shadow(0 0 6px rgba(255,205,140,.45))}50%{filter:drop-shadow(0 0 16px rgba(255,214,160,.9))}}
+/* gold focus ring on every field and button (keyboard and touch) */
+:is(input,select,textarea):focus{outline:2px solid rgba(237,196,122,.95);outline-offset:2px}
+:is(button,a,[tabindex]):focus-visible{outline:2px solid rgba(237,196,122,.95);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){
+  :is(.nd-new,.o-new,.i-go,.ea.hot,.nv.on)::after{animation:none;display:none}
+  .nv.on{animation:none}
+  *{transition-duration:.01ms!important}
+}
