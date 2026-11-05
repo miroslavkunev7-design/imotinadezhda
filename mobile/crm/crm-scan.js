@@ -36,6 +36,7 @@
     scan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>',
     img: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>',
     file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 13H8M16 17H8M16 13h-2"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/><path d="M12 10v6M9 13h6"/></svg>',
     cam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3"/></svg>'
   };
   function boot() { if (document.getElementById("nds-css")) return; var s = document.createElement("style"); s.id = "nds-css"; s.textContent = css; document.head.appendChild(s); }
@@ -49,6 +50,7 @@
         item(I.img, "Качи снимка от галерия", "Снимка от телефона", "gallery") +
         item(I.file, "Файл", "PDF или снимка от файловете", "file") +
         item(I.cam, "Снимай на момента", "Отваря камерата", "camera") +
+        (ctxKind === "property" ? item(I.folder, "Прикачи папка", "Снимки, видеа и опис на имота", "folder") : "") +
         '<button type="button" class="back" data-a="back">‹ Назад</button>'
       : item(I.pen, "Добави ръчно", "Попълване на картата", "manual") +
         item(I.scan, "Сканиране на " + what, "Лична карта, визитка, бележка, обява, документ…", "scan");
@@ -60,8 +62,18 @@
     pop.style.left = left + "px"; pop.style.top = top + "px";
   }
   function close() { if (pop) pop.hidden = true; }
+  var IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   function pick(mode) {
     var inp = document.createElement("input");
+    if (mode === "folder") {
+      inp.type = "file"; inp.multiple = true;
+      if (!IOS && "webkitdirectory" in inp) inp.webkitdirectory = true; /* iPhone: choose all files of the folder */
+      else inp.accept = "image/*,video/*,.txt,.md,.rtf,.doc,.docx,.pdf,text/plain,application/pdf";
+      inp.style.cssText = "position:fixed;left:-999px;top:0;opacity:0";
+      document.body.appendChild(inp);
+      inp.onchange = function () { var fs = [].slice.call(inp.files || []);  inp.remove(); if (fs.length) folderScan(fs); };
+      inp.click(); return;
+    }
     inp.type = "file";
     inp.accept = mode === "file" ? "image/*,application/pdf" : "image/*";
     if (mode === "camera") inp.setAttribute("capture", "environment");
@@ -92,7 +104,7 @@
 
   /* ---------- prepare the file: photos are resized to keep the upload small ---------- */
   function readAsDataURL(blob) { return new Promise(function (ok, bad) { var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = bad; r.readAsDataURL(blob); }); }
-  function prepare(file) {
+  function prepare(file, maxSide) {
     if (file.type === "application/pdf") {
       if (file.size > 4 * 1024 * 1024) return Promise.reject(new Error("PDF файлът е по-голям от 4 MB."));
       return readAsDataURL(file).then(function (u) { return { mime: "application/pdf", data: u.split(",")[1], preview: null }; });
@@ -101,7 +113,7 @@
       return new Promise(function (ok) {
         var im = new Image();
         im.onload = function () {
-          var max = 1800, k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas");
+          var max = maxSide || 1800, k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas");
           c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
           c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
           var out = c.toDataURL("image/jpeg", 0.86);
@@ -115,16 +127,17 @@
 
   /* ---------- scanning overlay ---------- */
   var ov = null, stT = null;
-  function showOverlay(prep, name) {
+  function showOverlay(prep, name, mode) {
     boot();
     if (!ov) { ov = document.createElement("div"); ov.className = "nds-ov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Сканиране"); document.body.appendChild(ov); }
     var what = ctxKind === "property" ? "имот" : "клиент";
-    ov.innerHTML = '<div class="nds-card"><h3>Сканиране на ' + what + "</h3>" +
+    ov.innerHTML = '<div class="nds-card"><h3>' + (mode === "folder" ? "Анализ на папката" : "Сканиране на " + what) + "</h3>" +
       (prep.preview ? '<div class="nds-doc" style="background-image:url(' + prep.preview + ')"><div class="nds-bar"></div></div>'
-        : '<div class="nds-doc pdf"><div>' + I.file + U.esc(name || "Документ") + '</div><div class="nds-bar"></div></div>') +
+        : '<div class="nds-doc pdf"><div>' + (mode === "folder" ? I.folder : I.file) + U.esc(name || "Документ") + '</div><div class="nds-bar"></div></div>') +
       '<div class="nds-st" aria-live="polite">Разпознаване на текста…</div><button type="button" class="nds-x">Отказ</button></div>';
     ov.hidden = false;
-    var steps = ["Разпознаване на текста…", "Откриване на имена и телефони…", "Извличане на данните…", "Попълване на картата…"], i = 0;
+    var steps = mode === "folder" ? ["Четене на описа…", "Цена от името на папката…", "Град, квартал, площ, етаж…", "AI описание без точен адрес…", "Попълване на картата…"]
+      : ["Разпознаване на текста…", "Откриване на имена и телефони…", "Извличане на данните…", "Попълване на картата…"], i = 0;
     clearInterval(stT); stT = setInterval(function () { i = Math.min(i + 1, steps.length - 1); var s = ov.querySelector(".nds-st"); if (s) s.firstChild.nodeValue = steps[i]; }, 1900);
     var bar = ov.querySelector(".nds-bar"); bar.addEventListener("animationiteration", function () { bar.classList.toggle("down"); });
     return new Promise(function (ok) { ov.querySelector(".nds-x").onclick = function () { ok("cancel"); }; });
@@ -149,5 +162,91 @@
     }).catch(function (e) { hideOverlay(); if (!cancelled) D.say("Грешка при сканиране: " + ((e && e.message) || e)); });
   }
 
-  window.NDScan = { menu: menu, close: close };
+
+  /* ---------- "Прикачи папка": photos + videos + опис of one property ---------- */
+  var PHONE_RE = /(?:\+|00)?(?:359[\s\-\/.]*|0)\(?\d{2,3}\)?(?:[\s\-\/.]*\d){5,7}/g;
+  var AGENCY_PHONE = "0898977370";
+  function publicText(t) { return String(t || "").replace(PHONE_RE, AGENCY_PHONE); }
+  function phonesIn(t) { return (String(t || "").match(PHONE_RE) || []).map(function (x) { return x.replace(/[^\d+]/g, ""); }).filter(function (x, i, a) { return a.indexOf(x) === i && x.replace(/\D/g, "") !== AGENCY_PHONE.slice(1) && x !== AGENCY_PHONE; }); }
+  function priceFromName(n) {
+    var s = String(n || "").replace(/\.(\w{2,4})$/, ""), best = 0, m, re = /(\d{1,3}(?:[ ., ]\d{3})+|\d+)\s*(к|k|хил\.?)?/gi;
+    while ((m = re.exec(s))) { var v = Number(m[1].replace(/[ ., ]/g, "")); if (m[2]) v *= 1000; if (v >= 1000 && v > best) best = v; }
+    return best || null;
+  }
+  function loadScript(src) { return new Promise(function (ok, bad) { var s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = function () { bad(new Error("Не успях да заредя " + src)); }; document.head.appendChild(s); }); }
+  function docxText(file) {
+    return (window.JSZip ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js")).then(function () {
+      return window.JSZip.loadAsync(file); }).then(function (z) { var x = z.file("word/document.xml"); return x ? x.async("string") : ""; })
+      .then(function (xml) { return xml.replace(/<w:tab\/>/g, "\t").replace(/<\/w:p>/g, "\n").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'"); });
+  }
+  function isImg(f) { return /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name); }
+  function isVid(f) { return /^video\//.test(f.type) || /\.(mp4|mov|m4v|webm|3gp)$/i.test(f.name); }
+  function isDoc(f) { return /\.(txt|md|rtf|docx?|pdf)$/i.test(f.name) || /^text\//.test(f.type) || f.type === "application/pdf"; }
+  function folderScan(files) {
+    files = files.filter(function (f) { return !/(^|\/)\./.test(f.webkitRelativePath || f.name); });
+    files.sort(function (a, b) { return (a.webkitRelativePath || a.name).localeCompare(b.webkitRelativePath || b.name, "bg", { numeric: true }); });
+    var rel = (files[0] && files[0].webkitRelativePath) || "", folder = rel.indexOf("/") > 0 ? rel.split("/")[0] : "";
+    var allImgs = files.filter(isImg), imgs = allImgs.slice(0, 100), allVids = files.filter(isVid), vids = allVids.slice(0, 10), docs = files.filter(function (f) { return !isImg(f) && !isVid(f) && isDoc(f); });
+    if (!imgs.length && !docs.length) { D.say("В папката няма снимки или опис"); return; }
+    var price = priceFromName(folder) || (docs[0] && priceFromName(docs[0].name)) || null;
+    var cancelled = false, pdf = null;
+    var texts = docs.map(function (f) {
+      if (/\.docx$/i.test(f.name)) return docxText(f).catch(function () { return ""; });
+      if (/\.pdf$/i.test(f.name) || f.type === "application/pdf") { if (!pdf && f.size <= 3 * 1024 * 1024) pdf = f; return Promise.resolve(""); }
+      if (/\.doc$/i.test(f.name)) return Promise.resolve("");
+      return f.text().then(function (t) { return /\.rtf$/i.test(f.name) ? t.replace(/\\par[d]?/g, "\n").replace(/\{\*?\\[^{}]+}|[{}]|\\[a-z]+-?\d* ?/gi, "") : t; }).catch(function () { return ""; });
+    });
+    var samples = imgs.slice(0, 3).map(function (f) { return prepare(f, 1200).catch(function () { return null; }); });
+    Promise.all([Promise.all(texts), Promise.all(samples), pdf ? prepare(pdf) : null]).then(function (r) {
+      var text = r[0].filter(Boolean).join("\n\n").trim().slice(0, 30000), pics = r[1].filter(Boolean), pdfPrep = r[2];
+      showOverlay(pics[0] || { preview: null }, folder || (docs[0] && docs[0].name) || "Папка на имот", "folder").then(function () { cancelled = true; hideOverlay(); });
+      var body = { kind: "folder", folder: folder, text: text, images: pics.map(function (x) { return { mime: x.mime, data: x.data }; }) };
+      if (pdfPrep) { body.mime = pdfPrep.mime; body.data = pdfPrep.data; body.name = pdf.name; }
+      return D.token().then(function (tok) {
+        return fetch("/api/scan", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify(body) });
+      }).then(function (x) { return x.json(); }).then(function (j) {
+        if (cancelled) return;
+        hideOverlay();
+        var f = (j && j.ok && j.fields) || {};
+        if (!j.ok) D.say((j.error || "Анализът не успя") + " – попълнете ръчно");
+        var phones = phonesIn(text).concat([].concat(f.ownerPhones || f.ownerPhone || []).map(String)).filter(function (x, i, a) { return x && a.indexOf(x) === i; });
+        var out = {
+          title: f.title, deal: f.deal, type: f.type, area: f.area, rooms: f.rooms, beds: f.beds, baths: f.baths, floor: f.floor, year: f.year, build: f.build,
+          region: f.region, city: f.city, hood: f.hood, address: f.address, client: f.ownerName || f.client,
+          price: price || f.officialPrice || f.price || null, ownerPrice: f.ownerPrice || null,
+          desc: publicText(f.publicDesc || f.desc || ""), privDesc: text || f.privateDesc || "", ownerPhone: phones.join(", "),
+          summary: null
+        };
+        D.say("Папка: " + imgs.length + " снимки" + (vids.length ? ", " + vids.length + " видеа" : "") + (text || pdf ? ", опис прочетен" : "") +
+          (allImgs.length > 100 ? " · взети първите 100 снимки" : "") + (allVids.length > 10 ? " · взети първите 10 видеа" : ""));
+        handlers.scanned(out, null, { pics: imgs, videos: vids, docs: docs, folder: folder });
+      });
+    }).catch(function (e) { hideOverlay(); if (!cancelled) D.say("Грешка при папката: " + ((e && e.message) || e)); });
+  }
+
+  /* logo on every photo of a property from a folder (bottom right), resized to max 2000 px */
+  var logoP = null;
+  function logo() { return logoP || (logoP = new Promise(function (ok) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { ok(null); }; im.src = "/mobile/home-assets/logo-roofs.svg"; })); }
+  function watermark(file) {
+    return Promise.all([readAsDataURL(file), logo()]).then(function (r) {
+      return new Promise(function (ok) {
+        var im = new Image();
+        im.onload = function () {
+          var k = Math.min(1, 2000 / Math.max(im.width, im.height)), c = document.createElement("canvas"), W = c.width = Math.round(im.width * k), H = c.height = Math.round(im.height * k), g = c.getContext("2d");
+          g.drawImage(im, 0, 0, W, H);
+          var u = Math.max(W, H) / 1000, bw = 250 * u, bh = 74 * u, x = W - bw - 22 * u, y = H - bh - 22 * u;
+          g.globalAlpha = 0.82; g.fillStyle = "#fffaf3"; g.beginPath();
+          if (g.roundRect) g.roundRect(x, y, bw, bh, 16 * u); else g.rect(x, y, bw, bh); g.fill();
+          g.globalAlpha = 1; g.strokeStyle = "#e2a33b"; g.lineWidth = 2.5 * u; g.stroke();
+          if (r[1]) g.drawImage(r[1], x + 10 * u, y + 13 * u, 74 * u, 48 * u);
+          g.fillStyle = "#680019"; g.textBaseline = "middle"; g.font = "700 " + Math.round(25 * u) + "px Georgia, serif";
+          g.fillText("ИМОТИ", x + 94 * u, y + 25 * u); g.fillText("НАДЕЖДА", x + 94 * u, y + 52 * u);
+          c.toBlob(function (b) { ok(b ? new File([b], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" }) : file); }, "image/jpeg", 0.88);
+        };
+        im.onerror = function () { ok(file); };
+        im.src = r[0];
+      });
+    }).catch(function () { return file; });
+  }
+  window.NDScan = { menu: menu, close: close, watermark: watermark, publicText: publicText, folder: function (files, h) { if (h) { handlers = h; ctxKind = "property"; } folderScan(files); } };
 })();

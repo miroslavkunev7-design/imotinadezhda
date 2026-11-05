@@ -22,6 +22,7 @@
     var paths = [];
     rows.forEach(function (r) { (r.pics || []).forEach(function (p) { paths.push(p); }); });
     return sign(paths).then(function (m) {
+      var P = window.NDPlaces;
       window.__ND_LISTINGS = rows.map(function (r) {
         var gal = (r.pics || []).map(function (p) { return m[p]; }).filter(Boolean);
         var cover = (r.cover && m[r.cover]) || gal[0] || null;
@@ -29,7 +30,7 @@
         var fresh = Date.now() - new Date(r.updated_at) < 7 * 864e5;
         return { id: String(r.id), code: r.code, name: r.title, title: r.title, price: Number(r.price) || 0, area: Number(r.area) || 0,
           rooms: r.rooms || 0, beds: r.beds || 0, baths: r.baths || 0, img: cover, gallery: gal, badge: fresh ? "НОВО" : "",
-          city: r.city || "", region: r.region || "", hood: r.hood || "", type: r.type || "", deal: r.deal || "sale", cond: r.cond || "", desc: r.descr || "" };
+          city: P ? P.city(r.city) : (r.city || ""), region: r.region || "", hood: P ? P.hood(r.city, r.hood) : (r.hood || ""), type: r.type || "", deal: r.deal || "sale", cond: r.cond || "", desc: r.descr || "" };
       });
     });
   }).catch(function () { window.__ND_LISTINGS = []; });

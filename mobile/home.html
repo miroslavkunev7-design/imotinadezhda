@@ -131,6 +131,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   <div class="sh-in"><div class="sh-h"><h2 id="sh-t">Резултати<small id="sh-s"></small></h2><button class="sh-x" id="sh-x" aria-label="Затвори">×</button></div><div class="sh-list" id="sh-list"></div></div>
 </div>
 
+<script src="/mobile/places.js"></script>
 <script src="/mobile/site-data.js"></script>
 <script>
 (function () {
@@ -145,7 +146,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   addEventListener("resize", fit); fit();
 
   var CITIES = { "Шумен": "shumen", "Варна": "varna", "Бургас": "burgas", "Нов пазар": "novi-pazar" };
-  var HOODS = {
+  var HOODS = window.NDPlaces ? { "Бургас": NDPlaces.PLACES["Бургас"], "Шумен": NDPlaces.PLACES["Шумен"], "Варна": NDPlaces.PLACES["Варна"], "Нов пазар": NDPlaces.PLACES["Нови пазар"] } : {
     "Бургас": ["Лазур", "Славейков", "Изгрев", "Възраждане", "Център", "Братя Миладинови", "Зорница", "Меден рудник", "Сарафово", "Крайморие", "Победа"],
     "Шумен": ["Център", "Тракия", "Боян Българанов 1", "Боян Българанов 2", "Добруджански", "Еверест", "Гривица", "Пети полк", "Дивдядово"],
     "Варна": ["Център", "Чайка", "Левски", "Бриз", "Възраждане", "Трошево", "Аспарухово", "Галата", "Владислав Варненчик", "Изгрев"],
@@ -184,7 +185,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
     $("sh-s").textContent = [hood, type !== "Всички" ? type : "", pr ? $("s-price").options[$("s-price").selectedIndex].text : "", ar ? $("s-area").options[$("s-area").selectedIndex].text : ""].filter(Boolean).join(" · ");
     (window.__ND_READY || Promise.resolve()).then(function () {
       var list = (window.__ND_LISTINGS || []).filter(function (p) {
-        if (city && p.city && p.city !== city && !(city === "Нов пазар" && /Нови? пазар/.test(p.city))) return false;
+        if ((window.NDPlaces ? NDPlaces.city(p.city) : p.city) !== (window.NDPlaces ? NDPlaces.city(city) : city)) return false;
         if (hood && p.hood && p.hood !== hood) return false;
         if (type !== "Всички" && p.type && p.type !== type) return false;
         if (deal && p.deal !== deal) return false;

@@ -20,7 +20,18 @@ const PROMPTS = {
     "Върни JSON с полетата: title (кратко заглавие, напр. 'Тристаен апартамент'), deal ('sale' или 'rent'), type (Апартамент/Къща/Парцел/Офис/Магазин/Гараж), " +
     "price (число в евро или null), area (м², число или null), rooms, beds, baths (числа или null), floor (текст), year (число или null), " +
     "build (Тухла/Панел/ЕПК/Монолит/Гредоред/Сглобяема/Друго или ''), region, city, hood, address, client (собственик, ако се вижда), " +
-    "desc (описание на български на всичко полезно за имота), summary (едно изречение какво е документът)."
+    "desc (описание на български на всичко полезно за имота), summary (едно изречение какво е документът).",
+  folder:
+    "Ти си асистент на агенция за недвижими имоти „Имоти Надежда“ в България. Получаваш папка с имот: името на папката, текста на описа " +
+    "(написан от брокера след оглед) и няколко снимки. Извлечи САМО информацията, която реално я има – не измисляй. " +
+    "Върни JSON с полетата: title (кратко заглавие, напр. 'Тристаен апартамент в кв. Тракия'), deal ('sale' или 'rent'), " +
+    "type (Апартамент/Къща/Парцел/Офис/Магазин/Гараж), area (м², число или null), rooms, beds, baths (числа или null), floor (напр. '3 / 6'), " +
+    "year (число или null), build (Тухла/Панел/ЕПК/Монолит/Гредоред/Сглобяема/Друго или ''), region, city, hood (квартал), address (точен адрес, ако го има), " +
+    "ownerName (име на собственика), ownerPhones (масив с телефоните на собственика), ownerPrice (цената, която собственикът иска да получи, число в евро или null), " +
+    "officialPrice (обявената цена за купувача, ако е посочена в описа, число в евро или null), " +
+    "publicDesc (ново продаващо описание на български за публикуване, 5–10 изречения: тип, площ, разпределение, етаж, състояние, предимства и квартал; " +
+    "БЕЗ точен адрес, улица, номер или вход, БЕЗ името и телефона на собственика и БЕЗ цената към собственика; завърши с „За оглед: 0898977370“), " +
+    "summary (едно изречение какво съдържа папката)."
 };
 
 function send(res, status, body) {
@@ -47,13 +58,23 @@ module.exports = async (req, res) => {
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!token || !(await isStaff(token).catch(() => false))) return send(res, 401, { ok: false, error: "Влезте в CRM, за да сканирате." });
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
-  const kind = b.kind === "property" ? "property" : "client";
+  const kind = b.kind === "property" ? "property" : b.kind === "folder" ? "folder" : "client";
   const mime = String(b.mime || "");
-  if (!b.data || !/^(image\/(jpeg|png|webp|heic|heif)|application\/pdf|text\/plain)$/.test(mime)) return send(res, 400, { ok: false, error: "Поддържат се снимки (JPG, PNG, WEBP, HEIC), PDF и текст." });
+  const MIME_OK = /^(image\/(jpeg|png|webp|heic|heif)|application\/pdf|text\/plain)$/;
+  if (kind === "folder") {
+    if (!b.text && !b.data && !(Array.isArray(b.images) && b.images.length)) return send(res, 400, { ok: false, error: "Папката е празна." });
+    if (b.data && !MIME_OK.test(mime)) return send(res, 400, { ok: false, error: "Неподдържан файл с опис." });
+  } else if (!b.data || !MIME_OK.test(mime)) return send(res, 400, { ok: false, error: "Поддържат се снимки (JPG, PNG, WEBP, HEIC), PDF и текст." });
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!key) return send(res, 500, { ok: false, error: "Няма настроен ключ за анализ (GEMINI_API_KEY)." });
+  const parts = [{ text: PROMPTS[kind] + (b.name ? " Име на файла: " + String(b.name).slice(0, 120) : "") }];
+  if (kind === "folder") {
+    parts.push({ text: "Име на папката: " + String(b.folder || "(няма)").slice(0, 200) + "\n\nОПИС:\n" + String(b.text || "(няма текстов опис)").slice(0, 30000) });
+    (Array.isArray(b.images) ? b.images : []).slice(0, 4).forEach((im) => { if (im && im.data && MIME_OK.test(String(im.mime))) parts.push({ inline_data: { mime_type: String(im.mime), data: im.data } }); });
+  }
+  if (b.data) parts.push({ inline_data: { mime_type: mime, data: b.data } });
   const body = {
-    contents: [{ role: "user", parts: [{ text: PROMPTS[kind] + (b.name ? " Име на файла: " + String(b.name).slice(0, 120) : "") }, { inline_data: { mime_type: mime, data: b.data } }] }],
+    contents: [{ role: "user", parts }],
     generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
   };
   let lastErr = "";

@@ -3,6 +3,8 @@
 (function () {
   "use strict";
   var U = window.NDUI, D = window.ND;
+  var PL = window.NDPlaces || { cities: [], PLACES: {}, city: function (x) { return String(x || "").trim(); }, hood: function (c, x) { return String(x || "").trim(); } };
+  function hoodOpts(c) { return (PL.PLACES[PL.city(c)] || []).map(function (n) { return '<option value="' + U.esc(n) + '">'; }).join(""); }
   var esc = U.esc, ic = U.ic, fld = U.fld, row = U.row, section = U.section;
   var P = null; /* page hooks */
   var TYPES = ["Апартамент", "Къща", "Парцел", "Офис", "Магазин", "Гараж"];
@@ -17,7 +19,7 @@
   }
   function stored(p) {
     var o = {};
-    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
+    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
     if (p.id) o.id = p.id;
     return o;
   }
@@ -28,19 +30,26 @@
 
   function fromScan(f) {
     f = f || {}; var o = {}, t = function (v) { return v == null ? "" : String(v).trim(); }, n = function (v) { var x = Number(String(v == null ? "" : v).replace(/[^\d.]/g, "")); return x > 0 ? x : null; };
-    ["title", "floor", "region", "city", "hood", "address", "client", "desc"].forEach(function (k) { if (t(f[k])) o[k] = t(f[k]); });
+    ["title", "floor", "region", "city", "hood", "address", "client", "desc", "privDesc", "ownerPhone"].forEach(function (k) { if (t(f[k])) o[k] = t(f[k]); });
     if (f.deal === "sale" || f.deal === "rent") o.deal = f.deal;
     var ty = TYPES.filter(function (x) { return x.toLowerCase() === t(f.type).toLowerCase(); })[0]; if (ty) o.type = ty;
     var bu = BUILD.filter(function (x) { return x.toLowerCase() === t(f.build).toLowerCase(); })[0]; if (bu) o.build = bu;
-    ["price", "area", "rooms", "beds", "baths", "year"].forEach(function (k) { var v = n(f[k]); if (v != null) o[k] = v; });
+    ["price", "ownerPrice", "area", "rooms", "beds", "baths", "year"].forEach(function (k) { var v = n(f[k]); if (v != null) o[k] = v; });
+    if (o.city) o.city = PL.city(o.city);
+    if (o.hood) o.hood = PL.hood(o.city, o.hood);
     if (t(f.summary)) o.desc = [o.desc, "Сканиран документ: " + t(f.summary)].filter(Boolean).join("\n");
     return o;
   }
-  function edit(p, scanned, scanFile) {
+  function edit(p, scanned, scanFile, bundle) {
     var isNew = !p, list = P.list();
     p = p ? JSON.parse(JSON.stringify(stored(p))) : Object.assign({ code: nextCode(list), deal: "sale", type: TYPES[0], status: "Чернова", cond: COND[0], pics: [], docs: [], log: [] }, fromScan(scanned));
-    p.pics = p.pics || []; p.docs = p.docs || [];
-    var pendingPics = [], pendingDocs = [], removed = [], ctx;
+    p.pics = p.pics || []; p.docs = p.docs || []; p.videos = p.videos || [];
+    var pendingPics = [], pendingDocs = [], pendingVids = [], removed = [], ctx;
+    if (bundle) {
+      (bundle.pics || []).forEach(function (f) { pendingPics.push({ file: f, url: URL.createObjectURL(f), name: f.name, wm: true }); });
+      (bundle.videos || []).forEach(function (f) { pendingVids.push({ file: f, name: f.name }); });
+      (bundle.docs || []).forEach(function (f) { pendingDocs.push({ file: f, name: f.name }); });
+    }
     if (scanFile) { if (/^image\//.test(scanFile.type)) pendingPics.push({ file: scanFile, url: URL.createObjectURL(scanFile), name: scanFile.name || "scan.jpg" }); else pendingDocs.push({ file: scanFile, name: scanFile.name || "scan.pdf" }); }
     var clientNames = P.clientNames();
     function picsHtml() {
@@ -60,7 +69,7 @@
           fld({ id: "p-title", label: "Заглавие", icon: "house", value: p.title, required: true, wide: true, ph: "напр. Тристаен апартамент" }) +
           fld({ id: "p-deal", label: "Сделка", icon: "tag", type: "select", value: p.deal, options: [["sale", "Продажба"], ["rent", "Наем"]] }) +
           fld({ id: "p-type", label: "Тип", icon: "house", type: "select", value: p.type, options: TYPES }) +
-          fld({ id: "p-price", label: "Цена €", icon: "coins", value: p.price, type: "number", required: true }) +
+          fld({ id: "p-price", label: "Официална цена €", icon: "coins", value: p.price, type: "number", required: true }) +
           fld({ id: "p-status", label: "Статус", icon: "megaphone", type: "select", value: p.status, options: STATUS }), { lw: 110 }) +
         G("Характеристики", "ruler", "nd/ph03.jpg",
           fld({ id: "p-area", label: "Площ м²", icon: "m2", value: p.area, type: "number" }) +
@@ -73,15 +82,23 @@
           fld({ id: "p-cond", label: "Състояние", icon: "sparkles", type: "select", value: p.cond, options: COND }), { lw: 130 }) +
         G("Локация", "pin", "nd/ph19.jpg",
           fld({ id: "p-region", label: "Област", icon: "map", value: p.region, ph: "напр. Варна" }) +
-          fld({ id: "p-city", label: "Град", icon: "pin", value: p.city, required: true, ph: "напр. Варна" }) +
-          fld({ id: "p-hood", label: "Квартал", icon: "pin", value: p.hood, ph: "напр. Левски" }) +
+          fld({ id: "p-city", label: "Град", icon: "pin", type: "select", value: p.city || "", required: true, options: [["", "Изберете град"]].concat(PL.cities, p.city && PL.cities.indexOf(p.city) < 0 ? [p.city] : []) }) +
+          fld({ id: "p-hood", label: "Квартал", icon: "pin", value: p.hood, list: "p-hoods", ph: "изберете или въведете" }) +
+          '<datalist id="p-hoods">' + hoodOpts(p.city) + "</datalist>" +
           fld({ id: "p-addr", label: "Адрес", icon: "map-pin-house", value: p.address }), { lw: 110 }) +
         G("Собственик и описание", "user", "nd/ph14.jpg",
           fld({ id: "p-client", label: "Собственик", icon: "user", value: p.client, list: "p-clients", wide: true }) +
           '<datalist id="p-clients">' + clientNames.map(function (n) { return '<option value="' + esc(n) + '">'; }).join("") + "</datalist>" +
-          fld({ id: "p-desc", label: "Описание", icon: "file-text", value: p.desc, type: "ta", wide: true }), { lw: 130, one: true }) +
+          fld({ id: "p-ophone", label: "Телефон на собственика", icon: "phone", value: p.ownerPhone, ph: "само за агенцията" }) +
+          fld({ id: "p-oprice", label: "Цена към собственика €", icon: "coins", value: p.ownerPrice, type: "number" }) +
+          fld({ id: "p-excl", label: "Ексклузив", icon: "star", type: "select", value: p.exclusive ? "1" : "", options: [["", "Не"], ["1", "Да – ексклузивен договор"]] }) +
+          fld({ id: "p-desc", label: "Описание (публично)", icon: "file-text", value: p.desc, type: "ta", wide: true }) +
+          fld({ id: "p-priv", label: "Лично описание (не се публикува)", icon: "lock", value: p.privDesc, type: "ta", wide: true }), { lw: 130, one: true }) +
         G("Снимки (" + (p.pics.length + pendingPics.length) + ")", "camera", null,
           picsHtml() + U.filebox("p-picin", "Добави снимки", "JPG / PNG · натиснете снимка, за да е основна", { icon: "image", accept: "image/*" }), { one: true }) +
+        (p.videos.length || pendingVids.length ? '<div class="wide">' + section("Видеа (" + (p.videos.length + pendingVids.length) + ")", "camera", p.videos.map(function (v, i) {
+          return row("camera", v.name, Math.max(1, Math.round((v.size || 0) / 1048576)) + " MB", U.bgDate(v.at), '<button type="button" class="rm" data-rmvid="' + i + '" aria-label="Изтрий">' + ic("trash-2") + "</button>");
+        }).concat(pendingVids.map(function (f) { return row("upload", f.name, "ще се качи при запис", ""); })), "") + "</div>" : "") +
         docsHtml() +
         G("Прикачи документи", "upload", "nd/ph20.jpg", U.filebox("p-docin", "Прикачи файл", "Нотариален акт, скица, данъчна оценка… · плъзнете или изберете"), { one: true });
     }
@@ -89,12 +106,15 @@
       var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
       p.title = g("p-title"); p.deal = g("p-deal"); p.type = g("p-type"); p.price = n("p-price"); p.area = n("p-area");
       p.rooms = n("p-rooms"); p.beds = n("p-beds"); p.baths = n("p-baths"); p.floor = g("p-floor"); p.build = g("p-build"); p.year = n("p-year");
-      p.cond = g("p-cond"); p.status = g("p-status"); p.region = g("p-region") || g("p-city"); p.city = g("p-city"); p.hood = g("p-hood");
+      p.cond = g("p-cond"); p.status = g("p-status"); p.city = PL.city(g("p-city")); p.hood = PL.hood(p.city, g("p-hood")); p.region = g("p-region") || p.city;
       p.address = g("p-addr"); p.client = g("p-client"); p.desc = g("p-desc");
+      if (ctx && ctx.q("p-priv")) { p.privDesc = g("p-priv"); p.ownerPhone = g("p-ophone"); p.ownerPrice = n("p-oprice"); p.exclusive = g("p-excl") === "1"; }
+      if (window.NDScan && p.desc) p.desc = window.NDScan.publicText(p.desc);
     }
     function rerender() { collect(ctx.get); ctx.rerender(html()); }
     function bind() {
       var pi = ctx.q("p-picin"), di = ctx.q("p-docin");
+      var cs = ctx.q("p-city"), hl = ctx.q("p-hoods"); if (cs && hl) cs.onchange = function () { hl.innerHTML = hoodOpts(cs.value); var h = ctx.q("p-hood"); if (h && h.value) h.value = PL.hood(cs.value, h.value); };
       if (pi) pi.onchange = function () { [].forEach.call(pi.files, function (f) { pendingPics.push({ file: f, url: URL.createObjectURL(f), name: f.name }); }); rerender(); };
       if (di) di.onchange = function () { [].forEach.call(di.files, function (f) { pendingDocs.push({ file: f, name: f.name }); }); rerender(); };
       var ph = ctx.q("p-pics");
@@ -103,6 +123,7 @@
         if (rm) { var i = +rm.getAttribute("data-rmpic"); removed.push(p.pics[i]); p.pics.splice(i, 1); if ((p.cover || 0) >= p.pics.length) p.cover = 0; rerender(); return; }
         var c = e.target.closest("[data-pi]"); if (c) { p.cover = +c.getAttribute("data-pi"); rerender(); }
       };
+      [].forEach.call(document.querySelectorAll("[data-rmvid]"), function (b) { b.onclick = function () { var i = +b.getAttribute("data-rmvid"); removed.push(p.videos[i].path); p.videos.splice(i, 1); rerender(); }; });
       var dc = ctx.q("p-docs");
       if (dc) dc.onclick = function (e) {
         var o = e.target.closest("[data-opendoc]"), r = e.target.closest("[data-rmdoc]");
@@ -111,19 +132,29 @@
       };
     }
     U.open({
-      title: isNew ? (scanned ? "Сканиран имот " : "Нов имот ") + p.code : "Редакция – " + (p.title || p.code), icon: isNew ? "house-plus" : "square-pen", photo: "nd/ph17.jpg", html: html(),
+      title: isNew ? (bundle ? "Имот от папка " : scanned ? "Сканиран имот " : "Нов имот ") + p.code : "Редакция – " + (p.title || p.code), icon: isNew ? "house-plus" : "square-pen", photo: "nd/ph17.jpg", html: html(),
       required: ["p-title", "p-price", "p-city"],
       validate: function (g) { if (!(Number(g("p-price").replace(/\s/g, "").replace(",", ".")) >= 0)) return "Цената трябва да е число."; },
       ready: function (x) { ctx = x; bind(); }, ready2: bind,
       onSave: function (g) {
         collect(g);
         var base = "properties/" + (p.code || D.newId()) + "/";
+        var total = pendingPics.length, done = 0;
         var up = pendingPics.reduce(function (pr, f) {
           return pr.then(function () {
-            var path = base + "photos/" + Date.now() + "-" + f.name.replace(/[^\w.\-]+/g, "_").slice(-60);
-            return D.upload(path, f.file).then(function () { p.pics.push(path); });
+            return (f.wm && window.NDScan ? window.NDScan.watermark(f.file) : Promise.resolve(f.file)).then(function (file) {
+              var path = base + "photos/" + Date.now() + "-" + file.name.replace(/[^\w.\-]+/g, "_").slice(-60);
+              return D.upload(path, file).then(function () { p.pics.push(path); done++; if (total > 5 && done % 5 === 0) P.say("Качени снимки: " + done + " / " + total); });
+            });
           });
         }, Promise.resolve());
+        up = pendingVids.reduce(function (pr, f) {
+          return pr.then(function () {
+            var path = base + "videos/" + Date.now() + "-" + f.name.replace(/[^\w.\-]+/g, "_").slice(-60);
+            return D.upload(path, f.file).then(function () { p.videos.push({ name: f.name, path: path, size: f.file.size, mime: f.file.type, at: new Date().toISOString() }); })
+              .catch(function () { P.say("Видеото „" + f.name + "“ не се качи (твърде голямо?)"); });
+          });
+        }, up);
         up = pendingDocs.reduce(function (pr, f) {
           return pr.then(function () {
             var path = base + "docs/" + Date.now() + "-" + f.name.replace(/[^\w.\-]+/g, "_").slice(-60);
@@ -132,7 +163,7 @@
         }, up);
         return up.then(function () {
           if (removed.length) removed.forEach(function (x) { D.removeFile(x).catch(function () {}); });
-          addLog(p, isNew ? "pencil" : "square-pen", isNew ? "Създаден имот " + p.code : "Редакция на имота" + (pendingPics.length ? " · +" + pendingPics.length + " снимки" : ""));
+          addLog(p, isNew ? "pencil" : "square-pen", isNew ? "Създаден имот " + p.code + (bundle ? " от папка" + (bundle.folder ? " „" + bundle.folder + "“" : "") : "") : "Редакция на имота" + (pendingPics.length ? " · +" + pendingPics.length + " снимки" : ""));
           return D.put("properties", p);
         }).then(function (s) {
           P.say(isNew ? "Имотът е добавен" : "Имотът е запазен");
@@ -141,7 +172,7 @@
       },
       onDelete: isNew ? null : function () {
         return D.del("properties", p.id).then(function () {
-          (p.pics || []).concat((p.docs || []).map(function (d) { return d.path; })).forEach(function (x) { D.removeFile(x).catch(function () {}); });
+          (p.pics || []).concat((p.docs || []).concat(p.videos || []).map(function (d) { return d.path; })).forEach(function (x) { D.removeFile(x).catch(function () {}); });
           P.say("Имотът е изтрит"); P.closeCard(); return P.refresh();
         });
       }
