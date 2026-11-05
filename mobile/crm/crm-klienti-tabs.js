@@ -390,7 +390,7 @@
     function form(d) {
       d = d || { title: (c.cat === "rent" ? "Наем – " : "Покупка – ") + c.name, stage: STAGES[0], commission_pct: c.cat === "rent" ? "" : 3, amount: c.budget || "" };
       return '<div class="wide" id="k-deals">' + section("Сделки на клиента", "handshake", list.map(function (x) {
-        var com = x.amount && x.commission_pct ? " · комисионна " + money(x.amount * x.commission_pct / 100) + " €" : "";
+        var ct = U.commTotal(x), com = ct ? " · комисионна " + money(ct) + " €" : "";
         return row("handshake", x.title, (x.stage || "") + (x.amount ? " · " + money(x.amount) + " €" : "") + com + (x.property ? " · " + x.property : ""), x.deadline ? "до " + U.bgDate(x.deadline + "T00:00") : "",
           '<button type="button" data-ed="' + esc(x.id) + '" aria-label="Редактирай">' + ic("pencil") + '</button><button type="button" class="rm" data-rm="' + esc(x.id) + '" aria-label="Изтрий">' + ic("trash-2") + "</button>");
       }), "Още няма сделки с този клиент.") + "</div>" +
@@ -399,14 +399,13 @@
         fld({ id: "s-prop", label: "Имот", icon: "house", value: d.property, ph: "напр. P-1048 · Тристаен, Шумен" }) +
         fld({ id: "s-stage", label: "Етап", icon: "tag", type: "select", value: d.stage, options: STAGES }) +
         fld({ id: "s-amount", label: "Сума (€)", icon: "coins", value: d.amount, type: "number" }) +
-        fld({ id: "s-comm", label: "Комисионна (%)", icon: "coins", value: d.commission_pct, type: "number", step: "0.1" }) +
         fld({ id: "s-dead", label: "Краен срок", icon: "calendar", value: d.deadline, type: "date" }) +
-        fld({ id: "s-paid", label: "Платено (€)", icon: "coins", value: d.paid, type: "number" }) +
         fld({ id: "s-note", label: "Бележка", icon: "file-text", value: d.note, type: "ta", wide: true }), { lw: 120 }) +
-        U.calcHtml(c.cat === "rent");
+        U.commHtml(d) + U.calcHtml(c.cat === "rent", true);
     }
     function bind() {
-      if (ctx.q("k-res")) U.calcBind(ctx, "s-amount", "s-comm");
+      if (ctx.q("cm-res")) U.commBind(ctx, "s-amount");
+      if (ctx.q("k-res")) U.calcBind(ctx, "s-amount", null);
       var box = ctx.q("k-deals"); if (!box) return;
       box.onclick = function (ev) {
         var rm = ev.target.closest("[data-rm]"), ed = ev.target.closest("[data-ed]");
@@ -430,7 +429,7 @@
         var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
         var d = editing || {};
         var isNew = !editing;
-        Object.assign(d, { client_id: c.id, client: c.name, title: g("s-title"), property: g("s-prop"), stage: g("s-stage"), amount: n("s-amount"), commission_pct: n("s-comm"), deadline: g("s-dead"), paid: n("s-paid"), note: g("s-note") });
+        Object.assign(d, { client_id: c.id, client: c.name, title: g("s-title"), property: g("s-prop"), stage: g("s-stage"), amount: n("s-amount"), deadline: g("s-dead"), note: g("s-note") }, U.commSave(ctx, n("s-amount")));
         return D.put("deals", d).then(function (s) {
           if (isNew) list.push(s);
           editing = null;

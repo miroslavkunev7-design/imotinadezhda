@@ -50,6 +50,25 @@
     "#nd-fwin .ndrow button,#nd-fwin .ndrow a.rb{flex:0 0 auto;width:56px;height:56px;border:0;border-radius:50%;display:grid;place-items:center;font-size:28px;color:#6b0a1c;cursor:pointer;text-decoration:none;background:linear-gradient(180deg,#fffcf9,#fbefe5);box-shadow:0 2px 5px rgba(140,70,40,.25),0 0 0 1px rgba(231,196,160,.6)}",
     "#nd-fwin .ndrow button.rm{color:#a30d26}",
     "#nd-fwin .ndempty{padding:26px 30px;font:400 24px/1.35 var(--cond);color:#6b4a40}",
+    "#nd-fwin .cm-vatw{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap}",
+    "#nd-fwin .cm-vat{display:inline-flex;align-items:center;gap:14px;height:78px;padding:0 28px;border:0;border-radius:40px;cursor:pointer;font:700 27px/1 var(--cond);color:#fbefe4;background:linear-gradient(180deg,#a3213a,#55071a);box-shadow:0 0 0 2px #edc47a,0 0 16px rgba(255,190,120,.6),inset 0 1px 0 rgba(255,255,255,.25);white-space:nowrap}",
+    "#nd-fwin .cm-vat .i{width:30px;height:30px;stroke:#f5d58f}",
+    "#nd-fwin .cm-menu{position:absolute;left:0;top:90px;z-index:5;display:flex;flex-direction:column;min-width:280px;padding:10px;border-radius:26px;background:linear-gradient(180deg,rgba(255,252,248,.98),rgba(251,238,227,.97));box-shadow:0 0 0 1.5px rgba(227,178,94,.7),0 0 18px rgba(255,226,190,.95),0 10px 24px rgba(80,20,10,.25)}",
+    "#nd-fwin .cm-menu[hidden]{display:none}",
+    "#nd-fwin .cm-menu button{height:66px;padding:0 22px;border:0;border-radius:18px;background:none;text-align:left;cursor:pointer;font:700 27px/1 var(--cond);color:#5a0a18}",
+    "#nd-fwin .cm-menu button:hover{background:linear-gradient(90deg,rgba(237,196,122,.35),rgba(255,255,255,0))}",
+    "#nd-fwin .cm-pays{grid-column:1/-1;display:grid;gap:14px;margin:0 0 22px}",
+    "#nd-fwin .cm-pay{display:flex;align-items:center;gap:20px;padding:14px 20px;border-radius:24px;background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1.5px rgba(227,178,94,.55),0 0 10px rgba(255,226,190,.8),0 3px 6px rgba(120,50,20,.12)}",
+    "#nd-fwin .cm-chk{flex:none;position:relative;width:62px;height:62px;border-radius:50%;border:0;cursor:pointer;background:#fffaf4;box-shadow:inset 0 0 0 3px rgba(163,33,58,.55),0 0 10px rgba(255,226,190,.9)}",
+    "#nd-fwin .cm-chk.half{background:linear-gradient(90deg,#a3213a 50%,#fffaf4 50%);box-shadow:inset 0 0 0 3px #a3213a,0 0 0 2px #edc47a,0 0 12px rgba(255,190,120,.6)}",
+    "#nd-fwin .cm-chk.on{background:linear-gradient(180deg,#a3213a,#55071a);box-shadow:0 0 0 2px #edc47a,0 0 14px rgba(255,190,120,.7)}",
+    "#nd-fwin .cm-chk.on::after{content:\"\";position:absolute;left:21px;top:13px;width:14px;height:26px;border:solid #fbefe4;border-width:0 5px 5px 0;transform:rotate(45deg)}",
+    "#nd-fwin .cm-pt{flex:1;min-width:0}",
+    "#nd-fwin .cm-pt b{display:block;font:700 27px/1.1 var(--cond);color:#5a0a18}",
+    "#nd-fwin .cm-pt span{display:block;margin-top:6px;font:700 30px/1.1 var(--serif);color:#4e0912}",
+    "#nd-fwin .cm-in{flex:0 0 240px}",
+    "#nd-fwin .cm-in small{display:block;margin:0 0 6px 6px;font:700 21px/1 var(--cond);color:#6b0a1c}",
+    "#nd-fwin .cm-in .in{width:100%}",
     "#nd-fwin .ndres{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 22px}",
     "#nd-fwin .ndres div{border-radius:22px;padding:18px 22px;background:linear-gradient(180deg,#fffbf7,#fbeee3);box-shadow:0 0 0 1px rgba(226,176,120,.55),0 0 12px rgba(255,226,190,.9)}",
     "#nd-fwin .ndres div span{display:block;font:700 24px/1 var(--cond);color:#6b0a1c}",
@@ -284,9 +303,9 @@
   }
   function closeBank() { if (!bankBox) return; bankBox.classList.remove("show"); setTimeout(function () { bankBox.hidden = true; bankBox.querySelector("iframe").src = "about:blank"; }, 220); }
   /* calculator block used inside the deal windows: price and commission come from the deal fields */
-  function calcHtml(rent) {
-    return group("Калкулатор", "calculator", "nd/ph09.jpg",
-      fld({ id: "k-vat", label: "ДДС върху комисионната (%)", icon: "landmark", value: 20, type: "number" }) +
+  function calcHtml(rent, noComm) {
+    return group(noComm ? "Кредитен калкулатор" : "Калкулатор", "calculator", "nd/ph09.jpg",
+      (noComm ? "" : fld({ id: "k-vat", label: "ДДС върху комисионната (%)", icon: "landmark", value: 20, type: "number" })) +
       (rent ? "" : fld({ id: "k-down", label: "Самоучастие (%)", icon: "coins", value: 20, type: "number" }) +
         fld({ id: "k-rate", label: "Годишна лихва (%)", icon: "landmark", value: 2.5, type: "number", step: "0.01" }) +
         fld({ id: "k-years", label: "Срок (години)", icon: "calendar", value: 30, type: "number" })) +
@@ -297,8 +316,8 @@
     function r2(x) { return Math.round(x * 100) / 100; }
     function run() {
       var res = ctx.q("k-res"); if (!res) return;
-      var price = n(priceId), cp = n(commId), vat = n("k-vat"), comm = price * cp / 100, cv = comm * vat / 100;
-      var h = "<div><span>Комисионна без ДДС</span><b>" + money(r2(comm)) + " €</b></div><div><span>ДДС</span><b>" + money(r2(cv)) + " €</b></div>" +
+      var price = n(priceId), cp = commId ? n(commId) : 0, vat = n("k-vat"), comm = price * cp / 100, cv = comm * vat / 100;
+      var h = !commId ? "" : "<div><span>Комисионна без ДДС</span><b>" + money(r2(comm)) + " €</b></div><div><span>ДДС</span><b>" + money(r2(cv)) + " €</b></div>" +
         '<div class="big"><span>Комисионна с ДДС</span><b>' + money(r2(comm + cv)) + " €</b></div>";
       if (ctx.q("k-down")) {
         var L = price * (1 - n("k-down") / 100), i = n("k-rate") / 100 / 12, m = Math.round(n("k-years") * 12);
@@ -312,5 +331,83 @@
     run(); if (ctx.body) { if (!ctx.body._calcRun) ctx.body.addEventListener("input", function () { ctx.body._calcRun(); }); ctx.body._calcRun = run; }
     return run;
   }
-  window.NDUI = { calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
+  /* agency commission block of a deal: buyer % (1–50), seller by % / € per m² over the price / fixed € on top,
+     VAT as a button with a dropdown, paid parts with check circles that come off the total */
+  var CM_SM = [["pct", "% Ком."], ["sqm", "Цена на кв.м."], ["eur", "Горница в €"]];
+  var CM_VAT = [[0, "Без ДДС"], [9, "ДДС 9%"], [20, "ДДС 20%"]];
+  function cmPcts() { var a = [["", "—"]]; for (var i = 0.5; i <= 10; i += 0.5) a.push([String(i), String(i).replace(".", ",") + " %"]); for (var j = 11; j <= 50; j++) a.push([String(j), j + " %"]); return a; }
+  function cmNorm(d) {
+    d = d || {}; var o = { cb: d.comm_buyer_pct, sm: d.comm_seller_mode || "pct", sv: d.comm_seller_val, area: d.area, vat: d.vat == null ? 0 : d.vat, pb: d.paid_buyer, ps: d.paid_seller };
+    if (d.comm_buyer_pct == null && d.comm_seller_val == null && d.commission_pct) {
+      if (/Продавача|Наемодателя/.test(d.comm_from || "")) o.sv = d.commission_pct; else o.cb = d.commission_pct;
+      if (d.paid) o.pb = d.paid;
+    }
+    return o;
+  }
+  function cmCalc(price, o) {
+    var P = Number(price) || 0, n = function (v) { v = Number(v); return isNaN(v) ? 0 : v; };
+    var b = P * n(o.cb) / 100, s = o.sm === "sqm" ? n(o.sv) * n(o.area) : o.sm === "eur" ? n(o.sv) : P * n(o.sv) / 100;
+    var net = b + s, vat = net * n(o.vat) / 100, k = 1 + n(o.vat) / 100;
+    var paid = Math.min(n(o.pb), b * k) + Math.min(n(o.ps), s * k);
+    return { buyer: b, seller: s, net: net, vat: vat, gross: net + vat, paid: paid, left: Math.max(0, net + vat - paid), k: k };
+  }
+  function commTotal(d) { if (d && d.comm_total != null) return Number(d.comm_total) || 0; return d && d.amount && d.commission_pct ? d.amount * d.commission_pct / 100 : 0; }
+  function commHtml(d) {
+    var o = cmNorm(d), vatT = (CM_VAT.filter(function (x) { return x[0] === Number(o.vat); })[0] || CM_VAT[0])[1];
+    var pay = function (k, t) { return '<div class="cm-pay" data-k="' + k + '"><button type="button" class="cm-chk" data-chk="' + k + '" aria-label="Платено изцяло – ' + t + '"></button>' +
+      '<div class="cm-pt"><b>' + t + '</b><span id="cm-' + k + '-due">—</span></div><label class="cm-in"><small>Взето (€)</small><input class="in" id="cm-p' + k + '" type="number" inputmode="decimal" value="' + esc(k === "b" ? (o.pb == null ? "" : o.pb) : (o.ps == null ? "" : o.ps)) + '" placeholder="0"></label></div>'; };
+    return group("Комисионна за агенцията", "coins", "nd/ph09.jpg",
+      fld({ id: "cm-cb", label: "Комисионна от купувача", icon: "user", type: "select", value: o.cb == null ? "" : String(Number(o.cb)), options: cmPcts() }) +
+      fld({ id: "cm-sm", label: "Комисионна от продавача", icon: "user-round", type: "select", value: o.sm, options: CM_SM }) +
+      fld({ id: "cm-sv", label: "Стойност", icon: "coins", value: o.sv, type: "number", step: "0.01" }) +
+      fld({ id: "cm-area", label: "Площ (м²)", icon: "house", value: o.area, type: "number" }) +
+      '<div class="ef wide cm-vatw"><input type="hidden" id="cm-vat" value="' + esc(o.vat) + '"><button type="button" class="cm-vat" id="cm-vatb" aria-haspopup="true" aria-expanded="false">' + ic("landmark") + '<span>' + esc(vatT) + '</span>' + ic("chev-d") + '</button>' +
+      '<div class="cm-menu" id="cm-vatm" hidden>' + CM_VAT.map(function (x) { return '<button type="button" data-vat="' + x[0] + '">' + x[1] + "</button>"; }).join("") + "</div></div>" +
+      '<div class="wide cm-pays">' + pay("b", "От купувача") + pay("s", "От продавача") + "</div>" +
+      '<div class="ndres wide" id="cm-res"></div>', { lw: 170 });
+  }
+  function commRead(ctx) {
+    var n = function (id) { var v = ctx.num(id); return v == null || isNaN(v) ? null : v; };
+    return { cb: n("cm-cb"), sm: ctx.get("cm-sm") || "pct", sv: n("cm-sv"), area: n("cm-area"), vat: n("cm-vat") || 0, pb: n("cm-pb"), ps: n("cm-ps") };
+  }
+  /* fields to store on the deal (old commission_pct / paid kept in sync for the summary screens) */
+  function commSave(ctx, price) {
+    var o = commRead(ctx), r = cmCalc(price, o);
+    return { comm_buyer_pct: o.cb, comm_seller_mode: o.sm, comm_seller_val: o.sv, area: o.area, vat: o.vat, paid_buyer: o.pb, paid_seller: o.ps,
+      comm_total: Math.round(r.net * 100) / 100, comm_gross: Math.round(r.gross * 100) / 100, paid: Math.round(r.paid * 100) / 100,
+      commission_pct: price ? Math.round(r.net / price * 10000) / 100 : null, comm_from: o.cb && r.seller ? "Двете страни" : r.seller ? "Продавача" : o.cb ? "Купувача" : "" };
+  }
+  function commBind(ctx, priceId) {
+    var q = ctx.q, body = ctx.body, r2 = function (x) { return Math.round(x * 100) / 100; };
+    var LBL = { pct: "Комисионна от продавача (%)", sqm: "Горница за нас на кв.м. (€/м²)", eur: "Горница (€)" };
+    function run() {
+      var res = q("cm-res"); if (!res) return;
+      var o = commRead(ctx), P = ctx.num(priceId) || 0, r = cmCalc(P, o);
+      var lab = q("cm-sv") && q("cm-sv").parentNode.querySelector("label"); if (lab) lab.lastChild.nodeValue = LBL[o.sm];
+      var af = q("cm-area") && q("cm-area").closest(".ef"); if (af) af.style.display = o.sm === "sqm" ? "" : "none";
+      [["b", r.buyer], ["s", r.seller]].forEach(function (x) {
+        var due = x[1] * r.k, got = ctx.num("cm-p" + x[0]) || 0, el = q("cm-" + x[0] + "-due"), ch = body.querySelector('[data-chk="' + x[0] + '"]');
+        if (el) el.textContent = due ? money(r2(due)) + " €" + (got > 0 && got < due ? " · остават " + money(r2(due - got)) + " €" : "") : "—";
+        if (ch) ch.className = "cm-chk" + (due && got >= due - 0.005 ? " on" : got > 0 ? " half" : "");
+      });
+      var t = function (l, v, c) { return "<div" + (c ? ' class="' + c + '"' : "") + "><span>" + l + "</span><b>" + money(r2(v)) + " €</b></div>"; };
+      res.innerHTML = t("От купувача", r.buyer) + t("От продавача", r.seller) + t("Комисионна общо", r.net) + (o.vat ? t("ДДС " + o.vat + "%", r.vat) : "") +
+        (o.vat ? t("Общо с ДДС", r.gross) : "") + t("Платено", r.paid) + t("Остава за плащане", r.left, "big");
+    }
+    body._cmRun = run;
+    if (body._cmBound) { run(); return run; } body._cmBound = 1;
+    body.addEventListener("input", function () { if (body._cmRun) body._cmRun(); }); body.addEventListener("change", function () { if (body._cmRun) body._cmRun(); });
+    body.addEventListener("click", function (e) { if (!q("cm-res")) return;
+      var vb = e.target.closest("#cm-vatb"), vo = e.target.closest("[data-vat]"), ch = e.target.closest("[data-chk]"), m = q("cm-vatm");
+      if (vb) { e.preventDefault(); m.hidden = !m.hidden; vb.setAttribute("aria-expanded", String(!m.hidden)); return; }
+      if (vo) { e.preventDefault(); q("cm-vat").value = vo.getAttribute("data-vat"); q("cm-vatb").querySelector("span").textContent = vo.textContent; m.hidden = true; q("cm-vatb").setAttribute("aria-expanded", "false"); run(); return; }
+      if (ch) {
+        e.preventDefault(); var k = ch.getAttribute("data-chk"), r = cmCalc(ctx.num(priceId) || 0, commRead(ctx)), due = r2((k === "b" ? r.buyer : r.seller) * r.k), inp = q("cm-p" + k);
+        inp.value = ch.classList.contains("on") ? "" : (due || ""); run(); return;
+      }
+      if (m && !m.hidden && !e.target.closest(".cm-vatw")) m.hidden = true;
+    });
+    run(); return run;
+  }
+  window.NDUI = { commHtml: commHtml, commBind: commBind, commSave: commSave, commTotal: commTotal, calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
 })();

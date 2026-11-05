@@ -22,7 +22,7 @@
     function form(d) {
       d = d || { stage: STAGES[0], commission_pct: 3 };
       var rows = list.slice().sort(function (a, b) { return String(b._updated).localeCompare(String(a._updated)); }).map(function (x) {
-        var com = x.amount && x.commission_pct ? " · комисионна " + money(x.amount * x.commission_pct / 100) + " €" : "";
+        var ct = U.commTotal(x), com = ct ? " · комисионна " + money(ct) + " €" : "";
         return row("handshake", x.title, (x.kind ? x.kind + " · " : "") + (x.client ? x.client + " · " : "") + (x.stage || "") + (x.amount ? " · " + money(x.amount) + " €" : "") + com, x.deadline ? "до " + U.bgDate(x.deadline + "T00:00") : "",
           '<button type="button" data-ed="' + esc(x.id) + '" aria-label="Редактирай">' + ic("pencil") + '</button><button type="button" class="rm" data-rm="' + esc(x.id) + '" aria-label="Изтрий">' + ic("trash-2") + "</button>");
       });
@@ -37,17 +37,15 @@
         fld({ id: "s-prop", label: "Имот", icon: "house", value: d.property, list: "s-plist", wide: true, ph: "изберете от имотите или въведете" }) +
         '<datalist id="s-plist">' + props.map(function (p) { return '<option value="' + esc((p.num ? "И#" + p.num + " · " : "") + (p.code || "") + " · " + (p.title || "") + (p.city ? ", " + p.city : "")) + '">'; }).join("") + "</datalist>" +
         fld({ id: "s-broker", label: "Брокер", icon: "contact-round", type: "select", value: d.broker || "", options: [["", "—"]].concat(brokers.map(function (b) { return [b.name, b.name]; })) }), { lw: 140 }) +
-        U.group("Финанси и комисионна", "coins", "nd/ph16.jpg",
+        U.group("Финанси по сделката", "coins", "nd/ph16.jpg",
         fld({ id: "s-amount", label: "Цена по сделката (€)", icon: "coins", value: d.amount, type: "number" }) +
         fld({ id: "s-dep", label: "Капаро / депозит (€)", icon: "circle-dollar-sign", value: d.deposit, type: "number" }) +
-        fld({ id: "s-comm", label: "Комисионна (%)", icon: "coins", value: d.commission_pct, type: "number", step: "0.1" }) +
-        fld({ id: "s-cfrom", label: "Комисионна от", icon: "users", type: "select", value: d.comm_from || "", options: ["", "Купувача", "Продавача", "Двете страни", "Наемателя", "Наемодателя"].map(function (x) { return [x, x || "—"]; }) }) +
-        fld({ id: "s-paid", label: "Платено (€)", icon: "coins", value: d.paid, type: "number" }) +
         fld({ id: "s-pay", label: "Плащане", icon: "landmark", type: "select", value: d.payment || "", options: ["", "Кеш", "Банков кредит", "Кеш + кредит", "Лизинг", "Замяна"].map(function (x) { return [x, x || "—"]; }) }) +
         fld({ id: "s-bank", label: "Банка", icon: "landmark", value: d.bank, list: "s-banks", ph: "при кредит" }) +
         '<datalist id="s-banks">' + ["Банка ДСК", "ОББ", "УниКредит Булбанк", "Fibank", "Пощенска банка", "Алианц Банк", "ЦКБ", "ПроКредит Банк", "Тексим Банк", "Инвестбанк", "БАКБ", "Общинска банка", "D Commerce Bank", "Токуда Банк"].map(function (b) { return '<option value="' + b + '">'; }).join("") + "</datalist>" +
         fld({ id: "s-loan", label: "Одобрен кредит (€)", icon: "coins", value: d.loan, type: "number" }), { lw: 140 }) +
-        U.calcHtml(false) +
+        U.commHtml(d) +
+        U.calcHtml(false, true) +
         U.group("Срокове и нотариус", "calendar", "nd/ph04.jpg",
         fld({ id: "s-dview", label: "Оглед", icon: "calendar-check", value: d.d_view, type: "date" }) +
         fld({ id: "s-dpre", label: "Предварителен договор", icon: "file-pen", value: d.d_pre, type: "date" }) +
@@ -61,6 +59,12 @@
         fld({ id: "s-note", label: "Бележка", icon: "file-text", value: d.note, type: "ta", wide: true }), { lw: 140 });
     }
     function bind() {
+      var pi = ctx.q("s-prop"); if (pi) pi.addEventListener("change", function () {
+        var p = props.filter(function (x) { return pi.value.indexOf((x.num ? "И#" + x.num + " · " : "") + (x.code || "") + " · " + (x.title || "")) === 0; })[0]; if (!p) return;
+        var a = ctx.q("cm-area"), m = ctx.q("s-amount");
+        if (a && !a.value && p.area) a.value = p.area; if (m && !m.value && p.price) m.value = p.price;
+        ctx.body.dispatchEvent(new Event("input"));
+      });
       var box = ctx.q("g-deals"); if (!box) return;
       box.onclick = function (e) {
         var rm = e.target.closest("[data-rm]"), ed = e.target.closest("[data-ed]");
@@ -71,14 +75,14 @@
     U.open({
       title: "Сделки", icon: "handshake", photo: "nd/ph11.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запиши сделката", keepOpen: true, required: ["s-title"],
       ready: function (x) { ctx = x; D.ready().then(function () { return Promise.all([D.load("deals"), D.load("clients"), D.load("properties").catch(function () { return []; }), D.load("brokers").catch(function () { return []; })]); }).then(function (r) { list = r[0]; clients = r[1]; props = r[2] || []; brokers = r[3] || []; x.rerender(form()); if (opts.focusNew) { var t = x.q("s-title"); if (t) t.scrollIntoView({ block: "center" }); } }); },
-      ready2: function () { bind(); if (ctx.q("k-res")) U.calcBind(ctx, "s-amount", "s-comm"); },
+      ready2: function () { bind(); if (ctx.q("cm-res")) U.commBind(ctx, "s-amount"); if (ctx.q("k-res")) U.calcBind(ctx, "s-amount", null); },
       onSave: function (g) {
         var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
         var c = clients.filter(function (x) { return x.id === g("s-client"); })[0];
         var d = editing || {}, isNew = !editing;
-        Object.assign(d, { title: g("s-title"), client_id: c ? c.id : null, client: c ? c.name : "", property: g("s-prop"), stage: g("s-stage"), amount: n("s-amount"), commission_pct: n("s-comm"), deadline: g("s-dead"), paid: n("s-paid"), note: g("s-note"),
-          kind: g("s-kind"), seller: g("s-seller"), broker: g("s-broker"), deposit: n("s-dep"), comm_from: g("s-cfrom"), payment: g("s-pay"), bank: g("s-bank"), loan: n("s-loan"),
-          d_view: g("s-dview"), d_pre: g("s-dpre"), d_notary: g("s-dnot"), notary: g("s-notary"), keys: g("s-keys") === "1", risk: g("s-risk"), lost_reason: g("s-lost") });
+        Object.assign(d, { title: g("s-title"), client_id: c ? c.id : null, client: c ? c.name : "", property: g("s-prop"), stage: g("s-stage"), amount: n("s-amount"), deadline: g("s-dead"), note: g("s-note"),
+          kind: g("s-kind"), seller: g("s-seller"), broker: g("s-broker"), deposit: n("s-dep"), payment: g("s-pay"), bank: g("s-bank"), loan: n("s-loan"),
+          d_view: g("s-dview"), d_pre: g("s-dpre"), d_notary: g("s-dnot"), notary: g("s-notary"), keys: g("s-keys") === "1", risk: g("s-risk"), lost_reason: g("s-lost") }, U.commSave(ctx, n("s-amount")));
         return D.put("deals", d).then(function (s) {
           if (isNew) list.push(s); editing = null;
           if (c) D.put("activities", { client_id: c.id, client: c.name, icon: "handshake", text: (isNew ? "Нова сделка: " : "Сделка – ") + s.title + " (" + s.stage + ")", at: new Date().toISOString() }).catch(function () {});
@@ -145,7 +149,7 @@
           var won = dl.filter(function (d) { return d.stage === "Приключена"; }), lost = dl.filter(function (d) { return d.stage === "Отказана"; });
           var open = dl.filter(function (d) { return ["Приключена", "Отказана"].indexOf(d.stage) < 0; });
           var sum = function (a, f) { return a.reduce(function (s, d) { return s + (Number(f(d)) || 0); }, 0); };
-          var comm = function (d) { return d.amount && d.commission_pct ? d.amount * d.commission_pct / 100 : 0; };
+          var comm = function (d) { return U.commTotal(d); };
           var tile = function (l, v, big) { return '<div' + (big ? ' class="big"' : "") + "><span>" + esc(l) + "</span><b>" + esc(v) + "</b></div>"; };
           var stages = STAGES.map(function (s) { var n = dl.filter(function (d) { return d.stage === s; }).length; return n ? row("tag", s, money(sum(dl.filter(function (d) { return d.stage === s; }), function (d) { return d.amount; })) + " €", n + " бр.") : ""; }).filter(Boolean);
           var stat = {}; pr.forEach(function (p) { stat[p.status || "Чернова"] = (stat[p.status || "Чернова"] || 0) + 1; });
