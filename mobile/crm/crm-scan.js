@@ -67,8 +67,8 @@
     var inp = document.createElement("input");
     if (mode === "folder") {
       inp.type = "file"; inp.multiple = true;
-      if (!IOS && "webkitdirectory" in inp) inp.webkitdirectory = true; /* iPhone: choose all files of the folder */
-      else inp.accept = "image/*,video/*,.txt,.md,.rtf,.doc,.docx,.pdf,text/plain,application/pdf";
+      if ("webkitdirectory" in inp) { inp.webkitdirectory = true; inp.setAttribute("webkitdirectory", ""); inp.setAttribute("directory", ""); } /* the whole folder */
+      else inp.accept = "image/*,video/*,.zip,.txt,.md,.rtf,.doc,.docx,.pdf,text/plain,application/pdf,application/zip";
       inp.style.cssText = "position:fixed;left:-999px;top:0;opacity:0";
       document.body.appendChild(inp);
       inp.onchange = function () { var fs = [].slice.call(inp.files || []);  inp.remove(); if (fs.length) folderScan(fs); };
@@ -182,7 +182,40 @@
   function isImg(f) { return /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name); }
   function isVid(f) { return /^video\//.test(f.type) || /\.(mp4|mov|m4v|webm|3gp)$/i.test(f.name); }
   function isDoc(f) { return /\.(txt|md|rtf|docx?|pdf)$/i.test(f.name) || /^text\//.test(f.type) || f.type === "application/pdf"; }
+  /* a .zip of the folder (iPhone: Файлове → задръжте папката → Компресирай) is unpacked here */
+  function setRel(f, rel) { try { Object.defineProperty(f, "webkitRelativePath", { value: rel }); } catch (e) {} return f; }
+  function expandZips(files) {
+    var zips = files.filter(function (f) { return /\.zip$/i.test(f.name) || f.type === "application/zip" || f.type === "application/x-zip-compressed"; });
+    if (!zips.length) return Promise.resolve(files);
+    var rest = files.filter(function (f) { return zips.indexOf(f) < 0; });
+    return (window.JSZip ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js")).then(function () {
+      return Promise.all(zips.map(function (z) {
+        return window.JSZip.loadAsync(z).then(function (zip) {
+          var base = z.name.replace(/\.zip$/i, ""), ents = [];
+          zip.forEach(function (path, e) { if (!e.dir && !/(^|\/)(__MACOSX|\.)/.test(path)) ents.push(e); });
+          var tops = ents.map(function (e) { return e.name.split("/")[0]; }), oneTop = ents.length && ents.every(function (e) { return e.name.indexOf("/") > 0; }) && tops.every(function (t) { return t === tops[0]; });
+          return Promise.all(ents.map(function (e) {
+            return e.async("blob").then(function (b) {
+              var nm = e.name.split("/").pop(), ext = (nm.split(".").pop() || "").toLowerCase();
+              var mime = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", mp4: "video/mp4", mov: "video/quicktime", m4v: "video/mp4", pdf: "application/pdf", txt: "text/plain", md: "text/plain",
+                docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", doc: "application/msword", rtf: "application/rtf" }[ext] || "";
+              return setRel(new File([b], nm, { type: mime }), oneTop ? e.name : base + "/" + e.name);
+            });
+          }));
+        });
+      }));
+    }).then(function (lists) { return rest.concat.apply(rest, lists); });
+  }
+  function docText(file) { /* old Word .doc: pull the readable text out of the binary */
+    return file.arrayBuffer().then(function (buf) {
+      var u16 = new TextDecoder("utf-16le").decode(buf), runs = u16.match(/[\u0020-\u007E\u0400-\u04FF\u00A0-\u00FF\u2010-\u201E\r\n\t]{8,}/g) || [];
+      return runs.filter(function (r) { return /[А-Яа-я]{3}/.test(r) || /\d{3}/.test(r); }).join("\n").replace(/\r/g, "\n").slice(0, 30000);
+    }).catch(function () { return ""; });
+  }
   function folderScan(files) {
+    expandZips(files).then(folderScan2).catch(function (e) { D.say("Не успях да отворя архива: " + ((e && e.message) || e)); });
+  }
+  function folderScan2(files) {
     files = files.filter(function (f) { return !/(^|\/)\./.test(f.webkitRelativePath || f.name); });
     files.sort(function (a, b) { return (a.webkitRelativePath || a.name).localeCompare(b.webkitRelativePath || b.name, "bg", { numeric: true }); });
     var rel = (files[0] && files[0].webkitRelativePath) || "", folder = rel.indexOf("/") > 0 ? rel.split("/")[0] : "";
@@ -193,10 +226,11 @@
     var texts = docs.map(function (f) {
       if (/\.docx$/i.test(f.name)) return docxText(f).catch(function () { return ""; });
       if (/\.pdf$/i.test(f.name) || f.type === "application/pdf") { if (!pdf && f.size <= 3 * 1024 * 1024) pdf = f; return Promise.resolve(""); }
-      if (/\.doc$/i.test(f.name)) return Promise.resolve("");
+      if (/\.doc$/i.test(f.name)) return docText(f);
       return f.text().then(function (t) { return /\.rtf$/i.test(f.name) ? t.replace(/\\par[d]?/g, "\n").replace(/\{\*?\\[^{}]+}|[{}]|\\[a-z]+-?\d* ?/gi, "") : t; }).catch(function () { return ""; });
     });
-    var samples = imgs.slice(0, 3).map(function (f) { return prepare(f, 1200).catch(function () { return null; }); });
+    var opisImgs = imgs.filter(function (f) { return /опис|opis|описание|notes?|бележк/i.test(f.name); });
+    var samples = opisImgs.concat(imgs.filter(function (f) { return opisImgs.indexOf(f) < 0; })).slice(0, docs.length ? 3 : 4).map(function (f) { return prepare(f, 1200).catch(function () { return null; }); });
     Promise.all([Promise.all(texts), Promise.all(samples), pdf ? prepare(pdf) : null]).then(function (r) {
       var text = r[0].filter(Boolean).join("\n\n").trim().slice(0, 30000), pics = r[1].filter(Boolean), pdfPrep = r[2];
       showOverlay(pics[0] || { preview: null }, folder || (docs[0] && docs[0].name) || "Папка на имот", "folder").then(function () { cancelled = true; hideOverlay(); });
@@ -213,6 +247,7 @@
         var out = {
           title: f.title, deal: f.deal, type: f.type, area: f.area, rooms: f.rooms, beds: f.beds, baths: f.baths, floor: f.floor, year: f.year, build: f.build,
           region: f.region, city: f.city, hood: f.hood, address: f.address, client: f.ownerName || f.client,
+          expo: f.expo, heat: f.heat, parking: f.parking, elevator: f.elevator, terraces: f.terraces, act: f.act, features: f.features, cond: f.cond,
           price: price || f.officialPrice || f.price || null, ownerPrice: f.ownerPrice || null,
           desc: publicText(f.publicDesc || f.desc || ""), privDesc: text || f.privateDesc || "", ownerPhone: phones.join(", "),
           summary: null

@@ -11,6 +11,9 @@
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
     chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
     send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+    mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 17v5M8 22h8"/></svg>',
+    stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+    spk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>',
     clip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.1-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>'
   };
   var css =
@@ -46,6 +49,11 @@
     ".nda-c textarea:focus{box-shadow:0 0 0 2px rgba(227,178,94,.5)}" +
     ".nda-c button{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid #e3b25e;display:grid;place-items:center;cursor:pointer;padding:0}.nda-c button svg{width:20px;height:20px}" +
     ".nda-c .att{background:linear-gradient(180deg,#fffcf9,#fbefe5);color:#6b0a1c}.nda-c .snd{background:linear-gradient(150deg,#fff0aa,#f3a518);color:#640319;box-shadow:0 0 10px rgba(255,200,90,.6)}" +
+    ".nda-c .mic{background:linear-gradient(180deg,#fffcf9,#fbefe5);color:#6b0a1c}.nda-c .mic.rec{background:radial-gradient(circle at 35% 30%,#e0425f,#a3112f 60%,#6b0a1c);color:#fff;border-color:#ffd27a;animation:ndaRec 1.2s ease-in-out infinite}" +
+    "@keyframes ndaRec{0%,100%{box-shadow:0 0 0 0 rgba(224,66,95,.55),0 0 12px rgba(255,190,120,.6)}50%{box-shadow:0 0 0 9px rgba(224,66,95,0),0 0 18px rgba(255,190,120,.9)}}" +
+    ".nda-c textarea.rec{color:#a3112f;font-weight:700}" +
+    ".nda-say{display:inline-grid;place-items:center;vertical-align:middle;width:30px;height:30px;margin:6px 0 0 6px;float:right;border-radius:50%;border:1.5px solid #e3b25e;background:radial-gradient(circle at 35% 28%,#b0213f,#7a0f22 55%,#4a0613);color:#fff3dc;cursor:pointer;padding:0;box-shadow:0 0 8px rgba(255,190,120,.6)}" +
+    ".nda-say svg{width:16px;height:16px}.nda-say.on{background:linear-gradient(150deg,#fff0aa,#f3a518);color:#640319;animation:ndaRec 1.2s ease-in-out infinite}.nda-say.ld{opacity:.6}" +
     ".nda-files{padding:0 12px;display:flex;gap:6px;flex-wrap:wrap;background:rgba(255,248,240,.85)}.nda-files span{font:12px 'Roboto Condensed',Arial,sans-serif;padding:3px 8px;border-radius:10px;border:1px solid #e3b25e;color:#6b0a1c;background:#fff}";
 
   /* ---- token of the CRM session (same browser) ---- */
@@ -86,7 +94,48 @@
   var STORE = "nd-ash-chat";
   try { hist = JSON.parse(sessionStorage.getItem(STORE) || "[]") || []; } catch (e) { hist = []; }
   function save() { try { sessionStorage.setItem(STORE, JSON.stringify(hist.slice(-30).map(function (m) { return { role: m.role, text: m.text }; }))); } catch (e) {} }
-  function add(role, html, cls) { var m = document.createElement("div"); m.className = "nda-m " + role + (cls ? " " + cls : ""); m.innerHTML = html; list.appendChild(m); list.scrollTop = list.scrollHeight; return m; }
+  function add(role, html, cls) { var m = document.createElement("div"); m.className = "nda-m " + role + (cls ? " " + cls : ""); m.innerHTML = html; list.appendChild(m); if (role === "a" && cls !== "wait") speaker(m); list.scrollTop = list.scrollHeight; return m; }
+
+  /* ---- listen to an answer (Gemini TTS, falls back to the phone's own Bulgarian voice) ---- */
+  var player = null, playingBtn = null;
+  function stopAll() {
+    if (player) { try { player.pause(); } catch (e) {} }
+    try { speechSynthesis.cancel(); } catch (e) {}
+    if (playingBtn) playingBtn.classList.remove("on", "ld"); playingBtn = null;
+  }
+  function plain(el) { var c = el.cloneNode(true); [].forEach.call(c.querySelectorAll(".nda-say,.acts,a.go"), function (x) { x.remove(); }); [].forEach.call(c.querySelectorAll("tr"), function (tr) { tr.appendChild(document.createTextNode(". ")); }); return c.textContent.replace(/[•✔📁📎🎤]/g, " ").replace(/\s+/g, " ").trim(); }
+  function speakLocal(text, btn) {
+    try {
+      var u = new SpeechSynthesisUtterance(text); u.lang = "bg-BG"; u.rate = 1;
+      var v = speechSynthesis.getVoices().filter(function (x) { return /^bg/i.test(x.lang); })[0]; if (v) u.voice = v;
+      u.onend = u.onerror = function () { if (playingBtn === btn) stopAll(); };
+      btn.classList.remove("ld"); btn.classList.add("on"); speechSynthesis.speak(u);
+    } catch (e) { stopAll(); }
+  }
+  function speaker(m) {
+    if (m.querySelector(".nda-say")) return;
+    var b = document.createElement("button"); b.type = "button"; b.className = "nda-say"; b.setAttribute("aria-label", "Чуй отговора"); b.title = "Чуй"; b.innerHTML = I.spk;
+    b.onclick = function () {
+      if (playingBtn === b) { stopAll(); return; }
+      stopAll(); playingBtn = b; b.classList.add("ld");
+      if (!player) player = new Audio();
+      /* unlock audio inside the tap (iPhone) */
+      try { player.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="; var pp = player.play(); if (pp && pp.catch) pp.catch(function () {}); } catch (e) {}
+      var text = plain(m);
+      var go = function (url) {
+        if (playingBtn !== b) return;
+        player.src = url; player.onended = function () { if (playingBtn === b) stopAll(); };
+        b.classList.remove("ld"); b.classList.add("on");
+        var p = player.play(); if (p && p.catch) p.catch(function () { speakLocal(text, b); });
+      };
+      if (b._url) return go(b._url);
+      fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: text }) })
+        .then(function (r) { if (!r.ok) throw new Error("tts"); return r.blob(); })
+        .then(function (bl) { b._url = URL.createObjectURL(bl); go(b._url); })
+        .catch(function () { if (playingBtn === b) speakLocal(text, b); });
+    };
+    m.appendChild(b);
+  }
   function fmt(t) { return esc(t).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/(^|\n)[*-] /g, "$1• "); }
 
   var chatSkill = {
@@ -97,29 +146,56 @@
         "\nНапример: „Намери тристайни в Шумен до 100 000 €“, „Добави клиент Мария, 0888…, търси двустаен под наем във Варна“, „Какво имам утре?“");
     },
     footer: function () {
-      return '<div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Напишете съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
+      return '<div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="mic" aria-label="Гласово съобщение">' + I.mic + '</button><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
     },
     bind: function (api, el) {
       var ta = el.querySelector("textarea"), files = [], fl = el.querySelector(".nda-files"), busy = false;
       function showFiles() { fl.innerHTML = files.map(function (f) { return "<span>" + esc(f.name) + "</span>"; }).join(""); }
-      function go() {
-        var text = ta.value.trim(); if ((!text && !files.length) || busy) return;
+      function go(voice) {
+        var text = ta.value.trim(); if ((!text && !files.length && !voice) || busy) return;
         busy = true; ta.value = ""; var fs = files; files = []; showFiles();
-        api.add("u", fmt(text || "Прикачени файлове") + (fs.length ? "\n📎 " + fs.map(function (f) { return esc(f.name); }).join(", ") : ""));
-        var w = api.add("a", "Мисля", "wait");
+        var ub = api.add("u", voice ? "🎤 Гласово съобщение (" + voice.dur + ")" : fmt(text || "Прикачени файлове") + (fs.length ? "\n📎 " + fs.map(function (f) { return esc(f.name); }).join(", ") : ""));
+        var w = api.add("a", voice ? "Слушам" : "Мисля", "wait");
         Promise.all(fs.map(fileData)).then(function (fd) {
-          var cur = { role: "user", text: text || "Анализирай прикачените файлове.", files: fd.filter(Boolean) };
+          var cur = { role: "user", text: voice ? "(гласово съобщение)" : (text || "Анализирай прикачените файлове."), files: fd.filter(Boolean).concat(voice ? [{ mime: voice.mime, data: voice.data }] : []) };
           var send = hist.slice(-14).map(function (m) { return { role: m.role, text: m.text }; }).concat([cur]);
           return ask(send).then(function (j) {
             w.classList.remove("wait"); busy = false;
             if (!j.ok) { w.innerHTML = esc(j.error || "Грешка"); return; }
-            w.innerHTML = fmt(j.text) + (j.actions && j.actions.length ? '<span class="acts">✔ ' + esc(j.actions.join(" · ")) + "</span>" : "");
-            hist.push({ role: "user", text: cur.text }, { role: "assistant", text: j.text }); save();
+            w.innerHTML = fmt(j.text) + (j.actions && j.actions.length ? '<span class="acts">✔ ' + esc(j.actions.join(" · ")) + "</span>" : ""); speaker(w);
+            if (voice && j.transcript) { ub.innerHTML = "🎤 „" + esc(j.transcript) + "“"; cur.text = j.transcript; }
+            if (!voice || j.transcript) { hist.push({ role: "user", text: cur.text }, { role: "assistant", text: j.text }); save(); }
+            if (voice) { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* a voice question gets a spoken answer */
             if (j.actions && j.actions.some(function (a) { return !/search|list|get|calc|rates|summary|match|✗/.test(a); })) try { window.dispatchEvent(new CustomEvent("nd-data-changed")); } catch (e) {}
           });
         });
       }
-      el.querySelector(".snd").onclick = go;
+      el.querySelector(".snd").onclick = function () { go(); };
+      /* ---- voice message: tap the microphone, speak, tap again to send ---- */
+      var mic = el.querySelector(".mic"), rec = null, chunks = [], t0 = 0, tick = null, stream = null;
+      function mm() { var c = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg;codecs=opus"]; for (var i = 0; i < c.length; i++) if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(c[i])) return c[i]; return ""; }
+      function dur() { var s = Math.round((Date.now() - t0) / 1000); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+      function endRec() { clearInterval(tick); mic.classList.remove("rec"); mic.innerHTML = I.mic; ta.classList.remove("rec"); ta.readOnly = false; ta.value = ""; if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+      mic.onclick = function () {
+        if (busy) return;
+        if (rec && rec.state === "recording") { rec.stop(); return; }
+        if (!navigator.mediaDevices || !window.MediaRecorder) { api.add("a", "Този браузър не поддържа запис на глас. Отворете сайта в Safari или Chrome."); return; }
+        navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(function (st) {
+          stream = st; chunks = []; var type = mm();
+          rec = type ? new MediaRecorder(st, { mimeType: type }) : new MediaRecorder(st);
+          rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+          rec.onstop = function () {
+            var d = dur(), mime = (rec.mimeType || type || "audio/webm").split(";")[0]; endRec();
+            if (Date.now() - t0 < 700 || !chunks.length) return;
+            var blob = new Blob(chunks, { type: mime }), r = new FileReader();
+            r.onload = function () { go({ mime: mime, data: String(r.result).split(",")[1], dur: d }); };
+            r.readAsDataURL(blob);
+          };
+          rec.start(); t0 = Date.now(); stopAll();
+          mic.classList.add("rec"); mic.innerHTML = I.stop; ta.classList.add("rec"); ta.readOnly = true; ta.value = "● Записвам 0:00";
+          tick = setInterval(function () { ta.value = "● Записвам " + dur(); if (Date.now() - t0 > 120000) rec.stop(); }, 500);
+        }).catch(function () { api.add("a", "Няма достъп до микрофона. Разрешете микрофона за този сайт в настройките на браузъра."); });
+      };
       ta.onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(); } };
       ta.oninput = function () { ta.style.height = "auto"; ta.style.height = Math.min(120, ta.scrollHeight) + "px"; };
       el.querySelector(".att").onclick = function () {
@@ -153,7 +229,7 @@
     fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(skills[0]); if (skill.open) skill.open(api); };
     win.querySelector(".nda-x").onclick = function () { win.hidden = true; fab.hidden = false; };
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !win.hidden) { win.hidden = true; fab.hidden = false; } });
-    if (/\/mobile\/crm\//.test(location.pathname)) fab.style.bottom = "calc(96px + env(safe-area-inset-bottom,0px))";
+    if (/\/mobile\/crm\//.test(location.pathname)) { fab.style.bottom = "calc(96px + env(safe-area-inset-bottom,0px))"; fab.style.zIndex = "45"; }
     hideOnCrmRoute(); addEventListener("hashchange", hideOnCrmRoute);
   }
   /* the old desktop CRM (#/crm…) has its own assistant panel connected to the same API */

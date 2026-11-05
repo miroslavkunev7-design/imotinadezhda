@@ -73,7 +73,7 @@
   function pick(api, mode) {
     var inp = document.createElement("input"); inp.type = "file";
     if (mode === "camera") { inp.accept = "image/*"; inp.setAttribute("capture", "environment"); }
-    else { inp.multiple = true; if (mode === "folder" && !IOS && "webkitdirectory" in inp) inp.webkitdirectory = true; else inp.accept = "image/*,video/*,.txt,.md,.rtf,.doc,.docx,.pdf,text/plain,application/pdf"; }
+    else { inp.multiple = true; if (mode === "folder" && "webkitdirectory" in inp) { inp.webkitdirectory = true; inp.setAttribute("webkitdirectory", ""); inp.setAttribute("directory", ""); } else inp.accept = "image/*,video/*,.zip,.txt,.md,.rtf,.doc,.docx,.pdf,text/plain,application/pdf,application/zip"; }
     inp.style.cssText = "position:fixed;left:-999px;top:0;opacity:0"; document.body.appendChild(inp);
     inp.onchange = function () { var fs = [].slice.call(inp.files || []); inp.remove(); if (fs.length) run(api, fs); };
     inp.click();
@@ -85,7 +85,7 @@
     intro: function (api) {
       deps().catch(function () {});
       api.add("a", "<b>АИ Качване на имот</b>\nПрикачете папката на имота (снимки, видеа и опис) или отделно снимки и опис. Анализирам всичко и попълвам картата „Нов имот“:\n" +
-        "• цена от името на папката → „Официална цена“\n• цена към собственика, собственик и телефон → само в личните данни\n• целият опис → „Лично описание“\n• ново публично описание без точен адрес, с телефон 0898977370\n• град и квартал точно според сайта\n• до 100 снимки с лого и до 10 видеа\nНищо не се публикува – имотът се записва като „Чернова“.");
+        "• цена от името на папката → „Официална цена“\n• цена към собственика, собственик и телефон → само в личните данни\n• целият опис → „Лично описание“\n• ново публично описание без точен адрес, с телефон 0898977370\n• град и квартал точно според сайта\n• до 100 снимки с лого и до 10 видеа\nАко телефонът не позволява избор на папка: във „Файлове“ задръжте папката → „Компресирай“ и изберете .zip файла през „Снимки и опис“.\nНищо не се публикува – имотът се записва като „Чернова“.");
     },
     footer: function () {
       return '<div class="nda-f"><button type="button" data-a="folder"><span class="ib">' + I.folder + '</span>Прикачи папка</button><button type="button" data-a="files"><span class="ib">' + I.files + '</span>Снимки и опис</button><button type="button" data-a="camera"><span class="ib">' + I.cam + "</span>Снимай</button></div>";

@@ -570,6 +570,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 <script src="crm-global.js"></script>
 <script src="/mobile/ash.js"></script>
 <script src="crm-assistant.js"></script>
+<script src="../places.js"></script>
 <script src="crm-klienti-tabs.js"></script>
 <script src="crm-scan.js"></script>
 <script>
@@ -791,7 +792,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   ND.ready().then(loadAll).then(function(){
     ND.busy(0);
     /* deep link: crm-klienti.html#<id> opens that client's card */
-    var h=(location.hash||'').slice(1);if(h==='new'){try{history.replaceState(null,'',location.pathname)}catch(x){}window.NDKTabs.edit(null,'sales')}else if(h&&clients.some(function(c){return c.id===h}))open(h);
+    var h=(location.hash||'').slice(1);if(h==='new'){try{history.replaceState(null,'',location.pathname)}catch(x){}setTimeout(function(){var nb=document.querySelector('[data-new="sales"]');if(nb){nb.scrollIntoView({block:'center'});setTimeout(function(){nb.click()},250)}},150)}else if(h&&clients.some(function(c){return c.id===h}))open(h);
   }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
 })();
 </script>

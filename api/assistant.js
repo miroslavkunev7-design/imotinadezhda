@@ -91,6 +91,25 @@ module.exports = async (req, res) => {
   if (!key) return send(res, 500, { ok: false, error: "Няма настроен ключ за AI (GEMINI_API_KEY)." });
   const ctx = { staff: !!user, token, actions: [], origin: "https://" + (req.headers["x-forwarded-host"] || req.headers.host || "imotinadezhda.bg") };
   const msgs = (Array.isArray(b.messages) ? b.messages : []).slice(-16);
+  /* voice message: transcribe it first (Bulgarian), then it is handled like a typed message */
+  let transcript = null;
+  const lastMsg = msgs[msgs.length - 1];
+  const AUDIO = /^audio\/(webm|ogg|mp4|mpeg|mp3|wav|x-wav|aac|m4a|x-m4a|3gpp|flac)$/;
+  const audio = lastMsg && Array.isArray(lastMsg.files) ? lastMsg.files.find((f) => f && f.data && AUDIO.test(String(f.mime))) : null;
+  if (audio) {
+    try {
+      const mime = /^audio\/(x-m4a|m4a)$/.test(audio.mime) ? "audio/mp4" : audio.mime;
+      const tr = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(key), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: "Транскрибирай дословно гласовото съобщение (най-често на български). Върни САМО текста, без кавички и коментари. Имената на квартали, улици и хора пиши правилно. Ако няма говор, върни празен низ." }, { inline_data: { mime_type: mime, data: audio.data } }] }], generationConfig: { temperature: 0 } })
+      });
+      const tj = await tr.json();
+      transcript = (((tj.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("").trim() || "";
+    } catch (e) { transcript = ""; }
+    if (!transcript) return send(res, 200, { ok: true, text: "Не успях да чуя ясно съобщението – опитайте отново, по-близо до микрофона.", transcript: "", actions: [], staff: ctx.staff });
+    lastMsg.text = transcript + (lastMsg.text && lastMsg.text !== "(гласово съобщение)" ? "\n" + lastMsg.text : "");
+    lastMsg.files = lastMsg.files.filter((f) => f !== audio);
+  }
   const contents = msgs.map((m) => {
     const parts = [{ text: String(m.text || "").slice(0, 8000) || "(без текст)" }];
     (Array.isArray(m.files) ? m.files : []).slice(0, 3).forEach((f) => { if (f && f.data && /^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.mime)) parts.push({ inline_data: { mime_type: f.mime, data: f.data } }); });
@@ -114,7 +133,7 @@ module.exports = async (req, res) => {
         const calls = parts.filter((p) => p.functionCall).map((p) => p.functionCall);
         if (!calls.length) {
           const text = parts.map((p) => p.text || "").join("").trim() || "Не успях да формулирам отговор – опитайте отново.";
-          return send(res, 200, { ok: true, text, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, model });
+          return send(res, 200, { ok: true, text, transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, model });
         }
         conv.push({ role: "model", parts });
         const results = [];

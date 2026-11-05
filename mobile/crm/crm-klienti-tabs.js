@@ -11,6 +11,13 @@
   var SOURCES = ["Сайт / Запитване", "Препоръка", "Телефонно обаждане", "Facebook", "Imot.bg", "OLX", "Друго"];
   var STAGES = ["Нова", "Оглед", "Оферта", "Предварителен договор", "Нотариус", "Приключена", "Отказана"];
   var EVT = [["meeting", "Среща с клиент"], ["viewing", "Оглед на имот"], ["bank", "Банка / кредит"], ["documents", "Подготовка на документи"], ["deal", "Сделка / договор"], ["task", "Задача"]];
+  var PAY = ["", "Кеш", "Банков кредит", "Кеш + кредит", "Неизвестно"];
+  var TIMEF = ["", "Спешно – до 1 месец", "1–3 месеца", "3–6 месеца", "Над 6 месеца", "Само се ориентира"];
+  var PRIO = ["", "Горещ", "Топъл", "Студен"];
+  var CONTACT = ["", "Телефон", "Viber", "WhatsApp", "Имейл", "SMS"];
+  var FLOORP = ["", "Без значение", "Не първи", "Не последен", "Не първи и не последен", "Само първи / партер", "Висок етаж"];
+  var PL = window.NDPlaces;
+  function pick(list, v) { v = String(v == null ? "" : v).trim().toLowerCase(); if (!v) return ""; return list.filter(function (x) { return x && (x.toLowerCase() === v || x.toLowerCase().indexOf(v) === 0 || v.indexOf(x.toLowerCase()) === 0); })[0] || ""; }
   var DOCT = ["Лична карта", "Договор", "Нотариален акт", "Скица", "Удостоверение", "Банкови документи", "Друго"];
   var ACTT = [["phone", "Телефонен разговор"], ["mail", "Имейл"], ["users", "Среща"], ["file-text", "Документ"], ["pencil", "Бележка"]];
 
@@ -24,7 +31,7 @@
   /* keep only stored client fields */
   function strip(c) {
     var o = { id: c.id };
-    ["cat", "name", "phone", "email", "egn", "type", "city", "hood", "budget", "status", "source", "notes", "contact_at", "broker"].forEach(function (k) { if (c[k] !== undefined) o[k] = c[k]; });
+    ["cat", "name", "phone", "email", "egn", "type", "city", "hood", "budget", "status", "source", "notes", "contact_at", "broker", "rooms", "areaMin", "floorPref", "payment", "timeframe", "priority", "contactPref", "nextContact", "must"].forEach(function (k) { if (c[k] !== undefined) o[k] = c[k]; });
     return o;
   }
   function after(c) { return K.refresh().then(function () { if (c) K.reopen(c.id); }); }
@@ -40,6 +47,11 @@
     if (src) o.source = src; else if (t(f.source)) o.source = "Друго";
     var notes = [t(f.notes), t(f.summary) ? "Сканиран документ: " + t(f.summary) : "", !src && t(f.source) ? "Източник: " + t(f.source) : ""].filter(Boolean).join("\n");
     if (notes) o.notes = notes;
+    var nn = function (v) { var x = Number(String(v == null ? "" : v).replace(/[^\d.]/g, "")); return x > 0 ? x : null; };
+    if (nn(f.rooms)) o.rooms = nn(f.rooms); if (nn(f.areaMin)) o.areaMin = nn(f.areaMin);
+    [["payment", PAY], ["timeframe", TIMEF], ["priority", PRIO], ["contactPref", CONTACT], ["floorPref", FLOORP]].forEach(function (x) { var v = pick(x[1], f[x[0]]); if (v) o[x[0]] = v; });
+    if (t(f.must)) o.must = t(f.must);
+    if (PL && o.city) { o.city = PL.city(o.city); if (o.hood) o.hood = PL.hood(o.city, o.hood); }
     return o;
   }
   function attachScan(c, file) {
@@ -49,6 +61,7 @@
       return D.put("documents", { client_id: c.id, client: c.name, name: file.name || "Сканиран документ", folder: "Сканиран документ", path: path, mime: file.type, size: file.size, at: new Date().toISOString() });
     }).then(function () { return log(c, "file-text", "Сканиран документ: " + (file.name || "")); }).catch(function () {});
   }
+  function hoodOpts(city) { return PL ? (PL.PLACES[PL.city(city)] || []).map(function (n) { return '<option value="' + esc(n) + '">'; }).join("") : ""; }
   function edit(c, cat, scanned, scanFile) {
     var isNew = !c;
     c = c || Object.assign({ cat: cat || "sales", status: "Активен", source: scanned ? "Друго" : SOURCES[0], type: TYPES[0] }, fromScan(scanned));
@@ -62,9 +75,20 @@
       G("Какво търси", "house", "nd/ph12.jpg",
         fld({ id: "k-cat", label: "Търси", icon: "tag", type: "select", value: c.cat, options: [["sales", "Покупка"], ["rent", "Наем"]] }) +
         fld({ id: "k-type", label: "Вид имот", icon: "house", type: "select", value: c.type, options: TYPES }) +
-        fld({ id: "k-city", label: "Град", icon: "pin", value: c.city, ph: "напр. Варна" }) +
-        fld({ id: "k-hood", label: "Квартал", icon: "pin", value: c.hood, ph: "напр. Левски" }) +
+        fld({ id: "k-city", label: "Град", icon: "pin", value: c.city, ph: "напр. Варна", list: "k-cities" }) +
+        fld({ id: "k-hood", label: "Квартал", icon: "pin", value: c.hood, ph: "напр. Левски", list: "k-hoods" }) +
+        '<datalist id="k-cities">' + (PL ? PL.cities : []).map(function (n) { return '<option value="' + esc(n) + '">'; }).join("") + '</datalist><datalist id="k-hoods">' + hoodOpts(c.city) + "</datalist>" +
         fld({ id: "k-budget", label: "Бюджет €", icon: "coins", value: c.budget, type: "number", ph: "напр. 200000", wide: true }), { lw: 120 }) +
+      G("Предпочитания и срокове", "sparkles", "nd/ph05.jpg",
+        fld({ id: "k-rooms", label: "Стаи – поне", icon: "bed-double", value: c.rooms, type: "number" }) +
+        fld({ id: "k-area", label: "Площ от м²", icon: "m2", value: c.areaMin, type: "number" }) +
+        fld({ id: "k-floor", label: "Етаж", icon: "building-2", type: "select", value: c.floorPref || "", options: FLOORP.map(function (x) { return [x, x || "—"]; }) }) +
+        fld({ id: "k-pay", label: "Плащане", icon: "coins", type: "select", value: c.payment || "", options: PAY.map(function (x) { return [x, x || "—"]; }) }) +
+        fld({ id: "k-time", label: "Срок", icon: "clock", type: "select", value: c.timeframe || "", options: TIMEF.map(function (x) { return [x, x || "—"]; }) }) +
+        fld({ id: "k-prio", label: "Приоритет", icon: "star", type: "select", value: c.priority || "", options: PRIO.map(function (x) { return [x, x || "—"]; }) }) +
+        fld({ id: "k-cpref", label: "Връзка чрез", icon: "message-square", type: "select", value: c.contactPref || "", options: CONTACT.map(function (x) { return [x, x || "—"]; }) }) +
+        fld({ id: "k-next", label: "Следващ контакт", icon: "calendar-check", value: c.nextContact, type: "date" }) +
+        fld({ id: "k-must", label: "Задължително", icon: "badge-check", value: c.must, wide: true, ph: "напр. тераса, асансьор, паркинг, ново строителство" }), { lw: 120 }) +
       G("Статус и бележки", "shield", "nd/ph02.jpg",
         fld({ id: "k-status", label: "Статус", icon: "users", type: "select", value: c.status, options: STATUSES }) +
         fld({ id: "k-source", label: "Източник", icon: "tag", type: "select", value: c.source, options: SOURCES }) +
@@ -72,6 +96,7 @@
     U.open({
       title: isNew ? (scanned ? "Нов клиент – сканиран" : "Нов клиент") : "Редакция – " + c.name, icon: isNew ? "user-plus" : "square-pen", photo: "nd/ph13.jpg", html: html,
       required: ["k-name", "k-phone"],
+      ready: function (x) { var cs = x.q("k-city"), hl = x.q("k-hoods"); if (cs && hl) cs.addEventListener("input", function () { hl.innerHTML = hoodOpts(cs.value); }); },
       validate: function (g) {
         var m = g("k-mail");
         if (m && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)) return "Проверете имейла.";
@@ -82,6 +107,10 @@
         o.name = g("k-name"); o.phone = g("k-phone"); o.email = g("k-mail"); o.cat = g("k-cat"); o.type = g("k-type");
         o.city = g("k-city"); o.hood = g("k-hood"); o.budget = g("k-budget") ? Number(g("k-budget").replace(",", ".")) : null;
         o.egn = g("k-egn"); o.status = g("k-status"); o.source = g("k-source"); o.notes = g("k-notes");
+        if (PL && o.city) { o.city = PL.city(o.city); o.hood = PL.hood(o.city, o.hood); }
+        var nm = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
+        o.rooms = nm("k-rooms"); o.areaMin = nm("k-area"); o.floorPref = g("k-floor"); o.payment = g("k-pay"); o.timeframe = g("k-time");
+        o.priority = g("k-prio"); o.contactPref = g("k-cpref"); o.nextContact = g("k-next"); o.must = g("k-must");
         if (isNew) o.contact_at = new Date().toISOString();
         return D.put("clients", o).then(function (saved) {
           return log(saved, isNew ? "user-plus" : "square-pen", isNew ? (scanned ? "Създаден клиент от сканиране" : "Създаден клиент") : "Обновени данни на клиента").then(function () { return isNew ? attachScan(saved, scanFile) : null; }).then(function () {

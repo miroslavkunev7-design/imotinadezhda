@@ -10,6 +10,11 @@
   var TYPES = ["Апартамент", "Къща", "Парцел", "Офис", "Магазин", "Гараж"];
   var STATUS = ["Чернова", "Активен", "Публикуван", "Резервиран", "Продаден", "Архивиран"];
   var COND = ["Ново строителство", "Обзаведен", "Необзаведен", "За ремонт", "Без строеж"];
+  var EXPO = ["", "Юг", "Изток", "Запад", "Север", "Юг-Изток", "Юг-Запад", "Изток-Запад", "Север-Юг", "Север-Изток", "Север-Запад"];
+  var HEAT = ["", "ТЕЦ", "Газ", "Ток / климатици", "Термопомпа", "Камина / печка", "Локално парно", "Без отопление"];
+  var PARK = ["", "Няма", "Паркомясто", "Гараж", "Подземен паркинг", "В двора"];
+  var ACT = ["", "Акт 16", "Акт 15", "Акт 14", "В строеж", "Без акт"];
+  function pickL(list, v) { v = String(v == null ? "" : v).trim().toLowerCase(); if (!v) return ""; return list.filter(function (x) { return x && (x.toLowerCase() === v || x.toLowerCase().indexOf(v) === 0); })[0] || ""; }
   var BUILD = ["Тухла", "Панел", "ЕПК", "Монолит", "Гредоред", "Сглобяема", "Друго"];
 
   function nextCode(list) {
@@ -19,7 +24,7 @@
   }
   function stored(p) {
     var o = {};
-    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
+    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
     if (p.id) o.id = p.id;
     return o;
   }
@@ -35,6 +40,11 @@
     var ty = TYPES.filter(function (x) { return x.toLowerCase() === t(f.type).toLowerCase(); })[0]; if (ty) o.type = ty;
     var bu = BUILD.filter(function (x) { return x.toLowerCase() === t(f.build).toLowerCase(); })[0]; if (bu) o.build = bu;
     ["price", "ownerPrice", "area", "rooms", "beds", "baths", "year"].forEach(function (k) { var v = n(f[k]); if (v != null) o[k] = v; });
+    [["expo", EXPO], ["heat", HEAT], ["parking", PARK], ["act", ACT]].forEach(function (x) { var v = pickL(x[1], f[x[0]]); if (v) o[x[0]] = v; });
+    var co = pickL(COND, f.cond); if (co) o.cond = co;
+    if (f.elevator === true || /^(да|yes|true)/i.test(String(f.elevator || ""))) o.elevator = true;
+    var tr = n(f.terraces); if (tr) o.terraces = tr;
+    if (t(f.features)) o.features = t(f.features);
     if (o.city) o.city = PL.city(o.city);
     if (o.hood) o.hood = PL.hood(o.city, o.hood);
     if (t(f.summary)) o.desc = [o.desc, "Сканиран документ: " + t(f.summary)].filter(Boolean).join("\n");
@@ -80,6 +90,18 @@
           fld({ id: "p-year", label: "Година", icon: "calendar", value: p.year, type: "number" }) +
           fld({ id: "p-build", label: "Строителство", icon: "brick-wall", type: "select", value: p.build || BUILD[0], options: BUILD }) +
           fld({ id: "p-cond", label: "Състояние", icon: "sparkles", type: "select", value: p.cond, options: COND }), { lw: 130 }) +
+        G("Удобства и условия", "sparkles", "nd/ph09.jpg",
+          fld({ id: "p-expo", label: "Изложение", icon: "sparkles", type: "select", value: p.expo || "", options: EXPO.map(function (x) { return [x, x || "—"]; }) }) +
+          fld({ id: "p-heat", label: "Отопление", icon: "zap", type: "select", value: p.heat || "", options: HEAT.map(function (x) { return [x, x || "—"]; }) }) +
+          fld({ id: "p-park", label: "Паркиране", icon: "key-round", type: "select", value: p.parking || "", options: PARK.map(function (x) { return [x, x || "—"]; }) }) +
+          fld({ id: "p-elev", label: "Асансьор", icon: "building-2", type: "select", value: p.elevator ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
+          fld({ id: "p-terr", label: "Тераси", icon: "layout-grid", value: p.terraces, type: "number" }) +
+          fld({ id: "p-act", label: "Акт", icon: "badge-check", type: "select", value: p.act || "", options: ACT.map(function (x) { return [x, x || "—"]; }) }) +
+          fld({ id: "p-keys", label: "Ключ при нас", icon: "key-round", type: "select", value: p.keys ? "1" : "", options: [["", "Не"], ["1", "Да"]] }) +
+          fld({ id: "p-comm", label: "Комисионна %", icon: "circle-dollar-sign", value: p.commission, type: "number", step: "0.1" }) +
+          fld({ id: "p-free", label: "Свободен от", icon: "calendar", value: p.freeFrom, ph: "напр. веднага / 01.02.2027" }) +
+          fld({ id: "p-tour", label: "Видео / 3D тур", icon: "link", value: p.tour, ph: "линк" }) +
+          fld({ id: "p-feat", label: "Предимства", icon: "star", value: p.features, wide: true, ph: "напр. гледка към морето, след ремонт, тиха улица" }), { lw: 120 }) +
         G("Локация", "pin", "nd/ph19.jpg",
           fld({ id: "p-region", label: "Област", icon: "map", value: p.region, ph: "напр. Варна" }) +
           fld({ id: "p-city", label: "Град", icon: "pin", type: "select", value: p.city || "", required: true, options: [["", "Изберете град"]].concat(PL.cities, p.city && PL.cities.indexOf(p.city) < 0 ? [p.city] : []) }) +
@@ -108,6 +130,8 @@
       p.rooms = n("p-rooms"); p.beds = n("p-beds"); p.baths = n("p-baths"); p.floor = g("p-floor"); p.build = g("p-build"); p.year = n("p-year");
       p.cond = g("p-cond"); p.status = g("p-status"); p.city = PL.city(g("p-city")); p.hood = PL.hood(p.city, g("p-hood")); p.region = g("p-region") || p.city;
       p.address = g("p-addr"); p.client = g("p-client"); p.desc = g("p-desc");
+      if (ctx && ctx.q("p-expo")) { p.expo = g("p-expo"); p.heat = g("p-heat"); p.parking = g("p-park"); p.elevator = g("p-elev") === "1"; p.terraces = n("p-terr"); p.act = g("p-act");
+        p.keys = g("p-keys") === "1"; p.commission = n("p-comm"); p.freeFrom = g("p-free"); p.tour = g("p-tour"); p.features = g("p-feat"); }
       if (ctx && ctx.q("p-priv")) { p.privDesc = g("p-priv"); p.ownerPhone = g("p-ophone"); p.ownerPrice = n("p-oprice"); p.exclusive = g("p-excl") === "1"; }
       if (window.NDScan && p.desc) p.desc = window.NDScan.publicText(p.desc);
     }

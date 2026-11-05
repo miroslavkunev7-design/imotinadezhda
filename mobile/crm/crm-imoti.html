@@ -1069,7 +1069,7 @@ html.desk .pm-actions .pa{height:150px}
   window.NDProps.init({say:say,list:function(){return props},clientNames:function(){return Object.keys(CL)},refresh:loadAll,
     reopen:function(id){if(!pwin.hidden&&cur&&cur.id===id)openProp(id,plast);else if(pwin.hidden)openProp(id)},closeCard:function(){if(!pwin.hidden)closeProp()}});
   ND.busy(1);
-  ND.ready().then(loadAll).then(function(){ND.busy(0);var hh=(location.hash||'').slice(1);if(hh==='new'){try{history.replaceState(null,'',location.pathname)}catch(x){}window.NDProps.edit(null)}else if(det[hh])openProp(hh)}).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
+  ND.ready().then(loadAll).then(function(){ND.busy(0);var hh=(location.hash||'').slice(1);if(hh==='new'){try{history.replaceState(null,'',location.pathname)}catch(x){}setTimeout(function(){var nb=document.querySelector('.ia[data-view="new"]');if(nb)nb.click()},250)}else if(det[hh])openProp(hh)}).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>
