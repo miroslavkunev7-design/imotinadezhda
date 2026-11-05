@@ -121,7 +121,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .city.c3 .fade{height:52%}
 .city.c3 .nm{font:700 35px/1 Bitter,Georgia,serif}.city.c3 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
 </style>
-</head>
+<link rel="stylesheet" href="/mobile/media.css?v=20261105"></head>
 <body>
 <div id="cv">
   <img class="bg" src="/mobile/home-assets/reference-bg.webp" alt="Шумен – паметникът „Създатели на българската държава“ и панорама на града">
@@ -153,9 +153,9 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
     </div>
   </form>
 
-  <button class="abs city c1" data-city="shumen"><img class="ph" src="/mobile/home-assets/city-shumen.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c2" data-city="varna"><img class="ph" src="/mobile/home-assets/city-varna.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c3" data-city="burgas"><img class="ph" src="/mobile/home-assets/city-burgas.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c1" data-city="shumen"><video class="ph nd-background-video" data-nd-video="/mobile/media/city-shumen.mp4" poster="/mobile/media/city-shumen.webp" muted loop playsinline preload="none" aria-label="Видео панорама" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c2" data-city="varna"><video class="ph nd-background-video" data-nd-video="/mobile/media/city-varna.mp4" poster="/mobile/media/city-varna.webp" muted loop playsinline preload="none" aria-label="Видео панорама" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c3" data-city="burgas"><video class="ph nd-background-video" data-nd-video="/mobile/media/city-burgas.mp4" poster="/mobile/media/city-burgas.webp" muted loop playsinline preload="none" aria-label="Видео панорама" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
 </div>
 
 <div class="citywin" id="citywin" hidden role="dialog" aria-modal="true" aria-labelledby="cw-t">
@@ -263,5 +263,5 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   var m0 = /^#\/city\/([\w-]+)/.exec(location.hash); if (m0) openCity(m0[1], false);
 })();
 </script>
-</body>
+<script src="/mobile/media-runtime.js?v=20261105" defer></script></body>
 </html>

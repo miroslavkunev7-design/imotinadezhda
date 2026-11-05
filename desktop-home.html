@@ -73,7 +73,7 @@ body{font-family:var(--cond);color:var(--ink)}
 .ab button{margin-top:18px;padding:12px 26px;border:0;border-radius:24px;font:700 18px var(--serif);color:#fff3dc;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);cursor:pointer}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-</head>
+<link rel="stylesheet" href="/mobile/media.css?v=20261105"></head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
  <symbol id="pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><path d="M12 22S4 14.6 4 10a8 8 0 1 1 16 0c0 4.6-8 12-8 12Z"/><circle cx="12" cy="10" r="2.6"/></symbol>
@@ -114,9 +114,9 @@ body{font-family:var(--cond);color:var(--ink)}
     <button type="submit" class="go"><svg><use href="#search"/></svg>Търси</button>
   </form>
 
-  <a class="abs card" style="left:70px;width:377px" href="/mobile/ilj.html#/city/shumen"><span class="ph" style="background-image:url(desktop-home-assets/city-shumen.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Шумен</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
-  <a class="abs card" style="left:461px;width:368px" href="/mobile/ilj.html#/city/varna"><span class="ph" style="background-image:url(desktop-home-assets/city-varna.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Варна</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
-  <a class="abs card" style="left:843px;width:369px" href="/mobile/ilj.html#/city/burgas"><span class="ph" style="background-image:url(desktop-home-assets/city-burgas.webp);background-position:center 80%"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Бургас</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:70px;width:377px" href="/mobile/ilj.html#/city/shumen"><span class="ph" style="background-image:url(desktop-home-assets/city-shumen.webp)"><video class="nd-background-video" data-nd-video="/mobile/media/city-shumen.mp4" poster="/mobile/media/city-shumen.webp" muted loop playsinline preload="none" aria-label="Видео панорама" tabindex="-1"></video></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Шумен</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:461px;width:368px" href="/mobile/ilj.html#/city/varna"><span class="ph" style="background-image:url(desktop-home-assets/city-varna.webp)"><video class="nd-background-video" data-nd-video="/mobile/media/city-varna.mp4" poster="/mobile/media/city-varna.webp" muted loop playsinline preload="none" aria-label="Видео панорама" tabindex="-1"></video></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Варна</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:843px;width:369px" href="/mobile/ilj.html#/city/burgas"><span class="ph" style="background-image:url(desktop-home-assets/city-burgas.webp);background-position:center 80%"><video class="nd-background-video" data-nd-video="/mobile/media/city-burgas.mp4" poster="/mobile/media/city-burgas.webp" muted loop playsinline preload="none" aria-label="Видео панорама" tabindex="-1"></video></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Бургас</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
   <a class="abs card" style="left:1225px;width:376px" href="/mobile/ilj.html#/city/shumen"><span class="ph" style="background-image:url(desktop-home-assets/city-novi-pazar.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Нов пазар</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
 </div></div>
 
@@ -160,5 +160,5 @@ body{font-family:var(--cond);color:var(--ink)}
   addEventListener('keydown',function(e){if(e.key==='Escape')$('about').classList.remove('on')});
 })();
 </script>
-</body>
+<script src="/mobile/media-runtime.js?v=20261105" defer></script></body>
 </html>

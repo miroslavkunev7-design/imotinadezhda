@@ -1,0 +1,80 @@
+[
+  {
+    "name": "city-shumen",
+    "source": "ScreenRecording_06-03-2026 21-07-46_1.mp4",
+    "start": 0.3,
+    "duration": 12.4,
+    "crop": "crop=896:504:0:4",
+    "output": "mobile/media/city-shumen.mp4",
+    "bytes": 2112879,
+    "width": 1280,
+    "height": 720,
+    "audio": false,
+    "note": "Landscape crop and upscale from the supplied screen recording; not native HD."
+  },
+  {
+    "name": "city-varna",
+    "source": "ScreenRecording_06-03-2026 21-18-12_1.mp4",
+    "start": 0.3,
+    "duration": 9.8,
+    "crop": "crop=896:504:2:4",
+    "output": "mobile/media/city-varna.mp4",
+    "bytes": 2363959,
+    "width": 1280,
+    "height": 720,
+    "audio": false,
+    "note": "Landscape crop and upscale from the supplied screen recording; not native HD."
+  },
+  {
+    "name": "city-burgas",
+    "source": "ScreenRecording_06-03-2026 21-24-38_1.mp4",
+    "start": 0.4,
+    "duration": 17.0,
+    "crop": "crop=880:496:4:8",
+    "output": "mobile/media/city-burgas.mp4",
+    "bytes": 3720512,
+    "width": 1280,
+    "height": 720,
+    "audio": false,
+    "note": "Landscape crop and upscale from the supplied screen recording; not native HD."
+  },
+  {
+    "name": "hero-garden",
+    "source": "ScreenRecording_10-06-2026 22-34-04_1.mp4",
+    "start": 0.8,
+    "duration": 16.5,
+    "crop": "crop=440:248:0:340",
+    "output": "mobile/media/hero-garden.mp4",
+    "bytes": 3887706,
+    "width": 1280,
+    "height": 720,
+    "audio": false,
+    "note": "Landscape crop and upscale from the supplied screen recording; not native HD."
+  },
+  {
+    "name": "hero-residence",
+    "source": "ScreenRecording_10-07-2026 23-16-07_1.mp4",
+    "start": 29.0,
+    "duration": 13.5,
+    "crop": "crop=440:248:0:350",
+    "output": "mobile/media/hero-residence.mp4",
+    "bytes": 3207525,
+    "width": 1280,
+    "height": 720,
+    "audio": false,
+    "note": "Landscape crop and upscale from the supplied screen recording; not native HD."
+  },
+  {
+    "name": "hero-courtyard",
+    "source": "ScreenRecording_10-08-2026 03-36-32_1.mp4",
+    "start": 1.2,
+    "duration": 8.8,
+    "crop": "crop=440:248:0:335",
+    "output": "mobile/media/hero-courtyard.mp4",
+    "bytes": 2157626,
+    "width": 1280,
+    "height": 720,
+    "audio": false,
+    "note": "Landscape crop and upscale from the supplied screen recording; not native HD."
+  }
+]
