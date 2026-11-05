@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /mobile/crm/
+Disallow: /api/
+Sitemap: https://imotinadezhda.bg/sitemap.xml
