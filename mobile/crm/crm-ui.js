@@ -50,6 +50,18 @@
     "#nd-fwin .ndrow button,#nd-fwin .ndrow a.rb{flex:0 0 auto;width:56px;height:56px;border:0;border-radius:50%;display:grid;place-items:center;font-size:28px;color:#6b0a1c;cursor:pointer;text-decoration:none;background:linear-gradient(180deg,#fffcf9,#fbefe5);box-shadow:0 2px 5px rgba(140,70,40,.25),0 0 0 1px rgba(231,196,160,.6)}",
     "#nd-fwin .ndrow button.rm{color:#a30d26}",
     "#nd-fwin .ndempty{padding:26px 30px;font:400 24px/1.35 var(--cond);color:#6b4a40}",
+    "#nd-fwin .ndres div{transition:transform .25s ease,box-shadow .25s ease}",
+    "#nd-fwin .ndres div:hover{transform:translateY(-2px);box-shadow:0 0 0 1px rgba(237,196,122,.9),0 0 20px rgba(255,214,160,.95),0 8px 16px rgba(120,50,20,.16)}",
+    "#nd-fwin .ndres div.big{position:relative;overflow:hidden}",
+    "#nd-fwin .ndres div.big::after{content:\"\";position:absolute;top:0;bottom:0;left:-60%;width:45%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,236,200,.28),rgba(255,255,255,0));transform:skewX(-18deg);animation:ndShine 4.5s ease-in-out infinite;pointer-events:none}",
+    "@keyframes ndShine{0%,55%{left:-60%}100%{left:130%}}",
+    "#nd-fwin .cm-pay{transition:transform .25s ease,box-shadow .25s ease}",
+    "#nd-fwin .cm-pay:hover{transform:translateY(-2px);box-shadow:0 0 0 1.5px rgba(237,196,122,.95),0 0 18px rgba(255,214,160,.95),0 6px 12px rgba(120,50,20,.15)}",
+    "#nd-fwin .cm-chk{transition:background .25s ease,box-shadow .25s ease,transform .2s ease}",
+    "#nd-fwin .cm-chk:active{transform:scale(.92)}",
+    "#nd-fwin .cm-vat{transition:box-shadow .25s ease,transform .2s ease}",
+    "#nd-fwin .cm-vat:hover{box-shadow:0 0 0 2px #f5d58f,0 0 24px rgba(255,196,130,.85),inset 0 1px 0 rgba(255,255,255,.3)}",
+    "@media (prefers-reduced-motion:reduce){#nd-fwin .ndres div.big::after{animation:none;display:none}}",
     "#nd-fwin .cm-vatw{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap}",
     "#nd-fwin .cm-vat{display:inline-flex;align-items:center;gap:14px;height:78px;padding:0 28px;border:0;border-radius:40px;cursor:pointer;font:700 27px/1 var(--cond);color:#fbefe4;background:linear-gradient(180deg,#a3213a,#55071a);box-shadow:0 0 0 2px #edc47a,0 0 16px rgba(255,190,120,.6),inset 0 1px 0 rgba(255,255,255,.25);white-space:nowrap}",
     "#nd-fwin .cm-vat .i{width:30px;height:30px;stroke:#f5d58f}",
@@ -322,7 +334,7 @@
       if (ctx.q("k-down")) {
         var L = price * (1 - n("k-down") / 100), i = n("k-rate") / 100 / 12, m = Math.round(n("k-years") * 12);
         var pay = m > 0 ? (i === 0 ? L / m : L * i / (1 - Math.pow(1 + i, -m))) : 0;
-        h += "<div><span>Размер на кредита</span><b>" + money(r2(L)) + " €</b></div><div><span>Самоучастие</span><b>" + money(r2(price - L)) + " €</b></div>" +
+        h += "<div><span>Размер на кредита</span><b>" + money(r2(L)) + " €</b></div>" +
           '<div class="big"><span>Месечна вноска</span><b>' + money(r2(pay)) + " €</b></div>" +
           "<div><span>Обща сума за връщане</span><b>" + money(r2(pay * m)) + " €</b></div><div><span>Обща лихва</span><b>" + money(r2(pay * m - L)) + " €</b></div>";
       }
@@ -391,7 +403,7 @@
         if (ch) ch.className = "cm-chk" + (due && got >= due - 0.005 ? " on" : got > 0 ? " half" : "");
       });
       var t = function (l, v, c) { return "<div" + (c ? ' class="' + c + '"' : "") + "><span>" + l + "</span><b>" + money(r2(v)) + " €</b></div>"; };
-      res.innerHTML = t("От купувача", r.buyer) + t("От продавача", r.seller) + t("Комисионна общо", r.net) + (o.vat ? t("ДДС " + o.vat + "%", r.vat) : "") +
+      res.innerHTML = t("Комисионна общо", r.net) + (o.vat ? t("ДДС " + o.vat + "%", r.vat) : "") +
         (o.vat ? t("Общо с ДДС", r.gross) : "") + t("Платено", r.paid) + t("Остава за плащане", r.left, "big");
     }
     body._cmRun = run;

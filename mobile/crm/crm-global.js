@@ -74,7 +74,8 @@
     }
     U.open({
       title: "Сделки", icon: "handshake", photo: "nd/ph11.jpg", html: '<div class="wide ndempty">Зареждане…</div>', saveText: "Запиши сделката", keepOpen: true, required: ["s-title"],
-      ready: function (x) { ctx = x; D.ready().then(function () { return Promise.all([D.load("deals"), D.load("clients"), D.load("properties").catch(function () { return []; }), D.load("brokers").catch(function () { return []; })]); }).then(function (r) { list = r[0]; clients = r[1]; props = r[2] || []; brokers = r[3] || []; x.rerender(form()); if (opts.focusNew) { var t = x.q("s-title"); if (t) t.scrollIntoView({ block: "center" }); } }); },
+      ready: function (x) { ctx = x; D.ready().then(function () { return Promise.all([D.load("deals"), D.load("clients"), D.load("properties").catch(function () { return []; }), D.load("brokers").catch(function () { return []; })]); }).then(function (r) { list = r[0]; clients = r[1]; props = r[2] || []; brokers = r[3] || []; x.rerender(form()); if (opts.focusNew) { var t = x.q("s-title"); if (t) t.scrollIntoView({ block: "center" }); }
+        if (opts.focusCalc) { var k = x.q("cm-cb"); if (k) { k.closest(".ndg").scrollIntoView({ block: "start" }); var sc = document.getElementById("nd-fscroll"); if (sc) sc.scrollTop -= 140; } } }); },
       ready2: function () { bind(); if (ctx.q("cm-res")) U.commBind(ctx, "s-amount"); if (ctx.q("k-res")) U.calcBind(ctx, "s-amount", null); },
       onSave: function (g) {
         var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
@@ -282,7 +283,7 @@
   }
 
   var NAV = { "Сделки": deals, "Документи": documents, "Отчети": reports };
-  var MSG = { "Известия": notifications, "Търсене": search, "Настройки": settings, "Сделки": deals, "Нова сделка": function () { deals({ focusNew: true }); }, "Калкулатор": calculator, "Документи": documents, "Всички дейности": activities, "Банка": function () { U.bank({}); } };
+  var MSG = { "Известия": notifications, "Търсене": search, "Настройки": settings, "Сделки": deals, "Нова сделка": function () { deals({ focusNew: true }); }, "Калкулатор": function () { deals({ focusCalc: true }); }, "Документи": documents, "Всички дейности": activities, "Банка": function () { U.bank({}); } };
   document.addEventListener("click", function (e) {
     if (!e.target.closest) return;
     var n = e.target.closest("[data-nav]");
