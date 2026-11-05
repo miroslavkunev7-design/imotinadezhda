@@ -36,6 +36,14 @@
         }
       ],
       "destination": "/mobile/home.html"
+    },
+    {
+      "source": "/",
+      "destination": "/desktop.html"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/desktop.html"
     }
   ],
   "functions": {
