@@ -40,7 +40,7 @@
     if (t(f.summary)) o.desc = [o.desc, "Сканиран документ: " + t(f.summary)].filter(Boolean).join("\n");
     return o;
   }
-  function edit(p, scanned, scanFile, bundle) {
+  function edit(p, scanned, scanFile, bundle, onSaved) {
     var isNew = !p, list = P.list();
     p = p ? JSON.parse(JSON.stringify(stored(p))) : Object.assign({ code: nextCode(list), deal: "sale", type: TYPES[0], status: "Чернова", cond: COND[0], pics: [], docs: [], log: [] }, fromScan(scanned));
     p.pics = p.pics || []; p.docs = p.docs || []; p.videos = p.videos || [];
@@ -167,6 +167,7 @@
           return D.put("properties", p);
         }).then(function (s) {
           P.say(isNew ? "Имотът е добавен" : "Имотът е запазен");
+          if (onSaved) try { onSaved(s, p); } catch (e) {}
           return P.refresh().then(function () { P.reopen(s.id); });
         });
       },
@@ -204,5 +205,5 @@
     var del = document.querySelector("#nd-f-del span"); if (del) del.textContent = "Изчисти";
   }
 
-  window.NDProps = { init: function (h) { P = h; }, edit: edit, setStatus: setStatus, more: more, stored: stored };
+  window.NDProps = { init: function (h) { P = h; }, ready: function () { return !!P; }, edit: edit, setStatus: setStatus, more: more, stored: stored };
 })();
