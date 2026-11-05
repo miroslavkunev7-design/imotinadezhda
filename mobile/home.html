@@ -103,6 +103,16 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .f-price .v b,.f-area .v b{font-size:21px;line-height:1.2}
 .f-type .v{left:58px;background:#550312;color:#fff;min-width:170px}
 .fs .v b{font-weight:700}
+.citywin{position:fixed;inset:0;z-index:30;display:flex;padding:calc(8px + env(safe-area-inset-top,0px)) 8px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(30,4,10,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.citywin[hidden]{display:none}
+.cw-in{flex:1;display:flex;flex-direction:column;border-radius:24px;overflow:hidden;border:2px solid #e2a33b;background:#fff8ef;box-shadow:0 0 18px rgba(255,214,150,.55),0 14px 34px rgba(30,4,10,.5)}
+.cw-h{display:flex;align-items:center;gap:10px;padding:10px 10px 10px 14px;background:linear-gradient(120deg,#9a1a33,#6b0a1c 60%,#4f0716);border-bottom:2px solid #e2a33b;color:#fff3dc}
+.cw-h img{width:24px;height:24px;filter:brightness(0) saturate(100%) invert(75%) sepia(96%) saturate(605%) hue-rotate(351deg)}
+.cw-h h2{flex:1;font:700 21px/1 Georgia,serif;color:#fff3dc}
+.cw-btn{padding:8px 12px;border-radius:14px;background:linear-gradient(150deg,#fff0aa,#f3a518);color:#640319;font:700 14px/1 Arial,sans-serif;white-space:nowrap;box-shadow:0 0 10px rgba(255,200,90,.6)}
+.cw-x{width:36px;height:36px;border-radius:50%;border:1.5px solid #edc47a;background:linear-gradient(180deg,#fff7e3,#f3cf86);color:#6b0a1c;font-size:22px;line-height:1}
+.cw-body{position:relative;flex:1}.cw-body iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff8ef}
+.cw-ld{position:absolute;inset:0;display:grid;place-items:center;font:700 16px Georgia,serif;color:#6b0a1c}.cw-ld[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -142,6 +152,10 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   <button class="abs city c4" data-city="novi-pazar"><img class="ph" src="/mobile/home-assets/city-novi-pazar.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Нов пазар</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
 </div>
 
+<div class="citywin" id="citywin" hidden role="dialog" aria-modal="true" aria-labelledby="cw-t">
+  <div class="cw-in"><div class="cw-h"><img src="/mobile/home-assets/pin.svg" alt=""><h2 id="cw-t">Град</h2><a class="cw-btn" id="cw-full" href="/mobile/ilj.html" aria-label="Отвори на цял екран">⤢ Цял екран</a><button class="cw-x" id="cw-x" aria-label="Затвори">×</button></div>
+  <div class="cw-body"><div class="cw-ld" id="cw-ld">Зареждане…</div><iframe id="cw-f" title="Страница на града" loading="eager"></iframe></div></div>
+</div>
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sh-t">
   <div class="sh-in"><div class="sh-h"><h2 id="sh-t">Резултати<small id="sh-s"></small></h2><button class="sh-x" id="sh-x" aria-label="Затвори">×</button></div><div class="sh-list" id="sh-list"></div></div>
 </div>
@@ -225,7 +239,22 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   $("sheet").onclick = function (e) { if (e.target === this) this.hidden = true; };
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") { $("sheet").hidden = true; $("advp").hidden = true; } });
   [].forEach.call(document.querySelectorAll("[data-deal]"), function (a) { a.onclick = function (e) { e.preventDefault(); search({ deal: a.getAttribute("data-deal"), all: true }); }; });
-  [].forEach.call(document.querySelectorAll(".city"), function (b) { b.onclick = function () { location.href = "/mobile/ilj.html#/city/" + b.getAttribute("data-city"); }; });
+  /* the city page (map, neighbourhoods, listings) opens right here on the home page; "Цял екран" goes to its own link */
+  var NAMES = { shumen: "Шумен", varna: "Варна", burgas: "Бургас", "novi-pazar": "Нови пазар" };
+  function openCity(slug, push) {
+    if (!NAMES[slug]) return;
+    var w = $("citywin"); $("cw-t").textContent = NAMES[slug]; $("cw-full").href = "/mobile/ilj.html#/city/" + slug;
+    var f = $("cw-f"), src = "/mobile/ilj.html?inframe=1#/city/" + slug;
+    if (f.getAttribute("data-src") !== src) { f.setAttribute("data-src", src); f.src = src; $("cw-ld").hidden = false; }
+    w.hidden = false; document.documentElement.style.overflow = "hidden"; var fb = document.querySelector(".nda-fab"); if (fb) fb.style.visibility = "hidden";
+    if (push !== false) try { history.pushState({ city: slug }, "", "#/city/" + slug); } catch (e) {}
+  }
+  function closeCity(back) { $("citywin").hidden = true; document.documentElement.style.overflow = ""; var fb = document.querySelector(".nda-fab"); if (fb) fb.style.visibility = ""; if (back !== false && /^#\/city\//.test(location.hash)) try { history.pushState(null, "", location.pathname + location.search); } catch (e) {} }
+  $("cw-f").onload = function () { $("cw-ld").hidden = true; };
+  $("cw-x").onclick = function () { closeCity(); };
+  addEventListener("popstate", function () { var m = /^#\/city\/([\w-]+)/.exec(location.hash); if (m) openCity(m[1], false); else closeCity(false); });
+  [].forEach.call(document.querySelectorAll(".city"), function (b) { b.onclick = function () { openCity(b.getAttribute("data-city")); }; });
+  var m0 = /^#\/city\/([\w-]+)/.exec(location.hash); if (m0) openCity(m0[1], false);
 })();
 </script>
 <script src="/mobile/ash.js" defer></script>

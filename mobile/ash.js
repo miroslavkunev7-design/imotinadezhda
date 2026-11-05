@@ -4,6 +4,7 @@
 (function () {
   "use strict";
   if (window.NDAsh) return;
+  try { if (window.self !== window.top && /[?&]inframe=1/.test(location.search)) return; } catch (e) {}
   var SB_KEY_STORE = "nd-crm-auth", SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co", SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
   var BOT = "/mobile/crm/assets/ash-bot.png";
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
