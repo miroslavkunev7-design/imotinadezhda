@@ -78,7 +78,7 @@
     "#nd-fwin .ndg .ef{display:grid;grid-template-columns:var(--lw,128px) 1fr;align-items:center;gap:12px;margin:0;min-width:0}",
     "#nd-fwin .ndg .ef.wide{grid-column:1/-1}",
     "#nd-fwin .ndg .ef.top{align-items:start}",
-    "#nd-fwin .ndg .el{margin:0;gap:10px;font:400 24px/1.1 var(--cond);color:#1f1111;text-shadow:0 0 6px #fff8f0,0 0 3px #fff8f0,0 0 1px #fff}.ndg .in{background:rgba(255,253,250,.94)}.ndg-h{z-index:2}",
+    "#nd-fwin .ndg .el{margin:0;gap:10px;font:400 24px/1.1 var(--cond);color:#1f1111;text-shadow:0 0 6px #fff8f0,0 0 3px #fff8f0,0 0 1px #fff}.ndg .in{background:rgba(255,253,250,.94)}.ndg-h{z-index:2}#nd-fwin .ndsec>h3{z-index:2}#nd-fwin .ndsec>.ndrow,#nd-fwin .ndsec>.ndempty{position:relative;z-index:1;background:linear-gradient(90deg,rgba(255,253,249,.97) 0%,rgba(255,250,244,.93) 55%,rgba(251,239,229,.78) 100%)}.ndsec-img{opacity:.85}",
     "#nd-fwin .ndg .el svg.i{display:none}",
     "#nd-fwin .ndg .in{height:52px;border-radius:26px;font-size:24px;padding:0 20px}",
     "#nd-fwin .ndg .in.ta{height:120px;border-radius:22px;padding:12px 18px}",
@@ -240,8 +240,10 @@
   }
 
   /* section card: ribbon header, blended photo on the left, inline label/field rows */
+  var DEFPH = ["nd/ph01.jpg", "nd/ph02.jpg", "nd/ph03.jpg", "nd/ph04.jpg", "nd/ph05.jpg", "nd/ph06.jpg", "nd/ph07.jpg", "nd/ph08.jpg", "nd/ph09.jpg", "nd/ph10.jpg", "nd/ph11.jpg", "nd/ph12.jpg", "nd/ph14.jpg", "nd/ph15.jpg", "nd/ph16.jpg", "nd/ph18.jpg", "nd/ph19.jpg", "nd/ph20.jpg"];
+  function defPhoto(t) { var h = 0; t = String(t || ""); for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return DEFPH[h % DEFPH.length]; }
   function group(title, icon, photo, inner, opts) {
-    opts = opts || {};
+    opts = opts || {}; if (!photo && !opts.noPhoto) photo = defPhoto(title);
     return '<div class="ndg' + (photo ? "" : " noimg") + (opts.one ? " one" : "") + '"' + (opts.lw ? ' style="--lw:' + opts.lw + 'px"' : "") + '><div class="ndg-h">' + ic(icon) + esc(title) + "</div>" +
       (photo ? '<div class="ndg-img" style="background-image:url(' + img(photo) + ')"></div>' : "") + '<div class="ndg-f">' + inner + "</div></div>";
   }
@@ -251,7 +253,7 @@
   }
   /* list section in the same glass look */
   function section(title, icon, rows, empty) {
-    return '<div class="ndsec"><h3>' + ic(icon) + esc(title) + "</h3>" + (rows && rows.length ? rows.join("") : '<div class="ndempty">' + esc(empty || "Няма записи.") + "</div>") + "</div>";
+    return '<div class="ndsec"><div class="ndg-img ndsec-img" style="background-image:url(' + img(defPhoto(title)) + ')"></div><h3>' + ic(icon) + esc(title) + "</h3>" + (rows && rows.length ? rows.join("") : '<div class="ndempty">' + esc(empty || "Няма записи.") + "</div>") + "</div>";
   }
   function row(icon, title, sub, tm, btns) {
     return '<div class="ndrow">' + ic(icon) + '<div class="tx"><b>' + esc(title) + "</b>" + (sub ? "<span>" + esc(sub) + "</span>" : "") + "</div>" + (tm ? '<span class="tm">' + esc(tm) + "</span>" : "") + (btns || "") + "</div>";

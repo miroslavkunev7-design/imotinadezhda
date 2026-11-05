@@ -24,5 +24,18 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(iphone|ipod|android.*mobile|windows phone|blackberry|opera mini|iemobile|mobile safari).*"
+        }
+      ],
+      "destination": "/mobile/home.html"
+    }
   ]
 }

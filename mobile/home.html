@@ -6,8 +6,9 @@
 <meta name="theme-color" content="#600011">
 <title>Имоти Надежда – недвижими имоти в Шумен, Варна, Бургас и Нови пазар</title>
 <meta name="description" content="Имоти Надежда – апартаменти, къщи и парцели за продажба и под наем в Шумен, Варна, Бургас и Нови пазар.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bitter:wght@700&display=swap" rel="stylesheet">
 <link rel="icon" href="/mobile/crm/assets/app-icon3-round-192.png">
-<link rel="preload" as="image" href="home-assets/shumen-original-background.webp">
+<link rel="preload" as="image" href="/mobile/home-assets/reference-bg.webp">
 <style>
 :root{--wine:#680019;--wine2:#78001e;--gold:#c48b24;--cream:#fff8ef}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -17,16 +18,17 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 :focus-visible{outline:3px solid #ffcc49;outline-offset:3px}
 /* the page is drawn on an 865 px canvas (the approved reference) and scaled to the screen */
 #cv{position:relative;width:865px;min-height:1536px;transform-origin:0 0;overflow:hidden}
-.bg{position:absolute;left:0;top:-210px;width:100%;height:calc(100% + 210px);object-fit:cover;object-position:center top}
+.bg{position:absolute;left:0;top:0;width:865px;height:1536px;object-fit:cover}
+#cv{background:#1d3b22}
 .abs{position:absolute}
 /* header */
 .hdr{left:0;top:0;width:865px;height:219px;z-index:4;filter:drop-shadow(0 6px 4px rgba(35,10,8,.45))}
 .hdr>img{position:absolute;inset:0;width:100%;height:100%}
 .brand{left:28px;top:8px;width:270px;height:150px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;color:#61031b;text-align:center;white-space:nowrap}
 .brand img{width:212px;height:72px;object-fit:contain}
-.brand span{font-weight:400;font-size:22px;letter-spacing:.2px;margin-top:4px}
-.brand strong{font-size:24px;margin-top:4px}
-.nav{left:376px;top:96px;right:30px;height:44px;display:flex;align-items:center;justify-content:space-between;color:#fff8f1;font-weight:400;font-size:22px;white-space:nowrap}
+.brand span{font:400 22.5px/1 Arial,'Helvetica Neue',sans-serif;letter-spacing:.3px;margin-top:6px}
+.brand strong{font:700 23px/1 Arial,'Helvetica Neue',sans-serif;margin-top:9px;letter-spacing:.2px}
+.nav{left:376px;top:96px;right:30px;height:44px;display:flex;align-items:center;justify-content:space-between;color:#fff8f1;font:400 21.5px/1 Arial,'Helvetica Neue',sans-serif;white-space:nowrap}
 .nav i{display:block;width:1.5px;height:30px;background:#f6ba37}
 .nav a{padding:6px 2px}
 .nav .me img{width:40px;height:40px;filter:brightness(0) saturate(100%) invert(75%) sepia(96%) saturate(605%) hue-rotate(351deg)}
@@ -36,17 +38,17 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .fs{position:absolute;display:flex;align-items:center;gap:16px;color:#69021c;font-weight:700}
 .fs>img{flex:none;width:36px;height:36px;filter:brightness(0) saturate(100%) invert(53%) sepia(84%) saturate(531%) hue-rotate(357deg)}
 .fs .t{display:block;min-width:0}
-.fs small{display:block;font-size:17px;font-weight:700;margin-bottom:2px}
+.fs small{display:block;font:700 16px/1.1 Arial,'Helvetica Neue',sans-serif;margin-bottom:4px}
 .fs .v{display:flex;align-items:center;gap:7px;font-size:21px;line-height:1.15;white-space:nowrap}
 .fs .v b{font-weight:700}
-.fs .v img{width:12px;height:12px;filter:brightness(0) saturate(100%) invert(11%) sepia(75%) saturate(976%) hue-rotate(305deg)}
+.fs .v img{display:none}.fs .v b:first-child:after{content:'';display:inline-block;margin-left:8px;vertical-align:middle;border:6px solid transparent;border-top:8px solid currentColor;border-bottom:0}
 .fs select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
 .f-city{left:32px;top:22px;width:220px;height:74px}.f-hood{left:268px;top:22px;width:220px;height:74px}
 .f-price{left:32px;top:108px;width:220px;height:78px}.f-area{left:268px;top:108px;width:220px;height:78px}
 .sp .div1{left:250px;top:30px;width:1px;height:150px;background:rgba(141,81,40,.22)}
 .sp .div2{left:32px;top:102px;width:440px;height:1px;background:rgba(141,81,40,.16)}
 .f-type{left:540px;top:22px;width:262px;height:74px;color:#fff}
-.f-type small{font-weight:400;font-size:16px}
+.f-type small{font:400 16px/1.1 Arial,'Helvetica Neue',sans-serif}
 .f-type>img{filter:brightness(0) saturate(100%) invert(75%) sepia(100%) saturate(600%) hue-rotate(355deg)}
 .f-type .v{font-size:22px}.f-type .v img{filter:brightness(0) invert(1)}
 .sp .div3{left:500px;top:100px;width:300px;height:1px;background:rgba(232,178,99,.3)}
@@ -88,43 +90,56 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .pc em{font-style:normal;font-weight:700;font-size:17px;color:#8d1530;margin-top:5px}
 .empty{padding:22px 14px;text-align:center;font-size:15px;line-height:1.45;color:#6b4a40}
 .empty a{display:inline-block;margin-top:12px;padding:10px 18px;border-radius:14px;background:linear-gradient(150deg,#fff0aa,#f3a518);color:#640319;font-weight:700}
+
+/* 1:1 with the approved reference: its artwork is the page, only live values and tap areas are drawn on top */
+.hdr{filter:none}.hdr>img,.brand>*{opacity:0}.nav{color:transparent}.nav i{opacity:0}.nav .me img{opacity:0}
+.sp{filter:none}.sp>img.shape,.sp .div1,.sp .div2,.sp .div3,.fs>img,.fs small,.adv img{opacity:0}
+.adv{color:transparent}.go{background:transparent;box-shadow:none;color:transparent}.go img{opacity:0}
+.city{background:transparent;border-color:transparent;box-shadow:none}.city>*{opacity:0}
+.fs .t{position:static}
+.fs .v{position:absolute;left:59px;top:28px;padding:1px 8px 7px 2px;margin:0;background:#fbefe4;font:700 23.5px/1.2 Bitter,Georgia,'PT Serif',serif;color:#5c0a1e;white-space:nowrap;min-width:112px;border-radius:4px}
+.f-hood .v{left:62px;min-width:106px}
+.f-price .v{top:19px;min-width:142px;display:block}.f-area .v{left:60px;top:17px;min-width:100px;display:block;max-width:106px;padding:1px 0 1px 2px;clip-path:polygon(0 0,100% 0,100% 72%,88% 100%,0 100%)}
+.f-price .v b,.f-area .v b{font-size:21px;line-height:1.2}
+.f-type .v{left:58px;background:#550312;color:#fff;min-width:170px}
+.fs .v b{font-weight:700}
 </style>
 </head>
 <body>
 <div id="cv">
-  <img class="bg" src="home-assets/shumen-original-background.webp" alt="Шумен – паметникът „Създатели на българската държава“ и панорама на града">
+  <img class="bg" src="/mobile/home-assets/reference-bg.webp" alt="Шумен – паметникът „Създатели на българската държава“ и панорама на града">
 
   <header class="abs hdr">
-    <img src="home-assets/header-shape.svg" alt="">
-    <a class="abs brand" href="/mobile/home.html" aria-label="Имоти Надежда – начало"><img src="home-assets/logo-roofs.svg" alt=""><span>НЕДВИЖИМИ ИМОТИ</span><strong>• ИМОТИ НАДЕЖДА •</strong></a>
+    <img src="/mobile/home-assets/header-shape.svg" alt="">
+    <a class="abs brand" href="/" aria-label="Имоти Надежда – начало"><img src="/mobile/home-assets/logo-roofs.svg" alt=""><span>НЕДВИЖИМИ ИМОТИ</span><strong>• ИМОТИ НАДЕЖДА •</strong></a>
     <nav class="abs nav" aria-label="Основна навигация">
       <a href="#" data-deal="sale">За продажба</a><i></i>
       <a href="#" data-deal="rent">Под наем</a><i></i>
       <a href="#" id="about">За нас</a><i></i>
-      <a class="me" href="/mobile/crm/crm-nachalo.html" aria-label="Вход за брокери"><img src="home-assets/user.svg" alt=""></a>
+      <a class="me" href="/mobile/crm/crm-nachalo.html" aria-label="Вход за брокери"><img src="/mobile/home-assets/user.svg" alt=""></a>
     </nav>
   </header>
 
   <form class="abs sp" id="sp" aria-label="Търсене на имот">
-    <img class="shape" src="home-assets/search-shape.svg" alt="">
+    <img class="shape" src="/mobile/home-assets/search-shape.svg" alt="">
     <span class="abs div1"></span><span class="abs div2"></span><span class="abs div3"></span>
-    <label class="fs f-city"><img src="home-assets/pin.svg" alt=""><span class="t"><small>Град</small><span class="v"><b id="v-city"></b><img src="home-assets/chevron-down.svg" alt=""></span></span><select id="s-city" aria-label="Град"></select></label>
-    <label class="fs f-hood"><img src="home-assets/house.svg" alt=""><span class="t"><small>Квартал</small><span class="v"><b id="v-hood"></b><img src="home-assets/chevron-down.svg" alt=""></span></span><select id="s-hood" aria-label="Квартал"></select></label>
-    <label class="fs f-price"><img src="home-assets/tag.svg" alt=""><span class="t"><small>Цена</small><span class="v" id="v-price"></span></span><select id="s-price" aria-label="Цена"></select></label>
-    <label class="fs f-area"><img src="home-assets/area.svg" alt=""><span class="t"><small>Площ</small><span class="v" id="v-area"></span></span><select id="s-area" aria-label="Площ"></select></label>
-    <label class="fs f-type"><img src="home-assets/briefcase.svg" alt=""><span class="t"><small>Вид имот</small><span class="v"><b id="v-type"></b><img src="home-assets/chevron-down.svg" alt=""></span></span><select id="s-type" aria-label="Вид имот"></select></label>
-    <button type="button" class="abs adv" id="adv" aria-expanded="false"><img src="home-assets/sliders.svg" alt="">Филтри</button>
-    <button type="submit" class="abs go"><img src="home-assets/search.svg" alt="">Търси</button>
+    <label class="fs f-city"><img src="/mobile/home-assets/pin.svg" alt=""><span class="t"><small>Град</small><span class="v"><b id="v-city"></b><img src="/mobile/home-assets/chevron-down.svg" alt=""></span></span><select id="s-city" aria-label="Град"></select></label>
+    <label class="fs f-hood"><img src="/mobile/home-assets/house.svg" alt=""><span class="t"><small>Квартал</small><span class="v"><b id="v-hood"></b><img src="/mobile/home-assets/chevron-down.svg" alt=""></span></span><select id="s-hood" aria-label="Квартал"></select></label>
+    <label class="fs f-price"><img src="/mobile/home-assets/tag.svg" alt=""><span class="t"><small>Цена</small><span class="v" id="v-price"></span></span><select id="s-price" aria-label="Цена"></select></label>
+    <label class="fs f-area"><img src="/mobile/home-assets/area.svg" alt=""><span class="t"><small>Площ</small><span class="v" id="v-area"></span></span><select id="s-area" aria-label="Площ"></select></label>
+    <label class="fs f-type"><img src="/mobile/home-assets/briefcase.svg" alt=""><span class="t"><small>Вид имот</small><span class="v"><b id="v-type"></b><img src="/mobile/home-assets/chevron-down.svg" alt=""></span></span><select id="s-type" aria-label="Вид имот"></select></label>
+    <button type="button" class="abs adv" id="adv" aria-expanded="false"><img src="/mobile/home-assets/sliders.svg" alt="">Филтри</button>
+    <button type="submit" class="abs go"><img src="/mobile/home-assets/search.svg" alt="">Търси</button>
     <div class="abs advp" id="advp" hidden>
       <label for="s-deal">Сделка</label><select id="s-deal"><option value="">Продажба и наем</option><option value="sale">Продажба</option><option value="rent">Под наем</option></select>
       <label for="s-rooms">Стаи</label><select id="s-rooms"><option value="">Без значение</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option></select>
     </div>
   </form>
 
-  <button class="abs city c1" data-city="shumen"><img class="ph" src="home-assets/city-shumen.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c2" data-city="varna"><img class="ph" src="home-assets/city-varna.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c3" data-city="burgas"><img class="ph" src="home-assets/city-burgas.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c4" data-city="novi-pazar"><img class="ph" src="home-assets/city-novi-pazar.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="home-assets/pin.svg" alt="">Нов пазар</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c1" data-city="shumen"><img class="ph" src="/mobile/home-assets/city-shumen.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c2" data-city="varna"><img class="ph" src="/mobile/home-assets/city-varna.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c3" data-city="burgas"><img class="ph" src="/mobile/home-assets/city-burgas.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c4" data-city="novi-pazar"><img class="ph" src="/mobile/home-assets/city-novi-pazar.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Нов пазар</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
 </div>
 
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sh-t">
@@ -157,7 +172,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   var TYPES = ["Всички", "Апартамент", "Мезонет", "Ателие / Таван", "Къща", "Етаж от къща", "Вила", "Парцел", "Земеделска земя", "Офис", "Магазин", "Заведение", "Склад", "Гараж", "Паркомясто", "Хотел", "Промишлен имот"];
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   function fill(sel, opts, val) { sel.innerHTML = opts.map(function (o) { var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; return '<option value="' + esc(v) + '"' + (v === val ? " selected" : "") + ">" + esc(t.replace("|", " ")) + "</option>"; }).join(""); }
-  var chev = '<img src="home-assets/chevron-down.svg" alt="">';
+  var chev = '<img src="/mobile/home-assets/chevron-down.svg" alt="">';
   function show() {
     $("v-city").textContent = $("s-city").value; $("v-hood").textContent = $("s-hood").value || "Всички"; $("v-type").textContent = $("s-type").value;
     [["s-price", "v-price", PRICES], ["s-area", "v-area", AREAS]].forEach(function (x) {
@@ -196,7 +211,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
       });
       var slug = CITIES[city] || "burgas";
       $("sh-list").innerHTML = list.length ? list.map(function (p) {
-        return '<a class="pc" href="/mobile/ilj.html#/property/' + encodeURIComponent(p.id) + "/" + slug + '"><img src="' + esc(p.img || "home-assets/city-" + slug + ".webp") + '" alt="" loading="lazy"><span class="tx"><b>' + esc(p.title) + "</b><span>" +
+        return '<a class="pc" href="/mobile/ilj.html#/property/' + encodeURIComponent(p.id) + "/" + slug + '"><img src="' + esc(p.img || "/mobile/home-assets/city-" + slug + ".webp") + '" alt="" loading="lazy"><span class="tx"><b>' + esc(p.title) + "</b><span>" +
           esc([p.city, p.hood].filter(Boolean).join(", ")) + (p.area ? " · " + p.area + " м²" : "") + (p.rooms ? " · " + p.rooms + " стаи" : "") + "</span><em>" + new Intl.NumberFormat("bg-BG").format(p.price) + " €" + (p.deal === "rent" ? " / мес." : "") + "</em></span></a>";
       }).join("") : '<div class="empty">Няма публикувани имоти по тези критерии.<br>Опитайте с по-широко търсене или вижте целия град.<br><a href="/mobile/ilj.html#/city/' + slug + '">Виж ' + esc(city) + "</a></div>";
     });

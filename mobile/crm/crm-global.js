@@ -297,7 +297,7 @@
 
 /* every header logo opens the public start page – phones: the mobile home, computers: the desktop site */
 (function () {
-  function home() { return window.matchMedia("(max-width: 768px)").matches ? "/mobile/home.html" : "/"; }
+  function home() { return "/"; }
   function wire() {
     [].forEach.call(document.querySelectorAll('a.logo-link, img.logo, img[src$="assets/logo.png"]'), function (el) {
       var a = el.closest("a") || el;
