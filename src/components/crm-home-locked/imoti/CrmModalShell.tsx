@@ -12,6 +12,7 @@ export function CrmModalShell({
   headerLeft,
   headerCenter,
   headerRight,
+  className = "",
 }: {
   open: boolean;
   title: string;
@@ -23,6 +24,7 @@ export function CrmModalShell({
   headerLeft?: ReactNode;
   headerCenter?: ReactNode;
   headerRight?: ReactNode;
+  className?: string;
 }) {
   if (!open) return null;
 
@@ -36,7 +38,7 @@ export function CrmModalShell({
       onClick={onClose}
     >
       <div
-        className={`crm-imoti-shell${expanded ? " crm-imoti-shell--expanded" : ""}`}
+        className={`crm-imoti-shell${expanded ? " crm-imoti-shell--expanded" : ""}${className ? ` ${className}` : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
         <header className="crm-imoti-shell__top">

@@ -33,6 +33,23 @@ export const EMPTY_IMOTI_FILTERS: ImotiFilters = {
   sort: "newest",
 };
 
+/** Fixed city list for catalog filters */
+export const IMOTI_FILTER_CITIES = ["Шумен", "Бургас", "Варна"] as const;
+
+export const IMOTI_CITY_QUARTERS: Record<(typeof IMOTI_FILTER_CITIES)[number], string[]> = {
+  Шумен: [
+    "Център",
+    "Боян Българанов 1",
+    "Боян Българанов 2",
+    "Тракия",
+    "Еверест",
+    "Добруджански",
+    "Дивдядово",
+  ],
+  Бургас: ["Крайморие", "Лазур", "Славейков", "Меден рудник", "Зорница", "Сарафово", "Център"],
+  Варна: ["Виница", "Бриз", "Чайка", "Левски", "Младост", "Аспарухово", "Център", "Галата"],
+};
+
 type MenuPos = { top: number; left: number; minWidth: number };
 
 function useMenuPos(open: boolean, anchorRef: RefObject<HTMLElement | null>) {
@@ -65,11 +82,13 @@ function FilterDropdown({
   value,
   options,
   onChange,
+  emptyHint = "всички",
 }: {
   label: string;
   value: string;
   options: string[];
   onChange: (v: string) => void;
+  emptyHint?: string;
 }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -87,7 +106,7 @@ function FilterDropdown({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
-  const display = value || "всички";
+  const display = value || emptyHint;
 
   return (
     <div className={`crm-imoti-dd${open ? " is-open" : ""}`}>
@@ -97,6 +116,7 @@ function FilterDropdown({
         className={`crm-imoti-chip${value ? " is-active" : ""}`}
         onClick={(e) => {
           e.stopPropagation();
+          if (!options.length && emptyHint === "избери град") return;
           setOpen((v) => !v);
         }}
         aria-expanded={open}
@@ -243,13 +263,15 @@ export function ImotiFilterBar({
   filters: ImotiFilters;
   onChange: (next: ImotiFilters) => void;
 }) {
-  const cities = useMemo(
-    () => [...new Set(properties.map((p) => p.city))].sort(),
-    [properties],
-  );
+  const cities = useMemo(() => [...IMOTI_FILTER_CITIES], []);
   const quarters = useMemo(() => {
-    const list = properties.filter((p) => !filters.city || p.city === filters.city);
-    return [...new Set(list.map((p) => p.quarter))].sort();
+    if (!filters.city) return [];
+    const preset =
+      IMOTI_CITY_QUARTERS[filters.city as (typeof IMOTI_FILTER_CITIES)[number]] ?? [];
+    const fromData = properties
+      .filter((p) => p.city === filters.city)
+      .map((p) => p.quarter);
+    return [...new Set([...preset, ...fromData])].sort((a, b) => a.localeCompare(b, "bg"));
   }, [properties, filters.city]);
   const types = useMemo(
     () => [...new Set(properties.map((p) => p.typeLabel))].sort(),
@@ -285,6 +307,7 @@ export function ImotiFilterBar({
         value={filters.quarter}
         options={quarters}
         onChange={(quarter) => onChange({ ...filters, quarter })}
+        emptyHint={filters.city ? "всички" : "избери град"}
       />
       <FilterDropdown
         label="Тип имот"
