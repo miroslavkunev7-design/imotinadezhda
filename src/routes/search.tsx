@@ -74,7 +74,7 @@ function SearchRoute() {
       </header>
 
       {/* Results — internal scroll keeps single-viewport feel */}
-      <section className="mx-auto w-full max-w-[1420px] flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-6">
+      <section className="mx-auto w-full max-w-[1420px] flex-1 overflow-y-auto px-4 py-5 pb-28 md:px-8 md:py-6 md:pb-6">
         {results.length === 0 ? (
           <div className="rounded-3xl border border-[#C9A84C]/40 bg-[#fbf6ea] p-10 text-center text-[#2b1418]/80">
             {onlyFavorites ? "Още нямаш запазени имоти." : "Няма намерени имоти с тези критерии."}{" "}

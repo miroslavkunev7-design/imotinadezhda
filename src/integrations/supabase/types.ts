@@ -457,6 +457,7 @@ export type Database = {
           id: string
           mime_type: string | null
           notes: string | null
+          storage_path: string | null
           uploaded_by: string | null
           version: number
         }
@@ -470,6 +471,7 @@ export type Database = {
           id?: string
           mime_type?: string | null
           notes?: string | null
+          storage_path?: string | null
           uploaded_by?: string | null
           version?: number
         }
@@ -483,6 +485,7 @@ export type Database = {
           id?: string
           mime_type?: string | null
           notes?: string | null
+          storage_path?: string | null
           uploaded_by?: string | null
           version?: number
         }

@@ -2,6 +2,7 @@
 // AI проверка/извличане на данни, срокове на валидност, напомняния и аналитика.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { aiChatCompletions, listAiProviders } from "@/lib/ai-provider";
+import { safeDocumentFileName, validateDocumentUpload } from "@/lib/document-upload";
 
 const db = () =>
   supabaseAdmin as unknown as {
@@ -210,6 +211,7 @@ export async function saveRequirement(id: string | null, patch: Record<string, u
 export type RequestInput = {
   clientId?: string | null;
   propertyId?: string | null;
+  dealId?: string | null;
   requirementCodes: string[];
   dueDays?: number | null;
   message?: string | null;
@@ -229,6 +231,7 @@ export async function createRequests(input: RequestInput) {
     .map((r: any) => ({
       client_id: input.clientId ?? null,
       property_id: input.propertyId ?? null,
+      deal_id: input.dealId ?? null,
       requirement_code: r.code,
       requirement_name: r.name,
       scope: r.scope,
@@ -271,7 +274,7 @@ export async function cancelRequest(id: string) {
 export async function getRequestByToken(token: string) {
   const { data } = await db()
     .from("document_requests")
-    .select("*, clients(full_name), properties(title)")
+    .select("*, clients(full_name), properties(title), deals(title, deal_number)")
     .eq("share_token", token)
     .maybeSingle();
   return data ?? null;
@@ -280,7 +283,7 @@ export async function getRequestByToken(token: string) {
 export async function listRequests(status?: string | null) {
   let q = db()
     .from("document_requests")
-    .select("*, clients(full_name, email, phone), properties(title)")
+    .select("*, clients(full_name, email, phone), properties(title), deals(title, deal_number)")
     .order("created_at", { ascending: false })
     .limit(400);
   if (status) q = q.eq("status", status);
@@ -296,15 +299,17 @@ export async function listDocuments(filters?: {
   status?: string | null;
   clientId?: string | null;
   propertyId?: string | null;
+  dealId?: string | null;
 }) {
   let q = db()
     .from("document_items")
-    .select("*, clients(full_name), properties(title)")
+    .select("*, clients(full_name), properties(title), deals(title, deal_number)")
     .order("created_at", { ascending: false })
     .limit(400);
   if (filters?.status) q = q.eq("status", filters.status);
   if (filters?.clientId) q = q.eq("client_id", filters.clientId);
   if (filters?.propertyId) q = q.eq("property_id", filters.propertyId);
+  if (filters?.dealId) q = q.eq("deal_id", filters.dealId);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return data ?? [];
@@ -324,6 +329,7 @@ export type RegisterInput = {
   requirementCode?: string | null;
   clientId?: string | null;
   propertyId?: string | null;
+  dealId?: string | null;
   title?: string | null;
   docType?: string | null;
   fileName: string;
@@ -349,11 +355,18 @@ export async function registerDocument(input: RegisterInput) {
 
   let version = 1;
   if (input.requirementCode) {
-    const owner = input.clientId
-      ? { col: "client_id", val: input.clientId }
-      : input.propertyId
-        ? { col: "property_id", val: input.propertyId }
-        : null;
+    const owner =
+      requirement?.scope === "deal" && input.dealId
+        ? { col: "deal_id", val: input.dealId }
+        : requirement?.scope === "property" && input.propertyId
+          ? { col: "property_id", val: input.propertyId }
+          : input.clientId
+            ? { col: "client_id", val: input.clientId }
+            : input.propertyId
+              ? { col: "property_id", val: input.propertyId }
+              : input.dealId
+                ? { col: "deal_id", val: input.dealId }
+                : null;
     if (owner) {
       const { data: prev } = await db()
         .from("document_items")
@@ -368,9 +381,10 @@ export async function registerDocument(input: RegisterInput) {
 
   const row = {
     requirement_code: input.requirementCode ?? null,
-    scope: requirement?.scope ?? (input.propertyId ? "property" : "client"),
+    scope: requirement?.scope ?? (input.dealId ? "deal" : input.propertyId ? "property" : "client"),
     client_id: input.clientId ?? null,
     property_id: input.propertyId ?? null,
+    deal_id: input.dealId ?? null,
     title: input.title ?? requirement?.name ?? input.fileName,
     doc_type: input.docType ?? requirement?.code ?? "other",
     file_name: input.fileName,
@@ -414,7 +428,7 @@ export async function registerDocument(input: RegisterInput) {
   return data;
 }
 
-export async function signedUrlFor(id: string, seconds = 3600) {
+export async function signedUrlFor(id: string, seconds = 3600, download = false) {
   const { data: doc } = await db()
     .from("document_items")
     .select("storage_path, file_url")
@@ -424,7 +438,7 @@ export async function signedUrlFor(id: string, seconds = 3600) {
   if (doc.storage_path) {
     const { data, error } = await db()
       .storage.from(BUCKET)
-      .createSignedUrl(doc.storage_path, seconds);
+      .createSignedUrl(doc.storage_path, seconds, download ? { download: true } : undefined);
     if (error) throw new Error(error.message);
     return { url: data?.signedUrl ?? null };
   }
@@ -481,7 +495,10 @@ export async function deleteDocument(id: string) {
     .select("storage_path")
     .eq("id", id)
     .maybeSingle();
-  if (doc?.storage_path) await db().storage.from(BUCKET).remove([doc.storage_path]);
+  if (doc?.storage_path) {
+    const { error: storageError } = await db().storage.from(BUCKET).remove([doc.storage_path]);
+    if (storageError) throw new Error(storageError.message);
+  }
   const { error } = await db().from("document_items").delete().eq("id", id);
   if (error) throw new Error(error.message);
   return { ok: true };
@@ -596,10 +613,12 @@ export async function aiReviewDocument(id: string, extractedText?: string | null
 export async function checklistFor(params: {
   clientId?: string | null;
   propertyId?: string | null;
+  dealId?: string | null;
   category?: string | null;
 }) {
   const reqs = (await listRequirements(true)).filter((r: any) => {
     if (params.category && r.category !== params.category) return false;
+    if (params.dealId) return ["client", "property", "deal"].includes(r.scope);
     if (params.clientId && params.propertyId) return true;
     if (params.propertyId) return r.scope === "property";
     return r.scope !== "property";
@@ -608,11 +627,13 @@ export async function checklistFor(params: {
   const docs = await listDocuments({
     clientId: params.clientId ?? null,
     propertyId: params.propertyId ?? null,
+    dealId: params.dealId ?? null,
   });
   const requests = (await listRequests()).filter(
     (r: any) =>
       (params.clientId ? r.client_id === params.clientId : true) &&
-      (params.propertyId ? r.property_id === params.propertyId : true),
+      (params.propertyId ? r.property_id === params.propertyId : true) &&
+      (params.dealId ? r.deal_id === params.dealId : true),
   );
 
   return reqs.map((r: any) => {
@@ -912,10 +933,10 @@ export async function uploadByToken(
   const request = await getRequestByToken(token);
   if (!request) throw new Error("Невалиден или изтекъл линк");
   if (["approved", "cancelled"].includes(request.status)) throw new Error("Заявката е приключена");
-  if (file.size > settings.max_file_mb * 1024 * 1024)
-    throw new Error(`Файлът е над ${settings.max_file_mb} MB`);
+  const validationError = validateDocumentUpload(file, settings.max_file_mb);
+  if (validationError) throw new Error(validationError);
 
-  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80);
+  const safe = safeDocumentFileName(file.name);
   const path = `requests/${request.id}/${Date.now()}-${safe}`;
   const { error: upErr } = await db()
     .storage.from(BUCKET)
@@ -925,18 +946,25 @@ export async function uploadByToken(
     });
   if (upErr) throw new Error(upErr.message);
 
-  const doc = await registerDocument({
-    requirementCode: request.requirement_code,
-    clientId: request.client_id,
-    propertyId: request.property_id,
-    fileName: file.name,
-    storagePath: path,
-    fileSize: file.size,
-    mimeType: file.type,
-    source: "client_link",
-    notes: note ?? null,
-    requestId: request.id,
-  });
+  let doc;
+  try {
+    doc = await registerDocument({
+      requirementCode: request.requirement_code,
+      clientId: request.client_id,
+      propertyId: request.property_id,
+      dealId: request.deal_id,
+      fileName: file.name,
+      storagePath: path,
+      fileSize: file.size,
+      mimeType: file.type,
+      source: "client_link",
+      notes: note ?? null,
+      requestId: request.id,
+    });
+  } catch (error) {
+    await db().storage.from(BUCKET).remove([path]);
+    throw error;
+  }
 
   await db()
     .from("document_requests")

@@ -48,7 +48,12 @@ export const listDocumentItems = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: Record<string, unknown>) =>
     z
-      .object({ status: z.string().max(30).nullish(), clientId: uuidish, propertyId: uuidish })
+      .object({
+        status: z.string().max(30).nullish(),
+        clientId: uuidish,
+        propertyId: uuidish,
+        dealId: uuidish,
+      })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
@@ -58,6 +63,7 @@ export const listDocumentItems = createServerFn({ method: "POST" })
       status: data.status ?? null,
       clientId: data.clientId ?? null,
       propertyId: data.propertyId ?? null,
+      dealId: data.dealId ?? null,
     });
   });
 
@@ -65,7 +71,12 @@ export const getDocumentChecklist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: Record<string, unknown>) =>
     z
-      .object({ clientId: uuidish, propertyId: uuidish, category: z.string().max(40).nullish() })
+      .object({
+        clientId: uuidish,
+        propertyId: uuidish,
+        dealId: uuidish,
+        category: z.string().max(40).nullish(),
+      })
       .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
@@ -74,6 +85,7 @@ export const getDocumentChecklist = createServerFn({ method: "POST" })
     return checklistFor({
       clientId: data.clientId ?? null,
       propertyId: data.propertyId ?? null,
+      dealId: data.dealId ?? null,
       category: data.category ?? null,
     });
   });
@@ -85,6 +97,7 @@ export const createDocumentRequests = createServerFn({ method: "POST" })
       .object({
         clientId: uuidish,
         propertyId: uuidish,
+        dealId: uuidish,
         requirementCodes: z.array(z.string().max(60)).min(1).max(30),
         dueDays: z.number().int().min(1).max(120).nullish(),
         message: z.string().max(600).nullish(),
@@ -130,6 +143,7 @@ export const registerDocumentItem = createServerFn({ method: "POST" })
         requirementCode: z.string().max(60).nullish(),
         clientId: uuidish,
         propertyId: uuidish,
+        dealId: uuidish,
         title: z.string().max(200).nullish(),
         fileName: z.string().min(1).max(240),
         storagePath: z.string().max(400).nullish(),
@@ -182,11 +196,13 @@ export const aiReviewDocumentItem = createServerFn({ method: "POST" })
 
 export const documentSignedUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: Record<string, unknown>) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: Record<string, unknown>) =>
+    z.object({ id: z.string().uuid(), download: z.boolean().optional() }).parse(d),
+  )
   .handler(async ({ data, context }) => {
     await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
     const { signedUrlFor } = await import("@/lib/documents.server");
-    return signedUrlFor(data.id);
+    return signedUrlFor(data.id, 300, data.download ?? false);
   });
 
 export const deleteDocumentItem = createServerFn({ method: "POST" })
@@ -267,7 +283,7 @@ export const listDocumentPickers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertCrmAccess(context.userId, context.supabase, actorEmail(context.claims));
-    const [{ data: clients }, { data: properties }] = await Promise.all([
+    const [{ data: clients }, { data: properties }, { data: deals }] = await Promise.all([
       context.supabase
         .from("clients")
         .select("id, full_name, email, phone")
@@ -278,10 +294,15 @@ export const listDocumentPickers = createServerFn({ method: "GET" })
         .select("id, title, price, city_id, cities(name)")
         .order("created_at", { ascending: false })
         .limit(300),
+      (context.supabase as any)
+        .from("deals")
+        .select("id, title, deal_number, client_id, property_id, status")
+        .order("created_at", { ascending: false })
+        .limit(300),
     ]);
     const propertyRows = (properties ?? []).map((p: any) => ({
       ...p,
       city: p.cities?.name ?? null,
     }));
-    return { clients: clients ?? [], properties: propertyRows };
+    return { clients: clients ?? [], properties: propertyRows, deals: deals ?? [] };
   });

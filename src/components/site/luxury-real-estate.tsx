@@ -251,6 +251,11 @@ import { resolveAssetUrl } from "@/lib/asset-url";
 import { MortgageRangeBand } from "@/components/site/mortgage-range-band";
 import { SiteHeader, type SiteNavKey } from "@/components/site/site-header";
 import { GoldDustLayer } from "@/components/site/gold-dust-card";
+import {
+  MobileDistrictScreen,
+  MobilePropertyScreen,
+} from "@/components/site/mobile-opa-public";
+import { PropertyInquiryForm } from "@/components/site/property-inquiry-form";
 
 // Route external images through a CDN proxy to bypass cross-origin resource policy blocks.
 function proxyImage(url?: string | null): string {
@@ -2543,7 +2548,9 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
   const districtHeroPoster = (citySlugImages as Record<string, string>)[city.slug] || burgasHero;
 
   return (
-    <main className="luxury-page nadezhda-marble-bg min-h-screen font-sans-nadezhda text-[#31020c]">
+    <>
+      <MobileDistrictScreen data={{ city, quarter, properties, gallery: data?.gallery ?? [] }} />
+    <main className="luxury-page nadezhda-marble-bg hidden min-h-screen font-sans-nadezhda text-[#31020c] md:block">
       <LuxuryHeader active="sale" />
 
       {/* HERO — city video */}
@@ -2698,6 +2705,7 @@ export function DistrictPage({ data }: { data?: QuarterData } = {}) {
         />
       </div>
     </main>
+    </>
   );
 }
 
@@ -3037,7 +3045,9 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
     (citySlugImages as Record<string, string>)[citySlug] || property.cover_image_url || burgasHero;
 
   return (
-    <main className="luxury-page nadezhda-marble-bg min-h-screen font-sans-nadezhda text-[#31020c]">
+    <>
+      <MobilePropertyScreen data={data} />
+    <main className="luxury-page nadezhda-marble-bg hidden min-h-screen font-sans-nadezhda text-[#31020c] md:block">
       <LuxuryHeader active="sale" />
 
       {/* HERO — city video (replaces the big top image; gallery below is untouched) */}
@@ -3454,6 +3464,7 @@ export function PropertyPage({ data }: { data?: PropertyData } = {}) {
         </section>
       ) : null}
     </main>
+    </>
   );
 }
 
@@ -3707,129 +3718,5 @@ function InquiryForm({
   propertyId?: string;
   propertyTitle?: string;
 }) {
-  const [name, setName] = useReactState("");
-  const [email, setEmail] = useReactState("");
-  const [phone, setPhone] = useReactState("");
-  const [message, setMessage] = useReactState(
-    propertyTitle ? `Здравейте, интересувам се от "${propertyTitle}". ` : "",
-  );
-  const [status, setStatus] = useReactState<"idle" | "sending" | "ok" | "error">("idle");
-  const [err, setErr] = useReactState<string | null>(null);
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus("sending");
-    setErr(null);
-    try {
-      const { submitInquiry } = await import("@/lib/catalog.functions");
-      await submitInquiry({
-        data: {
-          property_id: propertyId ?? null,
-          name,
-          email,
-          phone: phone || undefined,
-          message: message || undefined,
-        },
-      });
-      // Автоматизация №1/№2 — лийдът тръгва към CRM и получава първи контакт.
-      try {
-        const params = new URLSearchParams(window.location.search);
-        await fetch("/api/public/leads/capture", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            full_name: name,
-            email,
-            phone: phone || null,
-            message: message || null,
-            channel: propertyId ? "property_page" : "website",
-            source: document.referrer || "imotinadezhda.bg",
-            property_id: propertyId ?? null,
-            utm_source: params.get("utm_source"),
-            utm_medium: params.get("utm_medium"),
-            utm_campaign: params.get("utm_campaign"),
-            referrer: document.referrer || null,
-            landing_path: window.location.pathname,
-          }),
-        });
-      } catch {
-        /* лийд-автоматизацията не блокира потвърждението към клиента */
-      }
-      setStatus("ok");
-      setName("");
-      setEmail("");
-      setPhone("");
-      setMessage("");
-    } catch (e: any) {
-      setStatus("error");
-      setErr(e?.message ?? "Грешка при изпращане");
-    }
-  };
-
-  return (
-    <aside className="marble-dark-panel space-y-4 rounded-[20px] p-5 text-primary-foreground shadow-[0_22px_45px_rgba(139,26,43,0.3)]">
-      <div>
-        <div className="font-display text-[1.8rem] leading-none text-primary-foreground">
-          Изпрати запитване
-        </div>
-        <div className="mt-1 text-base text-primary/85">
-          Ще се свържем с вас възможно най-бързо.
-        </div>
-      </div>
-      {status === "ok" ? (
-        <div className="rounded-[14px] bg-primary-foreground/10 p-4 text-base">
-          Благодарим! Получихме запитването ви.
-        </div>
-      ) : (
-        <form onSubmit={onSubmit} className="space-y-3">
-          <input
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Име"
-            className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60"
-          />
-          <input
-            required
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Имейл"
-            className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60"
-          />
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Телефон (по избор)"
-            className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60"
-          />
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Съобщение"
-            rows={4}
-            className="w-full rounded-[12px] border border-primary/25 bg-background/10 px-4 py-3 text-primary-foreground placeholder:text-primary/60"
-          />
-          {err ? <div className="text-sm text-destructive-foreground">{err}</div> : null}
-          <Button
-            type="submit"
-            disabled={status === "sending"}
-            className="gold-cta-button h-14 w-full rounded-[14px] text-lg"
-          >
-            {status === "sending" ? "Изпращане…" : "Изпрати запитване"}
-          </Button>
-        </form>
-      )}
-      <div className="space-y-2 border-t border-primary/15 pt-3 text-base">
-        <div className="flex items-center gap-3">
-          <Phone className="h-5 w-5 text-primary" />
-          {AGENCY.phoneDisplay}
-        </div>
-        <div className="flex items-center gap-3 break-all">
-          <Mail className="h-5 w-5 text-primary" />
-          {AGENCY.email}
-        </div>
-      </div>
-    </aside>
-  );
+  return <PropertyInquiryForm propertyId={propertyId} propertyTitle={propertyTitle} />;
 }
