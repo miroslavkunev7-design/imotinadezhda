@@ -8,16 +8,18 @@ import {
   previewUrlForSlug,
   signOut
 } from "./api";
-import { mergeCatalog } from "./componentCatalog";
+import { groupComponents, mergeCatalog } from "./componentCatalog";
 import { postToIframe, type PreviewComponentPayload } from "./previewBridge";
 import { Login } from "./components/Login";
 import { ComponentEditor } from "./components/ComponentEditor";
+import { DisassembleEditor } from "./components/DisassembleEditor";
 import { ArchivePanel } from "./components/ArchivePanel";
 import { CitiesPanel } from "./components/CitiesPanel";
 import { BankPanel } from "./components/BankPanel";
 import { AgentPanel } from "./components/AgentPanel";
+import { BrokersPanel } from "./components/BrokersPanel";
 
-type Tab = "pages" | "archive" | "cities" | "bank" | "agent" | "display";
+type Tab = "pages" | "archive" | "cities" | "bank" | "brokers" | "agent" | "display" | "video";
 
 const FALLBACK_PAGES: CmsPage[] = [
   { id: "local-home", slug: "/", label: "Desktop home", schema_version: 1 },
@@ -48,6 +50,8 @@ export default function App() {
   const [scale, setScale] = useState(0.48);
   const [device, setDevice] = useState("desktop");
   const [liveMap, setLiveMap] = useState<Record<string, PreviewComponentPayload>>({});
+  const [disassembleMode, setDisassembleMode] = useState(false);
+  const [exploded, setExploded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const hasElectron = !!window.imotiSettings;
 
@@ -139,6 +143,8 @@ export default function App() {
     [components, selectedKey]
   );
 
+  const grouped = useMemo(() => groupComponents(components), [components]);
+
   const onSelectComponent = useCallback((key: string) => {
     setSelectedKey(key);
     setCreating(false);
@@ -149,6 +155,14 @@ export default function App() {
       props: c.props || {}
     })), key);
   }, [liveMap, components, pushPreview]);
+
+  const openExploded = useCallback((key: string) => {
+    onSelectComponent(key);
+    setDisassembleMode(true);
+    setExploded(true);
+    setCreating(false);
+    toastMsg("Разглобен изглед · " + key);
+  }, [onSelectComponent, toastMsg]);
 
   const onLiveChange = useCallback((draft: PreviewComponentPayload) => {
     setLiveMap((prev) => {
@@ -168,6 +182,20 @@ export default function App() {
     return () => iframe?.removeEventListener("load", onLoad);
   }, [liveMap, selectedKey, pushPreview]);
 
+  // Double-click on walkthrough preview → explode when disassemble mode is on
+  useEffect(() => {
+    function onMessage(ev: MessageEvent) {
+      const d = ev.data;
+      if (!d || d.source !== "imoti-preview") return;
+      if (d.type === "component-dblclick" && typeof d.key === "string") {
+        if (disassembleMode) openExploded(d.key);
+        else onSelectComponent(d.key);
+      }
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [disassembleMode, openExploded, onSelectComponent]);
+
   if (!ready) return <div className="login"><p>Loading…</p></div>;
   if (!authed) {
     return (
@@ -184,9 +212,19 @@ export default function App() {
   }
 
   const showIframePreview = walkthrough || !hasElectron;
+  const navItems: [Tab, string][] = [
+    ["pages", "Pages"],
+    ["cities", "Cities"],
+    ["bank", "Bank"],
+    ["archive", "Archive"],
+    ["brokers", "Brokers"],
+    ["display", "Display"],
+    ["video", "Video"],
+    ["agent", "Agent"]
+  ];
 
   return (
-    <div className={"app" + (showIframePreview ? " walkthrough" : "")}>
+    <div className={"app" + (showIframePreview ? " walkthrough" : "") + (disassembleMode ? " disassemble-on" : "") + (exploded ? " exploded" : "")}>
       <header className="topbar">
         <img src="./assets/logo.png" alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         <h1>Imoti Nadezhda Settings</h1>
@@ -194,6 +232,21 @@ export default function App() {
           {walkthrough ? "Walkthrough · mock staff · live editors" : "Windows companion · CMS → live site"}
         </span>
         <span className="spacer" />
+        <button
+          type="button"
+          className={"toggle-disassemble" + (disassembleMode ? " pressed" : "")}
+          aria-pressed={disassembleMode}
+          title="Включва режим разглобяване — после двоен клик върху компонент"
+          onClick={() => {
+            setDisassembleMode((v) => {
+              const next = !v;
+              if (!next) setExploded(false);
+              return next;
+            });
+          }}
+        >
+          Разглоби компонент
+        </button>
         <button
           type="button"
           className="ghost"
@@ -218,68 +271,126 @@ export default function App() {
         </button>
       </header>
 
-      <aside className="sidebar">
+      <aside className="sidebar ruled">
         <div className="nav-tabs">
-          {([
-            ["pages", "Pages"],
-            ["agent", "Agent"],
-            ["archive", "Archive"],
-            ["cities", "Cities"],
-            ["bank", "Bank"],
-            ["display", "Display"]
-          ] as [Tab, string][]).map(([id, label]) => (
-            <button key={id} type="button" className={tab === id ? "active" : ""} onClick={() => setTab(id)}>{label}</button>
+          {navItems.map(([id, label]) => (
+            <button key={id} type="button" className={tab === id ? "active" : ""} onClick={() => { setTab(id); setExploded(false); }}>{label}</button>
           ))}
         </div>
 
         {tab === "pages" && (
           <>
-            <h2>Site pages</h2>
-            {(pages.length ? pages : FALLBACK_PAGES).map((p) => (
-              <button
-                key={p.id || p.slug}
-                type="button"
-                className={"page-btn" + (p.slug === slug ? " active" : "")}
-                onClick={() => { setSlug(p.slug); setCreating(false); }}
-              >
-                {p.label}
-                <small>{p.slug}</small>
-              </button>
-            ))}
-            <h2>Components ({components.length})</h2>
-            {components.length === 0 && <div className="empty">No components — catalog failed to load.</div>}
-            {components.map((c) => (
-              <button
-                key={c.id || c.component_key}
-                type="button"
-                className={"comp-btn" + (c.component_key === selectedKey && !creating ? " active" : "")}
-                onClick={() => onSelectComponent(c.component_key)}
-              >
-                {typeof c.props?._label === "string" ? String(c.props._label) : c.component_key}
-                <small>{c.type} · {c.component_key}</small>
-              </button>
-            ))}
-            <div className="actions">
-              <button type="button" className="primary" onClick={() => { setCreating(true); setSelectedKey(null); }}>
-                + New component
-              </button>
+            <div className="side-section">
+              <h2>Pages</h2>
+              <div className="side-rule" />
+              {(pages.length ? pages : FALLBACK_PAGES).map((p) => (
+                <button
+                  key={p.id || p.slug}
+                  type="button"
+                  className={"page-btn" + (p.slug === slug ? " active" : "")}
+                  onClick={() => { setSlug(p.slug); setCreating(false); setExploded(false); }}
+                >
+                  {p.label}
+                  <small>{p.slug}</small>
+                </button>
+              ))}
+            </div>
+
+            <div className="side-section">
+              <h2>Components · {components.length}</h2>
+              <div className="side-rule" />
+              {components.length === 0 && <div className="empty">No components — catalog failed to load.</div>}
+              {grouped.map((g) => (
+                <div key={g.section} className="comp-group">
+                  <h3 className="comp-group-title">{g.section}</h3>
+                  <div className="side-rule thin" />
+                  {g.items.map((c) => (
+                    <button
+                      key={c.id || c.component_key}
+                      type="button"
+                      className={"comp-btn" + (c.component_key === selectedKey && !creating ? " active" : "")}
+                      onClick={() => onSelectComponent(c.component_key)}
+                      onDoubleClick={() => {
+                        if (disassembleMode) openExploded(c.component_key);
+                        else {
+                          setDisassembleMode(true);
+                          openExploded(c.component_key);
+                        }
+                      }}
+                      title={disassembleMode ? "Двоен клик → разглоби" : "Клик избор · двоен клик разглобява"}
+                    >
+                      {typeof c.props?._label === "string" ? String(c.props._label) : c.component_key}
+                      <small>{c.type} · {c.component_key}</small>
+                    </button>
+                  ))}
+                </div>
+              ))}
+              <div className="actions">
+                <button type="button" className="primary" onClick={() => { setCreating(true); setSelectedKey(null); setExploded(false); }}>
+                  + New component
+                </button>
+              </div>
             </div>
           </>
         )}
 
+        {tab === "cities" && (
+          <div className="side-section">
+            <h2>Cities</h2>
+            <div className="side-rule" />
+            <p className="muted" style={{ padding: "0 6px" }}>CRUD за градове / квартали в работната зона.</p>
+          </div>
+        )}
+        {tab === "bank" && (
+          <div className="side-section">
+            <h2>Bank</h2>
+            <div className="side-rule" />
+            <p className="muted" style={{ padding: "0 6px" }}>Luxury storefronts · brand hex · rates.</p>
+          </div>
+        )}
+        {tab === "archive" && (
+          <div className="side-section">
+            <h2>Archive</h2>
+            <div className="side-rule" />
+            <p className="muted" style={{ padding: "0 6px" }}>Архивирани имоти и клиенти.</p>
+          </div>
+        )}
+        {tab === "brokers" && (
+          <div className="side-section">
+            <h2>Brokers</h2>
+            <div className="side-rule" />
+            <p className="muted" style={{ padding: "0 6px" }}>Auth login + CRM карта от Settings.</p>
+          </div>
+        )}
+        {tab === "display" && (
+          <div className="side-section">
+            <h2>Display</h2>
+            <div className="side-rule" />
+            <p className="muted" style={{ padding: "0 6px" }}>Preview scale · device frames.</p>
+          </div>
+        )}
+        {tab === "video" && (
+          <div className="side-section">
+            <h2>Video</h2>
+            <div className="side-rule" />
+            <p className="muted" style={{ padding: "0 6px" }}>„Видео за имот“ живее в Agent панела (Settings-only).</p>
+            <button type="button" className="page-btn" onClick={() => setTab("agent")}>Отвори Agent / Video</button>
+          </div>
+        )}
         {tab === "agent" && (
-          <>
+          <div className="side-section">
             <h2>TED Agent</h2>
+            <div className="side-rule" />
             <p className="muted" style={{ padding: "0 6px" }}>
-              Dedicated chat inside Settings only. Skill „Видео за имот“ / <code>property_cinematic_video</code> lives here — not on the public site.
+              Dedicated chat inside Settings only. Skill „Видео за имот“ — not on the public site.
             </p>
-          </>
+          </div>
         )}
       </aside>
 
       <main className="main">
         {showIframePreview ? (
-          <div className={"preview-frame device-" + device}>
+          <div className={"preview-frame device-" + device + (exploded ? " focus-zoom" : "")}>
             <iframe
               ref={iframeRef}
               title="Settings live preview"
@@ -288,10 +399,19 @@ export default function App() {
             />
           </div>
         ) : (
-          <div className="preview-slot" aria-hidden />
+          <div className={"preview-slot" + (exploded ? " focus-zoom" : "")} aria-hidden />
         )}
         <div className="workspace">
-          {tab === "pages" && (
+          {tab === "pages" && exploded && disassembleMode && (
+            <DisassembleEditor
+              pageSlug={slug}
+              component={selected}
+              onLiveChange={onLiveChange}
+              onClose={() => setExploded(false)}
+              toast={toastMsg}
+            />
+          )}
+          {tab === "pages" && !(exploded && disassembleMode) && (
             <ComponentEditor
               pageSlug={slug}
               component={creating ? null : selected}
@@ -304,7 +424,9 @@ export default function App() {
           {tab === "archive" && <ArchivePanel toast={toastMsg} />}
           {tab === "cities" && <CitiesPanel toast={toastMsg} />}
           {tab === "bank" && <BankPanel toast={toastMsg} />}
+          {tab === "brokers" && <BrokersPanel toast={toastMsg} walkthrough={walkthrough} />}
           {tab === "agent" && <AgentPanel toast={toastMsg} />}
+          {tab === "video" && <AgentPanel toast={toastMsg} />}
           {tab === "display" && (
             <div className="card">
               <h3>Resolution / display</h3>

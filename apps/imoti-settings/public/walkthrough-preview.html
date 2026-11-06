@@ -12,7 +12,7 @@
     --gold: #bb7b16;
     --gold-l: #ffe17a;
     --ink: #6a001b;
-    --serif: Georgia, "Times New Roman", serif;
+    --serif: Georgia, "PT Serif", "Times New Roman", serif;
     --sans: "Segoe UI", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
@@ -25,40 +25,69 @@
       linear-gradient(165deg, #fff9f2, #f7e8d8 45%, #f3d9c4);
     min-height: 100vh;
   }
-  header {
+  #stage { position: relative; min-height: 100vh; }
+  .bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(120deg, #4a1020, #8a3048 40%, #2a4a28);
+    opacity: .35; pointer-events: none;
+  }
+  header.hdr {
+    position: relative;
+    z-index: 2;
     display: flex;
     align-items: center;
     gap: 14px;
+    min-height: 88px;
     padding: 14px 22px;
     background: linear-gradient(90deg, var(--wine), var(--wine-d));
     color: var(--cream);
+    filter: drop-shadow(0 10px 24px rgba(40,0,10,.35));
   }
-  .logo img { height: 36px; background: rgba(255,255,255,.12); border-radius: 8px; }
-  .brand { font: 700 20px/1 var(--serif); }
-  .nav { display: flex; gap: 10px; margin-left: auto; }
-  .nav a {
+  .logo img { height: 52px; background: rgba(255,255,255,.12); border-radius: 8px; }
+  .brand { font: 700 22px/1 var(--serif); }
+  .nav { display: flex; gap: 10px; margin-left: auto; align-items: center; }
+  .nav a, .nav button {
     color: var(--cream);
     text-decoration: none;
     padding: 8px 14px;
     border-radius: 999px;
     border: 1px solid rgba(240, 212, 160, 0.45);
-    font-weight: 700;
-    font-size: 13px;
+    font: 600 15px/1 var(--serif);
+    background: transparent;
+    cursor: pointer;
   }
-  .hero {
-    min-height: 220px;
+  .nav .acc {
+    width: 42px; height: 42px; border-radius: 999px;
+    display: grid; place-items: center;
+    border: 1px solid rgba(240,212,160,.5);
+  }
+  .search {
+    position: relative; z-index: 2;
     margin: 18px;
-    border-radius: 24px;
-    padding: 28px;
+    min-height: 120px;
+    border-radius: 22px;
+    padding: 18px 20px;
     color: var(--cream);
-    background:
-      linear-gradient(120deg, rgba(113,0,25,.88), rgba(80,10,20,.55)),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Crect fill='%23401018' width='160' height='160'/%3E%3Ccircle cx='40' cy='40' r='28' fill='%236b1528'/%3E%3C/svg%3E");
-    background-size: cover;
+    background: linear-gradient(120deg, rgba(113,0,25,.92), rgba(80,10,20,.7));
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) auto;
+    gap: 12px;
+    align-items: end;
   }
-  .hero h1 { margin: 0 0 8px; font: 700 34px/1.1 var(--serif); }
-  .hero p { margin: 0; opacity: .9; max-width: 42ch; }
+  .search .f small { display: block; opacity: .75; font-size: 12px; }
+  .search .f b { font: 700 16px/1.2 var(--serif); }
+  .filt, .go {
+    border: 1px solid rgba(240,212,160,.5);
+    border-radius: 14px;
+    background: rgba(255,255,255,.08);
+    color: var(--cream);
+    padding: 10px 14px;
+    font: 700 14px var(--serif);
+    cursor: pointer;
+  }
+  .go { background: linear-gradient(180deg, #b42446, #6b0a1c); }
   .grid {
+    position: relative; z-index: 2;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
@@ -71,6 +100,8 @@
     overflow: hidden;
     background: #fff7ec;
     box-shadow: 0 10px 24px rgba(30,0,8,.18);
+    text-decoration: none;
+    color: inherit;
   }
   .card .ph {
     position: absolute; inset: 0 0 70px 0;
@@ -81,19 +112,21 @@
     position: absolute; left: 0; right: 0; top: 96px; bottom: 0;
     background: linear-gradient(180deg, rgba(255,247,236,0) 0%, #fff7ec 52%);
   }
+  .card .pin { position: absolute; left: 18px; bottom: 48px; color: var(--gold); font-size: 18px; }
   .card h3 {
-    position: absolute; left: 18px; bottom: 42px; margin: 0;
+    position: absolute; left: 42px; bottom: 42px; margin: 0;
     font: 700 22px/1.1 var(--serif); color: var(--ink);
   }
   .card span {
-    position: absolute; left: 18px; bottom: 16px;
+    position: absolute; left: 42px; bottom: 16px;
     font: 700 14px/1 var(--serif); color: var(--gold);
   }
   .feat {
+    position: relative; z-index: 2;
     display: flex; gap: 18px; padding: 8px 22px 28px;
   }
-  .f { display: flex; gap: 10px; align-items: center; }
-  .f svg.i { width: 44px; height: 44px; color: var(--gold); }
+  .f-icon { display: flex; gap: 10px; align-items: center; }
+  .f-icon svg.i { width: 44px; height: 44px; color: var(--gold); }
   .badge {
     position: fixed; left: 10px; bottom: 10px;
     font: 700 11px/1 var(--sans);
@@ -102,41 +135,77 @@
     background: rgba(42,10,18,.85);
     color: #f5d58d;
     border: 1px solid rgba(201,146,46,.5);
+    z-index: 5;
+  }
+  [data-cms-key] { cursor: pointer; }
+  [data-cms-key].cms-hit {
+    outline: 3px solid #8dffb0;
+    outline-offset: 3px;
   }
 </style>
 </head>
 <body>
-  <header>
-    <div class="logo"><img alt="logo" width="36" height="36" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Crect rx='8' width='36' height='36' fill='%23f0d4a0'/%3E%3Ctext x='18' y='24' text-anchor='middle' font-size='16' fill='%23710019'%3EIN%3C/text%3E%3C/svg%3E" /></div>
-    <div class="brand">Имоти Надежда</div>
-    <nav class="nav">
-      <a href="#" data-deal="sale">За продажба</a>
-      <a href="#" data-deal="rent">Под наем</a>
-    </nav>
-  </header>
-  <section class="hero stage">
-    <h1>Жива превю сцена</h1>
-    <p>Промените от Settings се рисуват тук веднага — цвят, форма, melt, размер.</p>
-  </section>
-  <div class="grid">
-    <a class="card" href="#"><div class="ph" style="background-image:linear-gradient(135deg,#5a2030,#c9922e)"></div><div class="fd"></div><h3>Бургас</h3><span>Квартали</span></a>
-    <a class="card" href="#"><div class="ph" style="background-image:linear-gradient(135deg,#203a5a,#c9922e)"></div><div class="fd"></div><h3>Варна</h3><span>Квартали</span></a>
-    <a class="card" href="#"><div class="ph" style="background-image:linear-gradient(135deg,#2a4a28,#c9922e)"></div><div class="fd"></div><h3>Шумен</h3><span>Квартали</span></a>
+  <div id="stage">
+    <div class="bg" data-cms-key="hero.bg" role="img" aria-label="Панорама"></div>
+    <header class="hdr" data-cms-key="nav.header">
+      <a class="logo" href="#" data-cms-key="nav.logo" aria-label="Лого">
+        <img alt="logo" width="52" height="52" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52'%3E%3Crect rx='8' width='52' height='52' fill='%23f0d4a0'/%3E%3Ctext x='26' y='34' text-anchor='middle' font-size='18' fill='%23710019'%3EIN%3C/text%3E%3C/svg%3E" />
+      </a>
+      <div class="brand">Имоти Надежда</div>
+      <nav class="nav" data-cms-key="nav.links" aria-label="Основна навигация">
+        <a href="#" data-deal="sale">За продажба</a>
+        <a href="#" data-deal="rent">Под наем</a>
+        <button type="button">За нас</button>
+        <a class="acc" href="#" data-cms-key="nav.staff" aria-label="Вход">●</a>
+      </nav>
+    </header>
+
+    <form class="search" id="sf" data-cms-key="search.panel" role="search">
+      <label class="f"><small>Град</small><b>Бургас</b></label>
+      <label class="f"><small>Квартал</small><b>Всички</b></label>
+      <label class="f"><small>Цена</small><b>от 50 000 €</b></label>
+      <label class="f"><small>Площ</small><b>от 50 м²</b></label>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="filt" id="filt" data-cms-key="search.filters">Филтри</button>
+        <button type="button" class="go" data-cms-key="search.go">Търси</button>
+      </div>
+    </form>
+
+    <div class="grid" data-cms-key="city.cards">
+      <a class="card" href="#"><div class="ph" data-cms-key="city.card.photo" style="background-image:linear-gradient(135deg,#5a2030,#c9922e)"></div><div class="fd" data-cms-key="city.card.melt"></div><span class="pin" data-cms-key="city.card.pin">📍</span><h3 data-cms-key="city.card.title">Бургас</h3><span>Квартали</span></a>
+      <a class="card" href="#"><div class="ph" style="background-image:linear-gradient(135deg,#203a5a,#c9922e)"></div><div class="fd"></div><span class="pin">📍</span><h3>Варна</h3><span>Квартали</span></a>
+      <a class="card" href="#"><div class="ph" style="background-image:linear-gradient(135deg,#2a4a28,#c9922e)"></div><div class="fd"></div><span class="pin">📍</span><h3>Шумен</h3><span>Квартали</span></a>
+    </div>
+
+    <div class="feat">
+      <div class="f-icon"><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 7v11H3V10l9-7zm0 2.2L5 10.3V19h14v-8.7L12 5.2z"/></svg><span>Домове</span></div>
+      <div class="f-icon"><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V9l8-5 8 5v11H4zm2-2h12v-8.2L12 6.4 6 9.8V18z"/></svg><span>CRM</span></div>
+      <div class="f-icon"><svg class="i" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg><span>Банка</span></div>
+    </div>
   </div>
-  <div class="feat">
-    <div class="f"><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 7v11H3V10l9-7zm0 2.2L5 10.3V19h14v-8.7L12 5.2z"/></svg><span>Домове</span></div>
-    <div class="f"><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V9l8-5 8 5v11H4zm2-2h12v-8.2L12 6.4 6 9.8V18z"/></svg><span>CRM</span></div>
-    <div class="f"><svg class="i" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg><span>Банка</span></div>
-  </div>
-  <div class="badge">Walkthrough preview · cms live</div>
+  <div class="badge">Walkthrough · real DOM map · dblclick = разглоби</div>
   <script>
     (function () {
       var params = new URLSearchParams(location.search);
       var slug = params.get("slug") || "/";
       document.documentElement.setAttribute("data-cms-slug", slug);
-      if (slug.indexOf("bank") >= 0) document.querySelector(".hero h1").textContent = "Банка — luxury storefront";
-      if (slug.indexOf("city") >= 0) document.querySelector(".hero h1").textContent = "Град · " + slug.split("/").pop();
-      if (slug.indexOf("mobile") >= 0) document.querySelector(".hero h1").textContent = "Мобилен вход";
+      if (slug.indexOf("bank") >= 0) {
+        var b = document.querySelector(".brand");
+        if (b) b.textContent = "Банка · luxury";
+      }
+      if (slug.indexOf("city") >= 0) {
+        var c = document.querySelector(".brand");
+        if (c) c.textContent = "Град · " + slug.split("/").pop();
+      }
+      document.addEventListener("dblclick", function (ev) {
+        var el = ev.target && ev.target.closest ? ev.target.closest("[data-cms-key]") : null;
+        if (!el) return;
+        var key = el.getAttribute("data-cms-key");
+        if (!key) return;
+        try {
+          parent.postMessage({ source: "imoti-preview", type: "component-dblclick", key: key }, "*");
+        } catch (e) {}
+      });
     })();
   </script>
   <script src="./cms-overrides-local.js"></script>

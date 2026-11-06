@@ -248,3 +248,72 @@ export function previewUrlForSlug(slug: string, origin = "https://imotinadezhda.
   if (slug.startsWith("/")) return origin + slug;
   return origin + "/" + slug;
 }
+
+export type BrokerCard = {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  office?: string;
+  title?: string;
+  active?: boolean;
+};
+
+/** Prefer deployed /api/brokers; never call Auth Admin from Electron. */
+export const BROKERS_API =
+  (import.meta.env.VITE_BROKERS_API as string) || "https://imotinadezhda.bg/api/brokers";
+
+export async function listBrokers(): Promise<BrokerCard[]> {
+  const t = await token();
+  try {
+    const r = await fetch(BROKERS_API + "?action=list", {
+      headers: t ? { Authorization: "Bearer " + t } : {},
+      cache: "no-store"
+    });
+    const j = await r.json();
+    if (j.ok && Array.isArray(j.brokers)) return j.brokers as BrokerCard[];
+  } catch {
+    /* fall through */
+  }
+  const { data, error } = await client().from("nd_brokers").select("id,name,data").order("name").limit(200);
+  if (error) throw error;
+  return (data || []).map((row) => {
+    const d = (row.data || {}) as Record<string, unknown>;
+    return {
+      id: row.id,
+      name: row.name || String(d.name || ""),
+      email: typeof d.email === "string" ? d.email : undefined,
+      phone: typeof d.phone === "string" ? d.phone : undefined,
+      office: typeof d.office === "string" ? d.office : undefined,
+      title: typeof d.title === "string" ? d.title : undefined,
+      active: d.active !== false
+    };
+  });
+}
+
+export async function createBrokerProfile(input: {
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+  office?: string;
+  title?: string;
+}): Promise<{ ok: true; email: string; user_id: string; broker_id: string }> {
+  const t = await token();
+  if (!t) throw new Error("Not signed in as staff");
+  const r = await fetch(BROKERS_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + t },
+    body: JSON.stringify({ action: "create", ...input })
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.ok) {
+    throw new Error(
+      (j && j.error) ||
+        (r.status === 404
+          ? "api/brokers not deployed yet — needs production deploy + SUPABASE_SERVICE_ROLE_KEY"
+          : `Broker create failed (HTTP ${r.status})`)
+    );
+  }
+  return j as { ok: true; email: string; user_id: string; broker_id: string };
+}

@@ -111,6 +111,19 @@ function propsFromDraft(d: Draft): Record<string, unknown> {
     return { selector: d.selector, preset: d.graphics, size: d.graphicSize, color: d.graphicColor };
   }
   if (d.type === "dropdown") return { items: d.menuItems, selector: d.selector };
+  if (d.type === "panel") {
+    return {
+      selector: d.selector,
+      panel: { color: d.color, effect: d.meltMode || "drop-shadow", height: d.height, glow: "0 8px 18px rgba(0,0,0,.35)" },
+      font: { family: "Georgia, serif", size: d.graphicSize || "28px", weight: "700", color: d.graphicColor || "#fff3e2", selector: d.selector }
+    };
+  }
+  if (d.type === "text") {
+    return {
+      selector: d.selector,
+      font: { family: "Georgia, serif", size: d.height || "28px", weight: "700", color: d.color, selector: d.selector }
+    };
+  }
   return { cssVar: d.cssVar, value: d.color, selector: d.selector };
 }
 
@@ -267,6 +280,8 @@ export function ComponentEditor({ pageSlug, component, creating, onSaved, onLive
           <span>Type</span>
           <select value={draft.type} onChange={(e) => patch({ type: e.target.value })}>
             <option value="color">Color</option>
+            <option value="panel">Head / panel</option>
+            <option value="text">Text / font</option>
             <option value="shape">Shape</option>
             <option value="image">Image</option>
             <option value="melt">Melt photo</option>
@@ -277,6 +292,28 @@ export function ComponentEditor({ pageSlug, component, creating, onSaved, onLive
           </select>
         </label>
       </div>
+
+      {(draft.type === "panel" || draft.type === "text") && (
+        <div style={{ marginTop: 12 }}>
+          <p className="muted">
+            За пълен разглобен изглед (font / head panel effects) включете „Разглоби компонент“ и двойно кликнете компонента.
+          </p>
+          <label className="field">
+            <span>Selector</span>
+            <input value={draft.selector} onChange={(e) => patch({ selector: e.target.value })} />
+          </label>
+          <div className="grid2" style={{ marginTop: 10 }}>
+            <label className="field">
+              <span>{draft.type === "panel" ? "Panel color" : "Text color"}</span>
+              <input type="color" value={draft.color} onChange={(e) => patch({ color: e.target.value })} />
+            </label>
+            <label className="field">
+              <span>{draft.type === "panel" ? "Panel height" : "Font size"}</span>
+              <input value={draft.height} onChange={(e) => patch({ height: e.target.value })} />
+            </label>
+          </div>
+        </div>
+      )}
 
       {draft.type === "color" && (
         <div style={{ marginTop: 12 }}>

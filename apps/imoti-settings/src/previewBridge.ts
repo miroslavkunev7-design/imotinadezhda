@@ -64,6 +64,32 @@ export function buildApplyScript(components: PreviewComponentPayload[], highligh
           if (p.selector && c.type === "graphics") {
             rules.push(p.selector + "{color:" + (p.color || "#c9922e") + ";width:" + (p.size || "44px") + ";height:" + (p.size || "44px") + ";}");
           }
+          if (p.font && typeof p.font === "object") {
+            const f = p.font;
+            const fontSel = f.selector || p.selector;
+            if (fontSel) {
+              const bits = [];
+              if (f.family) bits.push("font-family:" + f.family);
+              if (f.size) bits.push("font-size:" + f.size);
+              if (f.weight) bits.push("font-weight:" + f.weight);
+              if (f.color) bits.push("color:" + f.color);
+              if (bits.length) rules.push(fontSel + "{" + bits.join(";") + " !important;}");
+            }
+          }
+          if ((c.type === "panel" || c.type === "text" || p.panel) && p.panel && typeof p.panel === "object") {
+            const pan = p.panel;
+            const panSel = pan.selector || p.selector;
+            if (panSel) {
+              const bits = [];
+              if (pan.color) bits.push("background-color:" + pan.color);
+              if (pan.height) bits.push("min-height:" + pan.height);
+              if (pan.effect === "drop-shadow" || pan.effect === "soft-glow" || pan.effect === "night-glow") {
+                bits.push("filter:drop-shadow(" + (pan.glow || "0 8px 18px rgba(0,0,0,.35)") + ")");
+              }
+              if (pan.effect === "blur-glass") bits.push("backdrop-filter:blur(10px)");
+              if (bits.length) rules.push(panSel + "{" + bits.join(";") + " !important;}");
+            }
+          }
         });
         const hl = highlightKey
           ? (list || []).find(function(x) { return x.component_key === highlightKey; })

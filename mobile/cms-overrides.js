@@ -85,6 +85,32 @@
     if (c.type === "graphics" && p.selector) {
       rules.push(p.selector + "{color:" + (p.color || "#c9922e") + ";width:" + (p.size || "44px") + ";height:" + (p.size || "44px") + ";}");
     }
+    if (p.font && typeof p.font === "object") {
+      var f = p.font;
+      var fontSel = f.selector || p.selector;
+      if (fontSel) {
+        var fbits = [];
+        if (f.family) fbits.push("font-family:" + f.family);
+        if (f.size) fbits.push("font-size:" + f.size);
+        if (f.weight) fbits.push("font-weight:" + f.weight);
+        if (f.color) fbits.push("color:" + f.color);
+        if (fbits.length) rules.push(fontSel + "{" + fbits.join(";") + " !important;}");
+      }
+    }
+    if ((c.type === "panel" || c.type === "text" || p.panel) && p.panel && typeof p.panel === "object") {
+      var pan = p.panel;
+      var panSel = pan.selector || p.selector;
+      if (panSel) {
+        var pbits = [];
+        if (pan.color) pbits.push("background-color:" + pan.color);
+        if (pan.height) pbits.push("min-height:" + pan.height);
+        if (pan.effect === "drop-shadow" || pan.effect === "soft-glow" || pan.effect === "night-glow") {
+          pbits.push("filter:drop-shadow(" + (pan.glow || "0 8px 18px rgba(0,0,0,.35)") + ")");
+        }
+        if (pan.effect === "blur-glass") pbits.push("backdrop-filter:blur(10px)");
+        if (pbits.length) rules.push(panSel + "{" + pbits.join(";") + " !important;}");
+      }
+    }
     if (c.type === "dropdown" && p.selector && Array.isArray(p.items) && p.items.length) {
       var host = document.querySelector(p.selector);
       if (host && !host.getAttribute("data-cms-dropdown")) {
