@@ -50,6 +50,8 @@
     ".nd-card button{margin-top:18px;width:100%;height:50px;border-radius:16px;border:1.5px solid #e3b25e;background:linear-gradient(180deg,#b42446,#9a1a33 45%,#4f0716);color:#fff3dc;font:700 18px 'Roboto Condensed',system-ui,sans-serif;letter-spacing:.3px;cursor:pointer;box-shadow:0 0 18px rgba(227,178,94,.55),inset 0 1px 0 rgba(255,255,255,.35)}" +
     ".nd-card button:disabled{opacity:.6}" +
     ".nd-card .err{min-height:20px;margin:10px 2px 0;color:#b4142e;font-weight:700;font-size:14px}" +
+    ".nd-card select{width:100%;box-sizing:border-box;height:46px;border-radius:14px;border:1.5px solid rgba(227,178,94,.85);background:rgba(255,255,255,.8);padding:0 10px;font:16px 'Roboto Condensed',system-ui,sans-serif;color:#2b1414}" +
+    ".nd-card .nd-reg[hidden],.nd-card .nd-reg2[hidden],.nd-card label[hidden],.nd-card input[hidden],.nd-card .nd-apps[hidden]{display:none}" +
     ".nd-card .lnk{display:block;margin:12px auto 0;background:none;border:0;box-shadow:none;height:auto;width:auto;color:#6b0a1c;font:700 14px 'Roboto Condensed',sans-serif;text-decoration:underline;cursor:pointer}" +
     ".nd-apps{margin:16px 2px 0;text-align:center}" +
     ".nd-apps>span{display:block;font-weight:700;font-size:14px;color:#6b0a1c;margin-bottom:9px}" +
@@ -83,7 +85,9 @@
         '<div><button type="button" class="app" data-app="android" aria-label="Изтегли за Android"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22A11.5 11.5 0 0 0 12 8.08c-1.78 0-3.46.38-4.92 1.06L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48C3.2 11.22 1.04 14.46.75 18.25h22.5c-.29-3.79-2.45-7.03-5.65-8.77zM7 15.25a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm10 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg></button><small>Android</small></div>' +
         '<div><button type="button" class="app" data-app="windows" aria-label="Изтегли за Windows"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M2 4.3l8.2-1.1v7.9H2zm9.2-1.3L22 1.5v9.6H11.2zM2 12.1h8.2V20L2 18.9zm9.2 0H22v9.6l-10.8-1.5z"/></svg></button><small>Windows</small></div>' +
         '</div><div class="nd-howto" role="status" hidden></div></div>' +
-        '<div class="err" role="alert"></div><button type="submit">Вход</button><button type="button" class="lnk" data-reset>Забравена парола</button></form>';
+        '<div class="nd-reg" hidden><label for="nd-code">Кодово изречение</label><input id="nd-code" type="password" autocomplete="off" placeholder="Въведете кодовото изречение">' +
+        '<div class="nd-reg2" hidden><label for="nd-name">Име и фамилия</label><input id="nd-name" type="text" autocomplete="name"><label for="nd-phone">Телефон</label><input id="nd-phone" type="tel" autocomplete="tel" placeholder="08…"><label for="nd-title">Длъжност</label><select id="nd-title"><option>Брокер</option><option>Старши брокер</option><option>Консултант</option><option>Управител</option></select><label for="nd-pw2">Повторете паролата</label><input id="nd-pw2" type="password" autocomplete="new-password"></div></div>' +
+        '<div class="err" role="alert"></div><button type="submit">Вход</button><button type="button" class="lnk" data-reset>Забравена парола</button><button type="button" class="lnk" data-reg>Регистрация на брокер</button></form>';
       document.body.appendChild(box);
       box.querySelector(".nd-apps").addEventListener("click", function (e) { var b = e.target.closest("[data-app]"); if (b) install(b.getAttribute("data-app"), box.querySelector(".nd-howto")); });
     }
@@ -95,15 +99,54 @@
   function waitLogin(msg) {
     return new Promise(function (ok) {
       var b = authBox(msg), f = b.querySelector("form"), err = b.querySelector(".err"), btn = b.querySelector('button[type="submit"]');
+      var mode = "login", reg = b.querySelector(".nd-reg"), reg2 = b.querySelector(".nd-reg2"), regBtn = b.querySelector("[data-reg]");
+      function setMode(m) {
+        mode = m; err.textContent = "";
+        b.querySelector("h2").textContent = m === "login" ? "Вход в CRM" : "Регистрация на брокер";
+        b.querySelector("p.s").textContent = m === "login" ? "Влезте с акаунта си на брокер" : m === "code" ? "Въведете кодовото изречение на агенцията" : "Попълнете данните – профилът и брокерската карта се създават веднага";
+        reg.hidden = m === "login"; reg2.hidden = m !== "form"; b.querySelector(".nd-apps").hidden = m !== "login";
+        b.querySelector('label[for="nd-em"]').hidden = b.querySelector("#nd-em").hidden = m === "code";
+        b.querySelector('label[for="nd-pw"]').hidden = b.querySelector("#nd-pw").hidden = m === "code";
+        b.querySelector("#nd-code").parentNode.querySelector('label[for="nd-code"]').hidden = b.querySelector("#nd-code").hidden = m !== "code";
+        b.querySelector("#nd-pw").autocomplete = m === "form" ? "new-password" : "current-password";
+        btn.textContent = m === "login" ? "Вход" : m === "code" ? "Продължи" : "Създай профил";
+        regBtn.textContent = m === "login" ? "Регистрация на брокер" : "Назад към вход";
+        b.querySelector("[data-reset]").hidden = m !== "login";
+        setTimeout(function () { var x = b.querySelector(m === "code" ? "#nd-code" : m === "form" ? "#nd-name" : "#nd-em"); if (x) x.focus(); }, 40);
+      }
+      regBtn.onclick = function () { setMode(mode === "login" ? "code" : "login"); };
       f.onsubmit = function (e) {
         e.preventDefault();
         var em = b.querySelector("#nd-em").value.trim(), pw = b.querySelector("#nd-pw").value;
+        if (mode === "code") {
+          var code = b.querySelector("#nd-code").value.trim(); if (!code) { err.textContent = "Въведете кодовото изречение."; return; }
+          btn.disabled = true; err.textContent = "";
+          fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "check", code: code }) }).then(function (r) { return r.json(); }).then(function (j) { btn.disabled = false; if (!j.ok) { err.textContent = j.error || "Невярно кодово изречение."; return; } setMode("form"); }).catch(function () { btn.disabled = false; err.textContent = "Няма връзка със сървъра."; });
+          return;
+        }
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { err.textContent = "Въведете валиден имейл."; return; }
         if (!pw) { err.textContent = "Въведете парола."; return; }
+        if (mode === "form") {
+          var name = b.querySelector("#nd-name").value.trim(), phone = b.querySelector("#nd-phone").value.trim(), title = b.querySelector("#nd-title").value, pw2 = b.querySelector("#nd-pw2").value;
+          if (name.split(/\s+/).length < 2) { err.textContent = "Въведете име и фамилия."; return; }
+          if (!phone) { err.textContent = "Въведете телефон."; return; }
+          if (pw.length < 8) { err.textContent = "Паролата трябва да е поне 8 символа."; return; }
+          if (pw !== pw2) { err.textContent = "Паролите не съвпадат."; return; }
+          btn.disabled = true; err.textContent = "";
+          fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: b.querySelector("#nd-code").value.trim(), email: em, password: pw, name: name, phone: phone, title: title }) }).then(function (r) { return r.json(); }).then(function (j) {
+            if (!j.ok) { btn.disabled = false; err.textContent = j.error || "Регистрацията не успя."; return; }
+            return client().auth.signInWithPassword({ email: em, password: pw }).then(function (r) {
+              btn.disabled = false;
+              if (r.error) { setMode("login"); err.textContent = "Профилът е създаден – влезте с имейла и паролата си."; return; }
+              say(j.warn || "Профилът и брокерската карта са създадени"); session = r.data.session; b.hidden = true; ok(session);
+            });
+          }).catch(function () { btn.disabled = false; err.textContent = "Няма връзка със сървъра."; });
+          return;
+        }
         btn.disabled = true; err.textContent = "";
         client().auth.signInWithPassword({ email: em, password: pw }).then(function (r) {
           btn.disabled = false;
-          if (r.error) { err.textContent = /invalid/i.test(r.error.message) ? "Грешен имейл или парола." : r.error.message; return; }
+          if (r.error) { err.textContent = /invalid/i.test(r.error.message) ? "Грешен имейл или парола." : /not confirmed/i.test(r.error.message) ? "Имейлът не е потвърден – използвайте „Забравена парола“ или регистрацията с кодовото изречение." : r.error.message; return; }
           session = r.data.session; b.hidden = true; ok(session);
         });
       };
@@ -167,7 +210,7 @@
     return client().rpc("nd_is_staff").then(function (r) {
       if (r.error) throw r.error;
       if (!r.data) {
-        return client().auth.signOut().then(function () { return waitLogin("Този акаунт няма достъп до CRM."); }).then(checkStaff);
+        return client().auth.signOut().then(function () { return waitLogin("Този акаунт няма достъп до CRM. Използвайте „Регистрация на брокер“ с кодовото изречение."); }).then(checkStaff);
       }
       return session;
     });
