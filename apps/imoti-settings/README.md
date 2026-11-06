@@ -24,6 +24,16 @@ cp .env.example .env   # fill Settings endpoints when Video worker publishes the
 npm run dev
 ```
 
+## Walkthrough video (no staff login)
+
+```bash
+npx vite --host 127.0.0.1 --port 5179
+# open http://127.0.0.1:5179/?walkthrough=1
+node scripts/walkthrough-tour.mjs
+```
+
+Outputs MP4 to store `media/settings-app/settings-walkthrough.mp4` and `/opt/cursor/artifacts/`.
+
 ## Build (Windows x64)
 
 ```bash

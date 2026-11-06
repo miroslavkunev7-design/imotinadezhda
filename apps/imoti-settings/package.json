@@ -26,6 +26,7 @@
     "concurrently": "^9.1.0",
     "electron": "^33.2.0",
     "electron-builder": "^25.1.8",
+    "playwright": "^1.49.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
     "wait-on": "^8.0.1"
@@ -50,11 +51,15 @@
       "target": [
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "artifactName": "ImotiNadezhda-Settings-${version}-${arch}.${ext}",
@@ -63,7 +68,10 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerLanguages": ["en_US", "bg_BG"],
+      "installerLanguages": [
+        "en_US",
+        "bg_BG"
+      ],
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Imoti Nadezhda Settings",

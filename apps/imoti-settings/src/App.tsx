@@ -26,6 +26,40 @@ const FALLBACK_PAGES: CmsPage[] = [
   { id: "local-mobile", slug: "/mobile/", label: "Mobile home", schema_version: 1 }
 ];
 
+const DEMO_COMPONENTS: CmsComponent[] = [
+  {
+    id: "demo-wine",
+    page_id: "local-home",
+    component_key: "theme.wine",
+    type: "color",
+    sort_order: 0,
+    rect: {},
+    props: { cssVar: "--wine", value: "#710019", label: "Color" }
+  },
+  {
+    id: "demo-shape",
+    page_id: "local-home",
+    component_key: "cards.shape",
+    type: "shape",
+    sort_order: 1,
+    rect: {},
+    props: { shape: "rounded", radius: "16px", selector: ".card", label: "Rounded" }
+  },
+  {
+    id: "demo-melt",
+    page_id: "local-home",
+    component_key: "hero.melt",
+    type: "melt",
+    sort_order: 2,
+    rect: {},
+    props: { url: "", selector: ".hero", melt: true }
+  }
+];
+
+const WALKTHROUGH =
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).has("walkthrough");
+
 export default function App() {
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
@@ -38,6 +72,7 @@ export default function App() {
   const [creating, setCreating] = useState(false);
   const [scale, setScale] = useState(0.48);
   const [device, setDevice] = useState("desktop");
+  const [caption, setCaption] = useState("");
 
   const toastMsg = useCallback((m: string) => {
     setToastMsg(m);
@@ -45,6 +80,14 @@ export default function App() {
   }, []);
 
   const boot = useCallback(async () => {
+    if (WALKTHROUGH) {
+      setAuthed(true);
+      setReady(true);
+      setPages(FALLBACK_PAGES);
+      setComponents(DEMO_COMPONENTS);
+      setSelectedKey(DEMO_COMPONENTS[0].component_key);
+      return;
+    }
     const s = await ensureStaff();
     setAuthed(!!s);
     setReady(true);
@@ -60,7 +103,22 @@ export default function App() {
 
   useEffect(() => { void boot(); }, [boot]);
 
+  useEffect(() => {
+    if (!WALKTHROUGH) return;
+    (window as unknown as { __setWalkthroughCaption?: (t: string) => void }).__setWalkthroughCaption = (t: string) => {
+      setCaption(t);
+    };
+    return () => {
+      delete (window as unknown as { __setWalkthroughCaption?: (t: string) => void }).__setWalkthroughCaption;
+    };
+  }, []);
+
   const loadComponents = useCallback(async (pageSlug: string) => {
+    if (WALKTHROUGH) {
+      setComponents(DEMO_COMPONENTS.map((c) => ({ ...c, page_id: pageSlug })));
+      setSelectedKey(DEMO_COMPONENTS[0]?.component_key || null);
+      return;
+    }
     try {
       const { components: comps } = await fetchComponents(pageSlug);
       setComponents(comps);
@@ -196,6 +254,9 @@ export default function App() {
       </main>
 
       {toast && <div className="toast">{toast}</div>}
+      {WALKTHROUGH && caption && (
+        <div className="walkthrough-caption" role="status">{caption}</div>
+      )}
     </div>
   );
 }
