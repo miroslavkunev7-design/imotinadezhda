@@ -108,7 +108,7 @@ module.exports = async (req, res) => {
   const user = await staffOf(token).catch(() => null);
   if (!user) return send(res, 401, { ok: false, error: "Тед Асистент работи само в CRM – влезте в профила си." });
   /* списък с моделите, за които има ключ (за менюто в чата) */
-  if (b.action === "models") return send(res, 200, { ok: true, models: LLM.catalog().map((m) => ({ id: m.id, name: m.name, note: m.note, provider: m.provider, vision: m.vision, pdf: m.pdf })) });
+  if (b.action === "models") return send(res, 200, { ok: true, models: LLM.catalog().map((m) => ({ id: m.id, name: m.name, note: m.note, provider: m.provider, vision: m.vision, pdf: m.pdf })), n8n: process.env.N8N_AGENT_URL ? String(process.env.N8N_AGENT_URL) : null });
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   const chosen = LLM.pick(String(b.model || ""));
   if (!chosen) return send(res, 500, { ok: false, error: "Няма настроен ключ за AI (GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY…)." });

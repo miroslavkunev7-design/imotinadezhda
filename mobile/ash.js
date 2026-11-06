@@ -113,7 +113,7 @@
   function loadModels() {
     if (models) return Promise.resolve(models);
     return token().then(function (tk) { return fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ action: "models" }) }); })
-      .then(function (r) { return r.json(); }).then(function (j) { models = ((j && j.models) || []).concat([N8N_OPT]); return models; }).catch(function () { models = [N8N_OPT]; return models; });
+      .then(function (r) { return r.json(); }).then(function (j) { if (j && j.n8n) N8N_URL = j.n8n; models = ((j && j.models) || []).concat(j && j.n8n ? [N8N_OPT] : []); if (modelId === "n8n" && !(j && j.n8n)) { prefs.model = ""; modelId = ""; savePrefs(); } return models; }).catch(function () { models = []; return models; });
   }
   function curModel() { return (models || []).filter(function (m) { return m.id === modelId; })[0] || (models || [])[0] || null; }
   function setModel(id, quiet) {
@@ -173,7 +173,8 @@
       .then(function () { btn.style.opacity = ""; });
   }
   /* вашият агент в n8n (същият като в публичния сайт): текстът отива към webhook-а, n8n ползва /api/tools с токена на брокера */
-  var N8N_URL = "https://imotinadezhda.app.n8n.cloud/webhook/94ba7a03-92cc-41d0-ab0f-549d1d4d4560", N8N_SID = (function () { try { var k = "nd-ted-n8n-sid", v = localStorage.getItem(k); if (!v) { v = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); localStorage.setItem(k, v); } return v; } catch (e) { return "s" + Date.now(); } })();
+  /* агентът в n8n се показва само когато във Vercel има N8N_AGENT_URL (т.е. когато потокът работи) */
+  var N8N_URL = "", N8N_SID = (function () { try { var k = "nd-ted-n8n-sid", v = localStorage.getItem(k); if (!v) { v = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); localStorage.setItem(k, v); } return v; } catch (e) { return "s" + Date.now(); } })();
   function askN8n(history) {
     var last = history[history.length - 1] || {}, text = String(last.text || "").trim();
     if (!text) return Promise.resolve({ ok: false, error: "Агентът в n8n приема текст – за снимки, файлове и глас изберете Gemini или друг модел." });
