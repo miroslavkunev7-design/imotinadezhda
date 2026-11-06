@@ -30,6 +30,9 @@
     ".nda-t{flex:1;min-width:0}.nda-t b{display:block;font:700 18px/1.1 Georgia,serif;color:#fff3dc}" +
     ".nda-skill{margin-top:4px;display:inline-flex;align-items:center;gap:6px;max-width:100%;height:30px;padding:0 10px 0 12px;border-radius:15px;border:1px solid rgba(243,207,134,.75);background:rgba(255,255,255,.12);color:#ffe9b8;font:700 14px 'Roboto Condensed',Arial,sans-serif;cursor:pointer;box-shadow:0 0 10px rgba(243,207,134,.35)}" +
     ".nda-skill svg{width:16px;height:16px;flex:none}.nda-skill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+    ".nda-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.nda-model{background:linear-gradient(180deg,rgba(255,247,227,.22),rgba(243,207,134,.18))}.nda-model i{width:8px;height:8px;border-radius:50%;background:#7de86a;box-shadow:0 0 6px #7de86a;flex:none;font-style:normal}" +
+    ".nda-menu.models button em{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:9px;font:700 11px/1.5 'Roboto Condensed',Arial,sans-serif;font-style:normal;color:#fff3dc;background:linear-gradient(180deg,#a3213a,#55071a)}" +
+    ".nda-fb{font:400 12px 'Roboto Condensed',Arial,sans-serif;color:#8a6a3a;margin:2px 0 0}" +
     ".nda-x{flex:none;width:38px;height:38px;border-radius:50%;border:1.5px solid #edc47a;background:linear-gradient(180deg,#fff7e3,#f3cf86);color:#6b0a1c;display:grid;place-items:center;cursor:pointer;padding:0}.nda-x svg{width:18px;height:18px}" +
     ".nda-menu{position:absolute;left:66px;top:70px;z-index:3;min-width:260px;max-width:calc(100% - 78px);padding:8px;border-radius:18px;background:linear-gradient(180deg,rgba(255,251,247,.99),rgba(251,236,224,.98));border:1.5px solid #e3b25e;box-shadow:0 0 18px rgba(227,178,94,.55),0 14px 30px rgba(40,4,12,.4)}" +
     ".nda-menu[hidden]{display:none}.nda-menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:12px;background:transparent;color:#4e0912;font:700 16px 'Roboto Condensed',Arial,sans-serif;cursor:pointer}" +
@@ -82,10 +85,27 @@
     });
   }
   /* history: [{role:'user'|'assistant', text, files?}] -> {ok,text,actions,staff} */
+  var models = null, modelId = (function () { try { return localStorage.getItem("nd-ted-model") || ""; } catch (e) { return ""; } })();
+  function loadModels() {
+    if (models) return Promise.resolve(models);
+    return token().then(function (tk) { return fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ action: "models" }) }); })
+      .then(function (r) { return r.json(); }).then(function (j) { models = (j && j.models) || []; return models; }).catch(function () { models = []; return models; });
+  }
+  function curModel() { return (models || []).filter(function (m) { return m.id === modelId; })[0] || (models || [])[0] || null; }
+  function setModel(id, quiet) {
+    modelId = id || ""; try { if (id) localStorage.setItem("nd-ted-model", id); } catch (e) {}
+    var m = curModel(), mk = win && win.querySelector(".nda-model"); if (!mk) return;
+    mk.querySelector("span").textContent = m ? m.name : "Модел"; mk.title = m ? m.name + (m.note ? " – " + m.note : "") : "Модел";
+    if (m && !quiet) add("bot", "Избран модел: <b>" + esc(m.name) + "</b>" + (m.note ? " – " + esc(m.note) : "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки"));
+  }
+  function renderModels() {
+    var cur = curModel(), PROV = { gemini: "Google", openai: "OpenAI", anthropic: "Anthropic", openrouter: "OpenRouter", ollama: "Ollama" };
+    menu.innerHTML = (models && models.length ? models.map(function (m) { return '<button type="button" data-m="' + esc(m.id) + '"' + (cur && cur.id === m.id ? ' class="on"' : "") + ">" + esc(m.name) + "<em>" + (PROV[m.provider] || m.provider) + "</em><small>" + esc(m.note || "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки") + "</small></button>"; }).join("") : '<button type="button" disabled>Няма настроени модели<small>Ключовете се добавят във Vercel (GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, OPENROUTER_API_KEY, OLLAMA_URL)</small></button>');
+  }
   function ask(history) {
     return token().then(function (tok) {
       var h = { "Content-Type": "application/json" }; if (tok) h.Authorization = "Bearer " + tok;
-      return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title }) });
+      return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title, model: modelId || undefined }) });
     }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); })
       .catch(function (e) { return { ok: false, error: "Няма връзка (" + ((e && e.message) || e) + ")" }; });
   }
@@ -169,7 +189,7 @@
           return ask(send).then(function (j) {
             w.classList.remove("wait"); busy = false;
             if (!j.ok) { w.innerHTML = esc(j.error || "Грешка"); return; }
-            w.innerHTML = fmt(j.text) + (j.actions && j.actions.length ? '<span class="acts">✔ ' + esc(j.actions.join(" · ")) + "</span>" : ""); speaker(w);
+            w.innerHTML = fmt(j.text) + (j.actions && j.actions.length ? '<span class="acts">✔ ' + esc(j.actions.join(" · ")) + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w);
             if (voice && j.transcript) { ub.innerHTML = "🎤 „" + esc(j.transcript) + "“"; cur.text = j.transcript; }
             if (!voice || j.transcript) { hist.push({ role: "user", text: cur.text }, { role: "assistant", text: j.text }); save(); }
             if (voice) { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* a voice question gets a spoken answer */
@@ -225,14 +245,19 @@
     fab = document.createElement("button"); fab.type = "button"; fab.className = "nda-fab"; fab.setAttribute("aria-label", "Тед Асистент"); fab.title = "Тед Асистент";
     fab.innerHTML = '<img src="' + BOT + '" alt="">';
     win = document.createElement("section"); win.className = "nda-win"; win.hidden = true; win.setAttribute("role", "dialog"); win.setAttribute("aria-label", "Тед Асистент");
-    win.innerHTML = '<header class="nda-h"><span class="nda-av"><img src="' + BOT + '" alt=""></span><div class="nda-t"><b>Тед Асистент</b><button type="button" class="nda-skill" aria-haspopup="listbox" aria-expanded="false"><span></span>' + I.chev + "</button></div>" +
+    win.innerHTML = '<header class="nda-h"><span class="nda-av"><img src="' + BOT + '" alt=""></span><div class="nda-t"><b>Тед Асистент</b><div class="nda-row"><button type="button" class="nda-skill" aria-haspopup="listbox" aria-expanded="false"><span></span>' + I.chev + '</button><button type="button" class="nda-skill nda-model" aria-haspopup="listbox" aria-expanded="false" title="Модел на изкуствения интелект"><i></i><span>Модел</span>' + I.chev + "</button></div></div>" +
       '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div>';
     document.body.appendChild(fab); document.body.appendChild(win);
     list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot");
-    var sk = win.querySelector(".nda-skill");
-    sk.onclick = function (e) { e.stopPropagation(); renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
-    menu.onclick = function (e) { var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
-    win.addEventListener("click", function (e) { if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target)) menu.hidden = true; });
+    var sk = win.querySelector(".nda-skill:not(.nda-model)"), mk = win.querySelector(".nda-model");
+    sk.onclick = function (e) { e.stopPropagation(); menu.classList.remove("models"); menu.style.top = ""; renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
+    /* меню с моделите: списъкът идва от сървъра (само доставчици с ключ); изборът се помни за този брокер */
+    mk.onclick = function (e) { e.stopPropagation(); if (!menu.hidden && menu.classList.contains("models")) { menu.hidden = true; return; } loadModels().then(function () { menu.classList.add("models"); renderModels(); menu.style.top = (mk.offsetTop + mk.offsetHeight + 8) + "px"; menu.hidden = false; mk.setAttribute("aria-expanded", "true"); }); };
+    menu.onclick = function (e) {
+      var mb = e.target.closest("[data-m]"); if (mb) { menu.hidden = true; setModel(mb.getAttribute("data-m")); return; }
+      var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
+    win.addEventListener("click", function (e) { if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target) && !mk.contains(e.target)) menu.hidden = true; });
+    loadModels().then(function () { setModel(modelId, true); });
     fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(skills[0]); if (skill.open) skill.open(api); };
     win.querySelector(".nda-x").onclick = function () { win.hidden = true; fab.hidden = false; };
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !win.hidden) { win.hidden = true; fab.hidden = false; } });

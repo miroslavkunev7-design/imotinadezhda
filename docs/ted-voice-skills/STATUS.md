@@ -24,3 +24,14 @@
 | Facebook публикуване | /api/fb | — | — | ⚠️ нужни FB_APP_ID/FB_APP_SECRET |
 
 Не е заявено 100 %: Gemini стъпките (класификация, OCR, превод) са тествани като pipeline със stub и са реални извиквания в production, но нямаме автоматичен E2E с live модела в тестовата среда.
+
+## Модели (06.11.2026)
+Тед вече избира модел от менюто в хедъра на чата (запомня се за брокера). Доставчици по ключ във Vercel:
+| Доставчик | Env | Модели по подразбиране (сменят се с *_MODELS = "id|Име|описание, …") |
+|---|---|---|
+| Google Gemini | GEMINI_API_KEY | gemini-2.5-flash (по подразбиране), gemini-2.5-pro |
+| OpenAI / ChatGPT | OPENAI_API_KEY | gpt-4.1-mini, gpt-4.1 |
+| Anthropic / Claude | ANTHROPIC_API_KEY | claude-sonnet-4-5, claude-haiku-4-5 |
+| OpenRouter (има безплатни „:free“) | OPENROUTER_API_KEY | meta-llama/llama-3.3-70b-instruct:free |
+| Ollama (собствен сървър, OpenAI-съвместим /v1) | OLLAMA_URL (+OLLAMA_KEY) | llama3.1:8b |
+При грешка на избрания модел отговаря резервен Gemini Flash и под отговора пише кой е отговорил. Глас (разпознаване/говорене), сканиране на документи и премахване на логота остават на Gemini.

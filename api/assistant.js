@@ -5,6 +5,7 @@ const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
 const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 const WEB = require("./_web.js");
+const LLM = require("./_llm.js");
 const TOOLSPEC = "- clients.search: Search CRM clients by name/phone/email/city. Returns id, name, phone, email, cat (sales|rent), type, city, hood, budget, status. Input: { query: string, cat: [\"sales\", \"rent\"], limit: number }\n- clients.get: One client with activity, meetings (events), deals and documents. Input: { id: string }\n- clients.create: Create a client (cat: sales = търси покупка, rent = търси наем). Input: { name (задължително), phone, email, cat: \"sales\"|\"rent\", type, city, hood, budget (число), status, source, notes }\n- clients.update: Update client fields. Input: { id: string, и всяко поле от clients.create (по избор) }\n- clients.delete: Delete a client (requires confirm=true). Input: { id: string, confirm: true }\n- clients.add_note: Add an activity note to a client. Input: { client_id: string, body: string, kind: [\"phone\", \"mail\", \"users\", \"file-text\", \"pencil\"] }\n- properties.search: Search properties. Filters: text (title/code/city/hood/owner), city, deal (sale|rent), status, max_price, min_rooms. Input: { text: string, city: string, deal: [\"sale\", \"rent\"], status: string, max_price: number, min_rooms: number }\n- properties.create: Create a property (status Чернова). Code P-#### is assigned automatically. Input: { title (задължително), deal: \"sale\"|\"rent\", type, price, area, rooms, beds, baths, floor, region, city, hood, address, client, desc, cond }\n- properties.update: Edit property fields. Input: { id: string, и всяко поле от properties.create (по избор) }\n- properties.set_status: Set property status: Чернова, Активен, Публикуван, Резервиран, Продаден, Архивиран (requires confirm=true). Input: { id: string, status: [\"Чернова\", \"Активен\", \"Публикуван\", \"Резервиран\", \"Продаден\", \"Архивиран\"], confirm: true }\n- properties.match: Match properties to a client's needs (city, budget, deal, min_rooms) ranked by fit. Pass client_id to use that client's criteria. Input: { client_id: string, city: string, budget: number, deal: [\"sale\", \"rent\"], min_rooms: number }\n- calendar.list: List calendar events between from and to (YYYY-MM-DD). Types: meeting, viewing, bank, documents, deal, team, task. Input: { from: string, to: string, type: string }\n- calendar.create: Create a calendar event (shown in Календар and on the client card). date YYYY-MM-DD, from/to HH:MM. Input: { type: [\"meeting\", \"viewing\", \"bank\", \"documents\", \"deal\", \"team\", \"task\"], title: string, date: string, from: string, to: string, client_id: string, prop: string, desc: string }\n- calendar.update: Update or move an event. Input: { id: string, title: string, date: string, from: string, to: string, desc: string }\n- calendar.delete: Delete an event (requires confirm=true). Input: { id: string, confirm: true }\n- deals.list: List deals, optional stage (Нова, Оглед, Оферта, Предварителен договор, Нотариус, Приключена, Отказана) or client_id. Input: { stage: string, client_id: string }\n- deals.create: Create a deal for a client. Input: { title: string, client_id: string, property: string, stage: string, amount: number, commission_pct: number, deadline: string, note: string }\n- deals.update: Update a deal (stage, amount, paid, deadline…). Input: { id: string, title: string, stage: string, amount: number, commission_pct: number, paid: number, deadline: string, note: string }\n- companies.search: Search partner companies (banks, builders…) and their employees. Input: { query: string }\n- brokers.list: List brokers (team). Input: {}\n- documents.list: List documents (optional client_id). Input: { client_id: string }\n- documents.download_link: Signed download link (10 minutes) for a document id. Input: { id: string }\n- calc.mortgage: Annuity mortgage. annual_rate_pct must come from the user or the live rate (/api/rates) — never invented. Input: { principal: number, years: number, annual_rate_pct: number }\n- calc.commission: Commission with optional VAT %. Input: { price: number, commission_pct: number, vat_pct: number }\n- calc.yield: Gross/net rental yield. Input: { price: number, monthly_rent: number, annual_costs: number }\n- rates.live: Live ECB reference rates (6M EURIBOR, 3M EURIBOR, €STR). Input: {}\n- reports.summary: Totals: clients, active/published properties, open/closed deals, expected and realised commission, upcoming events. Input: {}";
 const TED = (() => { try { return require("./_ted-skills.js"); } catch (e) { return { names: [], SPEC: "" }; } })();
 const STAFF_TOOLS = ["clients.search", "clients.get", "clients.create", "clients.update", "clients.delete", "clients.add_note", "properties.search", "properties.create", "properties.update", "properties.set_status", "properties.match", "calendar.list", "calendar.create", "calendar.update", "calendar.delete", "deals.list", "deals.create", "deals.update", "companies.search", "brokers.list", "documents.list", "documents.download_link", "calc.mortgage", "calc.commission", "calc.yield", "rates.live", "reports.summary"];
@@ -106,8 +107,11 @@ module.exports = async (req, res) => {
   const auth = String(req.headers["authorization"] || ""); const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   const user = await staffOf(token).catch(() => null);
   if (!user) return send(res, 401, { ok: false, error: "Тед Асистент работи само в CRM – влезте в профила си." });
+  /* списък с моделите, за които има ключ (за менюто в чата) */
+  if (b.action === "models") return send(res, 200, { ok: true, models: LLM.catalog().map((m) => ({ id: m.id, name: m.name, note: m.note, provider: m.provider, vision: m.vision, pdf: m.pdf })) });
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (!key) return send(res, 500, { ok: false, error: "Няма настроен ключ за AI (GEMINI_API_KEY)." });
+  const chosen = LLM.pick(String(b.model || ""));
+  if (!chosen) return send(res, 500, { ok: false, error: "Няма настроен ключ за AI (GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY…)." });
   const ctx = { staff: !!user, token, actions: [], origin: "https://" + (req.headers["x-forwarded-host"] || req.headers.host || "imotinadezhda.bg") };
   const msgs = (Array.isArray(b.messages) ? b.messages : []).slice(-16);
   /* voice message: transcribe it first (Bulgarian), then it is handled like a typed message */
@@ -115,6 +119,7 @@ module.exports = async (req, res) => {
   const lastMsg = msgs[msgs.length - 1];
   const AUDIO = /^audio\/(webm|ogg|mp4|mpeg|mp3|wav|x-wav|aac|m4a|x-m4a|3gpp|flac)$/;
   const audio = lastMsg && Array.isArray(lastMsg.files) ? lastMsg.files.find((f) => f && f.data && AUDIO.test(String(f.mime))) : null;
+  if (audio && !key) return send(res, 200, { ok: true, text: "Гласовите съобщения се разпознават с Gemini – няма настроен GEMINI_API_KEY.", transcript: "", actions: [], staff: ctx.staff });
   if (audio) {
     try {
       const mime = /^audio\/(x-m4a|m4a)$/.test(audio.mime) ? "audio/mp4" : audio.mime;
@@ -129,38 +134,21 @@ module.exports = async (req, res) => {
     lastMsg.text = transcript + (lastMsg.text && lastMsg.text !== "(гласово съобщение)" ? "\n" + lastMsg.text : "");
     lastMsg.files = lastMsg.files.filter((f) => f !== audio);
   }
-  const contents = msgs.map((m) => {
-    const parts = [{ text: String(m.text || "").slice(0, 8000) || "(без текст)" }];
-    (Array.isArray(m.files) ? m.files : []).slice(0, 3).forEach((f) => { if (f && f.data && /^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.mime)) parts.push({ inline_data: { mime_type: f.mime, data: f.data } }); });
-    return { role: m.role === "assistant" ? "model" : "user", parts };
-  }).filter((c, i, a) => !(i === 0 && c.role === "model"));
-  if (!contents.length) return send(res, 400, { ok: false, error: "Празно съобщение" });
-  const sys = { parts: [{ text: systemPrompt(ctx.staff, user || {}, b.page) }] };
-  const tools = [{ function_declarations: declarations(ctx.staff) }];
-  let lastErr = ""; const t0 = Date.now();
-  for (const model of MODELS) {
+  const clean = msgs.map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", text: String(m.text || "").slice(0, 8000), files: (Array.isArray(m.files) ? m.files : []).slice(0, 3).filter((f) => f && f.data && /^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.mime)).map((f) => ({ mime: f.mime, data: f.data })) }))
+    .filter((c, i0) => !(i0 === 0 && c.role === "assistant"));
+  if (!clean.length) return send(res, 400, { ok: false, error: "Празно съобщение" });
+  const system = systemPrompt(ctx.staff, user || {}, b.page);
+  const tools = declarations(ctx.staff);
+  /* избраният модел, после резервните Gemini модели (ако има ключ) */
+  const order = [chosen].concat(LLM.catalog().filter((m) => m.provider === "gemini" && m.id !== chosen.id && /flash/.test(m.id)));
+  if (key && !order.some((m) => m.id === "gemini-2.0-flash")) order.push({ id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "gemini", vision: true, pdf: true });
+  let lastErr = "";
+  for (const model of order) {
     try {
-      const conv = contents.slice();
-      for (let step = 0; step < 10; step++) {
-        const last = step === 9 || Date.now() - t0 > 38000;
-        if (last && step) conv[conv.length - 1].parts.push({ text: "Спри с инструментите и дай окончателния отговор с това, което вече намери (с точки и източници)." });
-        const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(Object.assign({ system_instruction: sys, contents: conv, generationConfig: { temperature: 0.3 } }, last && step ? {} : { tools }))
-        });
-        const j = await r.json();
-        if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
-        const cand = (j.candidates || [])[0] || {}; const parts = (cand.content && cand.content.parts) || [];
-        const calls = parts.filter((p) => p.functionCall).map((p) => p.functionCall);
-        if (!calls.length) {
-          const text = parts.map((p) => p.text || "").join("").trim() || "Не успях да формулирам отговор – опитайте отново.";
-          return send(res, 200, { ok: true, text: text + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i, a) => x.url && a.findIndex((y) => y.url === x.url) === i).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, model });
-        }
-        conv.push({ role: "model", parts });
-        const results = await Promise.all(calls.map(async (c) => ({ functionResponse: { name: c.name, response: { result: await runTool(c, ctx) } } })));
-        conv.push({ role: "user", parts: results });
-      }
-      return send(res, 200, { ok: true, text: "Задачата изисква твърде много стъпки – разделете я на по-малки.", actions: ctx.actions, staff: ctx.staff });
+      const text = await LLM.chat(model, { system, msgs: clean, tools, run: (c) => runTool(c, ctx) });
+      if (text === null) return send(res, 200, { ok: true, text: "Задачата изисква твърде много стъпки – разделете я на по-малки.", actions: ctx.actions, staff: ctx.staff, model: model.id });
+      const out = text || "Не успях да формулирам отговор – опитайте отново.";
+      return send(res, 200, { ok: true, text: out + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i0, a) => x.url && a.findIndex((y) => y.url === x.url) === i0).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, model: model.id, model_name: model.name, fallback: model.id !== chosen.id ? chosen.name + " не отговори – отговори " + model.name : null });
     } catch (e) { lastErr = String(e.message || e); if (ctx.actions.length) break; }
   }
   return send(res, 502, { ok: false, error: "AI асистентът не отговори: " + lastErr });
