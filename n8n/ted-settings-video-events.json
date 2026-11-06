@@ -1,0 +1,41 @@
+{
+  "name": "TED_Settings_Video_Events",
+  "meta": {
+    "note": "Receives fal/media callbacks and posts to /api/video?action=events. Does not touch official TED chat histories.",
+    "path": "ted-settings-video-events"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ted-settings-video-events",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "wh-events",
+      "name": "Webhook Events",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SITE_API_BASE}}/api/video?action=events",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body || $json) }}",
+        "options": {}
+      },
+      "id": "fwd-api",
+      "name": "Forward to API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [280, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Events": { "main": [[{ "node": "Forward to API", "type": "main", "index": 0 }]] }
+  },
+  "tags": [{ "name": "settings-video" }]
+}

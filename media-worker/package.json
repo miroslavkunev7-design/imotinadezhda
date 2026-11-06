@@ -1,0 +1,8 @@
+{
+  "name": "imoti-settings-media-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FFmpeg assemble/QA/HEIC for Settings property video jobs",
+  "main": "server.js",
+  "engines": { "node": ">=20" }
+}

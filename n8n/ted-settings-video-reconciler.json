@@ -1,0 +1,36 @@
+{
+  "name": "TED_Settings_Video_Reconciler",
+  "meta": {
+    "note": "Cron: drain ai_video_outbox pending + recover stuck fal request_ids. Separate from official TED.",
+    "schedule": "*/5 * * * *"
+  },
+  "nodes": [
+    {
+      "parameters": { "rule": { "interval": [{ "field": "minutes", "minutesInterval": 5 }] } },
+      "id": "cron",
+      "name": "Every 5 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.VIDEO_DISPATCH_WEBHOOK_URL}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"reconcile\":true,\"source\":\"TED_Settings_Video_Reconciler\"}",
+        "options": {}
+      },
+      "id": "kick",
+      "name": "Kick Dispatcher",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [280, 0]
+    }
+  ],
+  "connections": {
+    "Every 5 min": { "main": [[{ "node": "Kick Dispatcher", "type": "main", "index": 0 }]] }
+  },
+  "tags": [{ "name": "settings-video" }]
+}

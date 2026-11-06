@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Тед · Settings</title>
+  <link rel="stylesheet" href="./agent-chat.css" />
+</head>
+<body>
+  <!--
+    Settings Electron only. skill_id=property_cinematic_video.
+    Not loaded on imotinadezhda.bg / mobile/ash.js.
+  -->
+  <div id="sac-root" class="sac">
+    <header class="sac-h">
+      <div class="sac-brand">
+        <b>Тед · Settings</b>
+        <button type="button" class="sac-skill" id="sac-skill" aria-haspopup="listbox" aria-expanded="false">
+          <span id="sac-skill-label">Чат</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+      <div class="sac-menu" id="sac-menu" role="listbox" hidden></div>
+    </header>
+    <div class="sac-list" id="sac-list" aria-live="polite"></div>
+    <div class="sac-foot" id="sac-foot"></div>
+  </div>
+  <script src="./agent-chat.js"></script>
+</body>
+</html>

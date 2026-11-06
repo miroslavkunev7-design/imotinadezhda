@@ -26609,6 +26609,10 @@ var tools = {
    same bearer token, same RLS. Every call is audited in nd_audit. */
 var TED = null;
 try { TED = require("./_ted-skills.js"); Object.keys(TED.tools).forEach((k) => { if (!tools[k]) tools[k] = TED.tools[k]; }); } catch (e) { console.error("ted skills not loaded", e && e.message); }
+/* Settings-only video tools (cinematic_property_video). Registered on the gateway for Settings Electron
+   (x-imoti-client: settings). NOT added to api/assistant.js STAFF_TOOLS — public site TED cannot call them. */
+var VIDEO = null;
+try { VIDEO = require("./_video/index.js"); Object.keys(VIDEO.tools).forEach((k) => { if (!tools[k]) tools[k] = VIDEO.tools[k]; }); } catch (e) { console.error("video skills not loaded", e && e.message); }
 function manifest() {
   return Object.entries(tools).map(([name, t]) => ({ name, description: t.description }));
 }
@@ -26651,7 +26655,7 @@ async function handler(req, res) {
   if (!parsed.success) return send({ ok: false, error: "Invalid input", issues: parsed.error.issues }, 400);
   const t0 = Date.now(), toolName = String(body.tool);
   try {
-    const result = await tool.run({ sb, userId: u.user.id, user: u.user }, parsed.data);
+    const result = await tool.run({ sb, userId: u.user.id, user: u.user, headers: req.headers || {} }, parsed.data);
     if (TED) TED.audit(sb, u.user, toolName, true, Date.now() - t0, JSON.stringify(parsed.data).slice(0, 200));
     return send({ ok: true, result });
   } catch (e) {

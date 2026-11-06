@@ -1,0 +1,80 @@
+{
+  "name": "TED_Settings_Video_Worker",
+  "meta": {
+    "note": "Processes ai_video_jobs: Nano Banana refs via /api/video?action=fal, Kling O1 clips, then media-worker assemble. Separate from official TED.",
+    "secrets": ["FAL_KEY via API env", "MEDIA_WORKER_URL", "MEDIA_WORKER_SECRET", "VIDEO_EVENTS_HMAC_SECRET"]
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ted-settings-video-worker",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-worker",
+      "name": "Webhook Worker",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SITE_API_BASE}}/api/video?action=events",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "x-video-hmac", "value": "={{$env.VIDEO_EVENTS_HMAC_PLACEHOLDER}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ job_id: $json.body.job_id || $json.job_id, kind: 'worker.accepted', status: 'planning', progress: { stage: 'planning', label: 'Планиране', pct: 10, message: 'Settings Video Worker' } }) }}",
+        "options": {}
+      },
+      "id": "evt-plan",
+      "name": "Event Planning",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.MEDIA_WORKER_URL}}/render",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "x-video-hmac", "value": "={{$env.MEDIA_WORKER_HMAC_PLACEHOLDER}}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ job_id: $json.body.job_id || $json.job_id }) }}",
+        "options": {}
+      },
+      "id": "media-render",
+      "name": "Media Worker Render",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [520, 0]
+    },
+    {
+      "parameters": { "respondWith": "json", "responseBody": "={{ JSON.stringify({ ok: true, accepted: true }) }}" },
+      "id": "resp",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [780, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Worker": { "main": [[{ "node": "Event Planning", "type": "main", "index": 0 }]] },
+    "Event Planning": { "main": [[{ "node": "Media Worker Render", "type": "main", "index": 0 }]] },
+    "Media Worker Render": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "tags": [{ "name": "settings-video" }]
+}

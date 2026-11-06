@@ -1,0 +1,44 @@
+{
+  "name": "TED_Settings_Video_Dispatcher",
+  "meta": {
+    "note": "NEW workflow for Settings video only. Do NOT replace official site TED webhook workflows.",
+    "trigger": "Webhook or poll ai_video_outbox topic ted.video.dispatch"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ted-settings-video-dispatch",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "wh-dispatch",
+      "name": "Webhook Dispatch",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.VIDEO_WORKER_WEBHOOK_URL}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ job_id: $json.job_id || $json.body.job_id, source: 'TED_Settings_Video_Dispatcher' }) }}",
+        "options": {}
+      },
+      "id": "fwd-worker",
+      "name": "Forward to Settings Video Worker",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [280, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Dispatch": {
+      "main": [[{ "node": "Forward to Settings Video Worker", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "settings-video" }, { "name": "do-not-touch-site-ted" }]
+}

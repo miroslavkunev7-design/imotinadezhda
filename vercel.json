@@ -87,11 +87,15 @@
     },
     "api/tools.js": {
       "maxDuration": 60,
-      "includeFiles": "api/_vendor/**"
+      "includeFiles": ["api/_vendor/**", "api/_video/**", "api/_ted-skills.js"]
     },
     "api/email.js": {
       "maxDuration": 60,
       "includeFiles": "api/_vendor/**"
+    },
+    "api/video.js": {
+      "maxDuration": 60,
+      "includeFiles": "api/_video/**"
     }
   },
   "redirects": [
