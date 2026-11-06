@@ -16,6 +16,11 @@
   var PARK = ["", "Няма", "Паркомясто", "Гараж", "Подземен паркинг", "В двора"];
   var ACT = ["", "Акт 16", "Акт 15", "Акт 14", "В строеж", "Без акт"];
   function pickL(list, v) { v = String(v == null ? "" : v).trim().toLowerCase(); if (!v) return ""; return list.filter(function (x) { return x && (x.toLowerCase() === v || x.toLowerCase().indexOf(v) === 0); })[0] || ""; }
+  /* брокери от CRM – публикуваната обява показва картата на избрания брокер */
+  var BRK = null;
+  function loadBrokers() { if (BRK) return Promise.resolve(BRK); return D.ready().then(function () { return D.load("brokers"); }).then(function (l) { BRK = (l || []).filter(function (b) { return b && b.name && b.active !== false; }); return BRK; }).catch(function () { BRK = []; return BRK; }); }
+  function myBroker() { var em = String((D.user && D.user.email) || "").toLowerCase(), l = BRK || []; return (l.filter(function (b) { return String(b.email || "").toLowerCase() === em; })[0] || l[0] || {}).id || ""; }
+  function brokerOpts(cur) { var l = BRK || []; var o = l.map(function (b) { return [b.id, b.name + (b.title || b.role ? " – " + (b.title || b.role) : "")]; }); if (cur && !l.some(function (b) { return b.id === cur; })) o.unshift([cur, cur]); return o.length ? o : [["", "Зареждане…"]]; }
   var BUILD = ["Тухла", "Панел", "ЕПК", "Монолит", "Гредоред", "Сглобяема", "Друго"];
 
   function nextCode(list) {
@@ -25,7 +30,7 @@
   }
   function stored(p) {
     var o = {};
-    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "ownerEmail", "ownerEgn", "ownerAddr", "ownerIban", "ownerShare", "coOwners", "ownerPaid", "ownerComm", "contractDate", "contractUntil", "ownerContact", "ownerNotes", "portals", "place", "num", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
+    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "ownerEmail", "ownerEgn", "ownerAddr", "ownerIban", "ownerShare", "coOwners", "ownerPaid", "ownerComm", "contractDate", "contractUntil", "ownerContact", "ownerNotes", "portals", "place", "num", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log", "broker"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
     if (p.id) o.id = p.id;
     return o;
   }
@@ -52,7 +57,7 @@
     return o;
   }
   function edit(p, scanned, scanFile, bundle, onSaved) {
-    var isNew = !p, list = P.list();
+    var isNew = !p, list = P.list(); loadBrokers();
     p = p ? JSON.parse(JSON.stringify(stored(p))) : Object.assign({ code: nextCode(list), deal: "sale", type: TYPES[0], status: "Чернова", cond: COND[0], pics: [], docs: [], log: [] }, fromScan(scanned));
     p.pics = p.pics || []; p.docs = p.docs || []; p.videos = p.videos || [];
     var pendingPics = [], pendingDocs = [], pendingVids = [], removed = [], ctx;
@@ -60,7 +65,7 @@
     var gal = p.pics.map(function (path) { return { kind: "saved", path: path }; });
     if (p.cover > 0 && gal[p.cover]) gal.unshift(gal.splice(p.cover, 1)[0]);
     p.cover = 0;
-    function addNew(f, wm) { var o = { kind: "new", file: f, url: URL.createObjectURL(f), name: f.name || "photo.jpg", wm: !!wm }; pendingPics.push(o); gal.push(o); }
+    function addNew(f, wm) { var o = { kind: "new", file: f, url: URL.createObjectURL(f), name: f.name || "photo.jpg", wm: !!wm }; if (o.wm && window.NDScan) o.wmP = window.NDScan.watermark(f); pendingPics.push(o); gal.push(o); }
     if (bundle) {
       (bundle.pics || []).forEach(function (f) { addNew(f, true); });
       (bundle.videos || []).forEach(function (f) { pendingVids.push({ file: f, name: f.name }); });
@@ -118,7 +123,8 @@
           fld({ id: "p-deal", label: "Сделка", icon: "tag", type: "select", value: p.deal, options: [["sale", "Продажба"], ["rent", "Наем"]] }) +
           fld({ id: "p-type", label: "Тип", icon: "house", type: "select", value: p.type, options: TYPES }) +
           fld({ id: "p-price", label: "Официална цена €", icon: "coins", value: p.price, type: "number", required: true }) +
-          fld({ id: "p-status", label: "Статус", icon: "megaphone", type: "select", value: p.status, options: STATUS }), { lw: 110 }) +
+          fld({ id: "p-status", label: "Статус", icon: "megaphone", type: "select", value: p.status, options: STATUS }) +
+          fld({ id: "p-broker", label: "Брокер (качил обявата)", icon: "user-round", type: "select", value: p.broker || myBroker(), options: brokerOpts(p.broker), wide: true }), { lw: 110 }) +
         G("Характеристики", "ruler", "nd/ph03.jpg",
           fld({ id: "p-area", label: "Площ м²", icon: "m2", value: p.area, type: "number" }) +
           fld({ id: "p-rooms", label: "Стаи", icon: "bed-double", value: p.rooms, type: "number" }) +
@@ -170,6 +176,7 @@
       p.rooms = n("p-rooms"); p.beds = n("p-beds"); p.baths = n("p-baths"); p.floor = g("p-floor"); p.build = g("p-build"); p.year = n("p-year");
       p.cond = g("p-cond"); p.status = g("p-status"); p.city = PL.city(g("p-city")); p.place = g("p-place") || p.city; p.hood = PL.hood(p.city, g("p-hood")); p.region = g("p-region") || p.city;
       p.address = g("p-addr"); p.client = g("p-client"); p.desc = g("p-desc");
+      if (ctx && ctx.q("p-broker") && g("p-broker")) p.broker = g("p-broker");
       if (ctx && ctx.q("p-expo")) { p.expo = g("p-expo"); p.heat = g("p-heat"); p.parking = g("p-park"); p.elevator = g("p-elev") === "1"; p.terraces = n("p-terr"); p.act = g("p-act");
         p.keys = g("p-keys") === "1"; p.commission = n("p-comm"); p.freeFrom = g("p-free"); p.tour = g("p-tour"); p.features = g("p-feat"); }
       if (ctx && ctx.q("p-priv")) { p.privDesc = g("p-priv"); p.ownerPhone = g("p-ophone"); p.ownerPrice = n("p-oprice"); p.exclusive = g("p-excl") === "1"; }
@@ -203,7 +210,7 @@
       title: isNew ? (bundle ? "Имот от папка " : scanned ? "Сканиран имот " : "Нов имот ") + p.code : "Редакция – " + (p.title || p.code), icon: isNew ? "house-plus" : "square-pen", photo: "nd/ph17.jpg", html: html(),
       required: ["p-title", "p-price", "p-city"],
       validate: function (g) { if (!(Number(g("p-price").replace(/\s/g, "").replace(",", ".")) >= 0)) return "Цената трябва да е число."; },
-      ready: function (x) { ctx = x; bind(); }, ready2: bind,
+      ready: function (x) { ctx = x; bind(); if (!BRK) loadBrokers().then(function () { if (ctx && ctx.q("p-broker")) rerender(); }); }, ready2: bind,
       onSave: function (g) {
         collect(g);
         var base = "properties/" + (p.code || D.newId()) + "/";
@@ -211,7 +218,7 @@
         var up = gal.reduce(function (pr, g, idx) {
           if (g.kind !== "new") return pr;
           return pr.then(function () {
-            return (g.wm && window.NDScan ? window.NDScan.watermark(g.file) : Promise.resolve(g.file)).then(function (file) {
+            return (g.wm && window.NDScan ? (g.wmP || window.NDScan.watermark(g.file)) : Promise.resolve(g.file)).then(function (file) {
               var path = base + "photos/" + Date.now() + "-" + String(idx + 1).padStart(3, "0") + "-" + file.name.replace(/[^\w.\-]+/g, "_").slice(-60);
               return D.upload(path, file).then(function () { g.kind = "saved"; g.path = path; done++; if (total > 5 && done % 5 === 0) P.say("Качени снимки: " + done + " / " + total); });
             });

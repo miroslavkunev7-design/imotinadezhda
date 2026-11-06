@@ -288,31 +288,75 @@
     }).catch(function (e) { hideOverlay(); if (!cancelled) D.say("Грешка при папката: " + ((e && e.message) || e)); });
   }
 
-  /* logo on every photo of a property from a folder (bottom right), resized to max 2000 px */
+  /* Всяка нова снимка на имот: 1) агентът търси чужди логота/стикери/надписи и ги премахва (Gemini; при неуспех – изрязва ръба
+     или замазва мястото), 2) нашето лого – бледо, в средата на снимката, 3) до 2000 px. Работи на опашка по 3 снимки. */
   var logoP = null;
   function logo() { return logoP || (logoP = new Promise(function (ok) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { ok(null); }; im.src = "/mobile/crm/assets/logo.png"; })); }
-  function watermark(file) {
-    return Promise.all([readAsDataURL(file), logo()]).then(function (r) {
-      return new Promise(function (ok) {
-        var im = new Image();
-        im.onload = function () {
-          var k = Math.min(1, 2000 / Math.max(im.width, im.height)), c = document.createElement("canvas"), W = c.width = Math.round(im.width * k), H = c.height = Math.round(im.height * k), g = c.getContext("2d");
-          g.drawImage(im, 0, 0, W, H);
-          /* our logo, pale and medium-sized, in the lower right corner (it hides nothing important) */
-          var u = Math.max(W, H) / 1000, lw = 300 * u, lh = lw * 296 / 560, x = W - lw - 28 * u, y = H - lh - 26 * u;
-          if (r[1]) {
-            g.save(); g.globalAlpha = 0.28; g.shadowColor = "rgba(255,255,255,.95)"; g.shadowBlur = 18 * u;
-            g.drawImage(r[1], x, y, lw, lh); g.globalAlpha = 0.42; g.shadowBlur = 0; g.drawImage(r[1], x, y, lw, lh); g.restore();
-          } else {
-            g.save(); g.globalAlpha = 0.45; g.fillStyle = "#680019"; g.textBaseline = "bottom"; g.textAlign = "right"; g.font = "700 " + Math.round(34 * u) + "px Georgia, serif";
-            g.shadowColor = "rgba(255,255,255,.9)"; g.shadowBlur = 10 * u; g.fillText("НЕДВИЖИМИ ИМОТИ НАДЕЖДА", W - 28 * u, H - 26 * u); g.restore();
-          }
-          c.toBlob(function (b) { ok(b ? new File([b], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" }) : file); }, "image/jpeg", 0.88);
-        };
-        im.onerror = function () { ok(file); };
-        im.src = r[0];
+  function loadImg(src) { return new Promise(function (ok, bad) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = bad; im.src = src; }); }
+  function scanApi(body) { return D.token().then(function (tok) { return fetch("/api/scan", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify(body) }); }).then(function (r) { return r.json(); }); }
+  function small(c, max) { var k = Math.min(1, max / Math.max(c.width, c.height)), s = document.createElement("canvas"); s.width = Math.round(c.width * k); s.height = Math.round(c.height * k); s.getContext("2d").drawImage(c, 0, 0, s.width, s.height); return s.toDataURL("image/jpeg", 0.85).split(",")[1]; }
+  function cleanLogos(c) {
+    var data = small(c, 1024);
+    return scanApi({ kind: "logos", mime: "image/jpeg", data: data }).then(function (r) {
+      var boxes = (r && r.boxes) || []; if (!boxes.length) return c;
+      var W = c.width, H = c.height;
+      var rect = function (b, pad) { var x0 = b.box[1] / 1000 * W, y0 = b.box[0] / 1000 * H, x1 = b.box[3] / 1000 * W, y1 = b.box[2] / 1000 * H, p = pad * Math.max(W, H); return [Math.max(0, x0 - p), Math.max(0, y0 - p), Math.min(W, x1 + p), Math.min(H, y1 + p)]; };
+      return scanApi({ kind: "clean", mime: "image/jpeg", data: data, boxes: boxes }).then(function (e) {
+        if (!e || !e.ok || !e.data) throw new Error("no clean");
+        return loadImg("data:" + (e.mime || "image/png") + ";base64," + e.data).then(function (im) {
+          /* само областите на логата се взимат от почистената снимка – останалото остава в пълна резолюция */
+          var g = c.getContext("2d");
+          boxes.forEach(function (b) {
+            var q = rect(b, 0.02), w = q[2] - q[0], h = q[3] - q[1]; if (w < 2 || h < 2) return;
+            var m = document.createElement("canvas"); m.width = Math.ceil(w); m.height = Math.ceil(h); var mg = m.getContext("2d");
+            mg.drawImage(im, q[0] / W * im.width, q[1] / H * im.height, w / W * im.width, h / H * im.height, 0, 0, m.width, m.height);
+            /* меко сливане по ръба */
+            mg.globalCompositeOperation = "destination-in"; var f = Math.min(w, h) * 0.18;
+            var gx = mg.createLinearGradient(0, 0, m.width, 0); gx.addColorStop(0, "rgba(0,0,0,0)"); gx.addColorStop(f / m.width, "#000"); gx.addColorStop(1 - f / m.width, "#000"); gx.addColorStop(1, "rgba(0,0,0,0)");
+            mg.fillStyle = gx; mg.fillRect(0, 0, m.width, m.height);
+            var gy = mg.createLinearGradient(0, 0, 0, m.height); gy.addColorStop(0, "rgba(0,0,0,0)"); gy.addColorStop(f / m.height, "#000"); gy.addColorStop(1 - f / m.height, "#000"); gy.addColorStop(1, "rgba(0,0,0,0)");
+            mg.fillStyle = gy; mg.fillRect(0, 0, m.width, m.height);
+            g.drawImage(m, q[0], q[1]);
+          });
+          return c;
+        });
+      }).catch(function () {
+        /* резервно: лого до ръба → изрязваме ивицата; иначе – замазване на мястото */
+        var cut = [0, 0, W, H];
+        boxes.forEach(function (b) {
+          var q = rect(b, 0.01), opts = [[q[2] / W, "l"], [(W - q[0]) / W, "r"], [q[3] / H, "t"], [(H - q[1]) / H, "b"]].sort(function (x, y) { return x[0] - y[0]; })[0];
+          if (opts[0] <= 0.22) { if (opts[1] === "l") cut[0] = Math.max(cut[0], q[2]); if (opts[1] === "r") cut[2] = Math.min(cut[2], q[0]); if (opts[1] === "t") cut[1] = Math.max(cut[1], q[3]); if (opts[1] === "b") cut[3] = Math.min(cut[3], q[1]); }
+          else { var g = c.getContext("2d"), w = q[2] - q[0], h = q[3] - q[1]; g.save(); g.beginPath(); g.rect(q[0], q[1], w, h); g.clip(); g.filter = "blur(" + Math.round(Math.max(w, h) / 3) + "px)"; g.drawImage(c, q[0] - w / 2, q[1] - h / 2, w * 2, h * 2, q[0] - w / 2, q[1] - h / 2, w * 2, h * 2); g.restore(); }
+        });
+        if (cut[0] === 0 && cut[1] === 0 && cut[2] === W && cut[3] === H) return c;
+        var n = document.createElement("canvas"); n.width = Math.round(cut[2] - cut[0]); n.height = Math.round(cut[3] - cut[1]); n.getContext("2d").drawImage(c, cut[0], cut[1], n.width, n.height, 0, 0, n.width, n.height); return n;
       });
-    }).catch(function () { return file; });
+    }).catch(function () { return c; });
+  }
+  var Q = [], running = 0;
+  function queue(job) { return new Promise(function (ok) { Q.push(function () { running++; job().then(ok, function () { ok(null); }).then(function () { running--; if (Q.length) Q.shift()(); }); }); if (running < 3) Q.shift()(); }); }
+  function watermark(file) {
+    return queue(function () {
+      return Promise.all([readAsDataURL(file), logo()]).then(function (r) {
+        return loadImg(r[0]).then(function (im) {
+          var k = Math.min(1, 2000 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+          c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+          return cleanLogos(c).then(function (c) {
+            var W = c.width, H = c.height, g = c.getContext("2d");
+            /* нашето лого – бледо, в средата на снимката */
+            var lw = Math.min(W * 0.42, H * 0.42 * 560 / 296), lh = lw * 296 / 560, x = (W - lw) / 2, y = (H - lh) / 2, u = Math.max(W, H) / 1000;
+            if (r[1]) {
+              g.save(); g.globalAlpha = 0.22; g.shadowColor = "rgba(255,255,255,.95)"; g.shadowBlur = 18 * u;
+              g.drawImage(r[1], x, y, lw, lh); g.globalAlpha = 0.3; g.shadowBlur = 0; g.drawImage(r[1], x, y, lw, lh); g.restore();
+            } else {
+              g.save(); g.globalAlpha = 0.35; g.fillStyle = "#680019"; g.textBaseline = "middle"; g.textAlign = "center"; g.font = "700 " + Math.round(40 * u) + "px Georgia, serif";
+              g.shadowColor = "rgba(255,255,255,.9)"; g.shadowBlur = 10 * u; g.fillText("НЕДВИЖИМИ ИМОТИ НАДЕЖДА", W / 2, H / 2); g.restore();
+            }
+            return new Promise(function (ok) { c.toBlob(function (b) { ok(b ? new File([b], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" }) : file); }, "image/jpeg", 0.88); });
+          });
+        });
+      }).then(function (f) { return f || file; }, function () { return file; });
+    });
   }
   window.NDScan = { menu: menu, close: close, watermark: watermark, publicText: publicText, folder: function (files, h) { if (h) { handlers = h; ctxKind = "property"; } folderScan(files); } };
 })();

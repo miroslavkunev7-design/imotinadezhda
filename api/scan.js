@@ -61,12 +61,55 @@ async function isStaff(token) {
   return r.ok && (await r.json()) === true;
 }
 
+/* Чужди логота / надписи върху снимка: откриване (кутии 0–1000) и почистване с Gemini image edit */
+const LOGO_PROMPT = "Намери на снимката на имота всички наложени логота, водни знаци, стикери с име на агенция, надписи с телефон или уебсайт и QR кодове " +
+  "(наложени графично или залепени/отпечатани табелки с име на агенция). НЕ отбелязвай обикновени предмети, картини по стените, телевизори, етикети на уреди. " +
+  "Върни JSON: {\"boxes\":[{\"box\":[ymin,xmin,ymax,xmax],\"label\":\"кратко описание\"}]} с координати 0–1000. Ако няма – {\"boxes\":[]}.";
+const CLEAN_MODELS = ["gemini-2.5-flash-image", "gemini-2.5-flash-image-preview"];
+async function gem(key, model, body) {
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status); return j;
+}
+async function logos(res, key, b) {
+  if (b.kind === "logos") {
+    for (const model of MODELS) {
+      try {
+        const j = await gem(key, model, { contents: [{ role: "user", parts: [{ text: LOGO_PROMPT }, { inline_data: { mime_type: b.mime, data: b.data } }] }], generationConfig: { temperature: 0, responseMimeType: "application/json" } });
+        const t = ((j.candidates || [])[0] || {}).content?.parts?.map((p) => p.text || "").join("") || "{}";
+        let o = JSON.parse(t.replace(/^```json|```$/g, "").trim()); if (Array.isArray(o)) o = { boxes: o };
+        const boxes = (o.boxes || []).map((x) => ({ box: (x.box || x.box_2d || []).map(Number), label: String(x.label || "").slice(0, 60) })).filter((x) => x.box.length === 4 && x.box.every((v) => v >= 0 && v <= 1000) && x.box[2] > x.box[0] && x.box[3] > x.box[1]);
+        return send(res, 200, { ok: true, boxes, model });
+      } catch (e) { /* try next */ }
+    }
+    return send(res, 200, { ok: true, boxes: [], note: "detect failed" });
+  }
+  const where = (b.boxes || []).map((x) => "[" + x.box.join(",") + "] " + (x.label || "")).join("; ");
+  const prompt = "Премахни от снимката САМО наложените логота, водни знаци, стикери и надписи на агенции" + (where ? " (приблизителни области ymin,xmin,ymax,xmax 0–1000: " + where + ")" : "") +
+    ". На тяхно място възстанови естествено фона (стена, мебели, под, небе) така, сякаш никога не са били там. Не променяй нищо друго – кадър, цветове, светлина, предмети и размери остават същите.";
+  let last = "";
+  for (const model of CLEAN_MODELS) {
+    try {
+      const j = await gem(key, model, { contents: [{ role: "user", parts: [{ text: prompt }, { inline_data: { mime_type: b.mime, data: b.data } }] }], generationConfig: { responseModalities: ["IMAGE", "TEXT"] } });
+      const part = (((j.candidates || [])[0] || {}).content?.parts || []).find((p) => (p.inline_data || p.inlineData) && (p.inline_data || p.inlineData).data);
+      if (part) { const d = part.inline_data || part.inlineData; return send(res, 200, { ok: true, mime: d.mime_type || d.mimeType || "image/png", data: d.data, model }); }
+      last = "без изображение";
+    } catch (e) { last = String(e.message || e); }
+  }
+  return send(res, 200, { ok: false, error: "Почистването не успя: " + last });
+}
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") return send(res, 405, { ok: false, error: "POST only" });
   const auth = String(req.headers["authorization"] || "");
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!token || !(await isStaff(token).catch(() => false))) return send(res, 401, { ok: false, error: "Влезте в CRM, за да сканирате." });
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
+  if (b.kind === "logos" || b.kind === "clean") {
+    if (!b.data || !/^image\/(jpeg|png|webp)$/.test(String(b.mime || ""))) return send(res, 400, { ok: false, error: "Нужна е снимка" });
+    const k = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    if (!k) return send(res, 200, { ok: true, boxes: [], note: "no key" });
+    return logos(res, k, b);
+  }
   const kind = b.kind === "property" ? "property" : b.kind === "folder" ? "folder" : "client";
   const mime = String(b.mime || "");
   const MIME_OK = /^(image\/(jpeg|png|webp|heic|heif)|application\/pdf|text\/plain)$/;
