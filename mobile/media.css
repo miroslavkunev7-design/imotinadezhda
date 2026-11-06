@@ -1,0 +1,11 @@
+/* Preserve existing card geometry, gradients, and masks. */
+.card .ph>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.nd-background-video{object-fit:cover;pointer-events:none;background-size:cover;background-position:center}
+.landing-city-card>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.home-hero>video.home-photo{object-fit:cover}
+.terrace-hero>video.terrace-photo{object-fit:cover;width:100%;height:100%}
+.district-browser .district-tile .place-photo{width:100%;height:115px;object-fit:cover;border-radius:10px;margin:0 0 12px}
+
+.neighborhood-card,.district-tile{position:relative}.photo-context{position:absolute;top:7px;left:7px;z-index:1;border-radius:7px;padding:3px 6px;background:rgba(62,12,23,.82);color:#fffaf1;font:10px/1.3 Arial,sans-serif;pointer-events:none}
+
+.city-choice>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
