@@ -2,9 +2,13 @@
 //  - Gemini (GEMINI_API_KEY)                 - OpenAI / ChatGPT (OPENAI_API_KEY)
 //  - Anthropic / Claude (ANTHROPIC_API_KEY)  - Ollama (OLLAMA_URL [+OLLAMA_KEY], OpenAI-съвместим /v1)
 //  - OpenRouter (OPENROUTER_API_KEY – има и безплатни модели „:free“)
+//  - Vercel AI Gateway (AI_GATEWAY_KEY / VERCEL_AI_GATEWAY_KEY – Claude, ChatGPT и др. с кредитите във Vercel)
 // Ключовете са само във Vercel. Списъкът с модели може да се настрои с *_MODELS (запетая: id|Име|описание).
 "use strict";
 const E = (k) => process.env[k] || "";
+/* Vercel AI Gateway (кредити във Vercel): OpenAI-съвместим адрес, модели "anthropic/…", "openai/…" */
+const GW_KEY = () => E("AI_GATEWAY_KEY") || E("VERCEL_AI_GATEWAY_KEY") || E("AI_GATEWAY_API_KEY");
+const GW_URL = () => { const u = E("AI_GATEWAY_URL"); const b = /^https?:\/\//.test(u) ? u.replace(/\/+$/, "") : "https://ai-gateway.vercel.sh/v1"; return /\/v1$/.test(b) ? b : b + "/v1"; };
 function parseList(s, def) {
   const src = String(s || "").trim();
   const items = (src ? src.split(",") : def).map((x) => String(x).trim()).filter(Boolean).map((x) => { const p = x.split("|"); return { id: p[0].trim(), name: (p[1] || p[0]).trim(), note: (p[2] || "").trim() }; });
@@ -17,6 +21,7 @@ function catalog() {
   if (E("OPENAI_API_KEY")) parseList(E("OPENAI_MODELS"), ["gpt-4.1-mini|ChatGPT 4.1 mini|бърз и евтин", "gpt-4.1|ChatGPT 4.1|по-силен"]).forEach((m) => out.push(Object.assign({ provider: "openai", vision: true, pdf: false }, m)));
   if (E("ANTHROPIC_API_KEY")) parseList(E("ANTHROPIC_MODELS"), ["claude-sonnet-4-5|Claude Sonnet 4.5|много добър за текст и документи", "claude-haiku-4-5|Claude Haiku 4.5|бърз"]).forEach((m) => out.push(Object.assign({ provider: "anthropic", vision: true, pdf: true }, m)));
   if (E("OPENROUTER_API_KEY")) parseList(E("OPENROUTER_MODELS"), ["meta-llama/llama-3.3-70b-instruct:free|Llama 3.3 70B (OpenRouter)|безплатен, без снимки"]).forEach((m) => out.push(Object.assign({ provider: "openrouter", vision: false, pdf: false }, m)));
+  if (GW_KEY()) parseList(E("AI_GATEWAY_MODELS"), ["anthropic/claude-sonnet-4.5|Claude Sonnet 4.5|през Vercel AI Gateway", "openai/gpt-4.1-mini|ChatGPT 4.1 mini|през Vercel AI Gateway", "openai/gpt-4.1|ChatGPT 4.1|през Vercel AI Gateway", "anthropic/claude-haiku-4.5|Claude Haiku 4.5|бърз, през Gateway"]).forEach((m) => out.push(Object.assign({ provider: "gateway", vision: true, pdf: false }, m)));
   if (E("OLLAMA_URL")) parseList(E("OLLAMA_MODELS"), ["llama3.1:8b|Ollama Llama 3.1|локален, безплатен"]).forEach((m) => out.push(Object.assign({ provider: "ollama", vision: false, pdf: false }, m)));
   return out;
 }
@@ -72,8 +77,8 @@ async function chat(model, opts) {
     return null;
   }
   /* OpenAI-съвместими: OpenAI, OpenRouter, Ollama */
-  const base = model.provider === "openai" ? "https://api.openai.com/v1" : model.provider === "openrouter" ? "https://openrouter.ai/api/v1" : E("OLLAMA_URL").replace(/\/+$/, "") + (/\/v1$/.test(E("OLLAMA_URL")) ? "" : "/v1");
-  const key = model.provider === "openai" ? E("OPENAI_API_KEY") : model.provider === "openrouter" ? E("OPENROUTER_API_KEY") : (E("OLLAMA_KEY") || "ollama");
+  const base = model.provider === "openai" ? "https://api.openai.com/v1" : model.provider === "openrouter" ? "https://openrouter.ai/api/v1" : model.provider === "gateway" ? GW_URL() : E("OLLAMA_URL").replace(/\/+$/, "") + (/\/v1$/.test(E("OLLAMA_URL")) ? "" : "/v1");
+  const key = model.provider === "openai" ? E("OPENAI_API_KEY") : model.provider === "openrouter" ? E("OPENROUTER_API_KEY") : model.provider === "gateway" ? GW_KEY() : (E("OLLAMA_KEY") || "ollama");
   const headers = { "Content-Type": "application/json", Authorization: "Bearer " + key }; if (model.provider === "openrouter") { headers["HTTP-Referer"] = "https://imotinadezhda.bg"; headers["X-Title"] = "Имоти Надежда – Тед"; }
   const conv = [{ role: "system", content: system }].concat(msgs.map((m) => {
     const imgs = (m.files || []).filter((f) => /^image\/(jpeg|png|webp|gif)$/.test(f.mime)), pdfs = (m.files || []).filter((f) => f.mime === "application/pdf");
