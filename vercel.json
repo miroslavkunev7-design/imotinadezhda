@@ -95,6 +95,9 @@
     },
     "api/video.js": {
       "maxDuration": 60
+    },
+    "api/apply.js": {
+      "maxDuration": 60
     }
   },
   "redirects": [
