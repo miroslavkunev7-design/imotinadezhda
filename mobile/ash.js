@@ -89,8 +89,9 @@
   function loadModels() {
     if (models) return Promise.resolve(models);
     return token().then(function (tk) { return fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ action: "models" }) }); })
-      .then(function (r) { return r.json(); }).then(function (j) { models = (j && j.models) || []; return models; }).catch(function () { models = []; return models; });
+      .then(function (r) { return r.json(); }).then(function (j) { models = ((j && j.models) || []).concat([N8N_OPT]); return models; }).catch(function () { models = [N8N_OPT]; return models; });
   }
+  var N8N_OPT = { id: "n8n", name: "Агент n8n", note: "вашият агент от n8n (моделите са в n8n)", provider: "n8n", vision: false, pdf: false };
   function curModel() { return (models || []).filter(function (m) { return m.id === modelId; })[0] || (models || [])[0] || null; }
   function setModel(id, quiet) {
     modelId = id || ""; try { if (id) localStorage.setItem("nd-ted-model", id); } catch (e) {}
@@ -99,10 +100,24 @@
     if (m && !quiet) add("bot", "Избран модел: <b>" + esc(m.name) + "</b>" + (m.note ? " – " + esc(m.note) : "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки"));
   }
   function renderModels() {
-    var cur = curModel(), PROV = { gemini: "Google", openai: "OpenAI", anthropic: "Anthropic", openrouter: "OpenRouter", ollama: "Ollama" };
+    var cur = curModel(), PROV = { gemini: "Google", openai: "OpenAI", anthropic: "Anthropic", openrouter: "OpenRouter", ollama: "Ollama", n8n: "n8n" };
     menu.innerHTML = (models && models.length ? models.map(function (m) { return '<button type="button" data-m="' + esc(m.id) + '"' + (cur && cur.id === m.id ? ' class="on"' : "") + ">" + esc(m.name) + "<em>" + (PROV[m.provider] || m.provider) + "</em><small>" + esc(m.note || "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки") + "</small></button>"; }).join("") : '<button type="button" disabled>Няма настроени модели<small>Ключовете се добавят във Vercel (GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, OPENROUTER_API_KEY, OLLAMA_URL)</small></button>');
   }
+  /* вашият агент в n8n (същият като в публичния сайт): текстът отива към webhook-а, n8n ползва /api/tools с токена на брокера */
+  var N8N_URL = "https://imotinadezhda.app.n8n.cloud/webhook/94ba7a03-92cc-41d0-ab0f-549d1d4d4560", N8N_SID = (function () { try { var k = "nd-ted-n8n-sid", v = localStorage.getItem(k); if (!v) { v = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); localStorage.setItem(k, v); } return v; } catch (e) { return "s" + Date.now(); } })();
+  function askN8n(history) {
+    var last = history[history.length - 1] || {}, text = String(last.text || "").trim();
+    if (!text) return Promise.resolve({ ok: false, error: "Агентът в n8n приема текст – за снимки, файлове и глас изберете Gemini или друг модел." });
+    var ctrl = new AbortController(), timer = setTimeout(function () { ctrl.abort(); }, 60000);
+    return token().then(function (tok) {
+      return fetch(N8N_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text + ((last.files || []).length ? "\n(прикачени файлове: " + last.files.map(function (f) { return f.name; }).join(", ") + ")" : ""), sessionId: N8N_SID, accessToken: tok || null, toolsUrl: location.origin + "/api/tools" }), signal: ctrl.signal });
+    }).then(function (r) { if (!r.ok) throw new Error("агентът върна HTTP " + r.status); return r.json(); })
+      .then(function (d) { if (Array.isArray(d)) d = d[0]; var out = d && (d.output || d.text || d.answer); if (typeof out !== "string" || !out.trim()) throw new Error("невалиден отговор от агента"); return { ok: true, text: out, actions: [], model: "n8n", model_name: "Агент n8n" }; })
+      .catch(function (e) { return { ok: false, error: e && e.name === "AbortError" ? "Агентът в n8n не отговори навреме." : "Агент n8n: " + ((e && e.message) || e) }; })
+      .then(function (j) { clearTimeout(timer); return j; });
+  }
   function ask(history) {
+    if (modelId === "n8n") return askN8n(history);
     return token().then(function (tok) {
       var h = { "Content-Type": "application/json" }; if (tok) h.Authorization = "Bearer " + tok;
       return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title, model: modelId || undefined }) });
