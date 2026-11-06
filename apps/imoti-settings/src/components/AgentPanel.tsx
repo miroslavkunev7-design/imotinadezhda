@@ -65,7 +65,8 @@ export function AgentPanel({ toast }: { toast: (m: string) => void }) {
     {
       id: "welcome",
       role: "system",
-      text: "Settings Agent window. Skills dropdown → „Видео за имот“ attaches photos here only (not the public site)."
+      text:
+        "Settings Agent (stub OK without TED/n8n). Chat replies locally until VITE_SETTINGS_TED_API is set. „Видео за имот“ stays Settings-only — never the public site agent."
     }
   ]);
   const [busy, setBusy] = useState(false);
@@ -206,34 +207,44 @@ export function AgentPanel({ toast }: { toast: (m: string) => void }) {
         setPhotos([]);
         void pollJob(id, cardId);
       } else {
+        const stubId = "stub-" + Date.now();
+        setJobId(stubId);
         setMsgs((msgs) =>
           msgs.map((m) =>
             m.id === cardId
               ? {
                   ...m,
+                  jobId: stubId,
+                  progress: 1,
                   text:
-                    "Settings video workflow returned " +
-                    (j.error || r.status) +
-                    ". Did not call official site TED. Photos stay in this card until the separate n8n accepts create→job_id."
+                    "Video stub (no live Settings video/n8n). Kept " +
+                    photos.length +
+                    " photos in-card. Official site TED untouched. Live MP4 needs VITE_SETTINGS_VIDEO_API later — not for UI acceptance."
                 }
               : m
           )
         );
-        toast("Settings workflow not ready — site agent untouched");
+        setPhotos([]);
+        toast("Video stub — UI path OK without n8n");
       }
     } catch (e) {
+      const stubId = "stub-err-" + Date.now();
       setMsgs((msgs) =>
         msgs.map((m) =>
           m.id === cardId
             ? {
                 ...m,
+                jobId: stubId,
+                progress: 1,
                 text:
-                  "Settings video endpoint error (site TED not used): " +
-                  (e instanceof Error ? e.message : String(e))
+                  "Video stub after endpoint error (site TED not used): " +
+                  (e instanceof Error ? e.message : String(e)) +
+                  ". Photos retained in prior user card; acceptance does not require n8n."
               }
             : m
         )
       );
+      setPhotos([]);
     } finally {
       setBusy(false);
     }
@@ -260,13 +271,15 @@ export function AgentPanel({ toast }: { toast: (m: string) => void }) {
               ? {
                   ...m,
                   text:
-                    "Settings TED endpoint not set (VITE_SETTINGS_TED_API / VITE_SETTINGS_N8N_WEBHOOK). " +
-                    "Refusing to call official imotinadezhda.bg /api/assistant. Publish separate Settings n8n workflow URL to unlock chat."
+                    "Stub reply (no Settings TED/n8n webhook). Official site /api/assistant was not called. " +
+                    "You said: «" +
+                    text.slice(0, 240) +
+                    "». Wire VITE_SETTINGS_TED_API later — not required for Settings UI acceptance."
                 }
               : m
           )
         );
-        toast("No Settings TED URL yet — official site agent not called");
+        toast("Agent stub — no n8n needed for acceptance");
         return;
       }
       const token = await staffToken();

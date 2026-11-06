@@ -63,7 +63,7 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerLanguages": ["en_US", "bg_BG"],
+      "installerLanguages": ["en_US"],
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Imoti Nadezhda Settings",
