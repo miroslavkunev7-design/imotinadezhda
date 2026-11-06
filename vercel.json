@@ -94,7 +94,8 @@
       "includeFiles": "api/_vendor/**"
     },
     "api/video.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "api/_vendor/jpeg-js/**"
     },
     "api/apply.js": {
       "maxDuration": 60

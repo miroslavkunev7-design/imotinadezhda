@@ -32,7 +32,7 @@
   function attach(el) {
     if (!el || el.dataset.dct || el.type === "password" || el.readOnly || el.disabled) return;
     if (el.tagName !== "TEXTAREA" && !el.hasAttribute("data-dictate") && !/notes|note|desc|бележ|опис|коментар|message|msg|body|zabel|comment/i.test(el.id + " " + el.name + " " + el.placeholder + " " + (el.getAttribute("aria-label") || ""))) return;
-    if (el.closest(".nda-c") || el.closest(".m-notes") || el.hasAttribute("data-nodictate")) return; /* чатът на Тед и бележките на клиента си имат микрофон */
+    if (el.closest(".nda-c") || el.closest(".m-notes") || el.closest(".ndv") || el.hasAttribute("data-nodictate")) return; /* чатът на Тед и бележките на клиента си имат микрофон */
     el.dataset.dct = "1";
     var wrap = el.parentNode;
     if (!wrap.classList.contains("nd-dct-wrap")) { if (getComputedStyle(wrap).position === "static") wrap.style.position = "relative"; wrap.classList.add("nd-dct-wrap"); }

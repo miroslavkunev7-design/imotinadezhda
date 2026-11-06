@@ -7,8 +7,9 @@
 "use strict";
 const E = (k) => process.env[k] || "";
 /* Vercel AI Gateway (кредити във Vercel): OpenAI-съвместим адрес, модели "anthropic/…", "openai/…" */
-const GW_KEY = () => E("AI_GATEWAY_KEY") || E("VERCEL_AI_GATEWAY_KEY") || E("AI_GATEWAY_API_KEY");
-const GW_URL = () => { const u = E("AI_GATEWAY_URL"); const b = /^https?:\/\//.test(u) ? u.replace(/\/+$/, "") : "https://ai-gateway.vercel.sh/v1"; return /\/v1$/.test(b) ? b : b + "/v1"; };
+/* официалното име е AI_GATEWAY_API_KEY; AI_GATEWAY_KEY/AI_GATEWAY_URL може да са останали от старата Lovable връзка – ползват се последни и само към vercel.sh */
+const GW_KEY = () => E("AI_GATEWAY_API_KEY") || E("VERCEL_AI_GATEWAY_KEY") || E("AI_GATEWAY_KEY");
+const GW_URL = () => { const u = E("AI_GATEWAY_URL"); const b = /^https:\/\/[^/]*vercel\.sh/.test(u) ? u.replace(/\/+$/, "") : "https://ai-gateway.vercel.sh/v1"; return /\/v1$/.test(b) ? b : b + "/v1"; };
 function parseList(s, def) {
   const src = String(s || "").trim();
   const items = (src ? src.split(",") : def).map((x) => String(x).trim()).filter(Boolean).map((x) => { const p = x.split("|"); return { id: p[0].trim(), name: (p[1] || p[0]).trim(), note: (p[2] || "").trim() }; });
