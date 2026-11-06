@@ -104,3 +104,21 @@ html.rail .nda-fab{display:none}
 .ndmenu button.on::after{content:"✓";margin-left:auto;font-weight:700;color:#f5d58f}
 .ndmenu .ndm-g{padding:10px 14px 4px;font:700 13px/1 var(--cond,Arial);letter-spacing:.8px;text-transform:uppercase;color:#9a6a3a}
 .ndmenu button[disabled]{opacity:.45;cursor:default}
+
+/* ===== Кръг 3 (06.11.2026) ===== */
+/* 1. Десктоп: скролът работи, лентата е скрита – навсякъде */
+@media (pointer:fine) and (min-width:1024px){
+  *{scrollbar-width:none!important}
+  *::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
+}
+/* 9. Четливост: по-остри букви, без размазващи сенки по текста */
+html.desk,html.desk body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+html.desk .ccard .nm,html.desk .ndl-h .t,html.desk .ndl-h .t small,html.desk #nd-fwin .ndg .el,html.desk #nd-fwin .f-bar h2{text-shadow:0 1px 0 rgba(255,255,255,.9)}
+/* 8. Прелети снимки: плътна и ярка картина, преливане само по ръба */
+.top .photo{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 15%),linear-gradient(180deg,transparent 0,#000 9%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 15%),linear-gradient(180deg,transparent 0,#000 9%)!important;opacity:1!important;filter:saturate(1.08) contrast(1.04)}
+.top .shade{background:linear-gradient(90deg,rgba(64,10,22,.92) 0%,rgba(64,10,22,.5) 24%,rgba(64,10,22,0) 40%),linear-gradient(0deg,rgba(242,199,163,.2) 0%,rgba(242,199,163,0) 8%)!important}
+.ccard .ph{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 26%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 26%)!important;opacity:1!important;filter:saturate(1.08) contrast(1.04)}
+.fcell .fp{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 28%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 28%)!important;opacity:1!important}
+.acc::after,.m-act::after,.m-notes::after,.m-data::after{opacity:1!important;filter:saturate(1.1) contrast(1.04);-webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important;mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important}
+.pm-hero img.fade{opacity:.2}
+.tile img.ph,.pc img,.bk img,.kq img,.ev img{opacity:1!important}

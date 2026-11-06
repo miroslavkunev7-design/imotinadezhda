@@ -81,7 +81,7 @@
     "@media(max-width:420px){.ndl-sel{grid-template-columns:1fr}}" +
     /* rows in the look of the bank module's client documents: title line, status + files pills, eye and download, strong blended photo */
     ".ndl-row:before{width:78%;opacity:1;filter:saturate(1.12) contrast(1.04);-webkit-mask-image:linear-gradient(270deg,#000 0%,rgba(0,0,0,.85) 35%,rgba(0,0,0,.35) 68%,transparent 100%);mask-image:linear-gradient(270deg,#000 0%,rgba(0,0,0,.85) 35%,rgba(0,0,0,.35) 68%,transparent 100%)}" +
-    ".ndl-row:after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(255,250,245,.92) 0%,rgba(255,250,245,.55) 38%,rgba(255,250,245,0) 70%)}" +
+    ".ndl-row:after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,rgba(255,250,245,.94) 0%,rgba(255,250,245,.45) 30%,rgba(255,250,245,0) 50%)}" +
     ".ndl-h{grid-template-columns:34px 1fr auto;grid-template-rows:auto auto;gap:8px 10px;padding:12px 12px 12px 14px;min-height:0}" +
     ".ndl-h .ic{grid-row:1;align-self:center}.ndl-h .ic svg{width:30px;height:30px;stroke-width:2.1}" +
     ".ndl-h .t{grid-column:2/4;grid-row:1;font-size:20px!important;line-height:1.15;text-shadow:0 0 8px #fffaf4,0 0 3px #fffaf4,0 0 1px #fff}" +

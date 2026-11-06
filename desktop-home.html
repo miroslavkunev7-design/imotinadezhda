@@ -128,20 +128,21 @@ body{font-family:var(--cond);color:var(--ink)}
 </div></div>
 
 <script src="/mobile/places.js"></script>
+<script src="/mobile/nd-menu.js"></script>
 <script>
 (function(){
   var W=1672,H=941,cv=document.getElementById('cv'),st=document.getElementById('stage');
   function fit(){var k=document.documentElement.clientWidth/W;cv.style.transform='scale('+k+')';st.style.height=Math.max(H*k,innerHeight)+'px'}
   fit();addEventListener('resize',fit);
-  var CITY={'Шумен':'shumen','Варна':'varna','Бургас':'burgas','Нов пазар':'shumen'};
-  var HOODS={'Нов пазар':['Център']};
+  var CITY={'Шумен':'shumen','Варна':'varna','Бургас':'burgas','Нови пазар':'shumen'};
+  var HOODS={};
   var PR=[['200000-500000','от 200 000 €','до 500 000 €'],['0-100000','до 100 000 €',''],['100000-200000','от 100 000 €','до 200 000 €'],['500000-','над 500 000 €',''],['','Без значение','']];
   var AR=[['100-200','от 100 м²','до 200 м²'],['0-60','до 60 м²',''],['60-100','от 60 м²','до 100 м²'],['200-','над 200 м²',''],['','Без значение','']];
   var TYPES=['Апартамент','Къща','Парцел','Офис','Магазин','Гараж','Вила','Етаж от къща'];
   function $(i){return document.getElementById(i)}
   function fill(sel,opts,val){sel.innerHTML=opts.map(function(o){var v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]+(o[2]?' – '+o[2]:''):o;return '<option value="'+v+'"'+(v===val?' selected':'')+'>'+t+'</option>'}).join('')}
-  function hoods(c){var P=window.NDPlaces;return HOODS[c]||(P&&P.PLACES[c])||['Център']}
-  fill($('s-city'),['Бургас','Шумен','Варна','Нов пазар'],'Бургас');
+  function hoods(c){var P=window.NDPlaces;return HOODS[c]||(P&&P.PLACES[P.city?P.city(c):c])||['Център']}
+  fill($('s-city'),['Бургас','Шумен','Варна','Нови пазар'],'Бургас');
   fill($('s-hood'),hoods('Бургас'),'Лазур');
   fill($('s-price'),PR,'200000-500000');fill($('s-area'),AR,'100-200');fill($('s-type'),TYPES,'Апартамент');
   $('s-city').onchange=function(){var c=this.value;$('v-city').textContent=c;var h=hoods(c);fill($('s-hood'),h,h[0]);$('v-hood').textContent=h[0]};

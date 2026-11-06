@@ -30,7 +30,7 @@
 /* the credit block takes the colour of the selected bank (like ДСК before); photo of the branch blended in the header, sharp */
 .credit-block{--bankD:color-mix(in srgb,var(--bank) 72%,#000);--bankL:color-mix(in srgb,var(--bank) 12%,#fff);background:linear-gradient(130deg,color-mix(in srgb,var(--bank) 16%,#fff),color-mix(in srgb,var(--bank) 9%,#fff) 45%,color-mix(in srgb,var(--bank) 20%,#fff))!important;border-color:color-mix(in srgb,var(--bank) 55%,#fff)!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--bank) 60%,#fff),inset 0 0 0 3px rgba(255,255,255,.85),0 0 16px color-mix(in srgb,var(--bank) 45%,transparent),0 3px 8px rgba(0,0,0,.3)!important;transition:background .4s,border-color .4s,box-shadow .4s}
 .credit-block .credit-brand{background:linear-gradient(156deg,color-mix(in srgb,var(--bank) 60%,#fff) 0%,var(--bank) 22%,var(--bankD) 58%,var(--bank) 85%)!important;border-color:color-mix(in srgb,var(--bank) 40%,#fff)!important;box-shadow:inset 0 2px 7px color-mix(in srgb,var(--bank) 30%,#fff),0 0 10px color-mix(in srgb,var(--bank) 60%,transparent)!important}
-.credit-block .branch-photo{width:66%!important;opacity:1!important;filter:saturate(1.12) contrast(1.06);background-size:cover!important;background-position:center 40%!important;-webkit-mask-image:linear-gradient(to right,transparent 0,rgba(0,0,0,.6) 18%,#000 38%);mask-image:linear-gradient(to right,transparent 0,rgba(0,0,0,.6) 18%,#000 38%);animation:brIn .5s ease both}
+.credit-block .branch-photo{width:66%!important;opacity:1!important;filter:saturate(1.12) contrast(1.06);background-size:cover!important;background-position:center 40%!important;-webkit-mask-image:linear-gradient(to right,transparent 0,#000 24%);mask-image:linear-gradient(to right,transparent 0,#000 24%);animation:brIn .5s ease both}
 @keyframes brIn{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:none}}
 .credit-block .fees-panel,.credit-block .note-card,.credit-block section[class*="panel"],.credit-block .credit-aside>section{background:linear-gradient(160deg,rgba(255,255,255,.97),var(--bankL))!important;border-color:#fff!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--bank) 45%,#fff),0 0 12px color-mix(in srgb,var(--bank) 25%,transparent),0 4px 8px rgba(0,0,0,.16)!important}
 .credit-block .green-button{background:linear-gradient(180deg,color-mix(in srgb,var(--bank) 70%,#fff) 0%,var(--bank) 35%,var(--bankD) 100%)!important;border-color:color-mix(in srgb,var(--bank) 40%,#fff)!important;color:var(--bankT)!important;box-shadow:inset 0 1px 2px rgba(255,255,255,.5),0 3px 6px rgba(0,0,0,.3)!important}
@@ -48,6 +48,7 @@
 @media(max-width:700px){.credit-block .branch-photo{width:58%!important}}
 .credit-block .fees-heading,.credit-block .fees-heading *{color:inherit}
 .credit-block .fees-heading .city-select,.credit-block .fees-heading .city-select *{color:#1d1d1d!important}
+@media (pointer:fine) and (min-width:1024px){*{scrollbar-width:none!important}*::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}}
 </style>
 <script src="/mobile/nd-menu.js" defer></script>
 </head>

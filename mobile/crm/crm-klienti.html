@@ -727,7 +727,7 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
     if(win.hidden)return;
     if(desk){
       var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||(window.NDRAIL?0:100),ah=innerHeight-dh-14;
-      var aw=full?vw-16:(window.NDRAIL?vw-20:vw*.94),av=full?ah-8:(window.NDRAIL?ah-10:ah*.94),z=(full&&window.NDRAIL)?aw/2048:Math.min(aw/2048,av/Math.max(900,DH)),w=2048*z,h=(full&&window.NDRAIL)?av:Math.min(av,Math.max(900,DH)*z);var CH=Math.max(Math.max(900,DH),h/z);mcv.style.height=CH+"px";root.style.setProperty('--mcvH',CH+'px');
+      var aw=full?vw-16:(window.NDRAIL?vw-20:vw*.94),av=full?ah-8:(window.NDRAIL?ah-10:ah*.94),z=aw/2048,w=2048*z,h=full?av:Math.min(av,Math.max(900,DH)*z+8);var CH=Math.max(Math.max(900,DH),h/z);mcv.style.height=CH+"px";root.style.setProperty('--mcvH',CH+'px');
       win.style.width=w+'px';win.style.height=h+'px';win.style.left=((vw-w)/2)+'px';win.style.top=Math.max(6,(ah-h)/2)+'px';
       mcv.style.zoom=z;
       ctlBox.style.top='';
