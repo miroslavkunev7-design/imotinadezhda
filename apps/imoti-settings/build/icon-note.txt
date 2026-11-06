@@ -1,1 +1,1 @@
-Provide icon.ico on Windows packager if needed.
+icon.ico generated from assets/logo.png (ImageMagick) for electron-builder.

@@ -3,3 +3,4 @@ dist/
 dist-installer/
 .env
 *.log
+build/icon-256.png

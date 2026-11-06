@@ -38,7 +38,12 @@ Selecting a component highlights it in the preview; color/shape/melt/size edits 
 
 ## Build (Windows x64)
 
+On Windows, or Linux with Wine + NSIS + 7-Zip:
+
 ```bash
-npm run build
-npm run pack:artifacts
+npm run build          # renderer + portable + nsis + Setup.exe alias + portable.7z
+npm run pack:artifacts # copy into Project store media/settings-app/
 ```
+
+NSIS default directory: `D:\ImotiNadezhda-Settings` (see `build/installer.nsh`).
+Installer language is English only (`en_US`) — Bulgarian NSIS strings are incomplete in electron-builder and fail the build when warnings are errors.
