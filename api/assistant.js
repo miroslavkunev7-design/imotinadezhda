@@ -50,7 +50,7 @@ function systemPrompt(staff, user, page) {
     "11) Ако служителят поиска нещо, което CRM инструментите позволяват (запис, редакция, среща, задача, търсене), направи го веднага и потвърди. " +
     "12) ДОКУМЕНТИ: първо documents.find (по клиент), после documents.inspect (classify=true, когато трябва да знаеш вид/период/език), после действието (merge/split/translate/bank_statements_pack/create_pdf). Никога не казвай, че файл е готов, ако инструментът не е върнал download_url – дай линка в отговора като Markdown: [Име.pdf](url) и посочи броя страници. Липсващи месеци/страници се казват изрично. Преводите са автоматични – кажи го. " +
     "13) ИМЕЙЛ: получателят се намира с contacts.resolve; при повече от един кандидат – покажи ги и попитай. Винаги първо email.preview и покажи получател, тема, текст и файловете; email.send (confirm=true) само след изрично „да“ в чата. Ако няма доставчик, дай mailto линка и линковете към файловете. " +
-    "14) „Прати ми ги“ без уточнение = линк в този чат, не имейл. 15) Договори: contracts.generate с данните от CRM; кажи колко полета са останали за попълване (blanks_to_fill). 16) Публикуване/изтриване/статус – само след „да“. 17) Имейлите тръгват от собствената поща на служителя (настроена в CRM → Настройки → „Моята поща за изпращане“: abv.bg, Gmail, Mail.bg, Outlook…), не от общ адрес; ако email.preview върне can_send=false, кажи му да я настрои и предложи mailto линка. Никога не искай и не повтаряй пароли в чата.";
+    "14) „Прати ми ги“ без уточнение = линк в този чат, не имейл. 15) Договори: contracts.generate с данните от CRM; кажи колко полета са останали за попълване (blanks_to_fill). 16) Публикуване/изтриване/статус – само след „да“. 17) Имейлите тръгват от собствената поща на служителя (настроена в CRM → Настройки → „Моята поща за изпращане“: abv.bg, Gmail, Mail.bg, Outlook…), не от общ адрес; ако email.preview върне can_send=false, кажи му да я настрои и предложи mailto линка. Никога не искай и не повтаряй пароли в чата. 18) „Направи видео на обява #…“ / „видео разходка“ / „строеж“ или прикачени снимки с молба за видео → video.create (code = номерът, или from_attachments=true); после кажи, че видеото се прави в прозореца и ще се появи тук с линк – не обещавай време под минута на клип.";
 }
 function declarations(staff) {
   const web = [
@@ -77,6 +77,7 @@ async function runTool(call, ctx) {
       const r = await fetch(ctx.origin + "/api/tools", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + ctx.token }, body: JSON.stringify({ tool: a.tool, input }) });
       const j = await r.json().catch(() => ({ ok: false, error: "HTTP " + r.status }));
       ctx.actions.push(a.tool + (j.ok ? "" : " ✗"));
+      if (j && j.ok && j.result && j.result.start_video) ctx.video = j.result.start_video; else if (j && j.start_video) ctx.video = j.start_video;
       return j;
     }
     if (call.name === "web_search") { const r = await WEB.webSearch(a.query || ""); ctx.actions.push("интернет: " + String(a.query || "").slice(0, 40)); (ctx.sources = ctx.sources || []).push(...r.sources); return { ok: true, ...r }; }
@@ -148,7 +149,7 @@ module.exports = async (req, res) => {
       const text = await LLM.chat(model, { system, msgs: clean, tools, run: (c) => runTool(c, ctx) });
       if (text === null) return send(res, 200, { ok: true, text: "Задачата изисква твърде много стъпки – разделете я на по-малки.", actions: ctx.actions, staff: ctx.staff, model: model.id });
       const out = text || "Не успях да формулирам отговор – опитайте отново.";
-      return send(res, 200, { ok: true, text: out + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i0, a) => x.url && a.findIndex((y) => y.url === x.url) === i0).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, model: model.id, model_name: model.name, fallback: model.id !== chosen.id ? chosen.name + " не отговори – отговори " + model.name : null });
+      return send(res, 200, { ok: true, text: out + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i0, a) => x.url && a.findIndex((y) => y.url === x.url) === i0).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, video: ctx.video || null, model: model.id, model_name: model.name, fallback: model.id !== chosen.id ? chosen.name + " не отговори – отговори " + model.name : null });
     } catch (e) { lastErr = String(e.message || e); if (ctx.actions.length) break; }
   }
   return send(res, 502, { ok: false, error: "AI асистентът не отговори: " + lastErr });

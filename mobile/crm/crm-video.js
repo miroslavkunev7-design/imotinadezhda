@@ -81,7 +81,7 @@
     if (S.mode === "walk") {
       h += '<div class="ndv-note">Подредете снимките като маршрут: отвън → вход → хол → кухня → тераса → краен външен кадър. Зле подредени снимки AI не ги оправя. За всяка снимка изберете какво показва – от това се сглобява посоката на камерата.</div>';
       h += S.photos.map(function (p, i) { return '<div class="ndv-ph" data-i="' + i + '"><span class="ndv-im" style="background-image:url(' + esc(p.url || "") + ')"><b>' + (i + 1) + '</b></span><select data-room="' + i + '">' + ROOMS.map(function (r) { return '<option value="' + r[0] + '"' + (p.room === r[0] ? " selected" : "") + ">" + r[1] + "</option>"; }).join("") + '</select><span class="ndv-bt"><button type="button" data-up="' + i + '" title="Нагоре">▲</button><button type="button" data-dn="' + i + '" title="Надолу">▼</button><button type="button" data-rm="' + i + '" title="Премахни">✕</button></span></div>'; }).join("");
-      h += '<div class="ndv-act"><button type="button" data-a="add">+ Снимки от телефона</button>' + (S.photos.length >= 2 ? '<button type="button" class="pr" data-a="prep">Подготви клиповете (' + (S.photos.length - 1) + ")</button>" : "") + "</div>";
+      h += '<div class="ndv-act"><button type="button" data-a="add">+ Снимки от телефона</button>' + (S.photos.length >= 2 ? '<button type="button" data-a="route"' + (running ? " disabled" : "") + '>Подреди автоматично (AI)</button><button type="button" class="pr" data-a="prep">Подготви клиповете (' + (S.photos.length - 1) + ")</button>" : "") + "</div>";
     } else {
       var cover = S.photos[0];
       h += '<div class="ndv-note">Снимка на <b>готовия</b> имот (корицата). От нея правя „празен парцел“ и сценарий по клипове; всеки клип продължава от последния кадър на предишния, а последният завършва точно на реалната снимка.</div>';
@@ -160,7 +160,7 @@
       })();
     });
   }
-  function runAll() {
+  function runAll(auto) {
     if (running || !S.clips) return; running = true; stopFlag = false; render();
     var orig = S.photos[0];
     var chain = S.clips.reduce(function (pr, c, i) {
@@ -182,13 +182,15 @@
           .catch(function (e) { c.status = "err"; c.err = e.message || "Грешка"; save(); render(); if (S.mode === "build" || stopFlag) throw e; });
       });
     }, Promise.resolve());
-    chain.catch(function () {}).then(function () { running = false; render(); var d = S.clips.filter(function (c) { return c.status === "done"; }).length; D.say(d === S.clips.length ? "Всички клипове са готови" : "Готови " + d + " от " + S.clips.length + " клипа"); });
+    return chain.catch(function () {}).then(function () { running = false; render(); var d = S.clips.filter(function (c) { return c.status === "done"; }).length; D.say(d === S.clips.length ? "Всички клипове са готови" : "Готови " + d + " от " + S.clips.length + " клипа");
+      if (auto && d === S.clips.length) return stitch(true); if (auto && api0) api0.add("a", "Готови са " + d + " от " + S.clips.length + " клипа – поправете грешните с „Повтори клипа“ и натиснете „Генерирай“ отново."); });
   }
 
   /* ---------- сглобяване в браузъра: клиповете един след друг + надпис „AI визуализация“ ---------- */
-  function stitch() {
-    var clips = S.clips.filter(function (c) { return c.url; }); if (!clips.length) return;
+  function stitch(auto) {
+    var clips = S.clips.filter(function (c) { return c.url; }); if (!clips.length) return Promise.resolve();
     running = true; render(); busy("Сглобявам видеото (" + clips.length + " клипа)…");
+    var fin; var done = new Promise(function (ok) { fin = ok; }); var LG = null; logo().then(function (im) { LG = im; });
     var vids = clips.map(function (c) { var v = document.createElement("video"); v.crossOrigin = "anonymous"; v.playsInline = true; v.preload = "auto"; v.src = c.url; v.muted = false; v.volume = 1; return v; });
     Promise.all(vids.map(function (v) { return new Promise(function (ok, no) { v.onloadedmetadata = function () { ok(); }; v.onerror = function () { no(new Error("Клип не се зареди")); }; setTimeout(function () { no(new Error("Клип не се зареди навреме")); }, 30000); }); })).then(function () {
       var W = Math.min(1080, vids[0].videoWidth || 720), H = Math.round(W * (vids[0].videoHeight || 1280) / (vids[0].videoWidth || 720));
@@ -203,6 +205,7 @@
       function draw() {
         var v = vids[cur]; if (!v) return;
         ctx.drawImage(v, 0, 0, W, H);
+        if (LG) { var lw = Math.round(W * 0.42), lh = Math.round(lw * LG.naturalHeight / LG.naturalWidth); ctx.save(); ctx.globalAlpha = 0.42; ctx.shadowColor = "rgba(255,248,235,.9)"; ctx.shadowBlur = Math.round(W * 0.02); ctx.drawImage(LG, Math.round((W - lw) / 2), Math.round((H - lh) / 2), lw, lh); ctx.restore(); } /* логото по средата, бледо */
         var fs = Math.round(H * 0.022); ctx.font = "700 " + fs + "px 'Roboto Condensed',Arial,sans-serif"; var tw = ctx.measureText("AI визуализация").width;
         ctx.fillStyle = "rgba(60,10,20,.45)"; roundRect(ctx, W - tw - fs * 2.2, H - fs * 2.6, tw + fs * 1.4, fs * 1.7, fs * 0.85); ctx.fill();
         ctx.fillStyle = "rgba(255,243,220,.95)"; ctx.textBaseline = "middle"; ctx.fillText("AI визуализация", W - tw - fs * 1.5, H - fs * 1.75);
@@ -217,21 +220,84 @@
         var blob = new Blob(chunks, { type: rec.mimeType || mime || "video/webm" });
         var p = base() + "ai-video-" + Date.now() + "." + ext;
         D.upload(p, blob).then(function () { return D.fileUrl(p); }).then(function (u) { S.final = { path: p, url: u, ext: ext, size: blob.size, mime: blob.type, saved: false }; save(); }).catch(function (e) { D.say("Видеото не се качи: " + (e.message || "")); S.final = { path: "", url: URL.createObjectURL(blob), ext: ext, size: blob.size, mime: blob.type, saved: false, local: true }; })
-          .then(function () { if (ac) try { ac.close(); } catch (e) {} running = false; busy(); render(); });
+          .then(function () { if (ac) try { ac.close(); } catch (e) {} running = false; busy(); render(); })
+          .then(function () { return auto && S.prop && S.final && !S.final.local ? saveToProp() : null; })
+          .then(function () { if (auto) postVideo(); fin(); });
       };
       rec.start(250); draw(); playNext();
-    }).catch(function (e) { running = false; busy(); D.say(e.message || "Сглобяването не успя"); render(); });
+    }).catch(function (e) { running = false; busy(); D.say(e.message || "Сглобяването не успя"); if (auto && api0) api0.add("a", "Клиповете са готови, но сглобяването не успя: " + esc(e.message || "") + ". Може да ги свалите поотделно от панела."); render(); fin(); });
+    return done;
   }
   function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
   function saveToProp() {
-    if (!S.final || !S.prop || S.final.local) return;
-    D.load("properties").then(function (l) {
+    if (!S.final || !S.prop || S.final.local) return Promise.resolve();
+    return D.load("properties").then(function (l) {
       var p = l.filter(function (x) { return x.id === S.prop.id; })[0]; if (!p) throw new Error("Имотът не е намерен");
       p.videos = p.videos || []; p.videos.push({ name: "AI видео – " + (S.mode === "walk" ? "разходка" : "строеж") + "." + S.final.ext, path: S.final.path, size: S.final.size, mime: S.final.mime, at: new Date().toISOString(), ai: true });
       p.log = (p.log || []).slice(0, 49); p.log.unshift({ icon: "camera", text: "Тед: AI видео (" + (S.mode === "walk" ? "разходка" : "строеж") + ", " + S.clips.length + " клипа)", at: new Date().toISOString() });
       return D.put("properties", p);
     }).then(function () { S.final.saved = true; save(); render(); D.say("Видеото е записано в картата на имота"); try { window.dispatchEvent(new CustomEvent("nd-data-changed")); } catch (e) {} }).catch(function (e) { D.say(e.message || "Не се записа"); });
   }
+
+  /* ---------- AI подредба: малки копия на снимките → сървърът ги надписва и подрежда като маршрут ---------- */
+  function thumb(url) {
+    return new Promise(function (ok) {
+      var im = new Image(); im.crossOrigin = "anonymous";
+      im.onload = function () { try { var k = Math.min(1, 512 / Math.max(im.naturalWidth, im.naturalHeight)); var c = document.createElement("canvas"); c.width = Math.max(1, Math.round(im.naturalWidth * k)); c.height = Math.max(1, Math.round(im.naturalHeight * k)); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL("image/jpeg", 0.8).split(",")[1]); } catch (e) { ok(null); } };
+      im.onerror = function () { ok(null); }; im.src = url;
+    });
+  }
+  function autoRoute() {
+    if (S.photos.length < 2) return Promise.resolve();
+    busy("Подреждам снимките като маршрут…");
+    return Promise.all(S.photos.map(function (p) { return thumb(p.url); })).then(function (th) {
+      var send = []; th.forEach(function (d, i) { if (d) send.push({ i: i, data: d, mime: "image/jpeg" }); });
+      if (send.length < 2) throw new Error("Снимките не се четат за подредба");
+      return vapi({ action: "route", photos: send.map(function (x, k) { return { data: x.data, mime: x.mime, k: k }; }) }).then(function (j) {
+        var ph = S.photos, out = [];
+        (j.order || []).forEach(function (o) { var src = send[o.i]; if (src && ph[src.i]) { ph[src.i].room = o.room; out.push(ph[src.i]); } });
+        ph.forEach(function (p) { if (out.indexOf(p) < 0) out.push(p); });
+        S.photos = out; resetClips(); save(); render();
+      });
+    }).then(function () { busy(); }, function (e) { busy(); D.say(e.message || "Подредбата не успя"); });
+  }
+  var logoP = null;
+  function logo() { return logoP || (logoP = new Promise(function (ok) { var im = new Image(); im.onload = function () { ok(im); }; im.onerror = function () { ok(null); }; im.src = "/mobile/crm/assets/logo.png"; })); }
+  function postVideo() {
+    if (!api0 || !S.final) return;
+    var m = api0.add("a", "<b>Готово – AI видеото е сглобено</b>" + (S.prop ? " за обява <b>" + esc(S.prop.code || "") + "</b> " + esc(S.prop.title || "") : "") + " (" + S.clips.length + " клипа, логото е по средата).\n" +
+      '<video src="' + esc(S.final.url) + '" controls playsinline style="width:100%;max-height:360px;border-radius:12px;background:#000;margin-top:6px"></video>' +
+      '<a class="go" href="' + esc(S.final.url) + '" target="_blank" rel="noopener" download="ai-video.' + esc(S.final.ext || "mp4") + '">Свали видеото</a>' + (S.final.saved ? "\n✔ Записано в картата на имота (раздел „Видеа“)." : ""));
+    try { m.scrollIntoView({ block: "end" }); } catch (e) {}
+  }
+  /* ---------- от чата: „направи видео разходка на обява #IM-123“ или прикачени снимки ---------- */
+  function fromChat(v, files) {
+    if (!A.use("video")) return;
+    S.mode = v.mode === "build" ? "build" : "walk"; S.lot = null; S.final = null; S.clips = null; S.photos = []; S.prop = null; save(); render();
+    var prep;
+    if (v.property && v.property.id) {
+      S.prop = { id: v.property.id, code: v.property.code, title: v.property.title, city: v.property.city };
+      api0.add("a", "Правя " + (S.mode === "walk" ? "видео разходка" : "видео на строежа") + " за обява <b>" + esc(v.property.code || "") + "</b> " + esc(v.property.title || "") + " от реалните снимки (" + (v.property.photos || "") + ").");
+      prep = D.ready().then(function () { return D.load("properties"); }).then(function (l) { var p = l.filter(function (x) { return x.id === S.prop.id; })[0]; if (!p) throw new Error("Имотът не е намерен"); return photosFromProp(p); });
+    } else if (files && files.length) {
+      var imgs = [].filter.call(files, function (f) { return /^image\//.test(f.type); });
+      if (imgs.length < 1) { api0.add("a", "Не виждам снимки в прикачените файлове."); return; }
+      api0.add("a", "Правя " + (S.mode === "walk" ? "видео разходка" : "видео на строежа") + " от " + imgs.length + " прикачени снимки.");
+      busy("Качвам снимките…");
+      prep = Promise.all(imgs.map(function (f, i) { var p = base() + "src-" + Date.now() + "-" + i + ".jpg"; return D.upload(p, f).then(function () { return D.fileUrl(p); }).then(function (u) { return { path: p, url: u, room: "other" }; }); })).then(function (arr) { S.photos = arr; });
+    } else { api0.add("a", "Кажете номера на обявата (#…) или прикачете снимки."); return; }
+    prep.then(function () {
+      save(); render(); busy();
+      if (S.mode === "build") { if (!S.photos.length) throw new Error("Няма снимка"); api0.add("a", "За „строеж“ натиснете „1. Създай празен парцел“, после „2. Сценарий“ и „Генерирай“ – проверявам сценария с вас преди плащането."); return; }
+      if (S.photos.length < 2) throw new Error("За разходка са нужни поне 2 снимки");
+      return autoRoute().then(function () {
+        S.clips = walkClips(); S.final = null; save(); render();
+        api0.add("a", "Подредих " + S.photos.length + " снимки като маршрут и подготвих <b>" + S.clips.length + " клипа</b> (≈ " + dollars() + " $). Започвам генерирането – клип по клип; като свърши, сглобявам видеото с логото по средата и го връщам тук.");
+        return runAll(true);
+      });
+    }).catch(function (e) { busy(); api0.add("a", "Не успях: " + esc(e.message || "грешка")); });
+  }
+  window.NDVideo = { fromChat: fromChat, autoRoute: autoRoute, state: function () { return S; } };
 
   /* ---------- събития ---------- */
   function bindBox() {
@@ -254,6 +320,7 @@
       else if (b.getAttribute("data-a") === "prep") { S.clips = walkClips(); S.final = null; save(); render(); api0.add("a", "Подготвих <b>" + S.clips.length + " клипа</b> по двойки с припокриване (1+2, 2+3…). Прегледайте промптовете – може да ги редактирате – и натиснете „Генерирай“."); }
       else if (b.getAttribute("data-a") === "lot") { busy("Правя празния парцел от снимката…"); vapi({ action: "lot", photo: { path: S.photos[0].path }, save: base() + "lot-" + Date.now() + ".png" }).then(function (j) { S.lot = { path: j.path, url: j.url }; resetClips(); save(); render(); }).catch(function (e) { D.say(e.message); }).then(function () { busy(); }); }
       else if (b.getAttribute("data-a") === "script") { busy("Пиша сценария по клипове…"); var prefs = {}; try { prefs = JSON.parse(localStorage.getItem("nd-ted-prefs") || "{}"); } catch (x2) {} vapi({ action: "script", photo: { path: S.photos[0].path }, title: S.prop && S.prop.title, city: S.prop && S.prop.city, aspect: S.set.aspect, model: prefs.model || "" }).then(function (j) { S.clips = j.clips.map(function (c, k) { return { n: k + 1, title: c.title, bg: c.bg, start: c.start, transformation: c.transformation, end: c.end, continuity: c.continuity, prompt: c.prompt, status: "idle" }; }); S.final = null; save(); render(); api0.add("a", "Сценарий: <b>" + S.clips.length + " клипа</b>" + (j.model ? " (" + esc(j.model) + ")" : "") + ". Всеки клип започва от последния кадър на предишния; последният завършва на реалната снимка. Прегледайте промптовете и натиснете „Генерирай“."); }).catch(function (e) { D.say(e.message); }).then(function () { busy(); }); }
+      else if (b.getAttribute("data-a") === "route") autoRoute();
       else if (b.getAttribute("data-a") === "stitch") stitch();
       else if (b.getAttribute("data-a") === "save") saveToProp();
     });
@@ -263,7 +330,7 @@
     id: "video", name: "AI Видео на имот", sub: "Разходка по снимки или ускорен строеж – клип по клип",
     intro: function (api) {
       api0 = api;
-      api.add("a", "<b>AI Видео на имот</b>\nДва похвата, точно както в обучителните видеа:\n• <b>Разходка</b> – снимките се подреждат като маршрут и се правят клипове по двойки с припокриване (1+2, 2+3…), за да тече като една разходка.\n• <b>Строеж</b> – от снимката на готовия имот: празен парцел → сценарий по клипове ([MASTER ENVIRONMENT LOCK]. [CAMERA LOCK].) → всеки клип продължава предишния.\nПромптовете са запаметени и се виждат преди пускане – редактирайте ги свободно. Накрая сглобявам клиповете в едно видео с надпис „AI визуализация“ и го записвам към имота.");
+      api.add("a", "<b>AI Видео на имот</b>\nДва похвата, точно както в обучителните видеа:\n• <b>Разходка</b> – снимките се подреждат като маршрут и се правят клипове по двойки с припокриване (1+2, 2+3…), за да тече като една разходка.\n• <b>Строеж</b> – от снимката на готовия имот: празен парцел → сценарий по клипове ([MASTER ENVIRONMENT LOCK]. [CAMERA LOCK].) → всеки клип продължава предишния.\nПромптовете са запаметени и се виждат преди пускане – редактирайте ги свободно. Накрая сглобявам клиповете в едно видео с логото по средата и надпис „AI визуализация“, записвам го към имота и го връщам тук.\nМоже и направо от чата: „Направи видео разходка на обява #P-1001“ или прикачете снимки и напишете „направи видео“.");
       box = document.createElement("div"); box.className = "ndv"; api.list().appendChild(box); bindBox(); render();
       D.ready().then(function () { return D.load("properties"); }).then(function (l) { render.props = l.filter(function (p) { return !p.archived; }).sort(function (a, b) { return String(b._updated).localeCompare(String(a._updated)); }).map(function (p) { return { id: p.id, code: p.code, title: p.title, city: p.city, pics: p.pics || [] }; }); render(); }).catch(function () {});
       if (!engines) vapi({ action: "engines" }).then(function (j) { engines = j.engines && j.engines.length ? j.engines : null; if (engines && !engines.some(function (e) { return e.id === S.set.engine; })) S.set.engine = engines[0].id; render(); }).catch(function () {});

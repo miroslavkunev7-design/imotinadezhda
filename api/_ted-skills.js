@@ -382,6 +382,25 @@ const tools = {
       return Object.assign({ kind: i.kind, title: r.title, pages: (await loadPdf(buf)).getPageCount(), blanks_to_fill: missing, note: "Образец за преглед от служител/адвокат, не е подписан документ." }, await registerArtifact(ctx, c, name, path0, buf.length, "application/pdf", "Договори", "Тед изготви: " + r.title));
     }
   },
+  "video.create": {
+    description: "AI видео на имот: „разходка“ от реалните снимки на обявата (клипове по двойки с припокриване) или „строеж“ (от празен парцел до готовия имот). Подай code = референтният номер/# на обявата („#IM-123“, „обява 1042“, кода P-1001) или from_attachments=true, когато брокерът е прикачил снимки в чата. Инструментът само подготвя задачата – самото видео се прави в прозореца на Тед (умение „AI Видео на имот“) и се връща в чата с линк; логото на агенцията е по средата.",
+    input: schema({ code: S("string", { max: 60 }), mode: S("string", { enum: ["walk", "build"], default: "walk" }), from_attachments: S("boolean", { default: false }) }),
+    run: async (ctx, i) => {
+      if (!i.code && !i.from_attachments) throw new ToolError("Кажи номера на обявата (#…) или прикачи снимки.");
+      if (!i.code) return { start_video: { mode: i.mode || "walk", from_attachments: true }, note: "Видеото се подготвя от прикачените снимки в прозореца на Тед." };
+      const q = String(i.code).replace(/^[#№\s]+|\s+$/g, "").toLocaleLowerCase("bg");
+      const props = await rows(ctx, "properties");
+      const norm = (v) => String(v == null ? "" : v).toLocaleLowerCase("bg").replace(/^#/, "");
+      let hit = props.filter((p) => [p.code, p.num, p.ref, p.id].some((v) => norm(v) === q));
+      if (!hit.length) hit = props.filter((p) => [p.code, p.num, p.ref].some((v) => norm(v).endsWith(q) || norm(v).replace(/^[a-zа-я]+-?/, "") === q));
+      if (!hit.length) hit = props.filter((p) => norm(p.title).includes(q));
+      if (!hit.length) throw new ToolError("Не намирам обява с номер „" + i.code + "“. Провери кода (напр. P-1001).", 404);
+      if (hit.length > 1) return { candidates: hit.slice(0, 8).map((p) => ({ id: p.id, code: p.code, title: p.title, city: p.city, photos: (p.pics || []).length })), note: "Няколко обяви съвпадат – попитай коя." };
+      const p = hit[0]; const n = (p.pics || []).length;
+      if (!n) throw new ToolError("Обява " + (p.code || p.id) + " няма качени снимки – прикачи снимки в чата.");
+      return { start_video: { mode: i.mode || "walk", property: { id: p.id, code: p.code, title: p.title, city: p.city, hood: p.hood, photos: n } }, note: "Задачата е подадена към умението „AI Видео на имот“ – клиповете се генерират един по един (около минута всеки), готовото видео се появява в чата." };
+    }
+  },
   "audit.recent": {
     description: "Последните действия на Тед (одит): кой, кога, какъв инструмент, успех.",
     input: schema({ limit: S("number", { min: 1, max: 100, default: 20 }) }),

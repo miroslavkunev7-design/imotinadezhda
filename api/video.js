@@ -178,6 +178,22 @@ async function lot(tok, b) {
   throw last || new Error("Не успях да създам парцела");
 }
 
+/* ---------- подредба на снимките като маршрут (режим „Разходка“) ---------- */
+const ROOM_IDS = ["out", "entry", "living", "dining", "kitchen", "stairs", "bedroom", "bath", "patio", "pool", "garden", "final", "other"];
+async function route(tok, b) {
+  const ph = (b.photos || []).filter((x) => x && x.data).slice(0, 30); if (ph.length < 2) throw new Error("Нужни са поне 2 снимки");
+  const parts = [{ text: "These are listing photos of ONE property, numbered 0.." + (ph.length - 1) + " in the order given. Task 1: label each photo with one room id from: " + ROOM_IDS.join(", ") + " (out = exterior/street/facade, final = an exterior or aerial view suitable as the closing shot, other = anything else). " +
+    "Task 2: order ALL photos as a walkthrough route for a real-estate video: start outside, then the entrance, living room, dining, kitchen, staircase, bedrooms, bathrooms, covered patio, pool/garden, and finish with a final exterior view. Keep adjacent rooms next to each other so each pair blends naturally; use every photo exactly once. " +
+    "Return ONLY JSON: {\"order\":[{\"i\":<photo index>,\"room\":\"<id>\"}]}" }];
+  ph.forEach((x, k) => { parts.push({ text: "Photo " + k + ":" }); parts.push({ inline_data: { mime_type: x.mime || "image/jpeg", data: x.data } }); });
+  let text = null; for (const m of TEXT_MODELS) { try { text = await gemText(parts, m); break; } catch (e) { if (m === TEXT_MODELS[TEXT_MODELS.length - 1]) throw e; } }
+  const j = parseJson(text); const seen = {}; const order = [];
+  (j.order || []).forEach((o) => { const i = +o.i; if (i >= 0 && i < ph.length && !seen[i]) { seen[i] = 1; order.push({ i, room: ROOM_IDS.includes(o.room) ? o.room : "other" }); } });
+  ph.forEach((x, k) => { if (!seen[k]) order.push({ i: k, room: "other" }); });
+  if (order.length && order[0].room === "other") order[0].room = "out"; if (order.length > 1 && !/^(final|out|garden|pool)$/.test(order[order.length - 1].room)) order[order.length - 1].room = "final";
+  return { order };
+}
+
 module.exports = async (req, res) => {
   if (req.method !== "POST") return send(res, 405, { ok: false, error: "POST only" });
   const tok = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");
@@ -187,6 +203,7 @@ module.exports = async (req, res) => {
     if (b.action === "engines") return send(res, 200, { ok: true, engines: engines(), omni: OMNI });
     if (!GKEY() && !E("OPENAI_API_KEY")) return send(res, 500, { ok: false, error: "Няма ключ за видео (GEMINI_API_KEY или OPENAI_API_KEY във Vercel)." });
     if (b.action === "script") return send(res, 200, Object.assign({ ok: true }, await script(tok, b)));
+    if (b.action === "route") return send(res, 200, Object.assign({ ok: true }, await route(tok, b)));
     if (b.action === "lot") return send(res, 200, Object.assign({ ok: true }, await lot(tok, b)));
     if (b.action === "start") {
       const eng = b.engine === "sora" ? "sora" : "omni";

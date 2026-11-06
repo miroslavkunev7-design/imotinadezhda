@@ -279,6 +279,7 @@
             if (!voice || j.transcript) { hist.push({ role: "user", text: cur.text }, { role: "assistant", text: j.text }); save(); }
             if ((voice && prefs.autoSpeak !== "never") || prefs.autoSpeak === "always") { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* гласов въпрос → гласов отговор (според настройката) */
             if (j.actions && j.actions.some(function (a) { return !/search|list|get|calc|rates|summary|match|✗/.test(a); })) try { window.dispatchEvent(new CustomEvent("nd-data-changed")); } catch (e) {}
+            if (j.video && window.NDVideo) try { window.NDVideo.fromChat(j.video, fs); } catch (e) {} /* „направи видео на обява #…“ → умението „AI Видео на имот“ */
           });
         });
       }
@@ -356,6 +357,7 @@
     ask: ask, token: token, esc: esc, fmt: fmt,
     addSkill: function (s, first) { if (typeof first === "number") skills.splice(Math.min(first, skills.length), 0, s); else if (first) skills.unshift(s); else skills.push(s); if (booted && !skill) setSkill(skills[0]); },
     open: function () { boot(); fab.click(); },
+    use: function (id) { boot(); var s = skills.filter(function (x) { return x.id === id; })[0]; if (!s) return false; win.hidden = false; fab.hidden = true; setSkill(s); return true; },
     hide: function () { if (win && !win.hidden) { win.hidden = true; fab.hidden = false; } },
     show: function () { if (win) { win.hidden = false; fab.hidden = true; list.scrollTop = list.scrollHeight; } },
     boot: boot
