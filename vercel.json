@@ -92,6 +92,9 @@
     "api/email.js": {
       "maxDuration": 60,
       "includeFiles": "api/_vendor/**"
+    },
+    "api/video.js": {
+      "maxDuration": 60
     }
   },
   "redirects": [

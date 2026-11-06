@@ -44,7 +44,7 @@ async function chat(model, opts) {
     const conv = msgs.map((m) => { const parts = [{ text: m.text || "(без текст)" }]; (m.files || []).forEach((f) => { if (/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.mime)) parts.push({ inline_data: { mime_type: f.mime, data: f.data } }); }); return { role: m.role === "assistant" ? "model" : "user", parts }; });
     for (let step = 0; step < maxSteps; step++) {
       const last = stop(step) && step > 0; if (last) conv[conv.length - 1].parts.push({ text: STOP });
-      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model.id + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ system_instruction: { parts: [{ text: system }] }, contents: conv, generationConfig: { temperature } }, last ? {} : { tools: [{ function_declarations: tools }] })) });
+      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model.id + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ system_instruction: { parts: [{ text: system }] }, contents: conv, generationConfig: { temperature } }, last || !tools.length ? {} : { tools: [{ function_declarations: tools }] })) });
       const j = await r.json(); if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
       const parts = (((j.candidates || [])[0] || {}).content || {}).parts || [];
       const calls = parts.filter((p) => p.functionCall).map((p) => p.functionCall);
@@ -61,7 +61,7 @@ async function chat(model, opts) {
     const atools = tools.map((t) => ({ name: t.name, description: t.description, input_schema: toSchema(t.parameters) || { type: "object", properties: {} } }));
     for (let step = 0; step < maxSteps; step++) {
       const last = stop(step) && step > 0; if (last) conv[conv.length - 1].content.push({ type: "text", text: STOP });
-      const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" }, body: JSON.stringify(Object.assign({ model: model.id, max_tokens: 4096, system, messages: conv, temperature }, last ? {} : { tools: atools })) });
+      const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" }, body: JSON.stringify(Object.assign({ model: model.id, max_tokens: 4096, system, messages: conv, temperature }, last || !atools.length ? {} : { tools: atools })) });
       const j = await r.json(); if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
       const content = j.content || [], uses = content.filter((c) => c.type === "tool_use");
       if (!uses.length) return content.filter((c) => c.type === "text").map((c) => c.text).join("").trim();
@@ -84,7 +84,7 @@ async function chat(model, opts) {
   const otools = tools.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: toSchema(t.parameters) || { type: "object", properties: {} } } }));
   for (let step = 0; step < maxSteps; step++) {
     const last = stop(step) && step > 0; if (last) conv.push({ role: "user", content: STOP });
-    const r = await fetch(base + "/chat/completions", { method: "POST", headers, body: JSON.stringify(Object.assign({ model: model.id, messages: conv, temperature }, last ? {} : { tools: otools, tool_choice: "auto" })) });
+    const r = await fetch(base + "/chat/completions", { method: "POST", headers, body: JSON.stringify(Object.assign({ model: model.id, messages: conv, temperature }, last || !otools.length ? {} : { tools: otools, tool_choice: "auto" })) });
     const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error((j.error && (j.error.message || j.error)) || "HTTP " + r.status);
     const msg = ((j.choices || [])[0] || {}).message || {}; const calls = msg.tool_calls || [];
     if (!calls.length) return String(msg.content || "").trim();
