@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="bg" data-cms-slug="/">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Settings walkthrough preview</title>
+<style>
+  :root {
+    --wine: #710019;
+    --wine-d: #510011;
+    --cream: #fff9f2;
+    --gold: #bb7b16;
+    --gold-l: #ffe17a;
+    --ink: #6a001b;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink);
+    background:
+      radial-gradient(90% 60% at 80% 0%, rgba(255, 214, 120, 0.25), transparent 50%),
+      linear-gradient(165deg, #fff9f2, #f7e8d8 45%, #f3d9c4);
+    min-height: 100vh;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 22px;
+    background: linear-gradient(90deg, var(--wine), var(--wine-d));
+    color: var(--cream);
+  }
+  .logo img { height: 36px; background: rgba(255,255,255,.12); border-radius: 8px; }
+  .brand { font: 700 20px/1 var(--serif); }
+  .nav { display: flex; gap: 10px; margin-left: auto; }
+  .nav a {
+    color: var(--cream);
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(240, 212, 160, 0.45);
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .hero {
+    min-height: 220px;
+    margin: 18px;
+    border-radius: 24px;
+    padding: 28px;
+    color: var(--cream);
+    background:
+      linear-gradient(120deg, rgba(113,0,25,.88), rgba(80,10,20,.55)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Crect fill='%23401018' width='160' height='160'/%3E%3Ccircle cx='40' cy='40' r='28' fill='%236b1528'/%3E%3C/svg%3E");
+    background-size: cover;
+  }
+  .hero h1 { margin: 0 0 8px; font: 700 34px/1.1 var(--serif); }
+  .hero p { margin: 0; opacity: .9; max-width: 42ch; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 0 18px 28px;
+  }
+  .card {
+    position: relative;
+    height: 230px;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #fff7ec;
+    box-shadow: 0 10px 24px rgba(30,0,8,.18);
+  }
+  .card .ph {
+    position: absolute; inset: 0 0 70px 0;
+    background: center/cover no-repeat;
+    background-image: linear-gradient(135deg, #8a3048, #d7a35a);
+  }
+  .card .fd {
+    position: absolute; left: 0; right: 0; top: 96px; bottom: 0;
+    background: linear-gradient(180deg, rgba(255,247,236,0) 0%, #fff7ec 52%);
+  }
+  .card h3 {
+    position: absolute; left: 18px; bottom: 42px; margin: 0;
+    font: 700 22px/1.1 var(--serif); color: var(--ink);
+  }
+  .card span {
+    position: absolute; left: 18px; bottom: 16px;
+    font: 700 14px/1 var(--serif); color: var(--gold);
+  }
+  .feat {
+    display: flex; gap: 18px; padding: 8px 22px 28px;
+  }
+  .f { display: flex; gap: 10px; align-items: center; }
+  .f svg.i { width: 44px; height: 44px; color: var(--gold); }
+  .badge {
+    position: fixed; left: 10px; bottom: 10px;
+    font: 700 11px/1 var(--sans);
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(42,10,18,.85);
+    color: #f5d58d;
+    border: 1px solid rgba(201,146,46,.5);
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo"><img alt="logo" width="36" height="36" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36'%3E%3Crect rx='8' width='36' height='36' fill='%23f0d4a0'/%3E%3Ctext x='18' y='24' text-anchor='middle' font-size='16' fill='%23710019'%3EIN%3C/text%3E%3C/svg%3E" /></div>
+    <div class="brand">Имоти Надежда</div>
+    <nav class="nav">
+      <a href="#" data-deal="sale">За продажба</a>
+      <a href="#" data-deal="rent">Под наем</a>
+    </nav>
+  </header>
+  <section class="hero stage">
+    <h1>Жива превю сцена</h1>
+    <p>Промените от Settings се рисуват тук веднага — цвят, форма, melt, размер.</p>
+  </section>
+  <div class="grid">
+    <a class="card" href="#"><div class="ph" style="background-image:linear-gradient(135deg,#5a2030,#c9922e)"></div><div class="fd"></div><h3>Бургас</h3><span>Квартали</span></a>
+    <a class="card" href="#"><div class="ph" style="background-image:linear-gradient(135deg,#203a5a,#c9922e)"></div><div class="fd"></div><h3>Варна</h3><span>Квартали</span></a>
+    <a class="card" href="#"><div class="ph" style="background-image:linear-gradient(135deg,#2a4a28,#c9922e)"></div><div class="fd"></div><h3>Шумен</h3><span>Квартали</span></a>
+  </div>
+  <div class="feat">
+    <div class="f"><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 7v11H3V10l9-7zm0 2.2L5 10.3V19h14v-8.7L12 5.2z"/></svg><span>Домове</span></div>
+    <div class="f"><svg class="i" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V9l8-5 8 5v11H4zm2-2h12v-8.2L12 6.4 6 9.8V18z"/></svg><span>CRM</span></div>
+    <div class="f"><svg class="i" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg><span>Банка</span></div>
+  </div>
+  <div class="badge">Walkthrough preview · cms live</div>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var slug = params.get("slug") || "/";
+      document.documentElement.setAttribute("data-cms-slug", slug);
+      if (slug.indexOf("bank") >= 0) document.querySelector(".hero h1").textContent = "Банка — luxury storefront";
+      if (slug.indexOf("city") >= 0) document.querySelector(".hero h1").textContent = "Град · " + slug.split("/").pop();
+      if (slug.indexOf("mobile") >= 0) document.querySelector(".hero h1").textContent = "Мобилен вход";
+    })();
+  </script>
+  <script src="./cms-overrides-local.js"></script>
+</body>
+</html>

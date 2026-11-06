@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { signIn } from "../api";
 
-export function Login({ onOk }: { onOk: () => void }) {
+export function Login({ onOk, onWalkthrough }: { onOk: () => void; onWalkthrough?: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
@@ -40,6 +40,13 @@ export function Login({ onOk }: { onOk: () => void }) {
             {busy ? "Signing in…" : "Enter Settings"}
           </button>
         </div>
+        {onWalkthrough && (
+          <div className="actions" style={{ marginTop: 8 }}>
+            <button className="ghost" type="button" style={{ width: "100%" }} onClick={onWalkthrough}>
+              Continue in walkthrough mode (mock staff)
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

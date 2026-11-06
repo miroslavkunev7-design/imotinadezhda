@@ -114,37 +114,38 @@ export async function saveComponent(input: {
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + t },
       body: JSON.stringify({ action: "upsert_component", ...input })
     });
-    const j = await r.json();
-    if (j.ok) return j.component as CmsComponent;
-    // If production API not deployed yet, write via RLS with staff JWT
-    if (r.status >= 400) throw new Error(j.error || "API save failed");
-  } catch (e) {
-    const { data: pageRow, error: pe } = await client()
-      .from("cms_pages")
-      .upsert({ slug: input.page_slug, label: input.page_label || input.page_slug, schema_version: 1 }, { onConflict: "slug" })
-      .select("*")
-      .single();
-    if (pe) throw pe;
-    const { data, error } = await client()
-      .from("cms_components")
-      .upsert(
-        {
-          page_id: pageRow.id,
-          component_key: input.component_key,
-          type: input.type,
-          sort_order: input.sort_order ?? 0,
-          rect: input.rect || {},
-          props: input.props,
-          updated_at: new Date().toISOString()
-        },
-        { onConflict: "page_id,component_key" }
-      )
-      .select("*")
-      .single();
-    if (error) throw error;
-    return data as CmsComponent;
+    if (r.ok) {
+      const j = await r.json();
+      if (j.ok) return j.component as CmsComponent;
+    }
+    // Production /api/cms may be undeployed (404) — fall through to RLS upsert.
+  } catch {
+    /* fall through to direct Supabase */
   }
-  throw new Error("Save failed");
+  const { data: pageRow, error: pe } = await client()
+    .from("cms_pages")
+    .upsert({ slug: input.page_slug, label: input.page_label || input.page_slug, schema_version: 1 }, { onConflict: "slug" })
+    .select("*")
+    .single();
+  if (pe) throw pe;
+  const { data, error } = await client()
+    .from("cms_components")
+    .upsert(
+      {
+        page_id: pageRow.id,
+        component_key: input.component_key,
+        type: input.type,
+        sort_order: input.sort_order ?? 0,
+        rect: input.rect || {},
+        props: input.props,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: "page_id,component_key" }
+    )
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as CmsComponent;
 }
 
 export async function fetchSetting<T = Record<string, unknown>>(id: string): Promise<T | null> {

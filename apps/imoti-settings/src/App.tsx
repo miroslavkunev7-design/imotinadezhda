@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CmsComponent,
   CmsPage,
@@ -8,6 +8,8 @@ import {
   previewUrlForSlug,
   signOut
 } from "./api";
+import { mergeCatalog } from "./componentCatalog";
+import { postToIframe, type PreviewComponentPayload } from "./previewBridge";
 import { Login } from "./components/Login";
 import { ComponentEditor } from "./components/ComponentEditor";
 import { ArchivePanel } from "./components/ArchivePanel";
@@ -26,9 +28,16 @@ const FALLBACK_PAGES: CmsPage[] = [
   { id: "local-mobile", slug: "/mobile/", label: "Mobile home", schema_version: 1 }
 ];
 
+const WALKTHROUGH =
+  typeof window !== "undefined" &&
+  (new URLSearchParams(window.location.search).has("walkthrough") ||
+    localStorage.getItem("imoti-settings-walkthrough") === "1" ||
+    !window.imotiSettings);
+
 export default function App() {
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
+  const [walkthrough, setWalkthrough] = useState(WALKTHROUGH);
   const [tab, setTab] = useState<Tab>("pages");
   const [pages, setPages] = useState<CmsPage[]>([]);
   const [slug, setSlug] = useState("/");
@@ -38,6 +47,9 @@ export default function App() {
   const [creating, setCreating] = useState(false);
   const [scale, setScale] = useState(0.48);
   const [device, setDevice] = useState("desktop");
+  const [liveMap, setLiveMap] = useState<Record<string, PreviewComponentPayload>>({});
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const hasElectron = !!window.imotiSettings;
 
   const toastMsg = useCallback((m: string) => {
     setToastMsg(m);
@@ -45,6 +57,12 @@ export default function App() {
   }, []);
 
   const boot = useCallback(async () => {
+    if (walkthrough) {
+      setAuthed(true);
+      setPages(FALLBACK_PAGES);
+      setReady(true);
+      return;
+    }
     const s = await ensureStaff();
     setAuthed(!!s);
     setReady(true);
@@ -56,26 +74,61 @@ export default function App() {
         setPages(FALLBACK_PAGES);
       }
     }
-  }, []);
+  }, [walkthrough]);
 
   useEffect(() => { void boot(); }, [boot]);
 
+  const pushPreview = useCallback(async (list: PreviewComponentPayload[], highlightKey: string | null) => {
+    if (hasElectron) {
+      try {
+        await window.imotiSettings?.previewApply?.(list, highlightKey);
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+    postToIframe(iframeRef.current, list, highlightKey);
+  }, [hasElectron]);
+
   const loadComponents = useCallback(async (pageSlug: string) => {
     try {
-      const { components: comps } = await fetchComponents(pageSlug);
-      setComponents(comps);
-      setSelectedKey(comps[0]?.component_key || null);
+      let fromDb: CmsComponent[] = [];
+      if (!walkthrough) {
+        const { components: comps } = await fetchComponents(pageSlug);
+        fromDb = comps;
+      }
+      const merged = mergeCatalog(pageSlug, fromDb);
+      setComponents(merged);
+      setSelectedKey((prev) => {
+        if (prev && merged.some((c) => c.component_key === prev)) return prev;
+        return merged[0]?.component_key || null;
+      });
+      const seed: Record<string, PreviewComponentPayload> = {};
+      for (const c of merged) {
+        seed[c.component_key] = { component_key: c.component_key, type: c.type, props: c.props || {} };
+      }
+      setLiveMap(seed);
+      await pushPreview(Object.values(seed), merged[0]?.component_key || null);
     } catch (e) {
       toastMsg(e instanceof Error ? e.message : String(e));
-      setComponents([]);
+      const merged = mergeCatalog(pageSlug, []);
+      setComponents(merged);
+      setSelectedKey(merged[0]?.component_key || null);
     }
-  }, [toastMsg]);
+  }, [walkthrough, toastMsg, pushPreview]);
 
   useEffect(() => {
     if (!authed || tab !== "pages") return;
     void loadComponents(slug);
-    void window.imotiSettings?.previewNavigate(previewUrlForSlug(slug));
-  }, [authed, slug, tab, loadComponents]);
+    const url = walkthrough || !hasElectron
+      ? `./walkthrough-preview.html?slug=${encodeURIComponent(slug)}`
+      : previewUrlForSlug(slug);
+    if (hasElectron && !walkthrough) {
+      void window.imotiSettings?.previewNavigate(previewUrlForSlug(slug));
+    } else if (iframeRef.current) {
+      iframeRef.current.src = url;
+    }
+  }, [authed, slug, tab, loadComponents, walkthrough, hasElectron]);
 
   useEffect(() => {
     void window.imotiSettings?.setPreviewRatio(tab === "agent" ? 0.28 : scale);
@@ -86,18 +139,83 @@ export default function App() {
     [components, selectedKey]
   );
 
+  const onSelectComponent = useCallback((key: string) => {
+    setSelectedKey(key);
+    setCreating(false);
+    const list = Object.values(liveMap);
+    void pushPreview(list.length ? list : components.map((c) => ({
+      component_key: c.component_key,
+      type: c.type,
+      props: c.props || {}
+    })), key);
+  }, [liveMap, components, pushPreview]);
+
+  const onLiveChange = useCallback((draft: PreviewComponentPayload) => {
+    setLiveMap((prev) => {
+      const next = { ...prev, [draft.component_key]: draft };
+      void pushPreview(Object.values(next), draft.component_key);
+      return next;
+    });
+  }, [pushPreview]);
+
+  useEffect(() => {
+    const onLoad = () => {
+      const list = Object.values(liveMap);
+      if (list.length) void pushPreview(list, selectedKey);
+    };
+    const iframe = iframeRef.current;
+    iframe?.addEventListener("load", onLoad);
+    return () => iframe?.removeEventListener("load", onLoad);
+  }, [liveMap, selectedKey, pushPreview]);
+
   if (!ready) return <div className="login"><p>Loading…</p></div>;
-  if (!authed) return <Login onOk={() => void boot()} />;
+  if (!authed) {
+    return (
+      <Login
+        onOk={() => void boot()}
+        onWalkthrough={() => {
+          localStorage.setItem("imoti-settings-walkthrough", "1");
+          setWalkthrough(true);
+          setAuthed(true);
+          setPages(FALLBACK_PAGES);
+        }}
+      />
+    );
+  }
+
+  const showIframePreview = walkthrough || !hasElectron;
 
   return (
-    <div className="app">
+    <div className={"app" + (showIframePreview ? " walkthrough" : "")}>
       <header className="topbar">
         <img src="./assets/logo.png" alt="" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         <h1>Imoti Nadezhda Settings</h1>
-        <span className="meta">Windows companion · CMS → live site</span>
+        <span className="meta">
+          {walkthrough ? "Walkthrough · mock staff · live editors" : "Windows companion · CMS → live site"}
+        </span>
         <span className="spacer" />
-        <button type="button" className="ghost" onClick={() => void window.imotiSettings?.previewReload()}>Reload preview</button>
-        <button type="button" className="ghost" onClick={async () => { await signOut(); setAuthed(false); }}>Sign out</button>
+        <button
+          type="button"
+          className="ghost"
+          onClick={() => {
+            if (hasElectron && !walkthrough) void window.imotiSettings?.previewReload();
+            else if (iframeRef.current) iframeRef.current.src = iframeRef.current.src;
+          }}
+        >
+          Reload preview
+        </button>
+        <button
+          type="button"
+          className="ghost"
+          onClick={async () => {
+            if (!walkthrough) await signOut();
+            localStorage.removeItem("imoti-settings-walkthrough");
+            setWalkthrough(false);
+            setAuthed(false);
+          }}
+        >
+          Sign out
+        </button>
       </header>
 
       <aside className="sidebar">
@@ -128,17 +246,17 @@ export default function App() {
                 <small>{p.slug}</small>
               </button>
             ))}
-            <h2>Components</h2>
-            {components.length === 0 && <div className="empty">No overrides yet — create one.</div>}
+            <h2>Components ({components.length})</h2>
+            {components.length === 0 && <div className="empty">No components — catalog failed to load.</div>}
             {components.map((c) => (
               <button
                 key={c.id || c.component_key}
                 type="button"
                 className={"comp-btn" + (c.component_key === selectedKey && !creating ? " active" : "")}
-                onClick={() => { setSelectedKey(c.component_key); setCreating(false); }}
+                onClick={() => onSelectComponent(c.component_key)}
               >
-                {c.component_key}
-                <small>{c.type}</small>
+                {typeof c.props?._label === "string" ? String(c.props._label) : c.component_key}
+                <small>{c.type} · {c.component_key}</small>
               </button>
             ))}
             <div className="actions">
@@ -160,13 +278,26 @@ export default function App() {
       </aside>
 
       <main className="main">
-        <div className="preview-slot" aria-hidden />
+        {showIframePreview ? (
+          <div className={"preview-frame device-" + device}>
+            <iframe
+              ref={iframeRef}
+              title="Settings live preview"
+              className="preview-iframe"
+              src={`./walkthrough-preview.html?slug=${encodeURIComponent(slug)}`}
+            />
+          </div>
+        ) : (
+          <div className="preview-slot" aria-hidden />
+        )}
         <div className="workspace">
           {tab === "pages" && (
             <ComponentEditor
               pageSlug={slug}
               component={creating ? null : selected}
+              creating={creating}
               onSaved={() => void loadComponents(slug)}
+              onLiveChange={onLiveChange}
               toast={toastMsg}
             />
           )}
