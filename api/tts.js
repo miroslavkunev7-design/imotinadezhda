@@ -20,6 +20,11 @@ module.exports = async (req, res) => {
   let b; try { b = await readBody(req); } catch (e) { return fail(400, "Невалидни данни"); }
   const text = String(b.text || "").replace(/\s+/g, " ").trim().slice(0, 2500);
   if (!text) return fail(400, "Няма текст");
+  /* глас и стил от настройките на чата (Gemini TTS гласове) */
+  const VOICES = ["Charon", "Achernar", "Despina", "Puck", "Kore", "Aoede", "Leda", "Zephyr", "Enceladus", "Callirrhoe"];
+  const voice = VOICES.includes(String(b.voice || "")) ? String(b.voice) : "Charon";
+  const STYLE = { calm: "Прочети на български с топъл, спокоен и ясен глас, с естествено темпо:", brief: "Прочети на български делово, ясно и малко по-бързо, без излишни паузи:", slow: "Прочети на български бавно, отчетливо и ясно, с малки паузи между изреченията:" };
+  const style = STYLE[String(b.style || "")] || STYLE.calm;
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!key) return fail(500, "Няма ключ");
   let last = "";
@@ -28,8 +33,8 @@ module.exports = async (req, res) => {
       const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: "Прочети на български с топъл, спокоен и ясен глас, с естествено темпо:\n" + text }] }],
-          generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Charon" } } } }
+          contents: [{ parts: [{ text: style + "\n" + text }] }],
+          generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } }
         })
       });
       const j = await r.json();

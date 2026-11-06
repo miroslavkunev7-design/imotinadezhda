@@ -30,9 +30,18 @@
     ".nda-t{flex:1;min-width:0}.nda-t b{display:block;font:700 18px/1.1 Georgia,serif;color:#fff3dc}" +
     ".nda-skill{margin-top:4px;display:inline-flex;align-items:center;gap:6px;max-width:100%;height:30px;padding:0 10px 0 12px;border-radius:15px;border:1px solid rgba(243,207,134,.75);background:rgba(255,255,255,.12);color:#ffe9b8;font:700 14px 'Roboto Condensed',Arial,sans-serif;cursor:pointer;box-shadow:0 0 10px rgba(243,207,134,.35)}" +
     ".nda-skill svg{width:16px;height:16px;flex:none}.nda-skill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
-    ".nda-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.nda-model{background:linear-gradient(180deg,rgba(255,247,227,.22),rgba(243,207,134,.18))}.nda-model i{width:8px;height:8px;border-radius:50%;background:#7de86a;box-shadow:0 0 6px #7de86a;flex:none;font-style:normal}" +
-    ".nda-menu.models button em{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:9px;font:700 11px/1.5 'Roboto Condensed',Arial,sans-serif;font-style:normal;color:#fff3dc;background:linear-gradient(180deg,#a3213a,#55071a)}" +
     ".nda-fb{font:400 12px 'Roboto Condensed',Arial,sans-serif;color:#8a6a3a;margin:2px 0 0}" +
+    /* кръгло бутонче „настройки“ и панелът с настройки на чата (блокове с бутони отгоре) */
+    ".nda-gear{flex:none;width:38px;height:38px;border-radius:50%;border:1.5px solid #edc47a;background:radial-gradient(circle at 35% 30%,#b0213f,#7a0f22 60%,#4a0613);color:#ffe9b8;display:grid;place-items:center;cursor:pointer;padding:0;box-shadow:0 0 10px rgba(243,207,134,.45);transition:transform .25s}.nda-gear svg{width:19px;height:19px}.nda-gear:hover{transform:rotate(40deg)}.nda-gear.on{background:linear-gradient(180deg,#fff7e3,#f3cf86);color:#6b0a1c}" +
+    ".nda-set{position:absolute;left:0;right:0;top:0;bottom:0;z-index:4;display:flex;flex-direction:column;background:linear-gradient(180deg,#fffaf5 0%,#f6e4d2 100%)}.nda-set[hidden]{display:none}" +
+    ".nda-set .sh{display:flex;align-items:center;gap:10px;padding:12px 12px 10px 16px;background:linear-gradient(120deg,#9a1a33,#6b0a1c 60%,#4f0716);color:#fff3dc;border-bottom:1.5px solid #e3b25e}.nda-set .sh b{flex:1;font:700 18px/1.1 Georgia,serif}" +
+    ".nda-tabs{display:flex;gap:6px;padding:10px 12px 0;flex-wrap:wrap}.nda-tabs button{flex:1 1 auto;min-width:0;height:40px;padding:0 10px;border:1.5px solid rgba(227,178,94,.8);border-radius:14px;background:linear-gradient(180deg,#fffdf9,#fbefe5);color:#4e0912;font:700 14px 'Roboto Condensed',Arial,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 8px rgba(255,214,150,.5)}.nda-tabs button svg{width:16px;height:16px}.nda-tabs button.on{background:linear-gradient(180deg,#a3213a,#55071a);color:#fff3dc;box-shadow:0 0 0 1px #edc47a,0 0 12px rgba(255,214,160,.8)}" +
+    ".nda-sb{flex:1;overflow:auto;padding:12px 12px 16px}.nda-sec{margin:0 0 12px;padding:12px;border-radius:18px;background:linear-gradient(160deg,rgba(255,251,247,.98),rgba(251,236,224,.95));box-shadow:0 0 0 1px rgba(237,196,122,.85),0 0 14px rgba(255,214,160,.7)}.nda-sec h4{margin:0 0 8px;font:700 15px Georgia,serif;color:#7a0f22;display:flex;align-items:center;gap:8px}.nda-sec h4 svg{width:16px;height:16px}.nda-sec p{margin:0 0 8px;font:400 13px/1.4 'Roboto Condensed',Arial,sans-serif;color:#5a3a33}" +
+    ".nda-opt{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;margin:0 0 6px;border:0;border-radius:14px;background:rgba(255,255,255,.65);color:#2b1414;text-align:left;cursor:pointer;font:700 15px 'Roboto Condensed',Arial,sans-serif;box-shadow:inset 0 0 0 1px rgba(227,178,94,.5)}.nda-opt small{display:block;font-weight:400;font-size:12.5px;color:#6b4a40;margin-top:1px}.nda-opt .d{flex:1;min-width:0}.nda-opt i{width:18px;height:18px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 2px #c9a060;background:#fff}.nda-opt.on{background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1.5px #edc47a,0 0 12px rgba(255,214,160,.8)}.nda-opt.on i{background:radial-gradient(circle at 40% 35%,#ffd36a,#a3213a 60%);box-shadow:0 0 0 2px #edc47a}" +
+    ".nda-opt em{font:700 11px/1.5 'Roboto Condensed',Arial,sans-serif;font-style:normal;padding:1px 7px;border-radius:9px;color:#fff3dc;background:linear-gradient(180deg,#a3213a,#55071a);flex:none}.nda-opt .pl{flex:none;width:34px;height:34px;border-radius:50%;border:1.5px solid #edc47a;background:#fff;color:#7a0f22;display:grid;place-items:center;cursor:pointer}.nda-opt .pl svg{width:16px;height:16px}" +
+    ".nda-sw{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin:0 0 6px;border-radius:14px;background:rgba(255,255,255,.65);box-shadow:inset 0 0 0 1px rgba(227,178,94,.5);font:700 15px 'Roboto Condensed',Arial,sans-serif;color:#2b1414;cursor:pointer}.nda-sw small{display:block;font-weight:400;font-size:12.5px;color:#6b4a40}.nda-sw .tg{flex:none;width:46px;height:26px;border-radius:13px;background:#d9c7b8;position:relative;transition:background .2s}.nda-sw .tg:after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .2s}.nda-sw.on .tg{background:linear-gradient(180deg,#a3213a,#55071a)}.nda-sw.on .tg:after{left:23px;background:#f3cf86}" +
+    ".nda-sub{margin:4px 0 8px 28px}.nda-sub .nda-opt{padding:7px 10px;font-size:14px}" +
+    ".nda-win.big .nda-m{font-size:17px}.nda-win.big .nda-c textarea{font-size:17px}" +
     ".nda-x{flex:none;width:38px;height:38px;border-radius:50%;border:1.5px solid #edc47a;background:linear-gradient(180deg,#fff7e3,#f3cf86);color:#6b0a1c;display:grid;place-items:center;cursor:pointer;padding:0}.nda-x svg{width:18px;height:18px}" +
     ".nda-menu{position:absolute;left:66px;top:70px;z-index:3;min-width:260px;max-width:calc(100% - 78px);padding:8px;border-radius:18px;background:linear-gradient(180deg,rgba(255,251,247,.99),rgba(251,236,224,.98));border:1.5px solid #e3b25e;box-shadow:0 0 18px rgba(227,178,94,.55),0 14px 30px rgba(40,4,12,.4)}" +
     ".nda-menu[hidden]{display:none}.nda-menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:12px;background:transparent;color:#4e0912;font:700 16px 'Roboto Condensed',Arial,sans-serif;cursor:pointer}" +
@@ -85,23 +94,83 @@
     });
   }
   /* history: [{role:'user'|'assistant', text, files?}] -> {ok,text,actions,staff} */
-  var models = null, modelId = (function () { try { return localStorage.getItem("nd-ted-model") || ""; } catch (e) { return ""; } })();
+  /* ---- настройки на чата (пазят се за този брокер в браузъра) ---- */
+  var PREF_KEY = "nd-ted-prefs", DEFP = { voice: "male", autoSpeak: "voice", style: "calm", model: "", n8nModel: "", big: false, enterSend: true, showActions: true, dictAuto: true, keepHist: true };
+  var prefs = (function () { try { return Object.assign({}, DEFP, JSON.parse(localStorage.getItem(PREF_KEY) || "{}")); } catch (e) { return Object.assign({}, DEFP); } })();
+  try { var oldM = localStorage.getItem("nd-ted-model"); if (oldM && !prefs.model) prefs.model = oldM; } catch (e) {}
+  var modelId = prefs.model || "";
+  function savePrefs() { try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) {} if (window.ND && window.ND.setPref && window.ND.user) { try { window.ND.setPref("ted:" + window.ND.user.id, prefs).catch(function () {}); } catch (e) {} } }
+  function applyPrefs() { if (win) win.classList.toggle("big", !!prefs.big); modelId = prefs.model || ""; }
+  var VOICES = [
+    { id: "male", name: "Мъжки – спокоен", note: "сегашният глас на Тед", g: "Charon" },
+    { id: "female", name: "Женски – мек", note: "топъл, спокоен, същият начин на изразяване", g: "Achernar" },
+    { id: "female2", name: "Женски – гладък", note: "по-плътен и уверен", g: "Despina" },
+    { id: "male2", name: "Мъжки – енергичен", note: "по-бодър и бърз", g: "Puck" }
+  ];
+  var STYLES = [["calm", "Спокоен и топъл"], ["brief", "Кратък и делови"], ["slow", "Бавен и ясен (за диктовка на клиент)"]];
+  var N8N_OPT = { id: "n8n", name: "Агент n8n", note: "вашият агент от n8n (моделите са вързани вътре в n8n)", provider: "n8n", vision: false, pdf: false, sub: [["", "По подразбиране (както е в n8n)"], ["gpt", "ChatGPT"], ["claude", "Claude"], ["ollama", "Ollama (локален)"], ["gemini", "Gemini"]] };
+  var models = null;
   function loadModels() {
     if (models) return Promise.resolve(models);
     return token().then(function (tk) { return fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ action: "models" }) }); })
       .then(function (r) { return r.json(); }).then(function (j) { models = ((j && j.models) || []).concat([N8N_OPT]); return models; }).catch(function () { models = [N8N_OPT]; return models; });
   }
-  var N8N_OPT = { id: "n8n", name: "Агент n8n", note: "вашият агент от n8n (моделите са в n8n)", provider: "n8n", vision: false, pdf: false };
   function curModel() { return (models || []).filter(function (m) { return m.id === modelId; })[0] || (models || [])[0] || null; }
   function setModel(id, quiet) {
-    modelId = id || ""; try { if (id) localStorage.setItem("nd-ted-model", id); } catch (e) {}
-    var m = curModel(), mk = win && win.querySelector(".nda-model"); if (!mk) return;
-    mk.querySelector("span").textContent = m ? m.name : "Модел"; mk.title = m ? m.name + (m.note ? " – " + m.note : "") : "Модел";
-    if (m && !quiet) add("bot", "Избран модел: <b>" + esc(m.name) + "</b>" + (m.note ? " – " + esc(m.note) : "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки"));
+    prefs.model = id || ""; modelId = prefs.model; savePrefs();
+    var m = curModel(); if (m && !quiet) add("bot", "Избран модел: <b>" + esc(m.name) + "</b>" + (m.note ? " – " + esc(m.note) : "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки"));
   }
-  function renderModels() {
-    var cur = curModel(), PROV = { gemini: "Google", openai: "OpenAI", anthropic: "Anthropic", openrouter: "OpenRouter", ollama: "Ollama", n8n: "n8n" };
-    menu.innerHTML = (models && models.length ? models.map(function (m) { return '<button type="button" data-m="' + esc(m.id) + '"' + (cur && cur.id === m.id ? ' class="on"' : "") + ">" + esc(m.name) + "<em>" + (PROV[m.provider] || m.provider) + "</em><small>" + esc(m.note || "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки") + "</small></button>"; }).join("") : '<button type="button" disabled>Няма настроени модели<small>Ключовете се добавят във Vercel (GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, OPENROUTER_API_KEY, OLLAMA_URL)</small></button>');
+  var setTab = "voice";
+  function renderSettings() {
+    var sb = win.querySelector(".nda-set"), PROV = { gemini: "Google", openai: "OpenAI", anthropic: "Anthropic", openrouter: "OpenRouter", ollama: "Ollama", n8n: "n8n" };
+    var TABS = [["voice", "Глас", I.spk], ["model", "Модел", "🧠"], ["chat", "Чат", "💬"], ["dict", "Диктовка", "🎤"]];
+    var sw = function (k, t, sub) { return '<div class="nda-sw' + (prefs[k] ? " on" : "") + '" data-sw="' + k + '" role="switch" aria-checked="' + !!prefs[k] + '"><div>' + t + (sub ? "<small>" + sub + "</small>" : "") + '</div><span class="tg"></span></div>'; };
+    var html = '<div class="sh"><b>Настройки на чата</b><button type="button" class="nda-x" data-sx aria-label="Затвори настройките">' + I.x + "</button></div>" +
+      '<div class="nda-tabs">' + TABS.map(function (t) { return '<button type="button" data-st="' + t[0] + '"' + (setTab === t[0] ? ' class="on"' : "") + ">" + (t[2].length > 2 ? t[2] : "<span>" + t[2] + "</span>") + t[1] + "</button>"; }).join("") + "</div><div class=\"nda-sb\">";
+    if (setTab === "voice") {
+      html += '<div class="nda-sec"><h4>' + I.spk + "Глас на Тед</h4><p>Същият начин на изразяване, различен тембър. Натиснете ▶, за да чуете.</p>" +
+        VOICES.map(function (v) { return '<button type="button" class="nda-opt' + (prefs.voice === v.id ? " on" : "") + '" data-voice="' + v.id + '"><i></i><span class="d">' + esc(v.name) + "<small>" + esc(v.note) + '</small></span><span class="pl" data-play="' + v.id + '" title="Чуй">' + I.spk + "</span></button>"; }).join("") + "</div>" +
+        '<div class="nda-sec"><h4>Стил на говорене</h4>' + STYLES.map(function (x) { return '<button type="button" class="nda-opt' + (prefs.style === x[0] ? " on" : "") + '" data-style="' + x[0] + '"><i></i><span class="d">' + x[1] + "</span></button>"; }).join("") + "</div>" +
+        '<div class="nda-sec"><h4>Кога да говори</h4>' + [["voice", "Само след гласов въпрос"], ["always", "Чете всеки отговор на глас"], ["never", "Никога – само бутона ▶"]].map(function (x) { return '<button type="button" class="nda-opt' + (prefs.autoSpeak === x[0] ? " on" : "") + '" data-auto="' + x[0] + '"><i></i><span class="d">' + x[1] + "</span></button>"; }).join("") + "</div>";
+    } else if (setTab === "model") {
+      var cur = curModel();
+      html += '<div class="nda-sec"><h4>Модел на изкуствения интелект</h4><p>Активен: <b>' + esc(cur ? cur.name : "—") + "</b>. Показват се само доставчиците с ключ във Vercel.</p>" +
+        (models || []).map(function (m) {
+          var on = cur && cur.id === m.id;
+          return '<button type="button" class="nda-opt' + (on ? " on" : "") + '" data-m="' + esc(m.id) + '"><i></i><span class="d">' + esc(m.name) + "<small>" + esc(m.note || "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки") + "</small></span><em>" + (PROV[m.provider] || m.provider) + "</em></button>" +
+            (m.sub && on ? '<div class="nda-sub">' + m.sub.map(function (x) { return '<button type="button" class="nda-opt' + (prefs.n8nModel === x[0] ? " on" : "") + '" data-n8nm="' + esc(x[0]) + '"><i></i><span class="d">' + esc(x[1]) + "</span></button>"; }).join("") + "</div>" : "");
+        }).join("") + "</div>";
+    } else if (setTab === "chat") {
+      html += '<div class="nda-sec"><h4>Чат</h4>' + sw("big", "По-едри букви", "по-четливо на телефон") + sw("enterSend", "Enter изпраща", "Shift+Enter – нов ред") + sw("showActions", "Показвай какво е направил", "списък с изпълнените действия под отговора") + sw("keepHist", "Помни разговора между страниците", "историята се пази за сесията") + "</div>" +
+        '<div class="nda-sec"><h4>История</h4><button type="button" class="nda-opt" data-clear><i></i><span class="d">Изчисти разговора<small>започва на чисто</small></span></button></div>';
+    } else {
+      html += '<div class="nda-sec"><h4>Диктовка</h4><p>Микрофонът в чата и във всяко поле за бележка разпознава дословно на български.</p>' + sw("dictAuto", "Изпращай гласовия въпрос веднага", "иначе първо виждате текста и го пращате вие") + "</div>" +
+        '<div class="nda-sec"><h4>Бележки</h4><p>Във всяка графа за бележка/описание в CRM има микрофон – докоснете, говорете, докоснете пак; текстът се добавя при курсора.</p></div>';
+    }
+    html += "</div>";
+    sb.innerHTML = html;
+    sb.onclick = function (e) {
+      var t;
+      if (e.target.closest("[data-sx]")) { sb.hidden = true; win.querySelector(".nda-gear").classList.remove("on"); return; }
+      if ((t = e.target.closest("[data-st]"))) { setTab = t.getAttribute("data-st"); renderSettings(); return; }
+      if ((t = e.target.closest("[data-play]"))) { e.stopPropagation(); previewVoice(t.getAttribute("data-play"), t); return; }
+      if ((t = e.target.closest("[data-voice]"))) { prefs.voice = t.getAttribute("data-voice"); savePrefs(); renderSettings(); return; }
+      if ((t = e.target.closest("[data-style]"))) { prefs.style = t.getAttribute("data-style"); savePrefs(); renderSettings(); return; }
+      if ((t = e.target.closest("[data-auto]"))) { prefs.autoSpeak = t.getAttribute("data-auto"); savePrefs(); renderSettings(); return; }
+      if ((t = e.target.closest("[data-n8nm]"))) { prefs.n8nModel = t.getAttribute("data-n8nm"); savePrefs(); renderSettings(); return; }
+      if ((t = e.target.closest("[data-m]"))) { setModel(t.getAttribute("data-m"), true); renderSettings(); return; }
+      if ((t = e.target.closest("[data-sw]"))) { var k = t.getAttribute("data-sw"); prefs[k] = !prefs[k]; savePrefs(); applyPrefs(); renderSettings(); return; }
+      if (e.target.closest("[data-clear]")) { hist = []; save(); list.innerHTML = ""; sb.hidden = true; win.querySelector(".nda-gear").classList.remove("on"); add("bot", "Разговорът е изчистен."); return; }
+    };
+  }
+  function voiceOf(id) { return VOICES.filter(function (v) { return v.id === id; })[0] || VOICES[0]; }
+  function previewVoice(id, btn) {
+    var v = voiceOf(id); btn.style.opacity = ".5";
+    token().then(function (tk) { return fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ text: "Здравейте, аз съм Тед – асистентът на Имоти Надежда. С този глас ще ви чета отговорите.", voice: v.g, style: prefs.style }) }); })
+      .then(function (r) { if (!r.ok) throw new Error("tts"); return r.blob(); })
+      .then(function (bl) { if (!player) player = new Audio(); player.src = URL.createObjectURL(bl); return player.play(); })
+      .catch(function () { try { var u = new SpeechSynthesisUtterance("Здравейте, аз съм Тед."); u.lang = "bg-BG"; speechSynthesis.speak(u); } catch (e) {} })
+      .then(function () { btn.style.opacity = ""; });
   }
   /* вашият агент в n8n (същият като в публичния сайт): текстът отива към webhook-а, n8n ползва /api/tools с токена на брокера */
   var N8N_URL = "https://imotinadezhda.app.n8n.cloud/webhook/94ba7a03-92cc-41d0-ab0f-549d1d4d4560", N8N_SID = (function () { try { var k = "nd-ted-n8n-sid", v = localStorage.getItem(k); if (!v) { v = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); localStorage.setItem(k, v); } return v; } catch (e) { return "s" + Date.now(); } })();
@@ -110,7 +179,7 @@
     if (!text) return Promise.resolve({ ok: false, error: "Агентът в n8n приема текст – за снимки, файлове и глас изберете Gemini или друг модел." });
     var ctrl = new AbortController(), timer = setTimeout(function () { ctrl.abort(); }, 60000);
     return token().then(function (tok) {
-      return fetch(N8N_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text + ((last.files || []).length ? "\n(прикачени файлове: " + last.files.map(function (f) { return f.name; }).join(", ") + ")" : ""), sessionId: N8N_SID, accessToken: tok || null, toolsUrl: location.origin + "/api/tools" }), signal: ctrl.signal });
+      return fetch(N8N_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text + ((last.files || []).length ? "\n(прикачени файлове: " + last.files.map(function (f) { return f.name; }).join(", ") + ")" : ""), sessionId: N8N_SID, accessToken: tok || null, toolsUrl: location.origin + "/api/tools", model: prefs.n8nModel || undefined }), signal: ctrl.signal });
     }).then(function (r) { if (!r.ok) throw new Error("агентът върна HTTP " + r.status); return r.json(); })
       .then(function (d) { if (Array.isArray(d)) d = d[0]; var out = d && (d.output || d.text || d.answer); if (typeof out !== "string" || !out.trim()) throw new Error("невалиден отговор от агента"); return { ok: true, text: out, actions: [], model: "n8n", model_name: "Агент n8n" }; })
       .catch(function (e) { return { ok: false, error: e && e.name === "AbortError" ? "Агентът в n8n не отговори навреме." : "Агент n8n: " + ((e && e.message) || e) }; })
@@ -165,7 +234,7 @@
         var p = player.play(); if (p && p.catch) p.catch(function () { speakLocal(text, b); });
       };
       if (b._url) return go(b._url);
-      token().then(function (tk) { return fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ text: text }) }); })
+      token().then(function (tk) { return fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ text: text, voice: voiceOf(prefs.voice).g, style: prefs.style }) }); })
         .then(function (r) { if (!r.ok) throw new Error("tts"); return r.blob(); })
         .then(function (bl) { b._url = URL.createObjectURL(bl); go(b._url); })
         .catch(function () { if (playingBtn === b) speakLocal(text, b); });
@@ -204,10 +273,10 @@
           return ask(send).then(function (j) {
             w.classList.remove("wait"); busy = false;
             if (!j.ok) { w.innerHTML = esc(j.error || "Грешка"); return; }
-            w.innerHTML = fmt(j.text) + (j.actions && j.actions.length ? '<span class="acts">✔ ' + esc(j.actions.join(" · ")) + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w);
+            w.innerHTML = fmt(j.text) + (prefs.showActions && j.actions && j.actions.length ? '<span class="acts">✔ ' + esc(j.actions.join(" · ")) + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w);
             if (voice && j.transcript) { ub.innerHTML = "🎤 „" + esc(j.transcript) + "“"; cur.text = j.transcript; }
             if (!voice || j.transcript) { hist.push({ role: "user", text: cur.text }, { role: "assistant", text: j.text }); save(); }
-            if (voice) { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* a voice question gets a spoken answer */
+            if ((voice && prefs.autoSpeak !== "never") || prefs.autoSpeak === "always") { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* гласов въпрос → гласов отговор (според настройката) */
             if (j.actions && j.actions.some(function (a) { return !/search|list|get|calc|rates|summary|match|✗/.test(a); })) try { window.dispatchEvent(new CustomEvent("nd-data-changed")); } catch (e) {}
           });
         });
@@ -238,7 +307,7 @@
           tick = setInterval(function () { ta.value = "● Записвам " + dur(); if (Date.now() - t0 > 120000) rec.stop(); }, 500);
         }).catch(function () { api.add("a", "Няма достъп до микрофона. Разрешете микрофона за този сайт в настройките на браузъра."); });
       };
-      ta.onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(); } };
+      ta.onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey && prefs.enterSend) { e.preventDefault(); go(); } };
       ta.oninput = function () { ta.style.height = "auto"; ta.style.height = Math.min(120, ta.scrollHeight) + "px"; };
       el.querySelector(".att").onclick = function () {
         var i = document.createElement("input"); i.type = "file"; i.multiple = true; i.accept = "image/*,application/pdf"; i.style.cssText = "position:fixed;left:-999px;opacity:0"; document.body.appendChild(i);
@@ -260,19 +329,17 @@
     fab = document.createElement("button"); fab.type = "button"; fab.className = "nda-fab"; fab.setAttribute("aria-label", "Тед Асистент"); fab.title = "Тед Асистент";
     fab.innerHTML = '<img src="' + BOT + '" alt="">';
     win = document.createElement("section"); win.className = "nda-win"; win.hidden = true; win.setAttribute("role", "dialog"); win.setAttribute("aria-label", "Тед Асистент");
-    win.innerHTML = '<header class="nda-h"><span class="nda-av"><img src="' + BOT + '" alt=""></span><div class="nda-t"><b>Тед Асистент</b><div class="nda-row"><button type="button" class="nda-skill" aria-haspopup="listbox" aria-expanded="false"><span></span>' + I.chev + '</button><button type="button" class="nda-skill nda-model" aria-haspopup="listbox" aria-expanded="false" title="Модел на изкуствения интелект"><i></i><span>Модел</span>' + I.chev + "</button></div></div>" +
-      '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div>';
+    win.innerHTML = '<header class="nda-h"><span class="nda-av"><img src="' + BOT + '" alt=""></span><div class="nda-t"><b>Тед Асистент</b><button type="button" class="nda-skill" aria-haspopup="listbox" aria-expanded="false"><span></span>' + I.chev + "</button></div>" +
+      '<button type="button" class="nda-gear" aria-label="Настройки на чата" title="Настройки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>' +
+      '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div><div class="nda-set" hidden></div>';
     document.body.appendChild(fab); document.body.appendChild(win);
     list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot");
-    var sk = win.querySelector(".nda-skill:not(.nda-model)"), mk = win.querySelector(".nda-model");
-    sk.onclick = function (e) { e.stopPropagation(); menu.classList.remove("models"); menu.style.top = ""; renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
-    /* меню с моделите: списъкът идва от сървъра (само доставчици с ключ); изборът се помни за този брокер */
-    mk.onclick = function (e) { e.stopPropagation(); if (!menu.hidden && menu.classList.contains("models")) { menu.hidden = true; return; } loadModels().then(function () { menu.classList.add("models"); renderModels(); menu.style.top = (mk.offsetTop + mk.offsetHeight + 8) + "px"; menu.hidden = false; mk.setAttribute("aria-expanded", "true"); }); };
-    menu.onclick = function (e) {
-      var mb = e.target.closest("[data-m]"); if (mb) { menu.hidden = true; setModel(mb.getAttribute("data-m")); return; }
-      var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
-    win.addEventListener("click", function (e) { if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target) && !mk.contains(e.target)) menu.hidden = true; });
-    loadModels().then(function () { setModel(modelId, true); });
+    var sk = win.querySelector(".nda-skill"), gear = win.querySelector(".nda-gear"), setBox = win.querySelector(".nda-set");
+    sk.onclick = function (e) { e.stopPropagation(); renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
+    menu.onclick = function (e) { var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
+    win.addEventListener("click", function (e) { if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target)) menu.hidden = true; });
+    gear.onclick = function (e) { e.stopPropagation(); if (!setBox.hidden) { setBox.hidden = true; gear.classList.remove("on"); return; } loadModels().then(function () { renderSettings(); setBox.hidden = false; gear.classList.add("on"); }); };
+    applyPrefs();
     fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(skills[0]); if (skill.open) skill.open(api); };
     win.querySelector(".nda-x").onclick = function () { win.hidden = true; fab.hidden = false; };
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !win.hidden) { win.hidden = true; fab.hidden = false; } });
