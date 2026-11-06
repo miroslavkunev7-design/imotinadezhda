@@ -1,0 +1,82 @@
+{
+  "asOf": "2026-11-05",
+  "rows": [
+    {"bank_id":"dsk","slice":"standard","rate_text":"2,25–3,45% пром.; пример 2,55%; 3,69% фикс. 3 г.","source_url":"https://dskbank.bg/"},
+    {"bank_id":"dsk","slice":"foreign_income","rate_text":"2,25–3,45% (стандарт; постоянен ТД, 1500 EUR)","source_url":"https://dskbank.bg/"},
+    {"bank_id":"dsk","slice":"foreign_company","rate_text":"2,25–3,45% (няма отделен ред; стандарт)","source_url":"https://dskbank.bg/"},
+    {"bank_id":"dsk","slice":"bg_company","rate_text":"2,25–3,45% (няма отделен ред; стандарт)","source_url":"https://dskbank.bg/"},
+    {"bank_id":"dsk","slice":"foreign_td","rate_text":"2,25–3,45% (като доходи от чужбина)","source_url":"https://dskbank.bg/"},
+
+    {"bank_id":"ubb","slice":"standard","rate_text":"2,25% пром. (>100k EUR + заплата до 30.11.2026); иначе 2,80%; фикс. 3,02% / 3,09% / 3,16%","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+    {"bank_id":"ubb","slice":"foreign_income","rate_text":"2,25% / 2,80% (няма отделен ред; стандарт)","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+    {"bank_id":"ubb","slice":"foreign_company","rate_text":"2,25% / 2,80% (няма отделен ред; стандарт)","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+    {"bank_id":"ubb","slice":"bg_company","rate_text":"2,25% / 2,80% (справката е трудова)","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+    {"bank_id":"ubb","slice":"foreign_td","rate_text":"2,25% / 2,80% (няма отделен ред; стандарт)","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+
+    {"bank_id":"raiffeisen","slice":"standard","rate_text":"2,25% / 2,80% — правоприемник ОББ","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+    {"bank_id":"raiffeisen","slice":"foreign_income","rate_text":"2,25% / 2,80% (ОББ)","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+    {"bank_id":"raiffeisen","slice":"foreign_company","rate_text":"2,25% / 2,80% (ОББ)","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+    {"bank_id":"raiffeisen","slice":"bg_company","rate_text":"2,25% / 2,80% (ОББ)","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+    {"bank_id":"raiffeisen","slice":"foreign_td","rate_text":"2,25% / 2,80% (ОББ)","source_url":"https://ubb.bg/individual-clients/credits/za-nedvijim-imot"},
+
+    {"bank_id":"unicredit","slice":"standard","rate_text":"2,69% промо плаваща; 2,12% пример ≥320k EUR; 2,89% фикс. 5 г.; Млади семейства 2,39%","source_url":"https://www.unicreditbulbank.bg/bg/individualni-klienti/krediti/ipotechni-krediti/standarten-ipotechen-kredit/"},
+    {"bank_id":"unicredit","slice":"foreign_income","rate_text":"3,65% универсален със заплата / 3,95% без; LTV 70%, 25 г.","source_url":"https://www.unicreditbulbank.bg/bg/individualni-klienti/krediti/ipotechni-krediti/ipotechen-kredit-bez-postoyanno-mestozhiveene-v-stranata/"},
+    {"bank_id":"unicredit","slice":"foreign_company","rate_text":"3,65% универсален (15 г. при собствен бизнес)","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"},
+    {"bank_id":"unicredit","slice":"bg_company","rate_text":"3,65% универсален; ОУ ЕТ/свободна професия","source_url":"https://www.unicreditbulbank.bg/bg/individualni-klienti/krediti/ipotechni-krediti/standarten-ipotechen-kredit/"},
+    {"bank_id":"unicredit","slice":"foreign_td","rate_text":"3,65% / 3,95% универсален; 70% LTV / 25 г.","source_url":"https://www.unicreditbulbank.bg/bg/individualni-klienti/krediti/ipotechni-krediti/ipotechen-kredit-bez-postoyanno-mestozhiveene-v-stranata/"},
+
+    {"bank_id":"fibank","slice":"standard","rate_text":"от 2,15% пром.; пример 2,45%","source_url":"https://www.fibank.bg/bg/chastni-lica/krediti/jilishtni-i-ipotechni-krediti/jilishten-ipotechen-kredit-pravo-na-izbor"},
+    {"bank_id":"fibank","slice":"foreign_income","rate_text":"от 3,15% пром.","source_url":"https://www.fibank.bg/bg/chastni-lica/krediti/jilishtni-i-ipotechni-krediti/ipotechen-kredit-za-bylgarski-grajdani-s-dohod-ot-chujbina"},
+    {"bank_id":"fibank","slice":"foreign_company","rate_text":"от 3,15% (самонаето в същия продукт)","source_url":"https://www.fibank.bg/bg/chastni-lica/krediti/jilishtni-i-ipotechni-krediti/ipotechen-kredit-za-bylgarski-grajdani-s-dohod-ot-chujbina"},
+    {"bank_id":"fibank","slice":"bg_company","rate_text":"от 2,15% (Право на избор; ГДД)","source_url":"https://www.fibank.bg/bg/chastni-lica/krediti/jilishtni-i-ipotechni-krediti/jilishten-ipotechen-kredit-pravo-na-izbor"},
+    {"bank_id":"fibank","slice":"foreign_td","rate_text":"от 3,15%","source_url":"https://www.fibank.bg/bg/chastni-lica/krediti/jilishtni-i-ipotechni-krediti/ipotechen-kredit-za-bylgarski-grajdani-s-dohod-ot-chujbina"},
+
+    {"bank_id":"postbank","slice":"standard","rate_text":"от 2,70% пром.; зелен 2,55%; фикс. 10 г. 3,90%","source_url":"https://www.postbank.bg/zhilishtni-krediti/zhilishten-kredit/"},
+    {"bank_id":"postbank","slice":"foreign_income","rate_text":"2,70% ориентир (У дома; 70% LTV / 25 г.)","source_url":"https://www.postbank.bg/zhilishtni-krediti/zhilishten-kredit/"},
+    {"bank_id":"postbank","slice":"foreign_company","rate_text":"2,70% (няма отделен ред; стандарт)","source_url":"https://www.postbank.bg/zhilishtni-krediti/zhilishten-kredit/"},
+    {"bank_id":"postbank","slice":"bg_company","rate_text":"2,70% (няма отделен ред; стандарт)","source_url":"https://www.postbank.bg/zhilishtni-krediti/zhilishten-kredit/"},
+    {"bank_id":"postbank","slice":"foreign_td","rate_text":"2,70% ориентир (У дома)","source_url":"https://www.postbank.bg/zhilishtni-krediti/zhilishten-kredit/"},
+
+    {"bank_id":"allianz","slice":"standard","rate_text":"от 2,40% пром.; пример 2,60%","source_url":"https://www.allianz.bg/bg_BG/individuals/banking/mortgage-loans/home-credit.html"},
+    {"bank_id":"allianz","slice":"foreign_income","rate_text":"2,40% (няма отделен ред; стандарт)","source_url":"https://www.allianz.bg/bg_BG/individuals/banking/mortgage-loans/home-credit.html"},
+    {"bank_id":"allianz","slice":"foreign_company","rate_text":"2,40% (няма отделен ред; стандарт)","source_url":"https://www.allianz.bg/bg_BG/individuals/banking/mortgage-loans/home-credit.html"},
+    {"bank_id":"allianz","slice":"bg_company","rate_text":"2,40% (няма отделен ред; стандарт)","source_url":"https://www.allianz.bg/bg_BG/individuals/banking/mortgage-loans/home-credit.html"},
+    {"bank_id":"allianz","slice":"foreign_td","rate_text":"2,40% (няма отделен ред; стандарт)","source_url":"https://www.allianz.bg/bg_BG/individuals/banking/mortgage-loans/home-credit.html"},
+
+    {"bank_id":"ccb","slice":"standard","rate_text":"от 2,50%; пример 2,70%; MoitePari ВЪЗМОЖНОСТ 2,60%","source_url":"https://www.ccbank.bg/bg/fizicheski-lica/ipotechni-krediti/ipotechen-kredit-dom-za-teb"},
+    {"bank_id":"ccb","slice":"foreign_income","rate_text":"2,50% (няма отделен ред; страницата иска безсрочен ТД)","source_url":"https://www.ccbank.bg/bg/fizicheski-lica/ipotechni-krediti/ipotechen-kredit-dom-za-teb"},
+    {"bank_id":"ccb","slice":"foreign_company","rate_text":"2,50% (няма отделен ред; стандарт)","source_url":"https://www.ccbank.bg/bg/fizicheski-lica/ipotechni-krediti/ipotechen-kredit-dom-za-teb"},
+    {"bank_id":"ccb","slice":"bg_company","rate_text":"2,50% (няма отделен ред; стандарт)","source_url":"https://www.ccbank.bg/bg/fizicheski-lica/ipotechni-krediti/ipotechen-kredit-dom-za-teb"},
+    {"bank_id":"ccb","slice":"foreign_td","rate_text":"2,50% (няма отделен ред; стандарт)","source_url":"https://www.ccbank.bg/bg/fizicheski-lica/ipotechni-krediti/ipotechen-kredit-dom-za-teb"},
+
+    {"bank_id":"bnb","slice":"standard","rate_text":"N/A ритейл; статистика нов бизнес септ. 2026: средна 2,41% (ГПР 2,76%)","source_url":"https://bnb.bg/AboutUs/PressOffice/POStatisticalPressReleases/POPRSInterestRate/202609_S_IRS_PRESS_BG"},
+    {"bank_id":"bnb","slice":"foreign_income","rate_text":"N/A","source_url":"https://www.bnb.bg/AboutUs/index.htm"},
+    {"bank_id":"bnb","slice":"foreign_company","rate_text":"N/A","source_url":"https://www.bnb.bg/AboutUs/index.htm"},
+    {"bank_id":"bnb","slice":"bg_company","rate_text":"N/A","source_url":"https://www.bnb.bg/AboutUs/index.htm"},
+    {"bank_id":"bnb","slice":"foreign_td","rate_text":"N/A","source_url":"https://www.bnb.bg/AboutUs/index.htm"},
+
+    {"bank_id":"ibank","slice":"standard","rate_text":"3,40% пром. пълна отг.; ограничена 8,80%; АКТ 14 2,49%","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"},
+    {"bank_id":"ibank","slice":"foreign_income","rate_text":"граждани ЕС 5,50% пълна / 10,20% ограничена","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"},
+    {"bank_id":"ibank","slice":"foreign_company","rate_text":"3,40% (няма отделен ред; стандарт)","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"},
+    {"bank_id":"ibank","slice":"bg_company","rate_text":"3,40% (няма отделен ред; стандарт)","source_url":"https://ibank.bg/bg/fizicheski-lica/krediti/ipotechni-krediti/ipotechen-kredit-za-pridobivane-na-nedvijim-imot"},
+    {"bank_id":"ibank","slice":"foreign_td","rate_text":"5,50% граждани ЕС","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"},
+
+    {"bank_id":"texim","slice":"standard","rate_text":"от 3,00% пром. (банка); MoitePari 2,80% със заплата","source_url":"https://www.teximbank.bg/fizicheski-litsa/krediti/zhilishtni-i-ipotechni-krediti/zhilishten-kredit-za-pokupka-na-imot/"},
+    {"bank_id":"texim","slice":"foreign_income","rate_text":"от 3,00% (работещи в чужбина; 75% LTV)","source_url":"https://www.teximbank.bg/fizicheski-litsa/krediti/zhilishtni-i-ipotechni-krediti/zhilishten-kredit-za-bulgarski-grajdani-raboteshti-v-chujbina/"},
+    {"bank_id":"texim","slice":"foreign_company","rate_text":"3,00% (няма отделен ред)","source_url":"https://www.teximbank.bg/fizicheski-litsa/krediti/zhilishtni-i-ipotechni-krediti/zhilishten-kredit-za-bulgarski-grajdani-raboteshti-v-chujbina/"},
+    {"bank_id":"texim","slice":"bg_company","rate_text":"3,00% (няма отделен ред; стандарт)","source_url":"https://www.teximbank.bg/fizicheski-litsa/krediti/zhilishtni-i-ipotechni-krediti/zhilishten-kredit-za-pokupka-na-imot/"},
+    {"bank_id":"texim","slice":"foreign_td","rate_text":"от 3,00%; 75% LTV","source_url":"https://www.teximbank.bg/fizicheski-litsa/krediti/zhilishtni-i-ipotechni-krediti/zhilishten-kredit-za-bulgarski-grajdani-raboteshti-v-chujbina/"},
+
+    {"bank_id":"procredit","slice":"standard","rate_text":"от 3,50% пром. (6м EURIBOR+1,25%, мин. 3,50%); фикс. 3 г. от 4,50%","source_url":"https://www.procreditbank.bg/bg/individualni-klienti/krediti/jilishtni-krediti/ipotechen-kredit"},
+    {"bank_id":"procredit","slice":"foreign_income","rate_text":"3,50% (FAQ иска местожителство BG)","source_url":"https://www.procreditbank.bg/bg/individualni-klienti/krediti/jilishtni-krediti/ipotechen-kredit"},
+    {"bank_id":"procredit","slice":"foreign_company","rate_text":"3,50% (няма отделен ред; стандарт)","source_url":"https://www.procreditbank.bg/bg/individualni-klienti/krediti/jilishtni-krediti/ipotechen-kredit"},
+    {"bank_id":"procredit","slice":"bg_company","rate_text":"3,50% (FAQ иска ТД)","source_url":"https://www.procreditbank.bg/bg/individualni-klienti/krediti/jilishtni-krediti/ipotechen-kredit"},
+    {"bank_id":"procredit","slice":"foreign_td","rate_text":"3,50% (няма отделен ред; стандарт)","source_url":"https://www.procreditbank.bg/bg/individualni-klienti/krediti/jilishtni-krediti/ipotechen-kredit"},
+
+    {"bank_id":"asset","slice":"standard","rate_text":"2,95% фикс. 12 мес.; после 3,20% анюитет / 3,45% намаляващи","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"},
+    {"bank_id":"asset","slice":"foreign_income","rate_text":"2,95% / 3,20% (MoitePari: валиден за чужденци Не)","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"},
+    {"bank_id":"asset","slice":"foreign_company","rate_text":"2,95% / 3,20% (няма отделен ред; стандарт)","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"},
+    {"bank_id":"asset","slice":"bg_company","rate_text":"2,95% / 3,20% (няма отделен ред; стандарт)","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"},
+    {"bank_id":"asset","slice":"foreign_td","rate_text":"2,95% / 3,20% (няма отделен ред; стандарт)","source_url":"https://www.moitepari.bg/ipotechni_krediti/katalog.aspx"}
+  ]
+}

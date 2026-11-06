@@ -72,7 +72,20 @@
       "destination": "/desktop-home.html"
     }
   ],
+  "crons": [
+    {
+      "path": "/api/mortgage-rates-refresh",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/mortgage-rates-refresh",
+      "schedule": "0 4 * * *"
+    }
+  ],
   "functions": {
+    "api/mortgage-rates-refresh.js": {
+      "maxDuration": 60
+    },
     "api/collect.js": {
       "maxDuration": 60
     },
