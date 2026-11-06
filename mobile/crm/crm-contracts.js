@@ -2,7 +2,9 @@
    printable contract. Everything comes from the database; the contract is saved to the client's documents. */
 (function () {
   "use strict";
-  var U = window.NDUI, D = window.ND, esc = U.esc, fld = U.fld, G = U.group, money = U.money;
+  var IS_NODE = typeof window === "undefined";
+  var U = IS_NODE ? { esc: function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }, money: function (n) { return new Intl.NumberFormat("bg-BG").format(Math.round(Number(n) || 0)); }, ic: function () { return ""; } } : window.NDUI;
+  var D = IS_NODE ? null : window.ND, esc = U.esc, fld = U.fld, G = U.group, money = U.money;
   var AGENCY = { name: "„НЕДВИЖИМИ ИМОТИ НАДЕЖДА“", short: "Недвижими Имоти Надежда", city: "гр. Шумен", phone: "0898 977 370", rep: "Мирослав Кънев", email: "kuneto77@abv.bg" };
   var TYPES = [
     ["pre", "Предварителен договор за покупко-продажба", "file-pen"],
@@ -114,7 +116,7 @@
   var CSS = "body{margin:0;padding:34px 44px;font:15px/1.55 'Times New Roman',Georgia,serif;color:#111;background:#fff}h1{font-size:19px;text-align:center;margin:0 0 6px;letter-spacing:.5px}h2{font-size:15px;margin:16px 0 4px}p{margin:6px 0;text-align:justify}p.c{text-align:center}.sg{display:flex;gap:40px;margin-top:38px}.sg>div{flex:1;font-weight:700}.ln{border-top:1px solid #111;margin-bottom:6px;height:28px}.hd{display:flex;align-items:center;gap:14px;margin:0 0 18px;padding-bottom:10px;border-bottom:2px solid #7a0f22}.hd img{height:54px}.hd small{color:#7a0f22;font:700 12px Arial}@page{margin:18mm 16mm}@media print{body{padding:0}}";
   function docHtml(title, body) {
     return "<!doctype html><html lang=\"bg\"><head><meta charset=\"utf-8\"><title>" + esc(title) + "</title><style>" + CSS + "</style></head><body>" +
-      '<div class="hd"><img src="' + location.origin + '/mobile/crm/assets/logo.png" alt=""><small>' + AGENCY.name + " · " + AGENCY.city + " · тел. " + AGENCY.phone + "</small></div>" + body + "</body></html>";
+      '<div class="hd"><img src="' + (IS_NODE ? 'https://imotinadezhda.bg' : location.origin) + '/mobile/crm/assets/logo.png" alt=""><small>' + AGENCY.name + " · " + AGENCY.city + " · тел. " + AGENCY.phone + "</small></div>" + body + "</body></html>";
   }
   function fields(kind, f) {
     var m = {
@@ -188,6 +190,17 @@
       }
     });
   }
-  if (!document.getElementById("ct-css")) { var st = document.createElement("style"); st.id = "ct-css"; st.textContent = ".ct-acts{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 18px}.ct-btn{display:inline-flex;align-items:center;gap:10px;height:56px;padding:0 22px;border-radius:18px;border:1.5px solid #edc47a;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);color:#fff3dc;font:700 22px var(--cond);box-shadow:0 0 10px rgba(255,190,120,.5);cursor:pointer}.ct-btn svg.i{font-size:24px}.ct-btn.alt{background:linear-gradient(180deg,#fffcf9,#fbefe5);color:#6b0a1c;border-color:#e3b25e}.ct-btn[disabled]{opacity:.5;cursor:default}.ct-prev{margin:0 0 20px;border-radius:22px;overflow:hidden;background:#fff;box-shadow:0 0 0 1.5px rgba(227,178,94,.7),0 0 16px rgba(255,226,190,.8)}.ct-prev iframe{display:block;width:100%;height:900px;border:0;background:#fff;zoom:1.45}.ct-prev .ndempty{padding:30px}"; document.head.appendChild(st); }
-  window.NDContracts = { open: open, TYPES: TYPES };
+  var CT_CSS = ".ct-acts{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 18px}.ct-btn{display:inline-flex;align-items:center;gap:10px;height:56px;padding:0 22px;border-radius:18px;border:1.5px solid #edc47a;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);color:#fff3dc;font:700 22px var(--cond);box-shadow:0 0 10px rgba(255,190,120,.5);cursor:pointer}.ct-btn svg.i{font-size:24px}.ct-btn.alt{background:linear-gradient(180deg,#fffcf9,#fbefe5);color:#6b0a1c;border-color:#e3b25e}.ct-btn[disabled]{opacity:.5;cursor:default}.ct-prev{margin:0 0 20px;border-radius:22px;overflow:hidden;background:#fff;box-shadow:0 0 0 1.5px rgba(227,178,94,.7),0 0 16px rgba(255,226,190,.8)}.ct-prev iframe{display:block;width:100%;height:900px;border:0;background:#fff;zoom:1.45}.ct-prev .ndempty{padding:30px}";
+
+  /* server-side use (Тед): render(kind, fields, client, seller, property) -> {title, html} */
+  function render(kind, f, c, s, p) {
+    var t = TYPES.filter(function (x) { return x[0] === kind; })[0]; if (!t || !T[kind]) throw new Error("Непознат договор: " + kind);
+    var cp = { name: c && c.name || "", egn: c && c.egn || "", addr: c && (c.address || c.addr) || "", phone: c && c.phone || "", budget: c && c.budget };
+    var sp = s ? { name: s.name || "", egn: s.egn || "", addr: s.address || s.addr || "", phone: s.phone || "" } : (p ? { name: p.client || "", egn: p.ownerEgn || "", addr: p.ownerAddr || "", phone: p.ownerPhone || "" } : {});
+    var title = t[1] + (cp.name ? " – " + cp.name : "") + (p && p.code ? " – " + p.code : "");
+    return { title: title, html: docHtml(title, T[kind](f, cp, sp, p)) };
+  }
+  if (IS_NODE) { module.exports = { render: render, TYPES: TYPES }; return; }
+  if (!document.getElementById("ct-css")) { var st = document.createElement("style"); st.id = "ct-css"; st.textContent = CT_CSS; document.head.appendChild(st); }
+  window.NDContracts = { open: open, TYPES: TYPES, render: render };
 })();

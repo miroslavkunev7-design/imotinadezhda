@@ -84,6 +84,10 @@
     },
     "api/tts.js": {
       "maxDuration": 30
+    },
+    "api/tools.js": {
+      "maxDuration": 60,
+      "includeFiles": "api/_vendor/**"
     }
   },
   "redirects": [

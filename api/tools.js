@@ -26605,6 +26605,10 @@ var tools = {
     }
   }
 };
+/* Тед Universal Action Gateway: the extra skills (documents, communication, contracts, reports, audit) join the same registry,
+   same bearer token, same RLS. Every call is audited in nd_audit. */
+var TED = null;
+try { TED = require("./_ted-skills.js"); Object.keys(TED.tools).forEach((k) => { if (!tools[k]) tools[k] = TED.tools[k]; }); } catch (e) { console.error("ted skills not loaded", e && e.message); }
 function manifest() {
   return Object.entries(tools).map(([name, t]) => ({ name, description: t.description }));
 }
@@ -26645,10 +26649,14 @@ async function handler(req, res) {
   if (!tool) return send({ ok: false, error: "Unknown tool: " + body?.tool, tools: Object.keys(tools) }, 404);
   const parsed = tool.input.safeParse(body.input ?? {});
   if (!parsed.success) return send({ ok: false, error: "Invalid input", issues: parsed.error.issues }, 400);
+  const t0 = Date.now(), toolName = String(body.tool);
   try {
-    return send({ ok: true, result: await tool.run({ sb, userId: u.user.id }, parsed.data) });
+    const result = await tool.run({ sb, userId: u.user.id, user: u.user }, parsed.data);
+    if (TED) TED.audit(sb, u.user, toolName, true, Date.now() - t0, JSON.stringify(parsed.data).slice(0, 200));
+    return send({ ok: true, result });
   } catch (e) {
-    const status = e instanceof ToolError ? e.status : 500;
+    const status = e instanceof ToolError || (e && typeof e.status === "number") ? e.status : 500;
+    if (TED) TED.audit(sb, u.user, toolName, false, Date.now() - t0, (e && e.message) || String(e));
     return send({ ok: false, error: e instanceof Error ? e.message : String(e) }, status);
   }
 }
