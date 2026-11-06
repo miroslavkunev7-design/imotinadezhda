@@ -561,6 +561,12 @@ html.desk .pm-right .pm-sec:first-child{margin-top:68px}
 html.desk .pm-acc{padding:0}
 html.desk .pm-actions{position:absolute;left:0;top:1074px;width:1024px;padding:0 22px;grid-template-columns:repeat(6,1fr);gap:10px}
 html.desk .pm-actions .pa{height:150px}
+/* табове в картата: бутоните сменят съдържанието на дясната част, без втора карта */
+.pm-tabhost{padding:0 10px 16px}
+html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
+.pwin.tab .pm-right>.pm-sec,.pwin.tab #pm-acc{display:none}
+.pa.on{background:linear-gradient(180deg,#b02a45 0%,#83102a 42%,#5a0719 100%);color:#fff;box-shadow:0 0 0 2px #edc47a,0 0 18px rgba(255,214,160,.9),inset 0 2px 3px rgba(255,170,180,.45)}
+.pa.on svg.i{color:#fff}
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
@@ -779,6 +785,7 @@ html.desk .pm-actions .pa{height:150px}
       </div>
 
       <div class="pm-right" id="pm-right">
+        <div class="pm-tabhost" id="pm-tabhost" hidden></div>
         <section class="pm-sec" aria-labelledby="pm-dt">
           <div class="pm-sh"><svg class="srib" viewBox="0 0 700 92" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0 0 H 700 C 630 5 590 40 540 66 C 510 82 480 86 430 86 H 0 Z" fill="url(#ribbonFill)"/>
@@ -1114,7 +1121,19 @@ html.desk .pm-actions .pa{height:150px}
     try{history.replaceState(null,'','#'+p.id)}catch(e){}
     setTimeout(function(){$('pm-close').focus({preventScroll:true})},60);
   }
+  /* табове: Редактирай / Публикувай навсякъде / Документи / Собственик се отварят вътре в картата */
+  var tabHost=$('pm-tabhost'),tabActive=null;
+  function tabOff(){tabActive=null;pwin.classList.remove('tab');tabHost.hidden=true;[].forEach.call(pwin.querySelectorAll('.pa.on'),function(b){b.classList.remove('on')});window.NDUI.inlineHost(null);window.NDUI.detachInline()}
+  function tabOn(name,btn,opener){
+    if(tabActive===name){tabOff();return}
+    if(tabActive)tabOff();
+    tabActive=name;pwin.classList.add('tab');tabHost.hidden=false;if(btn)btn.classList.add('on');
+    window.NDUI.inlineHost(tabHost,function(){if(tabActive===name)tabOff()});
+    opener();
+    if(!desk)setTimeout(function(){tabHost.scrollIntoView({behavior:'smooth',block:'start'})},60);
+  }
   function closeProp(){
+    tabOff();
     pwin.classList.remove('show');pback.classList.remove('show');root.classList.remove('locked');
     setTimeout(function(){pwin.hidden=true;pback.hidden=true;setPFull(false)},230);
     try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
@@ -1154,15 +1173,15 @@ html.desk .pm-actions .pa{height:150px}
   $('pm-acc').addEventListener('click',function(e){var b=e.target.closest('.acc>button');if(!b)return;var a=b.parentNode,o=!a.classList.contains('open');a.classList.toggle('open',o);b.setAttribute('aria-expanded',o)});
   pwin.addEventListener('click',function(e){var b=e.target.closest('[data-pa]');if(!b)return;var a=b.getAttribute('data-pa'),t=pwin.dataset.title;
     if(a==='share'){var u=location.href.split('#')[0]+'#'+cur.id;try{navigator.clipboard.writeText(u).then(function(){say('Линкът към имота е копиран')},function(){say('Линк: '+u)})}catch(x){say('Линк: '+u)}return}
-    if(a==='edit'){window.NDProps.edit(cur);return}
+    if(a==='edit'){var cc=cur;tabOn('edit',b,function(){window.NDProps.edit(cc)});return}
     if(a==='publish'){if(cur.status==='Публикуван'){stageMenu(e.target.closest('[data-pa]'));return}if(!cur.city){say('Посочете град / населено място – „Редактирай“');return}var w=window.open('','_blank');window.NDProps.setStatus(cur,'Публикуван').then(function(){say('Публикуван на сайта: '+window.NDPublish.where(cur));if(w)w.location=window.NDPublish.siteUrl(cur)},function(){if(w)w.close()});return}
-    if(a==='all'){var pp=cur;window.NDPublish.open(window.NDProps.stored(pp),{publishSite:function(){return pp.status==='Публикуван'?null:window.NDProps.setStatus(pp,'Публикуван')},save:function(patch){var fresh=props.filter(function(x){return x.id===pp.id})[0]||pp;var o=window.NDProps.stored(fresh);Object.keys(patch).forEach(function(k){o[k]=patch[k]});return ND.put('properties',o).then(loadAll)}});return}
+    if(a==='all'){var pp=cur,bb=b;tabOn('all',bb,function(){window.NDPublish.open(window.NDProps.stored(pp),{publishSite:function(){return pp.status==='Публикуван'?null:window.NDProps.setStatus(pp,'Публикуван')},save:function(patch){var fresh=props.filter(function(x){return x.id===pp.id})[0]||pp;var o=window.NDProps.stored(fresh);Object.keys(patch).forEach(function(k){o[k]=patch[k]});return ND.put('properties',o).then(loadAll)}})});return}
     if(a==='archive'){if(cur.status==='Архивиран'||(cur.archived&&cur.status!=='Публикуван')){say('Имотът вече е в архива');return}window.NDProps.archive(cur);return}
-    if(a==='owner'){window.NDProps.owner(cur);return}
+    if(a==='owner'){var co=cur;tabOn('owner',b,function(){window.NDProps.owner(co)});return}
     if(a==='bank'){var cov=(cur.pics&&cur.pics.length)?img(cur.pics[(cur.cover||0)]||cur.pics[0]):'';var pp=cur;window.NDUI.bank({client:cur.client,price:cur.deal==='sale'?cur.price:'',city:cur.city,hood:cur.hood,title:cur.title,code:cur.code,area:cur.area,rooms:cur.rooms,floor:cur.floor,photo:/^(https?:|blob:|data:)/.test(cov)?cov:'',ref:'property:'+(cur.code||cur.id)},{host:pwin,onOffer:function(o){var s=window.NDProps.stored(pp);s.log=(s.log||[]).slice(0,49);s.log.unshift({icon:'landmark',text:'Запазена оферта: '+(o.bank||'')+' · кредит '+Number(o.loan||0).toLocaleString('bg-BG')+' € · вноска € '+(o.payment||''),at:new Date().toISOString()});pp.log=s.log;ND.put('properties',s).then(function(){say('Офертата е записана в картата на имота')}).catch(function(){});
       /* офертата отива и при клиента, избран в банковия модул – заедно с имота */
       if(o.client)ND.load('clients').then(function(cl){var c=(cl||[]).filter(function(x){return x.name===o.client})[0];if(!c)return;c.offers=(c.offers||[]).slice(0,29);c.offers.unshift({at:new Date().toISOString(),bank:o.bank||'',price:o.price||null,down:o.down||null,loan:o.loan||null,years:o.years||null,rate:o.rate!=null?o.rate:null,payment:o.payment||'',prop:{id:pp.id,code:pp.code||'',title:pp.title||'',city:pp.city||'',hood:pp.hood||'',price:pp.price||null}});var cid=c.id;delete c.id;c.id=cid;return ND.put('clients',c).then(function(){return ND.put('activities',{client_id:cid,client:c.name,icon:'landmark',text:'Запазена оферта: '+(o.bank||'')+' · кредит '+Number(o.loan||0).toLocaleString('bg-BG')+' € · вноска € '+(o.payment||'')+' · имот '+(pp.code||'')+' '+(pp.title||''),at:new Date().toISOString()})})}).catch(function(){})}});return}
-    if(a==='pdocs'&&window.NDDocs){var pp=cur;window.NDDocs.property(pp,{say:say,save:function(patch){var o=window.NDProps.stored(pp);Object.keys(patch).forEach(function(k){o[k]=patch[k]});return ND.put('properties',o)},onUpload:function(t,n){var o=window.NDProps.stored(pp);o.log=(o.log||[]).slice(0,49);o.log.unshift({icon:'file-text',text:'Прикачен документ: '+t+(n>1?' ('+n+' файла)':''),at:new Date().toISOString()});pp.log=o.log;ND.put('properties',o).catch(function(){})}});return}
+    if(a==='pdocs'&&window.NDDocs){var pp=cur,pb=pwin.querySelector('.pm-actions [data-pa="pdocs"]');tabOn('pdocs',pb,function(){window.NDDocs.property(pp,{say:say,save:function(patch){var o=window.NDProps.stored(pp);Object.keys(patch).forEach(function(k){o[k]=patch[k]});return ND.put('properties',o)},onUpload:function(t,n){var o=window.NDProps.stored(pp);o.log=(o.log||[]).slice(0,49);o.log.unshift({icon:'file-text',text:'Прикачен документ: '+t+(n>1?' ('+n+' файла)':''),at:new Date().toISOString()});pp.log=o.log;ND.put('properties',o).catch(function(){})}})});return}
     say(t)});
   /* клик върху „друг имот на собственика“ – отваря неговата карта */
   $('pm-acc').addEventListener('click',function(e){var r=e.target.closest('[data-open]');if(!r)return;var id=r.getAttribute('data-open');if(props.some(function(x){return x.id===id}))openProp(id)});

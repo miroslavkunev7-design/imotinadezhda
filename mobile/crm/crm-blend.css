@@ -114,6 +114,7 @@ html.rail .nda-fab{display:none}
 /* 9. Четливост: по-остри букви, без размазващи сенки по текста */
 html.desk,html.desk body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 html.desk .ccard .nm,html.desk .ndl-h .t,html.desk .ndl-h .t small,html.desk #nd-fwin .ndg .el,html.desk #nd-fwin .f-bar h2{text-shadow:0 1px 0 rgba(255,255,255,.9)}
+#nd-fwin .ndg .el{padding:3px 9px;border-radius:12px;background:rgba(255,250,245,.68);box-shadow:0 0 0 1px rgba(255,255,255,.5);width:max-content;max-width:100%}
 /* 8. Прелети снимки: плътна и ярка картина, преливане само по ръба */
 .top .photo{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 15%),linear-gradient(180deg,transparent 0,#000 9%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 15%),linear-gradient(180deg,transparent 0,#000 9%)!important;opacity:1!important;filter:saturate(1.08) contrast(1.04)}
 .top .shade{background:linear-gradient(90deg,rgba(64,10,22,.92) 0%,rgba(64,10,22,.5) 24%,rgba(64,10,22,0) 40%),linear-gradient(0deg,rgba(242,199,163,.2) 0%,rgba(242,199,163,0) 8%)!important}

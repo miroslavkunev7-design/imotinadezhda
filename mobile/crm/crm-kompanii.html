@@ -838,6 +838,13 @@ html:not(.desk) .fctl .mbtn{width:calc(var(--fz,.37)*62px);height:calc(var(--fz,
 .el{display:flex;align-items:center;gap:22px;font:700 27px/1 var(--cond);color:#6b0a1c;margin-bottom:10px}
 .el svg.i{font-size:38px;color:#7b1020;stroke-width:1.7;flex:0 0 auto}
 .ef .in{height:56px;font-size:25px;border-radius:16px;padding:0 18px}
+/* преглед на записана компания / служител: стойностите са изписани; клик → редакция на полето */
+.ef .vv{display:none}
+#f-body.view .ef .in,#f-body.view .ef .selw{display:none}
+#f-body.view .ef .vv{display:block;min-height:50px;padding:10px 18px;border-radius:16px;font:700 26px/1.25 var(--cond);color:#2b1414;cursor:pointer;background:linear-gradient(180deg,rgba(255,253,250,.6),rgba(251,239,229,.4));box-shadow:inset 0 -1.5px 0 rgba(226,176,120,.65);white-space:pre-wrap;word-break:break-word;text-shadow:0 1px 0 #fff}
+#f-body.view .ef .vv.emp{color:#9a7a6a;font-weight:400;font-style:italic}
+#f-body.view .ef .vv:hover{background:linear-gradient(180deg,rgba(255,253,250,.97),rgba(251,239,229,.95));box-shadow:0 0 0 1.5px rgba(237,196,122,.9),0 0 12px rgba(255,214,160,.8)}
+#f-body.view .ef.editing .in,#f-body.view .ef.editing .selw{display:block}#f-body.view .ef.editing .vv{display:none}
 .in.ta{height:140px;padding:14px 18px;resize:none;line-height:1.35;font-family:var(--cond)}
 .in.bad{box-shadow:0 0 0 2.5px #c81a3a,0 0 10px rgba(200,26,58,.35)}
 .ev-err{min-height:34px;padding:0 36px;font:700 24px/1.3 var(--cond);color:#b0102e}
@@ -1215,10 +1222,15 @@ html.desk .fwin .mscroll{overflow:hidden}
         fld('f-phone','Телефон','phone',e.phone,'tel')+fld('f-mail','Имейл','mail',e.email,'email');
       $('f-del').hidden=!id;
     }
+    fView(!!id);
     fback.hidden=false;fwin.hidden=false;root.classList.add('locked');fitF();fscroll.scrollTop=0;
     requestAnimationFrame(function(){fback.classList.add('show');fwin.classList.add('show')});
-    setTimeout(function(){$('f-name').focus({preventScroll:true})},80);
+    if(!id)setTimeout(function(){$('f-name').focus({preventScroll:true})},80);
   }
+  /* режим преглед на формата: стойности с дебел шрифт; клик върху стойност отваря полето */
+  function fView(on){var b=$('f-body');b.classList.toggle('view',on);if(!on)return;
+    [].forEach.call(b.querySelectorAll('.ef'),function(ef){ef.classList.remove('editing');var t=window.NDUI&&window.NDUI.valText?window.NDUI.valText(ef):null;if(t===null)return;var v=ef.querySelector('.vv');if(!v){v=document.createElement('div');v.className='vv';ef.appendChild(v)}v.textContent=t||'—';v.classList.toggle('emp',!t)})}
+  $('f-body').addEventListener('click',function(e){var v=e.target.closest('.vv');if(!v)return;e.preventDefault();var ef=v.closest('.ef');ef.classList.add('editing');var c=ef.querySelector('.in');if(c)setTimeout(function(){c.focus({preventScroll:true})},20);fitF()});
   function closeF(){fwin.classList.remove('show');fback.classList.remove('show');root.classList.remove('locked');
     setTimeout(function(){fwin.hidden=true;fback.hidden=true;setFFull(false)},230);if(flast&&flast.focus&&document.contains(flast))flast.focus({preventScroll:true})}
   function setFFull(v){ffull=v;fwin.classList.toggle('full',v);var b=$('f-full');b.innerHTML=ic(v?'minimize-2':'maximize-2');
@@ -1247,7 +1259,7 @@ html.desk .fwin .mscroll{overflow:hidden}
       if(editId)c.emps=c.emps.map(function(x){return x.id===editId?Object.assign({},x,er):x});else{er.id='e'+Date.now();c.emps.push(er)}
       say(editId?'Служителят е обновен':'Служителят е добавен');
     }
-    persist();renderList();renderDet();closeF();
+    persist();renderList();renderDet();if(editId){fView(true);fitF()}else closeF();
   });
   $('f-del').addEventListener('click',function(){
     var b=this,s=b.querySelector('span');if(!b.dataset.ok){b.dataset.ok='1';s.textContent='Потвърди';setTimeout(function(){delete b.dataset.ok;s.textContent='Изтрий'},2500);return}

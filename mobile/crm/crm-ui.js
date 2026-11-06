@@ -135,6 +135,27 @@
     "#nd-fwin .ndg .el svg.i{display:none}",
     "#nd-fwin .ndg .in{height:52px;border-radius:26px;font-size:24px;padding:0 20px}",
     "#nd-fwin .ndg .in.ta{height:120px;border-radius:22px;padding:12px 18px}",
+    /* режим „преглед“: стойностите са изписани върху блока; клик върху стойност отваря полетата на секцията */
+    /* прозорецът вътре в страница/карта (Сделки, табове в картите) */
+    "#nd-fwin.inline{position:static!important;width:100%!important;height:auto!important;max-height:none!important;margin:0!important;left:auto!important;top:auto!important;bottom:auto!important;transform:none!important;opacity:1!important;border-radius:28px;box-shadow:0 0 0 1.5px rgba(227,178,94,.6),0 0 18px rgba(255,226,190,.8),0 10px 24px rgba(60,10,10,.25)}",
+    "#nd-fwin.inline .mctl{display:none}",
+    "#nd-fwin.inline .mscroll{position:static!important;inset:auto!important;overflow:visible!important;max-height:none;height:auto}",
+    "#nd-fwin.inline .f-bar{position:relative}",
+    "#nd-fwin.inline .f-photo{display:none!important}",
+    "#nd-fwin.inline #nd-f-cancel{display:none}",
+    "#nd-fwin.inline .fcv{zoom:1!important;width:100%!important;max-width:1024px;margin:0 auto}",
+    "html.desk #nd-fwin.inline .fcv{max-width:none;width:100%!important}",
+    "#nd-fwin.inline.tabbed #nd-f-cancel{display:inline-flex}",
+    "#nd-fwin.inline.tabbed .f-bar{height:84px}#nd-fwin.inline.tabbed .f-bar h2{font-size:36px}",
+    "#nd-fwin.inline.tabbed .f-body{grid-template-columns:1fr 1fr}",
+    "#nd-fwin .ndg .vv{display:none}",
+    "#nd-fwin .ndg.view .ef .in,#nd-fwin .ndg.view .ef .selw{display:none!important}",
+    "#nd-fwin .ndg.view .vv{display:block;min-height:44px;padding:8px 10px;border-radius:14px;font:700 26px/1.25 var(--cond);color:#2b1414;cursor:pointer;background:linear-gradient(180deg,rgba(255,253,250,.55),rgba(251,239,229,.35));box-shadow:inset 0 -1.5px 0 rgba(226,176,120,.6);text-shadow:0 1px 0 #fff;word-break:break-word;white-space:pre-wrap;transition:box-shadow .2s,background .2s}",
+    "#nd-fwin .ndg.view .vv.emp{color:#9a7a6a;font-weight:400;font-style:italic}",
+    "#nd-fwin .ndg.view .vv:hover{background:linear-gradient(180deg,rgba(255,253,250,.95),rgba(251,239,229,.9));box-shadow:0 0 0 1.5px rgba(237,196,122,.9),0 0 12px rgba(255,214,160,.8)}",
+    "#nd-fwin .ndg.view{cursor:pointer}",
+    "#nd-fwin .ndg.view .ndg-h:after{content:'✎';margin-left:auto;font-size:22px;opacity:.75}",
+    "#nd-fwin .ndg.editing .ndg-h:after{content:'✓ редакция';margin-left:auto;font:700 16px/1 var(--cond);letter-spacing:.5px;opacity:.9}",
     "#nd-fwin .ndg .selw svg.i{display:block}",
     "#nd-fwin .ndg .ndres,#nd-fwin .ndg .ndphotos,#nd-fwin .ndg .ndfile,#nd-fwin .ndg>.ndrows{grid-column:1/-1;margin:0}",
     /* rows like the documents list: separate glass pills */
@@ -225,7 +246,8 @@
       var bad = cur.validate && cur.validate(get);
       if (bad) { err.textContent = bad; return; }
       var btn = W.querySelector("#nd-f-save"); btn.disabled = true;
-      Promise.resolve(cur.onSave(get)).then(function (r) { btn.disabled = false; if (r !== false && !(cur && cur.keepOpen)) close(); }, function (x) {
+      var stay = cur && wantsView(cur) && cur.stayAfterSave !== false;
+      Promise.resolve(cur.onSave(get)).then(function (r) { btn.disabled = false; if (r === false) return; if (stay && cur && W && !W.hidden) { viewAll(q("nd-f-body"), true); fit(); if (window.ND && window.ND.say) window.ND.say("Записано"); return; } if (!(cur && cur.keepOpen)) close(); }, function (x) {
         btn.disabled = false; err.textContent = "Грешка при запис: " + ((x && x.message) || x);
       });
     });
@@ -233,6 +255,11 @@
       if (W.hidden) return;
       if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); close(); }
     }, true);
+    cv.addEventListener("click", function (e) {
+      var g = e.target.closest(".ndg.view"); if (!g) return;
+      if (e.target.closest("button,a,.ndfile,.ndphotos")) return;
+      e.preventDefault(); editGroup(g, e.target.closest(".ef")); fit();
+    });
     addEventListener("resize", fit);
   }
   function q(id) { return W.querySelector("#" + id); }
@@ -266,13 +293,54 @@
     ctlFull.setAttribute("aria-label", v ? "Възстанови размера" : "На цял екран"); ctlFull.title = ctlFull.getAttribute("aria-label");
     fit(); setTimeout(fit, 280);
   }
-  var inlineHost = null;
+  /* ---- режим „преглед“ за секциите (U.open с view:true или заглавие „Редакция – …“) ---- */
+  function valText(ef) {
+    var c = ef.querySelector("select,textarea,input"); if (!c || c.type === "file" || c.type === "hidden") return null;
+    if (c.tagName === "SELECT") { var o = c.options[c.selectedIndex]; return o ? o.textContent.trim().replace(/^[—–-]+$/, "") : ""; }
+    if (c.type === "password") return c.value ? "••••••" : "";
+    if (c.type === "checkbox") return c.checked ? "Да" : "Не";
+    if (c.type === "date" && c.value) { var p = c.value.split("-"); return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : c.value; }
+    if (c.type === "number" && c.value !== "") { var n = Number(String(c.value).replace(",", ".")); if (isFinite(n)) return n.toLocaleString("bg-BG", { maximumFractionDigits: 2 }); }
+    return String(c.value || "").trim();
+  }
+  function viewGroup(g) {
+    var any = false;
+    [].forEach.call(g.querySelectorAll(".ef"), function (ef) {
+      var t = valText(ef); if (t === null) return; any = true;
+      var v = ef.querySelector(".vv"); if (!v) { v = document.createElement("div"); v.className = "vv"; ef.appendChild(v); }
+      v.textContent = t || "—"; v.classList.toggle("emp", !t);
+    });
+    if (any) { g.classList.add("view"); g.classList.remove("editing"); }
+    return any;
+  }
+  function editGroup(g, ef) {
+    g.classList.remove("view"); g.classList.add("editing");
+    var c = ef && ef.querySelector("select,textarea,input");
+    if (c && c.focus && !matchMedia("(pointer:coarse)").matches) setTimeout(function () { c.focus({ preventScroll: true }); }, 30);
+  }
+  function viewAll(root, on) {
+    [].forEach.call(root.querySelectorAll(".ndg"), function (g) {
+      if (!g.querySelector(".ef select,.ef textarea,.ef input:not([type=file]):not([type=hidden])")) return;
+      if (on) viewGroup(g); else { g.classList.remove("view"); g.classList.remove("editing"); }
+    });
+  }
+  function wantsView(o) { if (o.view === false) return false; if (o.view === true) return true; return /^(Редакция|Собственик)\s*[–-]/.test(String(o.title || "")); }
+  var inlineHost = null, defaultInline = null, inlineCb = null;
+  /* картите задават „домакин“ – всеки следващ прозорец се отваря вътре в картата (таб), а не отгоре */
+  function setInlineHost(el, onClose) { defaultInline = el || null; inlineCb = onClose || null; }
+  function detachInline() {
+    if (!W || !inlineHost) return;
+    W.classList.remove("show"); W.hidden = true; cur = null;
+    document.body.appendChild(W); W.classList.remove("inline"); W.classList.remove("tabbed"); W.setAttribute("role", "dialog"); W.setAttribute("aria-modal", "true"); inlineHost = null;
+  }
   function open(o) {
     if (!W) build();
     cur = o; last = document.activeElement;
     /* inline: the window lives inside a page element (the Сделки page) instead of floating over it */
+    if (o.inline === undefined && defaultInline && document.contains(defaultInline)) { o.inline = defaultInline; o._tab = true; }
     if (o.inline && o.inline !== inlineHost) { inlineHost = o.inline; inlineHost.appendChild(W); W.classList.add("inline"); W.removeAttribute("aria-modal"); W.setAttribute("role", "region"); }
-    else if (!o.inline && inlineHost) { inlineHost = null; document.body.appendChild(W); W.classList.remove("inline"); W.setAttribute("role", "dialog"); W.setAttribute("aria-modal", "true"); }
+    else if (!o.inline && inlineHost) { inlineHost = null; document.body.appendChild(W); W.classList.remove("inline"); W.classList.remove("tabbed"); W.setAttribute("role", "dialog"); W.setAttribute("aria-modal", "true"); }
+    W.classList.toggle("tabbed", !!(o.inline && o._tab)); if (o._tab) setFull(false);
     q("nd-f-title").textContent = o.title || "";
     q("nd-f-ic").innerHTML = '<use href="#' + (o.icon || "file-text") + '"/>';
     q("nd-f-photo").style.backgroundImage = o.photo ? "url(" + img(o.photo) + ")" : "none";
@@ -285,13 +353,19 @@
     W.hidden = false;
     if (inlineHost) { W.classList.add("show"); }
     else { back.hidden = false; document.documentElement.classList.add("locked"); fit(); scroll.scrollTop = 0; requestAnimationFrame(function () { back.classList.add("show"); W.classList.add("show"); fit(); }); }
-    if (o.ready) o.ready({ q: q, get: get, num: num, body: q("nd-f-body"), refit: fit, rerender: function (h) { q("nd-f-body").innerHTML = h; if (o.ready2) o.ready2(); fit(); } });
-    setTimeout(function () { var f = W.querySelector("#nd-f-body .in"); if (f && o.focus !== false && !matchMedia("(pointer:coarse)").matches) f.focus({ preventScroll: true }); }, 80);
+    var vm = wantsView(o);
+    if (o.ready) o.ready({ q: q, get: get, num: num, body: q("nd-f-body"), refit: fit, rerender: function (h) {
+      var editing = {}; if (vm) [].forEach.call(q("nd-f-body").querySelectorAll(".ndg.editing .ndg-h"), function (x) { editing[x.textContent] = 1; });
+      q("nd-f-body").innerHTML = h; if (o.ready2) o.ready2();
+      if (vm) { viewAll(q("nd-f-body"), true); [].forEach.call(q("nd-f-body").querySelectorAll(".ndg.view .ndg-h"), function (x) { if (editing[x.textContent]) editGroup(x.parentNode); }); }
+      fit(); } });
+    if (vm) viewAll(q("nd-f-body"), true);
+    setTimeout(function () { var f = W.querySelector("#nd-f-body .ndg:not(.view) .in, #nd-f-body :not(.ndg) .in"); if (f && !vm && o.focus !== false && !matchMedia("(pointer:coarse)").matches) f.focus({ preventScroll: true }); }, 80);
     return { q: q, get: get, num: num, close: close, refit: fit };
   }
   function close() {
     if (!W || W.hidden) return;
-    if (inlineHost) { var oi = cur; if (oi && oi.onClose) oi.onClose(); return; }
+    if (inlineHost) { var oi = cur; if (oi && oi._tab) { cur = null; W.classList.remove("show"); W.hidden = true; if (oi.onClose) oi.onClose(); if (inlineCb) inlineCb(); } else if (oi && oi.onClose) oi.onClose(); return; }
     W.classList.remove("show"); back.classList.remove("show");
     var o = cur; cur = null;
     setTimeout(function () { W.hidden = true; back.hidden = true; setFull(false); }, 230);
@@ -556,5 +630,5 @@
     document.addEventListener("keydown", function (e) { if (!fine()) return; var s = document.activeElement; if (s && s.tagName === "SELECT" && (e.key === "Enter" || e.key === " " || e.altKey && e.key === "ArrowDown")) { e.preventDefault(); openMenu(s, s.closest(".fld, .selw, .dsw, .w, .ef, .ndl-sel > div, .input-wrap, .city-select") || s); } });
     window.NDMenuClose = closeMenu;
   })();
-  window.NDUI = { commHtml: commHtml, commBind: commBind, commSave: commSave, commTotal: commTotal, calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
+  window.NDUI = { inlineHost: setInlineHost, detachInline: detachInline, viewGroup: viewGroup, editGroup: editGroup, viewAll: viewAll, valText: valText, commHtml: commHtml, commBind: commBind, commSave: commSave, commTotal: commTotal, calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
 })();

@@ -20,7 +20,7 @@
   var BRK = null;
   function loadBrokers() { if (BRK) return Promise.resolve(BRK); return D.ready().then(function () { return D.load("brokers"); }).then(function (l) { BRK = (l || []).filter(function (b) { return b && b.name && b.active !== false; }); return BRK; }).catch(function () { BRK = []; return BRK; }); }
   function myBroker() { var em = String((D.user && D.user.email) || "").toLowerCase(), l = BRK || []; return (l.filter(function (b) { return String(b.email || "").toLowerCase() === em; })[0] || l[0] || {}).id || ""; }
-  function brokerOpts(cur) { var l = BRK || []; var o = l.map(function (b) { return [b.id, b.name + (b.title || b.role ? " – " + (b.title || b.role) : "")]; }); if (cur && !l.some(function (b) { return b.id === cur; })) o.unshift([cur, cur]); return o.length ? o : [["", "Зареждане…"]]; }
+  function brokerOpts(cur) { var l = BRK || []; var o = l.map(function (b) { return [b.id, b.name + (b.title || b.role ? " – " + (b.title || b.role) : "")]; }); if (cur && !l.some(function (b) { return b.id === cur; })) o.unshift([cur, cur]); return o.length ? o : (BRK ? [["nadezhda", "Мирослав Кънев – Управител / Брокер"]] : [["", "Зареждане…"]]); }
   var BUILD = ["Тухла", "Панел", "ЕПК", "Монолит", "Гредоред", "Сглобяема", "Друго"];
 
   function nextCode(list) {

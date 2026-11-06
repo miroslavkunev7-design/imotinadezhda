@@ -376,6 +376,13 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 .dsw select{appearance:none;-webkit-appearance:none;padding-right:54px;cursor:pointer}
 .dsw svg.i{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:26px;color:#7a0f22;pointer-events:none}
 .ditem.saving .din{opacity:.6}
+/* преглед: стойността е изписана с дебел шрифт; клик → полето за редакция */
+.ditem .dvv{display:none}
+.dgrid .ditem.view .din,.dgrid .ditem.view .dsw{display:none}
+.dgrid .ditem.view .dvv{display:flex;align-items:center;min-height:54px;padding:8px 18px;border-radius:20px;font:700 27px/1.2 var(--cond);color:#2b1414;cursor:pointer;background:linear-gradient(180deg,rgba(255,253,250,.6),rgba(251,239,229,.4));box-shadow:inset 0 -1.5px 0 rgba(226,176,120,.65);text-shadow:0 1px 0 #fff;word-break:break-word;transition:box-shadow .2s,background .2s}
+.dgrid .ditem.view .dvv.emp{color:#9a7a6a;font-weight:400;font-style:italic}
+.dgrid .ditem.view .dvv:hover{background:linear-gradient(180deg,rgba(255,253,250,.97),rgba(251,239,229,.95));box-shadow:0 0 0 1.5px rgba(237,196,122,.9),0 0 12px rgba(255,214,160,.8)}
+.dgrid .ditem.view .dvv .pill{font:inherit}
 .ditem.saved .din{border-color:#5fa82a;box-shadow:0 0 0 2px rgba(95,168,42,.6),0 0 14px rgba(120,190,60,.55)}
 .dgrp{margin-top:16px;border-radius:24px;background:rgba(255,252,248,.72);box-shadow:0 0 0 1.5px rgba(227,178,94,.6),0 0 12px rgba(255,226,190,.75)}
 .dgh{display:flex;align-items:center;gap:12px;width:100%;height:76px;padding:0 22px;border:0;background:none;cursor:pointer;font:700 28px/1 Georgia,serif;color:#690608;text-align:left}
@@ -387,6 +394,13 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 .dgb{display:none;padding:2px 18px 20px}
 .dgrp.open .dgb{display:grid}
 html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1fr}
+/* табове в картата: Редактирай / Срещи / Документи / Собственик / Сделка се отварят на мястото на панелите */
+.m-tabhost{margin:18px 12px 0;position:relative}
+html.desk .m-tabhost{position:absolute;left:1036px;top:12px;width:1000px;margin:0}
+.mcv.tab .m-data,.mcv.tab .m-act,.mcv.tab .m-notes{display:none}
+html.desk .mcv.tab .m-act{display:block}
+.ma.on{background:linear-gradient(180deg,#b02a45 0%,#83102a 42%,#5a0719 100%);color:#fff;box-shadow:0 0 0 2px #edc47a,0 0 18px rgba(255,214,160,.9),inset 0 2px 3px rgba(255,170,180,.45)}
+.ma.on svg.i{color:#fff}
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
@@ -565,6 +579,7 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
         <button class="ma" data-act="Собственик"><svg class="i"><use href="#user-round"/></svg>Собственик</button>
         <button class="ma" data-act="Сделка"><svg class="i"><use href="#handshake"/></svg>Сделка</button>
       </div>
+      <div class="m-tabhost" id="m-tabhost" hidden></div>
 
       <section class="mpanel m-data" aria-labelledby="m-data-t">
         <svg class="mribbon" viewBox="0 0 700 64" preserveAspectRatio="none" aria-hidden="true">
@@ -849,13 +864,15 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
     var ty=d[4]==='num'?'number':d[4]==='date'?'date':d[4]==='tel'?'tel':d[4]==='email'?'email':'text',lst=d[5]==='city'?' list="fl-cities"':d[5]==='hood'?' list="fl-hoods"':'';
     var shown=k==='egn'&&v?String(v).replace(/^(\d{0,6})/,function(m){return m.replace(/\d/g,'*')}):v;
     return '<input class="din" data-k="'+k+'" type="'+ty+'"'+(ty==='number'?' inputmode="decimal"':'')+lst+' value="'+esc(shown)+'" placeholder="+ добави"'+(k==='egn'?' data-mask="1"':'')+'>'}
-  function fitem(c,k){var d=fdef(k);if(!d)return '';return '<label class="ditem'+(d[6]?' wide':'')+'"><span class="dl">'+ic(d[1])+esc(d[2])+'</span>'+fctl(c,d)+'</label>'}
+  function fvv(c,d){var v=c[d[0]];if(d[4]==='sel'){var T=window.NDKTabs,O=(T&&T.OPTS)||{},opts=Array.isArray(d[5])?d[5]:(O[d[5]]||[]);var o=opts.filter(function(x){return String(Array.isArray(x)?x[0]:x)===String(v==null?'':v)})[0];var t=o?(Array.isArray(o)?o[1]:o):(v||'');return t&&t!=='—'?esc(t):''}
+    var t=fval(c,d);return /class="emp"/.test(t)?'':t}
+  function fitem(c,k){var d=fdef(k);if(!d)return '';var ro=d[4]==='ro',vv=ro?'':fvv(c,d);return '<label class="ditem'+(d[6]?' wide':'')+(ro?'':' view')+'" data-fk="'+esc(k)+'"><span class="dl">'+ic(d[1])+esc(d[2])+'</span>'+fctl(c,d)+(ro?'':'<span class="dvv'+(vv?'':' emp')+'">'+(vv||'+ добави')+'</span>')+'</label>'}
   function fdl(c){var P=window.NDPlaces;if(!P)return '';return '<datalist id="fl-cities">'+P.cities.map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist><datalist id="fl-hoods">'+(P.PLACES[P.city(c.city)]||[]).map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist>'}
   function filled(c,ks){return ks.filter(function(k){return c[k]!=null&&c[k]!==''}).length}
   function renderFields(c){var box=document.getElementById('m-fields');box.className='dgrid';
     box.innerHTML='<div class="dmain">'+FMAIN.map(function(k){return fitem(c,k)}).join('')+'</div>'+
       FGRP.map(function(g,i){var on=!!fOpen[i];return '<div class="dgrp'+(on?' open':'')+'" data-g="'+i+'"><button type="button" class="dgh" aria-expanded="'+on+'">'+ic(g[1])+'<span>'+esc(g[0])+'</span><em>'+filled(c,g[2])+' / '+g[2].length+'</em>'+ic('chev-d')+'</button><div class="dgb">'+g[2].map(function(k){return fitem(c,k)}).join('')+'</div></div>'}).join('')+fdl(c)}
-  function relayout(){if(!desk)return;var md=document.querySelector('.m-data'),mn=document.querySelector('.m-notes');requestAnimationFrame(function(){var nt=12+md.offsetHeight+22;mcv.style.setProperty('--ntop',nt+'px');DH=Math.max(1420,nt+mn.offsetHeight+16);fitModal()})}
+  function relayout(){if(!desk)return;var md=document.querySelector('.m-data'),mn=document.querySelector('.m-notes'),th=document.getElementById('m-tabhost');requestAnimationFrame(function(){var nt=12+md.offsetHeight+22;mcv.style.setProperty('--ntop',nt+'px');DH=Math.max(1420,nt+mn.offsetHeight+16,th&&!th.hidden?th.offsetHeight+60:0);fitModal()})}
   var mf=document.getElementById('m-fields');
   mf.addEventListener('click',function(e){var h=e.target.closest('.dgh');if(!h)return;var g=h.parentNode,i=g.getAttribute('data-g');fOpen[i]=!fOpen[i];g.classList.toggle('open',fOpen[i]);h.setAttribute('aria-expanded',String(fOpen[i]));relayout()});
   mf.addEventListener('focusin',function(e){var t=e.target;if(t.dataset&&t.dataset.mask){var c=clients.filter(function(x){return x.id===win.dataset.id})[0];if(c)t.value=c.egn||''}});
@@ -865,13 +882,16 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
     if(String(nv==null?'':nv)===String(old)){if(t.dataset.mask)t.value=fctlMask(old);return}
     if(k==='phone'&&!nv){say('Телефонът е задължителен');t.value=old;return}
     var patch={};patch[k]=nv;t.closest('.ditem').classList.add('saving');
-    window.NDKTabs.saveField(c,patch).then(function(){var it=t.closest('.ditem');if(it){it.classList.remove('saving');it.classList.add('saved');setTimeout(function(){it.classList.remove('saved')},1200)}say('Записано: '+d[2]);
+    window.NDKTabs.saveField(c,patch).then(function(){var it=t.closest('.ditem');if(it){it.classList.remove('saving');it.classList.add('saved');setTimeout(function(){it.classList.remove('saved')},1200);toView(it)}say('Записано: '+d[2]);
       if(k==='phone'){var mp=document.getElementById('m-phone');mp.querySelector('span').textContent=c.phone;mp.href='tel:'+String(c.phone).replace(/\s/g,'')}
       if(k==='city'||k==='hood'){var hi=mf.querySelector('[data-k="hood"]'),ci=mf.querySelector('[data-k="city"]');if(ci)ci.value=c.city||'';if(hi)hi.value=c.hood||'';var dl=document.getElementById('fl-hoods'),P=window.NDPlaces;if(dl&&P)dl.innerHTML=(P.PLACES[P.city(c.city)]||[]).map(function(n){return '<option value="'+esc(n)+'">'}).join('')}
       if(t.dataset.mask)t.value=fctlMask(c.egn);
       var g=t.closest('.dgrp');if(g){var gi=+g.getAttribute('data-g');g.querySelector('.dgh em').textContent=filled(c,FGRP[gi][2])+' / '+FGRP[gi][2].length}
     }).catch(function(er){t.closest('.ditem').classList.remove('saving');say('Грешка: '+((er&&er.message)||er))})}
   function fctlMask(v){return v?String(v).replace(/^(\d{0,6})/,function(m){return m.replace(/\d/g,'*')}):''}
+  mf.addEventListener('click',function(e){var v=e.target.closest('.dvv');if(!v)return;e.preventDefault();var it=v.closest('.ditem');it.classList.remove('view');var c0=it.querySelector('.din');if(c0){if(!matchMedia('(pointer:coarse)').matches)setTimeout(function(){c0.focus({preventScroll:true})},20);else c0.focus()}});
+  function toView(it){var c=clients.filter(function(x){return x.id===win.dataset.id})[0];if(!c||!it)return;var d=fdef(it.getAttribute('data-fk'));if(!d)return;var vv=it.querySelector('.dvv');if(!vv)return;var t=fvv(c,d);vv.innerHTML=t||'+ добави';vv.classList.toggle('emp',!t);it.classList.add('view')}
+  mf.addEventListener('focusout',function(e){var t=e.target;if(!t.matches||!t.matches('.din'))return;var it=t.closest('.ditem');setTimeout(function(){if(it&&!it.contains(document.activeElement)&&!it.classList.contains('saving'))toView(it)},120)});
   mf.addEventListener('change',function(e){if(e.target.matches('.din'))fsave(e.target)});
   mf.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.matches('input.din')){e.preventDefault();e.target.blur()}});
   mf.addEventListener('focusout',function(e){var t=e.target;if(t.dataset&&t.dataset.mask){var c=clients.filter(function(x){return x.id===win.dataset.id})[0];setTimeout(function(){if(document.activeElement!==t&&c&&String(t.value)===String(c.egn||''))t.value=fctlMask(c.egn)},50)}});
@@ -892,6 +912,7 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
     setTimeout(function(){document.getElementById('m-close').focus({preventScroll:true})},60);
   }
   function close(){
+    if(typeof tabOff==='function')tabOff();
     win.classList.remove('show');back.classList.remove('show');
     setTimeout(function(){win.hidden=true;back.hidden=true;setFull(false)},230);
     root.classList.remove('locked');
@@ -919,7 +940,19 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
     if(act==='Банка'){openBank(win.dataset.client);return}
     if(!cc)return;
     var T=window.NDKTabs,map={'Редактирай':T.edit,'Срещи':T.meetings,'Документи':T.docs,'Калкулатор':T.calc,'Собственик':T.owner,'Сделка':T.deal,'Всички активности':T.acts};
-    if(map[act])map[act](cc);else say(act+' – '+(win.dataset.client||''))});
+    if(map[act])tabOn(act,b.classList.contains('ma')?b:null,function(){map[act](cc)});else say(act+' – '+(win.dataset.client||''))});
+  /* табове в картата */
+  var tabHost=document.getElementById('m-tabhost'),tabActive=null,tabRO=null;
+  function tabOff(){tabActive=null;mcv.classList.remove('tab');tabHost.hidden=true;[].forEach.call(win.querySelectorAll('.ma.on'),function(b){b.classList.remove('on')});window.NDUI.inlineHost(null);window.NDUI.detachInline();if(tabRO){tabRO.disconnect();tabRO=null}relayout()}
+  function tabOn(name,btn,opener){
+    if(tabActive===name){tabOff();return}
+    if(tabActive)tabOff();
+    tabActive=name;mcv.classList.add('tab');tabHost.hidden=false;if(btn)btn.classList.add('on');
+    window.NDUI.inlineHost(tabHost,function(){if(tabActive===name)tabOff()});
+    opener();
+    if(window.ResizeObserver){tabRO=new ResizeObserver(function(){relayout()});tabRO.observe(tabHost)}else relayout();
+    if(!desk)setTimeout(function(){tabHost.scrollIntoView({behavior:'smooth',block:'start'})},60);
+  }
   /* bank module opens over the client card, on the same page */
   var bankBox=null;
   /* Банка от картата на клиента: взима избрания имот на клиента (от сделката или полето „prop“) – цената/заглавието са реални; офертата се записва при клиента заедно с имота */
