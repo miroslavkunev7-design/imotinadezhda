@@ -922,11 +922,33 @@ html.desk .m-data .dmain,html.desk .m-data .dgb{grid-template-columns:1fr 1fr 1f
     if(map[act])map[act](cc);else say(act+' – '+(win.dataset.client||''))});
   /* bank module opens over the client card, on the same page */
   var bankBox=null;
+  /* Банка от картата на клиента: взима избрания имот на клиента (от сделката или полето „prop“) – цената/заглавието са реални; офертата се записва при клиента заедно с имота */
+  function clientProperty(c){
+    return ND.ready().then(function(){return Promise.all([ND.load('properties'),ND.load('deals')])}).then(function(r){
+      var props=r[0]||[],deals=(r[1]||[]).filter(function(d){return d.client_id===c.id||(c.name&&d.client===c.name)}).sort(function(a,b){return String(b.updated_at||'').localeCompare(String(a.updated_at||''))});
+      var byId=function(id){return props.filter(function(p){return p.id===id})[0]};
+      var byCode=function(t){var m=/P-\d+/i.exec(t||'');if(!m)return null;return props.filter(function(p){return String(p.code||'').toUpperCase()===m[0].toUpperCase()})[0]||null};
+      var p=(c.prop&&byId(c.prop))||null;
+      for(var i=0;i<deals.length&&!p;i++)p=byCode(deals[i].property);
+      return p;
+    }).catch(function(){return null});
+  }
   function openBank(name){
     var c=clients.filter(function(x){return x.name===name})[0]||{};
-    window.NDUI.bank({client:name||'',price:c.budget&&c.cat!=='rent'?c.budget:'',city:c.city||'',ref:c.id?'client:'+c.id:''},{host:win,onOffer:function(o){
-      if(!c.id||!window.NDKTabs)return;var txt='Запазена оферта: '+(o.bank||'')+' · кредит '+Number(o.loan||0).toLocaleString('bg-BG')+' € · вноска € '+(o.payment||'')+(o.rate!=null?' · лихва '+String(o.rate).replace('.',',')+'%':'');
-      window.NDKTabs.log(c,'landmark',txt).then(function(){say('Офертата е записана в картата на клиента');if(typeof refreshActs==='function')refreshActs(c)}).catch(function(){})}});
+    clientProperty(c).then(function(pr){
+      var params={client:name||'',price:c.budget&&c.cat!=='rent'?c.budget:'',city:c.city||'',ref:c.id?'client:'+c.id:''};
+      if(pr){var cov=(pr.pics&&pr.pics.length)?pr.pics[pr.cover||0]||pr.pics[0]:'';Object.assign(params,{price:pr.deal==='rent'?'':(pr.price||params.price),city:pr.city||c.city||'',hood:pr.hood||'',title:pr.title||'',code:pr.code||'',area:pr.area||'',rooms:pr.rooms||'',floor:pr.floor||''});
+        var ready=cov?ND.fileUrl(cov).then(function(u){params.photo=u||'';}).catch(function(){}):Promise.resolve();
+      }else ready=Promise.resolve();
+      ready.then(function(){
+        window.NDUI.bank(params,{host:win,onOffer:function(o){
+          if(!c.id||!window.NDKTabs)return;
+          var where=pr?' · имот '+(pr.code||'')+(pr.title?' '+pr.title:''):'';
+          var txt='Запазена оферта: '+(o.bank||'')+' · кредит '+Number(o.loan||0).toLocaleString('bg-BG')+' € · вноска € '+(o.payment||'')+(o.rate!=null?' · лихва '+String(o.rate).replace('.',',')+'%':'')+where;
+          c.offers=(c.offers||[]).slice(0,29);c.offers.unshift({at:new Date().toISOString(),bank:o.bank||'',price:o.price||null,down:o.down||null,loan:o.loan||null,years:o.years||null,rate:o.rate!=null?o.rate:null,payment:o.payment||'',prop:pr?{id:pr.id,code:pr.code||'',title:pr.title||'',city:pr.city||'',hood:pr.hood||'',price:pr.price||null}:null});
+          window.NDKTabs.log(c,'landmark',txt).then(function(){say('Офертата е записана в картата на клиента'+(pr?' с имот '+(pr.code||''):''));if(typeof refreshActs==='function')refreshActs(c)}).catch(function(){})}});
+      });
+    });
   }
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&bankBox&&!bankBox.hidden){e.stopImmediatePropagation();closeBank()}},true);
 

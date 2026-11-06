@@ -30,7 +30,7 @@
   }
   function stored(p) {
     var o = {};
-    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "ownerEmail", "ownerEgn", "ownerAddr", "ownerIban", "ownerShare", "coOwners", "ownerPaid", "ownerComm", "contractDate", "contractUntil", "ownerContact", "ownerNotes", "portals", "place", "num", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log", "broker"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
+    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "ownerEmail", "ownerEgn", "ownerAddr", "ownerIban", "ownerShare", "coOwners", "ownerPaid", "ownerComm", "contractDate", "contractUntil", "ownerContact", "ownerNotes", "portals", "place", "num", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log", "broker", "stage", "archived"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
     if (p.id) o.id = p.id;
     return o;
   }
@@ -262,6 +262,21 @@
     return D.put("properties", o).then(function () { P.say(status === "Публикуван" ? "Имотът е публикуван" : status === "Архивиран" ? "Имотът е архивиран" : "Статус: " + status); return P.refresh().then(function () { P.reopen(o.id); }); });
   }
 
+  /* Статус на сделката за публикуван имот: Депозиран (остава на сайта), Капариран / Продаден (свалят се от сайта и отиват в архива) */
+  function setStage(p, stage) {
+    var o = stored(p); o.stage = stage || "";
+    var off = stage === "Продаден" || stage === "Капариран";
+    if (off) { o.status = "Архивиран"; o.archived = true; }
+    addLog(o, stage === "Продаден" ? "archive" : "tag", stage ? "Статус: " + stage + (off ? " · обявата е свалена от сайта и е в архива" : " · обявата остава публикувана") : "Статусът на сделката е изчистен");
+    return D.put("properties", o).then(function () { P.say(stage ? (off ? stage + " – свален от сайта, в архива" : "Депозиран – обявата остава на сайта") : "Статусът е изчистен"); return P.refresh().then(function () { P.reopen(o.id); }); });
+  }
+  /* „Запази в архив“: публикуван имот само се записва в архива (остава на сайта); непубликуван – става Архивиран */
+  function archive(p) {
+    var o = stored(p), keep = o.status === "Публикуван";
+    if (keep) o.archived = true; else { o.status = "Архивиран"; o.archived = true; }
+    addLog(o, "archive", keep ? "Запазен в архива – обявата остава публикувана" : "Статус: Архивиран");
+    return D.put("properties", o).then(function () { P.say(keep ? "Запазен в архива – обявата остава на сайта" : "Имотът е архивиран"); return P.refresh().then(function () { P.reopen(o.id); }); });
+  }
   function more(cur, apply) {
     cur = cur || {};
     U.open({
@@ -336,5 +351,5 @@
         return D.put("properties", p).then(function (s) { P.say("Данните за собственика са запазени"); return P.refresh().then(function () { P.reopen(s.id); }); });
       } });
   }
-  window.NDProps = { owner: owner, init: function (h) { P = h; }, ready: function () { return !!P; }, edit: edit, setStatus: setStatus, more: more, stored: stored };
+  window.NDProps = { owner: owner, init: function (h) { P = h; }, ready: function () { return !!P; }, edit: edit, setStatus: setStatus, setStage: setStage, archive: archive, more: more, stored: stored };
 })();

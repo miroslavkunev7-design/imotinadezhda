@@ -31,7 +31,7 @@
   /* keep only stored client fields */
   function strip(c) {
     var o = { id: c.id };
-    ["cat", "name", "phone", "email", "egn", "type", "city", "hood", "budget", "status", "source", "notes", "contact_at", "broker", "rooms", "areaMin", "floorPref", "payment", "timeframe", "priority", "contactPref", "nextContact", "must", "leadType", "leadSource", "leadLink", "isOwner", "ownerPrice", "ownerPaid", "ownerComm", "ownerIban", "ownerAddr", "ownerShare", "contractDate", "contractUntil", "exclusive", "ownerNotes", "ownerProps", "credit", "creditIncome", "docRows", "num"].forEach(function (k) { if (c[k] !== undefined) o[k] = c[k]; });
+    ["cat", "name", "phone", "email", "egn", "type", "city", "hood", "budget", "status", "source", "notes", "contact_at", "broker", "rooms", "areaMin", "floorPref", "payment", "timeframe", "priority", "contactPref", "nextContact", "must", "leadType", "leadSource", "leadLink", "isOwner", "ownerPrice", "ownerPaid", "ownerComm", "ownerIban", "ownerAddr", "ownerShare", "contractDate", "contractUntil", "offers", "prop", "guarantors", "exclusive", "ownerNotes", "ownerProps", "credit", "creditIncome", "docRows", "num"].forEach(function (k) { if (c[k] !== undefined) o[k] = c[k]; });
     return o;
   }
   function after(c) { return K.refresh().then(function () { if (c) K.reopen(c.id); }); }
