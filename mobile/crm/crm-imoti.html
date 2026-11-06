@@ -1127,7 +1127,7 @@ html.desk .pm-actions .pa{height:150px}
       if(v==='site'){window.open(window.NDPublish.siteUrl(cur),'_blank');return}
       window.NDProps.setStage(cur,v)});
   }
-  $('pm-acc').addEventListener('click',function(e){var r=e.target.closest('[data-doc]');if(!r||!cur)return;var d=cur.docs[+r.getAttribute('data-doc')];if(!d)return;var w=window.open('','_blank');ND.fileUrl(d.path).then(function(u){if(w)w.location=u;else location.href=u})});
+  $('pm-acc').addEventListener('click',function(e){var r=e.target.closest('[data-doc]');if(!r||!cur)return;var d=cur.docs[+r.getAttribute('data-doc')];if(!d)return;if(window.NDDocs&&window.NDDocs.view){window.NDDocs.view(pwin,cur.docs.slice(),+r.getAttribute('data-doc'));return}var w=window.open('','_blank');ND.fileUrl(d.path).then(function(u){if(w)w.location=u;else location.href=u})});
   document.addEventListener('keydown',function(e){
     if(pwin.hidden)return;
     if(e.key==='Escape'){e.preventDefault();closeProp();return}

@@ -92,6 +92,18 @@
     ".ndl-st{height:30px!important;padding:0 13px!important;font-size:14.5px!important}" +
     ".ndl-hint{display:flex;align-items:flex-start;gap:6px;margin:0 2px 8px;font:400 13.5px/1.35 'Roboto Condensed',sans-serif;color:#5b3a30}.ndl-hint svg{flex:none;width:15px;height:15px;margin-top:2px;color:#9c0016}" +
     "@media (hover:hover){.ndl-row{transition:transform .3s cubic-bezier(.2,.7,.2,1),filter .3s}.ndl-row:hover{transform:translateY(-2px);filter:drop-shadow(0 0 10px rgba(255,205,140,.6))}.ndl-row:hover:before{filter:saturate(1.2) contrast(1.06) brightness(1.03)}}";
+  css += ".ndl-view{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;background:linear-gradient(180deg,#fffaf5,#f6e9dc);border-radius:inherit}" +
+    ".ndl-view .vh{display:flex;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(100deg,#55071a 0%,#8d1530 45%,#b42446 70%,#7a1022 100%);color:#fff3dc;font:700 17px/1.1 'Roboto Condensed',sans-serif;box-shadow:0 2px 8px rgba(60,5,15,.35)}" +
+    ".ndl-view .vh .dli{width:24px;height:24px;flex:none}.ndl-view .vh button svg{width:16px;height:16px}.ndl-view .vh span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ndl-view .vh button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:12px;border:1.5px solid #edc47a;background:rgba(255,255,255,.12);color:#fff3dc;font:700 14px 'Roboto Condensed',sans-serif;cursor:pointer}" +
+    ".ndl-view .vh button:hover{background:rgba(255,255,255,.22)}.ndl-view .vb{flex:1;min-height:0;position:relative;overflow:auto;display:grid;place-items:center;padding:10px}" +
+    ".ndl-view .vb img{max-width:100%;max-height:100%;border-radius:14px;box-shadow:0 0 0 1px rgba(226,176,120,.6),0 10px 24px rgba(60,5,15,.25)}.ndl-view .vb iframe,.ndl-view .vb object{width:100%;height:100%;border:0;border-radius:14px;background:#fff;box-shadow:0 0 0 1px rgba(226,176,120,.6)}" +
+    ".ndl-view .vb .vmsg{text-align:center;font:400 15px/1.5 'Roboto Condensed',sans-serif;color:#5a0b18;padding:24px}.ndl-view .vnav{display:flex;gap:6px;padding:8px 12px;justify-content:center;flex-wrap:wrap;background:rgba(255,250,245,.85)}.ndl-view .vnav button{height:32px;padding:0 10px;border-radius:10px;border:1.5px solid rgba(227,178,94,.8);background:#fff;font:700 13px 'Roboto Condensed',sans-serif;color:#5a0b18;cursor:pointer}.ndl-view .vnav button.on{background:linear-gradient(180deg,#a3213a,#55071a);color:#fff3dc}" +
+    ".ndl-ai{position:relative;background:linear-gradient(150deg,#fff6e6,#fde3c3)!important;color:#5a0b18!important}.ndl-ai input{position:absolute;inset:0;opacity:0;cursor:pointer}.ndl-ai.busy{opacity:.7;pointer-events:none}" +
+    ".ndl-aimsg{display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:8px 12px;border-radius:14px;background:linear-gradient(160deg,rgba(255,250,246,.98),rgba(253,236,218,.95));box-shadow:0 0 0 1px rgba(237,196,122,.8),0 0 12px rgba(255,214,160,.7);font:400 14px/1.35 'Roboto Condensed',sans-serif;color:#3a1216}.ndl-aimsg b{font-weight:700}.ndl-aimsg .sp{width:16px;height:16px;border-radius:50%;border:2px solid #edc47a;border-top-color:#a3213a;animation:ndlspin .8s linear infinite;flex:none}@keyframes ndlspin{to{transform:rotate(360deg)}}" +
+    ".ndl-gr{margin:0 0 12px;padding:10px 12px 12px;border-radius:18px;background:linear-gradient(160deg,rgba(255,250,246,.98),rgba(253,236,218,.95));box-shadow:0 0 0 1px rgba(237,196,122,.9),0 0 16px rgba(255,214,160,.8)}" +
+    ".ndl-gr .ndl-gf{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ndl-gr label{display:block;font:700 12.5px 'Roboto Condensed',sans-serif;color:#7a0f22;margin:0 0 2px}.ndl-gr input,.ndl-gr select{width:100%;height:38px;padding:0 10px;border-radius:12px;border:1.5px solid rgba(227,178,94,.8);background:#fff;font:400 15px 'Roboto Condensed',sans-serif;color:#2b1010}" +
+    ".ndl-gr .ndl-sa{margin-top:10px}.ndl-gh{display:flex;align-items:center;gap:8px;font:700 15px Georgia,serif;color:#7a0f22;margin:0 0 8px}.ndl-gh small{font:400 13px 'Roboto Condensed',sans-serif;color:#5a0b18;opacity:.85}.ndl-gx{margin-left:auto;font:700 12px 'Roboto Condensed',sans-serif;color:#9a1a33;background:none;border:0;cursor:pointer}" +
+    "@media(max-width:520px){.ndl-gr .ndl-gf{grid-template-columns:1fr}}";
   function boot() { if (document.getElementById("ndl-css")) return; var s = document.createElement("style"); s.id = "ndl-css"; s.textContent = css; document.head.appendChild(s); }
 
   /* ---------------- catalogue of documents (real Bulgarian bank / notary requirements) ---------------- */
@@ -212,11 +224,62 @@
   };
 
   /* ---------------- generic checklist window ---------------- */
+  /* Преглед на документ вътре в картата (снимка, PDF, Word/Excel през вграден визуализатор) – без външни страници */
+  function viewDoc(host, list, idx) {
+    list = Array.isArray(list) ? list : [list]; idx = idx || 0;
+    var old = host.querySelector(".ndl-view"); if (old) old.remove();
+    var v = document.createElement("div"); v.className = "ndl-view"; host.appendChild(v);
+    if (getComputedStyle(host).position === "static") host.style.position = "relative";
+    var url = null;
+    function kind(d) { var m = String(d.mime || ""), n = String(d.name || d.path || "").toLowerCase(); if (/^image\//.test(m) || /\.(jpe?g|png|webp|gif|heic)$/.test(n)) return "img"; if (/pdf/.test(m) || /\.pdf$/.test(n)) return "pdf"; return "doc"; }
+    function show(i) {
+      idx = i; var d = list[idx];
+      v.innerHTML = '<div class="vh">' + sv("doc", "dli") + "<span>" + esc(d.name || "Документ") + (list.length > 1 ? " · " + (idx + 1) + "/" + list.length : "") + "</span>" +
+        '<button type="button" data-vdl>' + sv("dl") + 'Изтегли</button><button type="button" data-vnew>' + sv("eye") + 'Нов прозорец</button><button type="button" data-vx>✕ Затвори</button></div>' +
+        '<div class="vb"><div class="vmsg">Зареждане…</div></div>' +
+        (list.length > 1 ? '<div class="vnav">' + list.map(function (x, j) { return '<button type="button" data-vi="' + j + '"' + (j === idx ? ' class="on"' : "") + ">" + esc(String(x.name || "").slice(0, 26)) + "</button>"; }).join("") + "</div>" : "");
+      D.fileUrl(d.path).then(function (u) {
+        url = u; var b = v.querySelector(".vb"), k = kind(d);
+        if (k === "img") b.innerHTML = '<img src="' + u + '" alt="' + esc(d.name || "") + '">';
+        else if (k === "pdf") b.innerHTML = '<iframe src="' + u + '#toolbar=1&view=FitH" title="' + esc(d.name || "PDF") + '"></iframe>';
+        else b.innerHTML = '<iframe src="https://docs.google.com/gview?embedded=1&url=' + encodeURIComponent(u) + '" title="' + esc(d.name || "") + '"></iframe>';
+      }).catch(function () { v.querySelector(".vb").innerHTML = '<div class="vmsg">Файлът не може да се отвори.</div>'; });
+    }
+    v.onclick = function (e) {
+      if (e.target.closest("[data-vx]")) { v.remove(); return; }
+      var vi = e.target.closest("[data-vi]"); if (vi) { show(+vi.getAttribute("data-vi")); return; }
+      if (e.target.closest("[data-vnew]") && url) { window.open(url, "_blank"); return; }
+      if (e.target.closest("[data-vdl]") && url) { var a = document.createElement("a"); a.href = url; a.download = list[idx].name || "document"; a.target = "_blank"; document.body.appendChild(a); a.click(); a.remove(); }
+    };
+    show(idx);
+    return v;
+  }
+  /* Разпознаване на вида на документа от асистента (/api/scan kind=classify) */
+  function readB64(file) { return new Promise(function (ok, bad) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(",")[1]); }; r.onerror = bad; r.readAsDataURL(file); }); }
+  function shrink(file) {
+    if (!/^image\//.test(file.type)) return Promise.resolve({ mime: file.type, data: null, file: file });
+    return new Promise(function (ok) { var im = new Image(); im.onload = function () { var k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); ok({ mime: "image/jpeg", data: c.toDataURL("image/jpeg", .82).split(",")[1] }); }; im.onerror = function () { ok({ mime: file.type, data: null }); }; im.src = URL.createObjectURL(file); });
+  }
+  function classify(file, rows) {
+    var ok = /^(image\/(jpeg|png|webp|heic|heif)|application\/pdf|text\/plain)$/.test(file.type);
+    if (!ok || file.size > 15 * 1048576) return Promise.resolve(null);
+    return shrink(file).then(function (r) { return r.data ? r : readB64(file).then(function (d) { return { mime: file.type, data: d }; }); })
+      .then(function (r) { return D.token().then(function (tok) { return fetch("/api/scan", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ kind: "classify", mime: r.mime, data: r.data, name: file.name, rows: rows }) }); }); })
+      .then(function (r) { return r.json(); }).then(function (j) { return j && j.ok ? j.fields || j : null; }).catch(function () { return null; });
+  }
+  var GREL = [["Съпруг / съпруга", "Съпруг / съпруга"], ["Родител", "Родител"], ["Дете", "Дете"], ["Брат / сестра", "Брат / сестра"], ["Друг роднина", "Друг роднина"], ["Приятел / колега", "Приятел / колега"]];
+  function guarantorRows(g, i) {
+    var k = "g" + i + "_", inc = (BY_INCOME[g.income] || BY_INCOME.bg || []).slice(0, 4);
+    return [R(k + "id", "Лична карта – " + g.name, "Копие лице/гръб на поръчителя", "id", "field-id.webp"), R(k + "consent", "Съгласие за поръчителство / ЦКР", "Декларация-съгласие на поръчителя и справка ЦКР", "shield", "field-status.webp")]
+      .concat(inc.map(function (r) { return R(k + r.key, r.title + " – " + g.name, r.hint, r.icon, r.photo, r.opt); }))
+      .concat([R(k + "marital", "Семейно положение – " + g.name, "Удостоверение / съгласие на съпруг(а) на поръчителя", "users", "nd/ph13.jpg", true)]);
+  }
   function openList(cfg) {
     boot();
     var docs = [], ctx, sel = cfg.sel.map(function (s) { return s.value || ""; }), custom = (cfg.custom || []).slice(), openKey = null, sendOpen = false, recips = null, sendSel = {};
+    var guars = (cfg.guarantors || []).slice(), gOpen = false, gEdit = null, aiMsg = "";
     function rows() {
-      var groups = cfg.rows(sel).concat(custom.length ? [["Добавени графи", custom.map(function (c) { return R(c.key, c.title, "Добавена графа", "folder", "nd/ph20.jpg"); })]] : []);
+      var groups = cfg.rows(sel).concat(guars.map(function (g, i) { return ["Поръчител – " + g.name + (g.rel ? " (" + g.rel + ")" : ""), guarantorRows(g, i)]; })).concat(custom.length ? [["Добавени графи", custom.map(function (c) { return R(c.key, c.title, "Добавена графа", "folder", "nd/ph20.jpg"); })]] : []);
       return groups;
     }
     function filesOf(key) { return docs.filter(function (d) { return d.folder === key; }); }
@@ -239,7 +302,12 @@
       return '<div class="ndl">' + '<div class="ndl-sel">' + cfg.sel.map(function (s, i) {
           return '<div><label for="ndl-s' + i + '">' + esc(s.label) + '</label><div class="w"><select id="ndl-s' + i + '" data-si="' + i + '">' + s.options.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === sel[i] ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select>" + sv("chev") + "</div></div>";
         }).join("") + "</div>" +
-        '<div class="ndl-top"><span class="sum">Задължителни: <b>' + done + " / " + req + '</b> прикачени</span><button type="button" class="ndl-add ndl-send" data-send>' + sv("up") + "Изпрати документите</button>" + '<button type="button" class="ndl-add" data-addrow>' + sv("plus") + "Създай нова графа</button></div>" +
+        '<div class="ndl-top"><span class="sum">Задължителни: <b>' + done + " / " + req + '</b> прикачени</span>' +
+        '<label class="ndl-add ndl-ai" title="Асистентът разпознава какъв е документът и го слага в правилната графа">' + sv("up") + 'Добави документ<input type="file" multiple data-aiup accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"></label>' +
+        (cfg.guarantors ? '<button type="button" class="ndl-add" data-guar>' + sv("users") + "Поръчител" + (guars.length ? " (" + guars.length + ")" : "") + "</button>" : "") +
+        '<button type="button" class="ndl-add ndl-send" data-send>' + sv("up") + "Изпрати документите</button>" + '<button type="button" class="ndl-add" data-addrow>' + sv("plus") + "Създай нова графа</button></div>" +
+        (aiMsg ? '<div class="ndl-aimsg">' + aiMsg + "</div>" : "") +
+        (gOpen ? guarHtml() : "") +
         (sendOpen ? sendHtml(gs) : "") +
         '<div class="ndl-bar"><i style="width:' + (req ? Math.round(done / req * 100) : 0) + '%"></i></div>' +
         gs.map(function (g) { return '<div class="ndl-grp">' + esc(g[0]) + '</div><div class="ndl-rows2">' + g[1].map(rowHtml).join("") + "</div>"; }).join("") +
@@ -260,6 +328,35 @@
         }).join("") : '<div class="ndl-sg">Още няма прикачени документи.</div>') +
         '<div class="ndl-sa"><button type="button" class="ndl-add" data-mail>' + sv("up") + 'Изпрати по имейл</button><button type="button" class="ndl-add alt" data-share>' + sv("clip") + "Изпрати като файлове</button></div>" +
         '<small class="ndl-note">„Изпрати по имейл“ отваря пощата с получателя, темата и линковете, групирани по документи (валидни 7 дни). „Като файлове“ прикачва самите файлове през менюто за споделяне на телефона (Mail, Gmail, Viber…); на компютър ги изтегля като .zip.</small></div>';
+    }
+    function guarHtml() {
+      var g = gEdit || { name: "", egn: "", phone: "", email: "", rel: "", income: "bg" };
+      return '<div class="ndl-gr"><div class="ndl-gh">' + sv("users", "dli") + (gEdit && gEdit.i != null ? "Редакция на поръчител" : "Нов поръчител") + "<small>данни и документи – влизат в пакета за кредита</small></div>" +
+        '<div class="ndl-gf"><div><label>Име и фамилия</label><input data-g="name" value="' + esc(g.name) + '" placeholder="напр. Петър Иванов"></div>' +
+        '<div><label>Връзка с клиента</label><select data-g="rel"><option value="">—</option>' + GREL.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === g.rel ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select></div>" +
+        '<div><label>Телефон</label><input data-g="phone" value="' + esc(g.phone) + '" placeholder="08…"></div><div><label>Имейл</label><input data-g="email" value="' + esc(g.email) + '" placeholder="ime@abv.bg"></div>' +
+        '<div><label>ЕГН</label><input data-g="egn" value="' + esc(g.egn) + '" placeholder="само за банката"></div>' +
+        '<div><label>Доходи на поръчителя</label><select data-g="income">' + INCOME.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === g.income ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select></div></div>" +
+        '<div class="ndl-sa"><button type="button" class="ndl-add" data-gsave>' + sv("check") + 'Запази поръчителя</button><button type="button" class="ndl-add alt" data-gcancel>Откажи</button>' + (gEdit && gEdit.i != null ? '<button type="button" class="ndl-add alt" data-gdel>' + sv("trash") + "Премахни</button>" : "") + "</div>" +
+        (guars.length ? '<div class="ndl-grp" style="margin-top:12px">Поръчители</div>' + guars.map(function (x, i) { return '<div class="ndl-f">' + sv("users", "dlf") + "<span>" + esc(x.name) + (x.rel ? " · " + esc(x.rel) : "") + "</span><em>" + esc(x.phone || "") + '</em><button type="button" data-gedit="' + i + '" aria-label="Редактирай">' + sv("pen") + "</button></div>"; }).join("") : "") + "</div>";
+    }
+    function saveGuars() { if (cfg.saveGuarantors) cfg.saveGuarantors(guars.slice()); }
+    /* Добави документ: асистентът разпознава вида и го слага в правилната графа; непознат → нова графа с името от документа */
+    function aiAdd(files) {
+      var gs = rows(), all = []; gs.forEach(function (g) { g[1].forEach(function (r) { all.push({ key: r.key, title: r.title, group: g[0] }); }); });
+      var box = ctx.body.querySelector(".ndl-ai"); if (box) box.classList.add("busy");
+      return files.reduce(function (pr, file) {
+        return pr.then(function () {
+          aiMsg = '<span class="sp"></span>Разпознавам „<b>' + esc(file.name) + "</b>“…"; render();
+          return classify(file, all).then(function (f) {
+            var key, title;
+            if (f && f.key && all.some(function (r) { return r.key === f.key; }) && (f.confidence == null || f.confidence >= 0.5)) { var r = all.filter(function (r) { return r.key === f.key; })[0]; key = r.key; title = r.title; }
+            else { title = (f && f.title ? String(f.title) : "").trim() || file.name.replace(/\.\w+$/, ""); key = "c_" + Date.now().toString(36); custom.push({ key: key, title: title }); cfg.saveSel(sel.slice(), custom.slice()); }
+            aiMsg = sv("check", "dli") + "„<b>" + esc(file.name) + "</b>“ → <b>" + esc(title) + "</b>" + (f && f.summary ? " · " + esc(String(f.summary).slice(0, 120)) : "") + (f ? "" : " · не успях да го разпозная, създадох графа");
+            return upload(key, title, [file]);
+          });
+        });
+      }, Promise.resolve()).then(function () { if (box) box.classList.remove("busy"); render(); });
     }
     function loadRecips() {
       if (recips) return;
@@ -307,7 +404,8 @@
     }
     function render() { var y = ctx.body.parentNode ? ctx.body.scrollTop : 0; ctx.rerender(html()); }
     function fileList(key) { return key === "__other" ? docs.filter(function (d) { var all = []; rows().forEach(function (g) { g[1].forEach(function (r) { all.push(r.key); }); }); return all.indexOf(d.folder) < 0; }) : filesOf(key); }
-    function openDoc(d) { var w = window.open("", "_blank"); D.fileUrl(d.path).then(function (u) { if (w) w.location = u; else location.href = u; }); }
+    function host() { return ctx.body.closest("#nd-fwin") || ctx.body.closest(".mwin") || ctx.body.parentNode || ctx.body; }
+    function openDoc(d, all) { viewDoc(host(), all && all.length ? all : [d], all && all.length ? Math.max(0, all.indexOf(d)) : 0); }
     function upload(key, title, files) {
       var box = ctx.body.querySelector('[data-k="' + key + '"] .ndl-up'); if (box) box.classList.add("busy");
       return files.reduce(function (p, file) {
@@ -330,8 +428,15 @@
       [].forEach.call(b.querySelectorAll("[data-up]"), function (inp) {
         inp.onchange = function () { var row = inp.closest("[data-k]"), key = row.getAttribute("data-k"); var t = row.querySelector(".t").firstChild.nodeValue; if (inp.files.length) upload(key === "__other" ? "other" : key, t, [].slice.call(inp.files)); };
       });
+      var ai = b.querySelector("[data-aiup]"); if (ai) ai.onchange = function () { if (ai.files.length) aiAdd([].slice.call(ai.files)); };
       b.onclick = function (e) {
         var row = e.target.closest("[data-k]"), key = row && row.getAttribute("data-k");
+        if (e.target.closest("[data-guar]")) { gOpen = !gOpen; gEdit = null; render(); return; }
+        var ge = e.target.closest("[data-gedit]"); if (ge) { var gi = +ge.getAttribute("data-gedit"); gEdit = Object.assign({ i: gi }, guars[gi]); render(); return; }
+        if (e.target.closest("[data-gcancel]")) { gOpen = false; gEdit = null; render(); return; }
+        if (e.target.closest("[data-gdel]")) { if (gEdit && gEdit.i != null) { guars.splice(gEdit.i, 1); saveGuars(); } gOpen = false; gEdit = null; render(); return; }
+        if (e.target.closest("[data-gsave]")) { var gv = {}; [].forEach.call(b.querySelectorAll("[data-g]"), function (x) { gv[x.getAttribute("data-g")] = x.value.trim(); }); if (!gv.name) { cfg.say("Въведете името на поръчителя"); return; } if (gEdit && gEdit.i != null) guars[gEdit.i] = gv; else guars.push(gv); saveGuars(); gOpen = false; gEdit = null; cfg.say("Поръчителят е записан – графите му са добавени"); render(); return; }
+        if (e.target.closest(".ndl-gr")) return;
         if (e.target.closest("[data-send]")) { sendOpen = !sendOpen; if (sendOpen) loadRecips(); render(); return; }
         if (e.target.closest("[data-mail]")) { sendMail(); return; }
         var shb = e.target.closest("[data-share]"); if (shb) { sendFiles(shb); return; }
@@ -343,7 +448,7 @@
         }
         if (!row) return;
         var op = e.target.closest("[data-open]"), rm = e.target.closest("[data-rm]");
-        if (op) { openDoc(docs.filter(function (d) { return d.id === op.getAttribute("data-open"); })[0]); return; }
+        if (op) { var dd0 = docs.filter(function (d) { return d.id === op.getAttribute("data-open"); })[0]; openDoc(dd0, fileList(key)); return; }
         if (rm) {
           if (!rm.dataset.ok) { rm.dataset.ok = 1; rm.style.boxShadow = "0 0 0 3px #c81a3a"; cfg.say("Натиснете отново за изтриване"); setTimeout(function () { delete rm.dataset.ok; rm.style.boxShadow = ""; }, 2500); return; }
           var dd = docs.filter(function (d) { return d.id === rm.getAttribute("data-rm"); })[0];
@@ -351,7 +456,7 @@
           return;
         }
         if (e.target.closest("[data-delrow]")) { custom = custom.filter(function (c) { return c.key !== key; }); cfg.saveSel(sel.slice(), custom.slice()); render(); return; }
-        if (e.target.closest("[data-view]") || e.target.closest("[data-dl]")) { var fl = fileList(key); if (fl.length) { fl.forEach(openDoc); } else { openKey = key; render(); cfg.say("Няма прикачен файл – прикачете"); } return; }
+        if (e.target.closest("[data-view]") || e.target.closest("[data-dl]")) { var fl = fileList(key); if (fl.length) { openDoc(fl[0], fl); } else { openKey = key; render(); cfg.say("Няма прикачен файл – прикачете"); } return; }
         if (e.target.closest("[data-tg]") && !e.target.closest(".ndl-up")) { openKey = openKey === key ? null : key; render(); }
       };
     }
@@ -367,7 +472,8 @@
     openList({
       title: "Документи – " + (c.name || "клиент"), photo: "nd/ph06.jpg", base: "clients/" + c.id + "/docs/", link: { client_id: c.id, client: c.name },
       sel: [{ label: "Вид кредит", options: CREDIT, value: c.credit || "mortgage" }, { label: "Доходи", options: INCOME, value: c.creditIncome || "bg" }],
-      custom: c.docRows || [],
+      custom: c.docRows || [], guarantors: c.guarantors || [],
+      saveGuarantors: function (g) { c.guarantors = g; return h.save({ guarantors: g }).catch(function () {}); },
       rows: function (s) {
         var cr = (CREDIT.filter(function (x) { return x[0] === s[0]; })[0] || CREDIT[0])[1], inc = (INCOME.filter(function (x) { return x[0] === s[1]; })[0] || INCOME[0])[1];
         var common = s[0] === "consumer" ? COMMON.filter(function (r) { return ["id", "app", "related", "ckr"].indexOf(r.key) >= 0; }) : COMMON;
@@ -398,5 +504,5 @@
       onUpload: h.onUpload, say: h.say || D.say
     });
   }
-  window.NDDocs = { client: client, property: property, CREDIT: CREDIT, INCOME: INCOME, SITUATIONS: SITUATIONS };
+  window.NDDocs = { client: client, property: property, view: function (host, list, idx) { boot(); return viewDoc(host, list, idx); }, CREDIT: CREDIT, INCOME: INCOME, SITUATIONS: SITUATIONS };
 })();

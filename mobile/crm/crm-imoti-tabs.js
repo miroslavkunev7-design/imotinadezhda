@@ -202,7 +202,7 @@
       var dc = ctx.q("p-docs");
       if (dc) dc.onclick = function (e) {
         var o = e.target.closest("[data-opendoc]"), r = e.target.closest("[data-rmdoc]");
-        if (o) { var w = window.open("", "_blank"); D.fileUrl(p.docs[+o.getAttribute("data-opendoc")].path).then(function (u) { if (w) w.location = u; else location.href = u; }); }
+        if (o) { if (window.NDDocs && window.NDDocs.view) { window.NDDocs.view(ctx.body.closest("#nd-fwin") || ctx.body, p.docs.slice(), +o.getAttribute("data-opendoc")); return; } var w = window.open("", "_blank"); D.fileUrl(p.docs[+o.getAttribute("data-opendoc")].path).then(function (u) { if (w) w.location = u; else location.href = u; }); }
         if (r) { var i = +r.getAttribute("data-rmdoc"); removed.push(p.docs[i].path); p.docs.splice(i, 1); rerender(); }
       };
     }

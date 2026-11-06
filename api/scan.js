@@ -104,6 +104,26 @@ module.exports = async (req, res) => {
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!token || !(await isStaff(token).catch(() => false))) return send(res, 401, { ok: false, error: "Влезте в CRM, за да сканирате." });
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
+  if (b.kind === "classify") {
+    /* Кой документ е това? – избира графа от подадения списък (key/title) или предлага ново име */
+    const rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 80).map((r) => ({ key: String(r.key || "").slice(0, 40), title: String(r.title || "").slice(0, 120), group: String(r.group || "").slice(0, 80) }));
+    if (!b.data || !/^(image\/(jpeg|png|webp|heic|heif)|application\/pdf|text\/plain)$/.test(String(b.mime || ""))) return send(res, 400, { ok: false, error: "Нужен е файл" });
+    const k = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    if (!k) return send(res, 200, { ok: true, fields: null, note: "no key" });
+    const prompt = "Ти си асистент на агенция за недвижими имоти в България. Прикаченият файл е документ на клиент/имот за кредит или сделка. Определи КАКЪВ документ е и в коя графа от списъка попада. " +
+      "Списък с графи (key → title, група):\n" + rows.map((r) => r.key + " → " + r.title + (r.group ? " [" + r.group + "]" : "")).join("\n") +
+      "\n\nВърни JSON: {\"key\": ключ от списъка или \"\" ако никоя графа не пасва, \"title\": кратко име на документа на български (напр. „Удостоверение за доходи“), \"confidence\": 0–1, \"summary\": едно изречение какво е документът, на кого е и дата ако се вижда, \"person\": име на лицето в документа ако има}. Не измисляй – ако не се разчита, confidence е нисък." + (b.name ? " Име на файла: " + String(b.name).slice(0, 120) : "");
+    let last = "";
+    for (const model of MODELS) {
+      try {
+        const j = await gem(k, model, { contents: [{ role: "user", parts: [{ text: prompt }, { inline_data: { mime_type: b.mime, data: b.data } }] }], generationConfig: { temperature: 0, responseMimeType: "application/json" } });
+        const t = ((j.candidates || [])[0] || {}).content?.parts?.map((p) => p.text || "").join("") || "{}";
+        let f = JSON.parse(t.replace(/^```json|```$/g, "").trim()); if (Array.isArray(f)) f = f[0] || {};
+        return send(res, 200, { ok: true, fields: { key: String(f.key || ""), title: String(f.title || "").slice(0, 120), confidence: Number(f.confidence) || 0, summary: String(f.summary || "").slice(0, 300), person: String(f.person || "").slice(0, 80) }, model });
+      } catch (e) { last = String(e.message || e); }
+    }
+    return send(res, 200, { ok: true, fields: null, note: last });
+  }
   if (b.kind === "logos" || b.kind === "clean") {
     if (!b.data || !/^image\/(jpeg|png|webp)$/.test(String(b.mime || ""))) return send(res, 400, { ok: false, error: "Нужна е снимка" });
     const k = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;

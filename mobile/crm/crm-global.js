@@ -114,7 +114,7 @@
       var box = ctx.q("g-docs"); if (!box) return;
       box.onclick = function (e) {
         var op = e.target.closest("[data-open]"), rm = e.target.closest("[data-rm]");
-        if (op) { var w = window.open("", "_blank"); D.fileUrl(op.getAttribute("data-open")).then(function (u) { if (w) w.location = u; else location.href = u; }); }
+        if (op) { if (window.NDDocs && window.NDDocs.view) { window.NDDocs.view(box.closest("#nd-fwin") || box.closest(".mwin") || box, [{ path: op.getAttribute("data-open"), name: (op.closest(".ndrow") && (op.closest(".ndrow").querySelector("b,.t") || {}).textContent) || "Документ" }], 0); return; } var w = window.open("", "_blank"); D.fileUrl(op.getAttribute("data-open")).then(function (u) { if (w) w.location = u; else location.href = u; }); }
         if (rm) confirmBtn(rm, function () {
           var d = docs.filter(function (x) { return x.id === rm.getAttribute("data-rm"); })[0];
           D.removeFile(d.path).then(function () { return D.del("documents", d.id); }).then(function () { docs = docs.filter(function (x) { return x.id !== d.id; }); say("Документът е изтрит"); ctx.rerender(form()); });

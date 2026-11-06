@@ -268,6 +268,7 @@
         var op = ev.target.closest("[data-open]"), rm = ev.target.closest("[data-rm]");
         if (op) {
           var d = list.filter(function (x) { return x.id === op.getAttribute("data-open"); })[0];
+          if (window.NDDocs && window.NDDocs.view) { window.NDDocs.view(ctx.body.closest("#nd-fwin") || ctx.body.closest(".mwin") || ctx.body, list.slice(), list.indexOf(d)); return; }
           var w = window.open("", "_blank");
           D.fileUrl(d.path).then(function (u) { if (w) w.location = u; else location.href = u; });
         } else if (rm) {
