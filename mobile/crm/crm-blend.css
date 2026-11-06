@@ -121,4 +121,5 @@ html.desk .ccard .nm,html.desk .ndl-h .t,html.desk .ndl-h .t small,html.desk #nd
 .fcell .fp{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 28%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 28%)!important;opacity:1!important}
 .acc::after,.m-act::after,.m-notes::after,.m-data::after{opacity:1!important;filter:saturate(1.1) contrast(1.04);-webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important;mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important}
 .pm-hero img.fade{opacity:.2}
+.kp-ph{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 34%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 34%)!important;opacity:1!important}
 .tile img.ph,.pc img,.bk img,.kq img,.ev img{opacity:1!important}

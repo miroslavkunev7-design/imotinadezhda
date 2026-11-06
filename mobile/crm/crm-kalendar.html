@@ -292,7 +292,7 @@ html.locked,html.locked body{overflow:hidden}
 
 /* ================= DESKTOP (same file, same sections, same order) ================= */
 html.desk,html.desk body{height:100%;overflow:hidden}
-html.desk #stage{height:100vh;padding-bottom:0!important;overflow:hidden}
+html.desk #stage{height:100vh;padding-bottom:0!important;overflow-y:auto;overflow-x:hidden}
 html.desk .status,html.desk .home-ind,html.desk .dock-bg{display:none}
 html.desk .ctop{width:100%}
 html.desk .flow{display:grid;grid-auto-flow:column;grid-template-rows:auto auto;grid-template-columns:1000px 1000px;column-gap:var(--G,24px);padding:16px 0 0 var(--xL,24px)}
@@ -805,6 +805,43 @@ html.desk .kp+.kp{margin-top:24px}
 html.desk .kp-up{flex:1 1 auto}
 html.desk .kgrid{grid-template-rows:54px repeat(11,var(--rh,32px))}
 
+
+/* ---- настолен календар: широк лист, корица и прелистване около спиралата ---- */
+.nbk{perspective:2600px}
+.kpage{position:relative}
+.kcover{position:absolute;left:0;right:0;top:20px;bottom:0;z-index:2;margin:0;padding:0;border:0;border-radius:24px;overflow:hidden;cursor:pointer;text-align:center;color:#fff3dc;
+  background:linear-gradient(180deg,#7b1124 0%,#5a0918 45%,#4a0714 100%);box-shadow:inset 0 2px 3px rgba(255,170,180,.35),0 0 0 2px #e6b866,0 0 18px rgba(255,200,120,.5)}
+.kcover:after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,rgba(0,0,0,0) 30%,rgba(0,0,0,.28) 100%)}
+.kc-ph{position:absolute;top:0;bottom:0;width:36%;background-size:cover;background-position:center}
+.kc-ph.l{left:0;-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent 100%);mask-image:linear-gradient(90deg,#000 55%,transparent 100%)}
+.kc-ph.r{right:0;background-position:70% 40%;-webkit-mask-image:linear-gradient(270deg,#000 55%,transparent 100%);mask-image:linear-gradient(270deg,#000 55%,transparent 100%)}
+.kc-mid{position:absolute;left:30%;right:30%;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:1}
+.kc-logo{width:min(52%,300px);filter:brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,.45))}
+.kc-line{width:70%;height:2px;background:linear-gradient(90deg,rgba(243,207,134,0),#f3cf86,rgba(243,207,134,0))}
+.kc-mid b{font:700 26px/1.25 var(--serif);letter-spacing:1.5px;text-shadow:0 2px 4px rgba(0,0,0,.45)}
+.kc-year{position:absolute;right:4%;bottom:6%;z-index:1;display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-shadow:0 2px 4px rgba(0,0,0,.45)}
+.kc-year svg.i{font-size:34px;color:#f3cf86}.kc-year b{font:700 56px/1 var(--serif);color:#f3cf86;letter-spacing:2px}.kc-year small{font:700 15px/1 var(--cond);letter-spacing:2px;color:#fff3dc}
+.kc-hint{position:absolute;left:4%;bottom:6%;z-index:1;font:400 17px/1 var(--cond);letter-spacing:.5px;opacity:.85;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.kflip,.kunder{position:absolute;left:0;right:0;top:20px;bottom:0;border-radius:24px}
+.kunder{overflow:hidden}
+.kunder{z-index:1;background:linear-gradient(180deg,#7b1124 0%,#5a0918 40%,#4a0714 100%)}
+.kflip{z-index:4;transform-origin:50% 0;transform-style:preserve-3d;will-change:transform}
+.kflip>.kf-face{position:absolute;inset:0;border-radius:24px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 18px 24px rgba(40,5,10,.45);background:linear-gradient(180deg,#7b1124 0%,#5a0918 40%,#4a0714 100%)}
+.kflip>.kf-back{transform:rotateX(180deg);background:linear-gradient(180deg,#4a0714 0%,#5a0918 50%,#6e0f20 100%)}
+.kflip>.kf-back:before{content:'';position:absolute;inset:0;background:url(assets/logo.png) center/180px no-repeat;opacity:.12;filter:brightness(0) invert(1)}
+.kflip>.kf-face .kpage,.kflip>.kf-face .kcover{position:static;transform:none}
+.kflip>.kf-face .kcover{position:absolute;top:0}
+.kflip.up{animation:kflipUp .9s cubic-bezier(.45,.05,.3,1) forwards}
+.kflip.down{animation:kflipDown .9s cubic-bezier(.45,.05,.3,1) forwards}
+@keyframes kflipUp{0%{transform:rotateX(0)}100%{transform:rotateX(180deg)}}
+@keyframes kflipDown{0%{transform:rotateX(180deg)}100%{transform:rotateX(0)}}
+@media (prefers-reduced-motion:reduce){.kflip.up,.kflip.down{animation-duration:.01s}}
+/* десктоп: календарът на цялата ширина, блоковете отдолу */
+html.desk .kflow{grid-template-columns:1fr}
+html.desk .kside{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:10px}
+html.desk .kp{margin:24px 0 0}html.desk .kp+.kp{margin-top:24px}
+html.desk .kc-mid b{font-size:34px}html.desk .kc-year b{font-size:72px}html.desk .kc-logo{width:min(48%,340px)}
+
 /* ================= EVENT WINDOW ================= */
 .ewin{background:#f6dcc4}
 .ewin .mscroll{background:linear-gradient(180deg,#fff7ef 0%,#fbe8d7 60%,#f6d8bf 100%)}
@@ -1001,6 +1038,7 @@ html.desk .ewin .mscroll{overflow:hidden}
   <div class="kflow">
     <section class="nbk" aria-label="Седмичен график">
       <div class="rings" aria-hidden="true"></div>
+      <div class="kpage" id="kpage">
       <header class="nb-head">
         <span class="nb-t"><svg class="i"><use href="#calendar-days"/></svg>ДНЕВЕН ГРАФИК</span>
         <img class="nb-logo" src="assets/logo.png" alt="">
@@ -1012,6 +1050,14 @@ html.desk .ewin .mscroll{overflow:hidden}
       <div class="sheet">
         <div class="kgrid" id="k-grid" role="grid" aria-label="Часове и дни"></div>
       </div>
+      </div>
+      <button type="button" class="kcover" id="kcover" aria-label="Отвори календара">
+        <span class="kc-ph l" style="background-image:url(/desktop-home-assets/city-shumen.webp)"></span>
+        <span class="kc-ph r" style="background-image:url(/desktop-home-assets/shumen-desktop-background.webp)"></span>
+        <span class="kc-mid"><img class="kc-logo" src="assets/logo.png" alt="Недвижими имоти Надежда"><span class="kc-line"></span><b>ВАШИЯТ ПРОФЕСИОНАЛЕН<br>ПЛАН ЗА УСПЕХ</b><span class="kc-line"></span></span>
+        <span class="kc-year"><svg class="i"><use href="#calendar-days"/></svg><b id="kc-year">2026</b><small>ПЛАНИРАЙ • РАЗВИВАЙ • ПОСТИГАЙ</small></span>
+        <span class="kc-hint">Докоснете корицата, за да отворите</span>
+      </button>
     </section>
 
     <div class="kside">
@@ -1189,18 +1235,18 @@ html.desk .ewin .mscroll{overflow:hidden}
     if(desk){
       var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1180,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
       var Hh=360+Math.min(exH*.4,140),xL=24+Math.min(exW*.5,200);
-      canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height=Hc+'px';canvas.style.paddingTop=Hh+'px';
+      canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height='auto';canvas.style.minHeight=Hc+'px';canvas.style.paddingTop=Hh+'px';canvas.style.paddingBottom='40px';
       top.style.height=Hh+'px';
       texts.forEach(function(o){o.el.style.top=(o.top-88+(Hh-360)*.75)+'px'});
       var ph=Hh*1.05,pw=ph*2.26;photo.style.width=pw+'px';photo.style.left=(Wc-pw)+'px';photo.style.top=(Hh-ph)+'px';
       ctrls.forEach(function(el){if(el.dataset.l==null)el.dataset.l=parseFloat(getComputedStyle(el).left);el.style.left=(Wc-1024+(+el.dataset.l))+'px'});
       root.style.setProperty('--xL',xL+'px');
-      rowH=Math.max(32,Math.min(80,(Hc-Hh-(window.NDRAIL?24:162)-14-20-126-28-54)/11));root.style.setProperty('--rh',rowH+'px');
+      rowH=Math.max(34,Math.min(64,(Hc-Hh-(window.NDRAIL?24:162)-14-20-126-28-54)/11));root.style.setProperty('--rh',rowH+'px');
       dockC.style.transform='scale('+k+')';dockC.style.left=((vw-1024*k)/2)+'px';stage.style.paddingBottom='0px';
       dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(window.NDRAIL?0:118*k)+'px');
     }else{
       rowH=30;
-      canvas.style.width=canvas.style.height=canvas.style.paddingTop='';top.style.height='';
+      canvas.style.width=canvas.style.height=canvas.style.minHeight=canvas.style.paddingTop=canvas.style.paddingBottom='';top.style.height='';
       texts.forEach(function(o){o.el.style.top=o.top+'px'});photo.style.width=photo.style.left=photo.style.top='';ctrls.forEach(function(el){el.style.left=''});
       var vw2=(root.clientWidth-(window.NDRAIL||0)),k2=vw2/W,off=((root.clientWidth-(window.NDRAIL||0))-vw2)/2;
       canvas.style.zoom=k2;canvas.style.marginLeft=(off/k2)+'px';
@@ -1236,8 +1282,34 @@ html.desk .ewin .mscroll{overflow:hidden}
       b.innerHTML=ic(ty.icon)+'<span>'+esc(e.title)+'</span>';g.appendChild(b)});
     upcoming();
   }
-  $('k-prev').addEventListener('click',function(){cur.setDate(cur.getDate()-7);render()});
-  $('k-next').addEventListener('click',function(){cur.setDate(cur.getDate()+7);render()});
+  /* прелистване: листът се хваща отдолу, обръща се нагоре около спиралата и минава зад календара */
+  var nbk=document.querySelector('.nbk'),kpage=$('kpage'),flipping=false;
+  function snap(el){var c=el.cloneNode(true);[].forEach.call(c.querySelectorAll('[id]'),function(x){x.removeAttribute('id')});c.removeAttribute('id');return c}
+  function flipPage(dir,change){
+    if(flipping){change();render();return}
+    flipping=true;
+    var oldC=snap(kpage),fl=document.createElement('div'),front=document.createElement('div'),back=document.createElement('div');
+    fl.className='kflip '+(dir==='next'?'up':'down');front.className='kf-face';back.className='kf-face kf-back';fl.appendChild(front);fl.appendChild(back);
+    var under=null;
+    change();render();
+    if(dir==='next'){front.appendChild(oldC)}
+    else{under=document.createElement('div');under.className='kunder';under.appendChild(oldC);nbk.appendChild(under);front.appendChild(snap(kpage))}
+    nbk.appendChild(fl);
+    fl.addEventListener('animationend',function(){fl.remove();if(under)under.remove();flipping=false},{once:true});
+    setTimeout(function(){if(fl.parentNode){fl.remove();if(under)under.remove();flipping=false}},1400);
+  }
+  $('k-prev').addEventListener('click',function(){flipPage('prev',function(){cur.setDate(cur.getDate()-7)})});
+  $('k-next').addEventListener('click',function(){flipPage('next',function(){cur.setDate(cur.getDate()+7)})});
+  /* корицата: при клик се обръща назад и показва седмицата */
+  var kcover=$('kcover');$('kc-year').textContent=String(today.getFullYear());
+  kcover.addEventListener('click',function(){
+    if(flipping)return;flipping=true;
+    var fl=document.createElement('div'),front=document.createElement('div'),back=document.createElement('div');
+    fl.className='kflip up';front.className='kf-face';back.className='kf-face kf-back';fl.appendChild(front);fl.appendChild(back);
+    front.appendChild(kcover);nbk.appendChild(fl);
+    fl.addEventListener('animationend',function(){fl.remove();flipping=false},{once:true});
+    setTimeout(function(){if(fl.parentNode){fl.remove();flipping=false}},1400);
+  });
   $('k-grid').addEventListener('click',function(e){
     var b=e.target.closest('.kev');if(b){openE(b.dataset.id,null,b);return}
     var c=e.target.closest('.kg-c');if(c)openE(null,{date:c.dataset.date,from:c.dataset.h},c)});
