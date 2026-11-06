@@ -15,7 +15,7 @@
 | Договор от CRM данни → PDF при клиента | `contracts.generate` | „направи предварителен договор за Иван и P-1001“ | t-skills.js + визуална проверка на PDF | ✅ |
 | Резолвиране на получател от Компании/Клиенти | `contacts.resolve` | „Калина от Инвестбанк“ | t-skills.js (2 кандидата → избор) | ✅ |
 | Имейл преглед | `email.preview` | „изпрати ги на…“ (първо преглед) | t-skills.js | ✅ |
-| Имейл изпращане с потвърждение | `email.send` (confirm=true) | „да, изпрати“ | без ключ → mailto + линкове | ⚠️ нужен RESEND_API_KEY (+ EMAIL_FROM) в Vercel env |
+| Имейл изпращане с потвърждение | `email.send` (confirm=true) | „да, изпрати“ | t-email.js (локален SMTP) | ✅ изпраща **от пощата на служителя** (abv.bg, Gmail, Mail.bg, Outlook, Yahoo, iCloud, друг SMTP) – настройва се в CRM → Настройки → „Моята поща за изпращане“; паролата се пази само в nd_secrets (`smtp:<userId>`), никога не се връща в браузъра/чата. Без настройка → mailto + линкове. Централен Resend адрес вече не се ползва. |
 | Одит на всяко действие | nd_audit + `audit.recent` | „какво направи днес“ | insert при всеки tool call | ✅ |
 | Линкове за изтегляне в чата | mobile/ash.js | — | test/t-tedlink.js (E2E, клик линк) | ✅ |
 | Voice = text | без промяна: транскрипт → същия agent → същите tools | — | съществуващ t-voice.js | ✅ |

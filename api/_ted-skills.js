@@ -7,6 +7,9 @@ const fs = require("fs"), path = require("path");
 const PDFLib = require("./_vendor/pdf-lib.min.js");
 const fontkit = require("./_vendor/fontkit.umd.min.js");
 const WEB = require("./_web.js");
+let MAIL = null; try { MAIL = require("./email.js"); } catch (e) { MAIL = { configFor: async () => null, sendAs: async () => { throw new Error("email module missing"); }, friendly: (e) => String(e && e.message || e) }; }
+// пощата на текущия служител (пази се само на сървъра: nd_secrets smtp:<userId>)
+const mailbox = (ctx) => MAIL.configFor(ctx.userId || (ctx.user && ctx.user.id)).catch(() => null);
 
 const BUCKET = "nd-files", SIGN_SECS = 7 * 86400, MAX_PDF_MB = 40, MAX_DOCS = 40;
 const GEMINI = () => process.env.GEMINI_API_KEY || "";
@@ -335,7 +338,8 @@ const tools = {
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(i.to_email)) throw new ToolError("Невалиден имейл: " + i.to_email);
       const files = []; let total = 0;
       for (const id of i.doc_ids) { const d = await row(ctx, "documents", id); const info = await pagesOf(ctx, d); total += info.size; files.push({ id, name: d.name, pages: info.pages, size_bytes: info.size }); }
-      return { to: { email: i.to_email, name: i.to_name || "" }, subject: i.subject, body: i.body, attachments: files, total_bytes: total, provider: process.env.RESEND_API_KEY ? "resend" : "none", can_send: !!process.env.RESEND_API_KEY, note: process.env.RESEND_API_KEY ? "Изпращането става само с confirm=true в email.send." : "Няма конфигуриран имейл доставчик (RESEND_API_KEY). Мога да дам готов mailto линк и линкове към файловете." };
+      const cfg = await mailbox(ctx);
+      return { to: { email: i.to_email, name: i.to_name || "" }, subject: i.subject, body: i.body, attachments: files, total_bytes: total, from: cfg ? cfg.email : null, provider: cfg ? cfg.provider : "none", can_send: !!cfg, note: cfg ? "Ще се изпрати от вашата поща " + cfg.email + " само с confirm=true в email.send след изрично „да“." : "Служителят няма настроена поща за изпращане. Кажи му: CRM → Настройки → „Моята поща за изпращане“ (abv.bg, Gmail, Mail.bg, Outlook…). Дотогава мога да дам mailto линк и линкове към файловете." };
     }
   },
   "email.send": {
@@ -348,16 +352,16 @@ const tools = {
       for (const id of i.doc_ids) { const d = await row(ctx, "documents", id); const buf = await download(ctx, d.path); total += buf.length; atts.push({ filename: d.name, content: buf.toString("base64") }); links.push({ name: d.name, url: await signed(ctx, d.path) }); }
       if (total > 25 * 1048576) throw new ToolError("Прикачените файлове са над 25 MB – изпратете ги като линкове или на части");
       const client = i.client_id ? await row(ctx, "clients", i.client_id).catch(() => null) : null;
-      const key = process.env.RESEND_API_KEY, from = process.env.EMAIL_FROM || "Недвижими Имоти Надежда <office@imotinadezhda.bg>";
-      if (!key) {
+      const cfg = await mailbox(ctx);
+      if (!cfg) {
         const body = i.body + (links.length ? "\n\nДокументи (линкове, валидни 7 дни):\n" + links.map((l) => "• " + l.name + ": " + l.url).join("\n") : "");
-        return { sent: false, reason: "Няма имейл доставчик на сървъра (RESEND_API_KEY). Отворете линка, за да изпратите от вашата поща.", mailto: "mailto:" + encodeURIComponent(i.to_email) + "?subject=" + encodeURIComponent(i.subject) + "&body=" + encodeURIComponent(body).slice(0, 6000), links };
+        return { sent: false, need_setup: true, reason: "Нямате настроена поща за изпращане. Настройте я от CRM → Настройки → „Моята поща за изпращане“ (abv.bg, Gmail, Mail.bg, Outlook…). Дотогава – отворете линка, за да изпратите от вашата поща.", mailto: "mailto:" + encodeURIComponent(i.to_email) + "?subject=" + encodeURIComponent(i.subject) + "&body=" + encodeURIComponent(body).slice(0, 6000), links };
       }
-      const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [i.to_name ? i.to_name + " <" + i.to_email + ">" : i.to_email], subject: i.subject, text: i.body, attachments: atts }) });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new ToolError("Имейлът не е изпратен: " + (j.message || j.error || ("HTTP " + r.status)), 502);
-      if (client) await put(ctx, "activities", { client_id: client.id, client: client.name, icon: "mail", text: "Изпратен имейл до " + i.to_email + ": " + i.subject + (atts.length ? " (" + atts.length + " файла)" : ""), at: new Date().toISOString() }).catch(() => null);
-      return { sent: true, message_id: j.id || null, to: i.to_email, attachments: atts.length };
+      let j;
+      try { j = await MAIL.sendAs(cfg, { to: i.to_email, toName: i.to_name || "", subject: i.subject, text: i.body, attachments: atts.map((a) => ({ filename: a.filename, content: Buffer.from(a.content, "base64") })) }); }
+      catch (e) { throw new ToolError("Имейлът не е изпратен от " + cfg.email + ": " + MAIL.friendly(e), 502); }
+      if (client) await put(ctx, "activities", { client_id: client.id, client: client.name, icon: "mail", text: "Изпратен имейл от " + cfg.email + " до " + i.to_email + ": " + i.subject + (atts.length ? " (" + atts.length + " файла)" : ""), at: new Date().toISOString() }).catch(() => null);
+      return { sent: true, from: cfg.email, message_id: j.message_id, to: i.to_email, attachments: atts.length };
     }
   },
   "contracts.generate": {

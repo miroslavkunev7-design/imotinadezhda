@@ -225,18 +225,61 @@
   }
 
   /* ---------- Настройки (account) ---------- */
+  /* „Моята поща за изпращане“ – паролата отива само към /api/email (сървър → nd_secrets); никога не се връща обратно в браузъра. */
+  var MAILP = [["abv", "ABV.bg"], ["gmail", "Gmail"], ["mailbg", "Mail.bg"], ["outlook", "Outlook / Hotmail"], ["yahoo", "Yahoo"], ["icloud", "iCloud"], ["custom", "Друг (ръчно)"]];
+  var MAILHINT = { abv: "Паролата на пощата (при двустепенна защита – парола за приложения от настройките на ABV).", gmail: "Нужна е „Парола за приложение“: Google акаунт → Сигурност → Потвърждаване в 2 стъпки → Пароли за приложения. Обикновената парола не работи.", mailbg: "Паролата на пощата в Mail.bg.", outlook: "Парола за приложение от Microsoft акаунта (Сигурност → Разширени опции).", yahoo: "Парола за приложение (Account Security → App passwords).", icloud: "App-specific password от appleid.apple.com.", custom: "SMTP сървър, порт и парола от вашия доставчик." };
+  function guessProvider(email) { var d = String(email || "").split("@")[1] || ""; if (/abv\.bg$/i.test(d)) return "abv"; if (/gmail|googlemail/i.test(d)) return "gmail"; if (/mail\.bg$/i.test(d)) return "mailbg"; if (/outlook|hotmail|live\.|msn\./i.test(d)) return "outlook"; if (/yahoo/i.test(d)) return "yahoo"; if (/icloud|me\.com|mac\.com/i.test(d)) return "icloud"; return ""; }
+  function mailApi(body) { return D.token().then(function (t) { return fetch("/api/email", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + t }, body: JSON.stringify(body) }); }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); }); }
+  function mailHtml(u) {
+    return U.group("Моята поща за изпращане", "mail", null,
+      '<div class="wide ndhint" id="m-state">Проверка…</div>' +
+      fld({ id: "m-email", label: "Имейл адрес", icon: "mail", type: "email", value: u.email || "", ph: "ime@abv.bg", wide: true }) +
+      fld({ id: "m-prov", label: "Доставчик", icon: "globe", type: "select", options: MAILP, value: guessProvider(u.email) || "custom", wide: true }) +
+      fld({ id: "m-name", label: "Име на подателя", icon: "user-round", value: (D.broker && D.broker.name) || "", ph: "Мирослав Кънев", wide: true }) +
+      fld({ id: "m-pass", label: "Парола за приложения", icon: "lock", type: "password", ph: "••••••••", wide: true }) +
+      '<div class="wide" id="m-custom" hidden>' + fld({ id: "m-host", label: "SMTP сървър", icon: "globe", ph: "smtp.example.com" }) + fld({ id: "m-port", label: "Порт", icon: "settings", type: "number", value: 465 }) + "</div>" +
+      '<div class="wide ndhint" id="m-hint"></div>' +
+      '<div class="wide ndbtns"><button type="button" class="ndb" data-m="test">' + ic("check") + " Тест</button>" + '<button type="button" class="ndb pri" data-m="save">' + ic("save") + " Запази</button>" + '<button type="button" class="ndb rm" data-m="del" hidden>' + ic("trash") + " Премахни</button></div>", { lw: 150 });
+  }
+  function mailBind(x) {
+    var q = function (id) { return x.q(id); }, st = q("m-state"), hint = q("m-hint"), del = x.body.querySelector('[data-m="del"]');
+    function prov() { return q("m-prov").value; }
+    function refresh() { q("m-custom").hidden = prov() !== "custom"; hint.textContent = MAILHINT[prov()] || ""; }
+    q("m-prov").onchange = refresh; q("m-email").oninput = function () { var g = guessProvider(q("m-email").value); if (g) { q("m-prov").value = g; refresh(); } }; refresh();
+    mailApi({ action: "get" }).then(function (r) {
+      if (!r.ok) { st.innerHTML = '<b style="color:#c0392b">' + esc(r.error || "Грешка") + "</b>"; return; }
+      if (r.settings) { st.innerHTML = "✅ Изпращате от <b>" + esc(r.settings.email) + "</b> (" + esc(r.settings.host) + "). Тед и CRM ползват тази поща." ; q("m-email").value = r.settings.email; q("m-prov").value = r.settings.provider || "custom"; q("m-name").value = r.settings.name || ""; if (r.settings.provider === "custom") { q("m-host").value = r.settings.host || ""; q("m-port").value = r.settings.port || 465; } del.hidden = false; refresh(); }
+      else st.innerHTML = "Няма настроена поща. Въведете адреса и паролата си – имейлите до клиенти ще тръгват <b>от вашата поща</b>.";
+    });
+    x.body.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-m]"); if (!b) return; var a = b.getAttribute("data-m");
+      var body = { action: a === "save" ? "set" : a === "del" ? "delete" : "test", provider: prov(), email: q("m-email").value.trim(), password: q("m-pass").value, name: q("m-name").value.trim(), host: q("m-host").value.trim(), port: Number(q("m-port").value) || 465 };
+      if (a === "del" && !confirm("Да премахна ли настроената поща?")) return;
+      b.disabled = true; st.textContent = a === "del" ? "Премахване…" : "Свързване с пощата…";
+      mailApi(body).then(function (r) {
+        b.disabled = false;
+        if (!r.ok) { st.innerHTML = '<b style="color:#c0392b">' + esc(r.error || "Неуспешно") + "</b>"; return; }
+        if (a === "del") { st.textContent = "Пощата е премахната."; del.hidden = true; q("m-pass").value = ""; return; }
+        q("m-pass").value = "";
+        st.innerHTML = (a === "save" ? "✅ Запазено. Изпращате от <b>" : "✅ Връзката работи: <b>") + esc(r.settings.email) + "</b>" + (a === "save" ? ". Тед и CRM ползват тази поща." : ". Натиснете „Запази“.");
+        if (a === "save") del.hidden = false;
+      });
+    });
+  }
   function settings() {
     D.ready().then(function () {
       var u = D.user || {};
       U.open({
         title: "Настройки", icon: "settings", html:
           '<div class="ndres"><div class="big"><span>Влезли сте като</span><b>' + esc(u.email || "") + "</b></div></div>" +
+          mailHtml(u) +
           section("Акаунт", "user-round", [
             row("lock", "Смяна на парола", "Ще получите имейл с линк за нова парола", "", '<button type="button" data-a="pw" aria-label="Смени паролата">' + ic("mail") + "</button>"),
             row("x", "Изход от CRM", "Излизане от този акаунт на това устройство", "", '<button type="button" class="rm" data-a="out" aria-label="Изход">' + ic("x") + "</button>")
           ]),
         noSave: true,
         ready: function (x) {
+          mailBind(x);
           x.body.onclick = function (e) {
             var a = e.target.closest("[data-a]"); if (!a) return;
             if (a.getAttribute("data-a") === "out") D.signOut();
