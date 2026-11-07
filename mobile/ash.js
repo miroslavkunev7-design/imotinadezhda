@@ -67,7 +67,18 @@
     ".nda-c textarea.rec{color:#a3112f;font-weight:700}" +
     ".nda-dl{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:6px 12px;margin:2px 0;border-radius:14px;font-weight:700;color:#5a0a18;text-decoration:none;background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1.5px rgba(227,178,94,.8),0 0 10px rgba(255,214,150,.6);word-break:break-all}.nda-dl:hover{box-shadow:0 0 0 1.5px #f6d68c,0 0 16px rgba(255,214,150,.9)}.nda-say{display:inline-grid;place-items:center;vertical-align:middle;width:30px;height:30px;margin:6px 0 0 6px;float:right;border-radius:50%;border:1.5px solid #e3b25e;background:radial-gradient(circle at 35% 28%,#b0213f,#7a0f22 55%,#4a0613);color:#fff3dc;cursor:pointer;padding:0;box-shadow:0 0 8px rgba(255,190,120,.6)}" +
     ".nda-say svg{width:16px;height:16px}.nda-say.on{background:linear-gradient(150deg,#fff0aa,#f3a518);color:#640319;animation:ndaRec 1.2s ease-in-out infinite}.nda-say.ld{opacity:.6}" +
-    ".nda-files{padding:0 12px;display:flex;gap:6px;flex-wrap:wrap;background:rgba(255,248,240,.85)}.nda-files span{font:12px 'Roboto Condensed',Arial,sans-serif;padding:3px 8px;border-radius:10px;border:1px solid #e3b25e;color:#6b0a1c;background:#fff}";
+    ".nda-files{padding:0 12px;display:flex;gap:6px;flex-wrap:wrap;background:rgba(255,248,240,.85)}" +
+    ".nda-case{position:relative;padding:6px 12px 0;background:rgba(255,248,240,.85);border-top:1px solid rgba(227,178,94,.45)}" +
+    ".nda-case-btn{border:1px solid #e3b25e;border-radius:12px;padding:5px 10px;background:linear-gradient(180deg,#fffaf3,#fbeee2);color:#6b0a1c;font:400 13px 'Roboto Condensed',Arial,sans-serif;cursor:pointer;box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 8px rgba(255,214,150,.35)}" +
+    ".nda-case-btn.on{background:linear-gradient(180deg,#a3213a,#55071a);color:#fff3dc;border-color:#edc47a;box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 12px rgba(255,190,120,.6)}" +
+    ".nda-case-pop{position:absolute;left:12px;right:12px;bottom:calc(100% + 6px);z-index:5;max-height:300px;overflow:auto;padding:8px;border-radius:16px;background:linear-gradient(180deg,rgba(255,251,247,.99),rgba(251,236,224,.98));border:1.5px solid #e3b25e;box-shadow:0 0 18px rgba(255,214,150,.6),0 10px 24px rgba(60,10,20,.25)}" +
+    ".nda-case-h{font:700 13px 'Roboto Condensed',Arial,sans-serif;color:#8a6a3a;padding:4px 8px 6px}" +
+    ".nda-case-i{display:block;width:100%;text-align:left;padding:8px 10px;border:0;border-radius:12px;background:transparent;color:#4e0912;font:700 15px 'Roboto Condensed',Arial,sans-serif;cursor:pointer}" +
+    ".nda-case-i small{display:block;font-weight:400;font-size:12px;color:#8a6a3a}" +
+    ".nda-case-i.on{background:rgba(163,33,58,.12);box-shadow:inset 0 0 0 1px #e3b25e}" +
+    ".nda-case-i.new{color:#a3213a}" +
+    ".nda-case-err{padding:6px 10px;font:12px Arial;color:#c0392b}" +
+    ".nda-files span{font:12px 'Roboto Condensed',Arial,sans-serif;padding:3px 8px;border-radius:10px;border:1px solid #e3b25e;color:#6b0a1c;background:#fff}";
 
   /* ---- token of the CRM session (same browser) ---- */
   function token() {
@@ -186,15 +197,24 @@
       .catch(function (e) { return { ok: false, error: e && e.name === "AbortError" ? "Агентът в n8n не отговори навреме." : "Агент n8n: " + ((e && e.message) || e) }; })
       .then(function (j) { clearTimeout(timer); return j; });
   }
-  function ask(history) {
+  function ask(history, extra) {
     if (modelId === "n8n") return askN8n(history);
+    extra = extra || {};
     return token().then(function (tok) {
       var h = { "Content-Type": "application/json" }; if (tok) h.Authorization = "Bearer " + tok;
-      return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title, model: modelId || undefined }) });
+      return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title, model: modelId || undefined, mode: extra.mode || undefined, case_id: extra.case_id || undefined }) });
     }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); })
       .catch(function (e) { return { ok: false, error: "Няма връзка (" + ((e && e.message) || e) + ")" }; });
   }
 
+  /* ---- казуси (проекти с безкрайна памет): активният казус се пази за брокера; историята му идва от сървъра ---- */
+  var staffCtx;
+  var CASE_KEY = "nd-ted-case", curCase = null; try { curCase = JSON.parse(localStorage.getItem(CASE_KEY) || "null"); } catch (e) { curCase = null; }
+  function tool(name, input) {
+    return token().then(function (tk) { return fetch("/api/tools", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ tool: name, input: input || {} }) }); })
+      .then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); });
+  }
+  function setCase(c) { curCase = c || null; try { if (c) localStorage.setItem(CASE_KEY, JSON.stringify(c)); else localStorage.removeItem(CASE_KEY); } catch (e) {} }
   /* ---- widget ---- */
   var skills = [], skill = null, win, fab, list, menu, foot, booted = false, hist = [];
   var STORE = "nd-ash-chat";
@@ -250,18 +270,67 @@
     return h;
   }
 
+  function caseIntro(api, s) {
+    if (curCase) {
+      if (s && s.intro0) s.intro0(api);
+      var w = api.add("a", "📁 Казус <b>" + esc(curCase.title) + "</b> – зареждам паметта…", "wait");
+      tool("cases.get", { id: curCase.id }).then(function (j) {
+        w.remove();
+        if (!j.ok) { api.add("a", "Казусът не се зареди (" + esc(j.error || "") + "). Продължаваме в общ разговор."); setCase(null); renderCaseBar(); return; }
+        var k = j.result.kase || {}; if (k.title) { curCase.title = k.title; setCase(curCase); renderCaseBar(); }
+        api.add("a", "📁 Казус <b>" + esc(k.title || curCase.title) + "</b>" + (k.client ? " · " + esc(k.client) : "") + (k.summary ? "\n<b>Резюме:</b> " + esc(String(k.summary).slice(0, 700)) : "") + "\nВсичко тук се помни без ограничение. Продължете откъдето сте спрели.");
+        (j.result.messages || []).slice(-20).forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
+        list.scrollTop = list.scrollHeight;
+      });
+      return;
+    }
+    if (s && s.intro0) { s.intro0(api); return; }
+    if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
+    else api.add("a", "Здравейте! Аз съм <b>Тед Асистент</b> на Имоти Надежда.\nПитайте ме за клиенти, имоти, огледи, сделки, ипотека или комисионна – работя с реалните данни в CRM." +
+      "\nНапример: „Намери тристайни в Шумен до 100 000 €“, „Добави клиент Мария, 0888…, търси двустаен под наем във Варна“, „Какво имам утре?“\nКажете „запомни …“ и ще го помня завинаги; от 📁 можете да отворите казус с безкрайна памет.");
+  }
+  function renderCaseBar() {
+    var b = foot && foot.querySelector(".nda-case-btn"); if (!b) return;
+    b.innerHTML = "📁 " + (curCase ? "Казус: <b>" + esc(curCase.title) + "</b>" : "Общ разговор") + " ▾";
+    b.classList.toggle("on", !!curCase);
+  }
+  function openCases(api) {
+    var pop = foot.querySelector(".nda-case-pop"); if (!pop) return;
+    if (!pop.hidden) { pop.hidden = true; return; }
+    pop.hidden = false; pop.innerHTML = '<div class="nda-case-h">Казуси – проекти с безкрайна памет</div><div class="nda-case-l">Зареждане…</div>';
+    tool("cases.list", { status: "open" }).then(function (j) {
+      var cs = j.ok ? (j.result.cases || []) : [];
+      pop.querySelector(".nda-case-l").innerHTML =
+        '<button type="button" class="nda-case-i' + (!curCase ? " on" : "") + '" data-case="">💬 Общ разговор<small>без казус, с дългосрочна памет</small></button>' +
+        cs.map(function (c) { return '<button type="button" class="nda-case-i' + (curCase && curCase.id === c.id ? " on" : "") + '" data-case="' + esc(c.id) + '" data-title="' + esc(c.title) + '">📁 ' + esc(c.title) + "<small>" + esc((c.client ? c.client + " · " : "") + (c.updated_at ? String(c.updated_at).slice(0, 10) : "")) + "</small></button>"; }).join("") +
+        (j.ok ? "" : '<div class="nda-case-err">' + esc(j.error || "Паметта не е налична") + "</div>") +
+        '<button type="button" class="nda-case-i new" data-new="1">＋ Нов казус…<small>име и по желание клиент</small></button>';
+    });
+    pop.onclick = function (e) {
+      var n = e.target.closest("[data-new]"), c = e.target.closest("[data-case]"); if (!n && !c) return;
+      pop.hidden = true;
+      if (n) {
+        var title = prompt("Име на казуса (напр. „Сделка Иванови – апартамент Тракия“ или „Спор за наем – Петров“):"); if (!title || !title.trim()) return;
+        var client = prompt("Клиент по казуса (име от CRM) – по желание:") || "";
+        var w = api.add("a", "Създавам казус…", "wait");
+        tool("cases.create", { title: title.trim(), client_name: client.trim() || undefined }).then(function (j) { w.remove(); if (!j.ok) { api.add("a", "Казусът не се създаде: " + esc(j.error || "")); return; } setCase({ id: j.result.id, title: j.result.title }); renderCaseBar(); list.innerHTML = ""; caseIntro(api, skill); });
+        return;
+      }
+      var id = c.getAttribute("data-case");
+      setCase(id ? { id: id, title: c.getAttribute("data-title") } : null); renderCaseBar(); list.innerHTML = ""; caseIntro(api, skill);
+    };
+  }
   var chatSkill = {
     id: "chat", name: "Чат с Тед Асистент", sub: "Клиенти, имоти, календар, сделки, изчисления",
-    intro: function (api) {
-      if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
-      else api.add("a", "Здравейте! Аз съм <b>Тед Асистент</b> на Имоти Надежда.\nПитайте ме за клиенти, имоти, огледи, сделки, ипотека или комисионна – работя с реалните данни в CRM." +
-        "\nНапример: „Намери тристайни в Шумен до 100 000 €“, „Добави клиент Мария, 0888…, търси двустаен под наем във Варна“, „Какво имам утре?“");
-    },
+    intro: function (api) { caseIntro(api, this); },
     footer: function () {
-      return '<div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="mic" aria-label="Гласово съобщение">' + I.mic + '</button><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
+      return '<div class="nda-case"><button type="button" class="nda-case-btn" aria-haspopup="listbox"></button><div class="nda-case-pop" hidden></div></div><div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="mic" aria-label="Гласово съобщение">' + I.mic + '</button><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
     },
     bind: function (api, el) {
-      var ta = el.querySelector("textarea"), files = [], fl = el.querySelector(".nda-files"), busy = false;
+      var ta = el.querySelector("textarea"), files = [], fl = el.querySelector(".nda-files"), busy = false, me = this;
+      if (!staffCtx) el.querySelector(".nda-case").hidden = true;
+      renderCaseBar(); el.querySelector(".nda-case-btn").onclick = function (e) { e.stopPropagation(); openCases(api); };
+      if (me.placeholder) ta.placeholder = me.placeholder;
       function showFiles() { fl.innerHTML = files.map(function (f) { return "<span>" + esc(f.name) + "</span>"; }).join(""); }
       function go(voice) {
         var text = ta.value.trim(); if ((!text && !files.length && !voice) || busy) return;
@@ -270,13 +339,14 @@
         var w = api.add("a", voice ? "Слушам" : "Мисля", "wait");
         Promise.all(fs.map(fileData)).then(function (fd) {
           var cur = { role: "user", text: voice ? "(гласово съобщение)" : (text || "Анализирай прикачените файлове."), files: fd.filter(Boolean).concat(voice ? [{ mime: voice.mime, data: voice.data }] : []) };
-          var send = hist.slice(-14).map(function (m) { return { role: m.role, text: m.text }; }).concat([cur]);
-          return ask(send).then(function (j) {
+          /* в казус историята идва от паметта на сървъра – пращаме само текущото съобщение */
+          var send = (curCase ? [] : hist.slice(-14).map(function (m) { return { role: m.role, text: m.text }; })).concat([cur]);
+          return ask(send, { mode: me.mode || "", case_id: curCase ? curCase.id : "" }).then(function (j) {
             w.classList.remove("wait"); busy = false;
             if (!j.ok) { w.innerHTML = esc(j.error || "Грешка"); return; }
             w.innerHTML = fmt(j.text) + (prefs.showActions && j.actions && j.actions.length ? '<span class="acts">✔ ' + esc(j.actions.join(" · ")) + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w);
             if (voice && j.transcript) { ub.innerHTML = "🎤 „" + esc(j.transcript) + "“"; cur.text = j.transcript; }
-            if (!voice || j.transcript) { hist.push({ role: "user", text: cur.text }, { role: "assistant", text: j.text }); save(); }
+            if ((!voice || j.transcript) && !curCase) { hist.push({ role: "user", text: cur.text }, { role: "assistant", text: j.text }); save(); }
             if ((voice && prefs.autoSpeak !== "never") || prefs.autoSpeak === "always") { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* гласов въпрос → гласов отговор (според настройката) */
             if (j.actions && j.actions.some(function (a) { return !/search|list|get|calc|rates|summary|match|✗/.test(a); })) try { window.dispatchEvent(new CustomEvent("nd-data-changed")); } catch (e) {}
             if (j.video && window.NDVideo) try { window.NDVideo.fromChat(j.video, fs); } catch (e) {} /* „направи видео на обява #…“ → умението „AI Видео на имот“ */
@@ -318,6 +388,21 @@
     }
   };
   skills.push(chatSkill);
+  /* експертни режими: същият чат, същите инструменти, друга роля на сървъра (api/_ted-modes.js) */
+  var MODES = [
+    ["lawyer", "Юрист – правен помощник", "Казуси, договори, рискове, документи", "⚖️ <b>Юрист</b>. Опишете казуса (факти, хора, имот, документи, срокове) – ще дам правна квалификация, рисковете, вариантите и готови проекти на документи. Работя по българското право и помня казуса, ако го отворите от 📁."],
+    ["secretary", "Секретар – договори и кризи", "Документи, писма, графици, трудни ситуации", "🗂️ <b>Секретар</b>. Кажете какво трябва: договор, писмо, протокол, среща – или опишете лошата ситуация и ще дам какво да кажете сега, какво да не казвате и следващите 3 стъпки, с готов текст за изпращане."],
+    ["senior", "Старши брокер (25+ г.)", "Оценки, сделки, банки, нотариус, ДДС, данъци", "🏛️ <b>Старши брокер</b> с 25+ години практика. Питайте за оценка на имот, стратегия за продажба, сделката стъпка по стъпка, нотариус и такси, ипотека, фактури и ДДС, данъци – ще получите конкретни числа и „какво бих направил аз“."],
+    ["analyst", "Анализатор", "Пазар, доходност, отчети на агенцията", "📊 <b>Анализатор</b>. Пазарен анализ по квартал, сравнение на имоти, доходност и сценарии, отчети от CRM (фуния, конверсии, комисионни) – с таблици, извод най-отгоре и източници. Мога да ги направя и в PDF."],
+    ["sales", "Търговец – умни предложения", "Подбор, аргументи, възражения, следваща стъпка", "🤝 <b>Търговец</b>. Кажете за кого става дума (клиент от CRM) и какво търси – ще подбера имотите, ще обясня защо пасват на него, ще подготвя съобщение и ще предложа оглед с дата и час."],
+    ["opener", "Започни разговор", "Първи контакт и поддържане на връзка", "👋 <b>Започни разговор</b>. Кажете с кого и защо (име от CRM, собственик, стар клиент) – ще подготвя 3 варианта за първо съобщение, сценарий за обаждане и какво да кажете при „не сега“."],
+    ["inquiry", "Отговори на запитване", "Готов отговор на клиентско запитване", "📨 <b>Отговор на запитване</b>. Поставете текста на запитването (или кажете за кой клиент/имот е) – ще проверя данните в CRM и ще дам готов отговор с факти, 1–2 подходящи предложения и покана за оглед."]
+  ];
+  staffCtx = /\/mobile\/crm\//.test(location.pathname) || (function () { try { return !!localStorage.getItem(SB_KEY_STORE); } catch (e) { return false; } })();
+  if (staffCtx) MODES.forEach(function (m) {
+    var sk = Object.assign({}, chatSkill, { id: "mode-" + m[0], mode: m[0], name: m[1], sub: m[2], intro0: function (api) { api.add("a", m[3]); } });
+    skills.push(sk);
+  });
 
   var api = { add: function (r, h, c) { return add(r, h, c); }, esc: esc, list: function () { return list; } };
   function setSkill(s) {

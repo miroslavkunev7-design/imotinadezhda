@@ -266,12 +266,38 @@
       });
     });
   }
+  /* „Известия на телефона“ – Web Push през crm-push.js: 2 ч и 1 ч преди задача, нова възложена задача, ескалация към екипа */
+  function pushHtml() {
+    return U.group("Известия на телефона", "bell", null,
+      '<div class="wide ndhint" id="p-state">Проверка…</div>' +
+      '<div class="wide ndhint">Тед напомня <b>2 часа</b> и <b>1 час</b> преди всяка среща, оглед или задача – и на заключен екран. Ако не потвърдите до 10 минути, останалите от екипа получават известие.</div>' +
+      '<div class="wide ndbtns"><button type="button" class="ndb pri" data-p="on">' + ic("bell") + " Включи известията</button>" + '<button type="button" class="ndb" data-p="test">' + ic("check") + " Тест</button>" + '<button type="button" class="ndb rm" data-p="off" hidden>' + ic("x") + " Изключи</button></div>", { lw: 150 });
+  }
+  function pushBind(x) {
+    var st = x.q("p-state"), on = x.body.querySelector('[data-p="on"]'), off = x.body.querySelector('[data-p="off"]'), P = window.NDPush;
+    function refresh() {
+      if (!P) { st.textContent = "Модулът за известия не е зареден."; return; }
+      P.status().then(function (r) {
+        if (!r.supported) { st.innerHTML = r.reason === "ios-home" ? "На iPhone известията работят, когато CRM е добавен на началния екран: <b>Сподели → „Добави на началния екран“</b>, после отворете CRM оттам и натиснете „Включи известията“." : "Този браузър не поддържа известия на заключен екран."; on.disabled = r.reason !== "ios-home"; return; }
+        if (r.subscribed) { st.innerHTML = "✅ Известията са <b>включени</b> на това устройство."; on.hidden = true; off.hidden = false; }
+        else { st.innerHTML = r.permission === "denied" ? '<b style="color:#c0392b">Известията са забранени за сайта в настройките на браузъра.</b> Разрешете ги и опитайте пак.' : "Известията не са включени на това устройство."; on.hidden = false; off.hidden = true; }
+      });
+    }
+    refresh();
+    x.body.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-p]"); if (!b || !P) return; var a = b.getAttribute("data-p"); b.disabled = true;
+      var pr = a === "on" ? P.enable().then(function (r) { st.innerHTML = "✅ Включено (" + (r.devices || 1) + " устройство). Изпращаме тестово известие…"; return P.test(); }) : a === "test" ? P.test() : P.disable();
+      pr.then(function (r) { b.disabled = false; if (a === "off") { say("Известията са изключени"); refresh(); return; } if (r && r.ok === false) { st.innerHTML = '<b style="color:#c0392b">' + esc(r.error || "Неуспешно") + "</b>"; return; } say("Известието е изпратено"); refresh(); })
+        .catch(function (err) { b.disabled = false; st.innerHTML = '<b style="color:#c0392b">' + esc(err && err.message || "Неуспешно") + "</b>"; });
+    });
+  }
   function settings() {
     D.ready().then(function () {
       var u = D.user || {};
       U.open({
         title: "Настройки", icon: "settings", html:
           '<div class="ndres"><div class="big"><span>Влезли сте като</span><b>' + esc(u.email || "") + "</b></div></div>" +
+          pushHtml() +
           mailHtml(u) +
           section("Акаунт", "user-round", [
             row("lock", "Смяна на парола", "Ще получите имейл с линк за нова парола", "", '<button type="button" data-a="pw" aria-label="Смени паролата">' + ic("mail") + "</button>"),
@@ -279,7 +305,7 @@
           ]),
         noSave: true,
         ready: function (x) {
-          mailBind(x);
+          pushBind(x); mailBind(x);
           x.body.onclick = function (e) {
             var a = e.target.closest("[data-a]"); if (!a) return;
             if (a.getAttribute("data-a") === "out") D.signOut();

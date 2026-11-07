@@ -407,6 +407,86 @@ const tools = {
       return { start_video: { mode: i.mode || "walk", property: { id: p.id, code: p.code, title: p.title, city: p.city, hood: p.hood, photos: n } }, note: "Задачата е подадена към умението „AI Видео на имот“ – клиповете се генерират един по един (около минута всеки), готовото видео се появява в чата." };
     }
   },
+  "calendar.assign": {
+    description: "Възлага събитие/задача от календара на конкретен брокер по име (напр. „Миро“, „Надежда“). Той получава известие на телефона веднага, после 2 ч и 1 ч преди часа; без потвърждение до 10 мин екипът се уведомява. Ползвай след calendar.create, когато задачата е за друг човек.",
+    input: schema({ id: S("string", { required: true }), broker_name: S("string", { max: 80 }), user_id: S("string") }),
+    run: async (ctx, i) => {
+      const ev = await ctx.sb.from("nd_events").select("id,data").eq("id", i.id).maybeSingle(); if (ev.error || !ev.data) throw new ToolError("Няма събитие " + i.id, 404);
+      let uid = i.user_id || null, name = "";
+      if (!uid) {
+        if (!i.broker_name) throw new ToolError("Посочете broker_name или user_id");
+        const q = i.broker_name.toLocaleLowerCase("bg"), all = await ctx.sb.from("nd_brokers").select("id,data"); if (all.error) throw new ToolError(all.error.message);
+        const hits = (all.data || []).filter((b) => b.data && b.data.user_id && String(b.data.name || "").toLocaleLowerCase("bg").split(/\s+/).some((w) => w.startsWith(q) || q.startsWith(w) && w.length > 2));
+        if (!hits.length) throw new ToolError("Няма брокер с име „" + i.broker_name + "“ с акаунт в CRM. Налични: " + (all.data || []).filter((b) => b.data && b.data.user_id).map((b) => b.data.name).join(", "), 404);
+        if (hits.length > 1) throw new ToolError("Няколко брокери отговарят: " + hits.map((b) => b.data.name).join(", ") + ". Уточнете.", 409);
+        uid = hits[0].data.user_id; name = hits[0].data.name;
+      }
+      const data = Object.assign({}, ev.data.data, { assignee: uid, assignee_name: name });
+      const up = await ctx.sb.from("nd_events").update({ data }).eq("id", i.id); if (up.error) throw new ToolError(up.error.message);
+      return { id: i.id, assignee: uid, assignee_name: name, note: "Брокерът ще получи известие на телефона веднага, 2 ч и 1 ч преди часа; без потвърждение до 10 мин – известие до екипа." };
+    }
+  },
+  /* ---------- памет и казуси ---------- */
+  "memory.remember": {
+    description: "Запомня траен факт в дългосрочната памет на Тед (за агенцията/брокера или за активния казус, ако е подаден case_id): предпочитания, правила, важни данни за клиент/имот/сделка. Ползвай при „запомни“, „имай предвид“, „отсега нататък“.",
+    input: schema({ text: S("string", { required: true, max: 1500 }), case_id: S("string") }),
+    run: async (ctx, i) => { const { error } = await ctx.sb.from("nd_ted_memory").insert({ user_id: ctx.userId, case_id: i.case_id || null, kind: "fact", role: "user", content: i.text }); if (error) throw new ToolError(error.message); return { remembered: true, text: i.text, scope: i.case_id ? "казус" : "дългосрочна памет" }; }
+  },
+  "memory.search": {
+    description: "Търси в паметта на Тед (факти, резюмета и минали разговори) по ключови думи; по желание само в даден казус. Връща до 20 съвпадения с дата.",
+    input: schema({ query: S("string", { required: true, max: 200 }), case_id: S("string"), limit: S("number", { min: 1, max: 20, default: 12 }) }),
+    run: async (ctx, i) => {
+      const words = i.query.toLocaleLowerCase("bg").split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2).slice(0, 5); if (!words.length) throw new ToolError("Дайте поне една дума");
+      let qb = ctx.sb.from("nd_ted_memory").select("id,case_id,kind,role,content,created_at").or(words.map((w) => "content.ilike.%" + w.replace(/[%,()]/g, "") + "%").join(",")).order("created_at", { ascending: false }).limit(i.limit);
+      if (i.case_id) qb = qb.eq("case_id", i.case_id);
+      const { data, error } = await qb; if (error) throw new ToolError(error.message);
+      return { count: (data || []).length, items: (data || []).map((m) => ({ id: m.id, case_id: m.case_id, kind: m.kind, role: m.role, at: m.created_at, text: String(m.content).slice(0, 700) })) };
+    }
+  },
+  "memory.forget": {
+    description: "Изтрива запомнен факт по id (от memory.search) – само след изрично искане на служителя.",
+    input: schema({ id: S("string", { required: true }) }),
+    run: async (ctx, i) => { const { error } = await ctx.sb.from("nd_ted_memory").delete().eq("id", i.id).eq("kind", "fact"); if (error) throw new ToolError(error.message); return { deleted: true }; }
+  },
+  "cases.list": {
+    description: "Списък на казусите (проектите) на агенцията: id, заглавие, клиент, статус, резюме, последна активност. Казусът е тема с безкрайна памет (напр. сделка, спор, клиент, безплатен правен казус).",
+    input: schema({ status: S("string", { enum: ["open", "closed", "all"], default: "open" }), query: S("string", { max: 120 }) }),
+    run: async (ctx, i) => {
+      let qb = ctx.sb.from("nd_ted_cases").select("id,title,client,client_id,status,summary,updated_at,created_at,user_id").order("updated_at", { ascending: false }).limit(100);
+      if (i.status !== "all") qb = qb.eq("status", i.status);
+      const { data, error } = await qb; if (error) throw new ToolError(error.message);
+      const qq = (i.query || "").toLocaleLowerCase("bg");
+      return { cases: (data || []).filter((c) => !qq || [c.title, c.client, c.summary].join(" ").toLocaleLowerCase("bg").includes(qq)).map((c) => ({ id: c.id, title: c.title, client: c.client, status: c.status, updated_at: c.updated_at, summary: c.summary ? String(c.summary).slice(0, 400) : "" })) };
+    }
+  },
+  "cases.create": {
+    description: "Създава нов казус (проект) с безкрайна памет: заглавие, по желание клиент (име или id) и начално описание. Връща id – кажи на служителя да го избере от „Казус“ в чата или продължи в него.",
+    input: schema({ title: S("string", { required: true, max: 160 }), client_id: S("string"), client_name: S("string", { max: 120 }), description: S("string", { max: 4000 }) }),
+    run: async (ctx, i) => {
+      const c = await clientOf(ctx, i.client_id, i.client_name).catch(() => null);
+      const row = { user_id: ctx.userId, title: i.title, client: c ? c.name : (i.client_name || ""), client_id: c ? c.id : null, status: "open", summary: i.description || "" };
+      const { data, error } = await ctx.sb.from("nd_ted_cases").insert(row).select("id,title").single(); if (error) throw new ToolError(error.message);
+      if (i.description) await ctx.sb.from("nd_ted_memory").insert({ user_id: ctx.userId, case_id: data.id, kind: "fact", role: "user", content: i.description }).then(() => null, () => null);
+      return { id: data.id, title: data.title, note: "Казусът е създаден. Всичко, казано в него, се помни без ограничение." };
+    }
+  },
+  "cases.update": {
+    description: "Обновява казус: заглавие, статус (open/closed), резюме (замества), клиент.",
+    input: schema({ id: S("string", { required: true }), title: S("string", { max: 160 }), status: S("string", { enum: ["open", "closed"] }), summary: S("string", { max: 6000 }), client_name: S("string", { max: 120 }) }),
+    run: async (ctx, i) => {
+      const patch = { updated_at: new Date().toISOString() }; ["title", "status", "summary"].forEach((k) => { if (i[k] !== undefined) patch[k] = i[k]; }); if (i.client_name) patch.client = i.client_name;
+      const { data, error } = await ctx.sb.from("nd_ted_cases").update(patch).eq("id", i.id).select("id,title,status").single(); if (error) throw new ToolError(error.message); return data;
+    }
+  },
+  "cases.get": {
+    description: "Пълна информация за казус: данни, резюме, факти и последните 40 съобщения.",
+    input: schema({ id: S("string", { required: true }) }),
+    run: async (ctx, i) => {
+      const { data: c, error } = await ctx.sb.from("nd_ted_cases").select("*").eq("id", i.id).maybeSingle(); if (error) throw new ToolError(error.message); if (!c) throw new ToolError("Няма казус " + i.id, 404);
+      const { data: m } = await ctx.sb.from("nd_ted_memory").select("kind,role,content,created_at").eq("case_id", i.id).order("created_at", { ascending: false }).limit(40);
+      return { kase: c, facts: (m || []).filter((x) => x.kind === "fact").map((x) => x.content), messages: (m || []).filter((x) => x.kind === "message").reverse().map((x) => ({ role: x.role, at: x.created_at, text: String(x.content).slice(0, 1200) })) };
+    }
+  },
   "audit.recent": {
     description: "Последните действия на Тед (одит): кой, кога, какъв инструмент, успех.",
     input: schema({ limit: S("number", { min: 1, max: 100, default: 20 }) }),

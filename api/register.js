@@ -55,7 +55,8 @@ module.exports = async (req, res) => {
     /* 3) брокерска карта */
     let id = slug(name); const ex = await fetch(SB_URL + "/rest/v1/nd_brokers?select=id,data&data->>email=eq." + encodeURIComponent(email), { headers: H() }); const exj = await ex.json().catch(() => []);
     if (Array.isArray(exj) && exj[0]) id = exj[0].id; else { const dup = await fetch(SB_URL + "/rest/v1/nd_brokers?select=id&id=eq." + encodeURIComponent(id), { headers: H() }); const dj = await dup.json().catch(() => []); if (Array.isArray(dj) && dj.length) id = id + "-" + Date.now().toString(36).slice(-4); }
-    const card = { name, title, role: "Брокер", phone, email, photo: "", thumb: "", active: true, office: "Шумен", pos: "Брокер", perms: { clients: true, props: true, deals: true, calendar: true, docs: true }, restr: {}, deals: 0, sales: 0, rent: 0, listings: 0, clients: 0, rating: 5, reviews: 0, user_id: userId, created: new Date().toISOString() };
+    /* същата структура като картата, която страница „Брокери“ създава (sales/rent са флагове, perms/restr/clients – списъци) */
+    const card = { name, title, role: "Брокер", phone, email, photo: "avatar.jpg", thumb: "avatar.jpg", active: true, office: "Шумен", pos: title, perms: ["Огледи", "Клиенти", "Публикации", "Документи"], restr: [], deals: 0, sales: true, rent: true, listings: 0, clients: [], rating: 5, reviews: 0, user_id: userId, created: new Date().toISOString() };
     if (Array.isArray(exj) && exj[0]) Object.assign(card, exj[0].data || {}, { name, phone, email, user_id: userId, active: true });
     r = await fetch(SB_URL + "/rest/v1/nd_brokers", { method: "POST", headers: Object.assign(H(), { Prefer: "resolution=merge-duplicates" }), body: JSON.stringify({ id, data: card }) });
     if (!r.ok) return send(res, 200, { ok: true, user_id: userId, broker_id: null, warn: "Профилът е създаден, но брокерската карта не се записа – добавете я от Брокери." });
