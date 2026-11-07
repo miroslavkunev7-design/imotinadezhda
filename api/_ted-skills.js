@@ -39,7 +39,7 @@ function schema(spec) {
 const S = (type, o) => Object.assign({ type }, o || {});
 
 /* ---------- storage / db helpers (user token, RLS) ---------- */
-const T = { clients: "nd_clients", properties: "nd_properties", documents: "nd_documents", companies: "nd_companies", activities: "nd_activities", audit: "nd_audit" };
+const T = { clients: "nd_clients", properties: "nd_properties", documents: "nd_documents", companies: "nd_companies", activities: "nd_activities", audit: "nd_audit", rentals: "nd_rentals", inquiries: "nd_inquiries", collected: "nd_collected" };
 async function rows(ctx, kind, filter) {
   let q = ctx.sb.from(T[kind]).select("id,data,created_at,updated_at").order("updated_at", { ascending: false }).limit(2000);
   if (filter) q = filter(q);
@@ -315,6 +315,76 @@ const tools = {
       const buf = await textPdf([{ h1: i.title }, { small: "Недвижими Имоти Надежда · " + new Date().toLocaleDateString("bg-BG") }, { hr: true }].concat(i.blocks), { footer: "Недвижими Имоти Надежда · " + i.title });
       const name = safeName(i.title) + ".pdf", p = artPath(client, name); await upload(ctx, p, buf, "application/pdf");
       return Object.assign({ pages: (await loadPdf(buf)).getPageCount() }, await registerArtifact(ctx, client, name, p, buf.length, "application/pdf", "Тед"));
+    }
+  },
+  /* ---------- Управление на наеми (crm-naemi.html, nd_rentals) ---------- */
+  "rentals.list": {
+    description: "Наеми под управление: заглавие, град/квартал, наем на месец, депозит, наемател/наемодател с телефони, падеж, статус (Отдаден / Чака плащане / Свободен / Изтекъл) и дали е платен текущият месец. Филтри: status (rented|due|free|end), text.",
+    input: schema({ status: S("string", { enum: ["rented", "due", "free", "end"] }), text: S("string", { max: 120 }) }),
+    run: async (ctx, i) => {
+      const ym = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Sofia" }).slice(0, 7), today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Sofia" }), day = +today.slice(8, 10);
+      const st = (r) => (r.end && r.end < today ? "end" : !r.tenant ? "free" : !(r.payments || []).some((p) => p.month === ym) && day >= (Number(r.payDay) || 1) ? "due" : "rented");
+      const TXT = { rented: "Отдаден", due: "Чака плащане", free: "Свободен", end: "Изтекъл" };
+      let all = await rows(ctx, "rentals");
+      const q = (i.text || "").toLocaleLowerCase("bg");
+      all = all.filter((r) => (!i.status || st(r) === i.status) && (!q || [r.title, r.city, r.hood, r.address, r.owner, r.tenant, r.ownerPhone, r.tenantPhone].join(" ").toLocaleLowerCase("bg").includes(q)));
+      const list = all.map((r) => ({ id: r.id, title: r.title, city: r.city, hood: r.hood, rent: r.rent, deposit: r.deposit, pay_day: r.payDay, tenant: r.tenant || null, tenant_phone: r.tenantPhone || null, owner: r.owner || null, owner_phone: r.ownerPhone || null, start: r.start || null, end: r.end || null, status: TXT[st(r)], paid_this_month: (r.payments || []).some((p) => p.month === ym) }));
+      return { count: list.length, month: ym, monthly_total: list.filter((r) => r.tenant).reduce((a, r) => a + (Number(r.rent) || 0), 0), rentals: list.slice(0, 50) };
+    }
+  },
+  "rentals.create": {
+    description: "Добавя наем в „Управление на наеми“: title (задължително), city (задължително), rent (месечен наем, задължително), deposit, payDay (ден от месеца), start/end (YYYY-MM-DD), owner, ownerPhone, tenant, tenantPhone, tenantMail, hood, address, type, rooms, area, notes.",
+    input: schema({ title: S("string", { required: true, max: 160 }), city: S("string", { required: true, max: 60 }), rent: S("number", { required: true, min: 1 }), deposit: S("number", { min: 0 }), payDay: S("number", { min: 1, max: 31 }), start: S("string", { max: 10 }), end: S("string", { max: 10 }), owner: S("string", { max: 120 }), ownerPhone: S("string", { max: 40 }), tenant: S("string", { max: 120 }), tenantPhone: S("string", { max: 40 }), tenantMail: S("string", { max: 160 }), hood: S("string", { max: 80 }), address: S("string", { max: 200 }), type: S("string", { max: 60 }), rooms: S("string", { max: 10 }), area: S("string", { max: 10 }), notes: S("string", { max: 2000 }) }),
+    run: async (ctx, i) => { const r = await put(ctx, "rentals", Object.assign({ payDay: 1, files: [], payments: [], receipts: [] }, i)); return { id: r.id, title: r.title, rent: r.rent, note: "Наемът е в „Управление на наеми“." }; }
+  },
+  "rentals.update": {
+    description: "Променя наем по id (от rentals.list): всяко поле от rentals.create.",
+    input: schema({ id: S("string", { required: true }), title: S("string", { max: 160 }), city: S("string", { max: 60 }), rent: S("number", { min: 1 }), deposit: S("number", { min: 0 }), payDay: S("number", { min: 1, max: 31 }), start: S("string", { max: 10 }), end: S("string", { max: 10 }), owner: S("string", { max: 120 }), ownerPhone: S("string", { max: 40 }), tenant: S("string", { max: 120 }), tenantPhone: S("string", { max: 40 }), tenantMail: S("string", { max: 160 }), notes: S("string", { max: 2000 }) }),
+    run: async (ctx, i) => { const cur = await row(ctx, "rentals", i.id); const upd = Object.assign({}, cur, i); delete upd.id; const r = await put(ctx, "rentals", upd, i.id); return { id: r.id, title: r.title, updated: Object.keys(i).filter((k) => k !== "id") }; }
+  },
+  "rentals.mark_paid": {
+    description: "Отбелязва платен наем за месец (month YYYY-MM, по подразбиране текущият) – като бутона „Платен наем – месец“.",
+    input: schema({ id: S("string", { required: true }), month: S("string", { max: 7 }), amount: S("number", { min: 0 }) }),
+    run: async (ctx, i) => {
+      const cur = await row(ctx, "rentals", i.id), month = /^\d{4}-\d{2}$/.test(i.month || "") ? i.month : new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Sofia" }).slice(0, 7);
+      const payments = (cur.payments || []).filter((p) => p.month !== month).concat([{ month, amount: i.amount != null ? i.amount : Number(cur.rent) || 0, at: new Date().toISOString() }]);
+      const upd = Object.assign({}, cur, { payments }); delete upd.id; await put(ctx, "rentals", upd, i.id);
+      return { id: i.id, title: cur.title, month, paid: true };
+    }
+  },
+  /* ---------- Запитвания (nd_inquiries): ипотечни кандидатури, запитвания и огледи от сайта ---------- */
+  "inquiries.list": {
+    description: "Запитвания от сайта: кандидатури за ипотечен кредит, запитвания и огледи – име, телефон, имейл, обява, статус (Ново/Записан…), дата, приети/общо документи. Филтри: kind (mortgage|inquiry|viewing), status.",
+    input: schema({ kind: S("string", { max: 20 }), status: S("string", { max: 30 }) }),
+    run: async (ctx, i) => {
+      const all = (await rows(ctx, "inquiries")).filter((x) => (!i.kind || x.kind === i.kind) && (!i.status || x.status === i.status));
+      return { count: all.length, new: all.filter((x) => x.status === "Ново").length, inquiries: all.slice(0, 40).map((x) => ({ id: x.id, kind: x.kind, status: x.status, name: x.name, phone: x.phone, email: x.email, property: x.property && (x.property.code || x.property.title) || x.property || null, type: x.typeLabel || x.type || null, docs: x.docs ? (x.ok_docs || 0) + "/" + x.docs.length : null, message: x.message ? String(x.message).slice(0, 300) : undefined, at: x.at || x.updated_at })) };
+    }
+  },
+  /* ---------- Събрани обяви (nd_collected) ---------- */
+  "collected.list": {
+    description: "Събрани обяви от собственици и хора, които търсят (от „Събиране на имоти и клиенти“ и find_owner_listings): заглавие, цена, място, телефон, източник, линк, дата. Филтри: kind (property|wanted|seller), text.",
+    input: schema({ kind: S("string", { max: 20 }), text: S("string", { max: 120 }) }),
+    run: async (ctx, i) => {
+      const q = (i.text || "").toLocaleLowerCase("bg");
+      const all = (await rows(ctx, "collected")).filter((x) => x.kind !== "settings" && (!i.kind || x.kind === i.kind) && (!q || [x.title, x.city, x.hood, x.phone, x.text, x.source].join(" ").toLocaleLowerCase("bg").includes(q)));
+      return { count: all.length, items: all.slice(0, 40).map((x) => ({ id: x.id, kind: x.kind, title: x.title, price: x.price, city: x.city, hood: x.hood, phone: x.phone, name: x.name, source: x.source, link: x.link, at: x.collected_at, archived: !!x.archived })) };
+    }
+  },
+  /* ---------- Компании и служители (nd_companies) ---------- */
+  "companies.create": {
+    description: "Добавя партньорска компания в „Компании“: name (задължително), cat (bank = банка, build = строител, interior = интериор, invest = инвеститор, service = услуги), phone, address, email, web, desc.",
+    input: schema({ name: S("string", { required: true, max: 160 }), cat: S("string", { enum: ["bank", "build", "interior", "invest", "service"], default: "service" }), phone: S("string", { max: 40 }), address: S("string", { max: 200 }), email: S("string", { max: 160 }), web: S("string", { max: 160 }), desc: S("string", { max: 2000 }) }),
+    run: async (ctx, i) => { const r = await put(ctx, "companies", Object.assign({ emps: [] }, i)); return { id: r.id, name: r.name, cat: r.cat }; }
+  },
+  "companies.add_employee": {
+    description: "Добавя служител към компания (company_id от companies.search): name (задължително), role, phone, email.",
+    input: schema({ company_id: S("string", { required: true }), name: S("string", { required: true, max: 120 }), role: S("string", { max: 120 }), phone: S("string", { max: 40 }), email: S("string", { max: 160 }) }),
+    run: async (ctx, i) => {
+      const co = await row(ctx, "companies", i.company_id); const emps = (co.emps || co.employees || []).slice();
+      emps.push({ id: "e" + Date.now().toString(36), name: i.name, role: i.role || "", phone: i.phone || "", email: i.email || "" });
+      const upd = Object.assign({}, co, { emps }); delete upd.id; delete upd.employees; await put(ctx, "companies", upd, i.company_id);
+      return { company: co.name, employee: i.name, employees: emps.length };
     }
   },
   "contacts.resolve": {

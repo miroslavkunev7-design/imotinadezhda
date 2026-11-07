@@ -180,7 +180,7 @@ module.exports = async (req, res) => {
   if (chosen.provider !== "gemini") { const g = LLM.catalog().find((m) => m.provider === "gemini"); if (g) order.push(g); }
   LLM.catalog().filter((m) => m.provider !== "gemini" && m.id !== chosen.id && !order.some((o) => o.id === m.id)).forEach((m) => order.push(m));
   /* действия, които променят данни: след тях не сменяме модела (за да не се повтори запис или изпращане) */
-  const MUTATING = /\.(create|update|delete|set_status|add_note|send|generate|merge|split|translate|bank_statements_pack|create_pdf|assign|remember)$|^video\.|^събиране/;
+  const MUTATING = /\.(create|update|delete|set_status|add_note|send|generate|merge|split|translate|bank_statements_pack|create_pdf|assign|remember|mark_paid|add_employee)$|^video\.|^събиране/;
   const T_END = T0 + 108000; /* лимитът на функцията е 120 s */
   let lastErr = "", quota = false;
   for (const model of order) {
