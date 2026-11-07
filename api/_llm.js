@@ -18,7 +18,7 @@ function parseList(s, def) {
 /* Каталог: само доставчиците, за които има ключ */
 function catalog() {
   const out = [];
-  if (E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY")) parseList(E("GEMINI_MODELS"), ["gemini-2.5-flash|Gemini 2.5 Flash|бърз, безплатен лимит, снимки и PDF", "gemini-2.5-pro|Gemini 2.5 Pro|по-умен за сложни анализи и договори"]).forEach((m) => out.push(Object.assign({ provider: "gemini", vision: true, pdf: true }, m)));
+  if (E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY")) parseList(E("GEMINI_MODELS"), ["gemini-2.5-flash|Gemini 2.5 Flash|бърз, снимки и PDF", "gemini-2.5-flash-lite|Gemini 2.5 Flash Lite|най-бърз, най-голям безплатен лимит", "gemini-2.0-flash|Gemini 2.0 Flash|резервен, снимки и PDF"]).forEach((m) => out.push(Object.assign({ provider: "gemini", vision: true, pdf: true }, m)));
   if (E("OPENAI_API_KEY")) parseList(E("OPENAI_MODELS"), ["gpt-4.1-mini|ChatGPT 4.1 mini|бърз и евтин", "gpt-4.1|ChatGPT 4.1|по-силен"]).forEach((m) => out.push(Object.assign({ provider: "openai", vision: true, pdf: false }, m)));
   if (E("ANTHROPIC_API_KEY")) parseList(E("ANTHROPIC_MODELS"), ["claude-sonnet-4-5|Claude Sonnet 4.5|много добър за текст и документи", "claude-haiku-4-5|Claude Haiku 4.5|бърз"]).forEach((m) => out.push(Object.assign({ provider: "anthropic", vision: true, pdf: true }, m)));
   if (E("OPENROUTER_API_KEY")) parseList(E("OPENROUTER_MODELS"), ["meta-llama/llama-3.3-70b-instruct:free|Llama 3.3 70B (OpenRouter)|безплатен, без снимки"]).forEach((m) => out.push(Object.assign({ provider: "openrouter", vision: false, pdf: false }, m)));
@@ -50,8 +50,18 @@ async function chat(model, opts) {
     const conv = msgs.map((m) => { const parts = [{ text: m.text || "(без текст)" }]; (m.files || []).forEach((f) => { if (/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.mime)) parts.push({ inline_data: { mime_type: f.mime, data: f.data } }); }); return { role: m.role === "assistant" ? "model" : "user", parts }; });
     for (let step = 0; step < maxSteps; step++) {
       const last = stop(step) && step > 0; if (last) conv[conv.length - 1].parts.push({ text: STOP });
-      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model.id + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ system_instruction: { parts: [{ text: system }] }, contents: conv, generationConfig: { temperature } }, last || !tools.length ? {} : { tools: [{ function_declarations: tools }] })) });
-      const j = await r.json(); if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
+      const body = JSON.stringify(Object.assign({ system_instruction: { parts: [{ text: system }] }, contents: conv, generationConfig: { temperature } }, last || !tools.length ? {} : { tools: [{ function_declarations: tools }] }));
+      let r, j;
+      /* безплатният лимит на Gemini е по няколко заявки в минута: при 429 изчакваме препоръчаното време (до 14 s) и опитваме пак, преди да сменим модела */
+      for (let attempt = 0; ; attempt++) {
+        r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model.id + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" }, body });
+        j = await r.json().catch(() => ({}));
+        if (r.ok) break;
+        const msg = (j.error && j.error.message) || "HTTP " + r.status;
+        const wait = r.status === 429 ? Math.ceil(parseFloat((msg.match(/retry in ([\d.]+)\s*s/i) || [])[1] || "0")) || 8 : 0;
+        if (r.status === 429 && attempt < 2 && wait <= 14 && Date.now() - t0 + wait * 1000 < budgetMs) { await new Promise((ok) => setTimeout(ok, wait * 1000 + 300)); continue; }
+        const err = new Error(msg); err.status = r.status; err.quota = r.status === 429; throw err;
+      }
       const parts = (((j.candidates || [])[0] || {}).content || {}).parts || [];
       const calls = parts.filter((p) => p.functionCall).map((p) => p.functionCall);
       if (!calls.length) return parts.map((p) => p.text || "").join("").trim();

@@ -143,6 +143,10 @@ module.exports = async (req, res) => {
   /* избраният модел, после резервните Gemini модели (ако има ключ) */
   const order = [chosen].concat(LLM.catalog().filter((m) => m.provider === "gemini" && m.id !== chosen.id && /flash/.test(m.id)));
   if (key && !order.some((m) => m.id === "gemini-2.0-flash")) order.push({ id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "gemini", vision: true, pdf: true });
+  /* след Gemini – другите доставчици с инструменти (Gateway, OpenAI, Claude, Ollama), ако има ключ: при изчерпан лимит Тед не спира */
+  LLM.catalog().filter((m) => m.provider !== "gemini" && m.id !== chosen.id && !order.some((o) => o.id === m.id)).forEach((m) => order.push(m));
+  /* действия, които променят данни: след тях не сменяме модела (за да не се повтори запис или изпращане) */
+  const MUTATING = /\.(create|update|delete|set_status|add_note|send|generate|merge|split|translate|bank_statements_pack|create_pdf)$|^video\./;
   let lastErr = "";
   for (const model of order) {
     try {
@@ -150,7 +154,7 @@ module.exports = async (req, res) => {
       if (text === null) return send(res, 200, { ok: true, text: "Задачата изисква твърде много стъпки – разделете я на по-малки.", actions: ctx.actions, staff: ctx.staff, model: model.id });
       const out = text || "Не успях да формулирам отговор – опитайте отново.";
       return send(res, 200, { ok: true, text: out + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i0, a) => x.url && a.findIndex((y) => y.url === x.url) === i0).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, video: ctx.video || null, model: model.id, model_name: model.name, fallback: model.id !== chosen.id ? chosen.name + " не отговори – отговори " + model.name : null });
-    } catch (e) { lastErr = String(e.message || e); if (ctx.actions.length) break; }
+    } catch (e) { lastErr = String(e.message || e); if (ctx.actions.some((a) => MUTATING.test(String(a).replace(/ ✗$/, "")))) break; }
   }
   return send(res, 502, { ok: false, error: "AI асистентът не отговори: " + lastErr });
 };

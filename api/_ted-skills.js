@@ -87,7 +87,13 @@ async function registerArtifact(ctx, client, name, p, size, mime, folder, note) 
   const url = await signed(ctx, p);
   return { document_id: doc.id, name, size_bytes: size, mime, download_url: url, expires_in_days: 7, path: p };
 }
-function artPath(client, name) { return (client ? "clients/" + client.id + "/ted/" : "ted/") + Date.now() + "-" + name.replace(/[^\w.\-а-яА-Я ]+/g, "_"); }
+/* Supabase Storage приема само ASCII ключове („Invalid key“ при кирилица): името на файла в хранилището се транслитерира, а в списъка с документи остава на български. */
+const TRL = { а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ж: "zh", з: "z", и: "i", й: "y", к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f", х: "h", ц: "ts", ч: "ch", ш: "sh", щ: "sht", ъ: "a", ь: "y", ю: "yu", я: "ya" };
+function asciiName(name) {
+  const s = String(name || "file").toLowerCase().split("").map((c) => TRL[c] !== undefined ? TRL[c] : c).join("").replace(/[^a-z0-9._-]+/g, "-").replace(/-{2,}/g, "-").replace(/^[-.]+|[-.]+$/g, "");
+  return (s || "file").slice(0, 80);
+}
+function artPath(client, name) { return (client ? "clients/" + client.id + "/ted/" : "ted/") + Date.now() + "-" + asciiName(name); }
 
 /* ---------- PDF helpers ---------- */
 let fontCache = null;
