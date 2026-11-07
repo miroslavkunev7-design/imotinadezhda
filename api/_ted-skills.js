@@ -40,7 +40,7 @@ function schema(spec) {
 const S = (type, o) => Object.assign({ type }, o || {});
 
 /* ---------- storage / db helpers (user token, RLS) ---------- */
-const T = { clients: "nd_clients", properties: "nd_properties", documents: "nd_documents", companies: "nd_companies", activities: "nd_activities", audit: "nd_audit", rentals: "nd_rentals", inquiries: "nd_inquiries", collected: "nd_collected" };
+const T = { clients: "nd_clients", properties: "nd_properties", documents: "nd_documents", companies: "nd_companies", activities: "nd_activities", audit: "nd_audit", rentals: "nd_rentals", inquiries: "nd_inquiries", collected: "nd_collected", prefs: "nd_prefs", brokers: "nd_brokers", deals: "nd_deals" };
 async function rows(ctx, kind, filter) {
   let q = ctx.sb.from(T[kind]).select("id,data,created_at,updated_at").order("updated_at", { ascending: false }).limit(2000);
   if (filter) q = filter(q);
@@ -178,6 +178,53 @@ function htmlToBlocks(html) {
   return blocks;
 }
 
+
+
+/* ---------- имейл: получател, документи по групи, чернова, подател ---------- */
+async function resolveContacts(ctx, query) {
+  const q = String(query || "").toLocaleLowerCase("bg"), words = q.split(/[\s,]+/).filter((w) => w.length > 2 && !/^(от|на|в|и|при|към|за|the|at|компания|фирма|служител|служителя|служителката|банка)$/.test(w));
+  const cos = await rows(ctx, "companies"), cl = await rows(ctx, "clients"), out = [];
+  const norm = (t) => String(t || "").toLocaleLowerCase("bg").replace(/\s+/g, "");
+  cos.forEach((co) => { (co.emps || co.employees || []).forEach((e) => { const hay = [e.name, e.role, co.name, norm(co.name)].join(" ").toLocaleLowerCase("bg"); const score = words.filter((w) => hay.includes(w) || norm(co.name).includes(w)).length; if (score) out.push({ kind: "company_contact", score, name: e.name, role: e.role || "", company: co.name, company_id: co.id, email: e.email || null, phone: e.phone || null }); }); if (co.email) { const score = words.filter((w) => norm(co.name).includes(w)).length; if (score) out.push({ kind: "company", score: score - 0.5, name: co.name, company: co.name, company_id: co.id, email: co.email, phone: co.phone || null }); } });
+  cl.forEach((c) => { const hay = String(c.name || "").toLocaleLowerCase("bg"); const score = words.filter((w) => hay.includes(w)).length; if (score) out.push({ kind: "client", score, name: c.name, client_id: c.id, email: c.email || null, phone: c.phone || null }); });
+  out.sort((a, b) => b.score - a.score);
+  const best = out.filter((x) => x.score === (out[0] || {}).score);
+  return { candidates: out.slice(0, 10), best, unambiguous: best.length === 1 ? best[0] : null };
+}
+/* имотът, свързан с клиента чрез сделка (капаро / депозит / предварителен договор / оферта), или имот с този клиент */
+async function linkedProperty(ctx, client) {
+  if (!client) return null;
+  const props = await rows(ctx, "properties"), deals = await rows(ctx, "deals").catch(() => []);
+  const mine = deals.filter((d) => d.client_id === client.id || String(d.client || "") === client.name).filter((d) => !/Отказана/.test(d.stage || ""));
+  const score = (d) => (/капаро|депозит/i.test([d.title, d.note, d.stage].join(" ")) ? 4 : 0) + ({ "Нотариус": 3, "Предварителен договор": 3, "Оферта": 2, "Оглед": 1 }[d.stage] || 0) + (Number(d.paid) > 0 ? 2 : 0);
+  mine.sort((a, b) => score(b) - score(a) || String(b.updated_at).localeCompare(String(a.updated_at)));
+  const find = (ref) => { const r = String(ref || "").toLocaleLowerCase("bg").trim(); if (!r) return null; return props.find((p) => String(p.code || "").toLocaleLowerCase("bg") === r || p.id === ref) || props.find((p) => r.includes(String(p.code || "§").toLocaleLowerCase("bg"))) || props.find((p) => p.title && r.includes(String(p.title).toLocaleLowerCase("bg"))); };
+  for (const d of mine) { const p = find(d.property || d.prop || d.property_code); if (p) return Object.assign({ _deal: { title: d.title, stage: d.stage } }, p); }
+  return props.find((p) => String(p.client || "").toLocaleLowerCase("bg") === String(client.name || "").toLocaleLowerCase("bg")) || null;
+}
+/* група документи → един PDF (снимките стават страници); файловете, които не стават PDF, се прикачат поотделно */
+async function groupToFiles(ctx, client, title, docs) {
+  const files = [], out = await PDFLib.PDFDocument.create(); let merged = 0;
+  for (const d of docs) {
+    let info; try { info = await pagesOf(ctx, d); } catch (e) { continue; }
+    if (info.kind === "other") { files.push({ name: d.name, path: d.path, size: info.size, mime: d.mime || "application/octet-stream", pages: null }); continue; }
+    try { await appendDoc(out, info); merged++; } catch (e) { files.push({ name: d.name, path: d.path, size: info.size, mime: d.mime || "", pages: info.pages }); }
+  }
+  if (merged) { const buf = Buffer.from(await out.save()), name = safeName(title) + ".pdf", p0 = artPath(client, name); await upload(ctx, p0, buf, "application/pdf"); files.unshift({ name, path: p0, size: buf.length, mime: "application/pdf", pages: out.getPageCount(), parts: merged }); }
+  return files;
+}
+const DRAFT = (ctx) => "maildraft:" + (ctx.userId || (ctx.user && ctx.user.id));
+async function senderOf(ctx) {
+  const own = await mailbox(ctx);
+  if (own) return { cfg: own, kind: "own", from: own.email };
+  const ag = await MAIL.configFor("agency").catch(() => null);
+  if (ag) {
+    let name = (ctx.user && ctx.user.user_metadata && (ctx.user.user_metadata.name || ctx.user.user_metadata.full_name)) || "";
+    if (!name) { try { const me = (await rows(ctx, "brokers")).find((b) => String(b.email || "").toLowerCase() === String((ctx.user && ctx.user.email) || "").toLowerCase()); if (me) name = me.name; } catch (e) {} }
+    return { cfg: Object.assign({}, ag, { name: (name ? name + " | " : "") + "Имоти Надежда" }), kind: "agency", from: ag.email, reply_to: ctx.user && ctx.user.email };
+  }
+  return { cfg: null, kind: "none", from: null };
+}
 
 /* ---------- снимки: сваляне от интернет и AI генериране/редакция ---------- */
 const PRIVATE_HOST = /^(localhost|0\.0\.0\.0|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|\[?::1\]?|metadata\.)/i;
@@ -472,47 +519,81 @@ const tools = {
   "contacts.resolve": {
     description: "Намира получател по описание („Калина от Инвестбанк“, „управителят на ДСК“, име на клиент): търси в Компании (служители) и в Клиенти. Връща кандидати с имейл; при повече от един – избор, не изпращай.",
     input: schema({ query: S("string", { required: true, max: 160 }) }),
-    run: async (ctx, i) => {
-      const q = i.query.toLocaleLowerCase("bg"), words = q.split(/[\s,]+/).filter((w) => w.length > 2 && !/^(от|на|в|и|при|към|за|the|at)$/.test(w));
-      const cos = await rows(ctx, "companies"), cl = await rows(ctx, "clients"), out = [];
-      cos.forEach((co) => { (co.emps || co.employees || []).forEach((e) => { const hay = [e.name, e.role, co.name].join(" ").toLocaleLowerCase("bg"); const score = words.filter((w) => hay.includes(w)).length; if (score) out.push({ kind: "company_contact", score, name: e.name, role: e.role || "", company: co.name, company_id: co.id, email: e.email || null, phone: e.phone || null }); }); if (co.email) { const hay = String(co.name).toLocaleLowerCase("bg"); const score = words.filter((w) => hay.includes(w)).length; if (score) out.push({ kind: "company", score, name: co.name, company: co.name, company_id: co.id, email: co.email, phone: co.phone || null }); } });
-      cl.forEach((c) => { const hay = String(c.name || "").toLocaleLowerCase("bg"); const score = words.filter((w) => hay.includes(w)).length; if (score) out.push({ kind: "client", score, name: c.name, client_id: c.id, email: c.email || null, phone: c.phone || null }); });
-      out.sort((a, b) => b.score - a.score);
-      const best = out.filter((x) => x.score === (out[0] || {}).score);
-      return { candidates: out.slice(0, 10), unambiguous: best.length === 1 && !!best[0].email ? best[0] : null, note: best.length > 1 ? "Няколко съвпадения – покажи ги и попитай кой." : (!out.length ? "Няма съвпадение в Компании и Клиенти." : (!best[0].email ? "Намерен е контакт, но без имейл – поискай имейл." : "")) };
-    }
+    run: async (ctx, i) => { const r = await resolveContacts(ctx, i.query); return { candidates: r.candidates, unambiguous: r.unambiguous && r.unambiguous.email ? r.unambiguous : null, note: r.best.length > 1 ? "Няколко съвпадения – покажи ги и попитай кой." : (!r.candidates.length ? "Няма съвпадение в Компании и Клиенти." : (!r.best[0].email ? "Намерен е контакт, но без имейл – поискай имейл." : "")) }; }
   },
   "email.preview": {
-    description: "Подготвя преглед на имейл с прикачени документи (по doc_ids): получател, тема, текст, файлове с брой страници и размер. Нищо не се изпраща.",
-    input: schema({ to_email: S("string", { required: true, max: 160 }), to_name: S("string", { max: 120 }), subject: S("string", { required: true, max: 200 }), body: S("string", { required: true, max: 8000 }), doc_ids: S("array", { max: 15, default: [] }) }),
+    description: "Подготвя имейл и го показва в чата (нищо не се изпраща). Получател: to_email (точен адрес – abv.bg, gmail и всеки друг) или to_query (напр. „Калина ИнвестБанк“ – търси в Компании/служители и Клиенти). Документи: doc_ids и/или client_name/client_id + include_client_docs=true и/или property_code / include_property_docs=true (свързаният с клиента имот с капаро/депозит се намира сам). merge=true (по подразбиране) ги подрежда в PDF файлове „Документи на имота …“ и „Документи на клиента …“. Запазва черновата – след „да“ се праща с email.send {confirm:true}.",
+    input: schema({ to_email: S("string", { max: 160 }), to_query: S("string", { max: 160 }), to_name: S("string", { max: 120 }), subject: S("string", { required: true, max: 200 }), body: S("string", { required: true, max: 8000 }), doc_ids: S("array", { max: 15, default: [] }), client_id: S("string"), client_name: S("string", { max: 120 }), property_code: S("string", { max: 40 }), include_client_docs: S("boolean", { default: false }), include_property_docs: S("boolean", { default: false }), doc_filter: S("string", { max: 80 }), merge: S("boolean", { default: true }) }),
     run: async (ctx, i) => {
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(i.to_email)) throw new ToolError("Невалиден имейл: " + i.to_email);
-      const files = []; let total = 0;
-      for (const id of i.doc_ids) { const d = await row(ctx, "documents", id); const info = await pagesOf(ctx, d); total += info.size; files.push({ id, name: d.name, pages: info.pages, size_bytes: info.size }); }
-      const cfg = await mailbox(ctx);
-      return { to: { email: i.to_email, name: i.to_name || "" }, subject: i.subject, body: i.body, attachments: files, total_bytes: total, from: cfg ? cfg.email : null, provider: cfg ? cfg.provider : "none", can_send: !!cfg, note: cfg ? "Ще се изпрати от вашата поща " + cfg.email + " само с confirm=true в email.send след изрично „да“." : "Служителят няма настроена поща за изпращане. Кажи му: CRM → Настройки → „Моята поща за изпращане“ (abv.bg, Gmail, Mail.bg, Outlook…). Дотогава мога да дам mailto линк и линкове към файловете." };
+      /* 1) получател */
+      let to = i.to_email ? { email: i.to_email.trim(), name: i.to_name || "" } : null;
+      if (!to && i.to_query) {
+        const r = await resolveContacts(ctx, i.to_query);
+        if (!r.candidates.length) return { need_recipient: true, note: "Няма „" + i.to_query + "“ в Компании и Клиенти – попитай за точния имейл." };
+        if (!r.unambiguous) return { need_choice: true, candidates: r.best.slice(0, 6), note: "Няколко съвпадения – покажи ги и попитай на кого." };
+        if (!r.unambiguous.email) return { need_email: true, contact: r.unambiguous, note: "„" + r.unambiguous.name + "“ няма записан имейл – попитай за адреса (може и да го добави в Компании)." };
+        to = { email: r.unambiguous.email, name: r.unambiguous.name + (r.unambiguous.company && r.unambiguous.kind === "company_contact" ? " (" + r.unambiguous.company + ")" : "") };
+      }
+      if (!to) throw new ToolError("Кажи на кого: име от Компании/Клиенти или точен имейл адрес.");
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to.email)) throw new ToolError("Невалиден имейл: " + to.email);
+      /* 2) документи: имот → клиент → други (в този ред) */
+      const client = (i.client_id || i.client_name) ? await clientOf(ctx, i.client_id, i.client_name) : null;
+      let prop = i.property_code ? await propByCode(ctx, i.property_code) : null;
+      if (!prop && client && i.include_property_docs) prop = await linkedProperty(ctx, client);
+      const flt = (d) => !i.doc_filter || String([d.name, d.folder, d.type].join(" ")).toLocaleLowerCase("bg").includes(i.doc_filter.toLocaleLowerCase("bg"));
+      const groups = [];
+      if (prop && (i.include_property_docs || i.property_code)) { const pd = (prop.docs || []).filter((d) => d && d.path).filter(flt); if (pd.length) groups.push({ title: "Документи на имота " + (prop.code || "") + (prop.title ? " – " + prop.title : ""), docs: pd }); }
+      if (client && i.include_client_docs) { const cd = (await rows(ctx, "documents")).filter((d) => d.client_id === client.id && d.path && d.by !== "ted-mail").filter(flt); if (cd.length) groups.push({ title: "Документи на клиента " + client.name, docs: cd }); }
+      if (i.doc_ids.length) { const ex = []; for (const id of i.doc_ids) ex.push(await row(ctx, "documents", id)); groups.push({ title: "Документи" + (client ? " – " + client.name : ""), docs: ex }); }
+      let atts = [];
+      for (const g of groups) {
+        if (i.merge) atts = atts.concat(await groupToFiles(ctx, client, g.title, g.docs));
+        else for (const d of g.docs) { const info = await pagesOf(ctx, d).catch(() => null); atts.push({ name: d.name, path: d.path, size: info ? info.size : d.size || 0, mime: d.mime || "", pages: info ? info.pages : null }); }
+      }
+      const total = atts.reduce((a, x) => a + (x.size || 0), 0);
+      if (total > 25 * 1048576) throw new ToolError("Документите са " + Math.round(total / 1048576) + " MB – над 25 MB. Ограничи ги (doc_filter) или изпрати на части.");
+      /* 3) подател и чернова */
+      const snd = await senderOf(ctx);
+      const draft = { kind: "maildraft", to, subject: i.subject, body: i.body, attachments: atts, client_id: client ? client.id : null, client: client ? client.name : "", property: prop ? prop.code || prop.id : null, at: new Date().toISOString() };
+      await put(ctx, "prefs", draft, DRAFT(ctx));
+      const shown = [];
+      for (const x of atts) shown.push({ name: x.name, pages: x.pages, size_kb: Math.round((x.size || 0) / 1024), download_url: await signed(ctx, x.path).catch(() => null) });
+      return { draft_saved: true, to, subject: i.subject, body: i.body, attachments: shown, total_kb: Math.round(total / 1024), property: prop ? { code: prop.code, title: prop.title, deal: prop._deal || undefined } : null, from: snd.from, sender: snd.kind, reply_to: snd.reply_to || undefined, can_send: !!snd.cfg,
+        ask: "Да го изпратя ли?", note: snd.cfg ? "Покажи прегледа и попитай „Да го изпратя ли?“. При „да“ → email.send {confirm:true} без други полета." : "Няма поща за изпращане – извикай open_panel {panel:\"mail\"} (еднократно: само паролата на пощата, или обща поща на агенцията)." };
     }
   },
   "email.send": {
-    description: "Изпраща имейла от email.preview (изисква confirm=true след изрично „да“ от служителя). Прикача документите (до 25 MB общо), записва активност и одит. Без доставчик връща mailto линк вместо изпращане.",
-    input: schema({ to_email: S("string", { required: true, max: 160 }), to_name: S("string", { max: 120 }), subject: S("string", { required: true, max: 200 }), body: S("string", { required: true, max: 8000 }), doc_ids: S("array", { max: 15, default: [] }), client_id: S("string"), confirm: S("boolean", { default: false }) }),
+    description: "Изпраща подготвения с email.preview имейл (черновата се пази) – само confirm=true след „да“ от служителя; други полета не са нужни. Праща от пощата на служителя, а ако няма – от общата поща на агенцията с отговор към служителя. Записва активност при клиента.",
+    input: schema({ confirm: S("boolean", { default: false }), to_email: S("string", { max: 160 }), to_name: S("string", { max: 120 }), subject: S("string", { max: 200 }), body: S("string", { max: 8000 }), doc_ids: S("array", { max: 15, default: [] }), client_id: S("string") }),
     run: async (ctx, i) => {
       if (!i.confirm) throw new ToolError("Изпращането изисква потвърждение (confirm=true) след изрично „да“ от служителя", 412);
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(i.to_email)) throw new ToolError("Невалиден имейл");
-      const atts = [], links = []; let total = 0;
-      for (const id of i.doc_ids) { const d = await row(ctx, "documents", id); const buf = await download(ctx, d.path); total += buf.length; atts.push({ filename: d.name, content: buf.toString("base64") }); links.push({ name: d.name, url: await signed(ctx, d.path) }); }
-      if (total > 25 * 1048576) throw new ToolError("Прикачените файлове са над 25 MB – изпратете ги като линкове или на части");
-      const client = i.client_id ? await row(ctx, "clients", i.client_id).catch(() => null) : null;
-      const cfg = await mailbox(ctx);
-      if (!cfg) {
-        const body = i.body + (links.length ? "\n\nДокументи (линкове, валидни 7 дни):\n" + links.map((l) => "• " + l.name + ": " + l.url).join("\n") : "");
-        return { sent: false, need_setup: true, reason: "Нямате настроена поща за изпращане. Настройте я от CRM → Настройки → „Моята поща за изпращане“ (abv.bg, Gmail, Mail.bg, Outlook…). Дотогава – отворете линка, за да изпратите от вашата поща.", mailto: "mailto:" + encodeURIComponent(i.to_email) + "?subject=" + encodeURIComponent(i.subject) + "&body=" + encodeURIComponent(body).slice(0, 6000), links };
+      let d = null;
+      if (!i.to_email) {
+        const { data } = await ctx.sb.from("nd_prefs").select("id,data,updated_at").eq("id", DRAFT(ctx)).maybeSingle();
+        d = data && data.data && data.data.kind === "maildraft" && !data.data.sent ? data.data : null;
+        if (!d) throw new ToolError("Няма подготвен имейл – първо email.preview.");
+        if (Date.now() - Date.parse(d.at || 0) > 6 * 3600000) throw new ToolError("Черновата е по-стара от 6 часа – подготви я отново (email.preview).");
+      } else {
+        d = { to: { email: i.to_email, name: i.to_name || "" }, subject: i.subject || "", body: i.body || "", attachments: [], client_id: i.client_id || null };
+        for (const id of i.doc_ids) { const doc = await row(ctx, "documents", id); d.attachments.push({ name: doc.name, path: doc.path, mime: doc.mime }); }
+      }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.to.email)) throw new ToolError("Невалиден имейл");
+      const atts = []; let total = 0;
+      for (const a of d.attachments || []) { const buf = await download(ctx, a.path); total += buf.length; atts.push({ filename: a.name, content: buf }); }
+      if (total > 25 * 1048576) throw new ToolError("Прикачените файлове са над 25 MB");
+      const snd = await senderOf(ctx);
+      if (!snd.cfg) {
+        const links = []; for (const a of d.attachments || []) links.push({ name: a.name, url: await signed(ctx, a.path).catch(() => "") });
+        const body = d.body + (links.length ? "\n\nДокументи (линкове, валидни 7 дни):\n" + links.map((l) => "• " + l.name + ": " + l.url).join("\n") : "");
+        return { sent: false, need_setup: true, reason: "Няма поща за изпращане. Еднократно: въведете паролата на пощата си (или общата поща на агенцията) в панела „Моята поща“ тук в чата.", mailto: "mailto:" + encodeURIComponent(d.to.email) + "?subject=" + encodeURIComponent(d.subject) + "&body=" + encodeURIComponent(body).slice(0, 6000), links };
       }
       let j;
-      try { j = await MAIL.sendAs(cfg, { to: i.to_email, toName: i.to_name || "", subject: i.subject, text: i.body, attachments: atts.map((a) => ({ filename: a.filename, content: Buffer.from(a.content, "base64") })) }); }
-      catch (e) { throw new ToolError("Имейлът не е изпратен от " + cfg.email + ": " + MAIL.friendly(e), 502); }
-      if (client) await put(ctx, "activities", { client_id: client.id, client: client.name, icon: "mail", text: "Изпратен имейл от " + cfg.email + " до " + i.to_email + ": " + i.subject + (atts.length ? " (" + atts.length + " файла)" : ""), at: new Date().toISOString() }).catch(() => null);
-      return { sent: true, from: cfg.email, message_id: j.message_id, to: i.to_email, attachments: atts.length };
+      try { j = await MAIL.sendAs(snd.cfg, { to: d.to.email, toName: d.to.name || "", subject: d.subject, text: d.body, attachments: atts, replyTo: snd.reply_to, cc: snd.kind === "agency" ? snd.reply_to : undefined }); }
+      catch (e) { throw new ToolError("Имейлът не е изпратен от " + snd.from + ": " + MAIL.friendly(e), 502); }
+      const client = d.client_id ? await row(ctx, "clients", d.client_id).catch(() => null) : null;
+      if (client) await put(ctx, "activities", { client_id: client.id, client: client.name, icon: "mail", text: "Изпратен имейл от " + snd.from + " до " + d.to.email + ": " + d.subject + (atts.length ? " (" + atts.length + " файла: " + atts.map((a) => a.filename).join(", ") + ")" : ""), at: new Date().toISOString() }).catch(() => null);
+      if (!i.to_email) await put(ctx, "prefs", Object.assign({}, d, { sent: true, sent_at: new Date().toISOString() }), DRAFT(ctx)).catch(() => null);
+      return { sent: true, from: snd.from, via: snd.kind === "agency" ? "общата поща на агенцията (отговорите идват при вас, копие до " + snd.reply_to + ")" : "вашата поща", to: d.to.email, to_name: d.to.name, subject: d.subject, attachments: atts.map((a) => a.filename), message_id: j.message_id };
     }
   },
   "contracts.generate": {

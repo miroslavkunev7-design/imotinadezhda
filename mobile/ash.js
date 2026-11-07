@@ -86,6 +86,10 @@
     ".nda-pnl{align-self:stretch;display:grid;gap:8px;padding:12px;border-radius:18px;background:linear-gradient(160deg,rgba(255,250,246,.97),rgba(251,236,224,.94));border:1.5px solid rgba(227,178,94,.8);box-shadow:0 0 0 1px rgba(255,236,190,.55) inset,0 0 12px rgba(255,214,150,.5);font:14px/1.35 'Roboto Condensed',Arial,sans-serif;color:#3a0c12}" +
     ".nda-pnl h5{margin:0;font:700 16px Georgia,serif;color:#7a0f22}.nda-pnl label{font:700 13px 'Roboto Condensed',Arial,sans-serif;color:#6b0a1c}.nda-pnl input,.nda-pnl select{width:100%;box-sizing:border-box;height:42px;border-radius:12px;border:1.5px solid #e3b25e;background:rgba(255,253,250,.95);padding:0 10px;font:16px 'Roboto Condensed',Arial,sans-serif;color:#3a0c12;outline:none}" +
     ".nda-pnl .st{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.65);box-shadow:inset 0 0 0 1px rgba(227,178,94,.5)}.nda-pnl .hn{font-size:12.5px;color:#6b4a40}.nda-pnl .row{display:flex;gap:8px}.nda-pnl .row button{flex:1;height:42px;border-radius:14px;border:1.5px solid #e3b25e;background:linear-gradient(180deg,#fffcf9,#fbefe5);color:#6b0a1c;font:700 15px 'Roboto Condensed',Arial,sans-serif;cursor:pointer;box-shadow:0 0 10px rgba(255,214,150,.45)}" +
+    ".nda-mc{display:block;margin-top:8px;padding:10px 12px;border-radius:16px;background:linear-gradient(160deg,rgba(255,252,248,.98),rgba(251,236,224,.95));box-shadow:0 0 0 1.5px rgba(227,178,94,.8),0 0 12px rgba(255,214,150,.55);white-space:normal}" +
+    ".nda-mc dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0 0 8px;font-size:14px}.nda-mc dt{color:#8d1530;font-weight:700}.nda-mc dd{margin:0;word-break:break-word}.nda-mc pre{margin:0 0 8px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px rgba(227,178,94,.45);font:14px/1.4 'Roboto Condensed',Arial,sans-serif;white-space:pre-wrap;max-height:180px;overflow:auto}" +
+    ".nda-mc .fl{display:flex;flex-direction:column;gap:4px;margin:0 0 8px}.nda-mc .row{display:flex;gap:8px}.nda-mc .row button{flex:1;height:42px;border-radius:14px;border:1.5px solid #e3b25e;background:linear-gradient(180deg,#fffcf9,#fbefe5);color:#6b0a1c;font:700 15px 'Roboto Condensed',Arial,sans-serif;cursor:pointer;box-shadow:0 0 10px rgba(255,214,150,.45)}.nda-mc .row button.pri{background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);color:#fff3dc;border-color:#edc47a}.nda-mc .row button:disabled{opacity:.5}.nda-mc .snd-from{font-size:12.5px;color:#6b4a40;margin:0 0 8px}" +
+    ".nda-pnl .agw{display:flex;align-items:center;gap:8px}.nda-pnl .agw[hidden]{display:none}" +
     ".nda-pnl .row button.pri{background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);color:#fff3dc;border-color:#edc47a;box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 12px rgba(255,190,120,.6)}.nda-pnl .row button:disabled{opacity:.55}.nda-pnl .er{color:#c0392b;font-weight:700}";
 
   /* ---- token of the CRM session (same browser) ---- */
@@ -239,7 +243,7 @@
     try { speechSynthesis.cancel(); } catch (e) {}
     if (playingBtn) playingBtn.classList.remove("on", "ld"); playingBtn = null;
   }
-  function plain(el) { var c = el.cloneNode(true); [].forEach.call(c.querySelectorAll(".nda-say,.acts,a.go"), function (x) { x.remove(); }); [].forEach.call(c.querySelectorAll("tr"), function (tr) { tr.appendChild(document.createTextNode(". ")); }); return c.textContent.replace(/[•✔📁📎🎤]/g, " ").replace(/\s+/g, " ").trim(); }
+  function plain(el) { var c = el.cloneNode(true); [].forEach.call(c.querySelectorAll(".nda-say,.acts,a.go,.nda-mc,.nda-img"), function (x) { x.remove(); }); [].forEach.call(c.querySelectorAll("tr"), function (tr) { tr.appendChild(document.createTextNode(". ")); }); return c.textContent.replace(/[•✔📁📎🎤]/g, " ").replace(/\s+/g, " ").trim(); }
   function speakLocal(text, btn) {
     try {
       var u = new SpeechSynthesisUtterance(text); u.lang = "bg-BG"; u.rate = 1;
@@ -350,6 +354,18 @@
       setCase(id ? { id: id, title: c.getAttribute("data-title") } : null); renderCaseBar(); list.innerHTML = ""; caseIntro(api, skill);
     };
   }
+  /* преглед на подготвения имейл: получател, тема, текст, PDF файлове и бутони „Да, изпрати“ / „Промени“ */
+  function emailCard(w, e, onYes, onEdit) {
+    var c = document.createElement("div"); c.className = "nda-mc";
+    c.innerHTML = '<dl><dt>До</dt><dd>' + esc((e.to && e.to.name ? e.to.name + " " : "") + "<" + (e.to && e.to.email || "") + ">") + "</dd><dt>Тема</dt><dd>" + esc(e.subject || "") + "</dd>" + (e.property && e.property.code ? "<dt>Имот</dt><dd>" + esc(e.property.code + (e.property.title ? " – " + e.property.title : "")) + "</dd>" : "") + "</dl>" +
+      "<pre>" + esc(e.body || "") + "</pre>" +
+      ((e.attachments || []).length ? '<div class="fl">' + e.attachments.map(function (a) { return a.download_url ? '<a class="nda-dl" href="' + esc(a.download_url) + '" target="_blank" rel="noopener">📄 ' + esc(a.name) + (a.pages ? " · " + a.pages + " стр." : "") + " · " + (a.size_kb >= 1024 ? (a.size_kb / 1024).toFixed(1) + " MB" : a.size_kb + " KB") + "</a>" : "<span>📄 " + esc(a.name) + "</span>"; }).join("") + "</div>" : "") +
+      '<div class="snd-from">' + (e.can_send ? "Изпраща се от <b>" + esc(e.from || "") + "</b>" + (e.sender === "agency" && e.reply_to ? " · отговорите идват на " + esc(e.reply_to) : "") : "Няма поща за изпращане – попълнете я веднъж по-долу.") + "</div>" +
+      '<div class="row"><button type="button" class="pri" data-y' + (e.can_send ? "" : " disabled") + '>✅ Да, изпрати</button><button type="button" data-e>✏️ Промени</button></div>';
+    c.querySelector("[data-y]").onclick = function () { [].forEach.call(c.querySelectorAll("button"), function (b) { b.disabled = true; }); onYes(); };
+    c.querySelector("[data-e]").onclick = function () { onEdit(); };
+    var sb = w.querySelector(".nda-say"); w.insertBefore(c, sb || null);
+  }
   var chatSkill = {
     id: "chat", name: "Чат с Тед Асистент", sub: "Клиенти, имоти, календар, сделки, изчисления",
     intro: function (api) { caseIntro(api, this); },
@@ -382,6 +398,7 @@
             if ((voice && prefs.autoSpeak !== "never") || prefs.autoSpeak === "always") { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* гласов въпрос → гласов отговор (според настройката) */
             if (j.actions && j.actions.some(function (a) { return !/search|list|get|calc|rates|summary|match|✗/.test(a); })) try { window.dispatchEvent(new CustomEvent("nd-data-changed")); } catch (e) {}
             if (j.video && window.NDVideo) try { window.NDVideo.fromChat(j.video, fs); } catch (e) {} /* „направи видео на обява #…“ → умението „AI Видео на имот“ */
+            if (j.email) { emailCard(w, j.email, function () { ta.value = "Да"; go(); }, function () { ta.value = "Промени имейла: "; ta.focus(); }); list.scrollTop = list.scrollHeight; }
             if (j.ui && j.ui.panel && !j.video) openUi(j.ui.panel); /* вградените умения се отварят тук, в чата */
           });
         });
@@ -497,6 +514,7 @@
       '<label>Име на подателя</label><input type="text" data-k="name" placeholder="Име Фамилия">' +
       '<label>Парола (за приложения)</label><input type="password" data-k="pass" placeholder="••••••••" autocomplete="new-password">' +
       '<div data-k="custom" hidden><label>SMTP сървър</label><input type="text" data-k="host" placeholder="smtp.example.com"><label>Порт</label><input type="number" data-k="port" value="465"></div>' +
+      '<label class="agw" data-k="agw" hidden><input type="checkbox" data-k="ag" style="width:20px;height:20px;accent-color:#7a0f22"> Обща поща на агенцията – за всички брокери без собствена поща</label>' +
       '<div class="hn" data-k="hint"></div><div class="row"><button type="button" data-m="test">Тест</button><button type="button" class="pri" data-m="save">Запази</button></div>';
     list.appendChild(d); list.scrollTop = list.scrollHeight;
     var q = function (k) { return d.querySelector('[data-k="' + k + '"]'); }, st = d.querySelector(".st");
@@ -506,12 +524,14 @@
     try { if (window.ND && ND.broker && ND.broker.name) q("name").value = ND.broker.name; } catch (e) {}
     mailApi({ action: "get" }).then(function (r) {
       if (!r.ok) { st.innerHTML = '<span class="er">' + esc(r.error || "Грешка") + "</span>"; return; }
+      if (r.admin) q("agw").hidden = false;
+
       if (r.settings) { st.innerHTML = "✅ Изпращате от <b>" + esc(r.settings.email) + "</b> (" + esc(r.settings.host || "") + "). Може да смените данните тук."; q("email").value = r.settings.email; q("prov").value = r.settings.provider || "custom"; if (r.settings.name) q("name").value = r.settings.name; if (r.settings.provider === "custom") { q("host").value = r.settings.host || ""; q("port").value = r.settings.port || 465; } refresh(); }
-      else { st.innerHTML = "Няма настроена поща. Въведете адреса и паролата – имейлите ще тръгват <b>от вашата поща</b>."; if (r.account_email && !q("email").value) { q("email").value = r.account_email; var g = guessProv(r.account_email); if (g) { q("prov").value = g; refresh(); } } }
+      else { st.innerHTML = r.agency ? "✅ Имейлите тръгват от общата поща на агенцията <b>" + esc(r.agency.email) + "</b> – отговорите идват на вашия имейл. Може да добавите и собствена поща." : "Няма настроена поща. Въведете адреса и паролата – имейлите ще тръгват <b>от вашата поща</b>."; if (r.account_email && !q("email").value) { q("email").value = r.account_email; var g = guessProv(r.account_email); if (g) { q("prov").value = g; refresh(); } } }
     });
     d.querySelector(".row").onclick = function (e) {
       var b = e.target.closest("[data-m]"); if (!b) return; var a = b.getAttribute("data-m");
-      var body = { action: a === "save" ? "set" : "test", provider: q("prov").value, email: q("email").value.trim(), password: q("pass").value, name: q("name").value.trim(), host: q("host").value.trim(), port: Number(q("port").value) || 465 };
+      var body = { action: a === "save" ? "set" : "test", scope: q("ag").checked ? "agency" : undefined, provider: q("prov").value, email: q("email").value.trim(), password: q("pass").value, name: q("name").value.trim(), host: q("host").value.trim(), port: Number(q("port").value) || 465 };
       [].forEach.call(d.querySelectorAll(".row button"), function (x) { x.disabled = true; }); st.textContent = "Свързване с пощата…";
       mailApi(body).then(function (r) {
         [].forEach.call(d.querySelectorAll(".row button"), function (x) { x.disabled = false; });

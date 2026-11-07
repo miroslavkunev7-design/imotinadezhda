@@ -24,7 +24,9 @@ async function staff(token) {
   const r = await fetch(SB_URL + "/rest/v1/rpc/nd_is_staff", { method: "POST", headers: { apikey: SB_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json" }, body: "{}" });
   return r.ok && (await r.json()) === true ? user : null;
 }
-const key = (user) => "smtp:" + user.id;
+const key = (user, scope) => (scope === "agency" ? "smtp:agency" : "smtp:" + user.id);
+/* общата поща на агенцията (за брокерите без собствена) се настройва само от администратор */
+async function isAdmin(token) { const r = await fetch(SB_URL + "/rest/v1/rpc/nd_is_admin", { method: "POST", headers: { apikey: SB_KEY, Authorization: "Bearer " + token, "Content-Type": "application/json" }, body: "{}" }).catch(() => null); return !!(r && r.ok && (await r.json().catch(() => false)) === true); }
 async function secretGet(k) { const r = await fetch(SB_URL + "/rest/v1/nd_secrets?key=eq." + encodeURIComponent(k) + "&select=value", { headers: { apikey: SR(), Authorization: "Bearer " + SR() } }); const j = await r.json().catch(() => []); return Array.isArray(j) && j[0] ? j[0].value : null; }
 async function secretSet(k, v) { const r = await fetch(SB_URL + "/rest/v1/nd_secrets", { method: "POST", headers: { apikey: SR(), Authorization: "Bearer " + SR(), "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" }, body: JSON.stringify({ key: k, value: v, updated_at: new Date().toISOString() }) }); if (!r.ok) throw new Error("Настройките не се записаха (" + r.status + ")"); }
 async function secretDel(k) { await fetch(SB_URL + "/rest/v1/nd_secrets?key=eq." + encodeURIComponent(k), { method: "DELETE", headers: { apikey: SR(), Authorization: "Bearer " + SR() } }); }
@@ -46,16 +48,17 @@ module.exports = async (req, res) => {
   if (b.action === "providers") return send(res, 200, { ok: true, providers: Object.keys(PROVIDERS).map((k) => Object.assign({ id: k }, PROVIDERS[k])) });
   if (!SR()) return send(res, 500, { ok: false, error: "Липсва сървърен ключ за настройките (SUPABASE_SERVICE_ROLE_KEY)." });
   try {
-    if (b.action === "get") return send(res, 200, { ok: true, settings: pub(await secretGet(key(user))), account_email: user.email || "" });
-    if (b.action === "delete") { await secretDel(key(user)); return send(res, 200, { ok: true }); }
+    if (b.action === "get") return send(res, 200, { ok: true, settings: pub(await secretGet(key(user))), agency: pub(await secretGet("smtp:agency")), admin: await isAdmin(token), account_email: user.email || "" });
+    if (b.scope === "agency" && (b.action === "set" || b.action === "delete") && !(await isAdmin(token))) return send(res, 403, { ok: false, error: "Общата поща на агенцията се настройва от администратор." });
+    if (b.action === "delete") { await secretDel(key(user, b.scope)); return send(res, 200, { ok: true }); }
     if (b.action === "set" || b.action === "test") {
       const p = PROVIDERS[b.provider] || PROVIDERS.custom, email = String(b.email || "").trim(), pass = String(b.password || "");
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return send(res, 400, { ok: false, error: "Невалиден имейл адрес" });
       let cfg = { provider: b.provider || "custom", email, name: String(b.name || "").slice(0, 80), user: String(b.user || email).trim(), host: b.provider === "custom" ? String(b.host || "").trim() : p.host, port: b.provider === "custom" ? Number(b.port) || 465 : p.port, secure: b.provider === "custom" ? b.secure !== false : p.secure, pass, at: new Date().toISOString() };
-      if (!pass) { const old = await secretGet(key(user)); if (old && old.email === email) cfg.pass = old.pass; else return send(res, 400, { ok: false, error: "Въведете паролата (за приложения) на пощата" }); }
+      if (!pass) { const old = await secretGet(key(user, b.scope)); if (old && old.email === email) cfg.pass = old.pass; else return send(res, 400, { ok: false, error: "Въведете паролата (за приложения) на пощата" }); }
       if (!cfg.host) return send(res, 400, { ok: false, error: "Липсва SMTP сървър" });
       try { cfg = await verifyAny(cfg); } catch (e) { return send(res, 200, { ok: false, error: friendly(e) }); }
-      if (b.action === "set") await secretSet(key(user), cfg);
+      if (b.action === "set") await secretSet(key(user, b.scope), cfg);
       return send(res, 200, { ok: true, settings: pub(cfg), verified: true });
     }
     if (b.action === "send") {
@@ -81,7 +84,7 @@ module.exports.configFor = (userId) => (SR() ? secretGet("smtp:" + userId) : Pro
 module.exports.publicConfig = pub;
 module.exports.friendly = friendly;
 module.exports.sendAs = async (cfg, m) => {
-  const info = await sendAny(cfg, { from: cfg.name ? '"' + cfg.name.replace(/"/g, "") + '" <' + cfg.email + ">" : cfg.email, to: m.toName ? '"' + String(m.toName).replace(/"/g, "") + '" <' + m.to + ">" : m.to, replyTo: cfg.email, subject: m.subject, text: m.text, html: m.html, attachments: m.attachments || [] });
+  const info = await sendAny(cfg, { from: cfg.name ? '"' + cfg.name.replace(/"/g, "") + '" <' + cfg.email + ">" : cfg.email, to: m.toName ? '"' + String(m.toName).replace(/"/g, "") + '" <' + m.to + ">" : m.to, replyTo: m.replyTo || cfg.email, cc: m.cc || undefined, subject: m.subject, text: m.text, html: m.html, attachments: m.attachments || [] });
   return { message_id: info.messageId || null, accepted: info.accepted || [], rejected: info.rejected || [] };
 };
 module.exports.PROVIDERS = PROVIDERS;
