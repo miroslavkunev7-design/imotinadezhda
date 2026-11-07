@@ -12,14 +12,15 @@
 <style>
 :root{--wine:#680019;--wine2:#78001e;--gold:#c48b24;--cream:#fff8ef}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:#14301f;-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden}
+html,body{background:#2e0d16;-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden}
 body{font-family:Georgia,'PT Serif','Times New Roman',serif;color:var(--wine)}
 button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:none;border:0}a{color:inherit;text-decoration:none}
 :focus-visible{outline:3px solid #ffcc49;outline-offset:3px}
 /* the page is drawn on an 865 px canvas (the approved reference) and scaled to the screen */
 #cv{position:relative;width:865px;min-height:1536px;transform-origin:0 0;overflow:hidden}
 .bg{position:absolute;left:0;top:0;width:865px;height:1536px;object-fit:cover}
-#cv{background:#1d3b22}
+/* под 1536 px (високи телефони): продължение на каменната основа към тъмно бордо, вместо зелен блок */
+#cv{background:#54454c linear-gradient(180deg,#56464d 0,#3b262c 220px,#2e0d16 100%) no-repeat 0 1536px/100% calc(100% - 1536px)}
 .abs{position:absolute}
 /* header */
 .hdr{left:0;top:0;width:865px;height:219px;z-index:4;filter:drop-shadow(0 6px 4px rgba(35,10,8,.45))}

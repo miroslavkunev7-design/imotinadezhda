@@ -185,7 +185,8 @@
     if (defs) {
       var d = document.createElement("div");
       d.innerHTML = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' + defs + "</svg>";
-      document.body.insertBefore(d.firstChild, document.body.firstChild);
+      /* appendChild (не insertBefore на първия елемент): иначе Chrome губи <link rel=expect href="#page-ready"> и логва предупреждение на всяка страница */
+      document.body.appendChild(d.firstChild);
     }
   }
   var esc = function (s) {

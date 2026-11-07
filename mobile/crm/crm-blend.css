@@ -1,3 +1,5 @@
+/* Телефон: сцената винаги покрива целия екран, за да няма видим ръб между прасковения градиент и фона на страницата при къс списък. */
+html:not(.desk) #stage{box-sizing:border-box;min-height:100vh;min-height:100dvh}
 /* Phones only: the header photo fades softly into the page and the next section overlaps its edge. */
 html:not(.desk) .top:not(.mtop){
   box-sizing:content-box;padding-bottom:56px;
@@ -64,7 +66,9 @@ html.rail .mwin,html.rail #nd-fwin{margin-left:var(--rail,112px)}
 #ndside .sb-logo{display:block;width:86px;height:70px;margin:0 0 8px;border-radius:18px;background:linear-gradient(180deg,#fffaf3,#fbeee2);box-shadow:0 0 0 1.5px rgba(237,196,122,.9),0 0 14px rgba(255,214,150,.6);display:grid;place-items:center;transition:transform .3s,box-shadow .3s}
 #ndside .sb-logo img{width:76px;height:60px;object-fit:contain}
 #ndside .sb-logo:hover{transform:translateY(-2px);box-shadow:0 0 0 1.5px #f6d68c,0 0 20px rgba(255,214,150,.9)}
-#ndside .sb-nav{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;width:100%;padding:6px 10px;overflow:auto}
+#ndside .sb-nav{flex:1;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;width:100%;padding:6px 10px;overflow:auto;scrollbar-width:none}#ndside .sb-nav::-webkit-scrollbar{display:none}
+/* центриране без изрязване на първия бутон при препълване (9 бутона на нисък екран) */
+#ndside .sb-nav>.nv:first-child{margin-top:auto}#ndside .sb-nav>.nv:last-child{margin-bottom:auto}
 #ndside .nv{position:relative;width:100%;height:auto;min-height:66px;margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:0;border-radius:18px;background:none;color:#fff;font:400 14px/1 var(--sans,Arial);cursor:pointer;white-space:nowrap;animation:none;transition:background .25s,box-shadow .25s,transform .25s}
 #ndside .nv svg.i{width:28px;height:28px;font-size:28px;stroke-width:1.9;color:#fff}
 #ndside .nv:hover{background:rgba(255,255,255,.08);transform:translateX(2px)}
@@ -75,7 +79,8 @@ html.rail .mwin,html.rail #nd-fwin{margin-left:var(--rail,112px)}
 #ndside .sb-ted{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border:0;border-radius:18px;background:none;color:#fff;font:400 14px/1 var(--sans,Arial);cursor:pointer;transition:background .25s}
 #ndside .sb-ted img{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,#a3213a,#55071a);box-shadow:0 0 0 2px #edc47a,0 0 12px rgba(255,190,120,.6)}
 #ndside .sb-ted:hover{background:rgba(255,255,255,.08)}
-@media (max-height:760px){#ndside .nv{min-height:56px;font-size:13px}#ndside .nv svg.i{width:24px;height:24px}#ndside .sb-logo{height:58px}}
+@media (max-height:840px){#ndside .nv{min-height:56px;font-size:13px}#ndside .nv svg.i{width:24px;height:24px}#ndside .sb-logo{height:58px}}
+@media (max-height:700px){#ndside .nv{min-height:50px;font-size:12px;gap:4px}#ndside .nv svg.i{width:22px;height:22px}#ndside .sb-logo{height:52px;margin-bottom:4px}#ndside .sb-ted img{width:38px;height:38px}}
 html.rail .nda-fab{display:none}
 
 /* ===== Client cards: readable premium type, the photo stays behind a soft cream veil ===== */
@@ -124,3 +129,26 @@ html.desk .ccard .nm,html.desk .ndl-h .t,html.desk .ndl-h .t small,html.desk #nd
 .pm-hero img.fade{opacity:.2}
 .kp-ph{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 34%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 34%)!important;opacity:1!important}
 .tile img.ph,.pc img,.bk img,.kq img,.ev img{opacity:1!important}
+
+/* ===== Premium layer 2 (07.11.2026): по-дълбока светлина и злато, същото разположение ===== */
+/* мека околна светлина върху страницата: топъл отблясък отгоре и лека бордо сянка в долния ръб */
+#stage::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(130% 70% at 50% -10%,rgba(255,244,222,.55),transparent 55%),radial-gradient(100% 45% at 50% 112%,rgba(120,20,40,.12),transparent 62%)}
+/* златна светлинна линия по горния ръб на всяко стъклено пано и карта */
+:is(.panel,.ipanel,.cpanel,.ccard)::after{content:"";position:absolute;left:12%;right:12%;top:0;height:1.5px;border-radius:2px;pointer-events:none;z-index:3;
+  background:linear-gradient(90deg,transparent,rgba(255,238,196,.95) 50%,transparent)}
+.tile::after{content:"";position:absolute;left:10%;right:10%;top:0;height:1.5px;border-radius:2px;pointer-events:none;z-index:3;
+  background:linear-gradient(90deg,transparent,rgba(255,226,160,.85) 50%,transparent)}
+/* снимките: плътни и наситени, без мъгла */
+:is(.top,.ctop,.mtop) .photo,.tile img.ph,.ccard .ph,.pc img,.bk img{filter:saturate(1.06) contrast(1.03)}
+/* сатенените ленти-заглавия леко се повдигат над паното */
+svg.ribbon{filter:drop-shadow(0 2px 3px rgba(60,0,15,.35))}
+/* златният кант на долното меню диша съвсем леко (същото като активния бутон) */
+html:not(.desk) .nav{animation:ndDockGlow 6s ease-in-out infinite}
+@keyframes ndDockGlow{0%,100%{box-shadow:0 0 0 1px rgba(255,230,170,.5),0 0 16px rgba(255,200,120,.45),0 -6px 18px rgba(60,5,15,.35),inset 0 2px 2px rgba(255,170,180,.35)}
+  50%{box-shadow:0 0 0 1px rgba(255,236,190,.7),0 0 26px rgba(255,210,140,.7),0 -6px 18px rgba(60,5,15,.35),inset 0 2px 2px rgba(255,170,180,.35)}}
+/* серифните заглавия – по-плътен златен градиент с мек ореол под буквите (без замазване на текста) */
+.hero-title{filter:drop-shadow(0 2px 2px rgba(30,0,8,.45)) drop-shadow(0 0 14px rgba(255,214,150,.22))}
+/* полетата за търсене и падащите менюта: златен пръстен при фокус, вместо сив */
+:is(input,select,textarea):focus-visible{box-shadow:0 0 0 2px rgba(237,196,122,.9),0 0 12px rgba(255,214,150,.6)}
+@media (prefers-reduced-motion:reduce){html:not(.desk) .nav{animation:none}}

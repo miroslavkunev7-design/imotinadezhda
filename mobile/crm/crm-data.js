@@ -14,12 +14,16 @@
 
   function lib() {
     if (window.supabase && window.supabase.createClient) return Promise.resolve();
+    /* два CDN адреса: ако първият е недостъпен (блокиран/паднал), опитваме втория преди да се откажем */
+    var SRC = ["https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js", "https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];
     return new Promise(function (ok, bad) {
-      var s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js";
-      s.onload = ok;
-      s.onerror = function () { bad(new Error("Няма връзка с базата. Проверете интернета.")); };
-      document.head.appendChild(s);
+      (function tryAt(i) {
+        var s = document.createElement("script");
+        s.src = SRC[i];
+        s.onload = ok;
+        s.onerror = function () { s.remove(); if (i + 1 < SRC.length) tryAt(i + 1); else bad(new Error("Няма връзка с базата. Проверете интернета.")); };
+        document.head.appendChild(s);
+      })(0);
     });
   }
   function client() {
