@@ -78,7 +78,7 @@ function parseAd(url, html) {
 async function aiCheck(list, ms) {
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!list.length) return { ok: true, verdict: [], reason: [] };
-  if (!key || ms < 6000) return { ok: false };
+  if (!key || ms < 6000) return { ok: false, err: !key ? "няма ключ" : "няма време" };
   const t0 = Date.now(), parts = [{ text: "Ти си експерт по българския пазар на имоти. За всяка обява реши дали е пусната от СОБСТВЕНИК (частно лице) или от АГЕНЦИЯ/БРОКЕР/инвеститор. " +
     "Признаци за агенция: име или лого на агенция (и воден знак върху снимката), „предлагаме на вашето внимание“, референтен номер, комисиона, консултант, професионален рекламен стил, много обяви, фирмени снимки. " +
     "Собственик пише лично („продавам къщата си“, „наследствен имот“, „без посредници“), често кратко и без реклама. При СЪМНЕНИЕ отговори owner:false. " +
@@ -89,19 +89,20 @@ async function aiCheck(list, ms) {
     parts.push({ text: "\n[" + i + "] " + x.title + " | продавач: " + (x.seller_name || "—") + " | телефон в " + (x.repeat || 1) + " обява(и)\nОписание: " + (x.descr || "—").slice(0, 1200) });
     if (imgs[i]) parts.push({ inline_data: { mime_type: "image/jpeg", data: imgs[i] } });
   });
+  let last = "";
   for (const m of ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash"]) {
     const rest = ms - (Date.now() - t0); if (rest < 3000) break;
     try {
       const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0, responseMimeType: "application/json" } }), signal: AbortSignal.timeout(rest) });
-      const j = await r.json(); if (!r.ok) { if (r.status === 429 || r.status >= 500) continue; return { ok: false }; }
+      const j = await r.json(); if (!r.ok) { last = m + ": " + r.status + " " + String((j.error && j.error.message) || "").slice(0, 120); if (r.status === 429 || r.status >= 500) continue; return { ok: false, err: last }; }
       const t = (((j.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("") || "{}";
       const items = (JSON.parse(t.replace(/^```json|```$/g, "").trim()).items) || [], verdict = [], reason = [];
       items.forEach((it) => { const i = Number(it.i); if (i >= 0 && i < list.length) { verdict[i] = it.owner === true; reason[i] = it.owner === true ? "" : "AI: " + String(it.reason || "агенция").slice(0, 80); } });
       return { ok: true, verdict, reason, model: m };
-    } catch (e) { /* следващ модел */ }
+    } catch (e) { last = m + ": " + String(e.message || e).slice(0, 120); }
   }
-  return { ok: false };
+  return { ok: false, err: last };
 }
 
 async function findOwners(ctx, a) {
@@ -154,7 +155,7 @@ async function findOwners(ctx, a) {
   }
   const q = encodeURIComponent([a.type || "имот", a.place, a.region].filter(Boolean).join(" "));
   return {
-    ok: true, place: a.place || "", region: a.region || "", checked_ads: ads.length, agencies_skipped: ads.filter((x) => x.seller !== "private").length, ai_checked: ai.ok ? (ai.model || "gemini") : "не (резервни правила)", skipped_examples: ads.filter((x) => x.seller !== "private").slice(0, 6).map((x) => ({ title: x.title, why: x.why || "агенция" })),
+    ok: true, place: a.place || "", region: a.region || "", checked_ads: ads.length, agencies_skipped: ads.filter((x) => x.seller !== "private").length, ai_checked: ai.ok ? (ai.model || "gemini") : "не (резервни правила)" + (ai.err ? " – " + ai.err : ""), skipped_examples: ads.filter((x) => x.seller !== "private").slice(0, 6).map((x) => ({ title: x.title, why: x.why || "агенция" })),
     count: owners.length, saved_to_collected: saved,
     items: owners.slice(0, 30).map((x) => ({ title: x.title, place: x.city, region: x.region, area_m2: x.area, price_eur: x.price, phone: x.phone, name: x.name || undefined, link: x.link, place_unsure: x.place_unsure || undefined, maybe_broker: x.repeat >= 2 ? "същият телефон в " + x.repeat + " обяви – възможно брокер" : undefined })),
     searched: usedLists.slice(0, 4),
