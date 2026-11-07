@@ -514,6 +514,7 @@
       '<label>Име на подателя</label><input type="text" data-k="name" placeholder="Име Фамилия">' +
       '<label>Парола (за приложения)</label><input type="password" data-k="pass" placeholder="••••••••" autocomplete="new-password">' +
       '<div data-k="custom" hidden><label>SMTP сървър</label><input type="text" data-k="host" placeholder="smtp.example.com"><label>Порт</label><input type="number" data-k="port" value="465"></div>' +
+      '<label>Тестов имейл до (по избор)</label><input type="email" data-k="tto" placeholder="адрес за тестовото писмо – иначе до самата поща" autocomplete="off">' +
       '<label class="agw" data-k="agw" hidden><input type="checkbox" data-k="ag" style="width:20px;height:20px;accent-color:#7a0f22"> Обща поща на агенцията – за всички брокери без собствена поща</label>' +
       '<div class="hn" data-k="hint"></div><div class="row"><button type="button" data-m="test">Тест</button><button type="button" class="pri" data-m="save">Запази</button></div>';
     list.appendChild(d); list.scrollTop = list.scrollHeight;
@@ -531,7 +532,7 @@
     });
     d.querySelector(".row").onclick = function (e) {
       var b = e.target.closest("[data-m]"); if (!b) return; var a = b.getAttribute("data-m");
-      var body = { action: a === "save" ? "set" : "test", scope: q("ag").checked ? "agency" : undefined, provider: q("prov").value, email: q("email").value.trim(), password: q("pass").value, name: q("name").value.trim(), host: q("host").value.trim(), port: Number(q("port").value) || 465 };
+      var body = { action: a === "save" ? "set" : "test", test_to: q("tto").value.trim() || undefined, scope: q("ag").checked ? "agency" : undefined, provider: q("prov").value, email: q("email").value.trim(), password: q("pass").value, name: q("name").value.trim(), host: q("host").value.trim(), port: Number(q("port").value) || 465 };
       [].forEach.call(d.querySelectorAll(".row button"), function (x) { x.disabled = true; }); st.textContent = "Свързване с пощата…";
       mailApi(body).then(function (r) {
         [].forEach.call(d.querySelectorAll(".row button"), function (x) { x.disabled = false; });
