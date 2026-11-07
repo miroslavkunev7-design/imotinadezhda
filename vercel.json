@@ -45,6 +45,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/tts",
+      "destination": "/api/voice?fn=tts"
+    },
+    {
+      "source": "/api/transcribe",
+      "destination": "/api/voice?fn=transcribe"
+    },
+    {
       "source": "/",
       "has": [
         {
@@ -74,9 +82,6 @@
     "api/scan.js": {
       "maxDuration": 60
     },
-    "api/tts.js": {
-      "maxDuration": 30
-    },
     "api/tools.js": {
       "maxDuration": 60,
       "includeFiles": "api/_vendor/**"
@@ -93,6 +98,9 @@
       "maxDuration": 60
     },
     "api/push.js": {
+      "maxDuration": 30
+    },
+    "api/voice.js": {
       "maxDuration": 30
     }
   },
