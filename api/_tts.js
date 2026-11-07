@@ -35,7 +35,15 @@ module.exports = async (req, res) => {
   const T0 = Date.now(), END = T0 + 52000;
   let last = "";
   const errs = [];
+  for (let round = 0; round < 2; round++) {
+  if (round === 1) { /* всички гласови модели на минутен лимит → изчакваме презареждането веднъж */
+    const now = Date.now(), soon = models.slice(0, 5).map((m) => GEM.BUSY.get(m) || 0).filter((t) => t > now && t - now < 3600000);
+    const w = soon.length ? Math.min(...soon) - now : 0;
+    if (!(w > 0 && w <= 15000 && END - now > w + 8000)) break;
+    await new Promise((ok) => setTimeout(ok, w + 300)); errs.length = 0;
+  }
   for (const model of models.slice(0, 5)) {
+    if ((GEM.DEAD.get(model) || 0) > Date.now() || (round === 1 && (GEM.BUSY.get(model) || 0) > Date.now())) continue;
     for (let attempt = 0; attempt < 2; attempt++) {
     if (END - Date.now() < 4000) break;
     try {
@@ -61,6 +69,7 @@ module.exports = async (req, res) => {
       return res.end(out);
     } catch (e) { errs.push(model + ": " + String(e.message || e).slice(0, 160)); break; }
     }
+  }
   }
   return fail(502, "Гласът не е наличен: " + (errs.join(" | ") || last));
 };

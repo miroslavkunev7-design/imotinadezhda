@@ -112,6 +112,7 @@ async function request(body, opts) {
   const tried = []; let last = null;
   for (let i = opts.start || 0; i < ids.length; i++) {
     const model = ids[i];
+    if ((DEAD.get(model) || 0) > Date.now() || (opts._waited && (BUSY.get(model) || 0) > Date.now())) continue; /* спрян модел / още на лимит */
     let b = Object.assign({}, body, { generationConfig: genConfig(model, body.generationConfig, opts) });
     /* друг модел от предишната стъпка → подписите на мисленето се заменят (иначе Gemini 3 връща 400) */
     if (opts.prev && model !== opts.prev && Array.isArray(b.contents)) b.contents = b.contents.map((c) => c.role === "model" ? Object.assign({}, c, { parts: (c.parts || []).map((p) => (p.functionCall || p.thoughtSignature ? Object.assign({}, p, { thoughtSignature: SKIP_TOKEN }) : p)) }) : c);
@@ -135,7 +136,13 @@ async function request(body, opts) {
       break;
     }
   }
-  const e = new Error(last ? (last.kind === "quota" ? "Лимитът на Gemini е изчерпан" + (last.daily ? " за днес" : " – опитайте след малко") : last.msg) : "Gemini не отговори");
+  /* безплатният лимит се презарежда всяка минута: ако всички модели са на кратък лимит – изчакваме презареждането веднъж и опитваме пак */
+  if (last && last.kind === "quota" && !opts._waited) {
+    const now = Date.now(), soon = ids.slice(opts.start || 0).map((i) => BUSY.get(i) || 0).filter((t) => t > now && t - now < 3600000);
+    const wait = soon.length ? Math.min(...soon) - now : 0;
+    if (wait > 0 && wait <= 25000 && deadline - now > wait + 6000) { await new Promise((ok) => setTimeout(ok, wait + 300)); ids.forEach((i) => { if ((BUSY.get(i) || 0) <= Date.now()) BUSY.delete(i); }); return request(body, Object.assign({}, opts, { models: ids, _waited: true, deadline })); }
+  }
+  const e = new Error(last ? (last.kind === "quota" ? "Безплатният лимит на Gemini е изчерпан – презарежда се автоматично, опитайте след минута" : last.msg) : "Gemini не отговори");
   e.status = last && last.kind === "quota" ? 429 : 502; e.quota = !!(last && last.kind === "quota"); e.tried = tried; throw e;
 }
 const textOf = (j) => ((((j.candidates || [])[0] || {}).content || {}).parts || []).filter((p) => !p.thought).map((p) => p.text || "").join("").trim();

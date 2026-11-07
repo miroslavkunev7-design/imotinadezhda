@@ -196,6 +196,7 @@ module.exports = async (req, res) => {
       return send(res, 200, { ok: true, text: out + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i0, a) => x.url && a.findIndex((y) => y.url === x.url) === i0).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, video: ctx.video || null, ui: ctx.ui || null, mode: mode || null, model: real || model.id, model_name: model.name, fallback: note });
     } catch (e) { lastErr = String(e.message || e); if (e.quota) quota = true; if (ctx.actions.some((a) => MUTATING.test(String(a).replace(/ ✗$/, "")))) break; }
   }
-  if (quota) return send(res, 200, { ok: false, error: "Безплатният лимит на Gemini е изчерпан (" + lastErr + "). Опитайте след минута. За работа без прекъсване включете плащане за Gemini ключа в Google AI Studio." });
+  /* безплатен лимит: презарежда се сам – без съобщения за плащане */
+  if (quota || /credit|billing|payment|funds|purchase|quota|exhaust|limit|кредит/i.test(lastErr)) return send(res, 200, { ok: false, quota: true, error: "Безплатният лимит на Gemini за момента е изчерпан – презарежда се автоматично. Опитайте отново след минута." });
   return send(res, 502, { ok: false, error: "AI асистентът не отговори: " + lastErr });
 };

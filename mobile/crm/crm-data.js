@@ -14,8 +14,8 @@
 
   function lib() {
     if (window.supabase && window.supabase.createClient) return Promise.resolve();
-    /* два CDN адреса: ако първият е недостъпен (блокиран/паднал), опитваме втория преди да се откажем */
-    var SRC = ["https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js", "https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];
+    /* първо собственото копие (същият домейн – работи и когато CDN е блокиран от мрежа/рекламен филтър), после два CDN адреса */
+    var SRC = ["/mobile/crm/assets/vendor/supabase.js", "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js", "https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];
     return new Promise(function (ok, bad) {
       (function tryAt(i) {
         var s = document.createElement("script");
@@ -33,6 +33,12 @@
 
   /* ---------- toast (uses the page's own #toast when present) ---------- */
   var tTimer;
+  /* без интернет/база: едно кратко съобщение вместо грешки в конзолата от всяка секция */
+  var offlineShown = false;
+  window.addEventListener("unhandledrejection", function (e) {
+    var m = String((e.reason && e.reason.message) || e.reason || "");
+    if (/Няма връзка с базата|Failed to fetch|NetworkError|Load failed|network error/i.test(m)) { e.preventDefault(); if (!offlineShown) { offlineShown = true; try { say("Няма връзка с базата – проверете интернета."); } catch (x) {} setTimeout(function () { offlineShown = false; }, 15000); } }
+  });
   function say(msg) {
     var t = document.getElementById("toast");
     if (!t) { t = document.createElement("div"); t.id = "nd-toast"; t.className = "nd-toast"; document.body.appendChild(t); }
