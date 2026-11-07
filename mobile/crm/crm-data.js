@@ -8,7 +8,7 @@
   var KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
   var TABLE = {
     clients: "nd_clients", properties: "nd_properties", brokers: "nd_brokers", events: "nd_events",
-    companies: "nd_companies", deals: "nd_deals", activities: "nd_activities", documents: "nd_documents", leads: "nd_leads", collected: "nd_collected", prefs: "nd_prefs", inquiries: "nd_inquiries"
+    companies: "nd_companies", deals: "nd_deals", activities: "nd_activities", documents: "nd_documents", leads: "nd_leads", collected: "nd_collected", prefs: "nd_prefs", inquiries: "nd_inquiries", rentals: "nd_rentals"
   };
   var sb = null, session = null, readyP = null, snap = {};
 

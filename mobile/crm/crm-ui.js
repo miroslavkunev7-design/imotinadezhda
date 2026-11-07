@@ -553,7 +553,28 @@
       top.innerHTML = '<img src="' + (logo ? logo.getAttribute("src") : "assets/logo.png") + '" alt="Недвижими Имоти Надежда">';
       side.appendChild(top);
       var nav = document.createElement("nav"); nav.className = "sb-nav"; nav.setAttribute("aria-label", "Основна навигация");
-      [].forEach.call(dock.querySelectorAll(".nv"), function (b) { var c = b.cloneNode(true); c.classList.add("sb-i"); nav.appendChild(c); });
+      [].forEach.call(dock.querySelectorAll(".nv"), function (b) {
+        var c = b.cloneNode(true); c.classList.add("sb-i");
+        /* „Имоти“ е падащо меню: Всички имоти · Управление на наеми · Архив имоти */
+        if (/crm-imoti\.html/.test(c.getAttribute("data-href") || "")) {
+          var grp = document.createElement("div"); grp.className = "sb-grp";
+          var here = /crm-(imoti|naemi)\.html/.test(location.pathname);
+          c.removeAttribute("data-href"); c.setAttribute("aria-expanded", here ? "true" : "false"); c.classList.add("sb-dd");
+          c.insertAdjacentHTML("beforeend", '<svg class="sb-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+          var sub = document.createElement("div"); sub.className = "sb-sub"; sub.hidden = !here;
+          var cur = location.pathname.split("/").pop() + location.hash;
+          var SI = { home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>', key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3L22 7l-3-3"/>', archive: '<rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>' };
+          [["crm-imoti.html", "Всички имоти", "home"], ["crm-naemi.html", "Управление на наеми", "key"], ["crm-imoti.html#archive", "Архив имоти", "archive"]].forEach(function (o) {
+            var a = document.createElement("a"); a.className = "sb-subi" + (cur === o[0] ? " on" : ""); a.href = o[0];
+            a.innerHTML = '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + SI[o[2]] + "</svg><span>" + o[1] + "</span>";
+            if (o[0] === "crm-imoti.html#archive" && /crm-imoti\.html$/.test(location.pathname)) a.addEventListener("click", function () { setTimeout(function () { location.reload(); }, 0); });
+            sub.appendChild(a);
+          });
+          c.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); var open = sub.hidden; sub.hidden = !open; c.setAttribute("aria-expanded", open ? "true" : "false"); }, true);
+          grp.appendChild(c); grp.appendChild(sub); nav.appendChild(grp); return;
+        }
+        nav.appendChild(c);
+      });
       side.appendChild(nav);
       var foot = document.createElement("div"); foot.className = "sb-foot";
       foot.innerHTML = '<button type="button" class="sb-ted" data-ted title="Тед Асистент"><img src="assets/ash-bot.png" alt=""><span>Тед</span></button>';

@@ -1220,7 +1220,7 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
     if(e.key==='Tab'){var f=[].slice.call(pwin.querySelectorAll('button,a[href]')).filter(function(x){return x.offsetParent!==null&&!x.hidden});if(!f.length)return;
       var a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
   });
-  render(null);fit();
+  var ARCH=location.hash==='#archive';if(ARCH)setView('Архивиран');render(ARCH?{only:'Архивиран'}:null);fit();
   function refreshFilters(){fill(sel.region,'region',uniq(props.map(function(p){return p.region}).filter(Boolean)));cities();hoods();['region','city','hood'].forEach(function(k){show(sel[k])})}
   function loadAll(){
     return Promise.all([ND.load('properties'),ND.load('clients')]).then(function(r){

@@ -12,6 +12,9 @@ const slug = (s) => String(s || "").toLocaleLowerCase("bg").replace(/^(с\.|гр
 const BIG = new Set(["sofiya", "plovdiv", "varna", "burgas", "ruse", "stara-zagora", "pleven", "sliven", "dobrich", "shumen", "pernik", "haskovo", "yambol", "pazardzhik", "blagoevgrad", "veliko-tarnovo", "vratsa", "gabrovo", "vidin", "montana", "kardzhali", "kyustendil", "lovech", "razgrad", "silistra", "smolyan", "targovishte"]);
 const TYPES = [[/едностаен/, "ednostaen"], [/двустаен/, "dvustaen"], [/тристаен/, "tristaen"], [/четиристаен/, "chetiristaen"], [/многостаен/, "mnogostaen"], [/мезонет/, "mezonet"], [/етаж/, "etazh-ot-kashta"], [/вила/, "vila"], [/къщ/, "kashta"], [/парцел|упи|място/, "partsel"], [/земя|нива|ливада/, "zemedelska-zemya"], [/гараж|паркомяст/, "garazh-parkomyasto"], [/офис/, "ofis"], [/магазин/, "magazin"], [/апартамент/, ""]];
 const PHONE = /(?:\+359|00359|0)[\s\-\/.]?(?:8[789]|[2-9]\d)[\d\s\-\/.]{6,9}\d/g;
+/* думи, които издават агенция/брокер в описанието */
+const AG_STRONG = /агенци|брокер|комисион|номер на обява|оферта\s*№|реф\.?\s*(№|номер)|референтен номер|(представя|предлагаме)\s+на\s+(вашето|ваше)\s+внимание|ексклузивн|консултант|наш(ата|ия|ите|ият)\s+(агенция|фирма|офис|клиент|екип)|недвижими имоти\s+[„"«]|ЕООД|(^|[^а-яА-Я])ООД([^а-яА-Я]|$)|www\.|\.bg\b/i;
+const AG_WEAK = /отдаваме|продаваме|предлагаме|за повече информация|за оглед и информация|обадете се|позвънете/i;
 const normPhone = (p) => { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("00359")) d = d.slice(5); else if (d.startsWith("359")) d = d.slice(3); if (!d.startsWith("0")) d = "0" + d; return d; };
 
 async function get(url, ms) {
@@ -56,13 +59,48 @@ function parseAd(url, html) {
   const ci = t.search(/За контакт/i), contact = ci >= 0 ? t.slice(ci, ci + 400) : "";
   const phones = [...new Set((contact.match(PHONE) || []).map(normPhone).filter((p) => p.length >= 9 && p.length <= 10))];
   const who = (m[6] || "").trim();
-  const agency = /Агенция/i.test(desc) || /Брокер:/i.test(contact) || /ЕООД|ООД|ЕАД|АД\b|ЕТ\b|естейт|estate|имоти\s/i.test(who);
-  const privateSeller = /частно лице/i.test(desc + " " + who + " " + contact) || (!agency && !!who);
+  /* описание на обявата („Описание на имота:“) и сигнали за агенция: лого, „Агенция:“, подсайт *.imot.bg, думи в текста */
+  const mi = html.indexOf('class="moreInfo'), descr = mi >= 0 ? text(html.slice(mi, mi + 6000)).replace(/^[\s\S]*?Описание на имота:\s*/i, "").replace(/\s+/g, " ").trim().slice(0, 1500) : "";
+  const logo = /\/images\/logos\//i.test(html) || /<img[^>]+alt="[^"]*\blogo"/i.test(html.slice(html.search(/За контакт/i) > 0 ? html.search(/За контакт/i) : 0));
+  const sub = /href=["']?(?:https?:)?\/\/(?!www\.)[a-z0-9-]+\.imot\.bg/i.test(html);
+  const strong = AG_STRONG.test(descr + " " + who), weak = AG_WEAK.test(descr);
+  const photo = ((html.match(/(?:https?:)?\/\/[^"' )]+\/photosimotbg\/[^"' )]+\/big1?\/[^"' )]+\.jpe?g/i) || [])[0] || "").replace(/^\/\//, "https://");
+  const agency = /Агенция/i.test(desc) || /Агенция:|Брокер:/i.test(contact) || /ЕООД|ООД|ЕАД|АД\b|ЕТ\b|естейт|estate|имоти\s/i.test(who) || logo || sub || strong;
+  const privateSeller = !agency && (/частно лице/i.test(desc + " " + who + " " + contact.replace(/предлага само на частни лица/gi, "")) || !!who);
   let price = Number(String(m[4] || "").replace(/[\s,]/g, "").replace(/\.00$/, "")) || null;
   if (price && /лв/i.test(m[5] || "")) price = Math.round(price / 1.95583);
   const loc = (m[2] || "").split(",").map((x) => x.trim());
   const name = ((/(?:Собственик|Частно лице|Лице за контакт)[:\s]*([А-Я][а-я]+(?:\s[А-Я][а-я]+)?)/.exec(contact) || [])[1]) || "";
-  return { title: (m[1] || title).trim(), type: (m[1] || "").replace(/^(Продава|Дава под наем)\s+/i, ""), region: loc[0] || "", city: loc[1] || loc[0] || "", area: Number(String(m[3] || "").replace(/\s/g, "")) || null, price, phone: phones.join(", "), seller: privateSeller && !agency ? "private" : "agency", seller_name: who, name, link: url, source: "imot.bg" };
+  return { title: (m[1] || title).trim(), type: (m[1] || "").replace(/^(Продава|Дава под наем)\s+/i, ""), region: loc[0] || "", city: loc[1] || loc[0] || "", area: Number(String(m[3] || "").replace(/\s/g, "")) || null, price, phone: phones.join(", "), seller: privateSeller && !agency ? "private" : "agency", seller_name: who, descr, photo, weak, why: logo ? "лого на агенция" : sub ? "сайт на агенция" : /Агенция:|Брокер:/i.test(contact) ? "посочена агенция" : strong ? "текст на агенция" : "", name, link: url, source: "imot.bg" };
+}
+
+async function aiCheck(list, ms) {
+  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!list.length) return { ok: true, verdict: [], reason: [] };
+  if (!key || ms < 6000) return { ok: false };
+  const t0 = Date.now(), parts = [{ text: "Ти си експерт по българския пазар на имоти. За всяка обява реши дали е пусната от СОБСТВЕНИК (частно лице) или от АГЕНЦИЯ/БРОКЕР/инвеститор. " +
+    "Признаци за агенция: име или лого на агенция (и воден знак върху снимката), „предлагаме на вашето внимание“, референтен номер, комисиона, консултант, професионален рекламен стил, много обяви, фирмени снимки. " +
+    "Собственик пише лично („продавам къщата си“, „наследствен имот“, „без посредници“), често кратко и без реклама. При СЪМНЕНИЕ отговори owner:false. " +
+    "Върни само JSON: {\"items\":[{\"i\":номер,\"owner\":true|false,\"reason\":\"кратко\"}]}" }];
+  const imgs = await Promise.all(list.map((x) => !x.photo ? null : fetch(x.photo, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(Math.min(5000, ms / 3)) })
+    .then(async (r) => { if (!r.ok) return null; const b = Buffer.from(await r.arrayBuffer()); return b.length < 400000 ? b.toString("base64") : null; }).catch(() => null)));
+  list.forEach((x, i) => {
+    parts.push({ text: "\n[" + i + "] " + x.title + " | продавач: " + (x.seller_name || "—") + " | телефон в " + (x.repeat || 1) + " обява(и)\nОписание: " + (x.descr || "—").slice(0, 1200) });
+    if (imgs[i]) parts.push({ inline_data: { mime_type: "image/jpeg", data: imgs[i] } });
+  });
+  for (const m of ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash"]) {
+    const rest = ms - (Date.now() - t0); if (rest < 3000) break;
+    try {
+      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0, responseMimeType: "application/json" } }), signal: AbortSignal.timeout(rest) });
+      const j = await r.json(); if (!r.ok) { if (r.status === 429 || r.status >= 500) continue; return { ok: false }; }
+      const t = (((j.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("") || "{}";
+      const items = (JSON.parse(t.replace(/^```json|```$/g, "").trim()).items) || [], verdict = [], reason = [];
+      items.forEach((it) => { const i = Number(it.i); if (i >= 0 && i < list.length) { verdict[i] = it.owner === true; reason[i] = it.owner === true ? "" : "AI: " + String(it.reason || "агенция").slice(0, 80); } });
+      return { ok: true, verdict, reason, model: m };
+    } catch (e) { /* следващ модел */ }
+  }
+  return { ok: false };
 }
 
 async function findOwners(ctx, a) {
@@ -94,8 +132,13 @@ async function findOwners(ctx, a) {
   const maxP = Number(a.max_price) || 0;
   /* правило от SPEC-2: телефон в повече от 3 обяви = брокер; в 2–3 обяви – маркира се „възможно брокер“ */
   const cnt = {}; ads.forEach((x) => String(x.phone || "").split(", ").filter(Boolean).forEach((p) => { cnt[p] = (cnt[p] || 0) + 1; }));
-  ads.forEach((x) => { x.repeat = Math.max(0, ...String(x.phone || "").split(", ").filter(Boolean).map((p) => cnt[p])); if (x.repeat > 3) x.seller = "agency"; });
-  const owners = ads.filter((x) => x.seller === "private" && x.phone && (!maxP || !x.price || x.price <= maxP));
+  ads.forEach((x) => { x.repeat = Math.max(0, ...String(x.phone || "").split(", ").filter(Boolean).map((p) => cnt[p])); if (x.repeat >= 2) { x.seller = "agency"; x.why = x.why || "телефонът е в " + x.repeat + " обяви"; } });
+  let owners = ads.filter((x) => x.seller === "private" && x.phone && (!maxP || !x.price || x.price <= maxP));
+  /* AI проверка на описанието и първата снимка (лого/воден знак на агенция); при съмнение – обявата отпада */
+  const ai = await aiCheck(owners, Math.max(0, left() - 2500));
+  if (ai.ok) owners.forEach((x, i) => { if (ai.verdict[i] !== true) { x.seller = "agency"; x.why = ai.reason[i] || "AI: вероятно агенция"; } });
+  else owners.forEach((x) => { if (x.weak) { x.seller = "agency"; x.why = "текст като на агенция"; } });
+  owners = owners.filter((x) => x.seller === "private");
   owners.forEach((x) => { if (plKey && !String(x.city + " " + x.title).toLocaleLowerCase("bg").includes(plKey)) x.place_unsure = true; });
   /* 3) запис в „Събрани“ (без дубликати) */
   let saved = 0;
@@ -110,7 +153,7 @@ async function findOwners(ctx, a) {
   }
   const q = encodeURIComponent([a.type || "имот", a.place, a.region].filter(Boolean).join(" "));
   return {
-    ok: true, place: a.place || "", region: a.region || "", checked_ads: ads.length, agencies_skipped: ads.filter((x) => x.seller !== "private").length,
+    ok: true, place: a.place || "", region: a.region || "", checked_ads: ads.length, agencies_skipped: ads.filter((x) => x.seller !== "private").length, ai_checked: ai.ok ? (ai.model || "gemini") : "не (резервни правила)", skipped_examples: ads.filter((x) => x.seller !== "private").slice(0, 6).map((x) => ({ title: x.title, why: x.why || "агенция" })),
     count: owners.length, saved_to_collected: saved,
     items: owners.slice(0, 30).map((x) => ({ title: x.title, place: x.city, region: x.region, area_m2: x.area, price_eur: x.price, phone: x.phone, name: x.name || undefined, link: x.link, place_unsure: x.place_unsure || undefined, maybe_broker: x.repeat >= 2 ? "същият телефон в " + x.repeat + " обяви – възможно брокер" : undefined })),
     searched: usedLists.slice(0, 4),
