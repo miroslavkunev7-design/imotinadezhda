@@ -447,14 +447,17 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     tiles.forEach(function(o){o.el.style.left=o.left+'px';o.el.style.removeProperty('--th');o.im.style.width=o.iw+'px';o.im.style.left=o.il+'px';o.im.style.top=o.it+'px'});
     panels.forEach(function(el){el.style.left=''});
   }
+  /* приложение на началния екран: височината под часовника/батерията (CSS --sat от crm-blend.css) */
+  function safeTop(){var p=document.createElement('div');p.style.cssText='position:fixed;top:0;left:0;width:1px;height:var(--sat,0px);visibility:hidden;pointer-events:none';document.body.appendChild(p);var v=p.offsetHeight||0;p.remove();return v}
   function fit(){
     var desk=isDesk();root.classList.toggle('desk',desk);
     if(desk){fitDesk();return}
     clearDesk();
     var vw=document.documentElement.clientWidth;
-    var k=vw/W, vh=window.innerHeight;
-    /* taller phones: grow the hero photo first, then open up the gaps between sections */
+    var k=vw/W, sat=safeTop(), vh=window.innerHeight-sat;
+    /* taller phones: grow the hero photo first, then open up the gaps between sections; what is left is spread too – no empty field above the menu */
     var extra=Math.max(0,vh/k-H), h=Math.min(extra*.45,140), g=Math.min((extra-h)/7,42);
+    var rest=extra-h-7*g; if(rest>0){var g2=Math.min(rest/7,40);g+=g2;rest-=7*g2;if(rest>0)h+=Math.min(rest,120)}
     top.style.height=(380+h)+'px';
     heros.forEach(function(o){o.el.style.top=(o.top+h)+'px'});
     rows.forEach(function(o){o.el.style.top=(o.top+h+g*o.row)+'px'});

@@ -537,7 +537,7 @@
         [].forEach.call(d.querySelectorAll(".row button"), function (x) { x.disabled = false; });
         if (!r.ok) { st.innerHTML = '<span class="er">' + esc(r.error || "Неуспешно") + "</span>"; return; }
         q("pass").value = "";
-        st.innerHTML = a === "save" ? "✅ Запазено. Тед изпраща от <b>" + esc(r.settings.email) + "</b>. Напишете „изпрати“, за да тръгне имейлът." : "✅ Връзката с <b>" + esc(r.settings.email) + "</b> работи. Натиснете „Запази“.";
+        st.innerHTML = a === "save" ? "✅ Запазено. Тед изпраща от <b>" + esc(r.settings.email) + "</b>. Напишете „изпрати“, за да тръгне имейлът." : "✅ Работи! Изпратих тестов имейл до <b>" + esc(r.sent_to || r.settings.email) + "</b> – проверете пощата. Натиснете „Запази“.";
       });
     };
   }

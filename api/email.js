@@ -34,7 +34,9 @@ async function secretDel(k) { await fetch(SB_URL + "/rest/v1/nd_secrets?key=eq."
 const NETERR = /ECONNREFUSED|ETIMEDOUT|ESOCKET|ECONNRESET|EHOSTUNREACH|ENETUNREACH|timeout|Greeting never received|Connection closed/i;
 function variants(cfg) { const v = [cfg]; if (Number(cfg.port) === 465 && /^(abv|mailbg|custom)$/.test(cfg.provider || "")) v.push(Object.assign({}, cfg, { port: 587, secure: false })); return v; }
 async function verifyAny(cfg) { let err; for (const c of variants(cfg)) { try { await transport(c).verify(); return c; } catch (e) { err = e; if (!NETERR.test(String(e && (e.code || "") + " " + e.message))) break; } } throw err; }
-async function sendAny(cfg, mail) { let err; for (const c of variants(cfg)) { try { return await transport(c).sendMail(mail); } catch (e) { err = e; if (!NETERR.test(String(e && (e.code || "") + " " + e.message))) break; } } throw err; }
+async function sendAny(cfg, mail) { let err; for (const c of variants(cfg)) { try { return await transport(c).sendMail(mail); } catch (e) { err = e; logErr("send", c, e); if (!NETERR.test(String(e && (e.code || "") + " " + e.message))) break; } } throw err; }
+/* грешки при изпращане в логовете на Vercel (без пароли) – за бърза диагностика */
+function logErr(stage, cfg, e) { try { console.error("[email]", stage, JSON.stringify({ host: cfg && cfg.host, port: cfg && cfg.port, provider: cfg && cfg.provider, code: e && e.code, command: e && e.command, responseCode: e && e.responseCode, response: e && String(e.response || "").slice(0, 200), message: String((e && e.message) || e).slice(0, 200) })); } catch (x) {} }
 function transport(cfg) { return nodemailer.createTransport({ host: cfg.host, port: Number(cfg.port) || 465, secure: cfg.secure !== false && Number(cfg.port) !== 587, auth: { user: cfg.user, pass: cfg.pass }, connectionTimeout: 15000, greetingTimeout: 15000, socketTimeout: 30000, tls: { minVersion: "TLSv1.2" } }); }
 const pub = (cfg) => cfg ? { provider: cfg.provider, email: cfg.email, user: cfg.user, host: cfg.host, port: cfg.port, name: cfg.name || "", at: cfg.at } : null;
 function friendly(e) { const m = String((e && e.message) || e); if (/535|auth|credentials|Invalid login|Username and Password/i.test(m)) return "Пощата отказа входа – проверете адреса и паролата (за ABV: паролата на пощата или парола за приложения при двустепенна защита; за Gmail/Outlook/Yahoo трябва парола за приложение)."; if (/ECONNREFUSED|ETIMEDOUT|ENOTFOUND|timeout|Greeting/i.test(m)) return "Няма връзка със SMTP сървъра – проверете host/port."; if (/550|553|554|5\.7\.|spam|rejected/i.test(m)) return "Пощенският сървър отказа писмото: " + m.slice(0, 160); return m.slice(0, 200); }
@@ -57,9 +59,16 @@ module.exports = async (req, res) => {
       let cfg = { provider: b.provider || "custom", email, name: String(b.name || "").slice(0, 80), user: String(b.user || email).trim(), host: b.provider === "custom" ? String(b.host || "").trim() : p.host, port: b.provider === "custom" ? Number(b.port) || 465 : p.port, secure: b.provider === "custom" ? b.secure !== false : p.secure, pass, at: new Date().toISOString() };
       if (!pass) { const old = await secretGet(key(user, b.scope)); if (old && old.email === email) cfg.pass = old.pass; else return send(res, 400, { ok: false, error: "Въведете паролата (за приложения) на пощата" }); }
       if (!cfg.host) return send(res, 400, { ok: false, error: "Липсва SMTP сървър" });
-      try { cfg = await verifyAny(cfg); } catch (e) { return send(res, 200, { ok: false, error: friendly(e) }); }
+      try { cfg = await verifyAny(cfg); } catch (e) { logErr("verify", cfg, e); return send(res, 200, { ok: false, error: friendly(e) }); }
       if (b.action === "set") await secretSet(key(user, b.scope), cfg);
-      return send(res, 200, { ok: true, settings: pub(cfg), verified: true });
+      /* „Тест“ праща истински тестов имейл (до самата поща или до посочен адрес) – така се вижда, че изпращането работи докрай */
+      let sentTo = null;
+      if (b.action === "test") {
+        const to = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(b.test_to || "")) ? String(b.test_to).trim() : cfg.email;
+        try { await sendAny(cfg, { from: cfg.name ? '"' + cfg.name.replace(/"/g, "") + '" <' + cfg.email + ">" : cfg.email, to, subject: "Тест от Тед – Имоти Надежда", text: "Здравейте!\n\nТова е тестов имейл от CRM на Имоти Надежда. Изпращането от " + cfg.email + " работи – Тед вече може да праща имейли с документи с едно „Да“ в чата.\n\nИмоти Надежда · 0898977370" }); sentTo = to; }
+        catch (e) { logErr("test-send", cfg, e); return send(res, 200, { ok: false, error: "Връзката е успешна, но писмото не тръгна: " + friendly(e) }); }
+      }
+      return send(res, 200, { ok: true, settings: pub(cfg), verified: true, sent_to: sentTo });
     }
     if (b.action === "send") {
       const cfg = await secretGet(key(user));

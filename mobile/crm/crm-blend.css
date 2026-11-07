@@ -47,11 +47,17 @@ html:not(.desk) #top{
   *{transition-duration:.01ms!important}
 }
 
-/* App on the home screen: the menu sits above the iPhone home bar, the bar area keeps the dark wine colour */
+/* App on the home screen (iPhone/Android): горе съдържанието започва под часовника и батерията, а лентата им е в цвета на хедъра;
+   долу менюто стои ниско – точно над чертата за начален екран, без празна лента под него */
+:root{--sat:0px;--sab:0px}
 @media (display-mode:standalone){
-  html:not(.desk) #dock{bottom:env(safe-area-inset-bottom,0px)}
-  html:not(.desk) #dock::after{content:"";position:absolute;left:0;right:0;top:100%;height:env(safe-area-inset-bottom,0px);background:#3e0d16}
-  html:not(.desk) #stage{padding-bottom:env(safe-area-inset-bottom,0px)}
+  :root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
+  html:not(.desk) #stage{padding-top:var(--sat)}
+  html:not(.desk) #stage::before{content:"";position:absolute;left:0;right:0;top:0;height:var(--sat);background:linear-gradient(180deg,#4a0f1b,#5a1424);z-index:3;pointer-events:none}
+  html:not(.desk) #canvas:not(.flowcv){top:var(--sat)}
+  html:not(.desk) #dock{bottom:0}
+  html:not(.desk) #dockCanvas{bottom:max(0px,calc(var(--sab) - 12px - var(--dockH,110px)*.322))}
+  html:not(.desk) #dock::after{content:"";position:absolute;left:0;right:0;bottom:0;height:max(0px,calc(var(--sab) - 12px - var(--dockH,110px)*.322));background:#3d0e17;pointer-events:none}
 }
 
 
