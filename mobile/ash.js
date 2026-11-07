@@ -117,6 +117,8 @@
   var PREF_KEY = "nd-ted-prefs", DEFP = { voice: "male", autoSpeak: "voice", style: "calm", model: "", n8nModel: "", big: false, enterSend: true, showActions: true, dictAuto: true, keepHist: true };
   var prefs = (function () { try { return Object.assign({}, DEFP, JSON.parse(localStorage.getItem(PREF_KEY) || "{}")); } catch (e) { return Object.assign({}, DEFP); } })();
   try { var oldM = localStorage.getItem("nd-ted-model"); if (oldM && !prefs.model) prefs.model = oldM; } catch (e) {}
+  /* еднократно: всички започват с личния безплатен агент (Flash Lite); по-силен модел се избира ръчно от ⚙ → Модел */
+  if (!prefs.free1) { prefs.model = ""; prefs.free1 = true; try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); localStorage.removeItem("nd-ted-model"); } catch (e) {} }
   var modelId = prefs.model || "";
   function savePrefs() { try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) {} if (window.ND && window.ND.setPref && window.ND.user) { try { window.ND.setPref("ted:" + window.ND.user.id, prefs).catch(function () {}); } catch (e) {} } }
   function applyPrefs() { if (win) win.classList.toggle("big", !!prefs.big); modelId = prefs.model || ""; }
@@ -153,7 +155,7 @@
         '<div class="nda-sec"><h4>Кога да говори</h4>' + [["voice", "Само след гласов въпрос"], ["always", "Чете всеки отговор на глас"], ["never", "Никога – само бутона ▶"]].map(function (x) { return '<button type="button" class="nda-opt' + (prefs.autoSpeak === x[0] ? " on" : "") + '" data-auto="' + x[0] + '"><i></i><span class="d">' + x[1] + "</span></button>"; }).join("") + "</div>";
     } else if (setTab === "model") {
       var cur = curModel();
-      html += '<div class="nda-sec"><h4>Модел на изкуствения интелект</h4><p>Активен: <b>' + esc(cur ? cur.name : "—") + "</b>. Показват се само доставчиците с ключ във Vercel.</p>" +
+      html += '<div class="nda-sec"><h4>Модел на изкуствения интелект</h4><p>Активен: <b>' + esc(cur ? cur.name : "—") + "</b>. По подразбиране е личният безплатен агент – за клиенти, имоти, календар и качване. За тежки задачи изберете по-силен модел тук; изборът се помни.</p>" +
         (models || []).map(function (m) {
           var on = cur && cur.id === m.id;
           return '<button type="button" class="nda-opt' + (on ? " on" : "") + '" data-m="' + esc(m.id) + '"><i></i><span class="d">' + esc(m.name) + "<small>" + esc(m.note || "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки") + "</small></span><em>" + (PROV[m.provider] || m.provider) + "</em></button>" +

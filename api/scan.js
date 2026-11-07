@@ -75,15 +75,12 @@ async function gem(key, model, body) {
 }
 async function logos(res, key, b) {
   if (b.kind === "logos") {
-    for (const model of MODELS) {
-      try {
-        const j = await gem(key, model, { contents: [{ role: "user", parts: [{ text: LOGO_PROMPT }, { inline_data: { mime_type: b.mime, data: b.data } }] }], generationConfig: { temperature: 0, responseMimeType: "application/json" } });
-        const t = ((j.candidates || [])[0] || {}).content?.parts?.map((p) => p.text || "").join("") || "{}";
-        let o = JSON.parse(t.replace(/^```json|```$/g, "").trim()); if (Array.isArray(o)) o = { boxes: o };
-        const boxes = (o.boxes || []).map((x) => ({ box: (x.box || x.box_2d || []).map(Number), label: String(x.label || "").slice(0, 60) })).filter((x) => x.box.length === 4 && x.box.every((v) => v >= 0 && v <= 1000) && x.box[2] > x.box[0] && x.box[3] > x.box[1]);
-        return send(res, 200, { ok: true, boxes, model });
-      } catch (e) { /* try next */ }
-    }
+    try {
+      const g = await GEM.generate({ parts: [{ text: LOGO_PROMPT }, { inline_data: { mime_type: b.mime, data: b.data } }], json: true, temperature: 0, budgetMs: 40000 });
+      let o = g.data; if (Array.isArray(o)) o = { boxes: o };
+      const boxes = ((o && o.boxes) || []).map((x) => ({ box: (x.box || x.box_2d || []).map(Number), label: String(x.label || "").slice(0, 60) })).filter((x) => x.box.length === 4 && x.box.every((v) => v >= 0 && v <= 1000) && x.box[2] > x.box[0] && x.box[3] > x.box[1]);
+      return send(res, 200, { ok: true, boxes, model: g.model });
+    } catch (e) { /* без откриване – снимката остава както е */ }
     return send(res, 200, { ok: true, boxes: [], note: "detect failed" });
   }
   const where = (b.boxes || []).map((x) => "[" + x.box.join(",") + "] " + (x.label || "")).join("; ");
@@ -106,7 +103,7 @@ module.exports = async (req, res) => {
   const auth = String(req.headers["authorization"] || "");
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!token || !(await isStaff(token).catch(() => false))) return send(res, 401, { ok: false, error: "Влезте в CRM, за да сканирате." });
-  try { const [tm, im] = await Promise.all([GEM.models("chat"), GEM.models("image")]); if (tm.length) MODELS = tm.slice(0, 4); if (im.length) CLEAN_MODELS = im.slice(0, 3); } catch (e) {}
+  try { const im = await GEM.models("image"); if (im.length) CLEAN_MODELS = im.slice(0, 3); } catch (e) {}
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
   if (b.kind === "classify") {
     /* Кой документ е това? – избира графа от подадения списък (key/title) или предлага ново име */
@@ -118,14 +115,11 @@ module.exports = async (req, res) => {
       "Списък с графи (key → title, група):\n" + rows.map((r) => r.key + " → " + r.title + (r.group ? " [" + r.group + "]" : "")).join("\n") +
       "\n\nВърни JSON: {\"key\": ключ от списъка или \"\" ако никоя графа не пасва, \"title\": кратко име на документа на български (напр. „Удостоверение за доходи“), \"confidence\": 0–1, \"summary\": едно изречение какво е документът, на кого е и дата ако се вижда, \"person\": име на лицето в документа ако има}. Не измисляй – ако не се разчита, confidence е нисък." + (b.name ? " Име на файла: " + String(b.name).slice(0, 120) : "");
     let last = "";
-    for (const model of MODELS) {
-      try {
-        const j = await gem(k, model, { contents: [{ role: "user", parts: [{ text: prompt }, { inline_data: { mime_type: b.mime, data: b.data } }] }], generationConfig: { temperature: 0, responseMimeType: "application/json" } });
-        const t = ((j.candidates || [])[0] || {}).content?.parts?.map((p) => p.text || "").join("") || "{}";
-        let f = JSON.parse(t.replace(/^```json|```$/g, "").trim()); if (Array.isArray(f)) f = f[0] || {};
-        return send(res, 200, { ok: true, fields: { key: String(f.key || ""), title: String(f.title || "").slice(0, 120), confidence: Number(f.confidence) || 0, summary: String(f.summary || "").slice(0, 300), person: String(f.person || "").slice(0, 80) }, model });
-      } catch (e) { last = String(e.message || e); }
-    }
+    try {
+      const g = await GEM.generate({ parts: [{ text: prompt }, { inline_data: { mime_type: b.mime, data: b.data } }], json: true, temperature: 0, budgetMs: 45000 });
+      let f = g.data; if (Array.isArray(f)) f = f[0] || {}; f = f || {};
+      return send(res, 200, { ok: true, fields: { key: String(f.key || ""), title: String(f.title || "").slice(0, 120), confidence: Number(f.confidence) || 0, summary: String(f.summary || "").slice(0, 300), person: String(f.person || "").slice(0, 80) }, model: g.model });
+    } catch (e) { last = String(e.message || e); }
     return send(res, 200, { ok: true, fields: null, note: last });
   }
   if (b.kind === "logos" || b.kind === "clean") {
@@ -153,20 +147,11 @@ module.exports = async (req, res) => {
     contents: [{ role: "user", parts }],
     generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
   };
-  let lastErr = "";
-  for (const model of MODELS) {
-    try {
-      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({}, body, { generationConfig: GEM.cfg(model, body.generationConfig) }))
-      });
-      const j = await r.json();
-      if (!r.ok) { GEM.classify(model, r.status, j); lastErr = (j.error && j.error.message) || "HTTP " + r.status; continue; }
-      const text = ((j.candidates || [])[0] || {}).content?.parts?.map((p) => p.text || "").join("") || "";
-      let fields;
-      try { fields = JSON.parse(text.replace(/^```json|```$/g, "").trim()); } catch (e) { lastErr = "Неразчетен отговор"; continue; }
-      if (Array.isArray(fields)) fields = fields[0] || {};
-      return send(res, 200, { ok: true, kind, model, fields });
-    } catch (e) { lastErr = String(e.message || e); }
+  try {
+    const g = await GEM.generate({ parts, json: true, temperature: 0.1, budgetMs: 52000 });
+    let fields = g.data; if (Array.isArray(fields)) fields = fields[0] || {};
+    return send(res, 200, { ok: true, kind, model: g.model, fields: fields || {} });
+  } catch (e) {
+    return send(res, e.quota ? 429 : 502, { ok: false, error: e.quota ? "Безплатният лимит на AI за момента е изчерпан – презарежда се автоматично. Опитайте отново след минута." : "Анализът не успя: " + String(e.message || e).slice(0, 200) });
   }
-  return send(res, 502, { ok: false, error: "Анализът не успя: " + lastErr });
 };

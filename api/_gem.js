@@ -39,6 +39,7 @@ const isPreview = (id) => /preview|-exp|\d{2}-\d{2}$|-\d{3}$/.test(id);
 const isAlias = (id) => /-latest$/.test(id);
 const NOT_TEXT = /(tts|image|embed|live|native-audio|audio|computer-use|robotics|aqa|learnlm|veo|imagen|omni|thinking|deep-research|customtools|nano|banana|lyria|gemma|-exp)/;
 
+/* „fast“ = личният безплатен агент: Flash Lite има най-големия безплатен лимит (псевдонимът -latest първо – проверен с този ключ) */
 function rank(ids, kind) {
   const tier = (id) => {
     const lite = /lite/.test(id), flash = /flash/.test(id), pro = /pro/.test(id);
@@ -47,7 +48,7 @@ function rank(ids, kind) {
     return flash && !lite ? 0 : lite ? 1 : pro ? 3 : 2;
   };
   /* стабилни 3.x+ → псевдоними „-latest“ → стари 2.x (Google ги спира) → preview */
-  const group = (id) => (isAlias(id) ? 1 : isPreview(id) ? 3 : ver(id) && ver(id) < 3 ? 2 : 0);
+  const group = (id) => (kind === "fast" && /lite-latest$/.test(id) ? -1 : isAlias(id) ? 1 : isPreview(id) ? 3 : ver(id) && ver(id) < 3 ? 2 : 0);
   return ids.slice().sort((a, b) => tier(a) - tier(b) || group(a) - group(b) || ver(b) - ver(a) || a.localeCompare(b));
 }
 /* подредени модели за даден вид работа: chat (Flash), fast (Flash Lite първо), tts, image */
@@ -63,7 +64,8 @@ async function models(kind) {
   ids = rank(ids, kind);
   /* в чата: най-много 4 Flash + 2 Flash Lite + 1 Pro, за да не губим време */
   if (kind === "chat" || kind === "fast") {
-    const fl = ids.filter((i) => /flash/.test(i) && !/lite/.test(i)).slice(0, 4), li = ids.filter((i) => /lite/.test(i)).slice(0, 2), pr = ids.filter((i) => /pro/.test(i)).slice(0, 1);
+    if (kind === "fast" && !ids.includes("gemini-flash-lite-latest")) ids.unshift("gemini-flash-lite-latest");
+    const fl = ids.filter((i) => /flash/.test(i) && !/lite/.test(i)).slice(0, 4), li = ids.filter((i) => /lite/.test(i)).slice(0, 3), pr = ids.filter((i) => /pro/.test(i)).slice(0, 1);
     ids = kind === "fast" ? li.concat(fl, pr) : fl.concat(li, pr);
   }
   const now = Date.now();
@@ -94,7 +96,8 @@ function genConfig(model, gc, opts) {
   const c = Object.assign({}, gc || {});
   const v = ver(model);
   if (v >= 3 || isAlias(model)) delete c.temperature;
-  if (v >= 3 && opts && opts.thinking && !c.thinkingConfig) c.thinkingConfig = { thinkingLevel: opts.thinking };
+  /* Flash Lite – минимално мислене (по-малко токени от безплатния лимит, по-бърз отговор) */
+  if (v >= 3 && opts && opts.thinking && !c.thinkingConfig) c.thinkingConfig = { thinkingLevel: /lite/.test(model) ? "minimal" : opts.thinking };
   return c;
 }
 async function post(model, body, ms) {
@@ -156,9 +159,18 @@ async function generate(o) {
   if (o.temperature != null) body.generationConfig.temperature = o.temperature;
   if (o.json) body.generationConfig.responseMimeType = "application/json";
   if (o.maxTokens) body.generationConfig.maxOutputTokens = o.maxTokens;
-  const res = await request(body, { kind: o.kind, models: o.models, budgetMs: o.budgetMs, deadline: o.deadline, thinking: o.thinking || "low" });
-  const text = textOf(res.json);
-  return { text, data: o.json ? parseJson(text) : undefined, model: res.model, raw: res.json };
+  const deadline = o.deadline || Date.now() + (o.budgetMs || 50000);
+  const ids = o.models && o.models.length ? o.models : await models(o.kind || "fast");
+  let start = 0, lastErr = null;
+  /* неразчетен JSON / празен отговор → още един опит със следващия модел */
+  for (let k = 0; k < 2; k++) {
+    const res = await request(body, { models: ids, start, deadline, thinking: o.thinking || "low" });
+    const text = textOf(res.json);
+    if (!o.json) { if (text || k === 1 || res.index + 1 >= ids.length) return { text, model: res.model, raw: res.json }; }
+    else { try { return { text, data: parseJson(text), model: res.model, raw: res.json }; } catch (e) { lastErr = e; } }
+    start = res.index + 1; if (start >= ids.length || deadline - Date.now() < 4000) break;
+  }
+  throw lastErr || new Error("AI не върна отговор");
 }
 /* гласово съобщение → текст. iPhone записва audio/mp4, Chrome – audio/webm: при отказ опитваме съвместим MIME */
 async function transcribe(audio, prompt, o) {
@@ -169,7 +181,7 @@ async function transcribe(audio, prompt, o) {
   let lastErr = null;
   for (const m of tryMimes) {
     try {
-      const r = await generate({ parts: [{ text: prompt }, { inline_data: { mime_type: m, data: audio.data } }], temperature: 0, kind: "chat", budgetMs: (o && o.budgetMs) || 25000, thinking: "minimal" });
+      const r = await generate({ parts: [{ text: prompt }, { inline_data: { mime_type: m, data: audio.data } }], temperature: 0, kind: "fast", budgetMs: (o && o.budgetMs) || 25000, thinking: "minimal" });
       return r.text.replace(/^["„“]+|["“”]+$/g, "").trim();
     } catch (e) { lastErr = e; if (!(e.status === 400 && /mime|format|audio|unsupported|invalid argument/i.test(String(e.message)))) break; }
   }

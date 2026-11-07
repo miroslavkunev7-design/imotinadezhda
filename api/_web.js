@@ -6,7 +6,7 @@ function key() { return process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERAT
 
 /* Google Search through Gemini grounding: answer + sources */
 async function webSearch(query) {
-  const r = await GEM.generate({ parts: [{ text: "Потърси в интернет и отговори кратко и точно на български, с конкретни данни (цени, дати, имена, телефони, адреси, линкове), ако ги има: " + String(query).slice(0, 500) }], tools: [{ google_search: {} }], temperature: 0.2, budgetMs: 30000 });
+  const r = await GEM.generate({ parts: [{ text: "Потърси в интернет и отговори кратко и точно на български, с конкретни данни (цени, дати, имена, телефони, адреси, линкове), ако ги има: " + String(query).slice(0, 500) }], tools: [{ google_search: {} }], temperature: 0.2, budgetMs: 30000, kind: "fast" });
   const c = (r.raw.candidates || [])[0] || {};
   const chunks = ((c.groundingMetadata || {}).groundingChunks || []).map((g) => g.web).filter(Boolean).slice(0, 8).map((w) => ({ title: w.title, url: w.uri }));
   return { answer: r.text, sources: chunks };

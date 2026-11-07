@@ -233,6 +233,7 @@ const BUILD_RULES =
   "For clip 1 the STARTING STATE describes the untouched empty outdoor property with bare dusty earth (no luxury features) and workers entering to survey. " +
   "Return ONLY JSON: {\"clips\":[{\"n\":1,\"title\":\"CLIP 1 — SURVEY AND MARKING\",\"duration\":\"5–7 seconds\",\"start\":\"…\",\"transformation\":\"…\",\"end\":\"…\",\"continuity\":\"…\",\"prompt\":\"…\",\"bg\":\"кратко описание на клипа на български\"}]}";
 async function gemText(parts, model) {
+  if (GEM) { const g = await GEM.generate({ parts, models: [model].concat(TEXT_MODELS.filter((m) => m !== model)), kind: "chat", budgetMs: 45000 }); return g.text; }
   const r = await fetch(GAPI + "/models/" + model + ":generateContent?key=" + encodeURIComponent(GKEY()), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0.4, responseMimeType: "application/json" } }) });
   const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
   return ((((j.candidates || [])[0] || {}).content || {}).parts || []).map((p) => p.text || "").join("");

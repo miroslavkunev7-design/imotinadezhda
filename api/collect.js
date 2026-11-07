@@ -19,6 +19,9 @@ async function isStaff(token) {
 }
 const AGENCY = /агенци|брокер|комисион|посредни|real\s*estate|имоти\s+[„"]?[А-ЯA-Z]|ипотечен\s+консултант|офис\s+за\s+недвижими|наш\s+екип|предлагаме\s+на\s+нашите\s+клиенти/i;
 const PHONE = /(?:\+|00)?(?:359[\s\-\/.]*|0)\(?\d{2,3}\)?(?:[\s\-\/.]*\d){5,7}/g;
+/* „без посредник“, „без комисионна“, „агенции да не звънят“, „не съм брокер“ означават ЧАСТНО лице – махат се преди проверката за агенция */
+const NOT_AGENCY = /(без|няма|не\s+искам|не\s+желая|не\s+приемам|моля\s+без)\s+(посредни[а-яa-z]*|комисион[а-яa-z]*|агенци[а-яa-z]*|брокер[а-яa-z]*|имотни\s+агенции)|(агенци[а-яa-z]*|брокер[а-яa-z]*|посредни[а-яa-z]*)\s+(да\s+не|моля\s+не|не\s+се|не\s+звън|не\s+ме)[а-яa-z]*|не\s+съм\s+(агенция|брокер|посредник)|без\s+такс[аи]\s+за\s+посредни[а-яa-z]*/gi;
+const isAgencyText = (t) => AGENCY.test(String(t || "").replace(NOT_AGENCY, " "));
 function normPhone(p) { let d = String(p || "").replace(/\D/g, ""); if (d.startsWith("00359")) d = d.slice(5); else if (d.startsWith("359")) d = d.slice(3); if (!d.startsWith("0")) d = "0" + d; return d; }
 function site(u) { try { const h = new URL(u).hostname.replace(/^www\./, ""); return /imot\.bg/.test(h) ? "Имоти.бг" : /olx\./.test(h) ? "OLX" : /alo\.bg/.test(h) ? "Alo.bg" : /bazar\.bg/.test(h) ? "Bazar.bg" : /imoti\.net/.test(h) ? "Imoti.net" : /homes\.bg/.test(h) ? "Homes.bg" : /facebook|fb\./.test(h) ? "Facebook" : h; } catch (e) { return "Друг сайт"; } }
 
@@ -30,7 +33,7 @@ const PROMPT = "Ти си асистент на агенция за недвиж
   "phones (масив с телефоните, както са написани), name (име на човека, ако го има), text (пълният текст на обявата/поста, до 1500 знака), " +
   "wants (при 'wanted' – какво търси: вид, квартал, бюджет, срок), images (масив с номерата [i] на снимките от СПИСЪКА СНИМКИ, които са към тази обява), " +
   "link (линк към самата обява, ако има в СПИСЪКА ЛИНКОВЕ), posted (дата, ако се вижда). " +
-  "Агенция е, ако се споменава агенция, брокер, комисионна, посредник, офис, или е фирмена обява. Не измисляй – само реално видимото. " +
+  "Агенция е, ако обявата е от агенция, брокер, посредник, офис или е фирмена обява. ВАЖНО: „без посредник“, „без комисионна“, „от собственик“, „лично“, „агенции да не звънят“, „не съм брокер“ означават ЧАСТНО лице (seller: private). Не измисляй – само реално видимото. " +
   "Върни JSON {\"items\":[...], \"detailLinks\":[до 25 линка към отделни обяви от тази страница, на които може да има телефон и снимки], \"nextPage\": линк към следваща страница или null}.";
 
 module.exports = async (req, res) => {
@@ -72,7 +75,7 @@ module.exports = async (req, res) => {
   try {
     /* модел: по подразбиране Flash; при лимит (429) – Flash Lite, който има по-голям безплатен лимит */
     /* моделът се избира автоматично (_gem.js); при лимит/404 – следващият жив модел */
-    const g = await GEM.generate({ parts, json: true, temperature: 0.1, kind: b.model === "lite" ? "fast" : "chat", budgetMs: 45000 });
+    const g = await GEM.generate({ parts, json: true, temperature: 0.1, kind: b.model === "strong" ? "chat" : "fast", budgetMs: 45000 });
     ai = g.data || {};
   } catch (e) { return send(res, 502, { ok: false, error: "Анализът не успя: " + String(e.message || e) }); }
 
@@ -83,7 +86,7 @@ module.exports = async (req, res) => {
     const phones = [...new Set([].concat(it.phones || []).concat(text.match(PHONE) || []).map(normPhone).filter((p) => p.length >= 9 && p.length <= 11))];
     const kind = it.kind === "wanted" ? "wanted" : "property";
     if (!want[kind]) { skipped.other++; continue; }
-    if (it.seller === "agency" || AGENCY.test(text)) { skipped.agency++; continue; }
+    if (it.seller === "agency" || isAgencyText(text)) { skipped.agency++; continue; }
     const low = (text + " " + (page.title || "")).toLowerCase();
     const kwHit = keywords.some((k) => low.includes(k)) || (b.text && keywords.some((k) => String(b.text).toLowerCase().includes(k)));
     if (!kwHit) { skipped.noKeyword++; continue; }

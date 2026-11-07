@@ -89,20 +89,14 @@ async function aiCheck(list, ms) {
     parts.push({ text: "\n[" + i + "] " + x.title + " | продавач: " + (x.seller_name || "—") + " | телефон в " + (x.repeat || 1) + " обява(и)\nОписание: " + (x.descr || "—").slice(0, 1200) });
     if (imgs[i]) parts.push({ inline_data: { mime_type: "image/jpeg", data: imgs[i] } });
   });
-  let last = "";
-  for (const m of (await require("./_gem.js").models("fast")).slice(0, 4)) {
-    const rest = ms - (Date.now() - t0); if (rest < 3000) break;
-    try {
-      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: require("./_gem.js").cfg(m, { temperature: 0, responseMimeType: "application/json" }) }), signal: AbortSignal.timeout(rest) });
-      const j = await r.json(); if (!r.ok) { require("./_gem.js").classify(m, r.status, j); last = m + ": " + r.status + " " + String((j.error && j.error.message) || "").slice(0, 120); if (r.status === 429 || r.status === 404 || r.status >= 500) continue; return { ok: false, err: last }; }
-      const t = (((j.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("") || "{}";
-      const items = (JSON.parse(t.replace(/^```json|```$/g, "").trim()).items) || [], verdict = [], reason = [];
-      items.forEach((it) => { const i = Number(it.i); if (i >= 0 && i < list.length) { verdict[i] = it.owner === true; reason[i] = it.owner === true ? "" : "AI: " + String(it.reason || "агенция").slice(0, 80); } });
-      return { ok: true, verdict, reason, model: m };
-    } catch (e) { last = m + ": " + String(e.message || e).slice(0, 120); }
-  }
-  return { ok: false, err: last };
+  try {
+    const rest = ms - (Date.now() - t0); if (rest < 3000) return { ok: false, err: "няма време" };
+    const g = await require("./_gem.js").generate({ parts, json: true, temperature: 0, budgetMs: rest });
+    const items = ((g.data || {}).items) || [], verdict = [], reason = [];
+    items.forEach((it) => { const i = Number(it.i); if (i >= 0 && i < list.length) { verdict[i] = it.owner === true; reason[i] = it.owner === true ? "" : "AI: " + String(it.reason || "агенция").slice(0, 80); } });
+    return { ok: true, verdict, reason, model: g.model };
+  } catch (e) { return { ok: false, err: String(e.message || e).slice(0, 160) }; }
+
 }
 
 async function findOwners(ctx, a) {

@@ -21,7 +21,7 @@ function parseList(s, def) {
 function catalog() {
   const out = [];
   /* Gemini: псевдонимите „-latest“ сочат винаги най-новия модел; реалният модел се избира автоматично от _gem.js (ListModels) */
-  if (E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY")) parseList(E("GEMINI_MODELS"), ["gemini-flash-latest|Gemini Flash|най-новият Flash, снимки и PDF", "gemini-flash-lite-latest|Gemini Flash Lite|най-бърз, най-голям безплатен лимит"]).forEach((m) => out.push(Object.assign({ provider: "gemini", vision: true, pdf: true }, m)));
+  if (E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY")) parseList(E("GEMINI_MODELS"), ["gemini-flash-lite-latest|Тед – личен безплатен агент|по подразбиране: клиенти, имоти, календар, качване на имот – най-голям безплатен лимит", "gemini-flash-latest|Gemini Flash – по-силен|за тежки задачи (договори, анализи, документи); по-малък безплатен лимит"]).forEach((m) => out.push(Object.assign({ provider: "gemini", vision: true, pdf: true }, m)));
   if (E("OPENAI_API_KEY")) parseList(E("OPENAI_MODELS"), ["gpt-4.1-mini|ChatGPT 4.1 mini|бърз и евтин", "gpt-4.1|ChatGPT 4.1|по-силен"]).forEach((m) => out.push(Object.assign({ provider: "openai", vision: true, pdf: false }, m)));
   if (E("ANTHROPIC_API_KEY")) parseList(E("ANTHROPIC_MODELS"), ["claude-sonnet-4-5|Claude Sonnet 4.5|много добър за текст и документи", "claude-haiku-4-5|Claude Haiku 4.5|бърз"]).forEach((m) => out.push(Object.assign({ provider: "anthropic", vision: true, pdf: true }, m)));
   if (E("OPENROUTER_API_KEY")) parseList(E("OPENROUTER_MODELS"), ["meta-llama/llama-3.3-70b-instruct:free|Llama 3.3 70B (OpenRouter)|безплатен, без снимки"]).forEach((m) => out.push(Object.assign({ provider: "openrouter", vision: false, pdf: false }, m)));
@@ -50,10 +50,11 @@ async function chat(model, opts) {
   const STOP = "Спри с инструментите и дай окончателния отговор с това, което вече намери (с точки и източници).";
   if (model.provider === "gemini") {
     /* избраният модел + всички живи Gemini модели (най-новите първо); при 404/лимит/претоварване стъпката минава на следващия, без да започва отначало */
-    const live = await GEM.models("chat");
+    /* личният безплатен агент (Flash Lite) → първо всички Lite модели, после Flash; избран по-силен модел → първо той, после резервите */
+    const lite = /lite/.test(model.id), live = await GEM.models(lite ? "fast" : "chat");
     const ids = [];
-    const want = /-latest$/.test(model.id) ? (/lite/.test(model.id) ? live.filter((i) => /lite/.test(i)).concat(live) : live) : [model.id].concat(live);
-    want.concat(GEM.FALLBACK.chat).forEach((i) => { if (!ids.includes(i)) ids.push(i); });
+    const want = /-latest$/.test(model.id) ? (lite ? [model.id].concat(live) : live) : [model.id].concat(live);
+    want.concat(lite ? [] : GEM.FALLBACK.chat).forEach((i) => { if (!ids.includes(i)) ids.push(i); });
     const deadline = t0 + budgetMs + 15000;
     const conv = msgs.map((m) => { const parts = [{ text: m.text || "(без текст)" }]; (m.files || []).forEach((f) => { if (/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.mime)) parts.push({ inline_data: { mime_type: f.mime, data: f.data } }); }); return { role: m.role === "assistant" ? "model" : "user", parts }; });
     let idx = 0, usedModel = null;

@@ -150,7 +150,7 @@
       showOverlay(prep, file.name).then(function () { cancelled = true; hideOverlay(); });
       return D.token().then(function (tok) {
         return fetch("/api/scan", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ kind: ctxKind, mime: prep.mime, data: prep.data, name: file.name }) });
-      }).then(function (r) { return r.json(); }).then(function (j) {
+      }).then(function (r) { return r.json().catch(function () { return { ok: false, error: r.status === 413 ? "Файлът е твърде голям – снимайте с по-ниска резолюция." : "Сървърът не отговори (HTTP " + r.status + ") – опитайте отново." }; }); }).then(function (j) {
         if (cancelled) return;
         hideOverlay();
         if (!j.ok) { D.say(j.error || "Сканирането не успя"); return; }
