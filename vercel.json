@@ -77,7 +77,7 @@
       "maxDuration": 60
     },
     "api/assistant.js": {
-      "maxDuration": 60
+      "maxDuration": 120
     },
     "api/scan.js": {
       "maxDuration": 60

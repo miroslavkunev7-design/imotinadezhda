@@ -69,11 +69,17 @@ module.exports = async (req, res) => {
   (Array.isArray(b.shots) ? b.shots : []).slice(0, 4).forEach((s) => { if (s && s.data && /^image\//.test(s.mime)) parts.push({ inline_data: { mime_type: s.mime, data: s.data } }); });
   let ai;
   try {
-    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(WEB.key()), {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0.1, responseMimeType: "application/json" } })
-    });
-    const j = await r.json(); if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
+    /* модел: по подразбиране Flash; при лимит (429) – Flash Lite, който има по-голям безплатен лимит */
+    const models = b.model === "lite" ? ["gemini-2.5-flash-lite", "gemini-2.5-flash"] : ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+    let r, j;
+    for (const m of models) {
+      r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(WEB.key()), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0.1, responseMimeType: "application/json" } })
+      });
+      j = await r.json(); if (r.ok || r.status !== 429) break;
+    }
+    if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
     const t = (((j.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("") || "{}";
     ai = JSON.parse(t.replace(/^```json|```$/g, "").trim());
   } catch (e) { return send(res, 502, { ok: false, error: "Анализът не успя: " + String(e.message || e) }); }

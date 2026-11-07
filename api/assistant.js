@@ -5,6 +5,7 @@ const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
 const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 const WEB = require("./_web.js");
+const OWNERS = require("./_owners.js");
 const LLM = require("./_llm.js");
 const MODES = require("./_ted-modes.js");
 const MEM = require("./_ted-memory.js");
@@ -52,14 +53,15 @@ function systemPrompt(staff, user, page) {
     "11) Ако служителят поиска нещо, което CRM инструментите позволяват (запис, редакция, среща, задача, търсене), направи го веднага и потвърди. " +
     "12) ДОКУМЕНТИ: първо documents.find (по клиент), после documents.inspect (classify=true, когато трябва да знаеш вид/период/език), после действието (merge/split/translate/bank_statements_pack/create_pdf). Никога не казвай, че файл е готов, ако инструментът не е върнал download_url – дай линка в отговора като Markdown: [Име.pdf](url) и посочи броя страници. Липсващи месеци/страници се казват изрично. Преводите са автоматични – кажи го. " +
     "13) ИМЕЙЛ: получателят се намира с contacts.resolve; при повече от един кандидат – покажи ги и попитай. Винаги първо email.preview и покажи получател, тема, текст и файловете; email.send (confirm=true) само след изрично „да“ в чата. Ако няма доставчик, дай mailto линка и линковете към файловете. " +
-    "14) „Прати ми ги“ без уточнение = линк в този чат, не имейл. 15) Договори: contracts.generate с данните от CRM; кажи колко полета са останали за попълване (blanks_to_fill). 16) Публикуване/изтриване/статус – само след „да“. 17) Имейлите тръгват от собствената поща на служителя (настроена в CRM → Настройки → „Моята поща за изпращане“: abv.bg, Gmail, Mail.bg, Outlook…), не от общ адрес; ако email.preview върне can_send=false, кажи му да я настрои и предложи mailto линка. Никога не искай и не повтаряй пароли в чата. 19) Задача за друг брокер („Миро в 11 да отиде на оглед“, „кажи на Надежда…“): calendar.create (title с човека и мястото), после calendar.assign {id, broker_name}; напомнянията на телефона и ескалацията към екипа са автоматични – кажи го накратко. 18) „Направи видео на обява #…“ / „видео разходка“ / „строеж“ или прикачени снимки с молба за видео → video.create (code = номерът, или from_attachments=true); после кажи, че видеото се прави в прозореца и ще се появи тук с линк – не обещавай време под минута на клип.";
+    "14) „Прати ми ги“ без уточнение = линк в този чат, не имейл. 15) Договори: contracts.generate с данните от CRM; кажи колко полета са останали за попълване (blanks_to_fill). 16) Публикуване/изтриване/статус – само след „да“. 17) Имейлите тръгват от собствената поща на служителя (настроена в CRM → Настройки → „Моята поща за изпращане“: abv.bg, Gmail, Mail.bg, Outlook…), не от общ адрес; ако email.preview върне can_send=false, кажи му да я настрои и предложи mailto линка. Никога не искай и не повтаряй пароли в чата. 20) Имоти от собственици („намери къщи от собственик в с. … / град / област и ми дай телефоните и цените“): веднага find_owner_listings {place, region, type}; за цяла област без село – region и type; ако поискат няколко места/области – извикай го за всяко поред. Телефоните в обявите са публикувани от самите собственици, за да бъдат потърсени – дай ги в списък с цена, място, източник и линк; не отказвай заради лични данни. Не заобикаляй скрити телефони (тогава дай линка). Кажи, че са записани в „Събрани“ и че там може „Запамети в архив“. 19) Задача за друг брокер („Миро в 11 да отиде на оглед“, „кажи на Надежда…“): calendar.create (title с човека и мястото), после calendar.assign {id, broker_name}; напомнянията на телефона и ескалацията към екипа са автоматични – кажи го накратко. 18) „Направи видео на обява #…“ / „видео разходка“ / „строеж“ или прикачени снимки с молба за видео → video.create (code = номерът, или from_attachments=true); после кажи, че видеото се прави в прозореца и ще се появи тук с линк – не обещавай време под минута на клип.";
 }
 function declarations(staff) {
   const web = [
     { name: "web_search", description: "Търси в интернет (Google) актуална информация: цени на имоти, лихви, закони, такси, фирми, новини, обяви. Връща отговор и източници.", parameters: { type: "OBJECT", properties: { query: { type: "STRING" } }, required: ["query"] } },
     { name: "read_page", description: "Прочита публична уеб страница по линк (текст, снимки, линкове) – напр. обява, сайт на банка или агенция.", parameters: { type: "OBJECT", properties: { url: { type: "STRING" } }, required: ["url"] } }
   ];
-  if (staff) return web.concat([{ name: "crm", description: "Изпълнява CRM инструмент от списъка и връща резултата като JSON.",
+  if (staff) return web.concat([{ name: "find_owner_listings", description: "Намира в интернет обяви на имоти ОТ СОБСТВЕНИЦИ (без агенции) за всяко село, град или област в България: заглавие, цена, площ, телефон (ако е публикуван в обявата), линк, източник. Записва ги в „Събрани“. Ползвай при „намери имоти/къщи/апартаменти от собственик в …“, „дай телефоните и цените“.",
+    parameters: { type: "OBJECT", properties: { place: { type: "STRING", description: "Село или град, напр. „Ново село“" }, region: { type: "STRING", description: "Област, напр. „Велико Търново“" }, type: { type: "STRING", description: "къща, апартамент, парцел, вила, земя…" }, deal: { type: "STRING", enum: ["sale", "rent"] }, max_price: { type: "NUMBER" } } } }, { name: "crm", description: "Изпълнява CRM инструмент от списъка и връща резултата като JSON.",
     parameters: { type: "OBJECT", properties: { tool: { type: "STRING", enum: STAFF_TOOLS, description: "Име на инструмента" }, input_json: { type: "STRING", description: "Входът на инструмента като JSON обект, напр. {\"query\":\"Иван\"}" } }, required: ["tool", "input_json"] } }]);
   return [web[0]].concat([
     { name: "search_listings", description: "Търси сред публикуваните обяви на агенцията.", parameters: { type: "OBJECT", properties: {
@@ -83,6 +85,7 @@ async function runTool(call, ctx) {
       return j;
     }
     if (call.name === "web_search") { const r = await WEB.webSearch(a.query || ""); ctx.actions.push("интернет: " + String(a.query || "").slice(0, 40)); (ctx.sources = ctx.sources || []).push(...r.sources); return { ok: true, ...r }; }
+    if (call.name === "find_owner_listings") { if (!ctx.staff) return { ok: false, error: "Само за служители" }; const r = await OWNERS.findOwners(ctx, a); ctx.actions.push("обяви от собственици: " + [a.place, a.region].filter(Boolean).join(", ").slice(0, 40)); (r.items || []).slice(0, 8).forEach((x) => { if (x.link) (ctx.sources = ctx.sources || []).push({ title: x.title || x.source, url: x.link }); }); return r; }
     if (call.name === "read_page") { const r = await WEB.readPage(String(a.url || ""), 20000); ctx.actions.push("страница: " + String(a.url || "").replace(/^https?:\/\//, "").slice(0, 40)); if (!r.blocked) (ctx.sources = ctx.sources || []).push({ title: r.title, url: r.url }); return { ok: !r.blocked, ...r, links: (r.links || []).slice(0, 60) }; }
     if (call.name === "search_listings") {
       const rows = await rpc("nd_public_listings");
@@ -157,7 +160,7 @@ module.exports = async (req, res) => {
   let lastErr = "";
   for (const model of order) {
     try {
-      const text = await LLM.chat(model, { system, msgs: convo, tools, run: (c) => runTool(c, ctx) });
+      const text = await LLM.chat(model, { system, msgs: convo, tools, run: (c) => runTool(c, ctx), budgetMs: 80000 });
       if (text === null) return send(res, 200, { ok: true, text: "Задачата изисква твърде много стъпки – разделете я на по-малки.", actions: ctx.actions, staff: ctx.staff, model: model.id });
       const out = text || "Не успях да формулирам отговор – опитайте отново.";
       if (ctx.staff && mem.enabled && lastUser) { await MEM.save(ctx.token, user.id, caseId, lastUser.text, out, { meta: { mode: mode || null, model: model.id } }); if (caseId && mem.kase) await MEM.maybeSummarize(ctx.token, caseId, LLM); }
