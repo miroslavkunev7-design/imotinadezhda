@@ -42,7 +42,7 @@
       setTimeout(tick, 4000); setInterval(tick, 5 * 60000);
       /* потвърждение при отваряне на събитието от известието (#<event id>) */
       if (/crm-kalendar\.html$/.test(location.pathname) && location.hash.length > 1) ack(decodeURIComponent(location.hash.slice(1))).catch(function () {});
-    });
+    }).catch(function () {});
     if ("serviceWorker" in navigator) navigator.serviceWorker.addEventListener("message", function (e) { if (e.data && e.data.type === "nd-push-ack" && e.data.event_id) ack(e.data.event_id).catch(function () {}); });
   }
   window.NDPush = { supported: supported, status: status, enable: enable, disable: disable, test: test, ack: ack, isIOS: isIOS, standalone: standalone };
