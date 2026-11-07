@@ -81,6 +81,9 @@ async function findOwners(ctx, a) {
     rs.forEach((x) => x && ads.push(x));
   }
   const maxP = Number(a.max_price) || 0;
+  /* правило от SPEC-2: телефон в повече от 3 обяви = брокер; в 2–3 обяви – маркира се „възможно брокер“ */
+  const cnt = {}; ads.forEach((x) => String(x.phone || "").split(", ").filter(Boolean).forEach((p) => { cnt[p] = (cnt[p] || 0) + 1; }));
+  ads.forEach((x) => { x.repeat = Math.max(0, ...String(x.phone || "").split(", ").filter(Boolean).map((p) => cnt[p])); if (x.repeat > 3) x.seller = "agency"; });
   const owners = ads.filter((x) => x.seller === "private" && x.phone && (!maxP || !x.price || x.price <= maxP));
   owners.forEach((x) => { if (plKey && !String(x.city + " " + x.title).toLocaleLowerCase("bg").includes(plKey)) x.place_unsure = true; });
   /* 3) запис в „Събрани“ (без дубликати) */
@@ -98,7 +101,7 @@ async function findOwners(ctx, a) {
   return {
     ok: true, place: a.place || "", region: a.region || "", checked_ads: ads.length, agencies_skipped: ads.filter((x) => x.seller !== "private").length,
     count: owners.length, saved_to_collected: saved,
-    items: owners.slice(0, 30).map((x) => ({ title: x.title, place: x.city, region: x.region, area_m2: x.area, price_eur: x.price, phone: x.phone, name: x.name || undefined, link: x.link, place_unsure: x.place_unsure || undefined })),
+    items: owners.slice(0, 30).map((x) => ({ title: x.title, place: x.city, region: x.region, area_m2: x.area, price_eur: x.price, phone: x.phone, name: x.name || undefined, link: x.link, place_unsure: x.place_unsure || undefined, maybe_broker: x.repeat >= 2 ? "същият телефон в " + x.repeat + " обяви – възможно брокер" : undefined })),
     searched: usedLists.slice(0, 4),
     also_check: { "Bazar.bg (телефонът е зад бутон)": "https://bazar.bg/obiavi/imoti?q=" + q, "OLX (частни, телефонът е зад бутон)": "https://www.olx.bg/nedvizhimi-imoti/q-" + q.replace(/%20/g, "-") + "/?search%5Bprivate_business%5D=private" },
     note: owners.length ? "Само частни лица; телефоните са публикувани от собствениците в обявите. Записани в „Събрани“." : (ads.length ? "Намерени " + ads.length + " обяви, но всички са от агенции." : "imot.bg няма обяви за това място и вид имот – вижте линковете за Bazar.bg и OLX.")
