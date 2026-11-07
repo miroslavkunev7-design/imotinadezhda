@@ -177,6 +177,44 @@ function htmlToBlocks(html) {
   return blocks;
 }
 
+
+/* ---------- снимки: сваляне от интернет и AI генериране/редакция ---------- */
+const PRIVATE_HOST = /^(localhost|0\.0\.0\.0|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|\[?::1\]?|metadata\.)/i;
+const IMG_EXT = (mime) => (/png/.test(mime) ? "png" : /webp/.test(mime) ? "webp" : /gif/.test(mime) ? "gif" : "jpg");
+async function propByCode(ctx, code) {
+  const q = String(code || "").replace(/^[#№\s]+|\s+$/g, "").toLocaleLowerCase("bg"); if (!q) return null;
+  const all = await rows(ctx, "properties"), norm = (v) => String(v == null ? "" : v).toLocaleLowerCase("bg").replace(/^#/, "");
+  let hit = all.filter((p) => [p.code, p.num, p.ref, p.id].some((v) => norm(v) === q));
+  if (!hit.length) hit = all.filter((p) => [p.code, p.num, p.ref].some((v) => norm(v).endsWith(q)));
+  if (!hit.length) throw new ToolError("Няма имот с код „" + code + "“", 404);
+  if (hit.length > 1) throw new ToolError("Няколко имота съвпадат: " + hit.slice(0, 6).map((p) => p.code + " " + (p.title || "")).join("; ") + " – посочи точния код.");
+  return hit[0];
+}
+async function fetchImage(u) {
+  let url; try { url = new URL(u); } catch (e) { return null; }
+  if (!/^https?:$/.test(url.protocol) || PRIVATE_HOST.test(url.hostname)) return null;
+  const r = await fetch(url.href, { headers: { "User-Agent": WEB.UA, Accept: "image/*" }, signal: AbortSignal.timeout(12000) }).catch(() => null);
+  if (!r || !r.ok) return null;
+  const mime = String(r.headers.get("content-type") || "").split(";")[0];
+  if (!/^image\/(jpeg|png|webp|gif)$/.test(mime)) return null;
+  const buf = Buffer.from(await r.arrayBuffer()); if (!buf.length || buf.length > 15 * 1048576) return null;
+  return { buf, mime };
+}
+/* записва снимки: към имот (в снимките му), към клиент (в документите) или в папка „Тед“ */
+async function saveImages(ctx, items, i, label) {
+  const prop = i.property_code ? await propByCode(ctx, i.property_code) : null;
+  const client = !prop && (i.client_id || i.client_name) ? await clientOf(ctx, i.client_id, i.client_name) : null;
+  const out = [], paths = [];
+  for (const [k, it] of items.entries()) {
+    const ext = IMG_EXT(it.mime), name = safeName((label || "Снимка") + " " + (k + 1)) + "." + ext;
+    if (prop) { const p0 = "properties/" + String(prop.code || prop.id).replace(/[^\w\-]/g, "_") + "/photos/" + Date.now() + "-" + k + "." + ext; await upload(ctx, p0, it.buf, it.mime); paths.push(p0); out.push({ name, path: p0, download_url: await signed(ctx, p0) }); }
+    else if (client) { const p0 = artPath(client, name); await upload(ctx, p0, it.buf, it.mime); out.push(await registerArtifact(ctx, client, name, p0, it.buf.length, it.mime, "Снимки", "Тед записа снимка: " + name)); }
+    else { const p0 = "ted/images/" + new Date().toISOString().slice(0, 10) + "/" + Date.now() + "-" + k + "." + ext; await upload(ctx, p0, it.buf, it.mime); out.push({ name, path: p0, download_url: await signed(ctx, p0) }); }
+  }
+  if (prop && paths.length) { const upd = Object.assign({}, prop, { pics: (prop.pics || []).concat(paths) }); delete upd.id; delete upd.updated_at; await put(ctx, "properties", upd, prop.id); }
+  return { saved_to: prop ? "имот " + (prop.code || prop.id) + " (снимки)" : client ? "клиент " + client.name + " (документи → Снимки)" : "папка „Тед“", images: out };
+}
+
 /* ---------- Gemini (documents): text, language, classification, translation ---------- */
 async function gemini(parts, opts) {
   if (!GEMINI()) throw new ToolError("Липсва GEMINI_API_KEY на сървъра", 500);
@@ -385,6 +423,47 @@ const tools = {
       emps.push({ id: "e" + Date.now().toString(36), name: i.name, role: i.role || "", phone: i.phone || "", email: i.email || "" });
       const upd = Object.assign({}, co, { emps }); delete upd.id; delete upd.employees; await put(ctx, "companies", upd, i.company_id);
       return { company: co.name, employee: i.name, employees: emps.length };
+    }
+  },
+  /* ---------- Снимки ---------- */
+  "images.download": {
+    description: "Сваля снимки от интернет и ги записва в CRM. Подай urls (линкове към снимки) или page_url (страница с обява – взимат се снимките от нея). Записва ги към имот (property_code → добавят се към снимките на имота), към клиент (client_id / client_name → в документите) или в папка „Тед“. Връща линкове за изтегляне.",
+    input: schema({ urls: S("array", { max: 30, default: [] }), page_url: S("string", { max: 600 }), property_code: S("string", { max: 40 }), client_id: S("string"), client_name: S("string", { max: 120 }), max: S("number", { min: 1, max: 30, default: 15 }) }),
+    run: async (ctx, i) => {
+      let urls = (i.urls || []).map(String).filter((u) => /^https?:\/\//.test(u));
+      if (!urls.length && i.page_url) { const pg = await WEB.readPage(i.page_url, 15000); if (pg.blocked) throw new ToolError(pg.reason || "Страницата не може да се прочете"); urls = (pg.images || []).filter((u) => /^https?:\/\//.test(u) && !/logo|icon|sprite|avatar|banner|\.svg/i.test(u)); }
+      if (!urls.length) throw new ToolError("Няма снимки за сваляне – дай линкове към снимки или страница с обява.");
+      const got = [];
+      for (const u of [...new Set(urls)].slice(0, i.max || 15)) { const im = await fetchImage(u); if (im && im.buf.length > 15000) got.push(im); }
+      if (!got.length) throw new ToolError("Не успях да сваля нито една снимка (сайтът ги пази или не са снимки).");
+      return Object.assign({ downloaded: got.length, of: urls.length }, await saveImages(ctx, got, i, "Снимка от интернет"));
+    }
+  },
+  "images.generate": {
+    description: "Генерира нова снимка или редактира съществуваща с AI (Gemini): prompt = какво да се направи (напр. „виртуално обзаведен хол в светли тонове“, „махни логото на агенцията“, „направи снимката по-светла“, „празен парцел без къщата“). За редакция подай property_code + photo_index (1 = първата снимка на имота) или source_path. save_to_property=true добавя резултата към снимките на имота; иначе към клиента или в папка „Тед“. aspect: 1:1, 4:3, 3:4, 16:9, 9:16. Резултатът е AI визуализация.",
+    input: schema({ prompt: S("string", { required: true, max: 2000 }), property_code: S("string", { max: 40 }), photo_index: S("number", { min: 1, max: 100, default: 1 }), source_path: S("string", { max: 400 }), save_to_property: S("boolean", { default: false }), client_id: S("string"), client_name: S("string", { max: 120 }), aspect: S("string", { enum: ["1:1", "4:3", "3:4", "16:9", "9:16"] }) }),
+    run: async (ctx, i) => {
+      if (!GEMINI()) throw new ToolError("Липсва GEMINI_API_KEY на сървъра", 500);
+      let src = null, prop = null;
+      if (i.source_path) src = { buf: await download(ctx, i.source_path), path: i.source_path };
+      else if (i.property_code) { prop = await propByCode(ctx, i.property_code); const pth = (prop.pics || [])[(i.photo_index || 1) - 1]; if (pth) src = { buf: await download(ctx, pth), path: pth }; else if (!/нов|генерирай|създай/i.test(i.prompt)) throw new ToolError("Имот " + (prop.code || prop.id) + " няма снимка №" + (i.photo_index || 1)); }
+      const parts = [{ text: (src ? "Редактирай прикачената снимка на имот: " : "Създай реалистична снимка за агенция за недвижими имоти: ") + i.prompt + (src ? " Запази всичко останало непроменено (кадър, перспектива, светлина, размери), освен ако не е поискано друго." : "") + " Без надписи, лога и водни знаци." }];
+      if (src) parts.push({ inline_data: { mime_type: /\.png$/i.test(src.path) ? "image/png" : /\.webp$/i.test(src.path) ? "image/webp" : "image/jpeg", data: src.buf.toString("base64") } });
+      const ids = await GEM.models("image"); let last = "", img = null, used = null;
+      for (const m of ids.slice(0, 4)) {
+        let gc = Object.assign({ responseModalities: ["IMAGE", "TEXT"] }, i.aspect ? { imageConfig: { aspectRatio: i.aspect } } : {});
+        for (let attempt = 0; attempt < 2 && !img; attempt++) {
+          const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(GEMINI()), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: gc }), signal: AbortSignal.timeout(50000) }).catch((e) => ({ ok: false, status: 0, json: async () => ({ error: { message: String(e.message || e) } }) }));
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) { const cl = GEM.classify(m, r.status, j); last = cl.kind === "quota" ? "безплатният лимит за снимки е изчерпан" + (cl.daily ? " за днес" : " – опитайте след минута") : cl.msg; if (cl.kind === "bad" && gc.imageConfig && /image_?config|aspect/i.test(cl.msg)) { gc = { responseModalities: ["IMAGE", "TEXT"] }; continue; } break; }
+          const part = ((((j.candidates || [])[0] || {}).content || {}).parts || []).find((x) => (x.inlineData || x.inline_data) && (x.inlineData || x.inline_data).data);
+          if (part) { const d = part.inlineData || part.inline_data; img = { buf: Buffer.from(d.data, "base64"), mime: d.mimeType || d.mime_type || "image/png" }; used = m; } else { last = "моделът не върна снимка"; break; }
+        }
+        if (img) break;
+      }
+      if (!img) throw new ToolError("Снимката не е генерирана: " + last, /лимит/.test(last) ? 429 : 502);
+      const target = Object.assign({}, i, { property_code: i.save_to_property && (prop || i.property_code) ? (prop ? prop.code || prop.id : i.property_code) : undefined });
+      return Object.assign({ model: used, edited: !!src, note: "AI визуализация – при публикуване я обозначете като такава." }, await saveImages(ctx, [img], target, src ? "AI редакция" : "AI снимка"));
     }
   },
   "contacts.resolve": {

@@ -66,7 +66,7 @@
     "@keyframes ndaRec{0%,100%{box-shadow:0 0 0 0 rgba(224,66,95,.55),0 0 12px rgba(255,190,120,.6)}50%{box-shadow:0 0 0 9px rgba(224,66,95,0),0 0 18px rgba(255,190,120,.9)}}" +
     ".nda-c textarea.rec{color:#a3112f;font-weight:700}" +
     ".nda-dl{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:6px 12px;margin:2px 0;border-radius:14px;font-weight:700;color:#5a0a18;text-decoration:none;background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1.5px rgba(227,178,94,.8),0 0 10px rgba(255,214,150,.6);word-break:break-all}.nda-dl:hover{box-shadow:0 0 0 1.5px #f6d68c,0 0 16px rgba(255,214,150,.9)}.nda-say{display:inline-grid;place-items:center;vertical-align:middle;width:30px;height:30px;margin:6px 0 0 6px;float:right;border-radius:50%;border:1.5px solid #e3b25e;background:radial-gradient(circle at 35% 28%,#b0213f,#7a0f22 55%,#4a0613);color:#fff3dc;cursor:pointer;padding:0;box-shadow:0 0 8px rgba(255,190,120,.6)}" +
-    ".nda-say svg{width:16px;height:16px}.nda-say.on{background:linear-gradient(150deg,#fff0aa,#f3a518);color:#640319;animation:ndaRec 1.2s ease-in-out infinite}.nda-say.ld{opacity:.6}" +
+    ".nda-img{display:block;max-width:100%;max-height:260px;margin:6px 0 2px;border-radius:14px;border:1.5px solid #e3b25e;box-shadow:0 0 12px rgba(255,214,150,.55);object-fit:cover}.nda-say svg{width:16px;height:16px}.nda-say.on{background:linear-gradient(150deg,#fff0aa,#f3a518);color:#640319;animation:ndaRec 1.2s ease-in-out infinite}.nda-say.ld{opacity:.6}" +
     ".nda-files{padding:0 12px;display:flex;gap:6px;flex-wrap:wrap;background:rgba(255,248,240,.85)}" +
     ".nda-case{position:relative;padding:6px 12px 0;background:rgba(255,248,240,.85);border-top:1px solid rgba(227,178,94,.45)}" +
     ".nda-case-btn{border:1px solid #e3b25e;border-radius:12px;padding:5px 10px;background:linear-gradient(180deg,#fffaf3,#fbeee2);color:#6b0a1c;font:400 13px 'Roboto Condensed',Arial,sans-serif;cursor:pointer;box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 8px rgba(255,214,150,.35)}" +
@@ -294,7 +294,7 @@
   /* markdown links and bare URLs become real links; PDF links get a download badge */
   function fmt(t) {
     var h = esc(t).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/(^|\n)[*-] /g, "$1• ");
-    h = h.replace(/\[([^\]]{1,120})\]\((https?:[^)\s]+)\)/g, function (m, a, u) { return '<a class="nda-dl" href="' + u + '" target="_blank" rel="noopener">' + (/\.pdf/i.test(a + u) ? "📄 " : "🔗 ") + a + "</a>"; });
+    h = h.replace(/\[([^\]]{1,120})\]\((https?:[^)\s]+)\)/g, function (m, a, u) { var im = /\.(png|jpe?g|webp|gif)(\?|$)/i.test(u.split("#")[0]); return '<a class="nda-dl" href="' + u + '" target="_blank" rel="noopener">' + (/\.pdf/i.test(a + u) ? "📄 " : im ? "🖼️ " : "🔗 ") + a + "</a>" + (im ? '<a href="' + u + '" target="_blank" rel="noopener"><img class="nda-img" src="' + u + '" alt="" loading="lazy"></a>' : ""); });
     h = h.replace(/(^|[^"'>=])(https?:\/\/[^\s<)]+)/g, function (m, pre, u) { return pre + '<a class="nda-dl" href="' + u + '" target="_blank" rel="noopener">' + u.replace(/^https?:\/\//, "").slice(0, 60) + (u.length > 68 ? "…" : "") + "</a>"; });
     return h;
   }
