@@ -3,6 +3,7 @@
 // action "photos": copies the photos of a collected ad into the CRM storage (nd-files) for "Запамети в архив".
 const WEB = require("./_web.js");
 const GEM = require("./_gem.js");
+const WM = require("./_wm.js");
 const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
 
@@ -50,9 +51,11 @@ module.exports = async (req, res) => {
         const r = await fetch(u, { headers: { "User-Agent": WEB.UA }, signal: AbortSignal.timeout(12000) });
         const ct = r.headers.get("content-type") || "";
         if (!r.ok || !/^image\//.test(ct)) continue;
-        const buf = Buffer.from(await r.arrayBuffer()); if (buf.length > 15e6) continue;
-        const path = "properties/" + String(b.code || "collected").replace(/[^\w\-]/g, "_") + "/photos/" + Date.now() + "-" + i + "." + (/png/.test(ct) ? "png" : /webp/.test(ct) ? "webp" : "jpg");
-        const up = await fetch(SB_URL + "/storage/v1/object/nd-files/" + path, { method: "POST", headers: { apikey: SB_KEY, Authorization: "Bearer " + token, "Content-Type": ct, "x-upsert": "true" }, body: buf });
+        let buf = Buffer.from(await r.arrayBuffer()), ctype = ct.split(";")[0]; if (buf.length > 15e6) continue;
+        /* логото на агенцията в средата (като при всички снимки на обяви) */
+        try { const st = WM.stamp(buf, ctype); buf = st.buf; ctype = st.mime; } catch (e) {}
+        const path = "properties/" + String(b.code || "collected").replace(/[^\w\-]/g, "_") + "/photos/" + Date.now() + "-" + i + "." + (/png/.test(ctype) ? "png" : /webp/.test(ctype) ? "webp" : "jpg");
+        const up = await fetch(SB_URL + "/storage/v1/object/nd-files/" + path, { method: "POST", headers: { apikey: SB_KEY, Authorization: "Bearer " + token, "Content-Type": ctype, "x-upsert": "true" }, body: buf });
         if (up.ok) out.push(path);
       } catch (e) {}
     }

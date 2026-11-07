@@ -71,7 +71,7 @@
       (bundle.videos || []).forEach(function (f) { pendingVids.push({ file: f, name: f.name }); });
       (bundle.docs || []).forEach(function (f) { pendingDocs.push({ file: f, name: f.name }); });
     }
-    if (scanFile) { if (/^image\//.test(scanFile.type)) addNew(scanFile); else pendingDocs.push({ file: scanFile, name: scanFile.name || "scan.pdf" }); }
+    if (scanFile) { if (/^image\//.test(scanFile.type)) addNew(scanFile, true); else pendingDocs.push({ file: scanFile, name: scanFile.name || "scan.pdf" }); }
     var clientNames = P.clientNames();
     function syncPics() { p.pics = gal.filter(function (g) { return g.kind === "saved"; }).map(function (g) { return g.path; }); p.cover = 0; }
     /* press and drag a photo (mouse or finger) to move it; the list order is the gallery order */

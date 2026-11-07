@@ -8,6 +8,7 @@ const PDFLib = require("./_vendor/pdf-lib.min.js");
 const fontkit = require("./_vendor/fontkit.umd.min.js");
 const WEB = require("./_web.js");
 const GEM = require("./_gem.js");
+const WM = require("./_wm.js");
 let MAIL = null; try { MAIL = require("./email.js"); } catch (e) { MAIL = { configFor: async () => null, sendAs: async () => { throw new Error("email module missing"); }, friendly: (e) => String(e && e.message || e) }; }
 // пощата на текущия служител (пази се само на сървъра: nd_secrets smtp:<userId>)
 const mailbox = (ctx) => MAIL.configFor(ctx.userId || (ctx.user && ctx.user.id)).catch(() => null);
@@ -205,7 +206,9 @@ async function saveImages(ctx, items, i, label) {
   const prop = i.property_code ? await propByCode(ctx, i.property_code) : null;
   const client = !prop && (i.client_id || i.client_name) ? await clientOf(ctx, i.client_id, i.client_name) : null;
   const out = [], paths = [];
-  for (const [k, it] of items.entries()) {
+  for (let [k, it] of items.entries()) {
+    /* снимките на обявите винаги са с логото на агенцията в средата (като при „АИ Качване на имот“) */
+    if (prop) { try { const st = WM.stamp(it.buf, it.mime); it = { buf: st.buf, mime: st.mime }; } catch (e) {} }
     const ext = IMG_EXT(it.mime), name = safeName((label || "Снимка") + " " + (k + 1)) + "." + ext;
     if (prop) { const p0 = "properties/" + String(prop.code || prop.id).replace(/[^\w\-]/g, "_") + "/photos/" + Date.now() + "-" + k + "." + ext; await upload(ctx, p0, it.buf, it.mime); paths.push(p0); out.push({ name, path: p0, download_url: await signed(ctx, p0) }); }
     else if (client) { const p0 = artPath(client, name); await upload(ctx, p0, it.buf, it.mime); out.push(await registerArtifact(ctx, client, name, p0, it.buf.length, it.mime, "Снимки", "Тед записа снимка: " + name)); }
@@ -447,7 +450,7 @@ const tools = {
       let src = null, prop = null;
       if (i.source_path) src = { buf: await download(ctx, i.source_path), path: i.source_path };
       else if (i.property_code) { prop = await propByCode(ctx, i.property_code); const pth = (prop.pics || [])[(i.photo_index || 1) - 1]; if (pth) src = { buf: await download(ctx, pth), path: pth }; else if (!/нов|генерирай|създай/i.test(i.prompt)) throw new ToolError("Имот " + (prop.code || prop.id) + " няма снимка №" + (i.photo_index || 1)); }
-      const parts = [{ text: (src ? "Редактирай прикачената снимка на имот: " : "Създай реалистична снимка за агенция за недвижими имоти: ") + i.prompt + (src ? " Запази всичко останало непроменено (кадър, перспектива, светлина, размери), освен ако не е поискано друго." : "") + " Без надписи, лога и водни знаци." }];
+      const parts = [{ text: (src ? "Редактирай прикачената снимка на имот: " : "Създай реалистична снимка за агенция за недвижими имоти: ") + i.prompt + (src ? " Запази всичко останало непроменено (кадър, перспектива, светлина, размери), освен ако не е поискано друго. Махни всички лога и водни знаци, включително бледото лого в средата – логото на агенцията се добавя отново автоматично." : "") + " Без надписи, лога и водни знаци." }];
       if (src) parts.push({ inline_data: { mime_type: /\.png$/i.test(src.path) ? "image/png" : /\.webp$/i.test(src.path) ? "image/webp" : "image/jpeg", data: src.buf.toString("base64") } });
       const ids = await GEM.models("image"); let last = "", img = null, used = null;
       for (const m of ids.slice(0, 4)) {
