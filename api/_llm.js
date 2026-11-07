@@ -18,7 +18,7 @@ function parseList(s, def) {
 /* Каталог: само доставчиците, за които има ключ */
 function catalog() {
   const out = [];
-  if (E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY")) parseList(E("GEMINI_MODELS"), ["gemini-2.5-flash|Gemini 2.5 Flash|бърз, снимки и PDF", "gemini-2.5-flash-lite|Gemini 2.5 Flash Lite|най-бърз, най-голям безплатен лимит", "gemini-2.0-flash|Gemini 2.0 Flash|резервен, снимки и PDF"]).forEach((m) => out.push(Object.assign({ provider: "gemini", vision: true, pdf: true }, m)));
+  if (E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY")) parseList(E("GEMINI_MODELS"), ["gemini-2.5-flash|Gemini 2.5 Flash|бърз, снимки и PDF", "gemini-flash-lite-latest|Gemini Flash Lite|най-бърз, най-голям безплатен лимит", "gemini-2.0-flash|Gemini 2.0 Flash|резервен, снимки и PDF"]).forEach((m) => out.push(Object.assign({ provider: "gemini", vision: true, pdf: true }, m)));
   if (E("OPENAI_API_KEY")) parseList(E("OPENAI_MODELS"), ["gpt-4.1-mini|ChatGPT 4.1 mini|бърз и евтин", "gpt-4.1|ChatGPT 4.1|по-силен"]).forEach((m) => out.push(Object.assign({ provider: "openai", vision: true, pdf: false }, m)));
   if (E("ANTHROPIC_API_KEY")) parseList(E("ANTHROPIC_MODELS"), ["claude-sonnet-4-5|Claude Sonnet 4.5|много добър за текст и документи", "claude-haiku-4-5|Claude Haiku 4.5|бърз"]).forEach((m) => out.push(Object.assign({ provider: "anthropic", vision: true, pdf: true }, m)));
   if (E("OPENROUTER_API_KEY")) parseList(E("OPENROUTER_MODELS"), ["meta-llama/llama-3.3-70b-instruct:free|Llama 3.3 70B (OpenRouter)|безплатен, без снимки"]).forEach((m) => out.push(Object.assign({ provider: "openrouter", vision: false, pdf: false }, m)));

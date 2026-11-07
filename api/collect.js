@@ -70,7 +70,7 @@ module.exports = async (req, res) => {
   let ai;
   try {
     /* модел: по подразбиране Flash; при лимит (429) – Flash Lite, който има по-голям безплатен лимит */
-    const models = b.model === "lite" ? ["gemini-2.5-flash-lite", "gemini-2.5-flash"] : ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+    const models = b.model === "lite" ? ["gemini-flash-lite-latest", "gemini-2.5-flash"] : ["gemini-2.5-flash", "gemini-flash-lite-latest"];
     let r, j;
     for (const m of models) {
       r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(WEB.key()), {
