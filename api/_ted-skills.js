@@ -216,7 +216,7 @@ async function groupToFiles(ctx, client, title, docs) {
 const DRAFT = (ctx) => "maildraft:" + (ctx.userId || (ctx.user && ctx.user.id));
 async function senderOf(ctx) {
   const own = await mailbox(ctx);
-  if (own) return { cfg: own, kind: "own", from: own.email };
+  if (own) return { cfg: own, kind: "own", from: own.email, reply_to: own.reply_to || undefined }; /* поща на домейна: отговорите – на личния имейл на брокера */
   const ag = await MAIL.configFor("agency").catch(() => null);
   if (ag) {
     let name = (ctx.user && ctx.user.user_metadata && (ctx.user.user_metadata.name || ctx.user.user_metadata.full_name)) || "";

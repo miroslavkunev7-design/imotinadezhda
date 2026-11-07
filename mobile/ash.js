@@ -501,9 +501,9 @@
     };
   }
   /* „Моята поща за изпращане“ направо в чата: паролата отива само към /api/email (сървър → nd_secrets), никога не се връща в браузъра */
-  var MAILP = [["abv", "ABV.bg"], ["gmail", "Gmail"], ["mailbg", "Mail.bg"], ["outlook", "Outlook / Hotmail"], ["yahoo", "Yahoo"], ["icloud", "iCloud"], ["custom", "Друг (ръчно)"]];
-  var MAILHINT = { abv: "Внимание: ABV често отказва изпращане от сървъри. Ако „Тест“ върне отказ – изберете Gmail; писмата пак стигат до ABV адреси.", gmail: "Препоръчано. Нужна е „Парола за приложение“ (16 знака): myaccount.google.com → Сигурност → Потвърждаване в 2 стъпки (включете) → Пароли за приложения → създайте → поставете я тук.", mailbg: "Паролата на пощата в Mail.bg.", outlook: "Парола за приложение от Microsoft акаунта.", yahoo: "Парола за приложение (Account Security → App passwords).", icloud: "App-specific password от appleid.apple.com.", custom: "SMTP сървър, порт и парола от вашия доставчик." };
-  function guessProv(e) { var d = String(e || "").split("@")[1] || ""; return /abv\.bg$/i.test(d) ? "abv" : /gmail|googlemail/i.test(d) ? "gmail" : /(^|\.)mail\.bg$/i.test(d) ? "mailbg" : /outlook|hotmail|live\.|msn\./i.test(d) ? "outlook" : /yahoo/i.test(d) ? "yahoo" : /icloud|me\.com|mac\.com/i.test(d) ? "icloud" : ""; }
+  var MAILP = [["domain", "Поща на домейна (@imotinadezhda.bg)"], ["abv", "ABV.bg"], ["gmail", "Gmail"], ["mailbg", "Mail.bg"], ["outlook", "Outlook / Hotmail"], ["yahoo", "Yahoo"], ["icloud", "iCloud"], ["custom", "Друг (ръчно)"]];
+  var MAILHINT = { domain: "Препоръчано – стига до всички пощи (ABV, Gmail, Outlook, Yahoo…). Еднократно и безплатно: resend.com → регистрация → Domains → Add domain „imotinadezhda.bg“ (регион Ireland) → добавете показаните DNS записи в SuperHosting → Verify → API Keys → Create API key → поставете ключа (re_…) тук. Адрес: office@imotinadezhda.bg или ime@imotinadezhda.bg.", abv: "Внимание: ABV често отказва изпращане от сървъри. Ако „Тест“ върне отказ – изберете Gmail; писмата пак стигат до ABV адреси.", gmail: "Препоръчано. Нужна е „Парола за приложение“ (16 знака): myaccount.google.com → Сигурност → Потвърждаване в 2 стъпки (включете) → Пароли за приложения → създайте → поставете я тук.", mailbg: "Паролата на пощата в Mail.bg.", outlook: "Парола за приложение от Microsoft акаунта.", yahoo: "Парола за приложение (Account Security → App passwords).", icloud: "App-specific password от appleid.apple.com.", custom: "SMTP сървър, порт и парола от вашия доставчик." };
+  function guessProv(e) { var d = String(e || "").split("@")[1] || ""; return /imotinadezhda\.bg$/i.test(d) ? "domain" : /abv\.bg$/i.test(d) ? "abv" : /gmail|googlemail/i.test(d) ? "gmail" : /(^|\.)mail\.bg$/i.test(d) ? "mailbg" : /outlook|hotmail|live\.|msn\./i.test(d) ? "outlook" : /yahoo/i.test(d) ? "yahoo" : /icloud|me\.com|mac\.com/i.test(d) ? "icloud" : ""; }
   function mailApi(body) { return token().then(function (t) { return fetch("/api/email", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + t }, body: JSON.stringify(body) }); }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); }).catch(function (e) { return { ok: false, error: "Няма връзка" }; }); }
   function mailPanel() {
     if (skill !== chatSkill) setSkill(chatSkill);
@@ -512,14 +512,14 @@
       '<label>Имейл адрес</label><input type="email" data-k="email" placeholder="ime@abv.bg" autocomplete="email">' +
       '<label>Доставчик</label><select data-k="prov">' + MAILP.map(function (p) { return '<option value="' + p[0] + '">' + p[1] + "</option>"; }).join("") + "</select>" +
       '<label>Име на подателя</label><input type="text" data-k="name" placeholder="Име Фамилия">' +
-      '<label>Парола (за приложения)</label><input type="password" data-k="pass" placeholder="••••••••" autocomplete="new-password">' +
+      '<label data-k="passl">Парола (за приложения)</label><input type="password" data-k="pass" placeholder="••••••••" autocomplete="new-password">' +
       '<div data-k="custom" hidden><label>SMTP сървър</label><input type="text" data-k="host" placeholder="smtp.example.com"><label>Порт</label><input type="number" data-k="port" value="465"></div>' +
       '<label>Тестов имейл до (по избор)</label><input type="email" data-k="tto" placeholder="адрес за тестовото писмо – иначе до самата поща" autocomplete="off">' +
       '<label class="agw" data-k="agw" hidden><input type="checkbox" data-k="ag" style="width:20px;height:20px;accent-color:#7a0f22"> Обща поща на агенцията – за всички брокери без собствена поща</label>' +
       '<div class="hn" data-k="hint"></div><div class="row"><button type="button" data-m="test">Тест</button><button type="button" class="pri" data-m="save">Запази</button></div>';
     list.appendChild(d); list.scrollTop = list.scrollHeight;
     var q = function (k) { return d.querySelector('[data-k="' + k + '"]'); }, st = d.querySelector(".st");
-    function refresh() { q("custom").hidden = q("prov").value !== "custom"; q("hint").textContent = MAILHINT[q("prov").value] || ""; }
+    function refresh() { var dm = q("prov").value === "domain"; q("custom").hidden = q("prov").value !== "custom"; q("hint").textContent = MAILHINT[q("prov").value] || ""; q("passl").textContent = dm ? "API ключ от Resend" : "Парола (за приложения)"; q("pass").placeholder = dm ? "re_…" : "••••••••"; if (dm && !/@imotinadezhda\.bg$/i.test(q("email").value)) q("email").value = "office@imotinadezhda.bg"; }
     q("prov").onchange = refresh; q("email").oninput = function () { var g = guessProv(q("email").value); if (g) { q("prov").value = g; refresh(); } };
     q("prov").value = "abv"; refresh();
     try { if (window.ND && ND.broker && ND.broker.name) q("name").value = ND.broker.name; } catch (e) {}
@@ -527,7 +527,7 @@
       if (!r.ok) { st.innerHTML = '<span class="er">' + esc(r.error || "Грешка") + "</span>"; return; }
       if (r.admin) q("agw").hidden = false;
 
-      if (r.settings) { st.innerHTML = "✅ Изпращате от <b>" + esc(r.settings.email) + "</b> (" + esc(r.settings.host || "") + "). Може да смените данните тук."; q("email").value = r.settings.email; q("prov").value = r.settings.provider || "custom"; if (r.settings.name) q("name").value = r.settings.name; if (r.settings.provider === "custom") { q("host").value = r.settings.host || ""; q("port").value = r.settings.port || 465; } refresh(); }
+      if (r.settings) { st.innerHTML = "✅ Изпращате от <b>" + esc(r.settings.email) + "</b> (" + esc(r.settings.provider === "domain" ? "поща на домейна – до всички пощи" : r.settings.host || "") + "). Може да смените данните тук."; q("email").value = r.settings.email; q("prov").value = r.settings.provider || "custom"; if (r.settings.name) q("name").value = r.settings.name; if (r.settings.provider === "custom") { q("host").value = r.settings.host || ""; q("port").value = r.settings.port || 465; } refresh(); }
       else { st.innerHTML = r.agency ? "✅ Имейлите тръгват от общата поща на агенцията <b>" + esc(r.agency.email) + "</b> – отговорите идват на вашия имейл. Може да добавите и собствена поща." : "Няма настроена поща. Въведете адреса и паролата – имейлите ще тръгват <b>от вашата поща</b>."; if (r.account_email && !q("email").value) { q("email").value = r.account_email; var g = guessProv(r.account_email); if (g) { q("prov").value = g; refresh(); } } }
     });
     d.querySelector(".row").onclick = function (e) {
@@ -538,7 +538,7 @@
         [].forEach.call(d.querySelectorAll(".row button"), function (x) { x.disabled = false; });
         if (!r.ok) { st.innerHTML = '<span class="er">' + esc(r.error || "Неуспешно") + "</span>"; return; }
         q("pass").value = "";
-        st.innerHTML = a === "save" ? "✅ Запазено. Тед изпраща от <b>" + esc(r.settings.email) + "</b>. Напишете „изпрати“, за да тръгне имейлът." : "✅ Работи! Изпратих тестов имейл до <b>" + esc(r.sent_to || r.settings.email) + "</b> – проверете пощата. Натиснете „Запази“.";
+        st.innerHTML = r.warning ? "⚠️ Ключът е приет" + (a === "save" ? " и запазен" : "") + ". " + esc(r.warning) : a === "save" ? "✅ Запазено. Тед изпраща от <b>" + esc(r.settings.email) + "</b>. Напишете „изпрати“, за да тръгне имейлът." : "✅ Работи! Изпратих тестов имейл до <b>" + esc(r.sent_to || r.settings.email) + "</b> – проверете пощата. Натиснете „Запази“.";
       });
     };
   }
