@@ -114,6 +114,7 @@ module.exports = async (req, res) => {
   const user = await staffOf(token).catch(() => null);
   if (!user) return send(res, 401, { ok: false, error: "Тед Асистент работи само в CRM – влезте в профила си." });
   /* списък с моделите, за които има ключ (за менюто в чата) */
+  if (b.action === "owners") { /* проверка на инструмента без чат */ return send(res, 200, await OWNERS.findOwners({ token, staff: true, origin: "https://" + (req.headers["x-forwarded-host"] || req.headers.host || "imotinadezhda.bg") }, b)); }
   if (b.action === "models") return send(res, 200, { ok: true, models: LLM.catalog().map((m) => ({ id: m.id, name: m.name, note: m.note, provider: m.provider, vision: m.vision, pdf: m.pdf })), modes: MODES.list(), n8n: process.env.N8N_AGENT_URL ? String(process.env.N8N_AGENT_URL) : null });
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   const chosen = LLM.pick(String(b.model || ""));
