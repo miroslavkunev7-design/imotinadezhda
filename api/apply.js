@@ -6,7 +6,7 @@
 const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SR = () => process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const GKEY = () => process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
-const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+const GEM = require("./_gem.js");
 const MAX = 4.3 * 1048576;
 const BG_M = ["януари", "февруари", "март", "април", "май", "юни", "юли", "август", "септември", "октомври", "ноември", "декември"];
 const TYPES = { bank_statement: "банково извлечение", id_card: "лична карта", passport: "паспорт", employment_contract: "трудов договор", income_certificate: "служебна бележка / удостоверение за доход", payslip: "фиш за заплата", tax_return: "данъчна декларация", company_registration: "удостоверение за регистрация / актуално състояние", financial_statement: "финансов отчет (баланс / ОПР)", residence_permit: "разрешение за пребиваване", preliminary_contract: "предварителен договор / оферта", other: "друг документ" };
@@ -19,12 +19,8 @@ const hits = new Map();
 function limited(ip) { const a = hits.get(ip) || { n: 0, t: Date.now() }; if (Date.now() - a.t > 15 * 60000) { a.n = 0; a.t = Date.now(); } a.n++; hits.set(ip, a); return a.n > 60; }
 const appId = (s) => String(s || "").replace(/[^a-z0-9]/gi, "").slice(0, 32) || null;
 const mbg = (ym) => { const m = String(ym || "").match(/^(\d{4})-(\d{2})$/); return m ? BG_M[+m[2] - 1] + " " + m[1] : String(ym || ""); };
-async function gem(parts, model) {
-  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(GKEY()), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0, responseMimeType: "application/json" } }) });
-  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
-  const t = ((((j.candidates || [])[0] || {}).content || {}).parts || []).map((p) => p.text || "").join("");
-  try { return JSON.parse(t); } catch (e) { const m = t.match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw new Error("AI върна невалиден отговор"); }
-}
+/* моделът се избира автоматично (_gem.js): най-новият жив Gemini Flash, при лимит/404 – следващият */
+async function gem(parts) { return (await GEM.generate({ parts, json: true, temperature: 0, budgetMs: 45000 })).data; }
 const PROMPT = "You check documents for a Bulgarian mortgage application. Look at the attached document (image or PDF) and return ONLY JSON: " +
   "{\"doc_type\": one of [" + Object.keys(TYPES).map((k) => '"' + k + '"').join(",") + "], \"months\": [\"YYYY-MM\", ...] (every calendar month the document covers or is issued for – for bank statements the statement period, for payslips the salary month; [] if not applicable), " +
   "\"period_from\":\"YYYY-MM-DD\" or null, \"period_to\":\"YYYY-MM-DD\" or null, \"person_name\": the account holder / employee / person named, or null, \"issuer\": bank or employer or authority, or null, \"confidence\": 0..1, \"summary\": one short sentence in Bulgarian}. " +
@@ -37,7 +33,7 @@ async function check(b) {
   const slot = b.slot || {}; const key = String(slot.key || "doc").replace(/[^\w\-]/g, "").slice(0, 40), kind = String(slot.kind || "other"), month = /^\d{4}-\d{2}$/.test(slot.month || "") ? slot.month : null;
   if (!GKEY()) throw new Error("Проверката на документи не е настроена (GEMINI_API_KEY)");
   let r = null, err = null;
-  for (const m of MODELS) { try { r = await gem([{ text: PROMPT + (slot.label ? " The applicant says this is: \"" + String(slot.label).slice(0, 120) + "\"" + (month ? " for " + month + "." : ".") : "") }, { inline_data: { mime_type: f.mime, data: f.data } }], m); break; } catch (e) { err = e; } }
+  try { r = await gem([{ text: PROMPT + (slot.label ? " The applicant says this is: \"" + String(slot.label).slice(0, 120) + "\"" + (month ? " for " + month + "." : ".") : "") }, { inline_data: { mime_type: f.mime, data: f.data } }]); } catch (e) { err = e; }
   if (!r) throw err || new Error("Проверката не успя");
   const type = TYPES[r.doc_type] ? r.doc_type : "other"; const months = Array.isArray(r.months) ? r.months.filter((x) => /^\d{4}-\d{2}$/.test(x)) : [];
   let match = true, why = "";

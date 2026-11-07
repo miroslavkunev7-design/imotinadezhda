@@ -101,7 +101,7 @@
       "maxDuration": 30
     },
     "api/voice.js": {
-      "maxDuration": 30
+      "maxDuration": 60
     }
   },
   "redirects": [

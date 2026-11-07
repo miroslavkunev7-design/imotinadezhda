@@ -3,7 +3,9 @@
 // POST JSON { kind: "client" | "property", mime, data (base64), name }  + Authorization: Bearer <CRM token>
 const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
-const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+/* моделите се откриват автоматично (_gem.js): Google спира старите Gemini модели (2.0 Flash, 2.5 Flash) */
+const GEM = require("./_gem.js");
+let MODELS = GEM.FALLBACK.chat.slice(0, 4);
 
 const PROMPTS = {
   client:
@@ -65,10 +67,11 @@ async function isStaff(token) {
 const LOGO_PROMPT = "Намери на снимката на имота всички наложени логота, водни знаци, стикери с име на агенция, надписи с телефон или уебсайт и QR кодове " +
   "(наложени графично или залепени/отпечатани табелки с име на агенция). НЕ отбелязвай обикновени предмети, картини по стените, телевизори, етикети на уреди. " +
   "Върни JSON: {\"boxes\":[{\"box\":[ymin,xmin,ymax,xmax],\"label\":\"кратко описание\"}]} с координати 0–1000. Ако няма – {\"boxes\":[]}.";
-const CLEAN_MODELS = ["gemini-2.5-flash-image", "gemini-2.5-flash-image-preview"];
+let CLEAN_MODELS = GEM.FALLBACK.image.slice();
 async function gem(key, model, body) {
-  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status); return j;
+  const b2 = Object.assign({}, body, { generationConfig: /image/.test(model) ? body.generationConfig : GEM.cfg(model, body.generationConfig) });
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b2) });
+  const j = await r.json().catch(() => ({})); if (!r.ok) { GEM.classify(model, r.status, j); throw new Error((j.error && j.error.message) || "HTTP " + r.status); } return j;
 }
 async function logos(res, key, b) {
   if (b.kind === "logos") {
@@ -103,6 +106,7 @@ module.exports = async (req, res) => {
   const auth = String(req.headers["authorization"] || "");
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!token || !(await isStaff(token).catch(() => false))) return send(res, 401, { ok: false, error: "Влезте в CRM, за да сканирате." });
+  try { const [tm, im] = await Promise.all([GEM.models("chat"), GEM.models("image")]); if (tm.length) MODELS = tm.slice(0, 4); if (im.length) CLEAN_MODELS = im.slice(0, 3); } catch (e) {}
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
   if (b.kind === "classify") {
     /* Кой документ е това? – избира графа от подадения списък (key/title) или предлага ново име */
@@ -153,10 +157,10 @@ module.exports = async (req, res) => {
   for (const model of MODELS) {
     try {
       const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({}, body, { generationConfig: GEM.cfg(model, body.generationConfig) }))
       });
       const j = await r.json();
-      if (!r.ok) { lastErr = (j.error && j.error.message) || "HTTP " + r.status; continue; }
+      if (!r.ok) { GEM.classify(model, r.status, j); lastErr = (j.error && j.error.message) || "HTTP " + r.status; continue; }
       const text = ((j.candidates || [])[0] || {}).content?.parts?.map((p) => p.text || "").join("") || "";
       let fields;
       try { fields = JSON.parse(text.replace(/^```json|```$/g, "").trim()); } catch (e) { lastErr = "Неразчетен отговор"; continue; }

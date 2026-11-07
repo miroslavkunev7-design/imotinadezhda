@@ -7,12 +7,13 @@ const fs = require("fs"), path = require("path");
 const PDFLib = require("./_vendor/pdf-lib.min.js");
 const fontkit = require("./_vendor/fontkit.umd.min.js");
 const WEB = require("./_web.js");
+const GEM = require("./_gem.js");
 let MAIL = null; try { MAIL = require("./email.js"); } catch (e) { MAIL = { configFor: async () => null, sendAs: async () => { throw new Error("email module missing"); }, friendly: (e) => String(e && e.message || e) }; }
 // пощата на текущия служител (пази се само на сървъра: nd_secrets smtp:<userId>)
 const mailbox = (ctx) => MAIL.configFor(ctx.userId || (ctx.user && ctx.user.id)).catch(() => null);
 
 const BUCKET = "nd-files", SIGN_SECS = 7 * 86400, MAX_PDF_MB = 40, MAX_DOCS = 40;
-const GEMINI = () => process.env.GEMINI_API_KEY || "";
+const GEMINI = () => process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
 const FONT = { reg: path.join(__dirname, "_vendor", "DejaVuSans.ttf"), bold: path.join(__dirname, "_vendor", "DejaVuSans-Bold.ttf") };
 
 class ToolError extends Error { constructor(m, status = 400) { super(m); this.status = status; } }
@@ -179,17 +180,9 @@ function htmlToBlocks(html) {
 /* ---------- Gemini (documents): text, language, classification, translation ---------- */
 async function gemini(parts, opts) {
   if (!GEMINI()) throw new ToolError("Липсва GEMINI_API_KEY на сървъра", 500);
-  const models = ["gemini-2.5-flash", "gemini-2.0-flash"]; let last = "";
-  for (const model of models) {
-    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(GEMINI()), {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: Object.assign({ temperature: 0.1, maxOutputTokens: 60000 }, opts && opts.json ? { responseMimeType: "application/json" } : {}) })
-    });
-    const j = await r.json().catch(() => ({}));
-    if (r.ok) { const t = (((j.candidates || [])[0] || {}).content || {}).parts || []; const out = t.map((p) => p.text || "").join(""); if (out) return out; last = "празен отговор"; continue; }
-    last = (j.error && j.error.message) || ("HTTP " + r.status);
-  }
-  throw new ToolError("AI не отговори: " + last, 502);
+  /* моделът се избира автоматично (_gem.js): най-новият жив Gemini Flash; при 404/лимит – следващият */
+  try { const r = await GEM.generate({ parts, json: !!(opts && opts.json), temperature: 0.1, maxTokens: 60000, budgetMs: 50000 }); if (!r.text) throw new Error("празен отговор"); return r.text; }
+  catch (e) { throw new ToolError("AI не отговори: " + String(e.message || e), e.quota ? 429 : 502); }
 }
 const docPart = (info) => ({ inline_data: { mime_type: info.kind === "pdf" ? "application/pdf" : info.mime, data: info.buf.toString("base64") } });
 function parseJson(t) { try { return JSON.parse(t); } catch (e) { const m = String(t).match(/\{[\s\S]*\}|\[[\s\S]*\]/); if (m) { try { return JSON.parse(m[0]); } catch (e2) {} } throw new ToolError("AI върна невалиден JSON"); } }

@@ -3,10 +3,10 @@
 // Visitors (no token): only the published listings, and an inquiry that goes to the CRM.
 const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
-const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 const WEB = require("./_web.js");
 const OWNERS = require("./_owners.js");
 const LLM = require("./_llm.js");
+const GEM = require("./_gem.js");
 const MODES = require("./_ted-modes.js");
 const MEM = require("./_ted-memory.js");
 const TOOLSPEC = "- clients.search: Search CRM clients by name/phone/email/city. Returns id, name, phone, email, cat (sales|rent), type, city, hood, budget, status. Input: { query: string, cat: [\"sales\", \"rent\"], limit: number }\n- clients.get: One client with activity, meetings (events), deals and documents. Input: { id: string }\n- clients.create: Create a client (cat: sales = търси покупка, rent = търси наем). Input: { name (задължително), phone, email, cat: \"sales\"|\"rent\", type, city, hood, budget (число), status, source, notes }\n- clients.update: Update client fields. Input: { id: string, и всяко поле от clients.create (по избор) }\n- clients.delete: Delete a client (requires confirm=true). Input: { id: string, confirm: true }\n- clients.add_note: Add an activity note to a client. Input: { client_id: string, body: string, kind: [\"phone\", \"mail\", \"users\", \"file-text\", \"pencil\"] }\n- properties.search: Search properties. Filters: text (title/code/city/hood/owner), city, deal (sale|rent), status, max_price, min_rooms. Input: { text: string, city: string, deal: [\"sale\", \"rent\"], status: string, max_price: number, min_rooms: number }\n- properties.create: Create a property (status Чернова). Code P-#### is assigned automatically. Input: { title (задължително), deal: \"sale\"|\"rent\", type, price, area, rooms, beds, baths, floor, region, city, hood, address, client, desc, cond }\n- properties.update: Edit property fields. Input: { id: string, и всяко поле от properties.create (по избор) }\n- properties.set_status: Set property status: Чернова, Активен, Публикуван, Резервиран, Продаден, Архивиран (requires confirm=true). Input: { id: string, status: [\"Чернова\", \"Активен\", \"Публикуван\", \"Резервиран\", \"Продаден\", \"Архивиран\"], confirm: true }\n- properties.match: Match properties to a client's needs (city, budget, deal, min_rooms) ranked by fit. Pass client_id to use that client's criteria. Input: { client_id: string, city: string, budget: number, deal: [\"sale\", \"rent\"], min_rooms: number }\n- calendar.list: List calendar events between from and to (YYYY-MM-DD). Types: meeting, viewing, bank, documents, deal, team, task. Input: { from: string, to: string, type: string }\n- calendar.create: Create a calendar event (shown in Календар and on the client card). date YYYY-MM-DD, from/to HH:MM. Input: { type: [\"meeting\", \"viewing\", \"bank\", \"documents\", \"deal\", \"team\", \"task\"], title: string, date: string, from: string, to: string, client_id: string, prop: string, desc: string }\n- calendar.update: Update or move an event. Input: { id: string, title: string, date: string, from: string, to: string, desc: string }\n- calendar.delete: Delete an event (requires confirm=true). Input: { id: string, confirm: true }\n- deals.list: List deals, optional stage (Нова, Оглед, Оферта, Предварителен договор, Нотариус, Приключена, Отказана) or client_id. Input: { stage: string, client_id: string }\n- deals.create: Create a deal for a client. Input: { title: string, client_id: string, property: string, stage: string, amount: number, commission_pct: number, deadline: string, note: string }\n- deals.update: Update a deal (stage, amount, paid, deadline…). Input: { id: string, title: string, stage: string, amount: number, commission_pct: number, paid: number, deadline: string, note: string }\n- companies.search: Search partner companies (banks, builders…) and their employees. Input: { query: string }\n- brokers.list: List brokers (team). Input: {}\n- documents.list: List documents (optional client_id). Input: { client_id: string }\n- documents.download_link: Signed download link (10 minutes) for a document id. Input: { id: string }\n- calc.mortgage: Annuity mortgage. annual_rate_pct must come from the user or the live rate (/api/rates) — never invented. Input: { principal: number, years: number, annual_rate_pct: number }\n- calc.commission: Commission with optional VAT %. Input: { price: number, commission_pct: number, vat_pct: number }\n- calc.yield: Gross/net rental yield. Input: { price: number, monthly_rent: number, annual_costs: number }\n- rates.live: Live ECB reference rates (6M EURIBOR, 3M EURIBOR, €STR). Input: {}\n- reports.summary: Totals: clients, active/published properties, open/closed deals, expected and realised commission, upcoming events. Input: {}";
@@ -45,22 +45,26 @@ function systemPrompt(staff, user, page) {
   return base + " Говориш със служител на агенцията (" + (user.email || "") + "), страница: " + (page || "CRM") + ". Имаш пълен достъп до CRM чрез функцията crm(tool, input_json). " +
     "Инструменти:\n" + TOOLSPEC + "\n" + TED.SPEC + "\n\nПравила: 1) За да намериш id, първо търси (clients.search / properties.search). 2) Изтриване и смяна на статус (confirm=true) – само след изрично „да“ от служителя в чата; преди това кажи точно какво ще направиш и попитай. " +
     "3) След всяко записване кажи кратко какво е направено (име/код, полета). 4) Датите са YYYY-MM-DD; „утре“, „в петък“ изчислявай от днешната дата. 5) Суми в евро. " +
-    "6) За качване на имот от папка със снимки и опис насочи към skill „АИ Качване на имот“ (бутонът най-горе в асистента). " +
+    "6) АИ КАЧВАНЕ НА ИМОТ е вградено в този чат: при „качи имот“, „нов имот от папка/снимки/опис“ или когато брокерът иска да прикачи папка – извикай open_panel {panel:\"upload\"} и кажи с едно изречение какво ще стане (цена от името на папката, опис → лично описание, ново публично описание, до 100 снимки с лого, записва се като Чернова). " +
     "7) За всичко актуално извън CRM (пазарни цени, лихви, закони, такси, новини, фирми) използвай web_search, а за конкретен линк – read_page; посочвай източника. " +
-    "8) За събиране на обяви от частни лица от сайтове насочи към skill „Събиране на имоти и клиенти“. " +
+    "8) СЪБИРАНЕ НА ИМОТИ И КЛИЕНТИ е вградено в този чат: за конкретно място/вид имот веднага ползвай find_owner_listings; за линк към страница с обяви или поставен пост/скрийншот от група – collect_page {url | text}; за списъка със събраните, Старт/Стоп по сайтовете от настройките или „Постави пост“ – open_panel {panel:\"collect\"}. " +
     "9) Никога не отговаряй „не мога“, ако някой инструмент може да опита. Действай сам, стъпка по стъпка, без да питаш излишно: първо CRM (clients.search, properties.search и др.), после web_search с 2–4 различни формулировки (име + град, име + фирма, име + имоти/обява, на кирилица и на латиница), после read_page на най-добрите линкове. Накрая дай обобщение с точки и източници. Ако нищо не е намерено, кажи какво точно си търсил и предложи следваща стъпка. " +
     "10) Когато търсиш човек по име: покажи какво има в CRM и какво е публично и свързано с работа или имоти – фирма и длъжност, публични обяви, официални регистри (Търговски регистър), публикувани служебни контакти, статии. Не събирай лични подробности за частни лица (домашен адрес, семейство, лични профили, здраве) – ако такова се иска, кажи накратко, че не го събираш, и дай останалото. " +
     "11) Ако служителят поиска нещо, което CRM инструментите позволяват (запис, редакция, среща, задача, търсене), направи го веднага и потвърди. " +
     "12) ДОКУМЕНТИ: първо documents.find (по клиент), после documents.inspect (classify=true, когато трябва да знаеш вид/период/език), после действието (merge/split/translate/bank_statements_pack/create_pdf). Никога не казвай, че файл е готов, ако инструментът не е върнал download_url – дай линка в отговора като Markdown: [Име.pdf](url) и посочи броя страници. Липсващи месеци/страници се казват изрично. Преводите са автоматични – кажи го. " +
     "13) ИМЕЙЛ: получателят се намира с contacts.resolve; при повече от един кандидат – покажи ги и попитай. Винаги първо email.preview и покажи получател, тема, текст и файловете; email.send (confirm=true) само след изрично „да“ в чата. Ако няма доставчик, дай mailto линка и линковете към файловете. " +
-    "14) „Прати ми ги“ без уточнение = линк в този чат, не имейл. 15) Договори: contracts.generate с данните от CRM; кажи колко полета са останали за попълване (blanks_to_fill). 16) Публикуване/изтриване/статус – само след „да“. 17) Имейлите тръгват от собствената поща на служителя (настроена в CRM → Настройки → „Моята поща за изпращане“: abv.bg, Gmail, Mail.bg, Outlook…), не от общ адрес; ако email.preview върне can_send=false, кажи му да я настрои и предложи mailto линка. Никога не искай и не повтаряй пароли в чата. 20) Имоти от собственици („намери къщи от собственик в с. … / град / област и ми дай телефоните и цените“): веднага find_owner_listings {place, region, type}; за цяла област без село – region и type; ако поискат няколко места/области – извикай го за всяко поред. Телефоните в обявите са публикувани от самите собственици, за да бъдат потърсени – дай ги в списък с цена, място, източник и линк; не отказвай заради лични данни. Не заобикаляй скрити телефони (тогава дай линка). Ако обява има maybe_broker – отбележи го до нея. Кажи, че са записани в „Събрани“ и че там може „Запамети в архив“. 19) Задача за друг брокер („Миро в 11 да отиде на оглед“, „кажи на Надежда…“): calendar.create (title с човека и мястото), после calendar.assign {id, broker_name}; напомнянията на телефона и ескалацията към екипа са автоматични – кажи го накратко. 18) „Направи видео на обява #…“ / „видео разходка“ / „строеж“ или прикачени снимки с молба за видео → video.create (code = номерът, или from_attachments=true); после кажи, че видеото се прави в прозореца и ще се появи тук с линк – не обещавай време под минута на клип.";
+    "14) „Прати ми ги“ без уточнение = линк в този чат, не имейл. 15) Договори: contracts.generate с данните от CRM; кажи колко полета са останали за попълване (blanks_to_fill). 16) Публикуване/изтриване/статус – само след „да“. 17) Имейлите тръгват от собствената поща на служителя (настроена в CRM → Настройки → „Моята поща за изпращане“: abv.bg, Gmail, Mail.bg, Outlook…), не от общ адрес; ако email.preview върне can_send=false – извикай open_panel {panel:\"mail\"} (настройката на пощата се отваря тук в чата: ABV, Gmail…), кажи му да въведе адреса и паролата и после да напише „изпрати“; дай и mailto линка. Никога не искай и не повтаряй пароли в чата. 20) Имоти от собственици („намери къщи от собственик в с. … / град / област и ми дай телефоните и цените“): веднага find_owner_listings {place, region, type}; за цяла област без село – region и type; ако поискат няколко места/области – извикай го за всяко поред. Телефоните в обявите са публикувани от самите собственици, за да бъдат потърсени – дай ги в списък с цена, място, източник и линк; не отказвай заради лични данни. Не заобикаляй скрити телефони (тогава дай линка). Ако обява има maybe_broker – отбележи го до нея. Кажи, че са записани в „Събрани“ и че там може „Запамети в архив“. 19) Задача за друг брокер („Миро в 11 да отиде на оглед“, „кажи на Надежда…“): calendar.create (title с човека и мястото), после calendar.assign {id, broker_name}; напомнянията на телефона и ескалацията към екипа са автоматични – кажи го накратко. 18) „Направи видео на обява #…“ / „видео разходка“ / „строеж“ или прикачени снимки с молба за видео → video.create (code = номерът, или from_attachments=true); после кажи, че видеото се прави в прозореца и ще се появи тук с линк – не обещавай време под минута на клип.";
 }
 function declarations(staff) {
   const web = [
     { name: "web_search", description: "Търси в интернет (Google) актуална информация: цени на имоти, лихви, закони, такси, фирми, новини, обяви. Връща отговор и източници.", parameters: { type: "OBJECT", properties: { query: { type: "STRING" } }, required: ["query"] } },
     { name: "read_page", description: "Прочита публична уеб страница по линк (текст, снимки, линкове) – напр. обява, сайт на банка или агенция.", parameters: { type: "OBJECT", properties: { url: { type: "STRING" } }, required: ["url"] } }
   ];
-  if (staff) return web.concat([{ name: "find_owner_listings", description: "Намира в интернет обяви на имоти ОТ СОБСТВЕНИЦИ (без агенции) за всяко село, град или област в България: заглавие, цена, площ, телефон (ако е публикуван в обявата), линк, източник. Записва ги в „Събрани“. Ползвай при „намери имоти/къщи/апартаменти от собственик в …“, „дай телефоните и цените“.",
+  const panel = { name: "open_panel", description: "Отваря вградено умение тук в чата: upload = АИ Качване на имот (папка/снимки/опис → попълнена карта „Нов имот“); collect = Събиране на имоти и клиенти (сайтове, Старт/Стоп, Постави пост, Събрани); mail = настройка на „Моята поща за изпращане“ (ABV, Gmail…); video = AI Видео на имот.",
+    parameters: { type: "OBJECT", properties: { panel: { type: "STRING", enum: ["upload", "collect", "mail", "video"] } }, required: ["panel"] } };
+  const collect = { name: "collect_page", description: "Събиране от конкретен източник: чете публична страница с обяви (url) или поставен текст на пост от група (text) и пази само частните обяви без агенции (с телефон) и хората, които търсят/предлагат. Записва ги в „Събрани“.",
+    parameters: { type: "OBJECT", properties: { url: { type: "STRING" }, text: { type: "STRING" }, source: { type: "STRING", description: "напр. Facebook, OLX, Имоти.бг" }, keywords: { type: "STRING", description: "ключови думи, по подразбиране: без посредник, от собственик, без комисионна, лично" } } } };
+  if (staff) return web.concat([panel, collect, { name: "find_owner_listings", description: "Намира в интернет обяви на имоти ОТ СОБСТВЕНИЦИ (без агенции) за всяко село, град или област в България: заглавие, цена, площ, телефон (ако е публикуван в обявата), линк, източник. Записва ги в „Събрани“. Ползвай при „намери имоти/къщи/апартаменти от собственик в …“, „дай телефоните и цените“.",
     parameters: { type: "OBJECT", properties: { place: { type: "STRING", description: "Село или град, напр. „Ново село“" }, region: { type: "STRING", description: "Област, напр. „Велико Търново“" }, type: { type: "STRING", description: "къща, апартамент, парцел, вила, земя…" }, deal: { type: "STRING", enum: ["sale", "rent"] }, max_price: { type: "NUMBER" } } } }, { name: "crm", description: "Изпълнява CRM инструмент от списъка и връща резултата като JSON.",
     parameters: { type: "OBJECT", properties: { tool: { type: "STRING", enum: STAFF_TOOLS, description: "Име на инструмента" }, input_json: { type: "STRING", description: "Входът на инструмента като JSON обект, напр. {\"query\":\"Иван\"}" } }, required: ["tool", "input_json"] } }]);
   return [web[0]].concat([
@@ -83,6 +87,27 @@ async function runTool(call, ctx) {
       ctx.actions.push(a.tool + (j.ok ? "" : " ✗"));
       if (j && j.ok && j.result && j.result.start_video) ctx.video = j.result.start_video; else if (j && j.start_video) ctx.video = j.start_video;
       return j;
+    }
+    if (call.name === "open_panel") { if (!ctx.staff) return { ok: false, error: "Само за служители" }; const p = ["upload", "collect", "mail", "video"].includes(a.panel) ? a.panel : "upload"; ctx.ui = { panel: p }; ctx.actions.push("отворено: " + ({ upload: "АИ Качване на имот", collect: "Събиране на имоти и клиенти", mail: "Моята поща", video: "AI Видео" })[p]); return { ok: true, opened: p, note: "Панелът се показва под отговора в чата." }; }
+    if (call.name === "collect_page") {
+      if (!ctx.staff) return { ok: false, error: "Само за служители" };
+      if (!a.url && !a.text) return { ok: false, error: "Дай линк (url) или текст на поста (text)." };
+      const r = await fetch(ctx.origin + "/api/collect", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + ctx.token }, body: JSON.stringify({ url: a.url || "", text: a.text || "", source: a.source || "", keywords: a.keywords || "без посредник, от собственик, без комисионна, лично", properties: true, clients: true }) });
+      const j = await r.json().catch(() => ({ ok: false, error: "HTTP " + r.status }));
+      ctx.actions.push("събиране: " + String(a.url || a.source || "пост").replace(/^https?:\/\//, "").slice(0, 40));
+      let saved = 0;
+      if (j && j.ok && Array.isArray(j.items) && j.items.length) {
+        /* запис в „Събрани“ (nd_collected) без дубликати – същият ключ като в умението: телефон + текст */
+        try {
+          const nk = (x) => String(x.phone || "").split(",")[0].trim() + "|" + String(x.text || x.title || "").toLowerCase().replace(/[^a-zа-я0-9]+/gi, " ").trim().slice(0, 120);
+          const ex = await fetch(SB_URL + "/rest/v1/nd_collected?select=data", { headers: { apikey: SB_KEY, Authorization: "Bearer " + ctx.token } }).then((r2) => r2.ok ? r2.json() : []);
+          const have = new Set((ex || []).map((r2) => nk(r2.data || {})));
+          const rows = j.items.filter((x) => !have.has(nk(x))).map((x) => ({ name: x.title || x.name || "Обява", data: Object.assign({}, x, { source: a.source || x.source || "", found_by: "Тед" }) }));
+          if (rows.length) { const w = await fetch(SB_URL + "/rest/v1/nd_collected", { method: "POST", headers: { apikey: SB_KEY, Authorization: "Bearer " + ctx.token, "Content-Type": "application/json", Prefer: "return=minimal" }, body: JSON.stringify(rows) }); if (w.ok) saved = rows.length; }
+        } catch (e) {}
+        if (!ctx.ui) ctx.ui = { panel: "collect" };
+      }
+      return j && j.ok ? { ok: true, found: (j.items || []).length, saved_to_collected: saved, skipped: j.skipped || {}, items: (j.items || []).slice(0, 20).map((x) => ({ kind: x.kind, title: x.title, price: x.price, city: x.city, hood: x.hood, phone: x.phone, name: x.name, link: x.link, wants: x.wants || undefined })), note: "Записани са в „Събрани“; оттам „Запамети в архив“ ги прехвърля в Имоти/Клиенти. Панелът „Събиране“ се показва под отговора." } : j;
     }
     if (call.name === "web_search") { const r = await WEB.webSearch(a.query || ""); ctx.actions.push("интернет: " + String(a.query || "").slice(0, 40)); (ctx.sources = ctx.sources || []).push(...r.sources); return { ok: true, ...r }; }
     if (call.name === "find_owner_listings") { if (!ctx.staff) return { ok: false, error: "Само за служители" }; const r = await OWNERS.findOwners(ctx, a); ctx.actions.push("обяви от собственици: " + [a.place, a.region].filter(Boolean).join(", ").slice(0, 40)); (r.items || []).slice(0, 8).forEach((x) => { if (x.link) (ctx.sources = ctx.sources || []).push({ title: x.title || x.source, url: x.link }); }); return r; }
@@ -108,6 +133,9 @@ async function runTool(call, ctx) {
 }
 
 module.exports = async (req, res) => {
+  const T0 = Date.now();
+  /* OIDC токенът на проекта: Vercel AI Gateway работи с него без отделен ключ (резерва, ако Gemini е изчерпан) */
+  if (!process.env.VERCEL_OIDC_TOKEN && req.headers["x-vercel-oidc-token"]) process.env.VERCEL_OIDC_TOKEN = String(req.headers["x-vercel-oidc-token"]);
   if (req.method !== "POST") return send(res, 405, { ok: false, error: "POST only" });
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
   const auth = String(req.headers["authorization"] || ""); const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
@@ -127,17 +155,11 @@ module.exports = async (req, res) => {
   const AUDIO = /^audio\/(webm|ogg|mp4|mpeg|mp3|wav|x-wav|aac|m4a|x-m4a|3gpp|flac)$/;
   const audio = lastMsg && Array.isArray(lastMsg.files) ? lastMsg.files.find((f) => f && f.data && AUDIO.test(String(f.mime))) : null;
   if (audio && !key) return send(res, 200, { ok: true, text: "Гласовите съобщения се разпознават с Gemini – няма настроен GEMINI_API_KEY.", transcript: "", actions: [], staff: ctx.staff });
+  let voiceErr = "";
   if (audio) {
-    try {
-      const mime = /^audio\/(x-m4a|m4a)$/.test(audio.mime) ? "audio/mp4" : audio.mime;
-      const tr = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(key), {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: "Транскрибирай дословно гласовото съобщение (най-често на български). Върни САМО текста, без кавички и коментари. Имената на квартали, улици и хора пиши правилно. Ако няма говор, върни празен низ." }, { inline_data: { mime_type: mime, data: audio.data } }] }], generationConfig: { temperature: 0 } })
-      });
-      const tj = await tr.json();
-      transcript = (((tj.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("").trim() || "";
-    } catch (e) { transcript = ""; }
-    if (!transcript) return send(res, 200, { ok: true, text: "Не успях да чуя ясно съобщението – опитайте отново, по-близо до микрофона.", transcript: "", actions: [], staff: ctx.staff });
+    try { transcript = await GEM.transcribe(audio, "Транскрибирай дословно гласовото съобщение (най-често на български). Върни САМО текста, без кавички и коментари. Имената на квартали, улици и хора пиши правилно. Ако няма говор, върни празен низ.", { budgetMs: 25000 }); }
+    catch (e) { transcript = ""; voiceErr = e.quota ? "Лимитът на Gemini за разпознаване на глас е изчерпан – опитайте след минута или напишете съобщението." : "Разпознаването на гласа не успя (" + String(e.message || e).slice(0, 120) + ")."; }
+    if (!transcript) return send(res, 200, { ok: true, text: voiceErr || "Не успях да чуя ясно съобщението – опитайте отново, по-близо до микрофона.", transcript: "", actions: [], staff: ctx.staff });
     lastMsg.text = transcript + (lastMsg.text && lastMsg.text !== "(гласово съобщение)" ? "\n" + lastMsg.text : "");
     lastMsg.files = lastMsg.files.filter((f) => f !== audio);
   }
@@ -145,28 +167,35 @@ module.exports = async (req, res) => {
     .filter((c, i0) => !(i0 === 0 && c.role === "assistant"));
   if (!clean.length) return send(res, 400, { ok: false, error: "Празно съобщение" });
   /* памет + казус + експертен режим (само за служители) */
-  const caseId = ctx.staff && b.case_id ? String(b.case_id).slice(0, 64) : null, mode = ctx.staff ? String(b.mode || "").slice(0, 32) : "";
+  const caseId = ctx.staff && b.case_id ? String(b.case_id).slice(0, 64) : null;
   const lastUser = clean.filter((m) => m.role === "user").slice(-1)[0];
+  /* експертната роля: избраната в чата или разпозната от въпроса (всички роли са вградени в „Чат с Тед“) */
+  const mode = ctx.staff ? (String(b.mode || "").slice(0, 32) || MODES.detect(lastUser ? lastUser.text : "")) : "";
   const mem = ctx.staff ? await MEM.load(ctx.token, user.id, caseId, lastUser ? lastUser.text : "") : { enabled: false, facts: [], recent: [], related: [] };
-  const system = systemPrompt(ctx.staff, user || {}, b.page) + MODES.prompt(mode) + MEM.contextText(mem, user) + (caseId && mem.kase ? "\nТекущ case_id: " + caseId + " (подавай го на memory.remember за факти по казуса)." : "");
+  const system = systemPrompt(ctx.staff, user || {}, b.page) + (ctx.staff ? MODES.ALL : "") + MODES.prompt(mode) + MEM.contextText(mem, user) + (caseId && mem.kase ? "\nТекущ case_id: " + caseId + " (подавай го на memory.remember за факти по казуса)." : "");
   const convo = caseId && mem.kase && mem.recent.length ? MEM.historyMsgs(mem).concat(clean.slice(-1)) : clean;
   const tools = declarations(ctx.staff);
-  /* избраният модел, после резервните Gemini модели (ако има ключ) */
-  const order = [chosen].concat(LLM.catalog().filter((m) => m.provider === "gemini" && m.id !== chosen.id && /flash/.test(m.id)));
-  if (key && !order.some((m) => m.id === "gemini-2.0-flash")) order.push({ id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "gemini", vision: true, pdf: true });
-  /* след Gemini – другите доставчици с инструменти (Gateway, OpenAI, Claude, Ollama), ако има ключ: при изчерпан лимит Тед не спира */
+  /* избраният модел (Gemini сам минава по всички живи Gemini модели), после другите доставчици с ключ: при изчерпан лимит Тед не спира */
+  const order = [chosen];
+  if (chosen.provider !== "gemini") { const g = LLM.catalog().find((m) => m.provider === "gemini"); if (g) order.push(g); }
   LLM.catalog().filter((m) => m.provider !== "gemini" && m.id !== chosen.id && !order.some((o) => o.id === m.id)).forEach((m) => order.push(m));
   /* действия, които променят данни: след тях не сменяме модела (за да не се повтори запис или изпращане) */
-  const MUTATING = /\.(create|update|delete|set_status|add_note|send|generate|merge|split|translate|bank_statements_pack|create_pdf)$|^video\./;
-  let lastErr = "";
+  const MUTATING = /\.(create|update|delete|set_status|add_note|send|generate|merge|split|translate|bank_statements_pack|create_pdf|assign|remember)$|^video\.|^събиране/;
+  const T_END = T0 + 108000; /* лимитът на функцията е 120 s */
+  let lastErr = "", quota = false;
   for (const model of order) {
+    const left = T_END - Date.now(); if (left < 8000) break;
+    let real = null;
     try {
-      const text = await LLM.chat(model, { system, msgs: convo, tools, run: (c) => runTool(c, ctx), budgetMs: 80000 });
-      if (text === null) return send(res, 200, { ok: true, text: "Задачата изисква твърде много стъпки – разделете я на по-малки.", actions: ctx.actions, staff: ctx.staff, model: model.id });
+      const text = await LLM.chat(model, { system, msgs: convo, tools, run: (c) => runTool(c, ctx), budgetMs: Math.min(80000, left - 6000), onModel: (id) => { real = id; } });
+      if (text === null) return send(res, 200, { ok: true, text: "Задачата изисква твърде много стъпки – разделете я на по-малки.", actions: ctx.actions, staff: ctx.staff, model: model.id, ui: ctx.ui || null });
       const out = text || "Не успях да формулирам отговор – опитайте отново.";
-      if (ctx.staff && mem.enabled && lastUser) { await MEM.save(ctx.token, user.id, caseId, lastUser.text, out, { meta: { mode: mode || null, model: model.id } }); if (caseId && mem.kase) await MEM.maybeSummarize(ctx.token, caseId, LLM); }
-      return send(res, 200, { ok: true, text: out + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i0, a) => x.url && a.findIndex((y) => y.url === x.url) === i0).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, video: ctx.video || null, model: model.id, model_name: model.name, fallback: model.id !== chosen.id ? chosen.name + " не отговори – отговори " + model.name : null });
-    } catch (e) { lastErr = String(e.message || e); if (ctx.actions.some((a) => MUTATING.test(String(a).replace(/ ✗$/, "")))) break; }
+      if (ctx.staff && mem.enabled && lastUser) { await MEM.save(ctx.token, user.id, caseId, lastUser.text, out, { meta: { mode: mode || null, model: real || model.id } }).catch(() => null); if (caseId && mem.kase) await MEM.maybeSummarize(ctx.token, caseId, LLM).catch(() => null); }
+      /* бележка под отговора само когато наистина е отговорил друг доставчик (напр. лимитът на Gemini е изчерпан) */
+      const note = model.provider !== chosen.provider ? (quota ? "Лимитът на " + chosen.name + " е изчерпан – отговори " + model.name : chosen.name + " не отговори – отговори " + model.name) : null;
+      return send(res, 200, { ok: true, text: out + (ctx.sources && ctx.sources.length ? "\n\nИзточници:\n" + ctx.sources.filter((x, i0, a) => x.url && a.findIndex((y) => y.url === x.url) === i0).slice(0, 6).map((x) => "• " + (x.title || x.url) + " – " + x.url).join("\n") : ""), transcript, actions: ctx.actions, staff: ctx.staff, listings: ctx.listings || null, video: ctx.video || null, ui: ctx.ui || null, mode: mode || null, model: real || model.id, model_name: model.name, fallback: note });
+    } catch (e) { lastErr = String(e.message || e); if (e.quota) quota = true; if (ctx.actions.some((a) => MUTATING.test(String(a).replace(/ ✗$/, "")))) break; }
   }
+  if (quota) return send(res, 200, { ok: false, error: "Безплатният лимит на Gemini е изчерпан (" + lastErr + "). Опитайте след минута. За работа без прекъсване включете плащане за Gemini ключа в Google AI Studio." });
   return send(res, 502, { ok: false, error: "AI асистентът не отговори: " + lastErr });
 };

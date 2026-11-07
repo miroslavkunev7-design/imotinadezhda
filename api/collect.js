@@ -2,6 +2,7 @@
 // finds private ads (no agencies) and people who search, and returns them as structured records.
 // action "photos": copies the photos of a collected ad into the CRM storage (nd-files) for "Запамети в архив".
 const WEB = require("./_web.js");
+const GEM = require("./_gem.js");
 const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
 
@@ -70,18 +71,9 @@ module.exports = async (req, res) => {
   let ai;
   try {
     /* модел: по подразбиране Flash; при лимит (429) – Flash Lite, който има по-голям безплатен лимит */
-    const models = b.model === "lite" ? ["gemini-flash-lite-latest", "gemini-2.5-flash"] : ["gemini-2.5-flash", "gemini-flash-lite-latest"];
-    let r, j;
-    for (const m of models) {
-      r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(WEB.key()), {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0.1, responseMimeType: "application/json" } })
-      });
-      j = await r.json(); if (r.ok || r.status !== 429) break;
-    }
-    if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
-    const t = (((j.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("") || "{}";
-    ai = JSON.parse(t.replace(/^```json|```$/g, "").trim());
+    /* моделът се избира автоматично (_gem.js); при лимит/404 – следващият жив модел */
+    const g = await GEM.generate({ parts, json: true, temperature: 0.1, kind: b.model === "lite" ? "fast" : "chat", budgetMs: 45000 });
+    ai = g.data || {};
   } catch (e) { return send(res, 502, { ok: false, error: "Анализът не успя: " + String(e.message || e) }); }
 
   const src = b.source || site(page.url || "");

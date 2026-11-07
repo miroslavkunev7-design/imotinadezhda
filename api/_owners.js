@@ -90,12 +90,12 @@ async function aiCheck(list, ms) {
     if (imgs[i]) parts.push({ inline_data: { mime_type: "image/jpeg", data: imgs[i] } });
   });
   let last = "";
-  for (const m of ["gemini-flash-lite-latest", "gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"]) {
+  for (const m of (await require("./_gem.js").models("fast")).slice(0, 4)) {
     const rest = ms - (Date.now() - t0); if (rest < 3000) break;
     try {
       const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: { temperature: 0, responseMimeType: "application/json" } }), signal: AbortSignal.timeout(rest) });
-      const j = await r.json(); if (!r.ok) { last = m + ": " + r.status + " " + String((j.error && j.error.message) || "").slice(0, 120); if (r.status === 429 || r.status === 404 || r.status >= 500) continue; return { ok: false, err: last }; }
+        body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: require("./_gem.js").cfg(m, { temperature: 0, responseMimeType: "application/json" }) }), signal: AbortSignal.timeout(rest) });
+      const j = await r.json(); if (!r.ok) { require("./_gem.js").classify(m, r.status, j); last = m + ": " + r.status + " " + String((j.error && j.error.message) || "").slice(0, 120); if (r.status === 429 || r.status === 404 || r.status >= 500) continue; return { ok: false, err: last }; }
       const t = (((j.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("") || "{}";
       const items = (JSON.parse(t.replace(/^```json|```$/g, "").trim()).items) || [], verdict = [], reason = [];
       items.forEach((it) => { const i = Number(it.i); if (i >= 0 && i < list.length) { verdict[i] = it.owner === true; reason[i] = it.owner === true ? "" : "AI: " + String(it.reason || "агенция").slice(0, 80); } });

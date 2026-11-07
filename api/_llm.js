@@ -6,9 +6,11 @@
 // Ключовете са само във Vercel. Списъкът с модели може да се настрои с *_MODELS (запетая: id|Име|описание).
 "use strict";
 const E = (k) => process.env[k] || "";
+const GEM = require("./_gem.js");
 /* Vercel AI Gateway (кредити във Vercel): OpenAI-съвместим адрес, модели "anthropic/…", "openai/…" */
 /* официалното име е AI_GATEWAY_API_KEY; AI_GATEWAY_KEY/AI_GATEWAY_URL може да са останали от старата Lovable връзка – ползват се последни и само към vercel.sh */
-const GW_KEY = () => E("AI_GATEWAY_API_KEY") || E("VERCEL_AI_GATEWAY_KEY") || E("AI_GATEWAY_KEY");
+/* във Vercel функциите ключ не е нужен: AI Gateway приема OIDC токена на проекта (x-vercel-oidc-token / VERCEL_OIDC_TOKEN) */
+const GW_KEY = () => E("AI_GATEWAY_API_KEY") || E("VERCEL_AI_GATEWAY_KEY") || E("AI_GATEWAY_KEY") || E("VERCEL_OIDC_TOKEN");
 const GW_URL = () => { const u = E("AI_GATEWAY_URL"); const b = /^https:\/\/[^/]*vercel\.sh/.test(u) ? u.replace(/\/+$/, "") : "https://ai-gateway.vercel.sh/v1"; return /\/v1$/.test(b) ? b : b + "/v1"; };
 function parseList(s, def) {
   const src = String(s || "").trim();
@@ -18,7 +20,8 @@ function parseList(s, def) {
 /* Каталог: само доставчиците, за които има ключ */
 function catalog() {
   const out = [];
-  if (E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY")) parseList(E("GEMINI_MODELS"), ["gemini-2.5-flash|Gemini 2.5 Flash|бърз, снимки и PDF", "gemini-flash-lite-latest|Gemini Flash Lite|най-бърз, най-голям безплатен лимит", "gemini-2.0-flash|Gemini 2.0 Flash|резервен, снимки и PDF"]).forEach((m) => out.push(Object.assign({ provider: "gemini", vision: true, pdf: true }, m)));
+  /* Gemini: псевдонимите „-latest“ сочат винаги най-новия модел; реалният модел се избира автоматично от _gem.js (ListModels) */
+  if (E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY")) parseList(E("GEMINI_MODELS"), ["gemini-flash-latest|Gemini Flash|най-новият Flash, снимки и PDF", "gemini-flash-lite-latest|Gemini Flash Lite|най-бърз, най-голям безплатен лимит"]).forEach((m) => out.push(Object.assign({ provider: "gemini", vision: true, pdf: true }, m)));
   if (E("OPENAI_API_KEY")) parseList(E("OPENAI_MODELS"), ["gpt-4.1-mini|ChatGPT 4.1 mini|бърз и евтин", "gpt-4.1|ChatGPT 4.1|по-силен"]).forEach((m) => out.push(Object.assign({ provider: "openai", vision: true, pdf: false }, m)));
   if (E("ANTHROPIC_API_KEY")) parseList(E("ANTHROPIC_MODELS"), ["claude-sonnet-4-5|Claude Sonnet 4.5|много добър за текст и документи", "claude-haiku-4-5|Claude Haiku 4.5|бърз"]).forEach((m) => out.push(Object.assign({ provider: "anthropic", vision: true, pdf: true }, m)));
   if (E("OPENROUTER_API_KEY")) parseList(E("OPENROUTER_MODELS"), ["meta-llama/llama-3.3-70b-instruct:free|Llama 3.3 70B (OpenRouter)|безплатен, без снимки"]).forEach((m) => out.push(Object.assign({ provider: "openrouter", vision: false, pdf: false }, m)));
@@ -46,27 +49,31 @@ async function chat(model, opts) {
   const stop = (step) => step === maxSteps - 1 || Date.now() - t0 > budgetMs;
   const STOP = "Спри с инструментите и дай окончателния отговор с това, което вече намери (с точки и източници).";
   if (model.provider === "gemini") {
-    const key = E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY");
+    /* избраният модел + всички живи Gemini модели (най-новите първо); при 404/лимит/претоварване стъпката минава на следващия, без да започва отначало */
+    const live = await GEM.models("chat");
+    const ids = [];
+    const want = /-latest$/.test(model.id) ? (/lite/.test(model.id) ? live.filter((i) => /lite/.test(i)).concat(live) : live) : [model.id].concat(live);
+    want.concat(GEM.FALLBACK.chat).forEach((i) => { if (!ids.includes(i)) ids.push(i); });
+    const deadline = t0 + budgetMs + 15000;
     const conv = msgs.map((m) => { const parts = [{ text: m.text || "(без текст)" }]; (m.files || []).forEach((f) => { if (/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.mime)) parts.push({ inline_data: { mime_type: f.mime, data: f.data } }); }); return { role: m.role === "assistant" ? "model" : "user", parts }; });
+    let idx = 0, usedModel = null;
     for (let step = 0; step < maxSteps; step++) {
       const last = stop(step) && step > 0; if (last) conv[conv.length - 1].parts.push({ text: STOP });
-      const body = JSON.stringify(Object.assign({ system_instruction: { parts: [{ text: system }] }, contents: conv, generationConfig: { temperature } }, last || !tools.length ? {} : { tools: [{ function_declarations: tools }] }));
-      let r, j;
-      /* безплатният лимит на Gemini е по няколко заявки в минута: при 429 изчакваме препоръчаното време (до 14 s) и опитваме пак, преди да сменим модела */
-      for (let attempt = 0; ; attempt++) {
-        r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model.id + ":generateContent?key=" + encodeURIComponent(key), { method: "POST", headers: { "Content-Type": "application/json" }, body });
-        j = await r.json().catch(() => ({}));
-        if (r.ok) break;
-        const msg = (j.error && j.error.message) || "HTTP " + r.status;
-        const wait = r.status === 429 ? Math.ceil(parseFloat((msg.match(/retry in ([\d.]+)\s*s/i) || [])[1] || "0")) || 8 : 0;
-        if (r.status === 429 && attempt < 2 && wait <= 14 && Date.now() - t0 + wait * 1000 < budgetMs) { await new Promise((ok) => setTimeout(ok, wait * 1000 + 300)); continue; }
-        const err = new Error(msg); err.status = r.status; err.quota = r.status === 429; throw err;
-      }
-      const parts = (((j.candidates || [])[0] || {}).content || {}).parts || [];
+      const body = Object.assign({ system_instruction: { parts: [{ text: system }] }, contents: conv, generationConfig: { temperature } }, last || !tools.length ? {} : { tools: [{ function_declarations: tools }] });
+      const res = await GEM.request(body, { models: ids, start: idx, deadline, thinking: "low", anyError: true, prev: usedModel });
+      if (usedModel && res.model !== usedModel) GEM.resign(conv);
+      idx = res.index; usedModel = res.model; opts.onModel && opts.onModel(res.model);
+      const cand = (res.json.candidates || [])[0] || {};
+      const parts = (cand.content || {}).parts || [];
       const calls = parts.filter((p) => p.functionCall).map((p) => p.functionCall);
-      if (!calls.length) return parts.map((p) => p.text || "").join("").trim();
+      if (!calls.length) {
+        const text = parts.filter((p) => !p.thought).map((p) => p.text || "").join("").trim();
+        /* празен/повреден отговор (MALFORMED_FUNCTION_CALL и др.) → още един опит със следващия модел */
+        if (!text && idx + 1 < ids.length && step < maxSteps - 1) { idx++; continue; }
+        return text;
+      }
       conv.push({ role: "model", parts });
-      const results = await Promise.all(calls.map(async (c) => ({ functionResponse: { name: c.name, response: { result: await run({ name: c.name, args: c.args || {} }) } } })));
+      const results = await Promise.all(calls.map(async (c) => ({ functionResponse: Object.assign(c.id ? { id: c.id } : {}, { name: c.name, response: { result: await run({ name: c.name, args: c.args || {} }) } }) })));
       conv.push({ role: "user", parts: results });
     }
     return null;
@@ -100,8 +107,11 @@ async function chat(model, opts) {
   const otools = tools.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: toSchema(t.parameters) || { type: "object", properties: {} } } }));
   for (let step = 0; step < maxSteps; step++) {
     const last = stop(step) && step > 0; if (last) conv.push({ role: "user", content: STOP });
-    const r = await fetch(base + "/chat/completions", { method: "POST", headers, body: JSON.stringify(Object.assign({ model: model.id, messages: conv, temperature }, last || !otools.length ? {} : { tools: otools, tool_choice: "auto" })) });
-    const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error((j.error && (j.error.message || j.error)) || "HTTP " + r.status);
+    const payload = JSON.stringify(Object.assign({ model: model.id, messages: conv, temperature }, last || !otools.length ? {} : { tools: otools, tool_choice: "auto" }));
+    let r = await fetch(base + "/chat/completions", { method: "POST", headers, body: payload });
+    /* AI Gateway: ако старият ключ е невалиден, опитваме с OIDC токена на проекта */
+    if (model.provider === "gateway" && (r.status === 401 || r.status === 403) && E("VERCEL_OIDC_TOKEN") && headers.Authorization !== "Bearer " + E("VERCEL_OIDC_TOKEN")) { headers.Authorization = "Bearer " + E("VERCEL_OIDC_TOKEN"); r = await fetch(base + "/chat/completions", { method: "POST", headers, body: payload }); }
+    const j = await r.json().catch(() => ({})); if (!r.ok) { const er = new Error(String((j.error && (j.error.message || j.error)) || "HTTP " + r.status)); er.quota = r.status === 429 || r.status === 402; throw er; }
     const msg = ((j.choices || [])[0] || {}).message || {}; const calls = msg.tool_calls || [];
     if (!calls.length) return String(msg.content || "").trim();
     conv.push({ role: "assistant", content: msg.content || null, tool_calls: calls });

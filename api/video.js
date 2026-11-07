@@ -15,8 +15,10 @@ const E = (k) => process.env[k] || "";
 const GKEY = () => E("GEMINI_API_KEY") || E("GOOGLE_GENERATIVE_AI_API_KEY");
 const SR = () => E("SUPABASE_SERVICE_ROLE_KEY") || E("SUPABASE_SECRET_KEY");
 const OMNI_MODELS = () => Array.from(new Set([E("ND_OMNI_MODEL"), "gemini-omni-1.2-flash", "gemini-omni-1.1-flash"].filter(Boolean)));
-const IMG_MODELS = ["gemini-2.5-flash-image", "gemini-2.5-flash-image-preview"];
-const TEXT_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+/* моделите се откриват автоматично (_gem.js): Google спира старите Gemini модели */
+const GEM = require("./_gem.js");
+let IMG_MODELS = GEM.FALLBACK.image.slice();
+let TEXT_MODELS = GEM.FALLBACK.chat.slice(0, 4);
 const GAPI = "https://generativelanguage.googleapis.com/v1beta";
 const GW = "https://ai-gateway.vercel.sh";
 const GW_VIDEO = {
@@ -300,6 +302,33 @@ async function diag(req, res, q) {
       const gw = await gwAuth(req, true), host = (() => { try { return new URL(E("AI_GATEWAY_URL")).host; } catch (e) { return E("AI_GATEWAY_URL") ? "(не е URL)" : ""; } })();
       return send(res, 200, { ok: true, keys: { GEMINI: !!GKEY(), AI_GATEWAY_API_KEY: !!E("AI_GATEWAY_API_KEY"), VERCEL_AI_GATEWAY_KEY: !!E("VERCEL_AI_GATEWAY_KEY"), AI_GATEWAY_KEY: !!E("AI_GATEWAY_KEY"), AI_GATEWAY_URL_host: host, OPENAI: !!E("OPENAI_API_KEY"), ANTHROPIC: !!E("ANTHROPIC_API_KEY"), OIDC_env: !!E("VERCEL_OIDC_TOKEN"), OIDC_header: !!req.headers["x-vercel-oidc-token"], SERVICE_ROLE: !!SR() }, gateway: gw.ok ? { ok: true, via: gw.name, balance: gw.balance, used: gw.used, tried: gw.tried } : { ok: false, tried: gw.tried } });
     }
+    /* проверка на Тед на живо: кои Gemini модели са живи, отговор, глас (TTS → обратно разпознаване) и връзка с ABV SMTP */
+    if (d === "gem") {
+      const out = { models: { chat: await GEM.models("chat"), fast: await GEM.models("fast"), tts: await GEM.models("tts"), image: await GEM.models("image") } };
+      try { const r = await GEM.generate({ parts: [{ text: "Отговори само с думата: ОК" }], budgetMs: 20000 }); out.chat = { ok: true, model: r.model, text: r.text.slice(0, 40) }; } catch (e) { out.chat = { ok: false, error: short(e.message || e), tried: e.tried }; }
+      if (q.get("tts") !== "0") {
+        try {
+          const ids = await GEM.models("tts"); let wavB = null, used = null, errs = [];
+          for (const m of ids.slice(0, 4)) {
+            const r = await fetch(GAPI + "/models/" + m + ":generateContent?key=" + encodeURIComponent(GKEY()), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: "Прочети на български: Здравейте, аз съм Тед, асистентът на Имоти Надежда." }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Charon" } } } } }), signal: AbortSignal.timeout(20000) });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) { const cl = GEM.classify(m, r.status, j); errs.push(m + ": " + cl.kind + " " + short(cl.msg).slice(0, 90)); continue; }
+            const part = ((((j.candidates || [])[0] || {}).content || {}).parts || []).find((x) => x.inlineData || x.inline_data); const dd = part && (part.inlineData || part.inline_data);
+            if (dd && dd.data) { const pcm = Buffer.from(dd.data, "base64"), h = Buffer.alloc(44); h.write("RIFF", 0); h.writeUInt32LE(36 + pcm.length, 4); h.write("WAVE", 8); h.write("fmt ", 12); h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22); h.writeUInt32LE(24000, 24); h.writeUInt32LE(48000, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write("data", 36); h.writeUInt32LE(pcm.length, 40); wavB = Buffer.concat([h, pcm]); used = m; break; }
+            errs.push(m + ": няма аудио");
+          }
+          out.tts = wavB ? { ok: true, model: used, bytes: wavB.length } : { ok: false, errors: errs };
+          if (wavB) { try { out.transcribe = { ok: true, text: await GEM.transcribe({ mime: "audio/wav", data: wavB.toString("base64") }, "Транскрибирай дословно. Върни само текста.", { budgetMs: 20000 }) }; } catch (e) { out.transcribe = { ok: false, error: short(e.message || e) }; } }
+        } catch (e) { out.tts = { ok: false, error: short(e.message || e) }; }
+      }
+      out.dead = [...GEM.DEAD.keys()]; out.busy = [...GEM.BUSY.keys()];
+      return send(res, 200, Object.assign({ ok: true }, out));
+    }
+    if (d === "smtp") {
+      const tls = require("tls"), host = /^[a-z0-9.\-]+$/i.test(q.get("host") || "") ? q.get("host") : "smtp.abv.bg";
+      const banner = await new Promise((ok) => { const t0 = Date.now(); const so = tls.connect({ host, port: 465, servername: host, timeout: 10000 }, () => {}); let buf = ""; so.on("data", (c) => { buf += c; if (/\r?\n/.test(buf)) { so.end(); ok({ ok: true, ms: Date.now() - t0, banner: buf.trim().slice(0, 120), tls: so.getProtocol && so.getProtocol() }); } }); so.on("timeout", () => { so.destroy(); ok({ ok: false, error: "timeout" }); }); so.on("error", (e) => ok({ ok: false, error: String(e.code || e.message) })); });
+      return send(res, 200, Object.assign({ host }, banner));
+    }
     if (d === "frame") { const f = await frame(st, { path: q.get("path") }, q.get("aspect") || "9:16"); return send(res, 200, { ok: true, path: f.path || null, cached: !!f.cached, bytes: Buffer.from(f.data, "base64").length, uncropped: !!f.uncropped }); }
     if (d === "start") {
       const b = { engine: q.get("engine") || "omni", prompt: q.get("prompt") || "Smoothly blend from the first image into the second image and keep the camera stable and make the transitions seamless. Then, follow the camera path through the property.", first: { path: q.get("first") }, last: q.get("last") ? { path: q.get("last") } : null, aspect: q.get("aspect") || "9:16", duration: +q.get("dur") || 5, resolution: q.get("res") || "720p", noCrop: q.get("crop") === "0", model: q.get("model") || "", rev: q.get("rev") || "" };
@@ -316,6 +345,7 @@ async function diag(req, res, q) {
 }
 
 module.exports = async (req, res) => {
+  try { const [tm, im] = await Promise.all([GEM.models("chat"), GEM.models("image")]); if (tm.length) TEXT_MODELS = tm.slice(0, 4); if (im.length) IMG_MODELS = im.slice(0, 3); } catch (e) {}
   if (req.method === "GET") { const q = new URL(req.url, "http://x").searchParams; if (q.get("diag")) return diag(req, res, q); return send(res, 405, { ok: false, error: "POST only" }); }
   if (req.method !== "POST") return send(res, 405, { ok: false, error: "POST only" });
   const tok = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "");

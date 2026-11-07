@@ -78,7 +78,15 @@
     ".nda-case-i.on{background:rgba(163,33,58,.12);box-shadow:inset 0 0 0 1px #e3b25e}" +
     ".nda-case-i.new{color:#a3213a}" +
     ".nda-case-err{padding:6px 10px;font:12px Arial;color:#c0392b}" +
-    ".nda-files span{font:12px 'Roboto Condensed',Arial,sans-serif;padding:3px 8px;border-radius:10px;border:1px solid #e3b25e;color:#6b0a1c;background:#fff}";
+    ".nda-files span{font:12px 'Roboto Condensed',Arial,sans-serif;padding:3px 8px;border-radius:10px;border:1px solid #e3b25e;color:#6b0a1c;background:#fff}" +
+    /* вградени умения в „Чат с Тед“: бутон „Умения“ до казуса, панели вътре в разговора, настройка на пощата */
+    ".nda-case{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.nda-case-btn b{font-weight:700}.nda-case-btn.role{max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+    ".nda-case-g{font:700 12px 'Roboto Condensed',Arial,sans-serif;color:#8a6a3a;padding:8px 8px 4px;text-transform:uppercase;letter-spacing:.04em}" +
+    ".nda-emb{align-self:stretch}.nda-emb .nda-f{border:1.5px solid rgba(227,178,94,.8);border-radius:18px;box-shadow:0 0 0 1px rgba(255,236,190,.55) inset,0 0 12px rgba(255,214,150,.5);background:linear-gradient(160deg,rgba(255,250,246,.97),rgba(251,236,224,.94))}" +
+    ".nda-pnl{align-self:stretch;display:grid;gap:8px;padding:12px;border-radius:18px;background:linear-gradient(160deg,rgba(255,250,246,.97),rgba(251,236,224,.94));border:1.5px solid rgba(227,178,94,.8);box-shadow:0 0 0 1px rgba(255,236,190,.55) inset,0 0 12px rgba(255,214,150,.5);font:14px/1.35 'Roboto Condensed',Arial,sans-serif;color:#3a0c12}" +
+    ".nda-pnl h5{margin:0;font:700 16px Georgia,serif;color:#7a0f22}.nda-pnl label{font:700 13px 'Roboto Condensed',Arial,sans-serif;color:#6b0a1c}.nda-pnl input,.nda-pnl select{width:100%;box-sizing:border-box;height:42px;border-radius:12px;border:1.5px solid #e3b25e;background:rgba(255,253,250,.95);padding:0 10px;font:16px 'Roboto Condensed',Arial,sans-serif;color:#3a0c12;outline:none}" +
+    ".nda-pnl .st{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.65);box-shadow:inset 0 0 0 1px rgba(227,178,94,.5)}.nda-pnl .hn{font-size:12.5px;color:#6b4a40}.nda-pnl .row{display:flex;gap:8px}.nda-pnl .row button{flex:1;height:42px;border-radius:14px;border:1.5px solid #e3b25e;background:linear-gradient(180deg,#fffcf9,#fbefe5);color:#6b0a1c;font:700 15px 'Roboto Condensed',Arial,sans-serif;cursor:pointer;box-shadow:0 0 10px rgba(255,214,150,.45)}" +
+    ".nda-pnl .row button.pri{background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);color:#fff3dc;border-color:#edc47a;box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 12px rgba(255,190,120,.6)}.nda-pnl .row button:disabled{opacity:.55}.nda-pnl .er{color:#c0392b;font-weight:700}";
 
   /* ---- token of the CRM session (same browser) ---- */
   function token() {
@@ -238,27 +246,46 @@
       btn.classList.remove("ld"); btn.classList.add("on"); speechSynthesis.speak(u);
     } catch (e) { stopAll(); }
   }
+  /* iPhone пуска звук само след докосване: „отключваме“ плейъра и гласа на телефона в самото докосване (микрофон / изпрати / ▶) */
+  var SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+  function unlockAudio() {
+    if (!player) player = new Audio();
+    try { if (!playingBtn) { player.src = SILENT; var pp = player.play(); if (pp && pp.catch) pp.catch(function () {}); } } catch (e) {}
+    try { if (window.speechSynthesis && !speechSynthesis.speaking) { var u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); } } catch (e) {}
+  }
+  /* дългите отговори се четат на части: първата е къса (бърз старт), следващата се подготвя, докато тече предишната */
+  function chunksOf(text) {
+    var ss = String(text).match(/[^.!?…;:\n]+[.!?…;:\n]*\s*/g) || [String(text)], out = [], cur = "", lim = 260;
+    ss.forEach(function (x) { if (cur && (cur + x).length > lim) { out.push(cur.trim()); cur = ""; lim = 900; } while (x.length > 1000) { out.push(x.slice(0, 1000)); x = x.slice(1000); } cur += x; });
+    if (cur.trim()) out.push(cur.trim());
+    return out.filter(Boolean);
+  }
+  function ttsUrl(text) {
+    return token().then(function (tk) { return fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ text: text, voice: voiceOf(prefs.voice).g, style: prefs.style }) }); })
+      .then(function (r) { if (!r.ok) throw new Error("tts " + r.status); return r.blob(); }).then(function (bl) { return URL.createObjectURL(bl); });
+  }
   function speaker(m) {
     if (m.querySelector(".nda-say")) return;
     var b = document.createElement("button"); b.type = "button"; b.className = "nda-say"; b.setAttribute("aria-label", "Чуй отговора"); b.title = "Чуй"; b.innerHTML = I.spk;
     b.onclick = function () {
       if (playingBtn === b) { stopAll(); return; }
-      stopAll(); playingBtn = b; b.classList.add("ld");
-      if (!player) player = new Audio();
-      /* unlock audio inside the tap (iPhone) */
-      try { player.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="; var pp = player.play(); if (pp && pp.catch) pp.catch(function () {}); } catch (e) {}
-      var text = plain(m);
-      var go = function (url) {
+      stopAll(); unlockAudio(); playingBtn = b; b.classList.add("ld");
+      var parts = b._parts || (b._parts = chunksOf(plain(m))), urls = b._urls || (b._urls = []), pend = {};
+      if (!parts.length) { stopAll(); return; }
+      function get(i) { if (i >= parts.length) return Promise.resolve(null); if (urls[i]) return Promise.resolve(urls[i]); if (!pend[i]) pend[i] = ttsUrl(parts[i]).then(function (u) { urls[i] = u; return u; }); return pend[i]; }
+      function play(i) {
         if (playingBtn !== b) return;
-        player.src = url; player.onended = function () { if (playingBtn === b) stopAll(); };
-        b.classList.remove("ld"); b.classList.add("on");
-        var p = player.play(); if (p && p.catch) p.catch(function () { speakLocal(text, b); });
-      };
-      if (b._url) return go(b._url);
-      token().then(function (tk) { return fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tk }, body: JSON.stringify({ text: text, voice: voiceOf(prefs.voice).g, style: prefs.style }) }); })
-        .then(function (r) { if (!r.ok) throw new Error("tts"); return r.blob(); })
-        .then(function (bl) { b._url = URL.createObjectURL(bl); go(b._url); })
-        .catch(function () { if (playingBtn === b) speakLocal(text, b); });
+        if (i >= parts.length) { stopAll(); return; }
+        get(i).then(function (url) {
+          if (playingBtn !== b) return;
+          player.onended = function () { play(i + 1); };
+          player.onerror = function () { if (playingBtn === b) speakLocal(parts.slice(i).join(" "), b); };
+          player.src = url; b.classList.remove("ld"); b.classList.add("on");
+          var p = player.play(); if (p && p.catch) p.catch(function () { if (playingBtn === b) speakLocal(parts.slice(i).join(" "), b); });
+          get(i + 1).catch(function () {});
+        }).catch(function () { if (playingBtn === b) speakLocal(parts.slice(i).join(" "), b); });
+      }
+      play(0);
     };
     m.appendChild(b);
   }
@@ -287,7 +314,8 @@
     if (s && s.intro0) { s.intro0(api); return; }
     if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
     else api.add("a", "Здравейте! Аз съм <b>Тед Асистент</b> на Имоти Надежда.\nПитайте ме за клиенти, имоти, огледи, сделки, ипотека или комисионна – работя с реалните данни в CRM." +
-      "\nНапример: „Намери тристайни в Шумен до 100 000 €“, „Добави клиент Мария, 0888…, търси двустаен под наем във Варна“, „Какво имам утре?“\nКажете „запомни …“ и ще го помня завинаги; от 📁 можете да отворите казус с безкрайна памет.");
+      "\nНапример: „Намери тристайни в Шумен до 100 000 €“, „Добави клиент Мария, 0888…, търси двустаен под наем във Варна“, „Какво имам утре?“\nКажете „запомни …“ и ще го помня завинаги; от 📁 можете да отворите казус с безкрайна памет." +
+      (staffCtx ? "\nВсичко е тук, в чата: <b>качване на имот</b> от папка (📎 или „качи имот“), <b>събиране на обяви</b> от собственици, <b>имейли</b> от вашата поща (ABV, Gmail…), и роли – юрист, секретар, старши брокер, анализатор, търговец. Избирам ролята сама или от „✨ Умения и роли“." : ""));
   }
   function renderCaseBar() {
     var b = foot && foot.querySelector(".nda-case-btn"); if (!b) return;
@@ -296,8 +324,8 @@
   }
   function openCases(api) {
     var pop = foot.querySelector(".nda-case-pop"); if (!pop) return;
-    if (!pop.hidden) { pop.hidden = true; return; }
-    pop.hidden = false; pop.innerHTML = '<div class="nda-case-h">Казуси – проекти с безкрайна памет</div><div class="nda-case-l">Зареждане…</div>';
+    if (!pop.hidden && pop._kind === "case") { pop.hidden = true; return; }
+    pop._kind = "case"; pop.hidden = false; pop.innerHTML = '<div class="nda-case-h">Казуси – проекти с безкрайна памет</div><div class="nda-case-l">Зареждане…</div>';
     tool("cases.list", { status: "open" }).then(function (j) {
       var cs = j.ok ? (j.result.cases || []) : [];
       pop.querySelector(".nda-case-l").innerHTML =
@@ -324,36 +352,39 @@
     id: "chat", name: "Чат с Тед Асистент", sub: "Клиенти, имоти, календар, сделки, изчисления",
     intro: function (api) { caseIntro(api, this); },
     footer: function () {
-      return '<div class="nda-case"><button type="button" class="nda-case-btn" aria-haspopup="listbox"></button><div class="nda-case-pop" hidden></div></div><div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="mic" aria-label="Гласово съобщение">' + I.mic + '</button><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
+      return '<div class="nda-case"><button type="button" class="nda-case-btn" aria-haspopup="listbox"></button><button type="button" class="nda-case-btn role" aria-haspopup="listbox" hidden></button><div class="nda-case-pop" hidden></div></div><div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="mic" aria-label="Гласово съобщение">' + I.mic + '</button><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
     },
     bind: function (api, el) {
       var ta = el.querySelector("textarea"), files = [], fl = el.querySelector(".nda-files"), busy = false, me = this;
       if (!staffCtx) el.querySelector(".nda-case").hidden = true;
       renderCaseBar(); el.querySelector(".nda-case-btn").onclick = function (e) { e.stopPropagation(); openCases(api); };
+      var rb = el.querySelector(".nda-case-btn.role"); rb.hidden = !staffCtx; renderRoleBtn(); rb.onclick = function (e) { e.stopPropagation(); openSkills(api); };
       if (me.placeholder) ta.placeholder = me.placeholder;
       function showFiles() { fl.innerHTML = files.map(function (f) { return "<span>" + esc(f.name) + "</span>"; }).join(""); }
       function go(voice) {
         var text = ta.value.trim(); if ((!text && !files.length && !voice) || busy) return;
-        busy = true; ta.value = ""; var fs = files; files = []; showFiles();
+        busy = true; ta.value = ""; ta.style.height = ""; var fs = files; files = []; showFiles();
         var ub = api.add("u", voice ? "🎤 Гласово съобщение (" + voice.dur + ")" : fmt(text || "Прикачени файлове") + (fs.length ? "\n📎 " + fs.map(function (f) { return esc(f.name); }).join(", ") : ""));
         var w = api.add("a", voice ? "Слушам" : "Мисля", "wait");
         Promise.all(fs.map(fileData)).then(function (fd) {
           var cur = { role: "user", text: voice ? "(гласово съобщение)" : (text || "Анализирай прикачените файлове."), files: fd.filter(Boolean).concat(voice ? [{ mime: voice.mime, data: voice.data }] : []) };
           /* в казус историята идва от паметта на сървъра – пращаме само текущото съобщение */
           var send = (curCase ? [] : hist.slice(-14).map(function (m) { return { role: m.role, text: m.text }; })).concat([cur]);
-          return ask(send, { mode: me.mode || "", case_id: curCase ? curCase.id : "" }).then(function (j) {
+          return ask(send, { mode: curMode || me.mode || "", case_id: curCase ? curCase.id : "" }).then(function (j) {
             w.classList.remove("wait"); busy = false;
             if (!j.ok) { w.innerHTML = esc(j.error || "Грешка"); return; }
-            w.innerHTML = fmt(j.text) + (prefs.showActions && j.actions && j.actions.length ? '<span class="acts">✔ ' + esc(j.actions.join(" · ")) + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w);
+            var rl = !curMode && j.mode && MODE_BY[j.mode] ? MODE_BY[j.mode][4] + " " + MODE_BY[j.mode][1].split(" – ")[0] : "";
+            w.innerHTML = fmt(j.text) + (prefs.showActions && ((j.actions && j.actions.length) || rl) ? '<span class="acts">' + (rl ? esc(rl) + (j.actions && j.actions.length ? " · " : "") : "") + (j.actions && j.actions.length ? "✔ " + esc(j.actions.join(" · ")) : "") + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w);
             if (voice && j.transcript) { ub.innerHTML = "🎤 „" + esc(j.transcript) + "“"; cur.text = j.transcript; }
             if ((!voice || j.transcript) && !curCase) { hist.push({ role: "user", text: cur.text }, { role: "assistant", text: j.text }); save(); }
             if ((voice && prefs.autoSpeak !== "never") || prefs.autoSpeak === "always") { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* гласов въпрос → гласов отговор (според настройката) */
             if (j.actions && j.actions.some(function (a) { return !/search|list|get|calc|rates|summary|match|✗/.test(a); })) try { window.dispatchEvent(new CustomEvent("nd-data-changed")); } catch (e) {}
             if (j.video && window.NDVideo) try { window.NDVideo.fromChat(j.video, fs); } catch (e) {} /* „направи видео на обява #…“ → умението „AI Видео на имот“ */
+            if (j.ui && j.ui.panel && !j.video) openUi(j.ui.panel); /* вградените умения се отварят тук, в чата */
           });
         });
       }
-      el.querySelector(".snd").onclick = function () { go(); };
+      el.querySelector(".snd").onclick = function () { if (prefs.autoSpeak === "always") unlockAudio(); go(); };
       /* ---- voice message: tap the microphone, speak, tap again to send ---- */
       var mic = el.querySelector(".mic"), rec = null, chunks = [], t0 = 0, tick = null, stream = null;
       function mm() { var c = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg;codecs=opus"]; for (var i = 0; i < c.length; i++) if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(c[i])) return c[i]; return ""; }
@@ -361,7 +392,7 @@
       function endRec() { clearInterval(tick); mic.classList.remove("rec"); mic.innerHTML = I.mic; ta.classList.remove("rec"); ta.readOnly = false; ta.value = ""; if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
       mic.onclick = function () {
         if (busy) return;
-        if (rec && rec.state === "recording") { rec.stop(); return; }
+        if (rec && rec.state === "recording") { if (prefs.autoSpeak !== "never") unlockAudio(); rec.stop(); return; }
         if (!navigator.mediaDevices || !window.MediaRecorder) { api.add("a", "Този браузър не поддържа запис на глас. Отворете сайта в Safari или Chrome."); return; }
         navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(function (st) {
           stream = st; chunks = []; var type = mm();
@@ -381,29 +412,113 @@
       };
       ta.onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey && prefs.enterSend) { e.preventDefault(); go(); } };
       ta.oninput = function () { ta.style.height = "auto"; ta.style.height = Math.min(120, ta.scrollHeight) + "px"; };
-      el.querySelector(".att").onclick = function () {
+      function pickChat() {
         var i = document.createElement("input"); i.type = "file"; i.multiple = true; i.accept = "image/*,application/pdf"; i.style.cssText = "position:fixed;left:-999px;opacity:0"; document.body.appendChild(i);
         i.onchange = function () { files = files.concat([].slice.call(i.files || [])).slice(0, 3); i.remove(); showFiles(); }; i.click();
+      }
+      el.querySelector(".att").onclick = function (e) {
+        var up = embedded.filter(function (x) { return x.id === "upload"; })[0];
+        if (!staffCtx || !up || !up.pick) return pickChat();
+        e.stopPropagation();
+        var pop = el.querySelector(".nda-case-pop"); if (!pop) return pickChat();
+        if (!pop.hidden && pop._kind === "att") { pop.hidden = true; return; }
+        pop._kind = "att"; pop.hidden = false;
+        pop.innerHTML = '<div class="nda-case-h">Прикачи</div>' +
+          '<button type="button" class="nda-case-i" data-at="chat">📎 Снимка или PDF към Тед<small>въпрос по документ, снимка, договор</small></button>' +
+          '<div class="nda-case-g">АИ Качване на имот → „Нов имот“</div>' +
+          '<button type="button" class="nda-case-i" data-at="folder">📁 Папка на имота<small>снимки, видеа и опис – цената от името на папката</small></button>' +
+          '<button type="button" class="nda-case-i" data-at="files">🖼️ Снимки и опис<small>или .zip на папката (iPhone)</small></button>' +
+          '<button type="button" class="nda-case-i" data-at="camera">📸 Снимай имота</button>';
+        pop.onclick = function (ev) { var t = ev.target.closest("[data-at]"); if (!t) return; pop.hidden = true; var k = t.getAttribute("data-at"); if (k === "chat") pickChat(); else up.pick(api, k); };
       };
     }
   };
   skills.push(chatSkill);
-  /* експертни режими: същият чат, същите инструменти, друга роля на сървъра (api/_ted-modes.js) */
+  /* експертните роли са вградени в „Чат с Тед“ (бутон „Роля“ до казуса); без избор Тед разпознава ролята от въпроса (api/_ted-modes.js) */
   var MODES = [
-    ["lawyer", "Юрист – правен помощник", "Казуси, договори, рискове, документи", "⚖️ <b>Юрист</b>. Опишете казуса (факти, хора, имот, документи, срокове) – ще дам правна квалификация, рисковете, вариантите и готови проекти на документи. Работя по българското право и помня казуса, ако го отворите от 📁."],
-    ["secretary", "Секретар – договори и кризи", "Документи, писма, графици, трудни ситуации", "🗂️ <b>Секретар</b>. Кажете какво трябва: договор, писмо, протокол, среща – или опишете лошата ситуация и ще дам какво да кажете сега, какво да не казвате и следващите 3 стъпки, с готов текст за изпращане."],
-    ["senior", "Старши брокер (25+ г.)", "Оценки, сделки, банки, нотариус, ДДС, данъци", "🏛️ <b>Старши брокер</b> с 25+ години практика. Питайте за оценка на имот, стратегия за продажба, сделката стъпка по стъпка, нотариус и такси, ипотека, фактури и ДДС, данъци – ще получите конкретни числа и „какво бих направил аз“."],
-    ["analyst", "Анализатор", "Пазар, доходност, отчети на агенцията", "📊 <b>Анализатор</b>. Пазарен анализ по квартал, сравнение на имоти, доходност и сценарии, отчети от CRM (фуния, конверсии, комисионни) – с таблици, извод най-отгоре и източници. Мога да ги направя и в PDF."],
-    ["sales", "Търговец – умни предложения", "Подбор, аргументи, възражения, следваща стъпка", "🤝 <b>Търговец</b>. Кажете за кого става дума (клиент от CRM) и какво търси – ще подбера имотите, ще обясня защо пасват на него, ще подготвя съобщение и ще предложа оглед с дата и час."],
-    ["opener", "Започни разговор", "Първи контакт и поддържане на връзка", "👋 <b>Започни разговор</b>. Кажете с кого и защо (име от CRM, собственик, стар клиент) – ще подготвя 3 варианта за първо съобщение, сценарий за обаждане и какво да кажете при „не сега“."],
-    ["inquiry", "Отговори на запитване", "Готов отговор на клиентско запитване", "📨 <b>Отговор на запитване</b>. Поставете текста на запитването (или кажете за кой клиент/имот е) – ще проверя данните в CRM и ще дам готов отговор с факти, 1–2 подходящи предложения и покана за оглед."]
+    ["lawyer", "Юрист – правен помощник", "Казуси, договори, рискове, документи", "⚖️ <b>Юрист</b>. Опишете казуса (факти, хора, имот, документи, срокове) – ще дам правна квалификация, рисковете, вариантите и готови проекти на документи. Работя по българското право и помня казуса, ако го отворите от 📁.", "⚖️"],
+    ["secretary", "Секретар – договори и кризи", "Документи, писма, графици, трудни ситуации", "🗂️ <b>Секретар</b>. Кажете какво трябва: договор, писмо, протокол, среща – или опишете лошата ситуация и ще дам какво да кажете сега, какво да не казвате и следващите 3 стъпки, с готов текст за изпращане.", "🗂️"],
+    ["senior", "Старши брокер (25+ г.)", "Оценки, сделки, банки, нотариус, ДДС, данъци", "🏛️ <b>Старши брокер</b> с 25+ години практика. Питайте за оценка на имот, стратегия за продажба, сделката стъпка по стъпка, нотариус и такси, ипотека, фактури и ДДС, данъци – ще получите конкретни числа и „какво бих направил аз“.", "🏛️"],
+    ["analyst", "Анализатор", "Пазар, доходност, отчети на агенцията", "📊 <b>Анализатор</b>. Пазарен анализ по квартал, сравнение на имоти, доходност и сценарии, отчети от CRM (фуния, конверсии, комисионни) – с таблици, извод най-отгоре и източници. Мога да ги направя и в PDF.", "📊"],
+    ["sales", "Търговец – умни предложения", "Подбор, аргументи, възражения, следваща стъпка", "🤝 <b>Търговец</b>. Кажете за кого става дума (клиент от CRM) и какво търси – ще подбера имотите, ще обясня защо пасват на него, ще подготвя съобщение и ще предложа оглед с дата и час.", "🤝"],
+    ["opener", "Започни разговор", "Първи контакт и поддържане на връзка", "👋 <b>Започни разговор</b>. Кажете с кого и защо (име от CRM, собственик, стар клиент) – ще подготвя 3 варианта за първо съобщение, сценарий за обаждане и какво да кажете при „не сега“.", "👋"],
+    ["inquiry", "Отговори на запитване", "Готов отговор на клиентско запитване", "📨 <b>Отговор на запитване</b>. Поставете текста на запитването (или кажете за кой клиент/имот е) – ще проверя данните в CRM и ще дам готов отговор с факти, 1–2 подходящи предложения и покана за оглед.", "📨"]
   ];
+  var MODE_BY = {}; MODES.forEach(function (m) { MODE_BY[m[0]] = m; });
   staffCtx = /\/mobile\/crm\//.test(location.pathname) || (function () { try { return !!localStorage.getItem(SB_KEY_STORE); } catch (e) { return false; } })();
-  if (staffCtx) MODES.forEach(function (m) {
-    var sk = Object.assign({}, chatSkill, { id: "mode-" + m[0], mode: m[0], name: m[1], sub: m[2], intro0: function (api) { api.add("a", m[3]); } });
-    skills.push(sk);
-  });
-
+  var MODE_KEY = "nd-ted-mode", curMode = ""; try { curMode = sessionStorage.getItem(MODE_KEY) || ""; if (!MODE_BY[curMode]) curMode = ""; } catch (e) {}
+  function setMode(id) { curMode = MODE_BY[id] ? id : ""; try { if (curMode) sessionStorage.setItem(MODE_KEY, curMode); else sessionStorage.removeItem(MODE_KEY); } catch (e) {} renderRoleBtn(); }
+  function renderRoleBtn() { var b = foot && foot.querySelector(".nda-case-btn.role"); if (!b) return; var m = MODE_BY[curMode]; b.innerHTML = (m ? m[4] + " <b>" + esc(m[1].split(" – ")[0]) + "</b>" : "✨ Умения и роли") + " ▾"; b.classList.toggle("on", !!m); }
+  /* вградени умения (АИ Качване на имот, Събиране на имоти и клиенти): регистрират се с addSkill({embed:true}) и се отварят вътре в чата */
+  var embedded = [];
+  function openPanel(s) {
+    if (!s) return;
+    if (skill !== chatSkill) setSkill(chatSkill);
+    if (s.open) try { s.open(api); } catch (e) {}
+    s.intro(api);
+    if (s.footer) { var f = document.createElement("div"); f.className = "nda-emb"; f.innerHTML = s.footer(); list.appendChild(f); if (s.bind) s.bind(api, f); }
+    list.scrollTop = list.scrollHeight;
+  }
+  function openUi(name) {
+    if (name === "mail") return mailPanel();
+    if (name === "video") { if (window.NDAsh && NDAsh.use) NDAsh.use("video"); return; }
+    openPanel(embedded.filter(function (x) { return x.id === name; })[0]);
+  }
+  function openSkills(api) {
+    var pop = foot.querySelector(".nda-case-pop"); if (!pop) return;
+    if (!pop.hidden && pop._kind === "skills") { pop.hidden = true; return; }
+    pop._kind = "skills"; pop.hidden = false;
+    pop.innerHTML = (embedded.length ? '<div class="nda-case-h">Вградени умения</div>' + embedded.map(function (x) { return '<button type="button" class="nda-case-i" data-emb="' + esc(x.id) + '">' + (x.icon || "✨") + " " + esc(x.name) + "<small>" + esc(x.sub || "") + "</small></button>"; }).join("") : "") +
+      '<button type="button" class="nda-case-i" data-emb="mail">✉️ Моята поща за изпращане<small>ABV, Gmail, Mail.bg… – Тед праща имейлите от вашата поща</small></button>' +
+      '<div class="nda-case-g">Роля на Тед</div>' +
+      '<button type="button" class="nda-case-i' + (!curMode ? " on" : "") + '" data-role="">✨ Автоматично<small>Тед избира сам: юрист, секретар, брокер, анализатор…</small></button>' +
+      MODES.map(function (m) { return '<button type="button" class="nda-case-i' + (curMode === m[0] ? " on" : "") + '" data-role="' + m[0] + '">' + m[4] + " " + esc(m[1]) + "<small>" + esc(m[2]) + "</small></button>"; }).join("");
+    pop.onclick = function (e) {
+      var em = e.target.closest("[data-emb]"), ro = e.target.closest("[data-role]"); if (!em && !ro) return;
+      pop.hidden = true;
+      if (em) { openUi(em.getAttribute("data-emb")); return; }
+      var id = ro.getAttribute("data-role"); setMode(id);
+      if (id && MODE_BY[id]) api.add("a", MODE_BY[id][3] + "\n<small>Ролята остава, докато не изберете „Автоматично“.</small>"); else api.add("a", "✨ Автоматично – избирам ролята според въпроса.");
+    };
+  }
+  /* „Моята поща за изпращане“ направо в чата: паролата отива само към /api/email (сървър → nd_secrets), никога не се връща в браузъра */
+  var MAILP = [["abv", "ABV.bg"], ["gmail", "Gmail"], ["mailbg", "Mail.bg"], ["outlook", "Outlook / Hotmail"], ["yahoo", "Yahoo"], ["icloud", "iCloud"], ["custom", "Друг (ръчно)"]];
+  var MAILHINT = { abv: "ABV: паролата на пощата (ако имате двустепенна защита – парола за приложения от настройките на ABV). Сървър smtp.abv.bg, порт 465 (SSL).", gmail: "Нужна е „Парола за приложение“: Google акаунт → Сигурност → Потвърждаване в 2 стъпки → Пароли за приложения.", mailbg: "Паролата на пощата в Mail.bg.", outlook: "Парола за приложение от Microsoft акаунта.", yahoo: "Парола за приложение (Account Security → App passwords).", icloud: "App-specific password от appleid.apple.com.", custom: "SMTP сървър, порт и парола от вашия доставчик." };
+  function guessProv(e) { var d = String(e || "").split("@")[1] || ""; return /abv\.bg$/i.test(d) ? "abv" : /gmail|googlemail/i.test(d) ? "gmail" : /(^|\.)mail\.bg$/i.test(d) ? "mailbg" : /outlook|hotmail|live\.|msn\./i.test(d) ? "outlook" : /yahoo/i.test(d) ? "yahoo" : /icloud|me\.com|mac\.com/i.test(d) ? "icloud" : ""; }
+  function mailApi(body) { return token().then(function (t) { return fetch("/api/email", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + t }, body: JSON.stringify(body) }); }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); }).catch(function (e) { return { ok: false, error: "Няма връзка" }; }); }
+  function mailPanel() {
+    if (skill !== chatSkill) setSkill(chatSkill);
+    var d = document.createElement("div"); d.className = "nda-pnl";
+    d.innerHTML = '<h5>✉️ Моята поща за изпращане</h5><div class="st">Проверка…</div>' +
+      '<label>Имейл адрес</label><input type="email" data-k="email" placeholder="ime@abv.bg" autocomplete="email">' +
+      '<label>Доставчик</label><select data-k="prov">' + MAILP.map(function (p) { return '<option value="' + p[0] + '">' + p[1] + "</option>"; }).join("") + "</select>" +
+      '<label>Име на подателя</label><input type="text" data-k="name" placeholder="Име Фамилия">' +
+      '<label>Парола (за приложения)</label><input type="password" data-k="pass" placeholder="••••••••" autocomplete="new-password">' +
+      '<div data-k="custom" hidden><label>SMTP сървър</label><input type="text" data-k="host" placeholder="smtp.example.com"><label>Порт</label><input type="number" data-k="port" value="465"></div>' +
+      '<div class="hn" data-k="hint"></div><div class="row"><button type="button" data-m="test">Тест</button><button type="button" class="pri" data-m="save">Запази</button></div>';
+    list.appendChild(d); list.scrollTop = list.scrollHeight;
+    var q = function (k) { return d.querySelector('[data-k="' + k + '"]'); }, st = d.querySelector(".st");
+    function refresh() { q("custom").hidden = q("prov").value !== "custom"; q("hint").textContent = MAILHINT[q("prov").value] || ""; }
+    q("prov").onchange = refresh; q("email").oninput = function () { var g = guessProv(q("email").value); if (g) { q("prov").value = g; refresh(); } };
+    q("prov").value = "abv"; refresh();
+    try { if (window.ND && ND.broker && ND.broker.name) q("name").value = ND.broker.name; } catch (e) {}
+    mailApi({ action: "get" }).then(function (r) {
+      if (!r.ok) { st.innerHTML = '<span class="er">' + esc(r.error || "Грешка") + "</span>"; return; }
+      if (r.settings) { st.innerHTML = "✅ Изпращате от <b>" + esc(r.settings.email) + "</b> (" + esc(r.settings.host || "") + "). Може да смените данните тук."; q("email").value = r.settings.email; q("prov").value = r.settings.provider || "custom"; if (r.settings.name) q("name").value = r.settings.name; if (r.settings.provider === "custom") { q("host").value = r.settings.host || ""; q("port").value = r.settings.port || 465; } refresh(); }
+      else { st.innerHTML = "Няма настроена поща. Въведете адреса и паролата – имейлите ще тръгват <b>от вашата поща</b>."; if (r.account_email && !q("email").value) { q("email").value = r.account_email; var g = guessProv(r.account_email); if (g) { q("prov").value = g; refresh(); } } }
+    });
+    d.querySelector(".row").onclick = function (e) {
+      var b = e.target.closest("[data-m]"); if (!b) return; var a = b.getAttribute("data-m");
+      var body = { action: a === "save" ? "set" : "test", provider: q("prov").value, email: q("email").value.trim(), password: q("pass").value, name: q("name").value.trim(), host: q("host").value.trim(), port: Number(q("port").value) || 465 };
+      [].forEach.call(d.querySelectorAll(".row button"), function (x) { x.disabled = true; }); st.textContent = "Свързване с пощата…";
+      mailApi(body).then(function (r) {
+        [].forEach.call(d.querySelectorAll(".row button"), function (x) { x.disabled = false; });
+        if (!r.ok) { st.innerHTML = '<span class="er">' + esc(r.error || "Неуспешно") + "</span>"; return; }
+        q("pass").value = "";
+        st.innerHTML = a === "save" ? "✅ Запазено. Тед изпраща от <b>" + esc(r.settings.email) + "</b>. Напишете „изпрати“, за да тръгне имейлът." : "✅ Връзката с <b>" + esc(r.settings.email) + "</b> работи. Натиснете „Запази“.";
+      });
+    };
+  }
   var api = { add: function (r, h, c) { return add(r, h, c); }, esc: esc, list: function () { return list; } };
   function setSkill(s) {
     skill = s; win.querySelector(".nda-skill span").textContent = s.name; list.innerHTML = "";
@@ -424,7 +539,10 @@
     var sk = win.querySelector(".nda-skill"), gear = win.querySelector(".nda-gear"), setBox = win.querySelector(".nda-set");
     sk.onclick = function (e) { e.stopPropagation(); renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
     menu.onclick = function (e) { var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
-    win.addEventListener("click", function (e) { if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target)) menu.hidden = true; });
+    win.addEventListener("click", function (e) {
+      if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target)) menu.hidden = true;
+      var pop = foot.querySelector(".nda-case-pop"); if (pop && !pop.hidden && !pop.contains(e.target) && !e.target.closest(".nda-case-btn,.att")) pop.hidden = true;
+    });
     gear.onclick = function (e) { e.stopPropagation(); if (!setBox.hidden) { setBox.hidden = true; gear.classList.remove("on"); return; } loadModels().then(function () { renderSettings(); setBox.hidden = false; gear.classList.add("on"); }); };
     applyPrefs();
     fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(skills[0]); if (skill.open) skill.open(api); };
@@ -440,9 +558,10 @@
 
   window.NDAsh = {
     ask: ask, token: token, esc: esc, fmt: fmt,
-    addSkill: function (s, first) { if (typeof first === "number") skills.splice(Math.min(first, skills.length), 0, s); else if (first) skills.unshift(s); else skills.push(s); if (booted && !skill) setSkill(skills[0]); },
+    addSkill: function (s, first) { if (s && s.embed) { embedded.push(s); embedded.sort(function (a, b) { return (a.order || 9) - (b.order || 9); }); return; } if (typeof first === "number") skills.splice(Math.min(first, skills.length), 0, s); else if (first) skills.unshift(s); else skills.push(s); if (booted && !skill) setSkill(skills[0]); },
     open: function () { boot(); fab.click(); },
-    use: function (id) { boot(); var s = skills.filter(function (x) { return x.id === id; })[0]; if (!s) return false; win.hidden = false; fab.hidden = true; setSkill(s); return true; },
+    use: function (id) { boot(); var s = skills.filter(function (x) { return x.id === id; })[0]; var em = !s && (embedded.filter(function (x) { return x.id === id; })[0] || id === "mail"); if (!s && !em) return false; win.hidden = false; fab.hidden = true; if (s) setSkill(s); else { if (!skill) setSkill(chatSkill); openUi(id); } return true; },
+    panel: function (id) { return this.use(id); },
     hide: function () { if (win && !win.hidden) { win.hidden = true; fab.hidden = false; } },
     show: function () { if (win) { win.hidden = false; fab.hidden = true; list.scrollTop = list.scrollHeight; } },
     boot: boot

@@ -1,4 +1,4 @@
-/* CRM skill for Тед Асистент (mobile/ash.js): "АИ Качване на имот" – first in the skill list.
+/* CRM skill for Тед Асистент (mobile/ash.js): "АИ Качване на имот" – вградено в „Чат с Тед“ (бутон „Умения“, 📎 → „Папка на имота“ или по команда „качи имот“).
    Attach a property folder / photos + опис / a photo -> real AI analysis (/api/scan) -> the "Нов имот" card opens
    with the fields filled in -> on "Запази" the property is stored as a draft. Same code as "Нов имот → Сканиране → Прикачи папка". */
 (function () {
@@ -80,7 +80,8 @@
   }
 
   A.addSkill({
-    id: "upload", name: "АИ Качване на имот", sub: "Папка, снимки и опис → попълнена карта на имот",
+    id: "upload", name: "АИ Качване на имот", sub: "Папка, снимки и опис → попълнена карта на имот", embed: true, icon: "🏠", order: 1,
+    pick: function (api, mode) { deps().catch(function () {}); pick(api, mode); },
     open: function () { deps().catch(function () {}); },
     intro: function (api) {
       deps().catch(function () {});
@@ -91,5 +92,5 @@
       return '<div class="nda-f"><button type="button" data-a="folder"><span class="ib">' + I.folder + '</span>Прикачи папка</button><button type="button" data-a="files"><span class="ib">' + I.files + '</span>Снимки и опис</button><button type="button" data-a="camera"><span class="ib">' + I.cam + "</span>Снимай</button></div>";
     },
     bind: function (api, el) { foot = el; el.querySelector(".nda-f").onclick = function (e) { var b = e.target.closest("[data-a]"); if (b && !b.disabled) pick(api, b.getAttribute("data-a")); }; }
-  }, true);
+  });
 })();

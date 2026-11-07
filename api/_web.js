@@ -1,21 +1,15 @@
 // Shared internet helpers for Тед Асистент and the collector (not an endpoint: files starting with "_" are not served).
 const UA = "Mozilla/5.0 (compatible; ImotiNadezhdaBot/1.0; +https://imotinadezhda.bg)";
 
+const GEM = require("./_gem.js");
 function key() { return process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY; }
 
 /* Google Search through Gemini grounding: answer + sources */
 async function webSearch(query) {
-  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(key()), {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: "Потърси в интернет и отговори кратко и точно на български, с конкретни данни (цени, дати, имена, телефони, адреси, линкове), ако ги има: " + String(query).slice(0, 500) }] }],
-      tools: [{ google_search: {} }], generationConfig: { temperature: 0.2 } })
-  });
-  const j = await r.json();
-  if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
-  const c = (j.candidates || [])[0] || {};
-  const text = ((c.content || {}).parts || []).map((p) => p.text || "").join("").trim();
+  const r = await GEM.generate({ parts: [{ text: "Потърси в интернет и отговори кратко и точно на български, с конкретни данни (цени, дати, имена, телефони, адреси, линкове), ако ги има: " + String(query).slice(0, 500) }], tools: [{ google_search: {} }], temperature: 0.2, budgetMs: 30000 });
+  const c = (r.raw.candidates || [])[0] || {};
   const chunks = ((c.groundingMetadata || {}).groundingChunks || []).map((g) => g.web).filter(Boolean).slice(0, 8).map((w) => ({ title: w.title, url: w.uri }));
-  return { answer: text, sources: chunks };
+  return { answer: r.text, sources: chunks };
 }
 
 async function robotsAllows(u) {

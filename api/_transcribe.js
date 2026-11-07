@@ -1,4 +1,5 @@
 // /api/transcribe — turns a short voice recording into Bulgarian text (Gemini). CRM staff only.
+const GEM = require("./_gem.js");
 const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
 async function readBody(req) {
@@ -22,13 +23,7 @@ module.exports = async (req, res) => {
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!key) return send(res, 500, { ok: false, error: "Няма ключ" });
   try {
-    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(key), {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: "Транскрибирай дословно диктуваната бележка на брокер на недвижими имоти (на български). Сложи правилна пунктуация, числата и цените пиши с цифри, имената на квартали и хора – правилно. Върни САМО текста." }, { inline_data: { mime_type: mime, data: b.data } }] }], generationConfig: { temperature: 0 } })
-    });
-    const j = await r.json();
-    if (!r.ok) return send(res, 502, { ok: false, error: (j.error && j.error.message) || "HTTP " + r.status });
-    const text = (((j.candidates || [])[0] || {}).content || {}).parts?.map((p) => p.text || "").join("").trim() || "";
+    const text = await GEM.transcribe({ mime, data: b.data }, "Транскрибирай дословно диктуваната бележка на брокер на недвижими имоти (на български). Сложи правилна пунктуация, числата и цените пиши с цифри, имената на квартали и хора – правилно. Върни САМО текста.", { budgetMs: 24000 });
     return send(res, 200, { ok: true, text });
-  } catch (e) { return send(res, 502, { ok: false, error: String(e.message || e) }); }
+  } catch (e) { return send(res, e.quota ? 429 : 502, { ok: false, error: e.quota ? "Лимитът на Gemini за разпознаване е изчерпан – опитайте след минута." : String(e.message || e) }); }
 };

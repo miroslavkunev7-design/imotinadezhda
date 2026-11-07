@@ -1,5 +1,6 @@
 // /api/tts — reads a text of Тед Асистент aloud (Google Gemini TTS, Bulgarian) and returns audio/wav.
-const MODELS = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"];
+const GEM = require("./_gem.js");
+const MODELS = GEM.FALLBACK.tts.slice();
 async function readBody(req) {
   if (req.body !== undefined) return typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   const chunks = []; for await (const c of req) chunks.push(c); return JSON.parse(Buffer.concat(chunks).toString("utf8"));
@@ -18,7 +19,8 @@ module.exports = async (req, res) => {
   const okStaff = token && await fetch(SB + "/rest/v1/rpc/nd_is_staff", { method: "POST", headers: { apikey: K, Authorization: "Bearer " + token, "Content-Type": "application/json" }, body: "{}" }).then((r) => r.ok ? r.json() : false).catch(() => false);
   if (okStaff !== true) return fail(401, "Само за CRM");
   let b; try { b = await readBody(req); } catch (e) { return fail(400, "Невалидни данни"); }
-  const text = String(b.text || "").replace(/\s+/g, " ").trim().slice(0, 2500);
+  /* една заявка ≈ до 1200 знака (≈ 80 s звук, под лимита от 4.5 MB на отговор); по-дългите отговори браузърът ги праща на части */
+  const text = String(b.text || "").replace(/\s+/g, " ").trim().slice(0, 1200);
   if (!text) return fail(400, "Няма текст");
   /* глас и стил от настройките на чата (Gemini TTS гласове) */
   const VOICES = ["Charon", "Achernar", "Despina", "Puck", "Kore", "Aoede", "Leda", "Zephyr", "Enceladus", "Callirrhoe"];
@@ -27,39 +29,35 @@ module.exports = async (req, res) => {
   const style = STYLE[String(b.style || "")] || STYLE.calm;
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!key) return fail(500, "Няма ключ");
-  /* наличните гласови модели се откриват от Google (имената на preview моделите се сменят); Flash преди Pro */
+  /* гласовите модели се откриват автоматично от Google (_gem.js): най-новият Flash TTS първо; при лимит/404 – следващият */
   let models = MODELS.slice();
-  try {
-    const lr = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=" + encodeURIComponent(key));
-    const lj = await lr.json();
-    const found = (lj.models || []).map((m) => String(m.name || "").replace(/^models\//, "")).filter((n) => /tts/i.test(n));
-    if (found.length) models = found.sort((a, b) => (/flash/.test(b) - /flash/.test(a)) || (/preview/.test(a) - /preview/.test(b)) || b.localeCompare(a)).concat(MODELS.filter((m) => !found.includes(m)));
-  } catch (e) {}
+  try { const found = await GEM.models("tts"); if (found.length) models = found.concat(MODELS.filter((m) => !found.includes(m))); } catch (e) {}
+  const T0 = Date.now(), END = T0 + 52000;
   let last = "";
   const errs = [];
   for (const model of models.slice(0, 5)) {
     for (let attempt = 0; attempt < 2; attempt++) {
+    if (END - Date.now() < 4000) break;
     try {
       const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(Math.max(3000, END - Date.now())),
         body: JSON.stringify({
-          contents: [{ parts: [{ text: style + "\n" + text }] }],
+          contents: [{ role: "user", parts: [{ text: style + "\n" + text }] }],
           generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } }
         })
       });
-      const j = await r.json();
+      const j = await r.json().catch(() => ({}));
       if (!r.ok) {
-        last = (j.error && j.error.message) || "HTTP " + r.status;
-        const wait = r.status === 429 ? Math.ceil(parseFloat((last.match(/retry in ([\d.]+)\s*s/i) || [])[1] || "0")) : 0;
-        if (r.status === 429 && attempt === 0 && wait > 0 && wait <= 12) { await new Promise((ok) => setTimeout(ok, wait * 1000 + 300)); continue; }
-        errs.push(model + ": " + last.split("\n")[0].slice(0, 160)); break;
+        const cl = GEM.classify(model, r.status, j); last = cl.msg;
+        if (cl.kind === "quota" && !cl.daily && attempt === 0 && cl.wait > 0 && cl.wait <= 6 && END - Date.now() > cl.wait * 1000 + 5000) { await new Promise((ok) => setTimeout(ok, cl.wait * 1000 + 250)); continue; }
+        errs.push(model + ": " + (cl.kind === "quota" ? "лимитът е изчерпан" + (cl.daily ? " за днес" : "") : last.split("\n")[0].slice(0, 160))); break;
       }
       const part = (((j.candidates || [])[0] || {}).content || {}).parts?.find((p) => p.inlineData || p.inline_data);
       const d = part && (part.inlineData || part.inline_data);
       if (!d || !d.data) { errs.push(model + ": няма аудио"); break; }
       const rate = Number((/rate=(\d+)/.exec(d.mimeType || d.mime_type || "") || [])[1]) || 24000;
       const out = wav(Buffer.from(d.data, "base64"), rate);
-      res.statusCode = 200; res.setHeader("Content-Type", "audio/wav"); res.setHeader("Cache-Control", "no-store"); res.setHeader("Content-Length", out.length);
+      res.statusCode = 200; res.setHeader("Content-Type", "audio/wav"); res.setHeader("Cache-Control", "no-store"); res.setHeader("Content-Length", out.length); res.setHeader("X-TTS-Model", model);
       return res.end(out);
     } catch (e) { errs.push(model + ": " + String(e.message || e).slice(0, 160)); break; }
     }
