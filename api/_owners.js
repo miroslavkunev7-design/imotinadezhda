@@ -62,16 +62,17 @@ function parseAd(url, html) {
   /* описание на обявата („Описание на имота:“) и сигнали за агенция: лого, „Агенция:“, подсайт *.imot.bg, думи в текста */
   const mi = html.indexOf('class="moreInfo'), descr = mi >= 0 ? text(html.slice(mi, mi + 6000)).replace(/^[\s\S]*?Описание на имота:\s*/i, "").replace(/\s+/g, " ").trim().slice(0, 1500) : "";
   const logo = /\/images\/logos\//i.test(html) || /<img[^>]+alt="[^"]*\blogo"/i.test(html.slice(html.search(/За контакт/i) > 0 ? html.search(/За контакт/i) : 0));
-  const sub = /href=["']?(?:https?:)?\/\/(?!www\.)[a-z0-9-]+\.imot\.bg/i.test(html);
+  const ch = html.search(/За контакт/i), chtml = ch >= 0 ? html.slice(ch, ch + 1500) : "";
+  const sub = /apages\.cgi\?broker=|Агенция:|Брокер:|Инвеститор:|Строител:/i.test(chtml);
   const strong = AG_STRONG.test(descr + " " + who), weak = AG_WEAK.test(descr);
   const photo = ((html.match(/(?:https?:)?\/\/[^"' )]+\/photosimotbg\/[^"' )]+\/big1?\/[^"' )]+\.jpe?g/i) || [])[0] || "").replace(/^\/\//, "https://");
-  const agency = /Агенция/i.test(desc) || /Агенция:|Брокер:/i.test(contact) || /ЕООД|ООД|ЕАД|АД\b|ЕТ\b|естейт|estate|имоти\s/i.test(who) || logo || sub || strong;
-  const privateSeller = !agency && (/частно лице/i.test(desc + " " + who + " " + contact.replace(/предлага само на частни лица/gi, "")) || !!who);
+  const agency = /Агенция/i.test(desc) || /Агенция:|Брокер:|Инвеститор:|Строител:/i.test(contact) || /ЕООД|ООД|ЕАД|АД\b|ЕТ\b|естейт|estate|имоти\s/i.test(who) || logo || sub || strong;
+  const privateSeller = !agency && /частно лице/i.test(desc + " " + who + " " + contact.replace(/предлага само на частни лица/gi, ""));
   let price = Number(String(m[4] || "").replace(/[\s,]/g, "").replace(/\.00$/, "")) || null;
   if (price && /лв/i.test(m[5] || "")) price = Math.round(price / 1.95583);
   const loc = (m[2] || "").split(",").map((x) => x.trim());
   const name = ((/(?:Собственик|Частно лице|Лице за контакт)[:\s]*([А-Я][а-я]+(?:\s[А-Я][а-я]+)?)/.exec(contact) || [])[1]) || "";
-  return { title: (m[1] || title).trim(), type: (m[1] || "").replace(/^(Продава|Дава под наем)\s+/i, ""), region: loc[0] || "", city: loc[1] || loc[0] || "", area: Number(String(m[3] || "").replace(/\s/g, "")) || null, price, phone: phones.join(", "), seller: privateSeller && !agency ? "private" : "agency", seller_name: who, descr, photo, weak, why: logo ? "лого на агенция" : sub ? "сайт на агенция" : /Агенция:|Брокер:/i.test(contact) ? "посочена агенция" : strong ? "текст на агенция" : "", name, link: url, source: "imot.bg" };
+  return { title: (m[1] || title).trim(), type: (m[1] || "").replace(/^(Продава|Дава под наем)\s+/i, ""), region: loc[0] || "", city: loc[1] || loc[0] || "", area: Number(String(m[3] || "").replace(/\s/g, "")) || null, price, phone: phones.join(", "), seller: privateSeller && !agency ? "private" : "agency", seller_name: who, descr, photo, weak, why: logo ? "лого на агенция" : sub ? "посочена агенция/инвеститор" : /Агенция:|Брокер:/i.test(contact) ? "посочена агенция" : strong ? "текст на агенция" : "", name, link: url, source: "imot.bg" };
 }
 
 async function aiCheck(list, ms) {
