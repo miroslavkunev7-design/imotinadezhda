@@ -27,8 +27,18 @@ module.exports = async (req, res) => {
   const style = STYLE[String(b.style || "")] || STYLE.calm;
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!key) return fail(500, "Няма ключ");
+  /* наличните гласови модели се откриват от Google (имената на preview моделите се сменят); Flash преди Pro */
+  let models = MODELS.slice();
+  try {
+    const lr = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=" + encodeURIComponent(key));
+    const lj = await lr.json();
+    const found = (lj.models || []).map((m) => String(m.name || "").replace(/^models\//, "")).filter((n) => /tts/i.test(n));
+    if (found.length) models = found.sort((a, b) => (/flash/.test(b) - /flash/.test(a)) || (/preview/.test(a) - /preview/.test(b)) || b.localeCompare(a)).concat(MODELS.filter((m) => !found.includes(m)));
+  } catch (e) {}
   let last = "";
-  for (const model of MODELS) {
+  const errs = [];
+  for (const model of models.slice(0, 5)) {
+    for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -38,15 +48,21 @@ module.exports = async (req, res) => {
         })
       });
       const j = await r.json();
-      if (!r.ok) { last = (j.error && j.error.message) || "HTTP " + r.status; continue; }
+      if (!r.ok) {
+        last = (j.error && j.error.message) || "HTTP " + r.status;
+        const wait = r.status === 429 ? Math.ceil(parseFloat((last.match(/retry in ([\d.]+)\s*s/i) || [])[1] || "0")) : 0;
+        if (r.status === 429 && attempt === 0 && wait > 0 && wait <= 12) { await new Promise((ok) => setTimeout(ok, wait * 1000 + 300)); continue; }
+        errs.push(model + ": " + last.split("\n")[0].slice(0, 160)); break;
+      }
       const part = (((j.candidates || [])[0] || {}).content || {}).parts?.find((p) => p.inlineData || p.inline_data);
       const d = part && (part.inlineData || part.inline_data);
-      if (!d || !d.data) { last = "Няма аудио"; continue; }
+      if (!d || !d.data) { errs.push(model + ": няма аудио"); break; }
       const rate = Number((/rate=(\d+)/.exec(d.mimeType || d.mime_type || "") || [])[1]) || 24000;
       const out = wav(Buffer.from(d.data, "base64"), rate);
       res.statusCode = 200; res.setHeader("Content-Type", "audio/wav"); res.setHeader("Cache-Control", "no-store"); res.setHeader("Content-Length", out.length);
       return res.end(out);
-    } catch (e) { last = String(e.message || e); }
+    } catch (e) { errs.push(model + ": " + String(e.message || e).slice(0, 160)); break; }
+    }
   }
-  return fail(502, "Гласът не е наличен: " + last);
+  return fail(502, "Гласът не е наличен: " + (errs.join(" | ") || last));
 };
