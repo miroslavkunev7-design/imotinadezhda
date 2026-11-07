@@ -24,11 +24,22 @@ async function get(url, ms) {
 }
 const text = (h) => h.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ").replace(/<br\s*\/?>|<\/(p|div|li|tr|h\d)>/gi, "\n").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/[ \t\r]+/g, " ").replace(/\n\s*\n+/g, "\n");
 
+/* 28-те области: име → адрес в imot.bg; разпознава и прилагателните („Великотърновска област“, „Варненско“) */
+const REGIONS = { "благоевград": "blagoevgrad", "бургас": "burgas", "варна": "varna", "велико търново": "veliko-tarnovo", "видин": "vidin", "враца": "vratsa", "габрово": "gabrovo", "добрич": "dobrich", "кърджали": "kardzhali", "кюстендил": "kyustendil", "ловеч": "lovech", "монтана": "montana", "пазарджик": "pazardzhik", "перник": "pernik", "плевен": "pleven", "пловдив": "plovdiv", "разград": "razgrad", "русе": "ruse", "силистра": "silistra", "сливен": "sliven", "смолян": "smolyan", "софия": "sofiya", "софия-град": "sofiya", "стара загора": "stara-zagora", "търговище": "targovishte", "хасково": "haskovo", "шумен": "shumen", "ямбол": "yambol" };
+const ADJ = { "благоевград": "благоевград", "бургаск": "бургас", "варненск": "варна", "великотърновск": "велико търново", "търновск": "велико търново", "видинск": "видин", "врачанск": "враца", "габровск": "габрово", "добрички": "добрич", "добричк": "добрич", "кърджалийск": "кърджали", "кюстендилск": "кюстендил", "ловешк": "ловеч", "монтанск": "монтана", "пазарджишк": "пазарджик", "пернишк": "перник", "плевенск": "плевен", "пловдивск": "пловдив", "разградск": "разград", "русенск": "русе", "силистренск": "силистра", "сливенск": "сливен", "смолянск": "смолян", "софийск": "софия", "старозагорск": "стара загора", "търговищк": "търговище", "хасковск": "хасково", "шуменск": "шумен", "ямболск": "ямбол" };
+function regionSlug(r) {
+  const k = String(r || "").toLocaleLowerCase("bg").replace(/област|обл\./g, "").replace(/\s+/g, " ").trim();
+  if (!k) return "";
+  if (REGIONS[k]) return REGIONS[k];
+  const adj = Object.keys(ADJ).find((x) => k.startsWith(x)); if (adj) return REGIONS[ADJ[adj]];
+  const near = Object.keys(REGIONS).find((x) => k.startsWith(x.slice(0, 5))); if (near) return REGIONS[near];
+  return slug(k);
+}
 function listUrls(a) {
   const deal = a.deal === "rent" ? "naemi" : "prodazhbi";
   const t = String(a.type || "").toLocaleLowerCase("bg"), typ = (TYPES.find(([re]) => re.test(t)) || [null, ""])[1];
   const types = typ ? [typ] : /апартамент/.test(t) ? ["dvustaen", "tristaen"] : [""];
-  const reg = slug(a.region), pl = slug(a.place), base = "https://www.imot.bg/obiavi/" + deal + "/";
+  const reg = regionSlug(a.region), pl = slug(a.place), base = "https://www.imot.bg/obiavi/" + deal + "/";
   const tails = (pre) => types.map((x) => base + pre + (x ? "/" + x : ""));
   const out = [];
   if (pl && BIG.has(pl) && !/^с\.|село/i.test(String(a.place))) out.push(...tails("grad-" + pl));
