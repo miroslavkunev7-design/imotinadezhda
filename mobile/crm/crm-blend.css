@@ -165,3 +165,6 @@ html:not(.desk) .nav{animation:ndDockGlow 6s ease-in-out infinite}
 #ndside .sb-subi svg.i{width:18px;height:18px;flex:none;color:#f3c56a}
 #ndside .sb-subi:hover,#ndside .sb-subi:focus-visible{border-color:#edc47a;box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 14px rgba(255,200,120,.55)}
 #ndside .sb-subi.on{background:linear-gradient(180deg,#b42446,#6b0a1c);border-color:#f6d993;box-shadow:0 0 0 1px rgba(255,236,190,.6),0 0 16px rgba(255,200,120,.7)}
+
+/* iPhone: без автоматично уголемяване на текста (Safari text autosizing) в мащабираните страници */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}

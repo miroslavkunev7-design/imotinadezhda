@@ -817,7 +817,7 @@ html.desk .mcv.tab .m-act{display:block}
           '<span class="row" style="top:'+g.rows[1]+'px">'+ic('pin')+esc(c.city+', '+c.hood)+'</span>'+
           '<span class="row" style="top:'+g.rows[2]+'px">'+ic('coins')+esc(budget(c))+'</span>'+
           '<span class="go">'+ic('arrow-r')+'</span></button>'}).join('')
-        :'<div class="empty">Няма клиенти по избраните критерии.<br><button type="button" data-reset>Изчисти филтрите</button></div>';
+        :(window.__ndClientsLoaded?'<div class="empty">Няма клиенти по избраните критерии.<br><button type="button" data-reset>Изчисти филтрите</button></div>':'<div class="empty">Зареждане на клиентите…</div>');
       var r=grid.querySelector('[data-reset]');
       if(r)r.addEventListener('click',function(){q.value='';city.value=ALLC;hoods();type.value=ALLT;sort.value='new';[city,type,sort].forEach(showVal);render()});
     }
@@ -1003,7 +1003,7 @@ html.desk .mcv.tab .m-act{display:block}
   setup('sales');setup('rent');fit();
   function loadAll(){
     return Promise.all([ND.load('clients'),ND.load('activities')]).then(function(r){
-      clients.length=0;[].push.apply(clients,r[0]);ACTS={};
+      clients.length=0;[].push.apply(clients,r[0]);ACTS={};window.__ndClientsLoaded=true;
       r[1].sort(function(a,b){return String(b.at).localeCompare(String(a.at))}).forEach(function(a){(ACTS[a.client_id]=ACTS[a.client_id]||[]).push(a)});
       prep();REF.sales();REF.rent();window.__ndClientNames=clients.map(function(c){return c.name}).filter(Boolean);
     });
