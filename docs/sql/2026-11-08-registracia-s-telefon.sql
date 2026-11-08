@@ -1,4 +1,4 @@
--- Регистрация на брокер с телефон и SMS код (прилага се в Supabase hyvwfsmjbaynozceookv след одобрение)
+-- Регистрация на брокер с телефон и SMS код (приложено в Supabase hyvwfsmjbaynozceookv на 08.11.2026)
 -- Само сървърът (service role) има достъп; кодът се пази като хеш, до 4 изпращания, 5 опита, 10 минути.
 create table if not exists public.nd_reg_pending (
   id uuid primary key default gen_random_uuid(),
@@ -28,7 +28,7 @@ begin
   if r.sends >= 4 then return jsonb_build_object('ok', false, 'error', 'Изпратени са твърде много кодове. Опитайте по-късно.'); end if;
   if r.sent_at is not null and r.sent_at > now() - interval '45 seconds' then return jsonb_build_object('ok', false, 'error', 'Изчакайте малко преди нов код.', 'wait', 45); end if;
   b := gen_random_bytes(4);
-  c := lpad(((get_byte(b, 0)::bigint << 24) + (get_byte(b, 1) << 16) + (get_byte(b, 2) << 8) + get_byte(b, 3)) % 1000000 || '', 6, '0');
+  c := lpad((((get_byte(b, 0)::bigint << 24) + (get_byte(b, 1) << 16) + (get_byte(b, 2) << 8) + get_byte(b, 3)) % 1000000)::text, 6, '0');
   update nd_reg_pending set code_hash = encode(digest(c || ':' || id::text, 'sha256'), 'hex'), sent_at = now(), sends = sends + 1, attempts = 0 where id = p_id;
   return jsonb_build_object('ok', true, 'phone', r.phone, 'name', r.name, 'code', c);
 end $$;
