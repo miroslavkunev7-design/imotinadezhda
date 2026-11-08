@@ -97,7 +97,7 @@
         '</div><div class="nd-howto" role="status" hidden></div></div>' +
         '<div class="nd-reg" hidden><label for="nd-code">Кодово изречение</label><input id="nd-code" type="password" autocomplete="off" placeholder="Въведете кодовото изречение">' +
         '<div class="nd-reg2" hidden><label for="nd-name">Име и фамилия</label><input id="nd-name" type="text" autocomplete="name" placeholder="Иван Петров"><label for="nd-phone">Телефонен номер</label><input id="nd-phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0888 123 456"><label for="nd-title">Длъжност</label><select id="nd-title"><option>Брокер</option><option>Старши брокер</option><option>Консултант</option><option>Управител</option></select><label for="nd-pwn">Парола (поне 8 символа)</label><input id="nd-pwn" type="password" autocomplete="new-password"><label for="nd-pw2">Повторете паролата</label><input id="nd-pw2" type="password" autocomplete="new-password"></div>' +
-        '<div class="nd-otp" hidden><label for="nd-otp">Код от SMS</label><input id="nd-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 цифри" style="letter-spacing:6px;font-weight:700;text-align:center"><button type="button" class="lnk" data-resend>Изпрати нов код</button></div></div>' +
+        '<div class="nd-otp" hidden><label for="nd-otp">Код за потвърждение</label><input id="nd-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 цифри" style="letter-spacing:6px;font-weight:700;text-align:center"><button type="button" class="lnk" data-resend>Изпрати нов код</button></div></div>' +
         '<div class="err" role="alert"></div><button type="submit">Вход</button><button type="button" class="lnk" data-reset>Забравена парола</button><button type="button" class="lnk" data-reg>Регистрация на брокер</button></form>';
       document.body.appendChild(box);
       box.querySelector(".nd-apps").addEventListener("click", function (e) { var b = e.target.closest("[data-app]"); if (b) install(b.getAttribute("data-app"), box.querySelector(".nd-howto")); });
@@ -117,7 +117,7 @@
       function setMode(m) {
         mode = m; err.textContent = "";
         b.querySelector("h2").textContent = m === "login" ? "Вход в CRM" : "Регистрация на брокер";
-        b.querySelector("p.s").textContent = m === "login" ? "Влезте с телефона (или имейла) и паролата си" : m === "code" ? "Въведете кодовото изречение на агенцията" : m === "otp" ? "Изпратихме SMS с 6-цифрен код" + (pend && pend.phone ? " на " + pend.phone : "") + ". Въведете го, за да активирате профила." : "Двете имена, телефонен номер и парола – ще получите SMS код за потвърждение";
+        b.querySelector("p.s").textContent = m === "login" ? "Влезте с телефона (или имейла) и паролата си" : m === "code" ? "Въведете кодовото изречение на агенцията" : m === "otp" ? (pend && pend.via === "manager" ? "Кодът за потвърждение е изпратен на управителя – поискайте го от него и го въведете тук." : "Изпратихме SMS с 6-цифрен код" + (pend && pend.phone ? " на " + pend.phone : "") + ". Въведете го, за да активирате профила.") : "Двете имена, телефонен номер и парола – ще получите SMS код за потвърждение";
         reg.hidden = m === "login"; reg2.hidden = m !== "form"; otpBox.hidden = m !== "otp"; b.querySelector(".nd-apps").hidden = m !== "login";
         b.querySelector('label[for="nd-em"]').hidden = b.querySelector("#nd-em").hidden = m !== "login";
         b.querySelector('label[for="nd-pw"]').hidden = b.querySelector("#nd-pw").hidden = m !== "login";
@@ -163,7 +163,7 @@
           fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "start", code: b.querySelector("#nd-code").value.trim(), name: name, phone: phone, title: title, password: pw }) }).then(function (r) { return r.json(); }).then(function (j) {
             btn.disabled = false;
             if (!j.id) { err.textContent = j.error || "Регистрацията не успя."; return; }
-            pend = { id: j.id, phone: j.phone, pw: pw, phoneRaw: phone };
+            pend = { id: j.id, phone: j.phone, pw: pw, phoneRaw: phone, via: j.via };
             setMode("otp"); resendIn(45);
             if (!j.ok) err.textContent = j.error || "Кодът не можа да се изпрати – натиснете „Изпрати нов код“.";
           }).catch(function () { btn.disabled = false; err.textContent = "Няма връзка със сървъра."; });
@@ -181,7 +181,7 @@
       };
       b.querySelector("[data-resend]").onclick = function () {
         if (!pend) return; err.textContent = "Изпращаме нов код…";
-        fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "resend", id: pend.id }) }).then(function (r) { return r.json(); }).then(function (j) { err.textContent = j.ok ? "Изпратихме нов код." : (j.error || "Кодът не можа да се изпрати."); resendIn(45); }).catch(function () { err.textContent = "Няма връзка със сървъра."; });
+        fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "resend", id: pend.id }) }).then(function (r) { return r.json(); }).then(function (j) { if (j.via) pend.via = j.via; err.textContent = j.ok ? (pend.via === "manager" ? "Нов код е изпратен на управителя." : "Изпратихме нов код.") : (j.error || "Кодът не можа да се изпрати."); resendIn(45); }).catch(function () { err.textContent = "Няма връзка със сървъра."; });
       };
       b.querySelector("[data-reset]").onclick = function () {
         var em = b.querySelector("#nd-em").value.trim();
