@@ -936,6 +936,21 @@ html.desk .odet{height:var(--lh,700px);max-height:var(--lh,700px);overflow:hidde
 html.desk .odet:empty:before{content:'Изберете разговор вляво.'}
 html.desk .c-msgs{flex:1;overflow-y:auto;min-height:0;scrollbar-width:thin;scrollbar-color:#c99a5a transparent}
 html.desk .c-comp{position:static}
+/* малък прозорец (балончетата): само разговорът, на цялата площ */
+html.mini .otop,html.mini .otools,html.mini #dock,html.mini .crail{display:none!important}
+html.mini #canvas.ocv{width:720px;padding-top:0;padding-bottom:0}
+html.mini #stage{padding-bottom:0!important}
+html.mini .mini-bar{position:sticky;top:0;z-index:4;padding-left:24px;gap:18px}
+html.mini .mini-bar[hidden]{display:none}
+html.mini .ocols .olist{padding:16px 14px 20px}
+html.mini .oc .on2{right:110px}
+html.mini .ocols.reading .odet{margin:0;height:var(--mh,900px);max-height:var(--mh,900px);border-radius:0;overflow:hidden;box-shadow:none;border:0}
+html.mini .od-h{padding-left:14px;gap:16px}
+html.mini .c-msgs{flex:1;overflow-y:auto;min-height:0;margin:10px 10px 0;scrollbar-width:thin;scrollbar-color:#c99a5a transparent}
+html.mini .c-info{margin:10px 10px 0}
+html.mini .c-hint{margin:10px 10px 0}
+html.mini .c-comp{position:static;margin:10px}
+html.mini .cb{max-width:84%}
 </style>
 </head>
 <body>
@@ -1066,6 +1081,7 @@ html.desk .c-comp{position:static}
     <div class="otools">
       <label class="fld o-q"><svg class="i"><use href="#search"/></svg><input id="o-q" type="search" placeholder="Търси разговор – име, телефон, текст…" autocomplete="off" aria-label="Търси разговор"></label>
     </div>
+    <header class="od-h mini-bar" id="mini-bar" hidden></header>
     <div class="ocols" id="ocols">
       <nav class="crail" id="crail" aria-label="Платформа"></nav>
       <div class="olist" id="olist"></div>
@@ -1161,9 +1177,12 @@ html.desk .c-comp{position:static}
   var top=document.querySelector('.otop'),photo=top.querySelector('.photo'),ctrls=[].slice.call(top.querySelectorAll('.ctrl,.avatar')),
       texts=[].slice.call(top.querySelectorAll('.hero-title,.hero-sub,.o-ic')).map(function(el){return {el:el,top:parseFloat(el.style.top||getComputedStyle(el).top)}});
   var desk=false;
-  function isDesk(){return root.clientWidth>=1024&&root.clientWidth/innerHeight>=1.2}
+  /* малкият прозорец от балончетата: crm-chat.html?mini=1 – само разговорът, на цялата площ */
+  var MINI=/[?&]mini=1/.test(location.search);if(MINI)root.classList.add('mini');
+  function isDesk(){return !MINI&&root.clientWidth>=1024&&root.clientWidth/innerHeight>=1.2}
   function fit(){
     var was=desk;desk=isDesk();root.classList.toggle('desk',desk);
+    if(MINI){var km=root.clientWidth/720;canvas.style.zoom=km;canvas.style.marginLeft='0px';stage.style.paddingBottom='0px';dock.style.display='none';root.style.setProperty('--mh',(innerHeight/km)+'px');return}
     if(desk){
       var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1180,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
       var Hh=320+Math.min(exH*.4,140),xL=24+Math.min(exW*.5,200);
@@ -1207,7 +1226,11 @@ html.desk .c-comp{position:static}
     return chats.filter(function(c){if(plat!=='all'&&c.platform!==plat)return false;if(!q)return true;var d=c.data||{};
       return [d.name,d.client,d.phone,d.last_text,c.ext_id].join(' ').toLocaleLowerCase('bg').indexOf(q)>=0});
   }
+  function miniBar(){if(!MINI)return;var b=$('mini-bar');b.hidden=!!sel;if(sel)return;var p=plat==='all'?'messenger':plat;
+    b.innerHTML='<span style="width:44px;height:44px;display:grid;place-items:center">'+LOGO[plat==='all'?'all':p]+'</span><h2>'+(plat==='all'?'Чат':esc(plabel(p)))+'</h2>'+
+      '<button type="button" data-full aria-label="Отвори в Чат" title="Отвори в Чат">'+ic('maximize-2')+'</button><button type="button" data-close aria-label="Затвори" title="Затвори">'+ic('x')+'</button>'}
   function renderList(){
+    miniBar();
     var list=visible();
     $('olist').innerHTML=list.length?list.map(function(c){var d=c.data||{},n=+d.unread||0;
       return '<article class="oc'+(c.id===sel?' on':'')+(n?' un':'')+'" tabindex="0" data-id="'+esc(c.id)+'" aria-label="'+esc(cname(c))+'">'+
@@ -1236,7 +1259,7 @@ html.desk .c-comp{position:static}
         '<span class="tm">'+(md.dir==='out'&&md.by?esc(md.by)+' · ':'')+hm(m.at)+'</span></div>'});
     box.innerHTML='<header class="od-h"><button type="button" class="back" data-back aria-label="Назад към разговорите" title="Назад">'+ic('chevron-left')+'</button>'+
         '<span style="width:44px;height:44px;display:grid;place-items:center">'+LOGO[c.platform==='whatsapp'||c.platform==='instagram'?c.platform:'messenger']+'</span><h2>'+esc(cname(c))+'</h2>'+
-        (desk?'':'')+'</header>'+
+        (MINI?'<button type="button" data-full aria-label="Отвори в Чат" title="Отвори в Чат">'+ic('maximize-2')+'</button><button type="button" data-close aria-label="Затвори" title="Затвори">'+ic('x')+'</button>':'')+'</header>'+
       '<div class="c-info">'+(d.client_id?'<a data-client="'+esc(d.client_id)+'">'+ic('user-round')+'Карта на клиента</a>':'')+
         (d.phone?'<a href="tel:'+esc(d.phone)+'">'+ic('phone')+esc(d.phone)+'</a>':'')+
         '<span>'+ic('message-square')+esc(plabel(c.platform))+'</span>'+(d.link?'<a href="'+esc(d.link)+'" target="_blank" rel="noopener">'+ic('link')+'Отвори в '+(c.platform==='whatsapp'?'WhatsApp':'Meta')+'</a>':'')+'</div>'+
@@ -1250,7 +1273,7 @@ html.desk .c-comp{position:static}
     scrollEnd();
   }
   function scrollEnd(){var m=$('c-msgs');if(!m)return;
-    if(desk)m.scrollTop=m.scrollHeight;else setTimeout(function(){var f=$('c-comp');if(f)f.scrollIntoView({block:'end'})},30)}
+    if(desk||MINI)m.scrollTop=m.scrollHeight;else setTimeout(function(){var f=$('c-comp');if(f)f.scrollIntoView({block:'end'})},30)}
   function loadMsgs(id){
     return ND.sb().from('nd_chat_msgs').select('id,data,at').eq('chat_id',id).order('at',{ascending:true}).limit(1000).then(function(r){
       if(r.error)throw r.error;if(sel!==id)return;msgs=r.data||[];renderDet();
@@ -1262,7 +1285,8 @@ html.desk .c-comp{position:static}
     sel=id;msgs=[];renderList();renderDet();
     var c=byId(id);if(!c)return;
     loadMsgs(id).catch(function(e){say('Грешка: '+(e.message||e))});markRead(c);
-    if(!desk)window.scrollTo({top:0});
+    if(!desk&&!MINI)window.scrollTo({top:0});
+    miniBar();
   }
   function renderAll(){renderRail();renderList();renderDet();if(sel)loadMsgs(sel).catch(function(){})}
   $('olist').addEventListener('click',function(e){var c=e.target.closest('.oc');if(c)select(c.dataset.id)});
@@ -1270,7 +1294,8 @@ html.desk .c-comp{position:static}
   $('o-q').addEventListener('input',renderList);
   $('odet').addEventListener('click',function(e){
     if(e.target.closest('[data-back]')){sel=null;renderList();renderDet();return}
-    var cl=e.target.closest('[data-client]');if(cl){window.goTo('crm-klienti.html#'+cl.getAttribute('data-client'));return}
+    if(miniAct(e))return;
+    var cl=e.target.closest('[data-client]');if(cl){var u='crm-klienti.html#'+cl.getAttribute('data-client');if(MINI){try{(window.top.goTo||function(x){window.top.location.href=x})(u)}catch(x){window.open(u,'_top')}}else window.goTo(u);return}
     var im=e.target.closest('[data-open]');if(im){window.open(im.getAttribute('data-open'),'_blank','noopener');return}
   });
   $('odet').addEventListener('keydown',function(e){if(e.target.id==='c-text'&&e.key==='Enter'&&!e.shiftKey&&desk){e.preventDefault();$('c-comp').requestSubmit()}});
@@ -1311,12 +1336,26 @@ html.desk .c-comp{position:static}
   document.querySelectorAll('[data-focus]').forEach(function(b){b.addEventListener('click',function(){var el=$(b.getAttribute('data-focus'));el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){el.focus({preventScroll:true})},300)})});
   document.querySelectorAll('[data-nav]').forEach(function(b){b.addEventListener('click',function(){var to=b.getAttribute('data-href');if(to){window.goTo(to)}})});
 
+  /* бутоните в малкия прозорец говорят със страницата отдолу */
+  function toParent(m){try{window.parent.postMessage(Object.assign({nch:1},m),location.origin)}catch(x){}}
+  function miniAct(e){
+    if(!MINI)return false;
+    if(e.target.closest('[data-close]')){toParent({act:'close'});return true}
+    if(e.target.closest('[data-full]')){toParent({act:'full',id:sel||''});return true}
+    return false;
+  }
+  $('mini-bar').addEventListener('click',miniAct);
+  addEventListener('message',function(e){
+    if(e.origin!==location.origin||!e.data||!e.data.nch||e.data.act!=='open')return;
+    var go=function(){var c=byId(e.data.id);if(c){plat=c.platform;select(c.id)}};
+    if(byId(e.data.id))go();else loadChats().then(go).catch(function(){});
+  });
   fit();renderRail();renderList();
   ND.busy(1);
   ND.ready().then(loadChats).then(function(){
     ND.busy(0);
     var h=(location.hash||'').slice(1);
-    if(h&&byId(h)){history.replaceState(null,'',location.pathname);select(h)}
+    if(h&&byId(h)){history.replaceState(null,'',location.pathname+location.search);if(MINI)plat=byId(h).platform;select(h)}
     else if(desk){var v=visible();if(v[0])select(v[0].id)}
     live();
   }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});

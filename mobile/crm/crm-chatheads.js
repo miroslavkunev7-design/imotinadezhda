@@ -1,6 +1,6 @@
 /* CRM Чат – плаващи балончета (като „chat heads“ на Messenger за Android) на всички CRM страници.
    Показва разговорите с непрочетени съобщения: аватар с инициали, знак на платформата и номерирана точка.
-   Докосване → отваря разговора в CRM Чат. Балончетата се местят с плъзгане и залепват за ръба;
+   Докосване → отваря малък прозорец с целия разговор (отговор направо оттам); ⤢ го отваря в CRM Чат. Балончетата се местят с плъзгане и залепват за ръба;
    пуснати върху ✕ долу се скриват до следващото ново съобщение. Тед не отговаря – служителите пишат ръчно. */
 (function () {
   "use strict";
@@ -32,10 +32,15 @@
     "#nch-x{position:fixed;left:50%;bottom:calc(var(--dockH,90px) + 26px);width:64px;height:64px;margin-left:-32px;border-radius:50%;z-index:69;display:grid;place-items:center;font:700 26px/1 Arial,sans-serif;color:#fff3dc;" +
     "background:radial-gradient(circle at 35% 30%,#8d1a30,#4f0716 70%);border:2px solid #edc47a;box-shadow:0 0 18px rgba(255,190,120,.7);opacity:0;transform:scale(.6);transition:opacity .2s,transform .2s;pointer-events:none}" +
     "#nch-x.show{opacity:1;transform:scale(1)}#nch-x.hot{transform:scale(1.18);box-shadow:0 0 26px rgba(255,120,140,.95)}" +
+    "#nch-win{position:fixed;z-index:71;border-radius:26px;overflow:hidden;background:linear-gradient(180deg,#fff7ef,#fbe8d7);border:2px solid #edc47a;" +
+    "box-shadow:0 0 0 1px rgba(255,236,190,.55),0 0 26px rgba(255,190,120,.85),0 18px 40px rgba(60,5,15,.45);opacity:0;transform:scale(.85);transition:opacity .2s,transform .22s cubic-bezier(.2,.9,.3,1.2)}" +
+    "#nch-win.show{opacity:1;transform:scale(1)}#nch-win[hidden]{display:none}" +
+    "#nch-win iframe{display:block;width:100%;height:100%;border:0;background:transparent}" +
+    ".nch-h.open{box-shadow:0 0 0 3px #f6d993,0 0 24px rgba(255,200,120,1),0 6px 14px rgba(60,5,15,.45)}" +
     "@keyframes nchIn{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}";
   var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
-  var box, xz, chats = [], pos;
+  var box, xz, win, frame, openId = null, chats = [], pos;
   var KEY = "nd-chatheads-pos", HID = "nd-chatheads-hidden";
   function ls(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || "null"); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); }
@@ -60,19 +65,20 @@
     var y = Math.max(minY, Math.min(maxY, pos.y * h));
     box.style.top = y + "px"; box.style.left = (pos.side === "l" ? 10 : w - 58 - 10 - (window.NDRAIL ? 0 : 0)) + "px";
     box.className = pos.side === "l" ? "l" : "r";
+    placeWin();
   }
   function render() {
     build();
     var hid = ls(HID) || {};
-    var list = chats.filter(function (c) { var d = c.data || {}; return (+d.unread || 0) > 0 && hid[c.id] !== (c.last_at || d.last_at); }).slice(0, 4);
+    var list = chats.filter(function (c) { var d = c.data || {}; return c.id === openId || ((+d.unread || 0) > 0 && hid[c.id] !== (c.last_at || d.last_at)); }).slice(0, 4);
     if (!list.length) { box.hidden = true; box.innerHTML = ""; return; }
     var wasHidden = box.hidden;
     box.innerHTML = list.map(function (c) {
       var d = c.data || {}, n = +d.unread || 0, p = c.platform === "whatsapp" || c.platform === "instagram" ? c.platform : "messenger";
-      return '<button type="button" class="nch-h" data-id="' + esc(c.id) + '" data-at="' + esc(c.last_at || d.last_at || "") + '" aria-label="' + esc(nameOf(c)) + " – " + n + ' нови съобщения">' + esc(initials(nameOf(c))) +
-        '<span class="pl">' + LOGO[p] + '</span><span class="n">' + (n > 99 ? "99+" : n) + '</span><span class="tip"><b>' + esc(nameOf(c)) + "</b>" + esc(String(d.last_text || "📎 Файл").slice(0, 80)) + "</span></button>";
+      return '<button type="button" class="nch-h' + (c.id === openId ? " open" : "") + '" data-id="' + esc(c.id) + '" data-at="' + esc(c.last_at || d.last_at || "") + '" aria-label="' + esc(nameOf(c)) + " – " + n + ' нови съобщения">' + esc(initials(nameOf(c))) +
+        '<span class="pl">' + LOGO[p] + '</span>' + (n ? '<span class="n">' + (n > 99 ? "99+" : n) + '</span>' : "") + '<span class="tip"><b>' + esc(nameOf(c)) + "</b>" + esc(String(d.last_text || "📎 Файл").slice(0, 80)) + "</span></button>";
     }).join("");
-    box.hidden = false; place();
+    box.hidden = false; place(); placeWin();
     if (wasHidden) { box.classList.add("peek"); setTimeout(function () { box.classList.remove("peek"); }, 3500); }
   }
 
@@ -105,7 +111,40 @@
     box.addEventListener("keydown", function (e) { var h = e.target.closest(".nch-h"); if (h && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(h.getAttribute("data-id")); } });
     addEventListener("resize", place);
   }
-  function open(id) { var u = "crm-chat.html#" + id; if (window.goTo) window.goTo(u); else location.href = u; }
+  function full(id) { var u = "crm-chat.html" + (id ? "#" + id : ""); if (window.goTo) window.goTo(u); else location.href = u; }
+  /* малкият прозорец: целият разговор от съответната платформа, отговорът се пише направо в него */
+  function placeWin() {
+    if (!win || win.hidden) return;
+    var w = innerWidth, h = innerHeight, dh = dockH(), phone = w < 640;
+    if (phone) { win.style.left = "8px"; win.style.right = "8px"; win.style.width = "auto"; win.style.top = "58px"; win.style.height = Math.max(320, h - dh - 58 - 12) + "px"; win.style.transformOrigin = (pos.side === "l" ? "0" : "100%") + " 30%"; return; }
+    var W = Math.min(420, w - 100), H = Math.min(680, h - dh - 40);
+    win.style.right = "auto"; win.style.width = W + "px"; win.style.height = H + "px"; win.style.top = Math.max(12, h - dh - 18 - H) + "px";
+    win.style.left = (pos.side === "l" ? 80 : w - W - 80) + "px"; win.style.transformOrigin = pos.side === "l" ? "0 50%" : "100% 50%";
+  }
+  function open(id) {
+    if (win && !win.hidden && openId === id) { closeWin(); return; }
+    openId = id;
+    if (!win) {
+      win = document.createElement("section"); win.id = "nch-win"; win.hidden = true; win.setAttribute("role", "dialog"); win.setAttribute("aria-label", "Разговор");
+      frame = document.createElement("iframe"); frame.title = "Разговор"; frame.src = "crm-chat.html?mini=1&inframe=1#" + id;
+      win.appendChild(frame); document.body.appendChild(win);
+    } else if (frame.contentWindow) {
+      try { frame.contentWindow.postMessage({ nch: 1, act: "open", id: id }, location.origin); } catch (x) {}
+    }
+    win.hidden = false; placeWin(); requestAnimationFrame(function () { win.classList.add("show"); });
+    render();
+  }
+  function closeWin() {
+    if (!win) return; openId = null; win.classList.remove("show");
+    setTimeout(function () { if (!openId) win.hidden = true; }, 220); render();
+  }
+  addEventListener("message", function (e) {
+    if (e.origin !== location.origin || !e.data || !e.data.nch) return;
+    if (e.data.act === "close") closeWin();
+    if (e.data.act === "full") full(e.data.id);
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) closeWin(); });
+  addEventListener("resize", placeWin);
 
   function load() {
     return D.sb().from("nd_chats").select("id,platform,data,last_at").order("last_at", { ascending: false, nullsFirst: false }).limit(60).then(function (r) {
