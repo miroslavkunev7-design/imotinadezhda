@@ -877,6 +877,28 @@ html.desk .fwin .mscroll{overflow:hidden}
 .m-files{display:flex;flex-wrap:wrap;gap:10px}.m-files span{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:16px;font:400 20px/1.2 var(--cond);background:#fff6ec;box-shadow:0 0 0 1px rgba(231,196,160,.7)}
 .m-files button{font-size:22px;color:#8c0d22}
 #f-file{padding:8px 12px;font:400 22px/1.2 var(--cond);color:#6b4a40}#f-file::file-selector-button{margin-right:16px;height:46px;padding:0 22px;border-radius:23px;border:2px solid #edc47a;color:#fff3dc;font:400 22px/1 var(--cond);background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);box-shadow:0 0 10px rgba(255,190,120,.6);cursor:pointer}
+
+/* Поща – отвореното писмо заема цялата карта, с по-едър шрифт (като в ABV) */
+.ocols.reading .olist{display:none!important}
+.od-h .back{flex:0 0 auto}
+.ocols.reading .od-h{height:86px;gap:20px;padding-left:16px}
+.ocols.reading .od-h h2{font-size:40px}
+.ocols.reading .od-info{grid-template-columns:1fr;min-height:0}
+.ocols.reading .od-c{border-right:0;padding:20px 26px 10px;gap:14px}
+.ocols.reading .od-c a,.ocols.reading .od-c span{font-size:29px}
+.ocols.reading .od-c svg.i{font-size:34px}
+.ocols.reading .od-d{padding:12px 26px 20px;grid-template-columns:46px 1fr}
+.ocols.reading .od-d b{font-size:27px}
+.ocols.reading .m-files span{font-size:24px;padding:8px 16px}
+.ocols.reading .od-eh h3{font-size:34px}
+.ocols.reading .od-mail{padding:26px 34px}
+.ocols.reading .od-mail .mtx{font-size:33px;line-height:1.55}
+.ocols.reading .od-mail iframe{height:600px}
+.ocols.reading .od-acts button{height:76px;font-size:29px}
+html.desk .ocols{grid-template-columns:1fr!important}
+html.desk .ocols:not(.reading) .odet{display:none!important}
+html.desk .ocols.reading .odet{max-height:none!important;overflow:visible!important;min-height:0}
+html.desk .ocols.reading .od-ph{display:none}
 </style>
 <link rel="stylesheet" href="crm-info.css"/>
 </head>
@@ -1012,7 +1034,7 @@ html.desk .fwin .mscroll{overflow:hidden}
       <ul class="o-pop" id="o-pop" role="listbox" aria-label="Папка" hidden></ul>
     </div>
     <div id="m-note"></div>
-    <div class="ocols">
+    <div class="ocols" id="ocols">
       <div class="olist" id="olist"></div>
       <section class="odet" id="odet" aria-live="polite"></section>
     </div>
@@ -1175,25 +1197,31 @@ html.desk .fwin .mscroll{overflow:hidden}
   }
   function renderDet(){
     var m=mails.filter(function(x){return x.id===sel})[0],box=$('odet');
+    $('ocols').classList.toggle('reading',!!m);
     if(!m){box.innerHTML='';return}
     var row=function(icn,v,href){return v?(href?'<a href="'+href+'">'+ic(icn)+esc(v)+'</a>':'<span>'+ic(icn)+esc(v)+'</span>'):''};
     var files=(m.attachments||[]).filter(function(a){return !a.inline||!m.html});
-    var body=m.html?'<iframe sandbox="allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" title="Съдържание на писмото"></iframe>':'<div class="mtx">'+esc(m.text||'(празно писмо)')+'</div>';
-    box.innerHTML='<header class="od-h">'+ic(m.folder==='sent'?'arrow-r':'mail')+'<h2>'+esc(m.subject||'(без тема)')+'</h2>'+
+    var body=m.html?'<iframe sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" title="Съдържание на писмото"></iframe>':'<div class="mtx">'+esc(m.text||'(празно писмо)')+'</div>';
+    box.innerHTML='<header class="od-h"><button type="button" class="back" data-collapse aria-label="Назад към писмата" title="Назад към писмата">'+ic('chevron-left')+'</button>'+ic(m.folder==='sent'?'arrow-r':'mail')+'<h2>'+esc(m.subject||'(без тема)')+'</h2>'+
         '<button type="button" data-del aria-label="Изтрий писмото" title="Изтрий">'+ic('trash-2')+'</button>'+
-        '<button type="button" data-collapse aria-label="Свий" title="Свий">'+ic('chevron-up')+'</button></header>'+
+        '</header>'+
       '<div class="od-info"><span class="od-ph" style="background-image:url('+img('field-email.webp')+')"></span>'+
         '<div class="od-c">'+row('user-round',(m.from_name?m.from_name+' ':'')+'<'+m.from+'>',m.folder==='in'?'mailto:'+m.from:'')+row('mail','До: '+(m.to||[]).join(', '))+((m.cc||[]).length?row('users','Копие: '+m.cc.join(', ')):'')+row('clock',when(m.at||m._created))+'</div>'+
         '<div class="od-d">'+ic('file-text')+'<b>Прикачени файлове ('+files.length+')</b><div class="m-files">'+(files.length?files.map(function(a,i){return '<span>'+ic('file-text')+esc(a.name)+' · '+kb(a.size)+' <button type="button" data-file="'+i+'">Отвори</button></span>'}).join(''):'<p>Няма</p>')+'</div></div></div>'+
       '<div class="od-eh">'+ic('book-open')+'<h3>Писмо</h3></div><div class="od-mail">'+body+'</div>'+
       (m.folder==='in'?'<div class="od-acts"><button type="button" class="hot" data-reply>'+ic('message-square')+'Отговори</button><button type="button" data-fwd>'+ic('share-2')+'Препрати</button></div>':'');
-    if(m.html){var fr=box.querySelector('iframe');fr.srcdoc='<!doctype html><meta charset="utf-8"><base target="_blank"><style>body{font:16px/1.5 Arial,sans-serif;color:#222;margin:14px;word-break:break-word}img{max-width:100%;height:auto}</style>'+m.html}
+    if(m.html){
+      /* писмото се показва в истински размер (като в ABV): вътрешно увеличение срещу мащаба на страницата + височина по съдържанието; скриптове в писмото не се изпълняват */
+      var fr=box.querySelector('iframe'),kz=parseFloat(canvas.style.zoom)||1,zz=Math.max(1,Math.min(3.6,1.25/kz));
+      fr.onload=function(){try{var d=fr.contentDocument;if(!d)return;var fit=function(){var b=d.body;if(!b)return;fr.style.height=Math.max(260,Math.ceil((b.scrollHeight+30)*zz))+'px'};fit();[].forEach.call(d.images,function(im){im.addEventListener('load',fit)});setTimeout(fit,600)}catch(x){}};
+      fr.srcdoc='<!doctype html><meta charset="utf-8"><base target="_blank"><style>html{zoom:'+zz.toFixed(3)+'}body{font:16px/1.55 Arial,sans-serif;color:#222;margin:14px;word-break:break-word}img{max-width:100%;height:auto}table{max-width:100%!important}</style>'+m.html}
     box._files=files;
     if(m.folder==='in'&&!m.read){m.read=true;ND.put('mail',m).catch(function(){});renderList();badge()}
   }
+  /* отваряне на писмо: заема цялата карта (списъкът се скрива), „‹“ връща към писмата */
   function select(id,scroll){
-    sel=(sel===id&&!desk)?null:id;renderList();renderDet();
-    if(sel&&scroll&&!desk)setTimeout(function(){$('odet').scrollIntoView({behavior:'smooth',block:'start'})},40);
+    sel=id;renderList();renderDet();
+    setTimeout(function(){var st=document.getElementById('stage');if(desk&&st)st.scrollTop=0;else window.scrollTo({top:0,behavior:'smooth'})},30);
   }
   $('olist').addEventListener('click',function(e){var c=e.target.closest('.oc');if(c)select(c.dataset.id,true)});
   $('olist').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.classList.contains('oc'))e.target.click()});
@@ -1213,7 +1241,6 @@ html.desk .fwin .mscroll{overflow:hidden}
     mails=l.sort(function(a,b){return String(b.at||'').localeCompare(String(a.at||''))});
     if(sel&&!mails.some(function(m){return m.id===sel}))sel=null;
     var h=(location.hash||'').slice(1);if(h&&mails.some(function(m){return m.id===h})){sel=h;history.replaceState(null,'',location.pathname)}
-    if(!sel&&desk){var v=visible();sel=v[0]?v[0].id:null}
     renderList();renderDet();badge();
   })}
   var syncing=false;
