@@ -768,6 +768,9 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
 .od-h button{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:32px;color:#fff3dc}
 .od-h button:hover{background:rgba(255,255,255,.12)}
 .od-h button svg.i{color:#fff3dc;stroke-width:2.4;font-size:34px}
+.od-h button.real{background:linear-gradient(145deg,rgba(255,236,190,.28),rgba(255,236,190,.08));box-shadow:inset 0 0 0 1.5px rgba(243,207,134,.75),0 0 14px rgba(243,207,134,.45)}
+.c-info a.realpill{cursor:pointer;color:#fff3dc!important;background:linear-gradient(135deg,#8c0e26,#540516);border-radius:999px;padding:0 22px;box-shadow:inset 0 0 0 1.5px #e6bf5b,0 0 14px rgba(230,191,91,.5)}
+.c-info a.realpill svg.i{color:#f8d777!important}
 .od-info{position:relative;display:grid;grid-template-columns:330px 1fr;min-height:180px;margin:12px 10px 0;border-radius:20px;overflow:hidden;
   background:linear-gradient(180deg,#fffdf9,#fcf1e7);box-shadow:0 0 0 1.5px rgba(231,196,160,.55)}
 .od-ph{position:absolute;right:0;top:0;bottom:0;width:300px;background-size:cover;background-position:center;
@@ -1049,7 +1052,7 @@ html.mini .cb{max-width:84%}
 <symbol id="check" viewBox="0 0 24 24"> <path d="M20 6 9 17l-5-5"/></symbol>
 <symbol id="hard-hat" viewBox="0 0 24 24"> <path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/> <path d="M14 6a6 6 0 0 1 6 6v3"/> <path d="M4 15v-3a6 6 0 0 1 6-6"/> <rect x="2" y="15" width="20" height="4" rx="1"/></symbol>
 <symbol id="armchair" viewBox="0 0 24 24"> <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"/> <path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z"/> <path d="M5 18v2"/> <path d="M19 18v2"/></symbol>
-<symbol id="link" viewBox="0 0 24 24"> <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/> <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+<symbol id="external-link" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol><symbol id="link" viewBox="0 0 24 24"> <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/> <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
 <symbol id="globe" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10"/> <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/> <path d="M2 12h20"/></symbol>
 <symbol id="funnel" viewBox="0 0 24 24"> <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
   </defs>
@@ -1136,7 +1139,7 @@ html.mini .cb{max-width:84%}
 <script src="crm-push.js"></script>
 <script src="crm-inquiries.js"></script>
 <script src="crm-dictate.js"></script>
-<script src="/mobile/ash.js"></script>
+<script src="crm-realchat.js"></script><script src="/mobile/ash.js"></script>
 <script src="crm-assistant.js"></script>
 <script src="crm-collect.js"></script>
 <script src="crm-video.js"></script>
@@ -1249,6 +1252,7 @@ html.mini .cb{max-width:84%}
     if(a.url)return '<a href="'+esc(a.url)+'" target="_blank" rel="noopener noreferrer">'+ic('file-text')+esc(a.name||'Файл')+'</a>';
     return '<span>'+ic(a.type==='image'?'image':'file-text')+esc(a.name||(a.type==='image'?'Снимка':'Файл'))+' (WhatsApp)</span>';
   }
+  function rlabel(c){return window.NDRealChat?NDRealChat.label(c):(c.platform==='whatsapp'?'WhatsApp':c.platform==='instagram'?'Instagram':'Messenger')}
   function renderDet(){
     var c=byId(sel),box=$('odet');
     $('ocols').classList.toggle('reading',!!c&&!desk);
@@ -1260,10 +1264,11 @@ html.mini .cb{max-width:84%}
         '<span class="tm">'+(md.dir==='out'&&md.by?esc(md.by)+' · ':'')+hm(m.at)+'</span></div>'});
     box.innerHTML='<header class="od-h"><button type="button" class="back" data-back aria-label="Назад към разговорите" title="Назад">'+ic('chevron-left')+'</button>'+
         '<span style="width:44px;height:44px;display:grid;place-items:center">'+LOGO[c.platform==='whatsapp'||c.platform==='instagram'?c.platform:'messenger']+'</span><h2>'+esc(cname(c))+'</h2>'+
+        '<button type="button" class="real" data-real aria-label="Отвори в '+rlabel(c)+'" title="Отвори истинския разговор в '+rlabel(c)+'">'+ic('external-link')+'</button>'+
         (MINI?'<button type="button" data-full aria-label="Отвори в Чат" title="Отвори в Чат">'+ic('maximize-2')+'</button><button type="button" data-close aria-label="Затвори" title="Затвори">'+ic('x')+'</button>':'')+'</header>'+
       '<div class="c-info">'+(d.client_id?'<a data-client="'+esc(d.client_id)+'">'+ic('user-round')+'Карта на клиента</a>':'')+
         (d.phone?'<a href="tel:'+esc(d.phone)+'">'+ic('phone')+esc(d.phone)+'</a>':'')+
-        '<span>'+ic('message-square')+esc(plabel(c.platform))+'</span>'+(d.link?'<a href="'+esc(d.link)+'" target="_blank" rel="noopener">'+ic('link')+'Отвори в '+(c.platform==='whatsapp'?'WhatsApp':'Meta')+'</a>':'')+'</div>'+
+        '<span>'+ic('message-square')+esc(plabel(c.platform))+'</span><a class="realpill" data-real role="button" tabindex="0">'+ic('link')+'Отвори в '+rlabel(c)+'</a></div>'+
       (d.client_id?'':'<div class="c-hint">Отговаряте <b>ръчно</b> – Тед не пише на клиентите. За да запишете човека в CRM, кажете на Тед: <b>„Запиши клиент '+esc(d.name||'…')+' и добави изпратените от него документи в картата му“</b>.</div>')+
       '<div class="c-msgs" id="c-msgs">'+(h||'<div class="c-empty">'+(loadedFor===c.id?'Още няма съобщения в този разговор.':'Зареждане…')+'</div>')+'</div>'+
       '<div class="c-err" id="c-err" role="alert"></div>'+
@@ -1297,6 +1302,7 @@ html.mini .cb{max-width:84%}
     if(e.target.closest('[data-back]')){sel=null;renderList();renderDet();return}
     if(miniAct(e))return;
     var cl=e.target.closest('[data-client]');if(cl){var u='crm-klienti.html#'+cl.getAttribute('data-client');if(MINI){try{(window.top.goTo||function(x){window.top.location.href=x})(u)}catch(x){window.open(u,'_top')}}else window.goTo(u);return}
+    var rl=e.target.closest('[data-real]');if(rl){var rc=byId(sel);if(rc&&window.NDRealChat&&!NDRealChat.open(rc))window.open(NDRealChat.url(rc),'_blank');return}
     var im=e.target.closest('[data-open]');if(im){window.open(im.getAttribute('data-open'),'_blank','noopener');return}
   });
   $('odet').addEventListener('keydown',function(e){if(e.target.id==='c-text'&&e.key==='Enter'&&!e.shiftKey&&desk){e.preventDefault();$('c-comp').requestSubmit()}});

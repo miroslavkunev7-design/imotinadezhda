@@ -103,14 +103,24 @@
     function end(e) {
       if (pid !== e.pointerId || !target) return;
       var t = target; target = null; pid = null; box.classList.remove("drag");
-      if (!moved) { open(t.getAttribute("data-id")); return; }
+      if (!moved) { tap(t.getAttribute("data-id")); return; }
       var hot = near(e); xz.classList.remove("show", "hot");
       if (hot) { var hid = ls(HID) || {}; [].forEach.call(box.querySelectorAll(".nch-h"), function (b) { hid[b.getAttribute("data-id")] = b.getAttribute("data-at"); }); ls(HID, hid); box.hidden = true; return; }
       pos = { side: e.clientX < innerWidth / 2 ? "l" : "r", y: Math.max(0, Math.min(1, box.offsetTop / innerHeight)) }; ls(KEY, pos); place();
     }
     box.addEventListener("pointerup", end); box.addEventListener("pointercancel", end);
-    box.addEventListener("keydown", function (e) { var h = e.target.closest(".nch-h"); if (h && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(h.getAttribute("data-id")); } });
+    box.addEventListener("keydown", function (e) { var h = e.target.closest(".nch-h"); if (h && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); tap(h.getAttribute("data-id")); } });
     addEventListener("resize", place);
+  }
+  /* балончето отваря истинския разговор (Messenger / Instagram / WhatsApp) в отделен прозорец със собствения му адрес;
+     ако браузърът спре прозореца – отваря малкия прозорец тук */
+  if (!window.NDRealChat) { var rs = document.createElement("script"); rs.src = "/mobile/crm/crm-realchat.js"; document.head.appendChild(rs); }
+  function tap(id) {
+    var c = chats.filter(function (x) { return x.id === id; })[0];
+    if (!c || !window.NDRealChat || !window.NDRealChat.open(c, pos.side)) { open(id); return; }
+    var d = c.data || {};
+    if (+d.unread) { d.unread = 0; try { D.sb().rpc("nd_chat_read", { p_id: c.id }).then(function () {}); } catch (x) {} }
+    render();
   }
   function full(id) { var u = "crm-chat.html" + (id ? "#" + id : ""); if (window.goTo) window.goTo(u); else location.href = u; }
   /* малкият прозорец: целият разговор от съответната платформа, отговорът се пише направо в него */
