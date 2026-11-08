@@ -1,0 +1,109 @@
+/* Задача 5 – информацията стои направо върху блоковете, без кутийки (по образеца от картата на клиента).
+   Само вид: етикет с иконка във винено, отдолу едра плътна стойност; празно поле = „+ добави“ във винено.
+   При посочване/докосване на поле, което се редактира, се показва лек стъклен ореол. Функциите не се променят. */
+:root{--iv:#1f1111;--il:#6b0a1c;--iadd:#8c0d22;--ihalo:0 0 2px #fff,0 0 6px #fff,0 0 12px rgba(255,248,240,.95),0 0 18px rgba(255,248,240,.8)}
+
+/* ---------- Клиенти: „Данни за клиента“ ---------- */
+.dmain,.dgb{row-gap:24px!important}
+.dgrid .ditem{gap:4px}
+.ditem .dl{font:400 25px/1.1 var(--cond)!important;color:var(--il)!important}
+.ditem .dl svg.i{font-size:30px!important;stroke-width:1.8!important}
+.dgrid .ditem.view .dvv{min-height:46px!important;padding:2px 8px!important;border-radius:14px!important;background:none!important;box-shadow:none!important;
+  font:700 34px/1.15 var(--cond)!important;color:var(--iv)!important;text-shadow:var(--ihalo)!important}
+.dgrid .ditem.view .dvv.emp{color:var(--iadd)!important;font-style:normal!important;font-weight:700!important}
+.dgrid .ditem.view .dvv:hover{background:linear-gradient(180deg,rgba(255,253,250,.82),rgba(251,239,229,.66))!important;box-shadow:0 0 0 1.5px rgba(237,196,122,.85),0 0 12px rgba(255,214,160,.75)!important}
+.dgrid .ditem .dro{background:none!important;border:0!important;box-shadow:none!important;padding:2px 8px!important;font:700 30px/1.15 var(--cond)!important;color:var(--iv)!important;text-shadow:var(--ihalo)}
+
+/* ---------- Имоти: „Основни данни“ и описание ---------- */
+.pm-grid{gap:30px 0!important;padding:18px 18px 24px!important}
+.pm-cell{height:auto!important;min-height:118px;border-radius:0!important;background:none!important;box-shadow:none!important;gap:8px!important}
+.pm-cell:not(:nth-child(4n)){border-right:1.5px solid rgba(120,60,50,.16)}
+.pm-cell svg.i{font-size:48px!important}
+.pm-cell span{font:400 27px/1 var(--cond)!important;color:var(--il)!important}
+.pm-cell b{font:700 40px/1.05 var(--cond)!important;color:var(--iv)!important;text-shadow:var(--ihalo)}
+.pm-desc{background:none!important;box-shadow:none!important;padding:10px 28px 6px!important;font-size:32px!important;text-shadow:var(--ihalo)}
+
+/* ---------- Брокери: статистика ---------- */
+.bst{background:none!important;box-shadow:none!important;border-radius:0!important;height:auto!important;min-height:110px}
+.bst:not(:last-child){border-right:1.5px solid rgba(120,60,50,.16)}
+.bst b{font-size:40px!important;color:var(--iv)!important}
+.bst span{color:var(--il)!important}
+
+/* ---------- Записани форми в режим „преглед“ (Сделки, Договори, табовете в картите, Компании, Наеми) ---------- */
+#nd-fwin .ndg.view .ef{grid-template-columns:1fr!important;gap:2px!important;align-items:start!important}
+#nd-fwin .ndg.view .el{font:400 24px/1.1 var(--cond)!important;color:var(--il)!important;text-shadow:var(--ihalo)!important}
+#nd-fwin .ndg.view .el svg.i{display:inline-block!important;font-size:28px!important;color:#7b1020!important;stroke-width:1.8!important}
+#nd-fwin .ndg.view .vv{min-height:40px!important;padding:0 6px!important;border-radius:12px!important;background:none!important;box-shadow:none!important;
+  font:700 31px/1.2 var(--cond)!important;color:var(--iv)!important;text-shadow:var(--ihalo)!important}
+#nd-fwin .ndg.view .vv.emp{color:var(--iadd)!important;font-style:normal!important;font-weight:700!important}
+#nd-fwin .ndg.view .vv:hover{background:linear-gradient(180deg,rgba(255,253,250,.82),rgba(251,239,229,.66))!important;box-shadow:0 0 0 1.5px rgba(237,196,122,.85),0 0 12px rgba(255,214,160,.75)!important}
+#f-body.view .ef .el{font-weight:400!important;color:var(--il)!important}
+#f-body.view .ef .vv{min-height:44px!important;padding:2px 8px!important;background:none!important;box-shadow:none!important;font:700 30px/1.2 var(--cond)!important;color:var(--iv)!important;text-shadow:var(--ihalo)!important}
+#f-body.view .ef .vv.emp{color:var(--iadd)!important;font-style:normal!important;font-weight:700!important}
+#f-body.view .ef .vv:hover{background:linear-gradient(180deg,rgba(255,253,250,.82),rgba(251,239,229,.66))!important;box-shadow:0 0 0 1.5px rgba(237,196,122,.85),0 0 12px rgba(255,214,160,.75)!important}
+
+/* ---------- Полета за попълване: без кутийка – стойността стои на блока, отдолу тънка златна линия;
+   при посочване линията светва, при писане се показва стъкленото поле ---------- */
+#nd-fwin .ndg .in:not(.ta),.binfo .in,#f-body .ef .in:not(.ta){background:transparent!important;border:0!important;border-radius:0!important;
+  box-shadow:inset 0 -1.5px 0 rgba(200,150,100,.55)!important;padding-left:8px!important;font-weight:700!important;color:var(--iv)!important;text-shadow:var(--ihalo);transition:box-shadow .2s,background .2s,border-radius .2s}
+#nd-fwin .ndg .in:not(.ta):hover,.binfo .in:hover,#f-body .ef .in:not(.ta):hover{box-shadow:inset 0 -2.5px 0 #d9a95a!important}
+#nd-fwin .ndg .in:not(.ta):focus,.binfo .in:focus,#f-body .ef .in:not(.ta):focus{background:rgba(255,253,250,.96)!important;border-radius:14px!important;box-shadow:0 0 0 2px #d9a95a,0 0 12px rgba(217,169,90,.55)!important;text-shadow:none}
+#nd-fwin .ndg .in::placeholder,.binfo .in::placeholder,#f-body .ef .in::placeholder{color:var(--iadd)!important;opacity:.7;font-weight:400;font-style:italic}
+#nd-fwin .ndg select.in option,.binfo select.in option{font-weight:400;text-shadow:none}
+#nd-fwin .ndg .el,.binfo .lb{color:var(--il)!important}
+
+/* ---------- 5.1 Четимост на телефон: дребните надписи (7–9 px) стават по-едри, без да се мести оформлението ---------- */
+html:not(.desk) .nv span{font-size:20px!important;letter-spacing:-.3px}
+html:not(.desk) .nv .nvq{font-size:19px!important;min-width:30px;height:30px;line-height:30px}
+html:not(.desk) .hero-sub{font-size:24px!important;white-space:nowrap}
+html:not(.desk) label.fld .val{font-size:25px!important}
+html:not(.desk) .oc .oca,html:not(.desk) .oc .om span,html:not(.desk) .oc .om{font-size:26px!important}
+/* Начало */
+html:not(.desk) .act .tm{font-size:22px!important}
+html:not(.desk) .qa-row .qa{font-size:22px!important}
+html:not(.desk) .tx span{font-size:22px!important}
+html:not(.desk) .tx b{font-size:24px!important}
+html:not(.desk) .pillbtn,html:not(.desk) .linkbtn{font-size:23px!important}
+html:not(.desk) .daycard .d3,html:not(.desk) .daycard .d1{font-size:23px!important}
+html:not(.desk) .datepill span{font-size:23px!important}
+html:not(.desk) .metric span{font-size:23px!important}
+html:not(.desk) button.abs>p{font-size:23px!important}
+html:not(.desk) .ev .t,html:not(.desk) .ev .n{font-size:24px!important}
+/* Клиенти */
+html:not(.desk) .nm .knum{font-size:22px!important}
+html:not(.desk) .cpanel .nd-new{font-size:25px!important}
+html:not(.desk) .ccard .row{font-size:26px!important}
+/* Имоти */
+html:not(.desk) .tt .inum{font-size:24px!important}
+/* Календар */
+html:not(.desk) .kgrid .kg-h,html:not(.desk) .kg-h small,html:not(.desk) .kgrid .kg-t{font-size:24px!important}
+html:not(.desk) .kev span{font-size:20px!important}
+html:not(.desk) .kc-hint{font-size:22px!important}
+html:not(.desk) .ku small{font-size:25px!important}
+html:not(.desk) .kqa .kq{font-size:26px!important}
+/* Наеми */
+html:not(.desk) .r-st span{font-size:22px!important}
+html:not(.desk) .rpill{font-size:21px!important}
+/* Компании */
+html:not(.desk) .en span,html:not(.desk) .ek span{font-size:24px!important}
+html:not(.desk) .od-d p{font-size:25px!important}
+html:not(.desk) .od-c em,html:not(.desk) .od-c span,html:not(.desk) .od-c a{font-size:25px!important}
+/* Сделки и Договори */
+html:not(.desk) .cm-in small{font-size:24px!important}
+html:not(.desk) #nd-fwin .ndg .el{font-size:26px!important}
+html:not(.desk) .ct-btn{font-size:25px!important}
+/* Брокери */
+html:not(.desk) .tags .tg{font-size:23px!important}
+html:not(.desk) .bk .ti,html:not(.desk) .bk .rt{font-size:24px!important}
+html:not(.desk) .acts .ab{font-size:23px!important}
+/* Чат */
+html:not(.desk) .cpl small{font-size:20px!important}
+html:not(.desk) .cpl .dot{font-size:23px!important}
+
+/* ---------- 5.3 Плаващият бутон „Тед“ да не закрива последните редове: място за превъртане отдолу ---------- */
+html:not(.desk) #canvas.flowcv{padding-bottom:210px!important}
+html:not(.desk) #nd-fwin.inline .fcv{padding-bottom:150px}
+
+/* ---------- 5.4 Заглавията върху снимката в хедъра: по-силен тъмен ореол зад текста ---------- */
+.top .hero-title{text-shadow:0 2px 4px rgba(30,0,8,.85),0 0 18px rgba(30,0,8,.7),0 0 34px rgba(30,0,8,.45)!important}
+.top .hero-sub{text-shadow:0 1px 3px rgba(20,0,6,.95),0 0 10px rgba(30,0,8,.85),0 0 22px rgba(30,0,8,.6)!important}

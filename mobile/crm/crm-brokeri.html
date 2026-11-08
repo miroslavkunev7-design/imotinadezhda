@@ -720,6 +720,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
+<link rel="stylesheet" href="crm-info.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1085,8 +1086,8 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     var s=sort.value;list.sort(function(a,b){return s==='name'?a.name.localeCompare(b.name,'bg'):s==='deals'?b.deals-a.deals:b.rating-a.rating||b.reviews-a.reviews});
     $('bgrid').innerHTML=list.length?list.map(function(b){
       return '<article class="bk'+(b.active?'':' off')+'" tabindex="0" data-id="'+b.id+'" aria-label="Карта на брокер '+esc(b.name)+'">'+
-        '<span class="pt" style="background-image:url('+img(b.thumb||b.photo)+')"></span>'+
-        '<h3 class="nm">'+esc(b.name)+'</h3><p class="ti">'+esc(b.title)+'</p>'+
+        '<span class="pt" style="background-image:url('+img(b.thumb||b.photo||'avatar.jpg')+')"></span>'+
+        '<h3 class="nm">'+esc(b.name)+'</h3><p class="ti">'+esc(b.title||b.pos||b.role||'Брокер')+'</p>'+
         '<p class="rt">'+stars(b.rating)+b.rating.toFixed(1)+' ('+b.reviews+')</p>'+
         '<div class="tags">'+(b.sales?'<span class="tg">'+ic('house')+'Продажби</span>':'')+(b.rent?'<span class="tg">'+ic('key-round')+'Наеми</span>':'')+'</div>'+
         '<button class="hrt'+(favs[b.id]?' on':'')+'" data-fav="'+b.id+'" aria-pressed="'+!!favs[b.id]+'" aria-label="Любим брокер">'+ic('heart')+'</button>'+
@@ -1110,9 +1111,9 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   function ck(name,val,label,on){return '<label class="ck"><input type="checkbox" name="'+name+'" value="'+esc(val)+'"'+(on?' checked':'')+'><b>'+ic('check')+'</b>'+esc(label)+'</label>'}
   function paint(){
     var d=draft;
-    $('bm-name').textContent=d.name;$('bm-title').textContent=d.title;
+    $('bm-name').textContent=d.name;$('bm-title').textContent=d.title||d.pos||d.role||'Брокер';
     $('bm-rate').innerHTML=stars(d.rating)+d.rating.toFixed(1)+' ('+d.reviews+')';
-    $('bm-photo').src=d.photoURL||img(d.photo);$('bm-photo').alt=d.name;
+    $('bm-photo').src=d.photoURL||img(d.photo||d.thumb||'avatar.jpg');$('bm-photo').onerror=function(){this.onerror=null;this.src=img('avatar.jpg')};$('bm-photo').alt=d.name;
     var tel=$('bm-tel');tel.href='tel:'+d.phone.replace(/\s/g,'');tel.querySelector('span').textContent=d.phone;
     var m=$('bm-mail');m.href='mailto:'+d.email;m.querySelector('span').textContent=d.email;$('bm-office-t').textContent='Офис '+d.office;
     $('bm-status').value=d.active?'Активен':'Неактивен';$('bm-stat-t').textContent=$('bm-status').value;$('bm-statw').classList.toggle('off',!d.active);

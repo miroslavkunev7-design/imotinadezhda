@@ -878,6 +878,7 @@ html.desk .fwin .mscroll{overflow:hidden}
 .m-files button{font-size:22px;color:#8c0d22}
 #f-file{padding:8px 12px;font:400 22px/1.2 var(--cond);color:#6b4a40}#f-file::file-selector-button{margin-right:16px;height:46px;padding:0 22px;border-radius:23px;border:2px solid #edc47a;color:#fff3dc;font:400 22px/1 var(--cond);background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);box-shadow:0 0 10px rgba(255,190,120,.6);cursor:pointer}
 </style>
+<link rel="stylesheet" href="crm-info.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1167,7 +1168,7 @@ html.desk .fwin .mscroll{overflow:hidden}
       return '<article class="oc'+(m.id===sel?' on':'')+(m.folder==='in'&&!m.read?' un':'')+'" tabindex="0" data-id="'+esc(m.id)+'" aria-label="'+esc(m.subject||'')+'">'+
         '<span class="op" style="background-image:url('+img('field-email.webp')+')"></span><span class="oi">'+ic(m.folder==='sent'?'arrow-r':'mail')+'</span>'+
         '<h3 class="on2">'+esc(who(m))+'</h3><p class="oca">'+esc(m.subject||'(без тема)')+'</p>'+
-        '<p class="om"><span>'+ic('clock')+esc(when(m.at))+'</span>'+(na?'<i></i><span class="att">'+ic('file-text')+na+(na===1?' файл':' файла')+'</span>':'')+(m.answered?'<i></i><span>'+ic('check')+'Отговорено</span>':'')+'</p>'+
+        '<p class="om"><span>'+ic('clock')+esc(when(m.at||m._created))+'</span>'+(na?'<i></i><span class="att">'+ic('file-text')+na+(na===1?' файл':' файла')+'</span>':'')+(m.answered?'<i></i><span>'+ic('check')+'Отговорено</span>':'')+'</p>'+
         '<span class="ar">'+ic('chev-r')+'</span></article>'}).join('')
       :'<div class="empty">'+(folder==='sent'?'Още няма изпратени писма от пощата.':'Няма писма. Писмата до '+esc(MAILBOX)+' идват тук автоматично.')+'</div>';
     sizeCards();
@@ -1182,7 +1183,7 @@ html.desk .fwin .mscroll{overflow:hidden}
         '<button type="button" data-del aria-label="Изтрий писмото" title="Изтрий">'+ic('trash-2')+'</button>'+
         '<button type="button" data-collapse aria-label="Свий" title="Свий">'+ic('chevron-up')+'</button></header>'+
       '<div class="od-info"><span class="od-ph" style="background-image:url('+img('field-email.webp')+')"></span>'+
-        '<div class="od-c">'+row('user-round',(m.from_name?m.from_name+' ':'')+'<'+m.from+'>',m.folder==='in'?'mailto:'+m.from:'')+row('mail','До: '+(m.to||[]).join(', '))+((m.cc||[]).length?row('users','Копие: '+m.cc.join(', ')):'')+row('clock',when(m.at))+'</div>'+
+        '<div class="od-c">'+row('user-round',(m.from_name?m.from_name+' ':'')+'<'+m.from+'>',m.folder==='in'?'mailto:'+m.from:'')+row('mail','До: '+(m.to||[]).join(', '))+((m.cc||[]).length?row('users','Копие: '+m.cc.join(', ')):'')+row('clock',when(m.at||m._created))+'</div>'+
         '<div class="od-d">'+ic('file-text')+'<b>Прикачени файлове ('+files.length+')</b><div class="m-files">'+(files.length?files.map(function(a,i){return '<span>'+ic('file-text')+esc(a.name)+' · '+kb(a.size)+' <button type="button" data-file="'+i+'">Отвори</button></span>'}).join(''):'<p>Няма</p>')+'</div></div></div>'+
       '<div class="od-eh">'+ic('book-open')+'<h3>Писмо</h3></div><div class="od-mail">'+body+'</div>'+
       (m.folder==='in'?'<div class="od-acts"><button type="button" class="hot" data-reply>'+ic('message-square')+'Отговори</button><button type="button" data-fwd>'+ic('share-2')+'Препрати</button></div>':'');
@@ -1231,11 +1232,11 @@ html.desk .fwin .mscroll{overflow:hidden}
   var fwin=$('fwin'),fback=$('fback'),fcv=$('fcv'),fscroll=$('fscroll'),ffull=false,flast=null,ctx=null,outFiles=[];
   function fld(id,label,icon,val,type,wide,ph){return '<div class="ef'+(wide?' wide':'')+'"><label class="el" for="'+id+'">'+ic(icon)+label+'</label>'+
     (type==='ta'?'<textarea class="in ta" id="'+id+'" placeholder="'+esc(ph||'')+'" style="min-height:300px">'+esc(val)+'</textarea>':'<input class="in" id="'+id+'" type="'+(type||'text')+'" value="'+esc(val)+'" placeholder="'+esc(ph||'')+'">')+'</div>'}
-  function quote(m){return '\n\n\n— На '+when(m.at)+' '+(m.from_name||m.from)+' написа:\n'+String(m.text||'').split('\n').map(function(l){return '> '+l}).join('\n')}
+  function quote(m){return '\n\n\n— На '+when(m.at||m._created)+' '+(m.from_name||m.from)+' написа:\n'+String(m.text||'').split('\n').map(function(l){return '> '+l}).join('\n')}
   function openF(kind,m){
     ctx={kind:kind,m:m||null};flast=document.activeElement;$('f-err').textContent='';outFiles=[];
     var to=kind==='reply'?(m.reply_to&&m.reply_to[0]||m.from):'',subj=kind==='reply'?'Re: '+String(m.subject||'').replace(/^(re|отг):\s*/i,''):kind==='fwd'?'Fwd: '+(m.subject||''):'';
-    var text=kind==='reply'?quote(m):kind==='fwd'?'\n\n— Препратено писмо —\nОт: '+(m.from_name?m.from_name+' ':'')+'<'+m.from+'>\nДата: '+when(m.at)+'\nТема: '+(m.subject||'')+'\n\n'+(m.text||''):'';
+    var text=kind==='reply'?quote(m):kind==='fwd'?'\n\n— Препратено писмо —\nОт: '+(m.from_name?m.from_name+' ':'')+'<'+m.from+'>\nДата: '+when(m.at||m._created)+'\nТема: '+(m.subject||'')+'\n\n'+(m.text||''):'';
     if(kind==='fwd')outFiles=(m.attachments||[]).filter(function(a){return !a.inline}).map(function(a){return {name:a.name,path:a.path,mime:a.mime,size:a.size}});
     $('f-title').textContent=kind==='reply'?'Отговор':kind==='fwd'?'Препращане':'Ново писмо';
     $('f-photo').style.backgroundImage='url('+img('co-desc.jpg')+')';

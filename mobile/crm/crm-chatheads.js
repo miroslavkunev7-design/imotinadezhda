@@ -72,14 +72,15 @@
     var hid = ls(HID) || {};
     var list = chats.filter(function (c) { var d = c.data || {}; return c.id === openId || ((+d.unread || 0) > 0 && hid[c.id] !== (c.last_at || d.last_at)); }).slice(0, 4);
     if (!list.length) { box.hidden = true; box.innerHTML = ""; return; }
-    var wasHidden = box.hidden;
     box.innerHTML = list.map(function (c) {
       var d = c.data || {}, n = +d.unread || 0, p = c.platform === "whatsapp" || c.platform === "instagram" ? c.platform : "messenger";
       return '<button type="button" class="nch-h' + (c.id === openId ? " open" : "") + '" data-id="' + esc(c.id) + '" data-at="' + esc(c.last_at || d.last_at || "") + '" aria-label="' + esc(nameOf(c)) + " – " + n + ' нови съобщения">' + esc(initials(nameOf(c))) +
         '<span class="pl">' + LOGO[p] + '</span>' + (n ? '<span class="n">' + (n > 99 ? "99+" : n) + '</span>' : "") + '<span class="tip"><b>' + esc(nameOf(c)) + "</b>" + esc(String(d.last_text || "📎 Файл").slice(0, 80)) + "</span></button>";
     }).join("");
     box.hidden = false; place(); placeWin();
-    if (wasHidden) { box.classList.add("peek"); setTimeout(function () { box.classList.remove("peek"); }, 3500); }
+    /* надписът до балончето излиза само при ново съобщение, не при всяко отваряне на страница */
+    var newest = list.reduce(function (a, c) { var t = String(c.last_at || (c.data || {}).last_at || ""); return t > a ? t : a; }, ""), seenAt = ls("nd-chatheads-seen") || "";
+    if (newest && newest > seenAt) { ls("nd-chatheads-seen", newest); box.classList.add("peek"); setTimeout(function () { box.classList.remove("peek"); }, 3500); }
   }
 
   /* плъзгане: местене на целия куп, залепване за ляв/десен ръб, ✕ за скриване */

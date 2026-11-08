@@ -942,6 +942,7 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
+<link rel="stylesheet" href="crm-info.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1462,7 +1463,7 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     if(!id)setTimeout(function(){$('f-name').focus({preventScroll:true})},80);
   }
   function fView(on){var b=$('f-body');b.classList.toggle('view',on);if(!on)return;
-    [].forEach.call(b.querySelectorAll('.ef'),function(ef){ef.classList.remove('editing');var t=window.NDUI&&window.NDUI.valText?window.NDUI.valText(ef):null;if(t===null)return;var v=ef.querySelector('.vv');if(!v){v=document.createElement('div');v.className='vv';ef.appendChild(v)}v.textContent=t||'—';v.classList.toggle('emp',!t)})}
+    [].forEach.call(b.querySelectorAll('.ef'),function(ef){ef.classList.remove('editing');var t=window.NDUI&&window.NDUI.valText?window.NDUI.valText(ef):null;if(t===null)return;var v=ef.querySelector('.vv');if(!v){v=document.createElement('div');v.className='vv';ef.appendChild(v)}v.textContent=t||'+ добави';v.classList.toggle('emp',!t)})}
   $('f-body').addEventListener('click',function(e){var v=e.target.closest('.vv');if(!v)return;e.preventDefault();var ef=v.closest('.ef');ef.classList.add('editing');var c=ef.querySelector('.in');if(c)setTimeout(function(){c.focus({preventScroll:true})},20);fitF()});
   function closeF(){fwin.classList.remove('show');fback.classList.remove('show');root.classList.remove('locked');
     setTimeout(function(){fwin.hidden=true;fback.hidden=true;setFFull(false)},230);if(flast&&flast.focus&&document.contains(flast))flast.focus({preventScroll:true})}

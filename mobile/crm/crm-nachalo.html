@@ -196,6 +196,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 </style>
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
+<link rel="stylesheet" href="crm-info.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -539,7 +540,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       b.querySelector('.t').textContent=label?U.bgDate(e.date+'T00:00').slice(0,5):(e.from||'');b.querySelector('.n').textContent=e.title||'';
       b.querySelector('.c').textContent=e.client||(e.prop||'').split('·').pop().trim();link(b,'crm-kalendar.html#d='+e.date)});
     /* latest activity: client log + property log */
-    var all=ac.map(function(a){return {t:a.at,b:a.text,s:a.client||'',go:a.client_id?'crm-klienti.html#'+a.client_id:'crm-klienti.html'}});
+    var all=ac.map(function(a){return {t:a.at||a._created||a._updated,b:a.text,s:a.client||'',go:a.client_id?'crm-klienti.html#'+a.client_id:'crm-klienti.html'}});
     pr.forEach(function(p){(p.log||[]).forEach(function(l){all.push({t:l.at,b:l.text,s:(p.title||'')+(p.price?' – € '+new Intl.NumberFormat('fr-FR').format(p.price).replace(/\u202f|\u00a0/g,' '):''),go:'crm-imoti.html#'+p.id})})});
     all.sort(function(a,b){return String(b.t).localeCompare(String(a.t))});
     acts.forEach(function(b,i){var a=all[i];b.style.visibility='';

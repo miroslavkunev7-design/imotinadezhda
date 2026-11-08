@@ -309,7 +309,7 @@
     [].forEach.call(g.querySelectorAll(".ef"), function (ef) {
       var t = valText(ef); if (t === null) return; any = true;
       var v = ef.querySelector(".vv"); if (!v) { v = document.createElement("div"); v.className = "vv"; ef.appendChild(v); }
-      v.textContent = t || "—"; v.classList.toggle("emp", !t);
+      v.textContent = t || "+ добави"; v.classList.toggle("emp", !t);
     });
     if (any) { g.classList.add("view"); g.classList.remove("editing"); }
     return any;
@@ -602,8 +602,10 @@
   (function () {
     var box = null, sel = null, items = [], hl = -1;
     function fine() { return matchMedia("(pointer:fine)").matches && !matchMedia("(max-width:768px)").matches; }
-    function closeMenu() { if (box) { box.remove(); box = null; } if (sel) { sel.classList.remove("ndm-open"); } sel = null; items = []; hl = -1; document.removeEventListener("pointerdown", onDoc, true); window.removeEventListener("resize", closeMenu); window.removeEventListener("scroll", closeMenu, true); }
+    function closeMenu() { if (box) { box.remove(); box = null; } if (sel) { sel.classList.remove("ndm-open"); } sel = null; items = []; hl = -1; document.removeEventListener("pointerdown", onDoc, true); window.removeEventListener("resize", closeMenu); window.removeEventListener("scroll", onScroll, true); }
     function onDoc(e) { if (box && !box.contains(e.target) && e.target !== sel) closeMenu(); }
+    /* превъртането вътре в самото меню (дълги списъци) не го затваря */
+    function onScroll(e) { if (box && e.target && e.target.nodeType === 1 && box.contains(e.target)) return; closeMenu(); }
     function place(anchor) {
       var r = anchor.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, w = Math.max(220, Math.min(r.width, 420)), h = box.offsetHeight;
       var left = Math.min(Math.max(8, r.left), vw - w - 8), below = vh - r.bottom - 10, top;
@@ -632,7 +634,7 @@
       var qi = box.querySelector(".ndm-q input"); if (qi) { qi.addEventListener("input", function () { render(qi.value); }); }
       place(anchor); var on = box.querySelector("button.on"); if (on) on.scrollIntoView({ block: "center" });
       setTimeout(function () { (qi || box.querySelector("button")) && (qi || box.querySelector("button")).focus({ preventScroll: true }); }, 0);
-      document.addEventListener("pointerdown", onDoc, true); window.addEventListener("resize", closeMenu); window.addEventListener("scroll", closeMenu, true);
+      document.addEventListener("pointerdown", onDoc, true); window.addEventListener("resize", closeMenu); window.addEventListener("scroll", onScroll, true);
     }
     function keys(e) {
       var bs = box.querySelectorAll("button[data-i]"); if (!bs.length) return;
@@ -653,4 +655,96 @@
     window.NDMenuClose = closeMenu;
   })();
   window.NDUI = { inlineHost: setInlineHost, detachInline: detachInline, viewGroup: viewGroup, editGroup: editGroup, viewAll: viewAll, valText: valText, commHtml: commHtml, commBind: commBind, commSave: commSave, commTotal: commTotal, calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
+})();
+
+/* ---------- 5.9 Дати: навсякъде дд.мм.гггг и стъклен календар на български (вместо системния mm/dd/yyyy) ----------
+   Полето остава <input type="date"> със същата стойност (гггг-мм-дд) за кода; показва се само български вид. */
+(function () {
+  "use strict";
+  if (window.NDDate) return;
+  var MON = ["Януари", "Февруари", "Март", "Април", "Май", "Юни", "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември"];
+  var DOW = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+  var css =
+    ".nd-dw{position:relative;display:block;min-width:0}" +
+    ".nd-dw>input[type=date]{color:transparent!important;-webkit-text-fill-color:transparent;caret-color:transparent;cursor:pointer}" +
+    ".nd-dw>input[type=date]::-webkit-calendar-picker-indicator{opacity:0;cursor:pointer}" +
+    ".nd-dw>input[type=date]::-webkit-datetime-edit{opacity:0}" +
+    ".nd-dw>.nd-dv{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;gap:10px;padding:0 16px 0 10px;pointer-events:none;font:inherit;font-family:var(--cond,'Roboto Condensed',Arial,sans-serif);color:#1f1111;white-space:nowrap;overflow:hidden}" +
+    ".nd-dw>.nd-dv b{font-weight:700}.nd-dw>.nd-dv em{font-style:italic;color:#8c0d22;opacity:.75}" +
+    ".nd-dw>.nd-dv svg{flex:none;width:1.05em;height:1.05em;margin-left:auto;color:#7b1020}" +
+    "#nd-cal{position:fixed;z-index:9999;width:300px;padding:12px;border-radius:22px;font-family:'Roboto Condensed',Arial,sans-serif;color:#1f1111;user-select:none;" +
+    "background:linear-gradient(180deg,rgba(255,250,244,.98),rgba(252,238,226,.98));box-shadow:0 0 0 1.5px rgba(226,176,120,.7),0 0 22px rgba(255,214,160,.9),0 16px 34px rgba(80,20,10,.32);animation:ndCalIn .16s ease}" +
+    "@keyframes ndCalIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}" +
+    "#nd-cal .h{display:flex;align-items:center;gap:6px;margin:0 0 8px;padding:6px 6px;border-radius:14px;color:#fff3dc;background:linear-gradient(100deg,#55071a,#8d1530 55%,#6a0c1f);box-shadow:inset 0 2px 3px rgba(255,170,180,.4),0 2px 0 #e6b866}" +
+    "#nd-cal .h b{flex:1;text-align:center;font:700 17px/1 Georgia,'PT Serif',serif}" +
+    "#nd-cal .h button{width:32px;height:32px;border:0;border-radius:50%;background:none;color:#fff3dc;font-size:20px;cursor:pointer}#nd-cal .h button:hover{background:rgba(255,255,255,.14)}" +
+    "#nd-cal .g{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}" +
+    "#nd-cal .g i{font:700 12px/24px inherit;font-style:normal;text-align:center;color:#6b0a1c}" +
+    "#nd-cal .g button{height:36px;border:0;border-radius:12px;background:none;font:400 15px/1 inherit;color:#1f1111;cursor:pointer}" +
+    "#nd-cal .g button:hover{background:#f6e6d6}#nd-cal .g button.o{color:#b9a49b}" +
+    "#nd-cal .g button.t{box-shadow:inset 0 0 0 1.5px #d9a95a;font-weight:700}" +
+    "#nd-cal .g button.s{color:#fff;font-weight:700;background:linear-gradient(180deg,#a3213a,#6a0a1d);box-shadow:0 0 0 1.5px #edc47a,0 0 10px rgba(255,190,120,.7)}" +
+    "#nd-cal .f{display:flex;gap:8px;margin-top:10px}" +
+    "#nd-cal .f button{flex:1;height:36px;border-radius:18px;border:1.5px solid #e3b25e;background:linear-gradient(180deg,#fffcf9,#fbefe5);color:#6b0a1c;font:700 14px/1 inherit;cursor:pointer}" +
+    "#nd-cal .f button.p{color:#fff3dc;border-color:#edc47a;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716)}";
+  var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+  var ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>';
+  var D = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+  var p2 = function (n) { return (n < 10 ? "0" : "") + n; };
+  var iso = function (d) { return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()); };
+  function bg(v) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); return m ? m[3] + "." + m[2] + "." + m[1] : ""; }
+  function show(inp) {
+    var dv = inp._ndv; if (!dv) return; var v = D.get.call(inp), t = bg(v);
+    dv.innerHTML = (t ? "<b>" + t + "</b>" : "<em>" + (inp.getAttribute("placeholder") || "дд.мм.гггг") + "</em>") + ICO;
+  }
+  function wire(inp) {
+    if (inp._ndw || inp.type !== "date") return; inp._ndw = 1;
+    if (inp.readOnly || inp.disabled) inp.dataset.ndlock = "1"; else inp.readOnly = true; /* спира системния календар на телефона */
+    var w = document.createElement("span"); w.className = "nd-dw";
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+    var dv = document.createElement("span"); dv.className = "nd-dv"; w.appendChild(dv); inp._ndv = dv;
+    try { Object.defineProperty(inp, "value", { configurable: true, get: function () { return D.get.call(this); }, set: function (v) { D.set.call(this, v); show(this); } }); } catch (e) {}
+    inp.addEventListener("input", function () { show(inp); }); inp.addEventListener("change", function () { show(inp); });
+    var cs = getComputedStyle(inp); dv.style.fontSize = cs.fontSize;
+    show(inp);
+  }
+  var cal = null, cur = null, view = null;
+  function close() { if (cal) { cal.remove(); cal = null; } cur = null; document.removeEventListener("pointerdown", onDoc, true); window.removeEventListener("resize", close); }
+  function onDoc(e) { if (cal && !cal.contains(e.target) && !(cur && cur.parentNode && cur.parentNode.contains(e.target))) close(); }
+  function setVal(v) { var i = cur; if (!i) return; i.value = v; i.dispatchEvent(new Event("input", { bubbles: true })); i.dispatchEvent(new Event("change", { bubbles: true })); close(); }
+  function draw() {
+    var y = view.getFullYear(), m = view.getMonth(), first = new Date(y, m, 1), start = (first.getDay() + 6) % 7, today = iso(new Date()), sel = cur ? D.get.call(cur) : "";
+    var h = '<div class="h"><button type="button" data-n="-1" aria-label="Предишен месец">‹</button><b>' + MON[m] + " " + y + '</b><button type="button" data-n="1" aria-label="Следващ месец">›</button></div><div class="g">' + DOW.map(function (d) { return "<i>" + d + "</i>"; }).join("");
+    for (var k = 0; k < 42; k++) { var d = new Date(y, m, 1 - start + k), v = iso(d); h += '<button type="button" data-v="' + v + '" class="' + (d.getMonth() !== m ? "o " : "") + (v === today ? "t " : "") + (v === sel ? "s" : "") + '">' + d.getDate() + "</button>"; }
+    h += '</div><div class="f"><button type="button" data-c>Изчисти</button><button type="button" class="p" data-v="' + today + '">Днес</button></div>';
+    cal.innerHTML = h;
+  }
+  function open(inp) {
+    close(); cur = inp; var v = D.get.call(inp), m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); view = m ? new Date(+m[1], +m[2] - 1, 1) : new Date(); view.setDate(1);
+    cal = document.createElement("div"); cal.id = "nd-cal"; cal.setAttribute("role", "dialog"); cal.setAttribute("aria-label", "Избор на дата"); document.body.appendChild(cal); draw();
+    var r = (inp.parentNode || inp).getBoundingClientRect(), W = 300, H = cal.offsetHeight, left = Math.min(Math.max(8, r.left), innerWidth - W - 8), top = r.bottom + 6;
+    if (top + H > innerHeight - 8) top = Math.max(8, r.top - H - 6);
+    cal.style.left = left + "px"; cal.style.top = top + "px";
+    cal.addEventListener("click", function (e) {
+      var n = e.target.closest("[data-n]"); if (n) { view.setMonth(view.getMonth() + (+n.getAttribute("data-n"))); draw(); return; }
+      var b = e.target.closest("[data-v]"); if (b) { setVal(b.getAttribute("data-v")); return; }
+      if (e.target.closest("[data-c]")) setVal("");
+    });
+    setTimeout(function () { document.addEventListener("pointerdown", onDoc, true); window.addEventListener("resize", close); }, 0);
+  }
+  function scan(root) { [].forEach.call((root || document).querySelectorAll('input[type="date"]'), wire); }
+  document.addEventListener("click", function (e) {
+    var w = e.target.closest && e.target.closest(".nd-dw"); if (!w) return; var inp = w.querySelector('input[type="date"]'); if (!inp || inp.disabled || inp.dataset.ndlock) return;
+    e.preventDefault(); if (cal && cur === inp) { close(); return; } open(inp);
+  }, true);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && cal) { close(); return; }
+    var t = e.target; if (t && t.type === "date" && t._ndw && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(t); }
+  }, true);
+  /* при отваряне на системния календар (мобилни браузъри) – спираме го, показваме нашия */
+  document.addEventListener("mousedown", function (e) { var t = e.target; if (t && t.type === "date" && t._ndw) e.preventDefault(); }, true);
+  var mo = new MutationObserver(function (ms) { for (var i = 0; i < ms.length; i++) for (var j = 0; j < ms[i].addedNodes.length; j++) { var n = ms[i].addedNodes[j]; if (n.nodeType === 1) { if (n.type === "date") wire(n); else if (n.querySelector) scan(n); } } });
+  function boot() { scan(document); mo.observe(document.body, { childList: true, subtree: true }); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+  window.NDDate = { open: open, scan: scan };
 })();

@@ -952,6 +952,7 @@ html.mini .c-hint{margin:10px 10px 0}
 html.mini .c-comp{position:static;margin:10px}
 html.mini .cb{max-width:84%}
 </style>
+<link rel="stylesheet" href="crm-info.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1162,7 +1163,7 @@ html.mini .cb{max-width:84%}
     d.innerHTML='<svg width="0" height="0"><defs><linearGradient id="cmg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0866FF"/><stop offset=".6" stop-color="#A033FF"/><stop offset="1" stop-color="#FF5C87"/></linearGradient><linearGradient id="cig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".35" stop-color="#FA7E1E"/><stop offset=".6" stop-color="#D62976"/><stop offset=".85" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs></svg>';document.body.appendChild(d)})();
   var PL=[{id:'all',label:'Всички'},{id:'whatsapp',label:'WhatsApp'},{id:'messenger',label:'Messenger'},{id:'instagram',label:'Instagram'}];
   var plabel=function(p){return p==='whatsapp'?'WhatsApp':p==='instagram'?'Instagram':'Messenger'};
-  var chats=[],msgs=[],plat='all',sel=null,drafts={},errs={};
+  var chats=[],msgs=[],plat='all',sel=null,drafts={},errs={},loadedFor=null;
   var p2=function(x){return (x<10?'0':'')+x};
   var when=function(s){if(!s)return '';var d=new Date(s),n=new Date();
     if(d.toDateString()===n.toDateString())return p2(d.getHours())+':'+p2(d.getMinutes());
@@ -1264,7 +1265,7 @@ html.mini .cb{max-width:84%}
         (d.phone?'<a href="tel:'+esc(d.phone)+'">'+ic('phone')+esc(d.phone)+'</a>':'')+
         '<span>'+ic('message-square')+esc(plabel(c.platform))+'</span>'+(d.link?'<a href="'+esc(d.link)+'" target="_blank" rel="noopener">'+ic('link')+'Отвори в '+(c.platform==='whatsapp'?'WhatsApp':'Meta')+'</a>':'')+'</div>'+
       (d.client_id?'':'<div class="c-hint">Отговаряте <b>ръчно</b> – Тед не пише на клиентите. За да запишете човека в CRM, кажете на Тед: <b>„Запиши клиент '+esc(d.name||'…')+' и добави изпратените от него документи в картата му“</b>.</div>')+
-      '<div class="c-msgs" id="c-msgs">'+(h||'<div class="c-empty">Зареждане…</div>')+'</div>'+
+      '<div class="c-msgs" id="c-msgs">'+(h||'<div class="c-empty">'+(loadedFor===c.id?'Още няма съобщения в този разговор.':'Зареждане…')+'</div>')+'</div>'+
       '<div class="c-err" id="c-err" role="alert"></div>'+
       '<form class="c-comp" id="c-comp"><span class="c-ta"><textarea id="c-text" rows="1" placeholder="Напишете отговор до '+esc(cname(c))+'…" aria-label="Отговор"></textarea></span>'+
         '<button type="submit" class="c-send" id="c-send">'+ic('arrow-r')+'Изпрати</button></form>';
@@ -1276,7 +1277,7 @@ html.mini .cb{max-width:84%}
     if(desk||MINI)m.scrollTop=m.scrollHeight;else setTimeout(function(){var f=$('c-comp');if(f)f.scrollIntoView({block:'end'})},30)}
   function loadMsgs(id){
     return ND.sb().from('nd_chat_msgs').select('id,data,at').eq('chat_id',id).order('at',{ascending:true}).limit(1000).then(function(r){
-      if(r.error)throw r.error;if(sel!==id)return;msgs=r.data||[];renderDet();
+      if(r.error)throw r.error;if(sel!==id)return;msgs=r.data||[];loadedFor=id;renderDet();
     });
   }
   function markRead(c){var d=c.data||{};if(!(+d.unread))return;d.unread=0;renderRail();renderList();
