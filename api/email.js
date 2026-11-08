@@ -91,7 +91,56 @@ function friendly(e) { const m = String((e && e.message) || e);
   }
   if (/Invalid greeting|Sorry, not allowed|554 5\.7\.1/i.test(m)) return "ABV не позволява изпращане от сървъри (отказва връзката още преди паролата). Изберете за изпращане Gmail поща с „парола за приложение“ – писмата стигат нормално и до ABV адреси. Получателите може да са в ABV."; if (/535|auth|credentials|Invalid login|Username and Password/i.test(m)) return "Пощата отказа входа – проверете адреса и паролата (за ABV: паролата на пощата или парола за приложения при двустепенна защита; за Gmail/Outlook/Yahoo трябва парола за приложение)."; if (/ECONNREFUSED|ETIMEDOUT|ENOTFOUND|timeout|Greeting/i.test(m)) return "Няма връзка със SMTP сървъра – проверете host/port."; if (/550|553|554|5\.7\.|spam|rejected/i.test(m)) return "Пощенският сървър отказа писмото: " + m.slice(0, 160); return m.slice(0, 200); }
 
+/* ---------- Поща (входяща кутия на office@imotinadezhda.bg) ----------
+   Resend получава писмата (MX на домейна) → webhook „email.received“ към /api/email?hook=resend → писмото се взима от Resend API
+   по id (така webhook-ът не може да бъде подправен) → nd_mail + прикачените в nd-files/mail/<id>/. Страницата „Поща“ чете nd_mail. */
+const MAILBOX = () => process.env.MAIL_FROM || "office@imotinadezhda.bg";
+const MAIL_T = SB_URL + "/rest/v1/nd_mail";
+const srH = () => ({ apikey: SR(), Authorization: "Bearer " + SR(), "Content-Type": "application/json" });
+async function mailRow(id) { const r = await fetch(MAIL_T + "?id=eq." + encodeURIComponent(id) + "&select=id,data", { headers: srH() }); const j = await r.json().catch(() => []); return Array.isArray(j) && j[0] ? j[0] : null; }
+async function mailPut(id, data) { const r = await fetch(MAIL_T, { method: "POST", headers: Object.assign(srH(), { Prefer: "resolution=merge-duplicates" }), body: JSON.stringify({ id, data }) }); if (!r.ok) throw new Error("Пощата не се записа (" + r.status + "): " + (await r.text()).slice(0, 160)); }
+async function storePut(path, buf, mime) { const r = await fetch(SB_URL + "/storage/v1/object/nd-files/" + path.split("/").map(encodeURIComponent).join("/"), { method: "POST", headers: { apikey: SR(), Authorization: "Bearer " + SR(), "Content-Type": mime || "application/octet-stream", "x-upsert": "true" }, body: buf }); if (!r.ok) throw new Error("Файлът не се качи (" + r.status + ")"); return path; }
+const safeFile = (n) => String(n || "file").replace(/[\\/:*?"<>|#%\r\n]+/g, "_").slice(0, 120) || "file";
+const addrOf = (v) => { const m = String(v || "").match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/); return m ? { name: m[1].trim(), email: m[2].trim() } : { name: "", email: String(v || "").trim() }; };
+/* изтегля едно получено писмо от Resend и го записва (идемпотентно – вече записано не се тегли отново) */
+async function syncReceived(cfg, rid) {
+  const id = "rs_" + String(rid).replace(/[^A-Za-z0-9-]/g, "");
+  const old = await mailRow(id); if (old) return { id, fresh: false };
+  const e = await rs(cfg.pass, "/emails/receiving/" + encodeURIComponent(rid));
+  const fromH = addrOf((e.headers && e.headers.from) || e.from);
+  const atts = [];
+  if (Array.isArray(e.attachments) && e.attachments.length) {
+    const list = await rs(cfg.pass, "/emails/receiving/" + encodeURIComponent(rid) + "/attachments?limit=100").catch(() => ({ data: [] }));
+    for (const a of (list.data || []).slice(0, 30)) {
+      if (!a.download_url) continue;
+      try {
+        const r = await fetch(a.download_url); if (!r.ok) continue;
+        const buf = Buffer.from(await r.arrayBuffer()); if (buf.length > 20 * 1048576) continue;
+        const path = await storePut("mail/" + id + "/" + safeFile(a.filename), buf, a.content_type);
+        atts.push({ name: a.filename || "file", path, size: buf.length, mime: a.content_type || "", inline: a.content_disposition === "inline", cid: a.content_id || null });
+      } catch (x) { logErr("mail-att", cfg, x); }
+    }
+  }
+  const data = { folder: "in", read: false, resend_id: rid, message_id: e.message_id || null, from: fromH.email || e.from, from_name: fromH.name || "", to: e.to || [], cc: e.cc || [], reply_to: e.reply_to || [], subject: e.subject || "(без тема)",
+    text: String(e.text || "").slice(0, 200000), html: String(e.html || "").slice(0, 600000), at: e.created_at || new Date().toISOString(), attachments: atts, auth: e.authentication || null };
+  await mailPut(id, data);
+  return { id, fresh: true };
+}
+async function syncInbox(cfg) {
+  const l = await rs(cfg.pass, "/emails/receiving?limit=50"); let n = 0;
+  for (const e of (l.data || [])) { try { if ((await syncReceived(cfg, e.id)).fresh) n++; } catch (x) { logErr("mail-sync", cfg, x); } }
+  return n;
+}
+const RESTRICTED = (e) => /restricted|only send|401/i.test(String(e && (e.code + " " + e.message)));
+
 module.exports = async (req, res) => {
+  /* webhook от Resend (без вход): само сигнал „дойде писмо X“ – съдържанието се взима от Resend с нашия ключ */
+  if (req.method === "POST" && /[?&]hook=resend\b/.test(req.url || "")) {
+    let ev = {}; try { ev = await readBody(req); } catch (e) {}
+    try { const cfg = await agencyCfg(); const rid = ev && ev.data && (ev.data.email_id || ev.data.id); if (ev.type === "email.received" && rid && isDomain(cfg)) await syncReceived(cfg, rid); }
+    catch (e) { logErr("mail-hook", null, e); }
+    return send(res, 200, { ok: true });
+  }
   if (req.method !== "POST") return send(res, 405, { ok: false, error: "POST only" });
   const auth = String(req.headers["authorization"] || ""), token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   const user = token ? await staff(token).catch(() => null) : null;
@@ -124,6 +173,40 @@ module.exports = async (req, res) => {
         catch (e) { logErr("test-send", cfg, e); return send(res, 200, { ok: false, error: "Връзката е успешна, но писмото не тръгна: " + friendly(e) }); }
       }
       return send(res, 200, { ok: true, settings: pub(cfg), verified: !warn || !!sentTo, warning: sentTo ? null : warn, sent_to: sentTo });
+    }
+    if (b.action === "mail_sync") {
+      const cfg = await agencyCfg();
+      if (!isDomain(cfg)) return send(res, 200, { ok: false, needSetup: true, error: "Пощата на домейна не е настроена (Моята поща → Поща на домейна)." });
+      try { const n = await syncInbox(cfg); return send(res, 200, { ok: true, fresh: n, mailbox: cfg.email }); }
+      catch (e) { if (RESTRICTED(e)) return send(res, 200, { ok: false, restricted: true, error: "Ключът на Resend е само за изпращане. За входящата поща трябва ключ с „Full access“ – създайте го в resend.com → API Keys и го поставете веднъж в Моята поща → Поща на домейна." }); return send(res, 200, { ok: false, error: friendly(e) }); }
+    }
+    if (b.action === "mail_send") {
+      const cfg = await agencyCfg();
+      if (!isDomain(cfg)) return send(res, 200, { ok: false, needSetup: true, error: "Пощата на домейна не е настроена." });
+      const tos = String(b.to || "").split(/[,;]\s*/).map((x) => x.trim()).filter(Boolean);
+      if (!tos.length || tos.some((t) => !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t))) return send(res, 400, { ok: false, error: "Невалиден получател" });
+      const atts = []; let total = 0;
+      for (const a of (Array.isArray(b.attachments) ? b.attachments : []).slice(0, 15)) {
+        if (!a || !a.path) continue;
+        const r = await fetch(SB_URL + "/storage/v1/object/nd-files/" + a.path.split("/").map(encodeURIComponent).join("/"), { headers: { apikey: SB_KEY, Authorization: "Bearer " + token } });
+        if (!r.ok) return send(res, 404, { ok: false, error: "Файлът не е достъпен: " + (a.name || a.path) });
+        const buf = Buffer.from(await r.arrayBuffer()); total += buf.length; if (total > 25 * 1048576) return send(res, 413, { ok: false, error: "Прикачените файлове са над 25 MB" });
+        atts.push({ filename: a.name || a.path.split("/").pop(), content: buf, path: a.path, mime: a.mime || "" });
+      }
+      let orig = null; if (b.reply_to_id) orig = await mailRow(String(b.reply_to_id));
+      const who = String(b.from_name || (user.user_metadata && (user.user_metadata.name || user.user_metadata.full_name)) || "").replace(/["<>]/g, "").trim();
+      const from = (who ? who + " | " : "") + "Имоти Надежда <" + cfg.email + ">";
+      const subject = String(b.subject || (orig ? "Re: " + String(orig.data.subject || "").replace(/^(re|отг):\s*/i, "") : "")).slice(0, 200) || "(без тема)";
+      const mail = { from, to: tos.join(", "), cc: b.cc || undefined, replyTo: cfg.email, subject, text: String(b.text || "").slice(0, 50000), attachments: atts };
+      const body = { from: rsAddr(mail.from)[0], to: rsAddr(mail.to), subject, text: mail.text, reply_to: [cfg.email] };
+      if (mail.cc) body.cc = rsAddr(mail.cc);
+      if (atts.length) body.attachments = atts.map((a) => ({ filename: a.filename, content: a.content.toString("base64") }));
+      if (orig && orig.data.message_id) body.headers = { "In-Reply-To": orig.data.message_id, References: orig.data.message_id };
+      let j; try { j = await rs(cfg.pass, "/emails", body); } catch (e) { return send(res, 200, { ok: false, error: friendly(e) }); }
+      const id = "sent_" + String(j.id || Date.now()).replace(/[^A-Za-z0-9-]/g, "");
+      await mailPut(id, { folder: "sent", read: true, resend_id: j.id || null, from: cfg.email, from_name: who, by: user.email || "", to: tos, cc: body.cc || [], subject, text: mail.text, html: "", at: new Date().toISOString(), attachments: atts.map((a) => ({ name: a.filename, path: a.path, size: a.content.length, mime: a.mime })), in_reply_to: orig ? orig.id : null }).catch(() => null);
+      if (orig) await mailPut(orig.id, Object.assign({}, orig.data, { read: true, answered: true, answered_at: new Date().toISOString() })).catch(() => null);
+      return send(res, 200, { ok: true, sent: true, id, to: tos, from: cfg.email });
     }
     if (b.action === "send") {
       const own = await secretGet(key(user)), cfg = own || (await agencyCfg());

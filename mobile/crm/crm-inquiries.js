@@ -28,12 +28,13 @@
     "#nd-fwin .ndq-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}#nd-fwin .ndq-acts button{flex:1;min-width:150px;height:42px;border-radius:14px;border:1.5px solid #e3b25e;background:linear-gradient(180deg,#fffcf9,#fbefe5);color:#6b0a1c;font:700 15px var(--cond,'Roboto Condensed',Arial,sans-serif);cursor:pointer}#nd-fwin .ndq-acts .pr{background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);color:#fff3dc;border-color:#edc47a;box-shadow:0 0 12px rgba(255,190,120,.55)}#nd-fwin .ndq-acts button:disabled{opacity:.55}";
   var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
   var MENU = '<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
-  var box = null, items = [], site = [], loadedAt = 0, loading = null;
+  var box = null, items = [], site = [], mailN = 0, loadedAt = 0, loading = null;
 
   function load(force) {
     if (loading) return loading;
     if (!force && Date.now() - loadedAt < 20000) return Promise.resolve();
-    loading = D.ready().then(function () { return Promise.all([D.load("inquiries").catch(function () { return []; }), D.load("activities").catch(function () { return []; })]); }).then(function (r) {
+    loading = D.ready().then(function () { return Promise.all([D.load("inquiries").catch(function () { return []; }), D.load("activities").catch(function () { return []; }), D.load("mail").catch(function () { return []; })]); }).then(function (r) {
+      mailN = (r[2] || []).filter(function (m) { return m.folder === "in" && !m.read; }).length;
       items = r[0].sort(function (a, b) { return String(b.at || b._created).localeCompare(String(a.at || a._created)); });
       site = r[1].filter(function (a) { return a.source === "site" && !a.inquiry_id; }).sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); }).slice(0, 30);
       loadedAt = Date.now(); loading = null; badge();
@@ -41,13 +42,14 @@
     return loading;
   }
   function badge() {
-    var n = items.filter(function (i) { return i.status === "Ново"; }).length;
+    var n = items.filter(function (i) { return i.status === "Ново"; }).length + mailN;
     [].forEach.call(document.querySelectorAll('[data-nav="Запитвания"]'), function (b) { var q = b.querySelector(".nvq"); if (!q) { q = document.createElement("b"); q.className = "nvq"; b.appendChild(q); } q.textContent = n || ""; q.hidden = !n; });
   }
   function when(t) { return t ? U.bgDateTime(t) : ""; }
   function render() {
     if (!box) return;
     var h = '<div class="ndq-h"><h3>' + MENU + "Запитвания</h3>" + (items.length ? '<span class="n">' + items.filter(function (i) { return i.status === "Ново"; }).length + " нови</span>" : "") + '<button type="button" class="x" aria-label="Затвори">✕</button></div><div class="ndq-l">';
+    h += '<div class="ndq-g">Поща</div><button type="button" class="ndq-i" data-mail><span class="ib">' + ic("mail") + '</span><span><b>Поща</b><span class="s">office@imotinadezhda.bg – входящи и изпратени</span></span><span class="st">' + (mailN ? '<em>' + mailN + (mailN === 1 ? " ново" : " нови") + "</em>" : ic("chev-r")) + "</span></button>";
     h += '<div class="ndq-g">Кандидатури за ипотечен кредит</div>';
     if (!items.length) h += '<div class="ndq-empty">Още няма кандидатури. Клиентите кандидатстват от бутона „Кандидатствай за ипотечен кредит“ под описанието на всяка обява.</div>';
     h += items.map(function (i, k) {
@@ -67,7 +69,8 @@
       if (e.target.closest(".x")) { hide(); return; }
       var q = e.target.closest("[data-q]"); if (q) { hide(); card(items[+q.getAttribute("data-q")]); return; }
       var c = e.target.closest("[data-c]"); if (c) { hide(); var id = c.getAttribute("data-c"); if (id) { if (window.goTo) goTo("crm-klienti.html#" + id); else location.href = "crm-klienti.html#" + id; } return; }
-      if (e.target.closest("[data-rep]")) { hide(); if (window.NDGlobal) NDGlobal.reports(); }
+      if (e.target.closest("[data-rep]")) { hide(); if (window.NDGlobal) NDGlobal.reports(); return; }
+      if (e.target.closest("[data-mail]")) { hide(); if (window.goTo) goTo("crm-poshta.html"); else location.href = "crm-poshta.html"; }
     });
     document.addEventListener("click", function (e) { if (box && box.classList.contains("show") && !box.contains(e.target) && !e.target.closest('[data-nav="Запитвания"]')) hide(); }, true);
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
@@ -111,7 +114,7 @@
   }
 
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest('[data-nav="Запитвания"]'); if (b) { e.preventDefault(); e.stopImmediatePropagation(); toggle(); } }, true);
-  window.NDInquiries = { open: show, close: hide, card: card, reload: function () { return load(true).then(render); } };
+  window.NDInquiries = { open: show, close: hide, card: card, reload: function () { return load(true).then(render); }, mailBadge: function (n) { mailN = n || 0; badge(); render(); } };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { load(); }); else load();
   window.addEventListener("nd-data-changed", function () { loadedAt = 0; });
 })();
