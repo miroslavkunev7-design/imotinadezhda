@@ -52,6 +52,7 @@
     var h = '<div class="ndq-h"><h3>' + MENU + "Запитвания</h3>" + (items.length ? '<span class="n">' + items.filter(function (i) { return i.status === "Ново"; }).length + " нови</span>" : "") + '<button type="button" class="x" aria-label="Затвори">✕</button></div><div class="ndq-l">';
     h += '<div class="ndq-g">Поща</div><button type="button" class="ndq-i" data-mail><span class="ib">' + ic("mail") + '</span><span><b>Поща</b><span class="s">office@imotinadezhda.bg – входящи и изпратени</span></span><span class="st">' + (mailN ? '<em>' + mailN + (mailN === 1 ? " ново" : " нови") + "</em>" : ic("chev-r")) + "</span></button>";
     h += '<button type="button" class="ndq-i" data-chat><span class="ib">' + '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' + '</span><span><b>Чат</b><span class="s">WhatsApp · Messenger · Instagram – отговаряте ръчно</span></span><span class="st">' + (chatN ? "<em>" + chatN + (chatN === 1 ? " ново" : " нови") + "</em>" : ic("chev-r")) + "</span></button>";
+    h += '<button type="button" class="ndq-i" data-n8n><span class="ib">' + '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>' + '</span><span><b>Чат с n8n Agent</b><span class="s">Самият агент от n8n – реалните данни в CRM</span></span><span class="st">' + ic("chev-r") + "</span></button>";
     h += '<div class="ndq-g">Кандидатури за ипотечен кредит</div>';
     if (!items.length) h += '<div class="ndq-empty">Още няма кандидатури. Клиентите кандидатстват от бутона „Кандидатствай за ипотечен кредит“ под описанието на всяка обява.</div>';
     h += items.map(function (i, k) {
@@ -72,6 +73,7 @@
       var q = e.target.closest("[data-q]"); if (q) { hide(); card(items[+q.getAttribute("data-q")]); return; }
       var c = e.target.closest("[data-c]"); if (c) { hide(); var id = c.getAttribute("data-c"); if (id) { if (window.goTo) goTo("crm-klienti.html#" + id); else location.href = "crm-klienti.html#" + id; } return; }
       if (e.target.closest("[data-rep]")) { hide(); if (window.NDGlobal) NDGlobal.reports(); return; }
+      if (e.target.closest("[data-n8n]")) { hide(); if (window.NDAsh && NDAsh.use) NDAsh.use("n8n"); return; }
       if (e.target.closest("[data-chat]")) { hide(); if (window.goTo) goTo("crm-chat.html"); else location.href = "crm-chat.html"; return; }
       if (e.target.closest("[data-mail]")) { hide(); if (window.goTo) goTo("crm-poshta.html"); else location.href = "crm-poshta.html"; }
     });
