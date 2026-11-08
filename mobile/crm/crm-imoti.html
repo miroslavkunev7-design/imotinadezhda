@@ -364,40 +364,62 @@ html.desk .m-act{position:absolute;left:1036px;top:585px;width:1000px;margin:0}
   background:linear-gradient(180deg,#fffcf9,#fbefe5);box-shadow:0 2px 6px rgba(140,70,40,.25),0 0 0 1px rgba(231,196,160,.6)}
 .vb.on{color:#fff;background:linear-gradient(180deg,#a3213a,#6a0a1d);box-shadow:0 0 0 1.5px #e6b866,0 0 10px rgba(255,200,120,.5)}
 .vb svg.i{stroke-width:2.2}
-.plist{display:flex;flex-direction:column;gap:13px;padding:12px 30px 10px 21px}
-.pc{position:relative;flex-shrink:0;width:973px;height:178px;border-radius:26px;text-align:left;cursor:pointer;
-  background:linear-gradient(180deg,#fffaf6 0%,#fbece0 100%);border:1.5px solid rgba(255,255,255,.95);
-  box-shadow:0 0 0 1px rgba(226,176,120,.55),0 0 14px rgba(255,226,190,.95),0 8px 16px rgba(120,50,20,.2)}
-.pc .pp{position:absolute;left:11px;top:5px;width:426px;height:166px;border-radius:20px;overflow:hidden;background:#d9c2ad center/cover no-repeat;
-  box-shadow:0 0 0 2px rgba(255,255,255,.85),0 3px 8px rgba(80,30,20,.3)}
-.pc .hrt{position:absolute;left:12px;top:8px;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:42px;color:#fff;
-  background:radial-gradient(circle,rgba(30,20,30,.32) 0%,rgba(30,20,30,.12) 60%,rgba(30,20,30,0) 72%);filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
-.pc .hrt svg.i{stroke-width:2}
-.pc .hrt.on{color:#ff4d6d}.pc .hrt.on svg.i{fill:#ff4d6d}
-.pc .tg{position:absolute;right:16px;top:8px;height:44px;padding:0 18px 0 14px;border-radius:22px;display:flex;align-items:center;gap:12px;
-  background:linear-gradient(180deg,#fff7df,#fbe7b8);box-shadow:0 2px 5px rgba(0,0,0,.3),0 0 0 1px rgba(255,240,200,.9);font:400 25px/1 var(--cond);color:#2b1414}
-.pc .tg svg.i{font-size:30px;color:#7b1020;stroke-width:2}
-.pc .cam{position:absolute;left:12px;bottom:14px;height:40px;padding:0 16px 0 12px;border-radius:20px;display:flex;align-items:center;gap:12px;
-  background:rgba(25,18,22,.78);color:#fff;font:700 25px/1 var(--cond);box-shadow:0 0 0 1px rgba(255,255,255,.25)}
-.pc .cam svg.i{font-size:28px;stroke-width:2.2}
-.pc .tt{position:absolute;left:463px;top:12px;right:20px;font:700 34px/1.1 var(--serif);color:#5e0a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pc .lc{position:absolute;left:465px;top:52px;display:flex;align-items:center;gap:16px;font:400 25px/1 var(--cond);color:#1f1111}
-.pc .lc svg.i{font-size:30px;color:#7b1020;stroke-width:2}
-.pc .sp{position:absolute;left:465px;top:84px;display:flex;align-items:center;font:700 25px/1 var(--cond);color:#1f1111}
-.pc .sp span{display:flex;align-items:center;gap:12px;min-width:170px}
-.pc .sp svg.i{font-size:32px;color:#7b1020;stroke-width:1.9}
-.pc .pr{position:absolute;left:463px;top:120px;min-width:213px;padding:0 16px;height:45px;border-radius:23px;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;color:#fff;font:700 31px/1 var(--cond);
-  background:linear-gradient(180deg,#a3213a 0%,#7a0f22 45%,#55071a 100%);box-shadow:inset 0 1px 2px rgba(255,170,180,.6),0 2px 6px rgba(80,10,20,.35),0 0 8px rgba(255,170,140,.35)}
-.pc .pr small{font-size:21px;font-weight:400;margin-left:4px}
-.pc .st{position:absolute;left:715px;top:122px;height:42px;min-width:195px;padding:0 18px;border-radius:21px;display:flex;align-items:center;justify-content:center;gap:12px;
-  font:400 25px/1 var(--cond);color:#1e4d12;background:linear-gradient(180deg,#e4f5cb,#cfe9ad);box-shadow:inset 0 0 0 1px rgba(120,170,80,.45)}
-.pc .st i{width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7de86a,#1e9c1a 70%)}
-.pc .st.res{color:#3a2a00;background:linear-gradient(180deg,#fff1cc,#f7dc9a);box-shadow:inset 0 0 0 1px rgba(200,150,60,.45)}
+.plist{display:flex;flex-direction:column;gap:30px;padding:16px 30px 18px 21px}
+/* ---- карта на имот: снимката пълни цялата карта, бяла стъклена рамка, снимката се прелива в бяло под текста ---- */
+.pc{position:relative;flex-shrink:0;width:973px;height:878px;border-radius:46px;text-align:left;cursor:pointer;font-family:var(--sans);
+  background:linear-gradient(160deg,rgba(255,255,255,.97) 0%,rgba(255,249,243,.8) 40%,rgba(255,246,238,.84) 66%,rgba(255,255,255,.97) 100%);
+  border:1.5px solid rgba(255,255,255,.98);
+  box-shadow:0 0 0 1px rgba(214,168,124,.34),0 18px 36px -6px rgba(105,38,20,.26),0 4px 12px rgba(105,38,20,.1),0 0 26px rgba(255,236,214,.85),inset 0 0 18px rgba(255,255,255,.95),inset 0 2px 1px #fff}
+.pc:focus-visible{outline:4px solid #d9a95a;outline-offset:5px}
+.pc .pp{position:absolute;inset:9px;border-radius:37px;overflow:hidden;isolation:isolate;background:#e8dbcf;box-shadow:0 0 0 1px rgba(190,150,115,.22)}
+.pc .pp img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block}
+.pc .pp:after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,0) 33%,rgba(255,255,255,.17) 41%,rgba(255,255,255,.3) 46%,rgba(255,255,255,.44) 52%,rgba(255,255,255,.59) 57%,rgba(255,255,255,.68) 62%,rgba(255,255,255,.79) 68%,rgba(255,255,255,.88) 73%,rgba(255,255,255,.93) 77%,rgba(255,255,255,.95) 86%,rgba(255,255,255,.975) 100%);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 0 26px rgba(255,255,255,.42)}
+/* ID — бяло матово стъкло, винен текст */
+.pc .pid{position:absolute;left:40px;top:32px;z-index:2;max-width:52%;height:82px;padding:0 27px;border-radius:23px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font:700 33px/79px var(--sans);color:#7b1020;letter-spacing:.2px;
+  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(244,241,243,.86));-webkit-backdrop-filter:blur(12px) saturate(1.3);backdrop-filter:blur(12px) saturate(1.3);
+  border:1.5px solid rgba(255,255,255,.95);box-shadow:0 6px 16px rgba(30,10,20,.22),0 1px 3px rgba(30,10,20,.16),inset 0 1px 0 #fff,inset 0 -3px 7px rgba(200,190,196,.35)}
+/* статус — винено стъкло (активен); продаден / резервиран / чернова пазят своите цветове */
+.pc .st{position:absolute;right:54px;top:32px;z-index:2;height:78px;padding:0 26px;border-radius:22px;display:flex;align-items:center;gap:12px;white-space:nowrap;
+  font:700 30px/1 var(--sans);color:#fff;text-shadow:0 1px 2px rgba(60,0,15,.45);
+  background:linear-gradient(160deg,#a12139 0%,#7d1226 48%,#5e0a1a 100%);border:2.5px solid rgba(255,196,208,.8);
+  box-shadow:0 6px 16px rgba(70,5,20,.34),0 0 14px rgba(190,40,70,.26),inset 0 2px 2px rgba(255,190,205,.45),inset 0 -3px 7px rgba(40,0,10,.3)}
+.pc .st i{display:none;width:18px;height:18px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.75)}
+.pc .st.sold i,.pc .st.res i,.pc .st.drf i{display:block}
+.pc .st.sold{background:linear-gradient(160deg,#ee4762 0%,#c81f3e 50%,#930f29 100%);border-color:rgba(255,216,222,.88);
+  box-shadow:0 6px 16px rgba(150,10,35,.4),0 0 20px rgba(235,55,85,.5),inset 0 2px 2px rgba(255,210,220,.55),inset 0 -3px 7px rgba(80,0,15,.3)}
+.pc .st.sold i{background:radial-gradient(circle at 35% 30%,#fff 0,#ffd0d8 45%,#ff8fa2 100%)}
+.pc .st.res{color:#4a3000;text-shadow:0 1px 0 rgba(255,255,255,.6);background:linear-gradient(180deg,rgba(255,245,216,.96),rgba(247,214,140,.94));border-color:rgba(255,255,255,.95);
+  box-shadow:0 6px 16px rgba(120,80,10,.26),0 0 14px rgba(255,200,100,.45),inset 0 2px 1px #fff,inset 0 -3px 7px rgba(200,140,40,.3)}
 .pc .st.res i{background:radial-gradient(circle at 35% 30%,#ffd36a,#b8780e 70%)}
-.pc .st.drf{color:#4a3a3a;background:linear-gradient(180deg,#f3ece8,#e3d7d0);box-shadow:inset 0 0 0 1px rgba(150,120,110,.4)}
+.pc .st.drf{color:#4a3a3a;text-shadow:0 1px 0 rgba(255,255,255,.6);background:linear-gradient(180deg,rgba(251,247,245,.95),rgba(229,219,213,.9));border-color:rgba(255,255,255,.95);
+  box-shadow:0 6px 16px rgba(40,20,20,.2),inset 0 2px 1px #fff,inset 0 -3px 7px rgba(150,120,110,.25)}
 .pc .st.drf i{background:radial-gradient(circle at 35% 30%,#c9bcb5,#7d6e68 70%)}
-.pc .st.sold{color:#fff3dc;background:linear-gradient(180deg,#c8233f,#7a0f22);box-shadow:inset 0 0 0 1px rgba(255,200,160,.45),0 0 12px rgba(200,35,63,.45)}
-.pc .st.sold i{background:radial-gradient(circle at 35% 30%,#ff9aa6,#8e0d1f 70%)}
+/* малки стъклени бутони: любим (под статуса), вид сделка + снимки + ⋮ (долу вдясно, на нивото на цената) */
+.pc .hrt,.pc .tg,.pc .cam,.pc .mn{background:linear-gradient(180deg,rgba(255,255,255,.93),rgba(246,240,242,.82));
+  border:1.5px solid rgba(255,255,255,.95);box-shadow:0 5px 14px rgba(40,12,22,.18),0 0 0 1px rgba(214,168,124,.22),inset 0 1px 0 #fff,inset 0 -2px 5px rgba(200,190,196,.3)}
+.pc .hrt{position:absolute;right:54px;top:130px;z-index:3;width:66px;height:66px;border-radius:50%;display:grid;place-items:center;font-size:34px;color:#7b1020;-webkit-backdrop-filter:blur(12px) saturate(1.3);backdrop-filter:blur(12px) saturate(1.3)}
+.pc .hrt svg.i{stroke-width:2.2}
+.pc .hrt.on{color:#d81e48}.pc .hrt.on svg.i{fill:#d81e48}
+.pc .bd{position:absolute;left:40px;right:40px;bottom:46px;z-index:2;display:flex;flex-direction:column;align-items:flex-start}
+.pc .tt{max-width:calc(100% + 20px);margin:0 -10px;padding:4px 10px;font:700 64px/1.05 var(--sans);color:#1b2a4e;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;
+  text-shadow:0 0 3px rgba(255,255,255,.85),0 0 16px rgba(255,255,255,.85),0 0 34px rgba(255,255,255,.55)}
+.pc .tt .inum{font-size:24px;padding:5px 12px;margin-right:4px;vertical-align:middle;position:relative;top:-4px;text-shadow:none}
+.pc .lc{margin-top:28px;max-width:100%;display:flex;align-items:center;gap:14px;font:700 39px/44px var(--sans);color:#1b2a4e;text-shadow:0 0 12px rgba(255,255,255,.85)}
+.pc .lc span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.pc .lc svg.i{font-size:44px;color:#7b1020;stroke-width:1.9;margin-left:-3px}
+.pc .sp{margin-top:30px;max-width:100%;display:flex;align-items:center;gap:34px;font:700 36px/44px var(--sans);color:#1b2a4e;text-shadow:0 0 12px rgba(255,255,255,.85)}
+.pc .sp span{display:flex;align-items:center;gap:15px;white-space:nowrap}
+.pc .sp svg.i{font-size:44px;color:#7b1020;stroke-width:1.9;margin-left:-3px}
+.pc .ft{margin-top:58px;min-height:56px;display:flex;align-items:center}
+.pc .pr{font:700 56px/1 var(--sans);color:#7b1020;white-space:nowrap;text-shadow:0 0 14px rgba(255,255,255,.9)}
+.pc .pr small{font-size:28px;margin-left:6px;opacity:.85}
+.pc .ex{position:absolute;right:40px;bottom:44px;z-index:3;display:flex;align-items:center;gap:12px}
+.pc .tg,.pc .cam{height:60px;padding:0 21px 0 17px;border-radius:30px;display:flex;align-items:center;gap:10px;white-space:nowrap;font:700 25px/1 var(--sans);color:#4a1420}
+.pc .tg svg.i,.pc .cam svg.i{font-size:29px;color:#7b1020;stroke-width:2}
 .pm-stage[hidden]{display:none}
 .pm-stage{position:absolute;right:30px;top:150px;height:44px;padding:0 22px;border-radius:25px;display:flex;align-items:center;gap:10px;font:700 27px/1 var(--cond);color:#3a2a00;background:linear-gradient(180deg,#fff1cc,#f7dc9a);box-shadow:0 0 0 1.5px rgba(255,255,255,.6),0 0 14px rgba(255,214,120,.8)}
 .pm-stage.sold{color:#fff3dc;background:linear-gradient(180deg,#c8233f,#7a0f22);box-shadow:0 0 0 1.5px rgba(255,255,255,.5),0 0 16px rgba(200,35,63,.6)}
@@ -408,9 +430,8 @@ html.desk .m-act{position:absolute;left:1036px;top:585px;width:1000px;margin:0}
 .pm-smenu button i{width:14px;height:14px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#7de86a,#1e9c1a 70%)}.pm-smenu button.y i{background:radial-gradient(circle at 35% 30%,#ffd36a,#b8780e 70%)}.pm-smenu button.r i{background:radial-gradient(circle at 35% 30%,#ff9aa6,#8e0d1f 70%)}.pm-smenu button.g i{background:radial-gradient(circle at 35% 30%,#c9bcb5,#7d6e68 70%)}
 .pm-smenu button.on{background:linear-gradient(180deg,#a3213a,#55071a);color:#fff3dc}
 .pm-smenu .pm-sm-h{padding:6px 14px 8px;font:700 14px/1 var(--cond);letter-spacing:.6px;text-transform:uppercase;color:#8a6a3a}
-.pc .mn{position:absolute;right:6px;top:118px;width:44px;height:50px;display:grid;place-items:center;font-size:36px;color:#7b1020}
+.pc .mn{position:relative;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;font-size:32px;color:#7b1020}
 .pc .mn svg.i{stroke-width:3;fill:currentColor}
-.plist.list .pc{height:112px}
 /* папки: Тип → Строителство → Стаи */
 .plist.folders{padding:12px 24px 10px 21px}
 .fcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:6px 4px;margin:0 0 14px;padding:10px 14px;border-radius:22px;background:linear-gradient(180deg,#fffaf6,#fbece0);box-shadow:0 0 0 1px rgba(226,176,120,.55),0 0 14px rgba(255,226,190,.9)}
@@ -427,18 +448,28 @@ html.desk .m-act{position:absolute;left:1036px;top:585px;width:1000px;margin:0}
 .fold .fbody small{font:400 17px/1.15 var(--cond);color:#6b4a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fold .fbody em{position:absolute;right:16px;top:14px;min-width:46px;height:40px;padding:0 12px;border-radius:20px;display:grid;place-items:center;font:700 23px/1 var(--cond);font-style:normal;color:#52230d;background:linear-gradient(100deg,#ebc67d,#bf8730);box-shadow:0 2px 6px rgba(61,25,2,.25)}
 .fold:hover{transform:translateY(-4px);filter:drop-shadow(0 0 14px rgba(255,205,140,.7))}.fold:active{transform:scale(.97)}
-.fcards{display:flex;flex-direction:column;gap:13px}
+.fcards{display:flex;flex-direction:column;gap:30px}
 html.desk .fgrid{grid-template-columns:repeat(3,1fr)}
 @media(max-width:600px){.fgrid{grid-template-columns:repeat(2,1fr)}}
 
-.plist.list .pc .pp{width:170px;height:100px}
-.plist.list .pc .tg,.plist.list .pc .cam,.plist.list .pc .sp{display:none}
-.plist.list .pc .hrt{left:4px;top:2px;transform:scale(.8)}
-.plist.list .pc .tt{left:200px;top:14px;right:440px;font-size:30px}
-.plist.list .pc .lc{left:202px;top:60px}
-.plist.list .pc .pr{left:auto;right:258px;top:33px}
-.plist.list .pc .st{left:auto;right:60px;top:35px}
-.plist.list .pc .mn{top:31px}
+/* компактен списък (бутон „Изглед списък“): малка снимка вляво, заглавие + място, цена, статус, ⋮ */
+:is(.plist.list,.fcards.list){gap:13px}
+:is(.plist.list,.fcards.list) .pc{height:120px;border-radius:28px}
+:is(.plist.list,.fcards.list) .pc .pp{inset:8px auto 8px 8px;width:184px;border-radius:21px}
+:is(.plist.list,.fcards.list) .pc .pp:after{background:none;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
+:is(.plist.list,.fcards.list) .pc :is(.pid,.sp,.tg,.cam){display:none}
+:is(.plist.list,.fcards.list) .pc .hrt{left:14px;right:auto;top:14px;width:46px;height:46px;font-size:24px}
+:is(.plist.list,.fcards.list) .pc .bd{position:static;display:block}
+:is(.plist.list,.fcards.list) .pc .tt{position:absolute;left:206px;right:452px;top:16px;max-width:none;margin:0;padding:2px 4px;font-size:31px;line-height:1.2;-webkit-line-clamp:1;text-shadow:none}
+:is(.plist.list,.fcards.list) .pc .tt .inum{top:-2px}
+:is(.plist.list,.fcards.list) .pc .lc{position:absolute;left:206px;right:452px;top:66px;margin:0;gap:10px;font:400 23px/32px var(--sans);color:#3a2a30;text-shadow:none}
+:is(.plist.list,.fcards.list) .pc .lc svg.i{font-size:28px;margin-left:0}
+:is(.plist.list,.fcards.list) .pc .ft{position:absolute;right:274px;top:0;bottom:0;margin:0}
+:is(.plist.list,.fcards.list) .pc .pr{font-size:33px;text-shadow:none}
+:is(.plist.list,.fcards.list) .pc .pr small{font-size:19px}
+:is(.plist.list,.fcards.list) .pc .st{top:50%;right:78px;height:50px;margin-top:-25px;padding:0 15px;border-radius:25px;border-width:2px;font-size:21px;gap:8px}
+:is(.plist.list,.fcards.list) .pc .st i{width:14px;height:14px}
+:is(.plist.list,.fcards.list) .pc .ex{top:50%;right:12px;bottom:auto;margin-top:-30px}
 .plist .empty{padding:34px;border-radius:24px;text-align:center;font:400 26px/1.4 var(--cond);color:#5a0a12;background:rgba(255,248,242,.88);box-shadow:0 0 0 1px rgba(231,196,160,.6)}
 
 /* desktop for the properties page: header on top, filters left, results right */
@@ -448,6 +479,11 @@ html.desk .iacts{padding:16px 0 0 23px}
 html.desk .ipanel{margin:28px 0 0 21px}
 html.desk .rbar{padding:16px 33px 0 33px}
 html.desk .plist{height:var(--lh,640px);overflow-y:auto;padding:12px 14px 10px 12px;scrollbar-width:thin;scrollbar-color:#c99a5a transparent}
+/* desktop: картите в две колони (същият дизайн, умален) */
+html.desk .plist:not(.list):not(.folders),html.desk .fcards:not(.list){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 20px;align-content:start}
+html.desk .plist:not(.list) .pc,html.desk .fcards:not(.list) .pc{zoom:.49}
+html.desk .plist .empty{grid-column:1/-1}
+html.desk :is(.plist,.fcards):not(.list) .pc :is(.tg,.cam){height:66px;font-size:28px;border-radius:33px}html.desk :is(.plist,.fcards):not(.list) .pc .mn{width:66px;height:66px}html.desk :is(.plist,.fcards):not(.list) .pc .tt .inum{font-size:32px}
 @media (hover:hover){.pc:hover,.ia:hover{transform:translateY(-2px);transition:transform .18s}}
 
 /* ================= SMOOTH PAGE-TO-PAGE TRANSITION (shared by all CRM pages) ================= */
@@ -1028,19 +1064,25 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
   });
   function cardHtml(p){
       var st=p.stage==='Продаден'?'sold':(p.stage==='Депозиран'||p.stage==='Капариран'||p.status==='Резервиран')?'res':(p.status==='Чернова'||p.status==='Архивиран')?'drf':'';
-      var specs=p.type==='Парцел'?'<span>'+ic('house')+money(p.area)+' м²</span>':
-        '<span>'+ic('m2')+p.area+' м²</span><span>'+ic('bed-double')+p.beds+'</span><span>'+ic('shower-head')+p.baths+'</span>';
-      return '<article class="pc" tabindex="0" data-id="'+p.id+'" aria-label="'+esc(p.title+', '+p.city+', '+p.hood)+'">'+
-        '<div class="pp" style="background-image:url('+img(p.img)+')">'+
-          '<button class="hrt'+(favs[p.id]?' on':'')+'" data-fav="'+p.id+'" aria-pressed="'+!!favs[p.id]+'" aria-label="Любим имот">'+ic('heart')+'</button>'+
-          '<span class="tg">'+ic(p.deal==='rent'?'key-round':'tag')+(p.deal==='rent'?'Наем':'Продажба')+'</span>'+
-          '<span class="cam">'+ic('camera')+p.photos+'</span></div>'+
-        '<h3 class="tt">'+(p.num?'<span class="inum">И#'+esc(p.num)+'</span> ':'')+esc(p.title)+'</h3>'+
-        '<p class="lc">'+ic('pin')+esc(p.city+', '+p.hood)+'</p>'+
-        '<p class="sp">'+specs+'</p>'+
-        '<span class="pr">'+priceText(p)+'</span>'+
+      var plot=p.type==='Парцел',has=function(v){return v!=null&&v!==''&&v!=='—'&&v!=='-'},
+          cnt=function(v,one,many){return esc(v)+' '+(String(v).trim()==='1'?one:many)};
+      var specs=(p.area?'<span>'+ic('maximize-2')+(plot?money(p.area):esc(p.area))+' кв.м</span>':'')+(plot?'':
+        (has(p.beds)?'<span>'+ic('bed-double')+cnt(p.beds,'спалня','спални')+'</span>':'')+
+        (has(p.baths)?'<span>'+ic('bath')+cnt(p.baths,'баня','бани')+'</span>':''));
+      var cid=p.code&&p.code!==p.id?p.code:String(p.id).slice(0,8),loc=[p.city,p.hood].filter(Boolean).join(', ');
+      return '<article class="pc" tabindex="0" data-id="'+p.id+'" aria-label="'+esc(p.title+(loc?', '+loc:''))+'">'+
+        '<div class="pp"><img src="'+esc(img(p.img))+'" alt="" loading="lazy" decoding="async"></div>'+
+        '<span class="pid">ID: '+esc(cid)+'</span>'+
         '<span class="st '+st+'"><i></i>'+esc(p.stage||p.status)+'</span>'+
-        '<button class="mn" data-menu="'+p.id+'" aria-label="Още действия">'+ic('ellipsis-vertical')+'</button></article>'}
+        '<button class="hrt'+(favs[p.id]?' on':'')+'" data-fav="'+p.id+'" aria-pressed="'+!!favs[p.id]+'" aria-label="Любим имот">'+ic('heart')+'</button>'+
+        '<div class="bd">'+
+          '<h3 class="tt">'+(p.num?'<span class="inum">И#'+esc(p.num)+'</span> ':'')+esc(p.title)+'</h3>'+
+          '<p class="lc">'+ic('pin')+'<span>'+esc(loc)+'</span></p>'+
+          (specs?'<p class="sp">'+specs+'</p>':'')+
+          '<p class="ft"><span class="pr">'+priceText(p)+'</span></p></div>'+
+        '<div class="ex"><span class="tg">'+ic(p.deal==='rent'?'key-round':'tag')+(p.deal==='rent'?'Наем':'Продажба')+'</span>'+
+          '<span class="cam" title="Снимки">'+ic('camera')+p.photos+'</span>'+
+          '<button class="mn" data-menu="'+p.id+'" aria-label="Още действия">'+ic('ellipsis-vertical')+'</button></div></article>'}
 
   $('i-go').addEventListener('click',function(){setView(null);render(current())});
   $('i-q').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();setView(null);render(current())}});
