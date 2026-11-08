@@ -105,5 +105,9 @@ html:not(.desk) #canvas.flowcv{padding-bottom:210px!important}
 html:not(.desk) #nd-fwin.inline .fcv{padding-bottom:150px}
 
 /* ---------- 5.4 Заглавията върху снимката в хедъра: по-силен тъмен ореол зад текста ---------- */
-.top .hero-title{text-shadow:0 2px 4px rgba(30,0,8,.85),0 0 18px rgba(30,0,8,.7),0 0 34px rgba(30,0,8,.45)!important}
 .top .hero-sub{text-shadow:0 1px 3px rgba(20,0,6,.95),0 0 10px rgba(30,0,8,.85),0 0 22px rgba(30,0,8,.6)!important}
+
+/* ---------- Компютър / инсталирано приложение: страниците, по-дълги от прозореца, се превъртат;
+   лентата за превъртане е скрита (превърта се с колелцето, тъчпада и клавишите) ---------- */
+html.desk #stage{overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain}
+html.desk #stage::-webkit-scrollbar{width:0;height:0;display:none}

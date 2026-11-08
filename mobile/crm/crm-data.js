@@ -50,6 +50,13 @@
   var css =
     ".nd-auth{position:fixed;inset:0;z-index:200;display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px;background:radial-gradient(120% 90% at 50% 0%,rgba(154,26,51,.55),rgba(40,4,12,.82));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-family:'Roboto Condensed',system-ui,sans-serif}" +
     ".nd-auth[hidden]{display:none}" +
+    /* картата за вход с фоново изображение: вилата горе, плавно преливане към стъклен крем под полетата */
+    ".nd-card{position:relative;overflow:hidden;isolation:isolate}" +
+    ".nd-card:before{content:'';position:absolute;inset:0;z-index:-2;background:url(/mobile/crm/assets/hero-villa.jpg) center 28%/cover no-repeat}" +
+    ".nd-card:after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(46,6,16,.18) 0,rgba(46,6,16,.38) 150px,rgba(255,248,242,.9) 236px,rgba(255,247,240,.95) 320px,rgba(252,238,226,.97) 100%)}" +
+    ".nd-card>img{box-sizing:content-box;padding:8px 16px;border-radius:18px;background:linear-gradient(180deg,#fffaf5,#fbe9d9);border:1.5px solid #e3b25e;box-shadow:0 0 18px rgba(246,217,147,.75),0 6px 16px rgba(30,0,8,.45)}" +
+    ".nd-card h2{color:#fff1c9!important;text-shadow:0 2px 4px rgba(30,0,8,.85),0 0 16px rgba(30,0,8,.6)}" +
+    ".nd-card p.s{display:table;margin:0 auto 22px!important;padding:6px 14px;border-radius:14px;color:#fff6e8!important;background:rgba(46,6,16,.42);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);box-shadow:0 0 0 1px rgba(246,217,147,.35)}" +
     ".nd-card{width:min(420px,100%);margin:max(2vh,env(safe-area-inset-top,0px)) auto 2vh;box-sizing:border-box;border-radius:28px;padding:26px 22px 22px;background:linear-gradient(160deg,rgba(255,250,246,.96),rgba(251,236,224,.92));border:1.5px solid #e3b25e;box-shadow:0 0 0 1px rgba(243,207,134,.55) inset,0 0 26px rgba(227,178,94,.55),0 24px 60px rgba(30,0,8,.55);color:#1f1111}" +
     ".nd-card img{display:block;height:58px;margin:0 auto 10px}" +
     ".nd-card h2{margin:0 0 4px;text-align:center;font:700 26px/1.15 Georgia,'PT Serif',serif;color:#6b0a1c}" +
@@ -117,13 +124,13 @@
       function setMode(m) {
         mode = m; err.textContent = "";
         b.querySelector("h2").textContent = m === "login" ? "Вход в CRM" : "Регистрация на брокер";
-        b.querySelector("p.s").textContent = m === "login" ? "Влезте с телефона (или имейла) и паролата си" : m === "code" ? "Въведете кодовото изречение на агенцията" : m === "otp" ? (pend && pend.via === "manager" ? "Кодът за потвърждение е изпратен на управителя – поискайте го от него и го въведете тук." : "Изпратихме SMS с 6-цифрен код" + (pend && pend.phone ? " на " + pend.phone : "") + ". Въведете го, за да активирате профила.") : "Двете имена, телефонен номер и парола – ще получите SMS код за потвърждение";
+        b.querySelector("p.s").textContent = m === "login" ? "Влезте с телефона (или имейла) и паролата си" : m === "code" ? "Въведете кодовото изречение на агенцията" : m === "otp" ? (pend && pend.via === "manager" ? "Кодът за потвърждение е изпратен на управителя – поискайте го от него и го въведете тук." : "Изпратихме 6-цифрен код за потвърждение. Въведете го, за да активирате профила.") : "Двете имена, телефонен номер и парола – после въвеждате кода за потвърждение";
         reg.hidden = m === "login"; reg2.hidden = m !== "form"; otpBox.hidden = m !== "otp"; b.querySelector(".nd-apps").hidden = m !== "login";
         b.querySelector('label[for="nd-em"]').hidden = b.querySelector("#nd-em").hidden = m !== "login";
         b.querySelector('label[for="nd-pw"]').hidden = b.querySelector("#nd-pw").hidden = m !== "login";
         b.querySelector("#nd-code").parentNode.querySelector('label[for="nd-code"]').hidden = b.querySelector("#nd-code").hidden = m !== "code";
         b.querySelector("#nd-pw").autocomplete = m === "form" ? "new-password" : "current-password";
-        btn.textContent = m === "login" ? "Вход" : m === "code" ? "Продължи" : m === "otp" ? "Потвърди и влез" : "Изпрати SMS код";
+        btn.textContent = m === "login" ? "Вход" : m === "code" ? "Продължи" : m === "otp" ? "Потвърди и влез" : "Изпрати код";
         regBtn.textContent = m === "login" ? "Регистрация на брокер" : "Назад към вход";
         b.querySelector("[data-reset]").hidden = m !== "login";
         setTimeout(function () { var x = b.querySelector(m === "code" ? "#nd-code" : m === "form" ? "#nd-name" : m === "otp" ? "#nd-otp" : "#nd-em"); if (x) x.focus(); }, 40);
@@ -139,7 +146,7 @@
           return;
         }
         if (mode === "otp") {
-          var otp = b.querySelector("#nd-otp").value.replace(/\D/g, ""); if (otp.length !== 6) { err.textContent = "Въведете 6-цифрения код от SMS."; return; }
+          var otp = b.querySelector("#nd-otp").value.replace(/\D/g, ""); if (otp.length !== 6) { err.textContent = "Въведете 6-цифрения код за потвърждение."; return; }
           btn.disabled = true; err.textContent = "Проверка…";
           fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "verify", id: pend.id, otp: otp }) }).then(function (r) { return r.json(); }).then(function (j) {
             if (!j.ok) { btn.disabled = false; err.textContent = j.error || "Грешен код."; return; }
@@ -159,7 +166,7 @@
           if (!phoneLogin(phone)) { err.textContent = "Въведете валиден телефонен номер (напр. 0888 123 456)."; return; }
           if (pw.length < 8) { err.textContent = "Паролата трябва да е поне 8 символа."; return; }
           if (pw !== pw2) { err.textContent = "Паролите не съвпадат."; return; }
-          btn.disabled = true; err.textContent = "Изпращаме SMS код…";
+          btn.disabled = true; err.textContent = "Изпращаме кода…";
           fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "start", code: b.querySelector("#nd-code").value.trim(), name: name, phone: phone, title: title, password: pw }) }).then(function (r) { return r.json(); }).then(function (j) {
             btn.disabled = false;
             if (!j.id) { err.textContent = j.error || "Регистрацията не успя."; return; }
