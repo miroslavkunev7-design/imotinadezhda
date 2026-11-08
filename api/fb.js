@@ -38,6 +38,12 @@ module.exports = async (req, res) => {
        n8n сам проверява, че заявката е от влязъл служител (същия вход в CRM). Ползва се, докато няма собствено FB приложение тук. */
     const N8N = !(appId && secret);
     const N8H = { "Content-Type": "application/json", Authorization: "Bearer " + token };
+    if (b.action === "chatsend") {
+      /* CRM Чат: ръчен отговор от служител към клиент (WhatsApp / Messenger / Instagram) – праща n8n с ключовете на агенцията */
+      const r = await fetch("https://imotinadezhda.app.n8n.cloud/webhook/chat-send", { method: "POST", headers: N8H, body: JSON.stringify({ chatId: String(b.chatId || ""), text: String(b.text || "").slice(0, 4000) }) });
+      const j = await r.json().catch(() => ({})); const o = Array.isArray(j) ? j[0] || {} : j;
+      return send(res, 200, r.ok && o.ok ? { ok: true } : { ok: false, error: String(o.error || o.message || ("Неуспешно изпращане (" + r.status + ")")).replace(/\s*\[line \d+\]$/, "") });
+    }
     if (N8N && b.action === "sync") {
       /* архив/сваляне → скрий поста, публикуване → покажи, изтриване на имота → изтрий поста */
       const r = await fetch("https://imotinadezhda.app.n8n.cloud/webhook/fb-sync", { method: "POST", headers: N8H, body: JSON.stringify({ op: String(b.op || ""), postId: String(b.postId || "") }) });

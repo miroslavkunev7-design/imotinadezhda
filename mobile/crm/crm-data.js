@@ -8,7 +8,7 @@
   var KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
   var TABLE = {
     clients: "nd_clients", properties: "nd_properties", brokers: "nd_brokers", events: "nd_events",
-    companies: "nd_companies", deals: "nd_deals", activities: "nd_activities", documents: "nd_documents", leads: "nd_leads", collected: "nd_collected", prefs: "nd_prefs", inquiries: "nd_inquiries", rentals: "nd_rentals", mail: "nd_mail"
+    companies: "nd_companies", deals: "nd_deals", activities: "nd_activities", documents: "nd_documents", leads: "nd_leads", collected: "nd_collected", prefs: "nd_prefs", inquiries: "nd_inquiries", rentals: "nd_rentals", mail: "nd_mail", chats: "nd_chats", chatmsgs: "nd_chat_msgs"
   };
   var sb = null, session = null, readyP = null, snap = {};
 
@@ -331,6 +331,8 @@
       return client().storage.from("nd-files").remove([path]);
     },
     newId: function () { return newId(); },
+    /* директен достъп до клиента (CRM Чат: филтри по разговор и realtime) */
+    sb: function () { return client(); },
     busy: function (on) {
       injectCss();
       var el = document.getElementById("nd-loading");
