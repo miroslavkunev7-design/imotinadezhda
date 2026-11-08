@@ -30,7 +30,7 @@
   }
   function stored(p) {
     var o = {};
-    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "ownerEmail", "ownerEgn", "ownerAddr", "ownerIban", "ownerShare", "coOwners", "ownerPaid", "ownerComm", "contractDate", "contractUntil", "ownerContact", "ownerNotes", "portals", "place", "num", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log", "broker", "stage", "archived"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
+    ["code", "title", "deal", "type", "price", "area", "rooms", "beds", "baths", "floor", "build", "year", "cond", "status", "region", "city", "hood", "address", "client", "desc", "ownerPrice", "ownerPhone", "privDesc", "exclusive", "videos", "ownerEmail", "ownerEgn", "ownerAddr", "ownerIban", "ownerShare", "coOwners", "ownerPaid", "ownerComm", "contractDate", "contractUntil", "ownerContact", "ownerNotes", "portals", "place", "num", "expo", "heat", "parking", "elevator", "terraces", "act", "keys", "commission", "freeFrom", "tour", "features", "docSituation", "docRows", "pics", "cover", "docs", "log", "broker", "stage", "archived", "fb"].forEach(function (k) { if (p[k] !== undefined) o[k] = p[k]; });
     if (p.id) o.id = p.id;
     return o;
   }
@@ -248,6 +248,7 @@
         });
       },
       onDelete: isNew ? null : function () {
+        if (p.fb && p.fb.post_id && window.NDPublish && window.NDPublish.fbSync) window.NDPublish.fbSync(p, "delete");
         return D.del("properties", p.id).then(function () {
           (p.pics || []).concat((p.docs || []).concat(p.videos || []).map(function (d) { return d.path; })).forEach(function (x) { D.removeFile(x).catch(function () {}); });
           P.say("Имотът е изтрит"); P.closeCard(); return P.refresh();
@@ -259,21 +260,24 @@
   function setStatus(p, status) {
     var o = stored(p); o.status = status;
     addLog(o, status === "Публикуван" ? "megaphone" : "archive", "Статус: " + status);
-    return D.put("properties", o).then(function () { P.say(status === "Публикуван" ? "Имотът е публикуван" : status === "Архивиран" ? "Имотът е архивиран" : "Статус: " + status); return P.refresh().then(function () { P.reopen(o.id); }); });
+    var fbOp = o.fb && o.fb.post_id ? (status === "Публикуван" ? "show" : "hide") : null;
+    if (fbOp) o.fb.hidden = fbOp === "hide";
+    return D.put("properties", o).then(function () {
+      if (fbOp && window.NDPublish && window.NDPublish.fbSync) window.NDPublish.fbSync(o, fbOp); P.say(status === "Публикуван" ? "Имотът е публикуван" : status === "Архивиран" ? "Имотът е архивиран" : "Статус: " + status); return P.refresh().then(function () { P.reopen(o.id); }); });
   }
 
   /* Статус на сделката за публикуван имот: Депозиран (остава на сайта), Капариран / Продаден (свалят се от сайта и отиват в архива) */
   function setStage(p, stage) {
     var o = stored(p); o.stage = stage || "";
     var off = stage === "Продаден" || stage === "Капариран";
-    if (off) { o.status = "Архивиран"; o.archived = true; }
+    if (off) { o.status = "Архивиран"; o.archived = true; if (o.fb && o.fb.post_id && !o.fb.hidden) { o.fb.hidden = true; if (window.NDPublish && window.NDPublish.fbSync) window.NDPublish.fbSync(o, "hide"); } }
     addLog(o, stage === "Продаден" ? "archive" : "tag", stage ? "Статус: " + stage + (off ? " · обявата е свалена от сайта и е в архива" : " · обявата остава публикувана") : "Статусът на сделката е изчистен");
     return D.put("properties", o).then(function () { P.say(stage ? (off ? stage + " – свален от сайта, в архива" : "Депозиран – обявата остава на сайта") : "Статусът е изчистен"); return P.refresh().then(function () { P.reopen(o.id); }); });
   }
   /* „Запази в архив“: публикуван имот само се записва в архива (остава на сайта); непубликуван – става Архивиран */
   function archive(p) {
     var o = stored(p), keep = o.status === "Публикуван";
-    if (keep) o.archived = true; else { o.status = "Архивиран"; o.archived = true; }
+    if (keep) o.archived = true; else { o.status = "Архивиран"; o.archived = true; if (o.fb && o.fb.post_id && !o.fb.hidden) { o.fb.hidden = true; if (window.NDPublish && window.NDPublish.fbSync) window.NDPublish.fbSync(o, "hide"); } }
     addLog(o, "archive", keep ? "Запазен в архива – обявата остава публикувана" : "Статус: Архивиран");
     return D.put("properties", o).then(function () { P.say(keep ? "Запазен в архива – обявата остава на сайта" : "Имотът е архивиран"); return P.refresh().then(function () { P.reopen(o.id); }); });
   }

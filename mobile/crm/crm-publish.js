@@ -82,7 +82,7 @@
         '<label class="ndp-r" style="--ph:url(' + U.img("nd/ph07.jpg") + ')"><input type="checkbox" data-pc="site" ' + (site ? "" : "checked") + '><span><b>imotinadezhda.bg</b><small>Отива точно на страницата: ' + esc(where(p)) + "</small></span>" + (site ? '<span class="st ok">Публикуван</span>' : '<span class="st no">Не е</span>') + "</label>" +
         '<div class="ndp-r" style="--ph:url(' + U.img("nd/ph18.jpg") + ')"><input type="checkbox" data-pc="facebook" ' + (fp && !fbDone ? "checked" : "") + (fp ? "" : " disabled") + '><span><b>Facebook страница</b><small>' +
           (fp ? "Свързана: " + esc(fp.name) : fbCfg && fbCfg.appId ? "Не е свързана – натиснете „Свържи Facebook“" : "За автоматично публикуване е нужно Facebook приложение (App ID) – пишете на администратора") + "</small></span>" +
-          (fbDone ? '<a class="st ok" href="' + esc(fbDone.link || "#") + '" target="_blank" rel="noopener">Публикуван</a>' : fp ? '<button type="button" class="ndp-b alt" data-fbx>Прекъсни</button>' : '<button type="button" class="ndp-b fb" data-fbc' + (fbCfg && fbCfg.appId ? "" : " disabled") + ">Свържи Facebook</button>") + "</div>" +
+          (fbDone ? '<a class="st ok" href="' + esc(fbDone.link || "#") + '" target="_blank" rel="noopener">Публикуван</a>' : fp && fbCfg.via === "n8n" ? '<span class="st no">Не е</span>' : fp ? '<button type="button" class="ndp-b alt" data-fbx>Прекъсни</button>' : '<button type="button" class="ndp-b fb" data-fbc' + (fbCfg && fbCfg.appId ? "" : " disabled") + ">Свържи Facebook</button>") + "</div>" +
         PORTALS.map(function (x, i) {
           var d = p.portals[x[0]];
           var con = CONN && CONN[x[0]];
@@ -116,5 +116,12 @@
         return jobs.then(function () { return h.save ? h.save({ portals: p.portals }) : null; });
       } });
   }
-  window.NDPublish = { open: open, where: where, adText: adText, siteUrl: siteUrl };
+  /* Facebook страницата: директно публикуване и синхрон (архив/сваляне → скрит пост, публикуване → видим, изтриване → изтрит) */
+  function fbPost(id, force) { return fb({ action: "post", id: id, force: !!force }); }
+  function fbSync(o, op) {
+    var pid = o && o.fb && o.fb.post_id;
+    if (!pid) return Promise.resolve(null);
+    return fb({ action: "sync", op: op, postId: pid }).then(function (r) { if (r && !r.ok) D.say(r.error || "Facebook: грешка"); return r; }).catch(function () { return null; });
+  }
+  window.NDPublish = { open: open, where: where, adText: adText, siteUrl: siteUrl, fbPost: fbPost, fbSync: fbSync };
 })();

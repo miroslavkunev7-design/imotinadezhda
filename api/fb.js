@@ -34,6 +34,25 @@ module.exports = async (req, res) => {
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
   const appId = process.env.FB_APP_ID, secret = process.env.FB_APP_SECRET;
   try {
+    /* Публикуване през n8n (System User ключ на страницата) – не изисква вход с Facebook от CRM.
+       n8n сам проверява, че заявката е от влязъл служител (същия вход в CRM). Ползва се, докато няма собствено FB приложение тук. */
+    const N8N = !(appId && secret);
+    const N8H = { "Content-Type": "application/json", Authorization: "Bearer " + token };
+    if (N8N && b.action === "sync") {
+      /* архив/сваляне → скрий поста, публикуване → покажи, изтриване на имота → изтрий поста */
+      const r = await fetch("https://imotinadezhda.app.n8n.cloud/webhook/fb-sync", { method: "POST", headers: N8H, body: JSON.stringify({ op: String(b.op || ""), postId: String(b.postId || "") }) });
+      const j = await r.json().catch(() => ({})); const o = Array.isArray(j) ? j[0] || {} : j;
+      return send(res, 200, r.ok && o.ok ? { ok: true } : { ok: false, error: "Facebook: " + String(o.message || "грешка " + r.status) });
+    }
+    if (N8N && (b.action === "config" || b.action === "post")) {
+      const PAGE = { id: "1447196405137713", name: "Недвижими Имоти • Надежда •", link: "https://www.facebook.com/1447196405137713" };
+      if (b.action === "config") return send(res, 200, { ok: true, appId: "n8n", ready: true, via: "n8n", page: PAGE });
+      const r = await fetch("https://imotinadezhda.app.n8n.cloud/webhook/fb-publish-property", { method: "POST", headers: N8H, body: JSON.stringify({ id: String(b.id || ""), force: !!b.force }) });
+      const j = await r.json().catch(() => ({}));
+      const o = Array.isArray(j) ? j[0] || {} : j;
+      if (!r.ok || !o.ok) return send(res, 200, { ok: false, error: "Facebook: " + String(o.message || o.error || ("грешка " + r.status)).replace(/\s*\[line \d+\]$/, "") });
+      return send(res, 200, { ok: true, postId: o.postId, link: o.link, photos: o.photos || 0 });
+    }
     if (b.action === "config") {
       const page = SR() ? await secretGet("fb_page") : null;
       return send(res, 200, { ok: true, appId: appId || null, ready: !!(appId && secret && SR()), page: page ? { id: page.id, name: page.name, link: "https://www.facebook.com/" + page.id } : null });
