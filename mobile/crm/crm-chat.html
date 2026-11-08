@@ -926,6 +926,7 @@ html:not(.desk) .ocols.reading .crail,html:not(.desk) .ocols.reading .olist{disp
 html:not(.desk) .ocols.reading .odet{flex:1;margin:20px 14px 0}
 html:not(.desk) .ocols:not(.reading) .odet{display:none}
 html:not(.desk) .od-h .back{display:grid}
+html:not(.desk) .c-msgs{min-height:220px}
 /* компютър: превключвател | списък | разговор */
 html.desk .ocols{display:grid;grid-template-columns:150px 860px 1fr;column-gap:26px}
 html.desk .crail{padding:24px 0 0;position:static}
@@ -1137,9 +1138,12 @@ html.desk .c-comp{position:static}
   var LOGO={
     all:'<svg class="all" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
     whatsapp:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#25D366"/><path fill="#fff" d="M17.4 14.6c-.3-.1-1.7-.8-1.9-.9-.3-.1-.4-.1-.6.1l-.9 1.1c-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.4.1-.5l.4-.5.3-.5v-.5l-.9-2c-.2-.5-.5-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.3.3-1 .9-1 2.3s1 2.7 1.2 2.9c.1.2 2 3.1 4.9 4.3 2.4 1 2.9.8 3.4.7.6-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3z"/></svg>',
-    messenger:'<svg viewBox="0 0 24 24"><defs><linearGradient id="cmg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0866FF"/><stop offset=".6" stop-color="#A033FF"/><stop offset="1" stop-color="#FF5C87"/></linearGradient></defs><path fill="url(#cmg)" d="M12 1C5.9 1 1 5.6 1 11.3c0 3 1.3 5.6 3.5 7.5v3.7l3.4-1.9c1.3.4 2.6.6 4.1.6 6.1 0 11-4.6 11-10.2S18.1 1 12 1z"/><path fill="#fff" d="m5.6 14.6 3.3-5.2c.5-.8 1.6-1 2.4-.4l2.6 2c.2.2.6.2.8 0l3.6-2.7c.5-.4 1.1.2.8.7l-3.3 5.2c-.5.8-1.6 1-2.4.4l-2.6-2c-.2-.2-.6-.2-.8 0l-3.6 2.7c-.5.4-1.1-.2-.8-.7z"/></svg>',
-    instagram:'<svg viewBox="0 0 24 24"><defs><linearGradient id="cig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".35" stop-color="#FA7E1E"/><stop offset=".6" stop-color="#D62976"/><stop offset=".85" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs><rect x="1" y="1" width="22" height="22" rx="6.5" fill="url(#cig)"/><rect x="6" y="6" width="12" height="12" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="2.9" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.6" cy="7.4" r="1" fill="#fff"/></svg>'
+    messenger:'<svg viewBox="0 0 24 24"><path fill="url(#cmg)" d="M12 1C5.9 1 1 5.6 1 11.3c0 3 1.3 5.6 3.5 7.5v3.7l3.4-1.9c1.3.4 2.6.6 4.1.6 6.1 0 11-4.6 11-10.2S18.1 1 12 1z"/><path fill="#fff" d="m5.6 14.6 3.3-5.2c.5-.8 1.6-1 2.4-.4l2.6 2c.2.2.6.2.8 0l3.6-2.7c.5-.4 1.1.2.8.7l-3.3 5.2c-.5.8-1.6 1-2.4.4l-2.6-2c-.2-.2-.6-.2-.8 0l-3.6 2.7c-.5.4-1.1-.2-.8-.7z"/></svg>',
+    instagram:'<svg viewBox="0 0 24 24"><rect x="1" y="1" width="22" height="22" rx="6.5" fill="url(#cig)"/><rect x="6" y="6" width="12" height="12" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="2.9" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.6" cy="7.4" r="1" fill="#fff"/></svg>'
   };
+  /* общи градиенти за логата – в отделен, винаги рисуван SVG (иначе изчезват, когато лентата е скрита) */
+  (function(){var d=document.createElement('div');d.setAttribute('aria-hidden','true');d.style.cssText='position:absolute;width:0;height:0;overflow:hidden';
+    d.innerHTML='<svg width="0" height="0"><defs><linearGradient id="cmg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0866FF"/><stop offset=".6" stop-color="#A033FF"/><stop offset="1" stop-color="#FF5C87"/></linearGradient><linearGradient id="cig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".35" stop-color="#FA7E1E"/><stop offset=".6" stop-color="#D62976"/><stop offset=".85" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs></svg>';document.body.appendChild(d)})();
   var PL=[{id:'all',label:'Всички'},{id:'whatsapp',label:'WhatsApp'},{id:'messenger',label:'Messenger'},{id:'instagram',label:'Instagram'}];
   var plabel=function(p){return p==='whatsapp'?'WhatsApp':p==='instagram'?'Instagram':'Messenger'};
   var chats=[],msgs=[],plat='all',sel=null,drafts={},errs={};

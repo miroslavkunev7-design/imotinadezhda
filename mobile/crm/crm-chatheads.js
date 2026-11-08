@@ -9,8 +9,8 @@
 
   var LOGO = {
     whatsapp: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#25D366"/><path fill="#fff" d="M17.4 14.6c-.3-.1-1.7-.8-1.9-.9-.3-.1-.4-.1-.6.1l-.9 1.1c-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.2-1.4-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.4.1-.5l.4-.5.3-.5v-.5l-.9-2c-.2-.5-.5-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.3.3-1 .9-1 2.3s1 2.7 1.2 2.9c.1.2 2 3.1 4.9 4.3 2.4 1 2.9.8 3.4.7.6-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3z"/></svg>',
-    messenger: '<svg viewBox="0 0 24 24"><defs><linearGradient id="nch-mg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0866FF"/><stop offset=".6" stop-color="#A033FF"/><stop offset="1" stop-color="#FF5C87"/></linearGradient></defs><path fill="url(#nch-mg)" d="M12 1C5.9 1 1 5.6 1 11.3c0 3 1.3 5.6 3.5 7.5v3.7l3.4-1.9c1.3.4 2.6.6 4.1.6 6.1 0 11-4.6 11-10.2S18.1 1 12 1z"/><path fill="#fff" d="m5.6 14.6 3.3-5.2c.5-.8 1.6-1 2.4-.4l2.6 2c.2.2.6.2.8 0l3.6-2.7c.5-.4 1.1.2.8.7l-3.3 5.2c-.5.8-1.6 1-2.4.4l-2.6-2c-.2-.2-.6-.2-.8 0l-3.6 2.7c-.5.4-1.1-.2-.8-.7z"/></svg>',
-    instagram: '<svg viewBox="0 0 24 24"><defs><linearGradient id="nch-ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".35" stop-color="#FA7E1E"/><stop offset=".6" stop-color="#D62976"/><stop offset=".85" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs><rect x="1" y="1" width="22" height="22" rx="6.5" fill="url(#nch-ig)"/><rect x="6" y="6" width="12" height="12" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="2.9" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.6" cy="7.4" r="1" fill="#fff"/></svg>'
+    messenger: '<svg viewBox="0 0 24 24"><path fill="url(#nch-mg)" d="M12 1C5.9 1 1 5.6 1 11.3c0 3 1.3 5.6 3.5 7.5v3.7l3.4-1.9c1.3.4 2.6.6 4.1.6 6.1 0 11-4.6 11-10.2S18.1 1 12 1z"/><path fill="#fff" d="m5.6 14.6 3.3-5.2c.5-.8 1.6-1 2.4-.4l2.6 2c.2.2.6.2.8 0l3.6-2.7c.5-.4 1.1.2.8.7l-3.3 5.2c-.5.8-1.6 1-2.4.4l-2.6-2c-.2-.2-.6-.2-.8 0l-3.6 2.7c-.5.4-1.1-.2-.8-.7z"/></svg>',
+    instagram: '<svg viewBox="0 0 24 24"><rect x="1" y="1" width="22" height="22" rx="6.5" fill="url(#nch-ig)"/><rect x="6" y="6" width="12" height="12" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="2.9" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.6" cy="7.4" r="1" fill="#fff"/></svg>'
   };
   var css =
     "#nch{position:fixed;z-index:70;display:flex;flex-direction:column;gap:12px;touch-action:none;user-select:none;-webkit-user-select:none;transition:left .25s cubic-bezier(.2,.9,.3,1.2),top .25s}" +
@@ -47,6 +47,9 @@
     if (box) return;
     box = document.createElement("div"); box.id = "nch"; box.hidden = true; box.setAttribute("aria-label", "Нови съобщения в Чат");
     xz = document.createElement("div"); xz.id = "nch-x"; xz.textContent = "✕"; xz.setAttribute("aria-hidden", "true");
+    var gd = document.createElement("div"); gd.setAttribute("aria-hidden", "true"); gd.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+    gd.innerHTML = '<svg width="0" height="0"><defs><linearGradient id="nch-mg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0866FF"/><stop offset=".6" stop-color="#A033FF"/><stop offset="1" stop-color="#FF5C87"/></linearGradient><linearGradient id="nch-ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".35" stop-color="#FA7E1E"/><stop offset=".6" stop-color="#D62976"/><stop offset=".85" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs></svg>';
+    document.body.appendChild(gd);
     document.body.appendChild(xz); document.body.appendChild(box);
     pos = ls(KEY) || { side: "r", y: 0.42 };
     drag();
