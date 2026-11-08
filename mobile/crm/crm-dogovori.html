@@ -1046,7 +1046,7 @@ html.desk .fwin .mscroll{overflow:hidden}
       dock=document.getElementById('dock'),dockC=document.getElementById('dockCanvas');
   var $=function(id){return document.getElementById(id)};
   var top=document.querySelector('.top'),photo=top.querySelector('.photo'),ctrls=[].slice.call(top.querySelectorAll('.ctrl,.avatar')),
-      texts=[].slice.call(top.querySelectorAll('.hero-title,.hero-sub,.o-ic,.logo-link')).map(function(el){return {el:el,top:parseFloat(getComputedStyle(el).top)||0}});
+      texts=[].slice.call(top.querySelectorAll('.hero-title,.hero-sub,.o-ic')).map(function(el){return {el:el,top:parseFloat(getComputedStyle(el).top)||0}});
   var desk=false;
   function isDesk(){return root.clientWidth>=1024&&root.clientWidth/innerHeight>=1.2}
   function fit(){
@@ -1088,6 +1088,10 @@ html.desk .fwin .mscroll{overflow:hidden}
 html.desk .dhost{padding:14px var(--xL,24px) 40px}
 #nd-fwin.inline{position:static!important;width:100%!important;height:auto!important;max-height:none!important;margin:0!important;left:auto!important;top:auto!important;bottom:auto!important;transform:none!important;opacity:1!important;border-radius:28px;box-shadow:0 0 0 1.5px rgba(227,178,94,.6),0 0 18px rgba(255,226,190,.8),0 10px 24px rgba(60,10,10,.25)}
 #nd-fwin.inline .mctl{display:none}
+/* телефон: полетата на договора една под друга, за да не се застъпват етикет и стойност */
+html:not(.desk) #nd-fwin.inline .ndg-f{grid-template-columns:1fr;padding-right:26px}
+html:not(.desk) #nd-fwin.inline .ndg .ef{grid-template-columns:var(--lw,190px) 1fr}
+html:not(.desk) #nd-fwin.inline .ndg .ef .in{min-width:0}
 #nd-fwin.inline .mscroll{position:static!important;inset:auto!important;overflow:visible!important;max-height:none;height:auto}
 #nd-fwin.inline .f-bar{position:relative}
 #nd-fwin.inline .f-photo{display:none!important}

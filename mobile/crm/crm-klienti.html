@@ -803,7 +803,7 @@ html.desk .mcv.tab .m-act{display:block}
         var X=MOREK[cat];if(X){if(X.priority&&c.priority!==X.priority)return false;if(X.payment&&c.payment!==X.payment)return false;if(X.timeframe&&c.timeframe!==X.timeframe)return false;
           if(X.status&&c.status!==X.status)return false;if(X.source&&c.source!==X.source)return false;if(X.rooms!=null&&!(+c.rooms>=X.rooms))return false;
           if(X.bmin!=null&&!(c.budget>=X.bmin))return false;if(X.bmax!=null&&!(c.budget<=X.bmax))return false;
-          if(X.due&&!(c.nextContact&&c.nextContact<=new Date().toISOString().slice(0,10)))return false}
+          if(X.due&&!(c.nextContact&&c.nextContact<=new Date().toLocaleDateString("sv-SE")))return false}
         var km=/^(?:к|k)?#?(\d+)$/.exec(s.replace(/\s+/g,''));
         if(km&&/[#кk]/.test(s)){if(String(c.num)!==km[1])return false}
         else if(s&&c.name.toLocaleLowerCase('bg').indexOf(s)<0&&!(digits&&c.phone.replace(/\D/g,'').indexOf(digits)>=0)&&!(digits&&String(c.num)===digits&&digits.length<4))return false;
@@ -816,7 +816,7 @@ html.desk .mcv.tab .m-act{display:block}
           '<span class="nm" style="top:'+g.name+'px">'+(c.num?'<span class="knum">К#'+esc(c.num)+'</span>':'')+esc(c.name)+'</span>'+
           '<span class="ph-n" style="top:'+g.phone+'px">'+ic('phone')+esc(c.phone)+'</span>'+
           '<span class="row" style="top:'+g.rows[0]+'px">'+ic('house')+esc(c.type)+'</span>'+
-          '<span class="row" style="top:'+g.rows[1]+'px">'+ic('pin')+esc(c.city+', '+c.hood)+'</span>'+
+          '<span class="row" style="top:'+g.rows[1]+'px">'+ic('pin')+esc([c.city,c.hood].filter(function(x){return x&&String(x).trim()}).join(', '))+'</span>'+
           '<span class="row" style="top:'+g.rows[2]+'px">'+ic('coins')+esc(budget(c))+'</span>'+
           '<span class="go">'+ic('arrow-r')+'</span></button>'}).join('')
         :(window.__ndClientsLoaded?'<div class="empty">Няма клиенти по избраните критерии.<br><button type="button" data-reset>Изчисти филтрите</button></div>':'<div class="empty">Зареждане на клиентите…</div>');

@@ -132,7 +132,7 @@
   }
   function open(opts) {
     opts = opts || {};
-    var clients = [], props = [], ctx, kind = opts.kind || "pre", f = { date: new Date().toISOString().slice(0, 10), place: AGENCY.city, commission: 3, copies: 3 }, lastHtml = "", lastTitle = "";
+    var clients = [], props = [], ctx, kind = opts.kind || "pre", f = { date: new Date().toLocaleDateString("sv-SE"), place: AGENCY.city, commission: 3, copies: 3 }, lastHtml = "", lastTitle = "";
     function cid() { return ctx ? ctx.get("ct-client") : opts.client_id || ""; }
     function form() {
       var cl = clients.map(function (c) { return [c.id, (c.num ? "К#" + c.num + " · " : "") + c.name + (c.phone ? " · " + c.phone : "")]; });

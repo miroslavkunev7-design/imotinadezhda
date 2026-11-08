@@ -111,3 +111,6 @@ html:not(.desk) #nd-fwin.inline .fcv{padding-bottom:150px}
    лентата за превъртане е скрита (превърта се с колелцето, тъчпада и клавишите) ---------- */
 html.desk #stage{overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain}
 html.desk #stage::-webkit-scrollbar{width:0;height:0;display:none}
+
+/* телефон: по-широка колона за етикетите във формите, за да не застъпват стойността (Строителство, Предимства…) */
+html:not(.desk) #nd-fwin .ndg .ef{grid-template-columns:max(var(--lw,128px),160px) minmax(0,1fr)}

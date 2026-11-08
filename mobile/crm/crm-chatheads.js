@@ -15,6 +15,7 @@
   var css =
     "#nch{position:fixed;z-index:70;display:flex;flex-direction:column;gap:12px;touch-action:none;user-select:none;-webkit-user-select:none;transition:left .25s cubic-bezier(.2,.9,.3,1.2),top .25s}" +
     "#nch.drag{transition:none}#nch[hidden]{display:none}" +
+    "html.locked #nch{visibility:hidden;pointer-events:none}" +
     ".nch-h{position:relative;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;cursor:pointer;border:2px solid #edc47a;" +
     "background:radial-gradient(circle at 35% 30%,#b42446,#7a0f22 60%,#4f0716);color:#fff3dc;font:400 21px/1 Georgia,'PT Serif',serif;text-shadow:0 1px 2px rgba(30,0,8,.6);" +
     "box-shadow:0 0 0 1px rgba(255,236,190,.55),0 0 18px rgba(255,190,120,.85),0 6px 14px rgba(60,5,15,.45),inset 0 2px 3px rgba(255,170,180,.45);animation:nchIn .35s cubic-bezier(.2,.9,.3,1.3)}" +

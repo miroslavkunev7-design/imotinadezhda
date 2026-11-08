@@ -1044,7 +1044,7 @@ html.desk .fwin .mscroll{overflow:hidden}
       dock=document.getElementById('dock'),dockC=document.getElementById('dockCanvas');
   var $=function(id){return document.getElementById(id)};
   var top=document.querySelector('.top'),photo=top.querySelector('.photo'),ctrls=[].slice.call(top.querySelectorAll('.ctrl,.avatar')),
-      texts=[].slice.call(top.querySelectorAll('.hero-title,.hero-sub,.o-ic,.logo-link')).map(function(el){return {el:el,top:parseFloat(getComputedStyle(el).top)||0}});
+      texts=[].slice.call(top.querySelectorAll('.hero-title,.hero-sub,.o-ic')).map(function(el){return {el:el,top:parseFloat(getComputedStyle(el).top)||0}});
   var desk=false;
   function isDesk(){return root.clientWidth>=1024&&root.clientWidth/innerHeight>=1.2}
   function fit(){
