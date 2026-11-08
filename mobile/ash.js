@@ -456,7 +456,7 @@
   skills.push(chatSkill);
   /* „n8n Agent“: самият агент от n8n (същият разговорен прозорец; отговаря агентът в n8n). Иначе името остава „Тед“. */
   var n8nSkill = Object.create(chatSkill);
-  n8nSkill.id = "n8n"; n8nSkill.name = "Чат с n8n Agent"; n8nSkill.sub = "Самият агент от n8n – реалните данни в CRM"; n8nSkill.placeholder = "Пишете на n8n Agent…";
+  n8nSkill.id = "n8n"; n8nSkill.name = "Чат с n8n Agent"; n8nSkill.sub = "Самият агент от n8n – реалните данни в CRM"; n8nSkill.placeholder = "Пишете на n8n Agent…"; n8nSkill.crmOnly = true; /* само в CRM (за служители), не и в публичния сайт */
   n8nSkill.intro0 = function (api) {
     if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
     else api.add("a", "Здравейте! Аз съм <b>n8n Agent</b> – агентът на Имоти Надежда в n8n.\nРаботя с реалните данни в CRM: клиенти, имоти, огледи, публикуване във Facebook, запис на клиент от Чат.\nПриемам текст – за снимки, файлове и глас превключете на „Чат с Тед Асистент“.");
@@ -557,7 +557,7 @@
     var tb = win.querySelector(".nda-t b"); if (tb) tb.textContent = s.id === "n8n" ? "n8n Agent" : "Тед Асистент";
     foot.innerHTML = s.footer ? s.footer() : ""; s.intro(api); if (s.bind) s.bind(api, foot);
   }
-  function renderMenu() { menu.innerHTML = skills.map(function (s, i) { return '<button type="button" role="option" data-i="' + i + '" class="' + (s === skill ? "on" : "") + '">' + esc(s.name) + "<small>" + esc(s.sub || "") + "</small></button>"; }).join(""); }
+  function renderMenu() { var inCrm = /\/mobile\/crm\//.test(location.pathname); menu.innerHTML = skills.map(function (s, i) { if (s.crmOnly && !inCrm) return ""; return '<button type="button" role="option" data-i="' + i + '" class="' + (s === skill ? "on" : "") + '">' + esc(s.name) + "<small>" + esc(s.sub || "") + "</small></button>"; }).join(""); }
   function boot() {
     if (booted) return; booted = true;
     var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
