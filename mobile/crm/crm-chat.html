@@ -863,7 +863,7 @@ html.desk .fwin .mscroll{overflow:hidden}
 <style>
 /* CRM Чат – WhatsApp · Messenger · Instagram в същия стъклен стил с глоу */
 .ocols{display:flex;align-items:flex-start;gap:0}
-.crail{flex:0 0 132px;display:flex;flex-direction:column;align-items:center;gap:22px;padding:24px 0 0 22px;position:sticky;top:14px}
+.crail{flex:0 0 132px;display:flex;flex-direction:column;align-items:center;gap:44px;padding:24px 0 0 22px;position:sticky;top:14px}
 .cpl{position:relative;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;cursor:pointer;
   background:linear-gradient(180deg,#fffcf9 0%,#fbefe5 100%);border:2px solid rgba(255,255,255,.95);
   box-shadow:0 0 0 1.5px rgba(226,176,120,.6),0 0 16px rgba(255,226,190,.95),0 6px 12px rgba(120,50,20,.22);transition:transform .15s,box-shadow .2s}
@@ -912,7 +912,8 @@ html.desk .fwin .mscroll{overflow:hidden}
 .c-empty{align-self:center;margin:auto;padding:30px;text-align:center;font:italic 400 24px/1.4 var(--cond);color:#7a5a52}
 .c-comp{position:sticky;bottom:128px;z-index:3;display:flex;align-items:flex-end;gap:14px;margin:12px 12px 14px;padding:12px;border-radius:30px;
   background:linear-gradient(180deg,rgba(255,252,248,.97),rgba(252,238,226,.97));box-shadow:0 0 0 2px #e3b25e,0 0 20px rgba(255,200,130,.75),0 8px 18px rgba(90,20,10,.25)}
-.c-comp textarea{flex:1;min-height:60px;max-height:220px;resize:none;border:0;outline:0;background:transparent;padding:14px 16px;font:400 25px/1.35 var(--cond);color:#1f1111}
+.c-ta{flex:1;min-width:0;position:relative;display:flex}
+.c-comp textarea{flex:1;width:100%;min-height:60px;max-height:220px;resize:none;border:0;outline:0;background:transparent;padding:14px 16px;font:400 25px/1.35 var(--cond);color:#1f1111}
 .c-comp textarea::placeholder{color:#8f7a74;font-style:italic}
 .c-send{flex:0 0 auto;height:62px;padding:0 30px;border-radius:31px;display:flex;align-items:center;gap:14px;color:#fff;font:400 26px/1 var(--cond);
   background:linear-gradient(180deg,#a3213a 0%,#7a0f22 42%,#55071a 100%);border:2px solid #edc47a;box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 16px rgba(255,190,120,.7),inset 0 2px 3px rgba(255,170,180,.5)}
@@ -1141,7 +1142,7 @@ html.desk .c-comp{position:static}
   };
   var PL=[{id:'all',label:'Всички'},{id:'whatsapp',label:'WhatsApp'},{id:'messenger',label:'Messenger'},{id:'instagram',label:'Instagram'}];
   var plabel=function(p){return p==='whatsapp'?'WhatsApp':p==='instagram'?'Instagram':'Messenger'};
-  var chats=[],msgs=[],plat='all',sel=null;
+  var chats=[],msgs=[],plat='all',sel=null,drafts={},errs={};
   var p2=function(x){return (x<10?'0':'')+x};
   var when=function(s){if(!s)return '';var d=new Date(s),n=new Date();
     if(d.toDateString()===n.toDateString())return p2(d.getHours())+':'+p2(d.getMinutes());
@@ -1238,16 +1239,17 @@ html.desk .c-comp{position:static}
       (d.client_id?'':'<div class="c-hint">Отговаряте <b>ръчно</b> – Тед не пише на клиентите. За да запишете човека в CRM, кажете на Тед: <b>„Запиши клиент '+esc(d.name||'…')+' и добави изпратените от него документи в картата му“</b>.</div>')+
       '<div class="c-msgs" id="c-msgs">'+(h||'<div class="c-empty">Зареждане…</div>')+'</div>'+
       '<div class="c-err" id="c-err" role="alert"></div>'+
-      '<form class="c-comp" id="c-comp"><textarea id="c-text" rows="1" placeholder="Напишете отговор до '+esc(cname(c))+'…" aria-label="Отговор"></textarea>'+
+      '<form class="c-comp" id="c-comp"><span class="c-ta"><textarea id="c-text" rows="1" placeholder="Напишете отговор до '+esc(cname(c))+'…" aria-label="Отговор"></textarea></span>'+
         '<button type="submit" class="c-send" id="c-send">'+ic('arrow-r')+'Изпрати</button></form>';
+    var ta=$('c-text');if(ta&&drafts[c.id]){ta.value=drafts[c.id];ta.style.height=Math.min(220,ta.scrollHeight)+'px'}
+    if(errs[c.id])$('c-err').textContent=errs[c.id];
     scrollEnd();
   }
   function scrollEnd(){var m=$('c-msgs');if(!m)return;
     if(desk)m.scrollTop=m.scrollHeight;else setTimeout(function(){var f=$('c-comp');if(f)f.scrollIntoView({block:'end'})},30)}
   function loadMsgs(id){
     return ND.sb().from('nd_chat_msgs').select('id,data,at').eq('chat_id',id).order('at',{ascending:true}).limit(1000).then(function(r){
-      if(r.error)throw r.error;if(sel!==id)return;msgs=r.data||[];
-      var keep=$('c-text')?$('c-text').value:'';renderDet();if(keep&&$('c-text'))$('c-text').value=keep;
+      if(r.error)throw r.error;if(sel!==id)return;msgs=r.data||[];renderDet();
     });
   }
   function markRead(c){var d=c.data||{};if(!(+d.unread))return;d.unread=0;renderRail();renderList();
@@ -1268,17 +1270,17 @@ html.desk .c-comp{position:static}
     var im=e.target.closest('[data-open]');if(im){window.open(im.getAttribute('data-open'),'_blank','noopener');return}
   });
   $('odet').addEventListener('keydown',function(e){if(e.target.id==='c-text'&&e.key==='Enter'&&!e.shiftKey&&desk){e.preventDefault();$('c-comp').requestSubmit()}});
-  $('odet').addEventListener('input',function(e){if(e.target.id==='c-text'){var ta=e.target;ta.style.height='auto';ta.style.height=Math.min(220,ta.scrollHeight)+'px'}});
+  $('odet').addEventListener('input',function(e){if(e.target.id==='c-text'){var ta=e.target;if(sel)drafts[sel]=ta.value;ta.style.height='auto';ta.style.height=Math.min(220,ta.scrollHeight)+'px'}});
   $('odet').addEventListener('submit',function(e){
     if(e.target.id!=='c-comp')return;e.preventDefault();
     var ta=$('c-text'),txt=ta.value.trim(),c=byId(sel);if(!txt||!c)return;
-    var btn=$('c-send');btn.disabled=true;$('c-err').textContent='';
+    var btn=$('c-send');btn.disabled=true;$('c-err').textContent='';errs[c.id]='';
     ND.token().then(function(tk){return fetch('/api/fb',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tk},body:JSON.stringify({action:'chatsend',chatId:c.id,text:txt})})})
       .then(function(r){return r.json().catch(function(){return {ok:false,error:'Сървърът не отговори ('+r.status+')'}})})
-      .then(function(r){btn.disabled=false;
-        if(!r.ok){$('c-err').textContent=r.error||'Съобщението не е изпратено.';return}
-        ta.value='';ta.style.height='';say('✔ Изпратено');loadMsgs(c.id).catch(function(){});loadChats();
-      }).catch(function(err){btn.disabled=false;$('c-err').textContent='Няма връзка: '+(err.message||err)});
+      .then(function(r){if($('c-send'))$('c-send').disabled=false;btn.disabled=false;
+        if(!r.ok){errs[c.id]=r.error||'Съобщението не е изпратено.';if($('c-err'))$('c-err').textContent=errs[c.id];return}
+        drafts[c.id]='';if($('c-text')){$('c-text').value='';$('c-text').style.height=''}ta.value='';ta.style.height='';say('✔ Изпратено');loadMsgs(c.id).catch(function(){});loadChats();
+      }).catch(function(err){btn.disabled=false;errs[c.id]='Няма връзка: '+(err.message||err);if($('c-err'))$('c-err').textContent=errs[c.id]});
   });
 
   /* ---------- зареждане + на живо ---------- */
@@ -1296,7 +1298,7 @@ html.desk .c-comp{position:static}
       rt=ND.sb().channel('nd-crm-chat')
         .on('postgres_changes',{event:'*',schema:'public',table:'nd_chats'},function(){clearTimeout(deb);deb=setTimeout(function(){loadChats().catch(function(){})},250)})
         .on('postgres_changes',{event:'INSERT',schema:'public',table:'nd_chat_msgs'},function(p){var m=p.new||{};if(m.chat_id===sel&&!msgs.some(function(x){return x.id===m.id})){msgs.push(m);
-          var keep=$('c-text')?$('c-text').value:'';renderDet();if(keep&&$('c-text')){$('c-text').value=keep}}})
+          renderDet()}})
         .subscribe();
     }catch(x){}
   }
