@@ -26629,6 +26629,8 @@ async function handler(req, res) {
     res.end(JSON.stringify(body2));
   };
   if (req.method === "OPTIONS") return send({}, 204);
+  /* кратък линк към документ: /f/<id>.<ext>?k=… (виж _filelink.js) */
+  if (req.method === "GET" && /[?&]file=/.test(req.url || "")) return require("./_filelink.js")(req, res);
   if (req.method === "GET") return send({ tools: manifest() });
   if (req.method !== "POST") return send({ ok: false, error: "Method not allowed" }, 405);
   const auth = String(req.headers["authorization"] || "");

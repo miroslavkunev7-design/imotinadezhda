@@ -1,4 +1,4 @@
-// /f/<document id>.<ext>?k=<expiry>.<signature> – short, stable link to a CRM document for the chat (Тед и агентът в n8n).
+// /f/<document id>.<ext>?k=<expiry>.<signature> (rewrite → /api/tools?file=…, no extra function) – short, stable link to a CRM document for the chat (Тед и агентът в n8n).
 // Long Supabase signed links get corrupted when an AI copies them, so Тед gives this short link instead:
 // the signature (HMAC with the server key) proves Тед issued it; on open it redirects to a fresh 10-minute signed link.
 "use strict";
