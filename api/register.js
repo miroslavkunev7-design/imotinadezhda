@@ -80,7 +80,7 @@ module.exports = async (req, res) => {
       const existing=await fetch(SB_URL+"/rest/v1/nd_brokers?select=data",{headers:H()});
       if(!existing.ok)return send(res,502,{ok:false,error:"Проверката на профила не успя. Опитайте отново."});
       const brokers=await existing.json();
-      if(brokers.some(x=>x.data&&normPhone(x.data.phone)===phone&&x.data.user_id))return send(res,409,{ok:false,error:"С този телефон вече има профил. Използвайте вход или възстановяване."});
+      if(brokers.some(x=>x.data&&normPhone(x.data.phone)===phone&&x.data.user_id))return send(res,409,{ok:false,code:"PHONE_EXISTS",error:"С този телефон вече има профил. Използвайте вход или възстановяване."});
       const login = suppliedEmail || phoneLogin(phone);
       /* акаунт за вход с телефона; достъп до CRM се дава едва след верния SMS код */
       let userId = null;
@@ -88,7 +88,7 @@ module.exports = async (req, res) => {
       const uid = q && q.ok ? await q.json().catch(() => null) : null;
       if (uid) {
         const st = await fetch(SB_URL + "/rest/v1/nd_staff?user_id=eq." + uid + "&select=user_id", { headers: H() }); const sj = await st.json().catch(() => []);
-        if (Array.isArray(sj) && sj.length) return send(res, 409, { ok: false, error: "С този телефон вече има профил. Влезте с телефона и паролата си." });
+        if (Array.isArray(sj) && sj.length) return send(res, 409, { ok: false, code: suppliedEmail ? "EMAIL_EXISTS" : "PHONE_EXISTS", error: suppliedEmail ? "С този имейл вече има профил. Използвайте вход или възстановяване на парола." : "С този телефон вече има профил. Влезте с телефона и паролата си." });
         const up = await fetch(SB_URL + "/auth/v1/admin/users/" + uid, { method: "PUT", headers: H(), body: JSON.stringify({ password: pass, email_confirm: true, user_metadata: { full_name: name, phone, phone_login: true } }) });
         if (!up.ok) return send(res, 502, { ok: false, error: "Профилът не можа да се подготви. Опитайте отново." });
         userId = uid;
