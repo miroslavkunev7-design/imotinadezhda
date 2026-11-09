@@ -47,7 +47,9 @@ async function verify(id, otp) {
   if (Array.isArray(exj) && exj[0]) Object.assign(card, exj[0].data || {}, { name, phone: pretty(phone), user_id: userId, active: true, phone_verified: true });
   const w = await fetch(SB_URL + "/rest/v1/nd_brokers", { method: "POST", headers: Object.assign(H(), { Prefer: "resolution=merge-duplicates" }), body: JSON.stringify({ id: id2, data: card }) });
   if (!c.again) { try { await fetch(SB_URL + "/rest/v1/nd_activities", { method: "POST", headers: H(), body: JSON.stringify({ id: "act-" + Date.now().toString(36), data: { icon: "user-round", text: "Нов брокер: " + name + " (" + pretty(phone) + ") – потвърден по SMS", at: new Date().toISOString() } }) }); } catch (e) {} }
-  return { ok: true, login: phoneLogin(phone), broker_id: w.ok ? id2 : null };
+  const au=await fetch(SB_URL+"/auth/v1/admin/users/"+userId,{headers:H()});
+  const aj=au.ok?await au.json():{};
+  return { ok: true, login: aj.email || phoneLogin(phone), broker_id: w.ok ? id2 : null };
 }
 module.exports = async (req, res) => {
   if (req.method !== "POST") return send(res, 405, { ok: false, error: "POST only" });
@@ -71,7 +73,13 @@ module.exports = async (req, res) => {
       if (name.split(" ").length < 2) return send(res, 400, { ok: false, error: "Въведете двете си имена." });
       if (!phone) return send(res, 400, { ok: false, error: "Въведете валиден телефонен номер (напр. 0888 123 456)." });
       if (pass.length < 8) return send(res, 400, { ok: false, error: "Паролата трябва да е поне 8 символа." });
-      const login = phoneLogin(phone);
+      const suppliedEmail=String(b.email||"").trim().toLowerCase();
+      if(suppliedEmail&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(suppliedEmail))return send(res,400,{ok:false,error:"Въведете валиден имейл."});
+      const existing=await fetch(SB_URL+"/rest/v1/nd_brokers?select=data",{headers:H()});
+      if(!existing.ok)return send(res,502,{ok:false,error:"Проверката на профила не успя. Опитайте отново."});
+      const brokers=await existing.json();
+      if(brokers.some(x=>x.data&&normPhone(x.data.phone)===phone&&x.data.user_id))return send(res,409,{ok:false,error:"С този телефон вече има профил. Използвайте вход или възстановяване."});
+      const login = suppliedEmail || phoneLogin(phone);
       /* акаунт за вход с телефона; достъп до CRM се дава едва след верния SMS код */
       let userId = null;
       const q = await fetch(SB_URL + "/rest/v1/rpc/nd_admin_user_id", { method: "POST", headers: H(), body: JSON.stringify({ p_email: login }) }).catch(() => null);

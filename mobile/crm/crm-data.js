@@ -103,7 +103,7 @@
         '<div><button type="button" class="app" data-app="windows" aria-label="Изтегли за Windows"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M2 4.3l8.2-1.1v7.9H2zm9.2-1.3L22 1.5v9.6H11.2zM2 12.1h8.2V20L2 18.9zm9.2 0H22v9.6l-10.8-1.5z"/></svg></button><small>Windows</small></div>' +
         '</div><div class="nd-howto" role="status" hidden></div></div>' +
         '<div class="nd-reg" hidden><label for="nd-code">Кодово изречение</label><input id="nd-code" type="password" autocomplete="off" placeholder="Въведете кодовото изречение">' +
-        '<div class="nd-reg2" hidden><label for="nd-name">Име и фамилия</label><input id="nd-name" type="text" autocomplete="name" placeholder="Иван Петров"><label for="nd-phone">Телефонен номер</label><input id="nd-phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0888 123 456"><label for="nd-title">Длъжност</label><select id="nd-title"><option>Брокер</option><option>Старши брокер</option><option>Консултант</option><option>Управител</option></select><label for="nd-pwn">Парола (поне 8 символа)</label><input id="nd-pwn" type="password" autocomplete="new-password"><label for="nd-pw2">Повторете паролата</label><input id="nd-pw2" type="password" autocomplete="new-password"></div>' +
+        '<div class="nd-reg2" hidden><label for="nd-name">Име и фамилия</label><input id="nd-name" type="text" autocomplete="name" placeholder="Иван Петров"><label for="nd-phone">Телефонен номер</label><input id="nd-phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0888 123 456"><label for="nd-regemail">Имейл за вход и възстановяване</label><input id="nd-regemail" type="email" autocomplete="email" placeholder="email@example.com"><label for="nd-title">Длъжност</label><select id="nd-title"><option>Брокер</option><option>Старши брокер</option><option>Консултант</option><option>Управител</option></select><label for="nd-pwn">Парола (поне 8 символа)</label><input id="nd-pwn" type="password" autocomplete="new-password"><label for="nd-pw2">Повторете паролата</label><input id="nd-pw2" type="password" autocomplete="new-password"></div>' +
         '<div class="nd-otp" hidden><label for="nd-otp">Код за потвърждение</label><input id="nd-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 цифри" style="letter-spacing:6px;font-weight:700;text-align:center"><button type="button" class="lnk" data-resend>Изпрати нов код</button></div></div>' +
         '<div class="err" role="alert"></div><button type="submit">Вход</button><button type="button" class="lnk" data-reset>Забравена парола</button><button type="button" class="lnk" data-reg>Регистрация на брокер</button></form>';
       document.body.appendChild(box);
@@ -167,7 +167,7 @@
           if (pw.length < 8) { err.textContent = "Паролата трябва да е поне 8 символа."; return; }
           if (pw !== pw2) { err.textContent = "Паролите не съвпадат."; return; }
           btn.disabled = true; err.textContent = "Изпращаме кода…";
-          fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "start", code: b.querySelector("#nd-code").value.trim(), name: name, phone: phone, title: title, password: pw }) }).then(function (r) { return r.json(); }).then(function (j) {
+          fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "start", code: b.querySelector("#nd-code").value.trim(), name: name, phone: phone, email: b.querySelector("#nd-regemail").value.trim(), title: title, password: pw }) }).then(function (r) { return r.json(); }).then(function (j) {
             btn.disabled = false;
             if (!j.id) { err.textContent = j.error || "Регистрацията не успя."; return; }
             pend = { id: j.id, phone: j.phone, pw: pw, phoneRaw: phone, via: j.via };
@@ -180,7 +180,7 @@
         if (!login || (em.indexOf("@") > 0 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))) { err.textContent = "Въведете телефонния си номер (или имейл)."; return; }
         if (!pw) { err.textContent = "Въведете парола."; return; }
         btn.disabled = true; err.textContent = "";
-        client().auth.signInWithPassword({ email: login, password: pw }).then(function (r) {
+        fetch("/api/broker-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({action:"login", identifier:em, password:pw}) }).then(function(r){return r.json();}).then(function(j){ if(!j.ok)return {error:{message:j.error||"Неуспешен вход."}};return client().auth.setSession({access_token:j.access_token,refresh_token:j.refresh_token}); }).catch(function(){return {error:{message:"Няма връзка със сървъра."}};}).then(function (r) {
           btn.disabled = false;
           if (r.error) { err.textContent = /invalid/i.test(r.error.message) ? "Грешен телефон/имейл или парола." : /not confirmed/i.test(r.error.message) ? "Имейлът не е потвърден – използвайте „Забравена парола“ или регистрацията с кодовото изречение." : r.error.message; return; }
           session = r.data.session; b.hidden = true; ok(session);
@@ -192,11 +192,9 @@
       };
       b.querySelector("[data-reset]").onclick = function () {
         var em = b.querySelector("#nd-em").value.trim();
-        if (em && em.indexOf("@") < 0) { err.textContent = "За профил с телефон: обадете се на управителя за нова парола."; return; }
-        if (!em) { err.textContent = "Въведете имейла си и натиснете отново."; return; }
-        client().auth.resetPasswordForEmail(em, { redirectTo: location.origin + "/mobile/crm/crm-nachalo.html" }).then(function (r) {
-          err.textContent = r.error ? r.error.message : "Изпратихме ви имейл за нова парола.";
-        });
+        if (!em) { err.textContent = "Въведете телефон или имейл и натиснете отново."; return; }
+        err.textContent = "Изпращаме заявката…";
+        fetch("/api/broker-auth", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"reset",identifier:em})}).then(function(r){return r.json();}).then(function(j){err.textContent=j.message||j.error||"Опитайте отново.";}).catch(function(){err.textContent="Няма връзка със сървъра.";});
       };
     });
   }
