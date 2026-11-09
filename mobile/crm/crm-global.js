@@ -270,7 +270,7 @@
   function pushHtml() {
     return U.group("Известия на телефона", "bell", null,
       '<div class="wide ndhint" id="p-state">Проверка…</div>' +
-      '<div class="wide ndhint">Тед напомня <b>2 часа</b> и <b>1 час</b> преди всяка среща, оглед или задача – и на заключен екран. Ако не потвърдите до 10 минути, останалите от екипа получават известие.</div>' +
+      '<div class="wide ndhint">Когато CRM е на <b>началния екран</b>, новите писма излизат на <b>заключения екран</b>. Тед напомня и <b>2 часа</b> и <b>1 час</b> преди среща, оглед или задача. Ако не потвърдите до 10 минути, екипът получава известие.</div>' +
       '<div class="wide ndbtns"><button type="button" class="ndb pri" data-p="on">' + ic("bell") + " Включи известията</button>" + '<button type="button" class="ndb" data-p="test">' + ic("check") + " Тест</button>" + '<button type="button" class="ndb rm" data-p="off" hidden>' + ic("x") + " Изключи</button></div>", { lw: 150 });
   }
   function pushBind(x) {

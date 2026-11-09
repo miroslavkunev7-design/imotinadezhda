@@ -4,6 +4,7 @@
 // actions: providers · get (host/адрес, без парола) · set · test · delete · send (to, subject, text, attachments [{path}] от nd-files)
 "use strict";
 const nodemailer = require("./_vendor/nodemailer/lib/nodemailer.js");
+const pushApi = require("./push");
 const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
 const SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
 const SR = () => process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -124,6 +125,13 @@ async function syncReceived(cfg, rid) {
   const data = { folder: "in", read: false, resend_id: rid, message_id: e.message_id || null, from: fromH.email || e.from, from_name: fromH.name || "", to: e.to || [], cc: e.cc || [], reply_to: e.reply_to || [], subject: e.subject || "(без тема)",
     text: String(e.text || "").slice(0, 200000), html: String(e.html || "").slice(0, 600000), at: e.created_at || new Date().toISOString(), attachments: atts, auth: e.authentication || null };
   await mailPut(id, data);
+  try {
+    const r = await pushApi.notifyMail(id, data);
+    if (r && r.ok > 0) {
+      data.notified = true;
+      await mailPut(id, data).catch(() => null);
+    }
+  } catch (e) { logErr("mail-push", cfg, e); }
   return { id, fresh: true };
 }
 async function syncInbox(cfg) {

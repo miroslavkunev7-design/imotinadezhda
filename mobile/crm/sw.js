@@ -1,6 +1,6 @@
 /* Service worker for the installable CRM app. Network first (always fresh data);
    the page shell is kept for offline start, data always comes live from the database. */
-var CACHE = "nd-crm-v75";
+var CACHE = "nd-crm-v76";
 var SHELL = ["crm-nachalo.html", "crm-klienti.html", "crm-imoti.html", "crm-brokeri.html", "crm-kalendar.html", "crm-kompanii.html", "crm-naemi.html", "crm-sdelki.html", "crm-dogovori.html", "crm-poshta.html", "crm-chat.html", "bank.html",
   "crm-blend.css", "crm-info.css", "crm-premium.css", "crm-premium.js", "crm-v3-imoti.css", "crm-v3-klienti.css", "crm-v3-head.css", "crm-v3-head.js", "crm-v3-brokeri.css", "crm-v3-kompanii.css", "crm-v3-kalendar.css", "crm-v3-sdelki.css", "crm-v3-naemi.css", "crm-v3-dogovori.css", "crm-v3-poshta.css", "crm-v3-chat.css", "crm-v3-nachalo.css", "crm-realchat.js", "crm-data.js", "crm-ui.js", "crm-global.js", "crm-dictate.js", "crm-doclists.js", "crm-video.js", "crm-inquiries.js", "crm-chatheads.js", "crm-klienti-tabs.js", "crm-imoti-tabs.js", "crm-contracts.js",
   "crm-assistant.js", "crm-collect.js", "crm-scan.js", "crm-publish.js", "crm-push.js", "../ash.js", "../places.js", "../nd-menu.js",
@@ -27,7 +27,7 @@ self.addEventListener("push", function (e) {
   var opts = {
     body: d.body || "", icon: "/mobile/crm/assets/app-icon3-192.png", badge: "/mobile/crm/assets/app-icon3-192.png", lang: "bg",
     tag: d.tag || ("nd-" + Date.now()), renotify: true, requireInteraction: !!d.ack, vibrate: [120, 60, 120],
-    data: { url: d.url || "/mobile/crm/crm-kalendar.html", ack: d.ack || null, rid: d.rid || null },
+    data: { url: d.url || "/mobile/crm/crm-poshta.html", ack: d.ack || null, rid: d.rid || null },
     actions: d.actions || (d.ack ? [{ action: "ack", title: "Потвърждавам" }, { action: "open", title: "Отвори" }] : [])
   };
   e.waitUntil(self.registration.showNotification(d.title || "Имоти Надежда", opts));
@@ -37,7 +37,7 @@ self.addEventListener("notificationclick", function (e) {
   var ackP = data.ack ? fetch("/api/push?action=ack&t=" + encodeURIComponent(data.ack), { cache: "no-store" }).catch(function () {}) : Promise.resolve();
   if (e.action === "ack") { e.waitUntil(ackP); return; }
   e.waitUntil(ackP.then(function () { return clients.matchAll({ type: "window", includeUncontrolled: true }); }).then(function (list) {
-    var url = new URL(data.url || "/mobile/crm/crm-kalendar.html", self.location.origin).href;
+    var url = new URL(data.url || "/mobile/crm/crm-poshta.html", self.location.origin).href;
     for (var i = 0; i < list.length; i++) { if (list[i].url.indexOf("/mobile/crm/") >= 0 && "focus" in list[i]) { list[i].navigate(url); return list[i].focus(); } }
     return clients.openWindow(url);
   }));

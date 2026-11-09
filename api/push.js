@@ -2,7 +2,7 @@
 // actions (POST, Bearer на служителя): vapid · subscribe · unsubscribe · status · test · ack {reminder_id|event_id} · tick
 // GET ?action=ack&t=<подписан токен>  – потвърждение от бутона в самото известие (без вход)
 // POST ?action=tick с x-cron-key      – от планировчика (pg_cron в Supabase, на 5 минути)
-// Правила: 2 ч и 1 ч преди събитие/задача → известие до отговорния брокер; нова задача, възложена от друг → веднага;
+// Правила: ново писмо в пощата → известие до всички служители на заключения екран; 2 ч и 1 ч преди събитие/задача → известие до отговорния брокер; нова задача, възложена от друг → веднага;
 // ако 1-часовото известие не е потвърдено до 10 минути → известие до останалите от екипа (ескалация) + запис в дейностите.
 "use strict";
 const crypto = require("crypto");
@@ -64,6 +64,36 @@ async function pushTo(userIds, payload) {
   return { devices: subs.length, ok, gone };
 }
 async function staffIds() { const rows = await q("nd_staff?select=user_id"); return rows.map((r) => r.user_id); }
+async function notifyMail(mailId, data) {
+  if (!PUB() || !PRIV() || !SR()) return { devices: 0, ok: 0, skipped: "vapid" };
+  const from = String((data && (data.from_name || data.from)) || "Ново писмо").replace(/\s+/g, " ").slice(0, 80);
+  const subj = String((data && data.subject) || "(без тема)").replace(/\s+/g, " ").slice(0, 120);
+  const who = await staffIds();
+  if (!who.length) return { devices: 0, ok: 0 };
+  return pushTo(who, {
+    title: "Ново писмо",
+    body: from + " · " + subj,
+    url: "/mobile/crm/crm-poshta.html#" + encodeURIComponent(mailId),
+    tag: "mail-" + mailId,
+    actions: [{ action: "open", title: "Отвори пощата" }]
+  });
+}
+async function tickMail(out) {
+  const rows = await q("nd_mail?select=id,data&limit=40").catch(() => []);
+  const now = Date.now();
+  out.mail = 0;
+  for (const row of rows) {
+    const d = row.data || {};
+    if (d.folder !== "in" || d.read || d.notified) continue;
+    const at = Date.parse(d.at || "") || 0;
+    if (at && now - at > 36 * 3600000) continue;
+    const r = await notifyMail(row.id, d).catch((e) => ({ ok: 0, error: e.message }));
+    if (!(r && r.ok)) continue;
+    d.notified = true;
+    await q("nd_mail?id=eq." + encodeURIComponent(row.id), { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ data: d }) }).catch(() => null);
+    out.mail++;
+  }
+}
 async function brokerNames() { const rows = await q("nd_brokers?select=id,data"); const m = {}; rows.forEach((r) => { if (r.data && r.data.user_id) m[r.data.user_id] = r.data.name || ""; }); return m; }
 function eventText(ev) { const d = ev.data || {}; const kind = TYPE_BG[d.type] || "Събитие"; return { kind, title: d.title || kind, where: [d.client, d.prop, d.extra].filter(Boolean).join(" · ") }; }
 
@@ -101,6 +131,7 @@ async function tick() {
       out.escalated.push({ event: ev.id, to: others.length, delivered: r.ok });
     }
   }
+  await tickMail(out).catch(() => null);
   return out;
 }
 async function remind(ev, who, kind, payload, existing, out) {
@@ -149,7 +180,7 @@ module.exports = async (req, res) => {
     }
     if (act === "unsubscribe") { if (b.endpoint) await q("nd_push_subs?endpoint=eq." + encodeURIComponent(b.endpoint) + "&user_id=eq." + user.id, { method: "DELETE" }); else await q("nd_push_subs?user_id=eq." + user.id, { method: "DELETE" }); return send(res, 200, { ok: true }); }
     if (act === "status") { const n = await q("nd_push_subs?select=id,ua,created_at,last_ok&user_id=eq." + user.id); return send(res, 200, { ok: true, devices: n, configured: !!(PUB() && PRIV()) }); }
-    if (act === "test") { const r = await pushTo([user.id], { title: "Тед: известията работят ✅", body: "Ще ви напомням 2 ч и 1 ч преди всяка задача, дори при заключен екран.", url: "/mobile/crm/crm-kalendar.html", tag: "test" }); return send(res, 200, Object.assign({ ok: r.ok > 0 }, r, r.ok ? {} : { error: r.devices ? "Известието не стигна до устройството – включете известията отново." : "Няма регистрирано устройство – натиснете „Включи известията“." })); }
+    if (act === "test") { const r = await pushTo([user.id], { title: "Поща: известията работят ✅", body: "Нови писма ще излизат на заключения екран, когато CRM е на началния екран.", url: "/mobile/crm/crm-poshta.html", tag: "test-mail" }); return send(res, 200, Object.assign({ ok: r.ok > 0 }, r, r.ok ? {} : { error: r.devices ? "Известието не стигна до устройството – включете известията отново." : "Няма регистрирано устройство – натиснете „Включи известията“." })); }
     if (act === "ack") {
       if (b.reminder_id) return send(res, 200, Object.assign({ ok: true }, await ack(String(b.reminder_id), user.id)));
       if (b.event_id) { const at = new Date().toISOString(); await q("nd_reminders?event_id=eq." + encodeURIComponent(String(b.event_id)) + "&acked_at=is.null", { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ acked_at: at, acked_by: user.id }) }); return send(res, 200, { ok: true, acked_at: at }); }
@@ -160,3 +191,5 @@ module.exports = async (req, res) => {
   } catch (e) { return send(res, 500, { ok: false, error: String((e && e.message) || e).slice(0, 300) }); }
 };
 module.exports.tick = tick;
+module.exports.notifyMail = notifyMail;
+module.exports.pushTo = pushTo;
