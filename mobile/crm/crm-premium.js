@@ -25,6 +25,30 @@
     if (b) try { navigator.vibrate(12); } catch (x) {}
   }, true);
 })();
+/* The signed-in broker's actual portrait, refreshed after a saved card change. */
+(function () {
+  function matches(card) {
+    var u = window.ND && ND.user; if (!u || !card) return false;
+    if (card.user_id) return card.user_id === u.id;
+    return !!(u.email && card.email && u.email.toLowerCase() === card.email.toLowerCase());
+  }
+  function paint(card) {
+    if (!matches(card)) return;
+    var path = card.photo || card.thumb;
+    if (!path) return;
+    var task = /^brokers\//.test(path) ? ND.fileUrl(path) : Promise.resolve(/^https?:\/\//.test(path) ? path : 'assets/' + path);
+    task.then(function (url) {
+      if (!url) return;
+      [].forEach.call(document.querySelectorAll('.avatar img'), function (image) { image.src = url; image.alt = card.name || 'Моят профил'; image.decoding = 'async'; });
+    }).catch(function () {});
+  }
+  function boot() {
+    if (!window.ND) return;
+    ND.ready().then(function () { return ND.load('brokers'); }).then(function (cards) { var mine = cards.filter(matches); if (mine.length === 1) paint(mine[0]); }).catch(function () {});
+  }
+  addEventListener('nd-broker-updated', function (event) { paint(event.detail); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
 /* ---- поздрав в Начало ---- */
 (function () {
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }

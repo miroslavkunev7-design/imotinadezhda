@@ -385,6 +385,59 @@
   function setCase(c) { curCase = c || null; try { if (c) localStorage.setItem(CASE_KEY, JSON.stringify(c)); else localStorage.removeItem(CASE_KEY); } catch (e) {} }
   /* ---- widget ---- */
   var skills = [], skill = null, win, fab, list, menu, foot, booted = false, hist = [];
+  var followLatest = true, chatFrame = 0;
+  function followChat(force) {
+    if (force) followLatest = true;
+    if (!list || !followLatest || chatFrame) return;
+    chatFrame = requestAnimationFrame(function () {
+      chatFrame = 0;
+      if (followLatest && win && !win.hidden) list.scrollTop = list.scrollHeight;
+    });
+  }
+  function fitChatViewport() {
+    if (!win || !inCrmPath()) return;
+    var vv = window.visualViewport;
+    /* Pinch zoom remains native; only keyboard/toolbar viewport changes resize the card. */
+    if (vv && vv.scale !== 1) return;
+    if (document.documentElement.clientWidth < 900) {
+      var y = vv ? vv.offsetTop : 0, h = vv ? vv.height : innerHeight;
+      var safe = parseFloat(getComputedStyle(win).getPropertyValue('--ted-safe-top')) || 0;
+      var typing = win.contains(document.activeElement) && /^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName);
+      var inset = Math.max(typing && h < innerHeight - 80 ? 8 : 60, safe);
+      var bottom = parseFloat(getComputedStyle(win).getPropertyValue('--ted-safe-bottom')) || 0;
+      win.style.setProperty('--ted-viewport-top', (y + inset) + 'px');
+      win.style.setProperty('--ted-viewport-height', Math.max(180, h - inset - Math.max(10, bottom)) + 'px');
+    } else {
+      win.style.removeProperty('--ted-viewport-top'); win.style.removeProperty('--ted-viewport-height');
+    }
+    followChat();
+  }
+  function watchChat() {
+    var intentUntil = 0, resize;
+    list.addEventListener('scroll', function () {
+      var atEnd = list.scrollHeight - list.clientHeight - list.scrollTop < 48;
+      if (atEnd || Date.now() < intentUntil) followLatest = atEnd;
+    }, { passive: true });
+    ['wheel','touchmove','pointerdown','keydown'].forEach(function (name) {
+      list.addEventListener(name, function () { intentUntil = Date.now() + 1200; }, { passive: true });
+    });
+    if (window.ResizeObserver) {
+      resize = new ResizeObserver(function () { followChat(); });
+      resize.observe(list); resize.observe(foot); resize.observe(win.querySelector('.nda-h'));
+    }
+    new MutationObserver(function (records) {
+      if (resize) records.forEach(function (record) {
+        [].forEach.call(record.addedNodes, function (node) { if (node.nodeType === 1 && node.matches('.nda-m')) resize.observe(node); });
+        [].forEach.call(record.removedNodes, function (node) { if (node.nodeType === 1 && node.matches('.nda-m')) resize.unobserve(node); });
+      });
+      followChat();
+    }).observe(list, { childList: true, subtree: true, characterData: true });
+    list.addEventListener('load', function () { followChat(); }, true);
+    foot.addEventListener('focusin', fitChatViewport);
+    addEventListener('resize', fitChatViewport);
+    if (window.visualViewport) { visualViewport.addEventListener('resize', fitChatViewport); visualViewport.addEventListener('scroll', fitChatViewport); }
+    fitChatViewport();
+  }
   var STORE = "nd-ash-chat";
   try { hist = JSON.parse(sessionStorage.getItem(STORE) || "[]") || []; } catch (e) { hist = []; }
   function save() { try { sessionStorage.setItem(STORE, JSON.stringify(hist.slice(-30).map(function (m) { return { role: m.role, text: m.text, files: (m.files || []).slice(0,6) }; }))); } catch (e) {} }
@@ -431,7 +484,7 @@
     var i = 0; items.forEach(function (it, j) { if (it.url === a.href) i = j; });
     viewFiles(items, i);
   }
-  function add(role, html, cls) { var m = document.createElement("div"); m.className = "nda-m " + role + (cls ? " " + cls : ""); m.innerHTML = html; list.appendChild(m); if (role === "a" && cls !== "wait") speaker(m); list.scrollTop = list.scrollHeight; return m; }
+  function add(role, html, cls) { var m = document.createElement("div"); m.className = "nda-m " + role + (cls ? " " + cls : ""); m.innerHTML = html; list.appendChild(m); if (role === "a" && cls !== "wait") speaker(m); followChat(true); return m; }
 
   /* ---- резултатите от планираните задачи на Тед (напомняния, повтарящи се задачи, промени по сайтове) идват тук, в чата, вместо в Telegram.
      Само за влезли служители: на всеки 60 s (докато страницата е видима) и при отваряне на прозореца питаме n8n (ted-inbox) за непрочетените;
@@ -587,7 +640,7 @@
   }
   function renderCaseBar() {
     var b = foot && foot.querySelector(".nda-case-btn"); if (!b) return;
-    b.innerHTML = "📁 " + (curCase ? "Казус: <b>" + esc(curCase.title) + "</b>" : "Общ разговор") + " ▾";
+    b.innerHTML = (inCrmPath() ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7V5a2 2 0 0 1 2-2h5l3 3h6a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><path d="M3 9h18"/></svg>' : "📁 ") + (curCase ? "Казус: <b>" + esc(curCase.title) + "</b>" : "Общ разговор") + " ▾";
     b.classList.toggle("on", !!curCase);
   }
   function openCases(api) {
@@ -689,7 +742,9 @@
     id: "chat", name: "Чат с Тед Асистент", sub: "Клиенти, имоти, календар, сделки, изчисления",
     intro: function (api) { caseIntro(api, this); },
     footer: function () {
-      return (inCrmPath() ? '<div class="ted-quick"><button type="button" data-ted-find>'+TED_HOUSE+'Намери имот</button><button type="button" data-ted-docs>'+TED_DOC+'Прегледай документи</button></div><div class="ted-property-row"><button type="button" class="ted-property-btn" data-ted-property>'+TED_HOUSE+'Прикачи имот</button></div>' : '') + '<div class="nda-case"><button type="button" class="nda-case-btn" aria-haspopup="listbox"></button><button type="button" class="nda-case-btn role" aria-haspopup="listbox" hidden></button><div class="nda-case-pop" hidden></div></div><div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="mic" aria-label="Гласово съобщение">' + I.mic + '</button><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
+      var cases = '<button type="button" class="nda-case-btn" aria-haspopup="listbox"></button><button type="button" class="nda-case-btn role" aria-haspopup="listbox" hidden></button>';
+      var actions = inCrmPath() ? '<div class="nda-case ted-action-rail" role="group" aria-label="Действия на Тед — плъзнете за още" tabindex="0"><button type="button" data-ted-find>'+TED_HOUSE+'Намери имот</button><button type="button" data-ted-docs>'+TED_DOC+'Прегледай документи</button><button type="button" data-ted-property>'+TED_HOUSE+'Прикачи имот</button>'+cases+'</div><div class="nda-case-pop" hidden></div>' : '<div class="nda-case">'+cases+'<div class="nda-case-pop" hidden></div></div>';
+      return actions + '<div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="mic" aria-label="Гласово съобщение">' + I.mic + '</button><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
     },
     bind: function (api, el) {
       var ta = el.querySelector("textarea"), files = [], fl = el.querySelector(".nda-files"), busy = false, me = this;
@@ -708,7 +763,7 @@
       function stageProperty(text,attached){ta.value=(ta.value?ta.value+'\n\n':'')+text;files=files.concat(attached).slice(0,isN8n()?N8N_MAX_FILES:3);showFiles();ta.dispatchEvent(new Event('input'));ta.focus();}
       var prop=el.querySelector('[data-ted-property]'),find=el.querySelector('[data-ted-find]'),docs=el.querySelector('[data-ted-docs]');
       if(prop)prop.onclick=function(){tedProperties(stageProperty,pickChat);};if(find)find.onclick=function(){tedProperties(stageProperty,pickChat,'search');};if(docs)docs.onclick=tedDocuments;
-      function finishWait(w, html) { w.classList.remove("wait"); busy = false; w.innerHTML = html; }
+      function finishWait(w, html) { w.classList.remove("wait"); busy = false; w.innerHTML = html; followChat(); }
       function retryHtml() { return '<div><button type="button" data-retry>Опитай отново</button></div>'; }
       function go(voice) {
         var text = ta.value.trim(); if ((!text && !files.length && !voice) || busy) return;
@@ -739,7 +794,7 @@
             settled = true;
             w.classList.remove("wait"); busy = false;
             var rl = !curMode && j.mode && MODE_BY[j.mode] ? MODE_BY[j.mode][4] + " " + MODE_BY[j.mode][1].split(" – ")[0] : "";
-            w.innerHTML = fmt(j.text) + (prefs.showActions && ((j.actions && j.actions.length) || rl) ? '<span class="acts">' + (rl ? esc(rl) + (j.actions && j.actions.length ? " · " : "") : "") + (j.actions && j.actions.length ? "✔ " + esc(j.actions.join(" · ")) : "") + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w);
+            w.innerHTML = fmt(j.text) + (prefs.showActions && ((j.actions && j.actions.length) || rl) ? '<span class="acts">' + (rl ? esc(rl) + (j.actions && j.actions.length ? " · " : "") : "") + (j.actions && j.actions.length ? "✔ " + esc(j.actions.join(" · ")) : "") + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w); followChat();
             if (voice && j.transcript) { ub.innerHTML = "🎤 „" + esc(j.transcript) + "“"; cur.text = j.transcript; }
             if ((!voice || j.transcript) && !curCase) { hist.push({ role: "user", text: cur.text, files: previewFiles }, { role: "assistant", text: j.text }); save(); }
             if ((voice && prefs.autoSpeak !== "never") || prefs.autoSpeak === "always") { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* гласов въпрос → гласов отговор (според настройката) */
@@ -790,7 +845,7 @@
         }).catch(function () { api.add("a", "Няма достъп до микрофона. Разрешете микрофона за този сайт в настройките на браузъра."); });
       };
       ta.onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey && prefs.enterSend) { e.preventDefault(); go(); } };
-      ta.oninput = function () { ta.style.height = "auto"; ta.style.height = Math.min(120, ta.scrollHeight) + "px"; };
+      ta.oninput = function () { ta.style.height = "auto"; ta.style.height = Math.min(120, ta.scrollHeight) + "px"; followChat(); };
       function pickChat(mode) {
         var n8 = isN8n(); /* агентът в n8n: до 6 файла, и Word/Excel/аудио */
         var i = document.createElement("input"); i.type = "file"; i.multiple = true; i.accept = mode === "gallery" ? "image/*" : n8 ? "image/*,application/pdf,audio/*,.doc,.docx,.xls,.xlsx,.csv,.txt,.odt,.ods,.rtf" : "image/*,application/pdf"; i.style.cssText = "position:fixed;left:-999px;opacity:0"; document.body.appendChild(i);
@@ -836,7 +891,7 @@
   staffCtx = /\/mobile\/crm\//.test(location.pathname) || (function () { try { return !!localStorage.getItem(SB_KEY_STORE); } catch (e) { return false; } })();
   var MODE_KEY = "nd-ted-mode", curMode = ""; try { curMode = sessionStorage.getItem(MODE_KEY) || ""; if (!MODE_BY[curMode]) curMode = ""; } catch (e) {}
   function setMode(id) { curMode = MODE_BY[id] ? id : ""; try { if (curMode) sessionStorage.setItem(MODE_KEY, curMode); else sessionStorage.removeItem(MODE_KEY); } catch (e) {} renderRoleBtn(); }
-  function renderRoleBtn() { var b = foot && foot.querySelector(".nda-case-btn.role"); if (!b) return; var m = MODE_BY[curMode]; b.innerHTML = (m ? m[4] + " <b>" + esc(m[1].split(" – ")[0]) + "</b>" : "✨ Умения и роли") + " ▾"; b.classList.toggle("on", !!m); }
+  function renderRoleBtn() { var b = foot && foot.querySelector(".nda-case-btn.role"); if (!b) return; var m = MODE_BY[curMode]; b.innerHTML = (m ? m[4] + " <b>" + esc(m[1].split(" – ")[0]) + "</b>" : (inCrmPath() ? '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 1 2.8 7.8L23 12l-8.2 3.2L12 23l-2.8-7.8L1 12l8.2-3.2Z"/></svg>Умения и роли' : "✨ Умения и роли")) + " ▾"; b.classList.toggle("on", !!m); }
   /* вградени умения (АИ Качване на имот, Събиране на имоти и клиенти): регистрират се с addSkill({embed:true}) и се отварят вътре в чата */
   var embedded = [];
   function openPanel(s) {
@@ -944,9 +999,10 @@
     win.innerHTML = '<header class="nda-h"><span class="nda-av"><img src="' + BOT + '" alt=""></span><div class="nda-t"><b>Тед Асистент</b><button type="button" class="nda-skill" aria-haspopup="listbox" aria-expanded="false"><span></span>' + I.chev + "</button></div>" +
       '<button type="button" class="nda-gear" aria-label="Настройки на чата" title="Настройки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>' +
       '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div><div class="nda-set" hidden></div>';
-    if(inCrmPath()) { win.classList.add('nd-lux');var lux=document.createElement('link');lux.rel='stylesheet';lux.href='/mobile/crm/ted-lux.css?v=1';document.head.appendChild(lux);var online=document.createElement('span');online.className='ted-online';online.innerHTML='<i></i>На линия';win.querySelector('.nda-t').insertBefore(online,win.querySelector('.nda-skill')); }
+    if(inCrmPath()) { win.classList.add('nd-lux');var lux=document.createElement('link');lux.rel='stylesheet';lux.href='/mobile/crm/ted-lux.css?v=2';lux.onload=fitChatViewport;document.head.appendChild(lux);var online=document.createElement('span');online.className='ted-online';online.innerHTML='<i></i>На линия';win.querySelector('.nda-t').insertBefore(online,win.querySelector('.nda-skill')); }
     document.body.appendChild(fab); document.body.appendChild(win);
     list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot");
+    if (inCrmPath()) watchChat();
     list.addEventListener("click", fileClick);
     list.addEventListener('click',function(e){if(!e.target.matches('.ted-chat-img'))return;var view=document.createElement('div');view.className='ted-image-view';var img=document.createElement('img');img.src=e.target.src;img.alt=e.target.alt;var close=document.createElement('button');close.type='button';close.className='nda-x';close.setAttribute('aria-label','Затвори снимката');close.textContent='×';close.onclick=function(){view.remove();};view.appendChild(img);view.appendChild(close);win.appendChild(view);});
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) { var vw = win.querySelector(".nda-view,.ted-panel,.ted-image-view"); if (vw) { vw.remove();e.stopImmediatePropagation(); } } });
@@ -959,7 +1015,7 @@
     });
     gear.onclick = function (e) { e.stopPropagation(); if (!setBox.hidden) { setBox.hidden = true; gear.classList.remove("on"); return; } loadModels().then(function () { renderSettings(); setBox.hidden = false; gear.classList.add("on"); }); };
     applyPrefs();
-    fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(homeSkill()); if (skill.open) skill.open(api); inboxOpened(); };
+    fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(homeSkill()); if (skill.open) skill.open(api); fitChatViewport(); followChat(true); inboxOpened(); };
     win.querySelector(".nda-x").onclick = function () { win.hidden = true; fab.hidden = false; };
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !win.hidden) { win.hidden = true; fab.hidden = false; } });
     if (/\/mobile\/crm\//.test(location.pathname)) { fab.style.bottom = "calc(96px + env(safe-area-inset-bottom,0px))"; fab.style.zIndex = "45";
@@ -978,7 +1034,7 @@
     use: function (id) { boot(); var s = skills.filter(function (x) { return x.id === id; })[0]; var em = !s && (embedded.filter(function (x) { return x.id === id; })[0] || id === "mail"); if (!s && !em) return false; win.hidden = false; fab.hidden = true; if (s) setSkill(s); else { if (!skill) setSkill(homeSkill()); openUi(id); } inboxOpened(); return true; },
     panel: function (id) { return this.use(id); },
     hide: function () { if (win && !win.hidden) { win.hidden = true; fab.hidden = false; } },
-    show: function () { if (win) { win.hidden = false; fab.hidden = true; list.scrollTop = list.scrollHeight; inboxOpened(); } },
+    show: function () { if (win) { win.hidden = false; fab.hidden = true; fitChatViewport(); followChat(true); inboxOpened(); } },
     boot: boot
   };
   if (!window.NDAshNoWidget) { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot(); }

@@ -178,9 +178,10 @@
   /* ---------- Известия ---------- */
   function notifications() {
     U.open({
-      title: "Известия", icon: "bell", photo: "nd/ph01.jpg", html: '<div class="wide ndempty">Зареждане…</div>', noSave: true,
+      title: "Известия", icon: "bell", inline: false, photo: "nd/ph01.jpg", html: '<div class="wide ndempty" role="status">Зареждане…</div>', noSave: true,
       ready: function (x) {
         D.ready().then(function () { return Promise.all([D.load("events"), D.load("deals")]); }).then(function (r) {
+          if (!x.isCurrent()) return;
           var today = iso(), wk = iso(new Date(Date.now() + 7 * 864e5));
           var ev = r[0].filter(function (e) { return e.date >= today && e.date <= wk; }).sort(function (a, b) { return (a.date + a.from).localeCompare(b.date + b.from); });
           var dl = r[1].filter(function (d) { return d.deadline && ["Приключена", "Отказана"].indexOf(d.stage) < 0 && d.deadline <= wk; }).sort(function (a, b) { return a.deadline.localeCompare(b.deadline); });
@@ -191,7 +192,7 @@
             "</div>");
           var b = x.q("g-ntf"); if (b) b.onclick = function (e) { var g = e.target.closest("[data-go]"); if (g) go(g.getAttribute("data-go")); };
           [].forEach.call(document.querySelectorAll(".bell b"), function (el) { el.textContent = ev.length + dl.length || ""; el.hidden = !(ev.length + dl.length); });
-        });
+        }).catch(function () { x.rerender('<div class="wide ndempty" role="alert">Известията не се заредиха. Затворете прозореца и опитайте отново.</div>'); });
       }
     });
   }
@@ -212,14 +213,14 @@
       return section("Резултати (" + hits.length + ")", "search", hits, "Няма намерени записи.");
     }
     U.open({
-      title: "Търсене", icon: "search", photo: "nd/ph10.jpg", html: U.group("Търсене в CRM", "search", null, fld({ id: "g-q", label: "Търси", icon: "search", type: "search", wide: true, ph: "клиент, имот, компания, брокер, телефон…" }), { lw: 90, one: true }) + '<div class="wide" id="g-res"></div>', noSave: true,
+      title: "Търсене", icon: "search", inline: false, photo: "nd/ph10.jpg", html: U.group("Търсене в CRM", "search", null, fld({ id: "g-q", label: "Търси", icon: "search", type: "search", wide: true, ph: "клиент, имот, компания, брокер, телефон…" }), { lw: 90, one: true }) + '<div class="wide" id="g-res"></div>', noSave: true,
       ready: function (x) {
         ctx = x;
         var inp = x.q("g-q"), out = x.q("g-res");
         inp.oninput = function () { out.innerHTML = results(inp.value); };
         out.onclick = function (e) { var g = e.target.closest("[data-go]"); if (g) { U.close(); go(g.getAttribute("data-go")); } };
-        setTimeout(function () { inp.focus(); }, 120);
-        D.ready().then(function () { return Promise.all([D.load("clients"), D.load("properties"), D.load("companies"), D.load("brokers")]); }).then(function (r) { data = r; out.innerHTML = results(inp.value); });
+        setTimeout(function () { if (x.isCurrent() && !matchMedia('(pointer:coarse)').matches) inp.focus(); }, 120);
+        D.ready().then(function () { return Promise.all([D.load("clients"), D.load("properties"), D.load("companies"), D.load("brokers")]); }).then(function (r) { if (!x.isCurrent()) return; data = r; out.innerHTML = results(inp.value); }).catch(function () { if (x.isCurrent()) out.textContent = "Търсенето не се зареди. Опитайте отново."; });
       }
     });
   }
@@ -291,28 +292,33 @@
         .catch(function (err) { b.disabled = false; st.innerHTML = '<b style="color:#c0392b">' + esc(err && err.message || "Неуспешно") + "</b>"; });
     });
   }
-  function settings() {
-    D.ready().then(function () {
-      var u = D.user || {};
-      U.open({
-        title: "Настройки", icon: "settings", html:
+  function settings(profile) {
+    U.open({
+      title: profile === true ? "Моят профил" : "Настройки", icon: profile === true ? "user-round" : "settings", inline: false,
+      html: '<div class="wide ndempty" role="status">Зареждане на профила…</div>', noSave: true,
+      ready: function (x) {
+        D.ready().then(function () {
+          if (!x.isCurrent()) return;
+          var u = D.user || {}, meta = u.user_metadata || {};
+          var details = profile === true ? section("Брокер", "user-round", [
+            row("user-round", meta.full_name || meta.name || "Брокер", [u.phone || meta.phone, meta.office].filter(Boolean).join(" · "), "")
+          ]) : "";
+          x.rerender(details +
           '<div class="ndres"><div class="big"><span>Влезли сте като</span><b>' + esc(u.email || "") + "</b></div></div>" +
           pushHtml() +
           mailHtml(u) +
           section("Акаунт", "user-round", [
-            row("lock", "Смяна на парола", "Ще получите имейл с линк за нова парола", "", '<button type="button" data-a="pw" aria-label="Смени паролата">' + ic("mail") + "</button>"),
+            row("lock", "Смяна на парола", "Задайте нова парола за следващия вход", "", '<button type="button" data-a="pw" aria-label="Смени паролата">' + ic("lock") + "</button>"),
             row("x", "Изход от CRM", "Излизане от този акаунт на това устройство", "", '<button type="button" class="rm" data-a="out" aria-label="Изход">' + ic("x") + "</button>")
-          ]),
-        noSave: true,
-        ready: function (x) {
+          ]));
           pushBind(x); mailBind(x);
           x.body.onclick = function (e) {
             var a = e.target.closest("[data-a]"); if (!a) return;
             if (a.getAttribute("data-a") === "out") D.signOut();
-            if (a.getAttribute("data-a") === "pw") window.supabase && D.resetPassword(u.email).then(function (m) { say(m); });
+            if (a.getAttribute("data-a") === "pw") U.brokerPassword({ name: meta.full_name || meta.name || u.email });
           };
-        }
-      });
+        }).catch(function () { x.rerender('<div class="wide ndempty" role="alert">Профилът не се зареди. Затворете прозореца и опитайте отново.</div>'); });
+      }
     });
   }
 
@@ -354,7 +360,8 @@
   }
 
   var NAV = { "Сделки": deals, "Документи": documents, "Договори": function () { location.href = "crm-dogovori.html"; }, "Отчети": reports };
-  var MSG = { "Известия": notifications, "Търсене": search, "Настройки": settings, "Сделки": deals, "Нова сделка": function () { deals({ focusNew: true }); }, "Калкулатор": function () { deals({ focusCalc: true }); }, "Документи": documents, "Всички дейности": activities, "Банка": function () { U.bank({}); } };
+  function profile() { settings(true); }
+  var MSG = { "Моят профил": profile, "Известия": notifications, "Търсене": search, "Настройки": settings, "Сделки": deals, "Нова сделка": function () { deals({ focusNew: true }); }, "Калкулатор": function () { deals({ focusCalc: true }); }, "Документи": documents, "Всички дейности": activities, "Банка": function () { U.bank({}); } };
   document.addEventListener("click", function (e) {
     if (!e.target.closest) return;
     var n = e.target.closest("[data-nav]");
@@ -363,7 +370,7 @@
     if (m && MSG[m.getAttribute("data-msg")]) { e.preventDefault(); e.stopImmediatePropagation(); MSG[m.getAttribute("data-msg")](); }
   }, true);
 
-  window.NDGlobal = { deals: deals, documents: documents, reports: reports, notifications: notifications, search: search, settings: settings, calculator: calculator, activities: activities };
+  window.NDGlobal = { deals: deals, documents: documents, reports: reports, notifications: notifications, search: search, settings: settings, profile: profile, calculator: calculator, activities: activities };
 
   /* badge on the bell: real count of today's events */
   D.ready().then(function () { return D.load("events"); }).then(function (l) {

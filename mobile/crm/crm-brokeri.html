@@ -945,6 +945,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
           <div class="bcl" id="bm-clients"></div>
         </section>
         <div class="bm-acts">
+          <button class="ba" id="bm-password"><svg class="i"><use href="#lock"/></svg>Смяна на парола</button>
           <button class="ba" id="bm-deact"><svg class="i"><use href="#trash-2"/></svg><span>Деактивирай</span></button>
           <button class="ba" id="bm-cancel">Отмени</button>
           <button class="ba hot" id="bm-save"><svg class="i"><use href="#save"/></svg>Запази промените</button>
@@ -1027,7 +1028,6 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   var favs={};
   try{favs=JSON.parse(localStorage.getItem('crm-broker-favs')||'{}')||{}}catch(e){}
   var brokers=[];
-  function persist(){if(window.ND)ND.sync('brokers',brokers).catch(function(){})}
   var stars=function(r){var s='';for(var i=0;i<5;i++)s+=ic('star');return '<span class="stars" aria-hidden="true">'+s+'</span>'};
 
   /* ---------- scaling ---------- */
@@ -1146,8 +1146,8 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     try{history.replaceState(null,'','#'+id)}catch(e){}
     setTimeout(function(){$('bm-close').focus({preventScroll:true})},60);
   }
-  function dirty(){return draft&&JSON.stringify(strip(draft))!==JSON.stringify(strip(cur))}
-  function strip(o){var c=Object.assign({},o);delete c.photoURL;return c}
+  function dirty(){return draft&&(draft._file||draft.task||JSON.stringify(strip(draft))!==JSON.stringify(strip(cur)))}
+  function strip(o){var c=Object.assign({},o);delete c.photoURL;delete c._file;delete c.task;return c}
   function closeB(){
     bwin.classList.remove('show');bback.classList.remove('show');root.classList.remove('locked');
     setTimeout(function(){bwin.hidden=true;bback.hidden=true;setBFull(false)},230);
@@ -1186,18 +1186,24 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   $('bm-clients').addEventListener('click',function(e){var b=e.target.closest('[data-rm]');if(!b)return;var n=b.getAttribute('data-rm');draft.clients=draft.clients.filter(function(c){return c!==n});clients()});
   $('bm-add').addEventListener('click',function(){var bx=$('bm-addbox');bx.hidden=!bx.hidden;if(!bx.hidden)$('bm-addsel').focus()});
   $('bm-addok').addEventListener('click',function(){var v=$('bm-addsel').value;if(!v)return;draft.clients.push(v);clients();$('bm-addbox').hidden=true;say(v+' е прикрепен')});
-  $('bm-file').addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;draft.photoURL=URL.createObjectURL(f);draft._file=f;$('bm-photo').src=draft.photoURL;say('Снимката ще се запази при запис')});
-  $('bm-cancel').addEventListener('click',function(){draft=JSON.parse(JSON.stringify(cur));paint();say('Промените са отменени')});
+  function clearPhotoPreview(d){if(d&&d.photoURL)URL.revokeObjectURL(d.photoURL)}
+  $('bm-file').addEventListener('change',function(){var f=this.files&&this.files[0];this.value='';if(!f)return;if(!/^image\//.test(f.type)){say('Изберете снимка');return}if(f.size>25*1024*1024){say('Снимката трябва да е до 25 MB');return}clearPhotoPreview(draft);draft.photoURL=URL.createObjectURL(f);draft._file=f;$('bm-photo').src=draft.photoURL;say('Снимката ще се запази при запис')});
+  $('bm-cancel').addEventListener('click',function(){clearPhotoPreview(draft);draft=JSON.parse(JSON.stringify(cur));paint();say('Промените са отменени')});
+  $('bm-password').addEventListener('click',function(){if(cur&&window.NDUI)NDUI.brokerPassword(cur)});
   $('bm-deact').addEventListener('click',function(){draft.active=false;$('bm-status').value='Неактивен';$('bm-stat-t').textContent='Неактивен';$('bm-statw').classList.add('off');say('Брокерът ще бъде деактивиран при запис')});
   $('bm-save').addEventListener('click',function(){
     if(!draft.name.trim()){say('Въведете име на брокера');$('bi-name').focus();return}
-    var task=draft.task,file=draft._file;delete draft.task;delete draft._file;var keep=draft.photoURL;var i=brokers.indexOf(cur);brokers[i]=strip(draft);cur=brokers[i];draft=JSON.parse(JSON.stringify(cur));if(keep)draft.photoURL=keep;
-    var b0=cur,up=Promise.resolve();
-    if(file){var path='brokers/'+b0.id+'/'+Date.now()+'-'+file.name.replace(/[^\w.\-]+/g,'_').slice(-50);
-      up=ND.upload(path,file).then(function(){return ND.fileUrls([path])}).then(function(m){window.IMG=Object.assign(window.IMG||{},m);b0.photo=path;b0.thumb=path;})}
-    up.then(function(){persist();render();say('Промените са запазени')});
-    if(task){var t=new Date(),ds=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);
-      ND.put('events',{type:'task',title:task+' – '+b0.name,date:ds,from:'09:00',to:'10:00',client:'',prop:'',desc:'Задача, назначена на '+b0.name,extra:'',broker:b0.name}).then(function(){say('Задачата „'+task+'“ е в календара на '+b0.name)})}
+    var btn=this;if(btn.disabled)return;btn.disabled=true;btn.setAttribute('aria-busy','true');
+    var saving=draft,task=saving.task,file=saving._file,b0=strip(saving),up=Promise.resolve();
+    if(file){var path='brokers/'+encodeURIComponent(b0.id)+'/'+Date.now()+'-'+file.name.replace(/[^\w.\-]+/g,'_').slice(-50);
+      up=ND.upload(path,file).then(function(){return ND.fileUrls([path])}).then(function(m){if(!m[path])throw Error('Снимката не може да се отвори. Опитайте отново.');window.IMG=Object.assign(window.IMG||{},m);b0.photo=path;b0.thumb=path;})}
+    up.then(function(){return ND.put('brokers',b0)}).then(function(saved){
+      var i=brokers.findIndex(function(b){return b.id===saved.id});if(i>=0)brokers[i]=saved;
+      if(draft===saving){cur=saved;draft=JSON.parse(JSON.stringify(saved));paint();clearPhotoPreview(saving)}
+      render();say('Промените са запазени');window.dispatchEvent(new CustomEvent('nd-broker-updated',{detail:saved}));
+      if(task){var t=new Date(),ds=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);
+        return ND.put('events',{type:'task',title:task+' – '+saved.name,date:ds,from:'09:00',to:'10:00',client:'',prop:'',desc:'Задача, назначена на '+saved.name,extra:'',broker:saved.name}).then(function(){say('Профилът и задачата са запазени')},function(){say('Профилът е запазен, но задачата не се записа. Добавете я отново.')})}
+    }).catch(function(e){say('Промените не са запазени: '+(e&&e.message||'Опитайте отново.'))}).then(function(){btn.disabled=false;btn.removeAttribute('aria-busy')});
   });
   $('bm-full').addEventListener('click',function(){setBFull(!bfull)});
   $('bm-close').addEventListener('click',closeB);bback.addEventListener('click',closeB);

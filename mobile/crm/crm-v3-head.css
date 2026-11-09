@@ -8,3 +8,11 @@
     linear-gradient(180deg,#efc19c 0,#efc19c calc(100% - 300px),rgba(233,180,142,.92) calc(100% - 200px),rgba(226,168,130,.55) calc(100% - 110px),rgba(226,168,130,0) 100%)}
 /* застъпеният горен край на стъклото – мек светъл ръб, който се слива с хеда */
 #canvas > .v3-lift{position:relative;z-index:1}
+
+/* Native text and SVG stay sharp on Retina screens; soften only the halo behind text. */
+html.desk,html:not(.desk){--hl:0 1px 1px #fff,0 0 3px #fff8f0;--ihalo:0 1px 1px #fff,0 0 3px #fff8f0;--v3halo:0 1px 1px #fff,0 0 3px #fff8f0}
+#canvas,#nd-fwin,.mwin{text-rendering:optimizeLegibility;font-kerning:normal}
+#canvas img,.mwin img{image-rendering:auto}
+#canvas svg.i,.mwin svg.i{shape-rendering:geometricPrecision}
+/* Original files remain the source for broker portraits, including on high density displays. */
+.avatar img,.bm-ph img{object-fit:cover}

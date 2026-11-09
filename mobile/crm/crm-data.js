@@ -377,8 +377,8 @@
   /* "Моят профил" on every page: shows the signed-in account and offers sign-out */
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest('[data-msg="Моят профил"]');
-    if (!b || !ND.user) return;
+    if (!b || !window.NDGlobal) return;
     e.stopImmediatePropagation(); e.preventDefault();
-    if (window.NDGlobal) window.NDGlobal.settings();
+    window.NDGlobal.profile();
   }, true);
 })();

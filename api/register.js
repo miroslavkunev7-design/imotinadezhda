@@ -54,6 +54,7 @@ async function verify(id, otp) {
 module.exports = async (req, res) => {
   if (req.method !== "POST") return send(res, 405, { ok: false, error: "POST only" });
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
+  if (b.action === "broker-password") { req.body = b; return require("./_broker-account.js")(req, res); }
   if (b.action === "auth-login" || b.action === "auth-reset") { req.body = Object.assign({}, b, { action: b.action.slice(5) }); return require("./_broker-auth.js")(req, res); }
   const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "?";
   const a = attempts.get(ip) || { n: 0, t: Date.now() }; if (Date.now() - a.t > 15 * 60000) { a.n = 0; a.t = Date.now(); }

@@ -4,9 +4,15 @@
   "use strict";
   var SYM = "<symbol id=\"plus\" viewBox=\"0 0 24 24\"> <path d=\"M5 12h14\"/> <path d=\"M12 5v14\"/></symbol><symbol id=\"pencil\" viewBox=\"0 0 24 24\"> <path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\"/> <path d=\"m15 5 4 4\"/></symbol><symbol id=\"camera\" viewBox=\"0 0 24 24\"> <path d=\"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z\"/> <circle cx=\"12\" cy=\"13\" r=\"3\"/></symbol><symbol id=\"image\" viewBox=\"0 0 24 24\"> <rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\"/> <circle cx=\"9\" cy=\"9\" r=\"2\"/> <path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/></symbol><symbol id=\"eye\" viewBox=\"0 0 24 24\"> <path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/> <circle cx=\"12\" cy=\"12\" r=\"3\"/></symbol><symbol id=\"archive\" viewBox=\"0 0 24 24\"> <rect width=\"20\" height=\"5\" x=\"2\" y=\"3\" rx=\"1\"/> <path d=\"M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8\"/> <path d=\"M10 12h4\"/></symbol><symbol id=\"circle-check\" viewBox=\"0 0 24 24\"> <circle cx=\"12\" cy=\"12\" r=\"10\"/> <path d=\"m9 12 2 2 4-4\"/></symbol><symbol id=\"ruler\" viewBox=\"0 0 24 24\"> <path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z\"/> <path d=\"m14.5 12.5 2-2\"/> <path d=\"m11.5 9.5 2-2\"/> <path d=\"m8.5 6.5 2-2\"/> <path d=\"m17.5 15.5 2-2\"/></symbol><symbol id=\"bed-double\" viewBox=\"0 0 24 24\"> <path d=\"M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8\"/> <path d=\"M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4\"/> <path d=\"M12 4v6\"/> <path d=\"M2 18h20\"/></symbol><symbol id=\"bath\" viewBox=\"0 0 24 24\"> <path d=\"M10 4 8 6\"/> <path d=\"M17 19v2\"/> <path d=\"M2 12h20\"/> <path d=\"M7 19v2\"/> <path d=\"M9 5 7.621 3.621A2.121 2.121 0 0 0 4 5v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5\"/></symbol><symbol id=\"m2\" viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"2\"/><path d=\"M8 3v4M16 3v4\"/><text x=\"12\" y=\"17.2\" font-size=\"8.5\" text-anchor=\"middle\" fill=\"currentColor\" stroke=\"none\" font-family=\"Arial,sans-serif\" font-weight=\"700\">m\u00b2</text></symbol><symbol id=\"share-2\" viewBox=\"0 0 24 24\"> <circle cx=\"18\" cy=\"5\" r=\"3\"/> <circle cx=\"6\" cy=\"12\" r=\"3\"/> <circle cx=\"18\" cy=\"19\" r=\"3\"/> <line x1=\"8.59\" x2=\"15.42\" y1=\"13.51\" y2=\"17.49\"/> <line x1=\"15.41\" x2=\"8.59\" y1=\"6.51\" y2=\"10.49\"/></symbol><symbol id=\"map-pin-house\" viewBox=\"0 0 24 24\"> <path d=\"M15 22a1 1 0 0 1-1-1v-4a1 1 0 0 1 .445-.832l3-2a1 1 0 0 1 1.11 0l3 2A1 1 0 0 1 22 17v4a1 1 0 0 1-1 1z\"/> <path d=\"M18 10a8 8 0 0 0-16 0c0 4.993 5.539 10.193 7.399 11.799a1 1 0 0 0 .601.2\"/> <path d=\"M18 22v-3\"/> <circle cx=\"10\" cy=\"10\" r=\"3\"/></symbol><symbol id=\"upload\" viewBox=\"0 0 24 24\"><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"M17 8l-5-5-5 5\"/><path d=\"M12 3v12\"/></symbol>";
   var CSS = [
-    "#nd-fback{z-index:61}",
-    "#nd-fwin{z-index:62;background:#f6dcc4}",
-    "#nd-fwin .mscroll{background:linear-gradient(180deg,#fff7ef 0%,#fbe8d7 60%,#f6d8bf 100%)}",
+    /* These windows also open on pages with no page-specific card/modal CSS. */
+    "#nd-fback{position:fixed;inset:0;z-index:91;background:rgba(40,5,12,.45);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;transition:opacity .2s}",
+    "#nd-fback.show{opacity:1}",
+    "#nd-fwin{position:fixed;z-index:92;left:8px;right:8px;top:calc(8px + env(safe-area-inset-top,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));margin:0;border-radius:26px;overflow:hidden;background:#f6dcc4;border:2px solid #efc57a;box-shadow:0 0 0 1px #ffebbe99,0 0 22px #ffc8788c,0 20px 50px #1e00088c;transform:translateY(14px) scale(.98);opacity:0;transition:transform .25s,opacity .2s}",
+    "#nd-fwin.show{transform:none;opacity:1}#nd-fwin.full{border-radius:0}",
+    "#nd-fwin[hidden],#nd-fback[hidden],#nd-fwin [hidden]{display:none!important}",
+    "#nd-fwin .mscroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:linear-gradient(180deg,#fff7ef 0%,#fbe8d7 60%,#f6d8bf 100%)}",
+    "#nd-fwin .mctl{position:absolute;display:flex;gap:10px;z-index:5}#nd-fwin .mbtn{width:40px;height:40px;display:grid;place-items:center;border:0;padding:0;border-radius:50%;font-size:21px;color:#5a0a12;cursor:pointer;background:radial-gradient(circle at 35% 28%,#fffdf6,#f7e3b3 45%,#d9a650);box-shadow:0 3px 8px #0007,inset 0 0 0 1px #fff2c4,0 0 10px #ffd68c8c}",
+    "html.locked,html.locked body{overflow:hidden}#nd-fwin :focus-visible{outline:2px solid #245a91;outline-offset:3px}",
     "html.desk #nd-fwin .mscroll{overflow-y:auto}",
     "#nd-fwin .fctl{top:12px;right:12px}",
     "html:not(.desk) #nd-fwin .fctl{top:calc(var(--fz,.37)*16px);right:calc(var(--fz,.37)*18px)}",
@@ -112,7 +118,7 @@
     ".nd-new{position:absolute;right:22px;top:12px;z-index:3;height:46px;padding:0 22px;border:1.5px solid #e3b25e;border-radius:23px;display:flex;align-items:center;gap:10px;font:700 22px/1 var(--cond);color:#fff3dc;cursor:pointer;background:linear-gradient(180deg,#a3213a 0%,#7a0f22 42%,#55071a 100%);box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 14px rgba(255,190,120,.7),inset 0 2px 3px rgba(255,170,180,.5)}",
     ".nd-new svg.i{font-size:26px;stroke-width:2.4}",
     /* ---- section cards like the broker card: wine ribbon header + blended photo + inline fields ---- */
-    "#nd-fwin,#nd-fwin *,.nd-auth,.nd-auth *{-webkit-text-size-adjust:100%;text-size-adjust:100%}",
+    "#nd-fwin,#nd-fwin *,.nd-auth,.nd-auth *{-webkit-text-size-adjust:none;text-size-adjust:none}",
     "#nd-fwin .ndg{grid-column:1/-1;position:relative;margin:0 0 22px;border-radius:28px;overflow:hidden;padding:76px 0 20px;min-height:170px;background:linear-gradient(180deg,rgba(255,250,244,.97),rgba(252,238,226,.96));border:1.5px solid rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(226,176,120,.45),0 0 18px rgba(255,230,204,.95),0 8px 18px rgba(120,50,20,.18),inset 0 1px 0 #fff}",
     "#nd-fwin .ndg-h,#nd-fwin .ndsec>h3{position:absolute;left:-1px;top:-1px;height:60px;display:flex;align-items:center;gap:20px;margin:0;padding:0 70px 0 32px;color:#fff3dc;font:700 30px/1 var(--serif);white-space:nowrap;background:linear-gradient(100deg,#55071a 0%,#8d1530 45%,#b42446 70%,#7a1022 100%);border-radius:28px 0 60px 0;box-shadow:inset 0 2px 3px rgba(255,170,180,.45),0 3px 0 #e6b866,0 6px 12px rgba(60,5,15,.25);text-shadow:0 2px 3px rgba(30,0,8,.5);clip-path:polygon(0 0,100% 0,88% 100%,0 100%);width:auto;min-width:0}",
     "#nd-fwin .ndg-h svg.i,#nd-fwin .ndsec>h3 svg.i{font-size:36px;color:#fff1de;stroke-width:1.8}",
@@ -210,12 +216,13 @@
     return '<div class="ef' + (o.wide ? " wide" : "") + '">' + lab + inp + "</div>";
   }
 
-  var W, back, ctlFull, cv, scroll, cur = null, full = false, last = null;
+  var W, back, ctlFull, cv, scroll, cur = null, full = false, last = null, closeTimer = null;
   function build() {
     boot();
     back = document.createElement("div"); back.className = "mback"; back.id = "nd-fback"; back.hidden = true;
     W = document.createElement("section"); W.className = "mwin fwin"; W.id = "nd-fwin"; W.hidden = true;
     W.setAttribute("role", "dialog"); W.setAttribute("aria-modal", "true"); W.setAttribute("aria-labelledby", "nd-f-title");
+    W.tabIndex = -1;
     W.innerHTML =
       '<div class="mctl fctl"><button type="button" class="mbtn" id="nd-f-full" aria-label="На цял екран" title="На цял екран">' + ic("maximize-2") + "</button>" +
       '<button type="button" class="mbtn" id="nd-f-close" aria-label="Затвори" title="Затвори">' + ic("x") + "</button></div>" +
@@ -248,13 +255,22 @@
       if (bad) { err.textContent = bad; return; }
       var btn = W.querySelector("#nd-f-save"); btn.disabled = true;
       var stay = cur && wantsView(cur) && cur.stayAfterSave !== false;
-      Promise.resolve(cur.onSave(get)).then(function (r) { btn.disabled = false; if (r === false) return; if (stay && cur && W && !W.hidden) { viewAll(q("nd-f-body"), true); fit(); if (window.ND && window.ND.say) window.ND.say("Записано"); return; } if (!(cur && cur.keepOpen)) close(); }, function (x) {
+      var saving = cur;
+      Promise.resolve().then(function () { return saving.onSave(get); }).then(function (r) { if (cur !== saving) return; btn.disabled = false; if (r === false) return; if (stay && cur && W && !W.hidden) { viewAll(q("nd-f-body"), true); fit(); if (window.ND && window.ND.say) window.ND.say("Записано"); return; } if (!(cur && cur.keepOpen)) close(); }, function (x) {
+        if (cur !== saving) return;
         btn.disabled = false; err.textContent = "Грешка при запис: " + ((x && x.message) || x);
       });
     });
     document.addEventListener("keydown", function (e) {
       if (W.hidden) return;
       if (e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); close(); }
+      if (e.key === "Tab" && !inlineHost) {
+        var items = [].filter.call(W.querySelectorAll('button,input,select,textarea,a[href],[tabindex="0"]'), function (el) { return !el.disabled && !el.closest('[hidden]') && el.getClientRects().length; });
+        var first = items[0], end = items[items.length - 1];
+        if (!first) { e.preventDefault(); W.focus({ preventScroll: true }); }
+        else if (e.shiftKey && (document.activeElement === first || !W.contains(document.activeElement))) { e.preventDefault(); end.focus(); }
+        else if (!e.shiftKey && (document.activeElement === end || !W.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+      }
     }, true);
     cv.addEventListener("click", function (e) {
       var g = e.target.closest(".ndg.view"); if (!g) return;
@@ -336,6 +352,7 @@
   }
   function open(o) {
     if (!W) build();
+    clearTimeout(closeTimer);
     cur = o; last = document.activeElement;
     /* inline: the window lives inside a page element (the Сделки page) instead of floating over it */
     if (o.inline === undefined && defaultInline && document.contains(defaultInline)) { o.inline = defaultInline; o._tab = true; }
@@ -349,19 +366,20 @@
     q("nd-f-body").oninput = null; q("nd-f-body").innerHTML = o.html || "";
     q("nd-f-err").textContent = "";
     q("nd-f-del").hidden = !o.onDelete;
-    var sv = q("nd-f-save"); sv.hidden = !!o.noSave; sv.querySelector("span").textContent = o.saveText || "Запази";
+    var sv = q("nd-f-save"); sv.disabled = false; sv.hidden = !!o.noSave; sv.querySelector("span").textContent = o.saveText || "Запази";
     q("nd-f-cancel").textContent = o.cancelText || (o.noSave ? "Затвори" : "Отказ");
     W.hidden = false;
     if (inlineHost) { W.classList.add("show"); }
-    else { back.hidden = false; document.documentElement.classList.add("locked"); fit(); scroll.scrollTop = 0; requestAnimationFrame(function () { back.classList.add("show"); W.classList.add("show"); fit(); }); }
+    else { back.hidden = false; document.documentElement.classList.add("locked"); fit(); scroll.scrollTop = 0; requestAnimationFrame(function () { if (cur !== o) return; back.classList.add("show"); W.classList.add("show"); fit(); W.focus({ preventScroll: true }); }); }
     var vm = wantsView(o);
-    if (o.ready) o.ready({ q: q, get: get, num: num, body: q("nd-f-body"), refit: fit, rerender: function (h) {
+    if (o.ready) o.ready({ q: q, get: get, num: num, body: q("nd-f-body"), refit: fit, isCurrent: function () { return cur === o; }, rerender: function (h) {
+      if (cur !== o) return;
       var editing = {}; if (vm) [].forEach.call(q("nd-f-body").querySelectorAll(".ndg.editing .ndg-h"), function (x) { editing[x.textContent] = 1; });
       q("nd-f-body").innerHTML = h; if (o.ready2) o.ready2();
       if (vm) { viewAll(q("nd-f-body"), true); [].forEach.call(q("nd-f-body").querySelectorAll(".ndg.view .ndg-h"), function (x) { if (editing[x.textContent]) editGroup(x.parentNode); }); }
       fit(); } });
     if (vm) viewAll(q("nd-f-body"), true);
-    setTimeout(function () { var f = W.querySelector("#nd-f-body .ndg:not(.view) .in, #nd-f-body :not(.ndg) .in"); if (f && !vm && o.focus !== false && !matchMedia("(pointer:coarse)").matches) f.focus({ preventScroll: true }); }, 80);
+    setTimeout(function () { if (cur !== o) return; var f = W.querySelector("#nd-f-body .ndg:not(.view) .in, #nd-f-body :not(.ndg) .in"); if (f && !vm && o.focus !== false && !matchMedia("(pointer:coarse)").matches) f.focus({ preventScroll: true }); }, 80);
     return { q: q, get: get, num: num, close: close, refit: fit };
   }
   function close() {
@@ -369,7 +387,7 @@
     if (inlineHost) { var oi = cur; if (oi && oi._tab) { cur = null; W.classList.remove("show"); W.hidden = true; if (oi.onClose) oi.onClose(); if (inlineCb) inlineCb(); } else if (oi && oi.onClose) oi.onClose(); return; }
     W.classList.remove("show"); back.classList.remove("show");
     var o = cur; cur = null;
-    setTimeout(function () { W.hidden = true; back.hidden = true; setFull(false); }, 230);
+    closeTimer = setTimeout(function () { W.hidden = true; back.hidden = true; setFull(false); }, 230);
     var other = document.querySelector(".mwin.show:not(#nd-fwin)");
     if (!other) document.documentElement.classList.remove("locked");
     if (o && o.onClose) o.onClose();
@@ -406,7 +424,7 @@
     boot(); opts = opts || {};
     if (!document.getElementById("nd-bank-css")) {
       var st = document.createElement("style"); st.id = "nd-bank-css";
-      st.textContent = ".nd-bank{position:fixed;inset:0;z-index:80;background:rgba(40,5,12,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .22s}.nd-bank.show{opacity:1}.nd-bank[hidden]{display:none}.nd-bank iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}" +
+      st.textContent = ".nd-bank{position:fixed;inset:0;z-index:110;background:rgba(40,5,12,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .22s}.nd-bank.show{opacity:1}.nd-bank[hidden]{display:none}.nd-bank iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}" +
         ".nd-bank.inhost{position:absolute;inset:0;z-index:30;border-radius:inherit;overflow:hidden;background:linear-gradient(180deg,#fff7ef,#f6dcc4);-webkit-backdrop-filter:none;backdrop-filter:none}.nd-bank.inhost iframe{background:#fbeee2}" +
         ".nd-bank .nd-bank-back{position:absolute;left:14px;top:12px;z-index:2;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 12px;border:0;border-radius:20px;cursor:pointer;font:700 16px/1 var(--cond,Arial);color:#fff3dc;background:linear-gradient(180deg,#b42446,#7a0f22 55%,#4f0716);box-shadow:0 0 0 1.5px #edc47a,0 0 10px rgba(255,190,120,.6)}.nd-bank .nd-bank-back svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2}";
       document.head.appendChild(st);
@@ -654,7 +672,35 @@
     document.addEventListener("keydown", function (e) { if (!fine()) return; var s = document.activeElement; if (s && s.tagName === "SELECT" && (e.key === "Enter" || e.key === " " || e.altKey && e.key === "ArrowDown")) { e.preventDefault(); openMenu(s, s.closest(".fld, .selw, .dsw, .w, .ef, .ndl-sel > div, .input-wrap, .city-select") || s); } });
     window.NDMenuClose = closeMenu;
   })();
-  window.NDUI = { inlineHost: setInlineHost, detachInline: detachInline, viewGroup: viewGroup, editGroup: editGroup, viewAll: viewAll, valText: valText, commHtml: commHtml, commBind: commBind, commSave: commSave, commTotal: commTotal, calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
+  function brokerPassword(card) {
+    card = card || {};
+    var ctx;
+    return open({
+      title: "Смяна на парола", icon: "lock", inline: false, saveText: "Смени паролата", focus: false,
+      html: '<div class="wide ndempty">' + esc(card.name || "Моят профил") + '</div>' + group("Нова парола за вход в CRM", "lock", null,
+        fld({ id: "bp-new", label: "Нова парола", type: "password", wide: true }) +
+        fld({ id: "bp-confirm", label: "Потвърди паролата", type: "password", wide: true }), { one: true }),
+      required: ["bp-new", "bp-confirm"],
+      ready: function (x) { ctx = x; ["bp-new", "bp-confirm"].forEach(function (id) { x.q(id).autocomplete = "new-password"; x.q(id).maxLength = 128; x.q(id).minLength = 8; }); },
+      validate: function () {
+        var pw = ctx.q("bp-new").value;
+        if (pw.length < 8 || pw.length > 128) return "Паролата трябва да е между 8 и 128 символа.";
+        if (pw !== ctx.q("bp-confirm").value) return "Двете пароли не съвпадат.";
+      },
+      onSave: function () {
+        var pw = ctx.q("bp-new").value;
+        return window.ND.token().then(function (token) {
+          if (!token) throw Error("Влезте отново в CRM.");
+          return fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify({ action: "broker-password", brokerId: card.id || "", password: pw }) });
+        }).then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.ok) throw Error(j.error || "Паролата не е сменена."); return j; }); }).then(function (j) {
+          if (ctx.isCurrent()) ctx.q("bp-new").value = ctx.q("bp-confirm").value = "";
+          window.ND.say(j.message);
+        });
+      },
+      onClose: function () { if (W) [].forEach.call(W.querySelectorAll('input[type="password"]'), function (el) { el.value = ""; }); }
+    });
+  }
+  window.NDUI = { brokerPassword: brokerPassword, inlineHost: setInlineHost, detachInline: detachInline, viewGroup: viewGroup, editGroup: editGroup, viewAll: viewAll, valText: valText, commHtml: commHtml, commBind: commBind, commSave: commSave, commTotal: commTotal, calcHtml: calcHtml, calcBind: calcBind, open: open, close: close, fld: fld, section: section, row: row, esc: esc, ic: ic, img: img, money: money, bgDate: bgDate, bgDateTime: bgDateTime, boot: boot, bank: bank, group: group, filebox: filebox };
 })();
 
 /* ---------- 5.9 Дати: навсякъде дд.мм.гггг и стъклен календар на български (вместо системния mm/dd/yyyy) ----------

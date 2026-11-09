@@ -433,7 +433,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     var C=Hc-Hh-16-(window.NDRAIL?24:162);                       /* height for the two columns above the navigation */
     var gv=Math.max(16,Math.min((C-536)/2,90)),yR=Hh+16+Math.max(0,(C-536-2*gv)/2);
     var th=Math.max(136,Math.min((C-132-2*gv)/2,330)),yL=Hh+16+Math.max(0,(C-(2*th+132+2*gv))/2);
-    canvas.style.width=W+'px';canvas.style.height=Hc+'px';canvas.style.left='0px';canvas.style.transform='scale('+k+')';
+    canvas.style.width=W+'px';canvas.style.height=Hc+'px';canvas.style.left='0px';canvas.style.top='0px';canvas.style.transform='none';canvas.style.zoom=k;
     top.style.height=Hh+'px';
     heros.forEach(function(o){o.el.style.top=(o.top+(Hh-380)*.75)+'px'});
     var ph=Hh*1.55,pw=ph*1.777;hdr.photo.style.width=pw+'px';hdr.photo.style.left=(W-pw+20)+'px';hdr.photo.style.top=(30-.16*ph)+'px';
@@ -470,7 +470,8 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     rows.forEach(function(o){o.el.style.top=(o.top+h+g*o.row)+'px'});
     var endH=1567+h+g*7+26;
     canvas.style.height=endH+'px';
-    canvas.style.transform='scale('+k+')';
+    canvas.style.transform='none';canvas.style.zoom=k;
+    canvas.style.top=(sat/k)+'px';
     dockC.style.transform='scale('+k+')';
     var offset=(document.documentElement.clientWidth-vw)/2;
     canvas.style.left=offset+'px';dockC.style.left=offset+'px';

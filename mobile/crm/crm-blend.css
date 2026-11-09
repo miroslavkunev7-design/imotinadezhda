@@ -174,3 +174,6 @@ html:not(.desk) .nav{animation:ndDockGlow 6s ease-in-out infinite}
 
 /* iPhone: без автоматично уголемяване на текста (Safari text autosizing) в мащабираните страници */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* Keep Safari's text inflation from changing the geometry of a scaled CRM canvas.
+   Browser pinch zoom and accessibility page zoom remain available. */
+#canvas,#canvas *,#dockCanvas,#dockCanvas *,.mwin,.mwin *{-webkit-text-size-adjust:none;text-size-adjust:none}

@@ -395,6 +395,9 @@ html.desk .chipc{height:48px;font-size:24px}
 html.desk .bcl .none{font-size:25px}
 html.desk .bm-acts{grid-template-columns:auto auto 1fr;gap:18px;padding:22px 22px 0 14px}
 html.desk .ba{height:66px;border-radius:33px;padding:0 30px;font-size:27px}
+html.desk .bm-acts{grid-template-columns:1fr 1fr 1fr}
+#bm-password{grid-column:1/-1}
+.ba:disabled{opacity:.65;cursor:wait}
 
 /* ======================================================================
    6) ФОРМА „НОВ БРОКЕР“ (обща форма от crm-ui) – същият стил: панделка, раздел с редове и снимка отдясно
