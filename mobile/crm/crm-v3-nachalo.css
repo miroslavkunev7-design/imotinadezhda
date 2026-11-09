@@ -110,6 +110,11 @@ html.desk #canvas>.v3-glass{border-radius:44px}
 
 /* --- телефон: подредбата е същата; картите са малко по-тесни, за да има стъклен ръб около тях --- */
 html:not(.desk) #canvas .tile{width:476px!important}
+/* телефон: по-едро съдържание в лявата част на плочката – голямо кръгче с иконата, по-голямо заглавие и подзаглавие (без празно място горе) */
+html:not(.desk) #canvas .tile .ic{top:24px!important;left:26px;width:78px;height:78px;font-size:41px}
+html:not(.desk) #canvas .tile h3{top:auto!important;bottom:64px;left:28px;font-size:48px!important}
+html:not(.desk) #canvas .tile p{top:auto!important;bottom:24px;left:30px;font-size:25.5px!important;white-space:nowrap}
+html:not(.desk) #canvas .tile .go{top:auto!important;bottom:20px;right:18px;width:60px;height:60px;font-size:32px}
 html:not(.desk) #canvas .tile[data-href="crm-klienti.html"],html:not(.desk) #canvas .tile[data-msg="Сделки"]{left:22px!important}
 html:not(.desk) #canvas .tile[data-href="crm-imoti.html"],html:not(.desk) #canvas .tile[data-href="crm-kalendar.html"]{left:526px!important}
 html:not(.desk) #canvas .panel{left:22px!important;width:980px!important}

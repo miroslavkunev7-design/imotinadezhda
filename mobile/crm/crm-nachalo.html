@@ -69,7 +69,7 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-l
   background:linear-gradient(90deg,#f8dc98 0%,#d6a24f 55%,rgba(214,162,79,0) 100%)}
 
 /* ---------- feature tiles ---------- */
-.tile{--th:190px;width:484px;height:var(--th);border-radius:22px;overflow:hidden;text-align:left;color:#fff;
+.tile{--th:236px;width:484px;height:var(--th);border-radius:22px;overflow:hidden;text-align:left;color:#fff;
   background:#560b19;border:2px solid #f4cf85;
   box-shadow:0 0 0 1px rgba(255,236,190,.55),0 0 14px rgba(255,214,140,.55),0 8px 16px rgba(80,15,10,.45)}
 .tile .ph{position:absolute;max-width:none}
@@ -303,13 +303,13 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     <span class="ic"><svg class="i"><use href="#house"/></svg></span><h3>Имоти</h3><p>Добавяне и управление</p>
     <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
   </button>
-  <button class="abs tile" data-row="2" style="left:18px;top:583px" data-msg="Сделки">
+  <button class="abs tile" data-row="2" style="left:18px;top:629px" data-msg="Сделки">
     <img class="ph" src="assets/card-deals.jpg" alt="" style="left:190px;top:-16px;width:300px">
     <span class="veil"></span><span class="gloss"></span>
     <span class="ic"><svg class="i"><use href="#handshake"/></svg></span><h3>Сделки</h3><p>Проследяване и статус</p>
     <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
   </button>
-  <button class="abs tile" data-row="2" style="left:522px;top:583px" data-href="crm-kalendar.html">
+  <button class="abs tile" data-row="2" style="left:522px;top:629px" data-href="crm-kalendar.html">
     <img class="ph" src="assets/card-viewings.jpg" alt="" style="left:160px;top:-22px;width:330px">
     <span class="veil"></span><span class="gloss"></span>
     <span class="ic"><svg class="i"><use href="#calendar"/></svg></span><h3>Огледи</h3><p>График и срещи</p>
@@ -317,7 +317,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   </button>
 
   <!-- ============ QUICK ACTIONS ============ -->
-  <section class="abs panel" data-row="3" style="top:785px;height:132px" aria-label="Бързи действия">
+  <section class="abs panel" data-row="3" style="top:877px;height:132px" aria-label="Бързи действия">
     <h2 class="ptitle" style="left:36px;top:12px"><svg class="i"><use href="#zap"/></svg>Бързи действия</h2>
     <div class="qa-row">
       <button class="qa" data-href="crm-klienti.html"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
@@ -330,7 +330,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   </section>
 
   <!-- ============ OVERVIEW ============ -->
-  <section class="abs panel" data-row="4" style="top:924px;height:156px" aria-label="Обзор днес">
+  <section class="abs panel" data-row="4" style="top:1016px;height:156px" aria-label="Обзор днес">
     <h2 class="ptitle" style="left:32px;top:12px"><svg class="i"><use href="#chart"/></svg>Обзор днес</h2>
     <button class="datepill" data-msg="Избор на дата"><svg class="i"><use href="#calendar-days"/></svg><span id="today">03.11.2026 г.</span><svg class="i dn"><use href="#chev-d"/></svg></button>
     <div class="metrics">
@@ -342,7 +342,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   </section>
 
   <!-- ============ CALENDAR ============ -->
-  <section class="abs panel" data-row="5" style="top:1090px;height:158px;overflow:hidden" aria-label="Моят календар – Днес">
+  <section class="abs panel" data-row="5" style="top:1182px;height:158px;overflow:hidden" aria-label="Моят календар – Днес">
     <svg class="ribbon" viewBox="0 0 575 58" preserveAspectRatio="none" aria-hidden="true">
       <path d="M0 0 H 575 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0 Z" fill="url(#ribbonFill)"/>
       <path d="M0 0 H 575 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0 Z" fill="url(#satin)" opacity=".45"/>
@@ -357,7 +357,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   </section>
 
   <!-- ============ LATEST ACTIVITY ============ -->
-  <section class="abs panel" data-row="6" style="top:1253px;height:222px;overflow:hidden" aria-label="Последни дейности">
+  <section class="abs panel" data-row="6" style="top:1345px;height:222px;overflow:hidden" aria-label="Последни дейности">
     <svg class="ribbon" viewBox="0 0 575 58" preserveAspectRatio="none" aria-hidden="true">
       <path d="M0 0 H 575 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0 Z" fill="url(#ribbonFill)"/>
       <path d="M0 0 H 575 C 520 4 488 26 450 42 C 425 52 400 54 360 54 H 0 Z" fill="url(#satin)" opacity=".45"/>
@@ -413,7 +413,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 </script>
 <script>
 (function(){
-  var W=1024,H=1644,DOCK=160;
+  var W=1024,H=1736,DOCK=160;
   var stage=document.getElementById('stage'),canvas=document.getElementById('canvas'),dock=document.getElementById('dock'),dockC=document.getElementById('dockCanvas');
   var rows=[].slice.call(document.querySelectorAll('[data-row]')).map(function(el){return {el:el,top:parseFloat(el.style.top),row:+el.getAttribute('data-row')}});
   var heros=[].slice.call(document.querySelectorAll('[data-hero]')).map(function(el){return {el:el,top:parseFloat(getComputedStyle(el).top)}});
@@ -451,7 +451,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   function clearDesk(){
     canvas.style.width='';top.style.height='';hdr.photo.style.left=hdr.photo.style.top=hdr.photo.style.width='';
     hdr.ctrls.forEach(function(el){el.style.left=''});
-    tiles.forEach(function(o){o.el.style.left=o.left+'px';o.el.style.removeProperty('--th');window.NDTileImg(o.im,parseFloat(getComputedStyle(o.el).getPropertyValue('--th'))||190)});
+    tiles.forEach(function(o){o.el.style.left=o.left+'px';o.el.style.removeProperty('--th');window.NDTileImg(o.im,parseFloat(getComputedStyle(o.el).getPropertyValue('--th'))||236)});
     panels.forEach(function(el){el.style.left=''});
   }
   /* приложение на началния екран: височината под часовника/батерията (CSS --sat от crm-blend.css) */
@@ -468,7 +468,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     top.style.height=(380+h)+'px';
     heros.forEach(function(o){o.el.style.top=(o.top+h)+'px'});
     rows.forEach(function(o){o.el.style.top=(o.top+h+g*o.row)+'px'});
-    var endH=1475+h+g*7+26;
+    var endH=1567+h+g*7+26;
     canvas.style.height=endH+'px';
     canvas.style.transform='scale('+k+')';
     dockC.style.transform='scale('+k+')';
