@@ -30,9 +30,21 @@ async function putObj(path, buf, mime) {
   });
   if (!r.ok) throw new Error("storage " + r.status);
 }
-async function delObj(path) {
-  await fetch(SB + "/storage/v1/object/nd-files/" + enc(path), { method: "DELETE", headers: headers(), signal: AbortSignal.timeout(15000) }).catch(() => null);
+async function removePrefixes(prefixes) {
+  if (!prefixes.length) return 0;
+  const r = await fetch(SB + "/storage/v1/object/nd-files", {
+    method: "DELETE", headers: headers(), body: JSON.stringify({ prefixes: prefixes }), signal: AbortSignal.timeout(20000)
+  });
+  return r.ok ? prefixes.length : 0;
 }
+async function listPrefix(prefix) {
+  const r = await fetch(SB + "/storage/v1/object/list/nd-files", {
+    method: "POST", headers: headers(), body: JSON.stringify({ prefix: prefix, limit: 100, offset: 0 }), signal: AbortSignal.timeout(20000)
+  });
+  const j = await r.json().catch(() => []);
+  return Array.isArray(j) ? j.map((x) => x.name).filter((n) => typeof n === "string" && (n.startsWith("ted-chat/selfcheck/") || n.startsWith("clients/tedself") || /^properties\/TED[0-9A-F]{4,}\//.test(n))) : [];
+}
+async function delObj(path) { await removePrefixes([path]); }
 async function rest(table, method, query, body, prefer) {
   const r = await fetch(SB + "/rest/v1/" + table + (query ? "?" + query : ""), {
     method, headers: headers(prefer ? { Prefer: prefer } : { Prefer: "return=representation" }),
@@ -115,8 +127,14 @@ async function gate(origin) {
 
 async function run(res, body, requestId) {
   const mon = MON.status();
-  const signal = await MON.report({ event: "automation_connectivity_test", errorCode: "WEBHOOK_OK", endpoint: "/api/assistant", requestId: requestId || "" }).catch(() => ({ sent: false }));
+  const signal = body && body.signal === false ? { sent: false, skipped: true } : await MON.report({ event: "automation_connectivity_test", errorCode: "WEBHOOK_OK", endpoint: "/api/assistant", requestId: requestId || "" }).catch(() => ({ sent: false }));
   const out = { ok: true, monitor: { enabled: mon.enabled, missing: mon.missing, sent: !!signal.sent, dedup: !!signal.dedup } };
+  if (body && body.run === "cleanup") {
+    if (!key()) { out.ok = false; out.error = "няма сървърен достъп до хранилището"; return send(res, 200, out); }
+    const names = [].concat(await listPrefix("ted-chat/selfcheck/"), await listPrefix("clients/tedself"), await listPrefix("properties/TED"));
+    out.removed = await removePrefixes(names);
+    return send(res, 200, out);
+  }
   if (!body || body.run !== "selfcheck") return send(res, 200, out);
   if (!key()) { out.ok = false; out.error = "няма сървърен достъп до хранилището"; return send(res, 200, out); }
   const sha = String(process.env.VERCEL_GIT_COMMIT_SHA || "local").replace(/[^a-z0-9]/gi, "").slice(0, 16) || "local";
