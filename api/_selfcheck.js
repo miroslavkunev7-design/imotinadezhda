@@ -37,12 +37,24 @@ async function removePrefixes(prefixes) {
   });
   return r.ok ? prefixes.length : 0;
 }
-async function listPrefix(prefix) {
+async function listPrefix(prefix, depth) {
+  if ((depth || 0) > 4) return [];
   const r = await fetch(SB + "/storage/v1/object/list/nd-files", {
     method: "POST", headers: headers(), body: JSON.stringify({ prefix: prefix, limit: 100, offset: 0 }), signal: AbortSignal.timeout(20000)
   });
   const j = await r.json().catch(() => []);
-  return Array.isArray(j) ? j.map((x) => x.name).filter((n) => typeof n === "string" && (n.startsWith("ted-chat/selfcheck/") || n.startsWith("clients/tedself") || /^properties\/TED[0-9A-F]{4,}\//.test(n))) : [];
+  if (!Array.isArray(j)) return [];
+  const out = [];
+  for (const x of j) {
+    const raw = String((x && x.name) || "");
+    if (!raw) continue;
+    const full = raw.startsWith("ted-chat/") || raw.startsWith("clients/") || raw.startsWith("properties/") ? raw : prefix.replace(/\/?$/, "/") + raw.replace(/^\/+/, "");
+    const allowed = full.startsWith("ted-chat/selfcheck/") || full.startsWith("clients/tedself") || /^properties\/TED[0-9A-F]{4,}\//.test(full) || full.startsWith("ted-chat/selfcheck") || full.startsWith("clients/tedself") || full.startsWith("properties/TED");
+    if (!allowed) continue;
+    if (!x.id) out.push.apply(out, await listPrefix(full.replace(/\/?$/, "/"), (depth || 0) + 1));
+    else if (full.startsWith("ted-chat/selfcheck/") || full.startsWith("clients/tedself") || /^properties\/TED[0-9A-F]{4,}\//.test(full)) out.push(full);
+  }
+  return out;
 }
 async function delObj(path) { await removePrefixes([path]); }
 async function rest(table, method, query, body, prefer) {
@@ -131,7 +143,7 @@ async function run(res, body, requestId) {
   const out = { ok: true, monitor: { enabled: mon.enabled, missing: mon.missing, sent: !!signal.sent, dedup: !!signal.dedup } };
   if (body && body.run === "cleanup") {
     if (!key()) { out.ok = false; out.error = "няма сървърен достъп до хранилището"; return send(res, 200, out); }
-    const names = [].concat(await listPrefix("ted-chat/selfcheck/"), await listPrefix("clients/tedself"), await listPrefix("properties/TED"));
+    const names = [].concat(await listPrefix("ted-chat/selfcheck", 0), await listPrefix("clients/tedself", 0), await listPrefix("properties/TED", 0));
     out.removed = await removePrefixes(names);
     return send(res, 200, out);
   }
