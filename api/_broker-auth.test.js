@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
-const handler=require('./broker-auth');
+const handler=require('./_broker-auth');
 (async()=>{
  assert.equal(handler.phone('0888 123 456'),'359888123456');assert.equal(handler.phone('+359888123456'),'359888123456');assert.equal(handler.phone('00359888123456'),'359888123456');
  const original=global.fetch;let calls=[];

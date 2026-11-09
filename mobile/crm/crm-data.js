@@ -180,7 +180,7 @@
         if (!login || (em.indexOf("@") > 0 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))) { err.textContent = "Въведете телефонния си номер (или имейл)."; return; }
         if (!pw) { err.textContent = "Въведете парола."; return; }
         btn.disabled = true; err.textContent = "";
-        fetch("/api/broker-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({action:"login", identifier:em, password:pw}) }).then(function(r){return r.json();}).then(function(j){ if(!j.ok)return {error:{message:j.error||"Неуспешен вход."}};return client().auth.setSession({access_token:j.access_token,refresh_token:j.refresh_token}); }).catch(function(){return {error:{message:"Няма връзка със сървъра."}};}).then(function (r) {
+        fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({action:"auth-login", identifier:em, password:pw}) }).then(function(r){return r.json();}).then(function(j){ if(!j.ok)return {error:{message:j.error||"Неуспешен вход."}};return client().auth.setSession({access_token:j.access_token,refresh_token:j.refresh_token}); }).catch(function(){return {error:{message:"Няма връзка със сървъра."}};}).then(function (r) {
           btn.disabled = false;
           if (r.error) { err.textContent = /invalid/i.test(r.error.message) ? "Грешен телефон/имейл или парола." : /not confirmed/i.test(r.error.message) ? "Имейлът не е потвърден – използвайте „Забравена парола“ или регистрацията с кодовото изречение." : r.error.message; return; }
           session = r.data.session; b.hidden = true; ok(session);
@@ -194,7 +194,7 @@
         var em = b.querySelector("#nd-em").value.trim();
         if (!em) { err.textContent = "Въведете телефон или имейл и натиснете отново."; return; }
         err.textContent = "Изпращаме заявката…";
-        fetch("/api/broker-auth", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"reset",identifier:em})}).then(function(r){return r.json();}).then(function(j){err.textContent=j.message||j.error||"Опитайте отново.";}).catch(function(){err.textContent="Няма връзка със сървъра.";});
+        fetch("/api/register", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"auth-reset",identifier:em})}).then(function(r){return r.json();}).then(function(j){err.textContent=j.message||j.error||"Опитайте отново.";}).catch(function(){err.textContent="Няма връзка със сървъра.";});
       };
     });
   }
