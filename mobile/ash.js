@@ -6,7 +6,7 @@
   if (window.NDAsh) return;
   try { if (window.self !== window.top && /[?&]inframe=1/.test(location.search)) return; } catch (e) {}
   var SB_KEY_STORE = "nd-crm-auth", SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co", SB_KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
-  var BOT = "/mobile/crm/assets/ash-bot.png";
+  var BOT = /\/mobile\/crm\//.test(location.pathname) ? "/mobile/crm/assets/ted-avatar-v1.webp" : "/mobile/crm/assets/ash-bot.png";
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var I = {
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
@@ -387,7 +387,7 @@
   var skills = [], skill = null, win, fab, list, menu, foot, booted = false, hist = [];
   var STORE = "nd-ash-chat";
   try { hist = JSON.parse(sessionStorage.getItem(STORE) || "[]") || []; } catch (e) { hist = []; }
-  function save() { try { sessionStorage.setItem(STORE, JSON.stringify(hist.slice(-30).map(function (m) { return { role: m.role, text: m.text }; }))); } catch (e) {} }
+  function save() { try { sessionStorage.setItem(STORE, JSON.stringify(hist.slice(-30).map(function (m) { return { role: m.role, text: m.text, files: (m.files || []).slice(0,6) }; }))); } catch (e) {} }
   /* Преглед на файл от чата в карта в самия прозорец на Тед (снимка, PDF, Word/Excel през вграден визуализатор) – без нова страница */
   function isFileUrl(u) { return /imotinadezhda\.bg\/f\/|\/storage\/v1\/object\/(sign|public)\/|\/webhook\/ted-media\?|\.(pdf|jpe?g|png|webp|gif|heic|docx?|xlsx?|pptx?|txt|csv)(\?|#|&|$)/i.test(String(u || "")); }
   function fileKind(u, name) { var s = (String(name || "") + " " + String(u || "").split("#")[0]).toLowerCase(); if (/\.(jpe?g|png|webp|gif|heic)(\b|$)/.test(s)) return "img"; if (/\.pdf(\b|$)/.test(s)) return "pdf"; if (/\.(docx?|xlsx?|pptx?)(\b|$)/.test(s)) return "doc"; return "other"; }
@@ -574,13 +574,13 @@
         if (!j.ok) { api.add("a", "Казусът не се зареди (" + esc(j.error || "") + "). Продължаваме в общ разговор."); setCase(null); renderCaseBar(); return; }
         var k = j.result.kase || {}; if (k.title) { curCase.title = k.title; setCase(curCase); renderCaseBar(); }
         api.add("a", "📁 Казус <b>" + esc(k.title || curCase.title) + "</b>" + (k.client ? " · " + esc(k.client) : "") + (k.summary ? "\n<b>Резюме:</b> " + esc(String(k.summary).slice(0, 700)) : "") + "\nВсичко тук се помни без ограничение. Продължете откъдето сте спрели.");
-        (j.result.messages || []).slice(-20).forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
+        (j.result.messages || []).slice(-20).forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text) + tedImages(m)); });
         list.scrollTop = list.scrollHeight;
       });
       return;
     }
     if (s && s.intro0) { s.intro0(api); return; }
-    if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
+    if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text) + tedImages(m)); });
     else api.add("a", "Здравейте! Аз съм <b>Тед Асистент</b> на Имоти Надежда.\nПитайте ме за клиенти, имоти, огледи, сделки, ипотека или комисионна – работя с реалните данни в CRM." +
       "\nНапример: „Намери тристайни в Шумен до 100 000 €“, „Добави клиент Мария, 0888…, търси двустаен под наем във Варна“, „Какво имам утре?“\nКажете „запомни …“ и ще го помня завинаги; от 📁 можете да отворите казус с безкрайна памет." +
       (staffCtx ? "\nВсичко е тук, в чата: <b>качване на имот</b> от папка (📎 или „качи имот“), <b>събиране на обяви</b> от собственици, <b>имейли</b> от вашата поща (ABV, Gmail…), и роли – юрист, секретар, старши брокер, анализатор, търговец. Избирам ролята сама или от „✨ Умения и роли“." : ""));
@@ -628,11 +628,68 @@
     c.querySelector("[data-e]").onclick = function () { onEdit(); };
     var sb = w.querySelector(".nda-say"); w.insertBefore(c, sb || null);
   }
+  /* CRM-only attachment workspace. Reads existing records; selection is staged in the composer. */
+  var TED_HOUSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2 10 10-8 10 8M5 9v12h9M19 14v8M15 18h8M9 21v-7h5"/></svg>';
+  var TED_DOC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 2h10l4 4v16H5zM14 2v5h5M8 11h8M8 15h8M8 18h6"/></svg>';
+  function tedImages(m) { return (m.files || []).filter(function(f){return /^data:image\/(jpeg|png|webp);base64,[a-z0-9+/=]+$/i.test(f.preview || '');}).map(function(f){return '<img class="ted-chat-img" alt="'+esc(f.name||'Прикачена снимка')+'" src="'+f.preview+'">';}).join(''); }
+  function tedPanel(title) {
+    var old=win.querySelector('.ted-panel');if(old)old.remove();
+    var box=document.createElement('section');box.className='ted-panel';box.setAttribute('role','dialog');box.setAttribute('aria-label',title);
+    box.innerHTML='<header><button type="button" data-close aria-label="Назад">←</button><h3>'+esc(title)+'</h3><button type="button" data-close aria-label="Затвори панела">×</button></header><div class="ted-panel-body"></div>';
+    win.appendChild(box);box.querySelectorAll('[data-close]').forEach(function(b){b.onclick=function(){box.remove();};});return box;
+  }
+  function tedDocuments() {
+    var box=tedPanel('Документи'),body=box.querySelector('.ted-panel-body');body.innerHTML='<p role="status">Зареждане…</p>';
+    if(!window.ND){body.textContent='Влезте в CRM, за да видите документите.';return;}
+    ND.ready().then(function(){return ND.load('documents');}).then(function(ds){if(!box.isConnected)return;body.innerHTML=ds.length?ds.map(function(d,i){return '<button type="button" class="ted-doc" data-doc="'+i+'">'+TED_DOC+' '+esc(d.name||d.title||'Документ')+'</button>';}).join(''):'<p>Няма записани документи в CRM.</p>';
+      body.onclick=function(e){var b=e.target.closest('[data-doc]');if(!b)return;var d=ds[+b.dataset.doc],path=d.path||d.file_path||d.url||d.file;
+        if(!path){body.insertAdjacentHTML('beforeend','<p role="status">Документът няма прикачен файл.</p>');return;}
+        var tab=window.open('about:blank','_blank');ND.fileUrl(path).then(function(url){if(!/^https?:\/\//i.test(url))throw Error('Невалиден адрес.');if(tab)tab.location=url;else location.href=url;}).catch(function(){if(tab)tab.close();body.insertAdjacentHTML('beforeend','<p role="alert">Файлът не можа да се отвори.</p>');});
+      };
+    }).catch(function(){body.innerHTML='<p role="alert">Документите не се заредиха. Затворете панела и опитайте отново.</p>';});
+  }
+  function tedProperties(onAttach,onFiles,tab0) {
+    var box=tedPanel('Прикачи имот'),body=box.querySelector('.ted-panel-body'),rows=[],picked={},action='chat',tab=tab0||'mine';
+    body.innerHTML='<div class="ted-tabs"><button type="button" data-tab="mine" class="on">Моите имоти</button><button type="button" data-tab="search">Търсене</button><button type="button" data-tab="link">↗ Чрез линк</button></div><input type="search" data-q placeholder="Име, адрес или номер на имот" aria-label="Търси имот"><input type="url" data-url placeholder="https://…" aria-label="Линк към имота" hidden><div class="ted-filters"><select data-filter="city" aria-label="Град"><option value="">Град – всички</option></select><select data-filter="type" aria-label="Вид имот"><option value="">Вид имот – всички</option></select><select data-filter="price" aria-label="Цена"><option value="">Цена – всички</option><option value="100000">до 100 000 €</option><option value="200000">до 200 000 €</option><option value="500000">до 500 000 €</option></select><select data-filter="status" aria-label="Статус"><option value="">Статус – всички</option></select></div><div class="ted-property-list" role="status">Зареждане…</div><h4>Начин на прикачване</h4><div class="ted-methods"><button type="button" data-method="crm">'+TED_DOC+'От CRM</button><button type="button" data-method="link">'+I.clip+'Чрез линк</button><button type="button" data-method="files">'+TED_DOC+'Снимки и файлове</button><button type="button" data-method="new">'+TED_HOUSE+'Нов имот</button></div><h4>Какво да включа</h4><div class="ted-includes">'+[['pics','Снимки'],['description','Описание'],['price','Цена и параметри'],['docs','Документи'],['location','Местоположение']].map(function(x){return '<label><input type="checkbox" data-include="'+x[0]+'" '+(x[0]==='docs'?'':'checked')+'>'+x[1]+'</label>';}).join('')+'</div><h4>Действие с имота</h4><div class="ted-act"><button type="button" class="on" data-action="chat">Изпрати в чата</button><button type="button" data-action="compare">Сравни</button><button type="button" data-action="offer">Подготви оферта</button></div><p class="ted-note">До 3 снимки от имот. Избраното се добавя в полето за съобщение; прегледайте го и натиснете стрелката за изпращане.</p><p class="ted-note" data-error role="status"></p>';
+    box.insertAdjacentHTML('beforeend','<button type="button" class="ted-confirm" disabled>'+TED_HOUSE+' Прикачи избраното</button>');
+    var confirm=box.querySelector('.ted-confirm'),err=body.querySelector('[data-error]'),out=body.querySelector('.ted-property-list');
+    function eligible(){return rows.filter(function(p){if(tab!=='mine')return true;var user=window.ND&&ND.user&&ND.user.id;return !user||!(p.user_id||p.broker_user_id)||p.user_id===user||p.broker_user_id===user;});}
+    function render(){
+      var q=body.querySelector('[data-q]').value.trim().toLocaleLowerCase('bg'),filters={};body.querySelectorAll('[data-filter]').forEach(function(s){filters[s.dataset.filter]=s.value;});
+      var found=eligible().filter(function(p){return(!q||[p.title,p.name,p.code,p.id,p.address,p.city,p.hood].join(' ').toLocaleLowerCase('bg').includes(q))&&(!filters.city||p.city===filters.city)&&(!filters.type||p.type===filters.type)&&(!filters.status||p.status===filters.status)&&(!filters.price||(+p.price>0&&+p.price<=+filters.price));});
+      out.innerHTML=found.length?found.map(function(p){return '<label class="ted-pick"><input type="checkbox" data-pick="'+esc(p.id)+'" '+(picked[p.id]?'checked':'')+'><span>'+esc(p.title||p.name||p.code||'Имот')+'<small>'+esc([p.code,p.city,p.hood,p.price?new Intl.NumberFormat('bg-BG').format(p.price)+' €':''].filter(Boolean).join(' · '))+'</small></span></label>';}).join(''):'<p>Няма имоти по тези критерии.</p>';
+      confirm.disabled=tab==='link'?!body.querySelector('[data-url]').value.trim():!Object.keys(picked).some(function(k){return picked[k];});
+    }
+    function setTab(v){tab=v;body.querySelectorAll('[data-tab]').forEach(function(b){b.classList.toggle('on',b.dataset.tab===v);});body.querySelector('[data-q]').hidden=v==='link';body.querySelector('[data-url]').hidden=v!=='link';body.querySelector('.ted-filters').hidden=v==='link';out.hidden=v==='link';render();}
+    body.addEventListener('input',function(e){if(e.target.matches('[data-q],[data-url]'))render();});
+    body.addEventListener('change',function(e){if(e.target.dataset.pick)picked[e.target.dataset.pick]=e.target.checked;if(e.target.matches('[data-filter],[data-pick]'))render();});
+    body.addEventListener('click',function(e){var t=e.target.closest('[data-tab]'),m=e.target.closest('[data-method]'),a=e.target.closest('[data-action]');if(t)setTab(t.dataset.tab);if(a){action=a.dataset.action;body.querySelectorAll('[data-action]').forEach(function(b){b.classList.toggle('on',b===a);});}if(m){var k=m.dataset.method;if(k==='crm')setTab('mine');if(k==='link')setTab('link');if(k==='files'){box.remove();onFiles('files');}if(k==='new'){box.remove();openUi('upload');}}});
+    confirm.onclick=async function(){
+      err.textContent='';var selected=rows.filter(function(p){return picked[p.id];}),inc={};body.querySelectorAll('[data-include]').forEach(function(i){inc[i.dataset.include]=i.checked;});
+      if(tab==='link'){var value=body.querySelector('[data-url]').value.trim();try{var url=new URL(value);if(!/^https?:$/.test(url.protocol))throw Error();onAttach((action==='offer'?'Подготви оферта за имота: ':'Разгледай този имот: ')+url.href,[]);box.remove();}catch(e){err.textContent='Въведете валиден http или https линк.';}return;}
+      if(action==='compare'&&selected.length<2){err.textContent='Изберете поне два имота за сравнение.';return;}
+      var fileCount=selected.reduce(function(n,p){return n+(inc.pics?Math.min(3,(p.pics||[]).length):0)+(inc.docs?(p.docs||[]).length:0);},0),fileLimit=isN8n()?N8N_MAX_FILES:3;if(fileCount>fileLimit){err.textContent='Избрани са '+fileCount+' файла. Прикачете до '+fileLimit+' наведнъж или изключете снимките/документите.';return;}
+      confirm.disabled=true;err.textContent='Подготвям избраното…';
+      try{
+        var files=[],text=(action==='compare'?'Сравни избраните имоти.':action==='offer'?'Подготви оферта за избраните имоти.':'Прикачени имоти от CRM:');
+        for(var p of selected){text+='\n\n'+[p.title||p.name||'Имот',p.code||p.id].filter(Boolean).join(' · ');if(inc.price)text+='\n'+[p.price?p.price+' €':'',p.area?p.area+' м²':'',p.type].filter(Boolean).join(' · ');if(inc.location)text+='\n'+[p.city,p.hood].filter(Boolean).join(', ');if(inc.description)text+='\n'+String(p.description||p.desc||p.public_desc||'').slice(0,7000);
+          var refs=(inc.pics?(p.pics||[]).slice(0,3).map(function(path,i){return{path:path,name:(p.code||'imot')+'-'+(i+1)+'.jpg'};}):[]).concat(inc.docs?(p.docs||[]):[]);
+          var max=isN8n()?N8N_MAX_FILES:3;
+          for(var ref of refs){if(files.length>=max)break;var path=typeof ref==='string'?ref:ref.path;if(!path)continue;var url=/^https?:\/\//i.test(path)?path:path.charAt(0)==='/'?new URL(path,location.origin).href:await ND.fileUrl(path);if(!/^https?:\/\//i.test(url))throw Error();var response=await fetch(url);if(!response.ok)throw Error();var blob=await response.blob();files.push(new File([blob],ref.name||'Документ',{type:blob.type}));}
+        }
+        onAttach(text,files);box.remove();
+      }catch(e){err.textContent='Избраните файлове не се заредиха. Проверете достъпа или изключете снимките/документите и опитайте отново.';confirm.disabled=false;}
+    };
+    setTab(tab);
+    if(!window.ND){out.textContent='Влезте в CRM, за да прикачите имот.';return;}
+    ND.ready().then(function(){return ND.load('properties');}).then(function(data){if(!box.isConnected)return;rows=data||[];['city','type','status'].forEach(function(k){var select=body.querySelector('[data-filter="'+k+'"]');Array.from(new Set(rows.map(function(p){return p[k];}).filter(Boolean))).sort().forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;select.appendChild(o);});});render();}).catch(function(){out.textContent='Имотите не се заредиха. Затворете панела и опитайте отново.';});
+  }
+
   var chatSkill = {
     id: "chat", name: "Чат с Тед Асистент", sub: "Клиенти, имоти, календар, сделки, изчисления",
     intro: function (api) { caseIntro(api, this); },
     footer: function () {
-      return '<div class="nda-case"><button type="button" class="nda-case-btn" aria-haspopup="listbox"></button><button type="button" class="nda-case-btn role" aria-haspopup="listbox" hidden></button><div class="nda-case-pop" hidden></div></div><div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="mic" aria-label="Гласово съобщение">' + I.mic + '</button><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
+      return (inCrmPath() ? '<div class="ted-quick"><button type="button" data-ted-find>'+TED_HOUSE+'Намери имот</button><button type="button" data-ted-docs>'+TED_DOC+'Прегледай документи</button></div><div class="ted-property-row"><button type="button" class="ted-property-btn" data-ted-property>'+TED_HOUSE+'Прикачи имот</button></div>' : '') + '<div class="nda-case"><button type="button" class="nda-case-btn" aria-haspopup="listbox"></button><button type="button" class="nda-case-btn role" aria-haspopup="listbox" hidden></button><div class="nda-case-pop" hidden></div></div><div class="nda-files"></div><div class="nda-c"><button type="button" class="att" aria-label="Прикачи снимка или PDF">' + I.clip + '</button><textarea rows="1" placeholder="Съобщение…" aria-label="Съобщение до Тед Асистент"></textarea><button type="button" class="mic" aria-label="Гласово съобщение">' + I.mic + '</button><button type="button" class="snd" aria-label="Изпрати">' + I.send + "</button></div>";
     },
     bind: function (api, el) {
       var ta = el.querySelector("textarea"), files = [], fl = el.querySelector(".nda-files"), busy = false, me = this;
@@ -641,7 +698,16 @@
       var rb = el.querySelector(".nda-case-btn.role"); rb.hidden = !staffCtx; renderRoleBtn(); rb.onclick = function (e) { e.stopPropagation(); openSkills(api); };
       if (me.placeholder) ta.placeholder = me.placeholder;
       var lastTry = null;
-      function showFiles() { fl.innerHTML = files.map(function (f) { return "<span>" + esc(f.name) + "</span>"; }).join(""); }
+      function showFiles() {
+        fl.textContent = '';
+        files.forEach(function(f,index){var item=document.createElement('div');item.className='ted-file';
+          if(/^image\//.test(f.type)){var image=document.createElement('img');image.alt=f.name;var url=URL.createObjectURL(f);image.onload=image.onerror=function(){URL.revokeObjectURL(url);};image.src=url;item.appendChild(image);}
+          var name=document.createElement('span');name.textContent=f.name;item.appendChild(name);var remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.setAttribute('aria-label','Премахни '+f.name);remove.onclick=function(){files.splice(index,1);showFiles();};item.appendChild(remove);fl.appendChild(item);
+        });
+      }
+      function stageProperty(text,attached){ta.value=(ta.value?ta.value+'\n\n':'')+text;files=files.concat(attached).slice(0,isN8n()?N8N_MAX_FILES:3);showFiles();ta.dispatchEvent(new Event('input'));ta.focus();}
+      var prop=el.querySelector('[data-ted-property]'),find=el.querySelector('[data-ted-find]'),docs=el.querySelector('[data-ted-docs]');
+      if(prop)prop.onclick=function(){tedProperties(stageProperty,pickChat);};if(find)find.onclick=function(){tedProperties(stageProperty,pickChat,'search');};if(docs)docs.onclick=tedDocuments;
       function finishWait(w, html) { w.classList.remove("wait"); busy = false; w.innerHTML = html; }
       function retryHtml() { return '<div><button type="button" data-retry>Опитай отново</button></div>'; }
       function go(voice) {
@@ -660,10 +726,13 @@
           var b = w.querySelector("[data-retry]"); if (b) b.onclick = function () { if (!lastTry || busy) return; if (lastTry.voice) go(lastTry.voice); else { ta.value = lastTry.text; files = lastTry.files.slice(); showFiles(); go(); } };
         }
         Promise.all(fs.map(function (f) { return fileData(f, anyF); })).then(function (fd) {
+          var previewFiles=[];
+          fd.filter(function(f){return f && /^image\//.test(f.mime);}).forEach(function(f){var im=document.createElement('img');im.className='ted-chat-img';im.alt=f.name;im.src='data:'+f.mime+';base64,'+f.data;ub.appendChild(im);});
+          var previewPromise=Promise.all(fs.filter(function(f){return /^image\//.test(f.type);}).map(function(f){return new Promise(function(resolve){var img=new Image(),url=URL.createObjectURL(f);img.onload=function(){var k=Math.min(1,480/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*k));c.height=Math.max(1,Math.round(img.height*k));c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);resolve({name:f.name,preview:c.toDataURL('image/jpeg',.65)});};img.onerror=function(){URL.revokeObjectURL(url);resolve(null);};img.src=url;});})).then(function(items){previewFiles=items.filter(Boolean);});
           var cur = { role: "user", text: voice ? "(гласово съобщение)" : (text || "Анализирай прикачените файлове."), files: fd.filter(Boolean).concat(voice ? [{ mime: voice.mime, data: voice.data }] : []) };
           /* в казус историята идва от паметта на сървъра – пращаме само текущото съобщение */
           var send = (curCase ? [] : hist.slice(-14).map(function (m) { return { role: m.role, text: m.text }; })).concat([cur]);
-          return ask(send, { mode: curMode || me.mode || "", case_id: curCase ? curCase.id : "", signal: ctrl.signal }).then(function (j) {
+          return previewPromise.then(function(){return ask(send, { mode: curMode || me.mode || "", case_id: curCase ? curCase.id : "", signal: ctrl.signal });}).then(function (j) {
             if (settled) return;
             clearTimeout(killer);
             if (!j || !j.ok) { fail((j && j.error) || "Грешка", j && j.transcript); return; }
@@ -672,7 +741,7 @@
             var rl = !curMode && j.mode && MODE_BY[j.mode] ? MODE_BY[j.mode][4] + " " + MODE_BY[j.mode][1].split(" – ")[0] : "";
             w.innerHTML = fmt(j.text) + (prefs.showActions && ((j.actions && j.actions.length) || rl) ? '<span class="acts">' + (rl ? esc(rl) + (j.actions && j.actions.length ? " · " : "") : "") + (j.actions && j.actions.length ? "✔ " + esc(j.actions.join(" · ")) : "") + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w);
             if (voice && j.transcript) { ub.innerHTML = "🎤 „" + esc(j.transcript) + "“"; cur.text = j.transcript; }
-            if ((!voice || j.transcript) && !curCase) { hist.push({ role: "user", text: cur.text }, { role: "assistant", text: j.text }); save(); }
+            if ((!voice || j.transcript) && !curCase) { hist.push({ role: "user", text: cur.text, files: previewFiles }, { role: "assistant", text: j.text }); save(); }
             if ((voice && prefs.autoSpeak !== "never") || prefs.autoSpeak === "always") { var sb = w.querySelector(".nda-say"); if (sb) sb.click(); } /* гласов въпрос → гласов отговор (според настройката) */
             if (j.actions && j.actions.some(function (a) { return !/search|list|get|calc|rates|summary|match|✗/.test(a); })) try { window.dispatchEvent(new CustomEvent("nd-data-changed")); } catch (e) {}
             if (j.video && window.NDVideo) try { window.NDVideo.fromChat(j.video, fs); } catch (e) {} /* „направи видео на обява #…“ → умението „AI Видео на имот“ */
@@ -722,25 +791,25 @@
       };
       ta.onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey && prefs.enterSend) { e.preventDefault(); go(); } };
       ta.oninput = function () { ta.style.height = "auto"; ta.style.height = Math.min(120, ta.scrollHeight) + "px"; };
-      function pickChat() {
+      function pickChat(mode) {
         var n8 = isN8n(); /* агентът в n8n: до 6 файла, и Word/Excel/аудио */
-        var i = document.createElement("input"); i.type = "file"; i.multiple = true; i.accept = n8 ? "image/*,application/pdf,audio/*,.doc,.docx,.xls,.xlsx,.csv,.txt,.odt,.ods,.rtf" : "image/*,application/pdf"; i.style.cssText = "position:fixed;left:-999px;opacity:0"; document.body.appendChild(i);
+        var i = document.createElement("input"); i.type = "file"; i.multiple = true; i.accept = mode === "gallery" ? "image/*" : n8 ? "image/*,application/pdf,audio/*,.doc,.docx,.xls,.xlsx,.csv,.txt,.odt,.ods,.rtf" : "image/*,application/pdf"; i.style.cssText = "position:fixed;left:-999px;opacity:0"; document.body.appendChild(i);
         i.onchange = function () { files = files.concat([].slice.call(i.files || [])).slice(0, n8 ? N8N_MAX_FILES : 3); i.remove(); showFiles(); }; i.click();
       }
       el.querySelector(".att").onclick = function (e) {
         var up = embedded.filter(function (x) { return x.id === "upload"; })[0];
-        if (!staffCtx || !up || !up.pick) return pickChat();
+        if (!inCrmPath() && (!staffCtx || !up || !up.pick)) return pickChat();
         e.stopPropagation();
         var pop = el.querySelector(".nda-case-pop"); if (!pop) return pickChat();
         if (!pop.hidden && pop._kind === "att") { pop.hidden = true; return; }
         pop._kind = "att"; pop.hidden = false;
         pop.innerHTML = '<div class="nda-case-h">Прикачи</div>' +
-          '<button type="button" class="nda-case-i" data-at="chat">📎 Снимка или PDF към Тед<small>въпрос по документ, снимка, договор</small></button>' +
+          '<button type="button" class="nda-case-i" data-at="gallery">🖼 Галерия<small>снимки с видима миниатюра в чата</small></button><button type="button" class="nda-case-i" data-at="chat">📎 Файлове<small>PDF, документи и други файлове</small></button>' +
           '<div class="nda-case-g">АИ Качване на имот → „Нов имот“</div>' +
           '<button type="button" class="nda-case-i" data-at="folder">📁 Папка на имота<small>снимки, видеа и опис – цената от името на папката</small></button>' +
           '<button type="button" class="nda-case-i" data-at="files">🖼️ Снимки и опис<small>или .zip на папката (iPhone)</small></button>' +
           '<button type="button" class="nda-case-i" data-at="camera">📸 Снимай имота</button>';
-        pop.onclick = function (ev) { var t = ev.target.closest("[data-at]"); if (!t) return; pop.hidden = true; var k = t.getAttribute("data-at"); if (k === "chat") pickChat(); else up.pick(api, k); };
+        pop.onclick = function (ev) { var t = ev.target.closest("[data-at]"); if (!t) return; pop.hidden = true; var k = t.getAttribute("data-at"); if (k === "chat" || k === "gallery") pickChat(k === "gallery" ? "gallery" : "files"); else if (up && up.pick) up.pick(api, k); else pickChat(); };
       };
     }
   };
@@ -749,8 +818,8 @@
   var n8nSkill = Object.create(chatSkill);
   n8nSkill.id = "n8n"; n8nSkill.name = "Чат с n8n Agent"; n8nSkill.sub = "Самият агент от n8n – реалните данни в CRM"; n8nSkill.placeholder = "Пишете на Тед…"; n8nSkill.crmOnly = true; /* само в CRM (за служители), не и в публичния сайт */
   n8nSkill.intro0 = function (api) {
-    if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
-    else api.add("a", "Здравейте! Аз съм <b>Тед</b> – асистентът на Имоти Надежда.\nМодел: <b>" + esc(n8nModelName()) + "</b> (сменя се от менюто горе). Всички модели могат едно и също: клиенти, имоти, огледи, имейли с документи, преводи, публикуване във Facebook, запис на клиент от Чат.\nПриемам текст, снимки, PDF и други файлове (📎) и гласови съобщения (🎤).");
+    if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text) + tedImages(m)); });
+    else api.add("a", "Здравейте! Аз съм <b>Тед.</b>\nВашият асистент в Имоти Надежда.\nПомагам с клиенти, имоти, огледи, документи и преводи.\nИзпратете текст, снимка, PDF или гласово съобщение.");
   };
   skills.push(n8nSkill);
   /* експертните роли са вградени в „Чат с Тед“ (бутон „Роля“ до казуса); без избор Тед разпознава ролята от въпроса (api/_ted-modes.js) */
@@ -875,10 +944,12 @@
     win.innerHTML = '<header class="nda-h"><span class="nda-av"><img src="' + BOT + '" alt=""></span><div class="nda-t"><b>Тед Асистент</b><button type="button" class="nda-skill" aria-haspopup="listbox" aria-expanded="false"><span></span>' + I.chev + "</button></div>" +
       '<button type="button" class="nda-gear" aria-label="Настройки на чата" title="Настройки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>' +
       '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div><div class="nda-set" hidden></div>';
+    if(inCrmPath()) { win.classList.add('nd-lux');var lux=document.createElement('link');lux.rel='stylesheet';lux.href='/mobile/crm/ted-lux.css?v=1';document.head.appendChild(lux);var online=document.createElement('span');online.className='ted-online';online.innerHTML='<i></i>На линия';win.querySelector('.nda-t').insertBefore(online,win.querySelector('.nda-skill')); }
     document.body.appendChild(fab); document.body.appendChild(win);
     list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot");
     list.addEventListener("click", fileClick);
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) { var vw = win.querySelector(".nda-view"); if (vw) vw.remove(); } });
+    list.addEventListener('click',function(e){if(!e.target.matches('.ted-chat-img'))return;var view=document.createElement('div');view.className='ted-image-view';var img=document.createElement('img');img.src=e.target.src;img.alt=e.target.alt;var close=document.createElement('button');close.type='button';close.className='nda-x';close.setAttribute('aria-label','Затвори снимката');close.textContent='×';close.onclick=function(){view.remove();};view.appendChild(img);view.appendChild(close);win.appendChild(view);});
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) { var vw = win.querySelector(".nda-view,.ted-panel,.ted-image-view"); if (vw) { vw.remove();e.stopImmediatePropagation(); } } });
     var sk = win.querySelector(".nda-skill"), gear = win.querySelector(".nda-gear"), setBox = win.querySelector(".nda-set");
     sk.onclick = function (e) { e.stopPropagation(); renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
     menu.onclick = function (e) { var nm = e.target.closest("[data-nm]"); if (nm) { menu.hidden = true; pickN8nModel(nm.getAttribute("data-nm")); return; } var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
