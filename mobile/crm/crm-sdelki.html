@@ -854,6 +854,7 @@ html.desk .fwin .mscroll{overflow:hidden}
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/>
+<link rel="stylesheet" href="crm-v3-sdelki.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -980,9 +981,20 @@ html.desk .fwin .mscroll{overflow:hidden}
   </section>
 
   <div class="oflow">
+    <h2 class="v3-ttl"><svg class="i"><use href="#handshake"/></svg><span>Сделки</span> <em id="v3-cnt">(0)</em></h2>
+    <div class="v3-specs v3-kpi" id="v3-kpi" aria-live="polite"></div>
     <div class="otools">
       <button class="o-new" id="o-new"><svg class="i"><use href="#plus"/></svg>Нова сделка</button>
       <label class="fld o-q"><svg class="i"><use href="#search"/></svg><input id="o-q" type="search" placeholder="Търси сделка, клиент, имот…" autocomplete="off" aria-label="Търси сделка"></label>
+    </div>
+    <div class="v3-filt" id="v3-filt">
+      <div class="v3-stg" id="v3-stg" role="group" aria-label="Етап"></div>
+      <div class="v3-sels">
+        <label class="v3-sel"><svg class="i"><use href="#tag"/></svg><span class="v3-sl"><small>Вид сделка</small><b class="val">Всички</b></span><svg class="i chev"><use href="#chev-d"/></svg><select id="v3-kind" aria-label="Вид сделка"></select></label>
+        <label class="v3-sel"><svg class="i"><use href="#contact-round"/></svg><span class="v3-sl"><small>Брокер</small><b class="val">Всички</b></span><svg class="i chev"><use href="#chev-d"/></svg><select id="v3-broker" aria-label="Брокер"></select></label>
+        <label class="v3-sel"><svg class="i"><use href="#landmark"/></svg><span class="v3-sl"><small>Плащане</small><b class="val">Всички</b></span><svg class="i chev"><use href="#chev-d"/></svg><select id="v3-pay" aria-label="Плащане"></select></label>
+        <label class="v3-sel"><svg class="i"><use href="#arrow-up-down"/></svg><span class="v3-sl"><small>Подредба</small><b class="val">Най-нови</b></span><svg class="i chev"><use href="#chev-d"/></svg><select id="v3-sort" aria-label="Подредба"></select></label>
+      </div>
     </div>
     <div class="dhost" id="dhost"></div>
   </div>
@@ -1073,12 +1085,172 @@ html.desk .fwin .mscroll{overflow:hidden}
   /* the deals screen lives in the page itself; the search box filters its list */
   function start(){
     if(!window.NDGlobal||!window.NDGlobal.deals||!window.ND){setTimeout(start,60);return}
+    v3watch();
     window.NDGlobal.deals({inline:$('dhost'),focusNew:/#new/.test(location.hash)});
     root.classList.add('ready');
   }
+  /* ===== Вариант 3 – подредба на страницата „Сделки“ =====
+     Само изглед и подредба: данните, полетата, id-тата и записът остават от crm-global.js / crm-ui.js.
+     • едно заглавие „Сделки (N)“, отгоре златни плочки с обобщение от всички сделки;
+     • филтри: етап (чипове с брой), вид сделка, брокер, плащане, подредба + търсачката;
+     • картите: чип за етапа, страни и имот, плочки цена / комисионна / капаро / следващ срок (червено при просрочие);
+     • формата „Нова сделка“ се отваря само от „Нова сделка“ или молива и се затваря при запис / отказ;
+       полетата са подредени: Страни → Сделка → Финанси → Комисионна → Срокове и нотариус → Особени обстоятелства. */
+  var v3map={},v3obs=null,v3raf=0,v3busy=false,v3after=null;
+  var V3F={stage:'',kind:'',broker:'',pay:'',sort:'new'};
+  var V3STG=[['','Всички'],['Нова','Нова'],['Оглед','Оглед'],['Оферта','Оферта'],['Предварителен договор','Предварителен договор'],['Нотариус','Нотариус'],['Приключена','Приключени'],['Отказана','Отказани']];
+  var V3KIND=['Продажба','Покупка','Наем','Отдаване под наем','Замяна','Лизинг'],V3PAY=['Кеш','Банков кредит','Кеш + кредит','Лизинг','Замяна'];
+  var V3SORT=[['new','Най-нови'],['due','Най-близък срок'],['price','Най-висока цена']];
+  var V3PH=['nd/ph18.jpg','nd/ph09.jpg','nd/ph12.jpg','nd/ph17.jpg','nd/ph07.jpg','nd/ph13.jpg','hero-villa.jpg','nd/ph11.jpg','nd/ph01.jpg','nd/ph05.jpg'];
+  var V3G={'Страни по сделката':'nd/ph18.jpg','Сделка':'card-clients.jpg','Срокове и нотариус':'card-viewings.jpg','Кредитен калкулатор':'nd/ph11.jpg','Финанси по сделката':'nd/ph16.jpg','Комисионна за агенцията':'nd/ph09.jpg','Особени обстоятелства':'nd/ph06.jpg'};
+  function v3U(){return window.NDUI||{}}
+  function v3img(n){var U=v3U();return U.img?U.img(n):'assets/'+n}
+  function v3esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function v3ic(n){return '<svg class="i"><use href="#'+n+'"/></svg>'}
+  function v3m(n){var U=v3U();n=Number(n)||0;return (U.money?U.money(n):String(n))+' €'}
+  function v3d(d){var U=v3U();return d?(U.bgDate?U.bgDate(d+'T00:00'):d):''}
+  function v3today(){var t=new Date();return t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2)}
+  function v3closed(st){return /Приключ|Отказ/i.test(String(st||''))}
+  function v3cls(st){st=String(st||'');return /Приключ|Продаден/i.test(st)?'sold':/Предварителен|Нотариус|Капаро|Резерв|Депозит/i.test(st)?'gold':/^Нова|Чернова|Отказ/i.test(st)?'grey':'wine'}
+  function v3chip(st){return '<span class="v3-chip '+v3cls(st)+'"><i></i>'+v3esc(st||'—')+'</span>'}
+  function v3spec(icon,val,lab,cls){return '<div class="v3-spec'+(cls?' '+cls:'')+'"><span class="si">'+v3ic(icon)+'</span><div><b'+(val?'':' class="emp"')+'>'+v3esc(val||'—')+'</b><span>'+v3esc(lab)+'</span></div></div>'}
+  /* следващата стъпка: най-близкият бъдещ срок (нотариус / краен срок); при отминал срок – червено */
+  function v3next(d){
+    var ds=[['Нотариус',d.d_notary],['Краен срок',d.deadline]].filter(function(x){return x[1]}),t=v3today();
+    if(!ds.length)return null;
+    if(v3closed(d.stage)){var c=ds[0];return {lab:c[0],date:c[1],cls:''}}
+    var fut=ds.filter(function(x){return x[1]>=t}).sort(function(a,b){return a[1]<b[1]?-1:1});
+    if(fut.length){var f=fut[0],days=Math.round((new Date(f[1]+'T00:00')-new Date(t+'T00:00'))/864e5);return {lab:f[0],date:f[1],cls:days<=7?'soon':''}}
+    var late=ds.sort(function(a,b){return a[1]<b[1]?1:-1})[0];return {lab:'Просрочен: '+late[0].toLowerCase(),date:late[1],cls:'late'};
+  }
+  function v3rows(){return [].slice.call(document.querySelectorAll('#g-deals .ndrow'))}
+  function v3deal(r){var e=r.querySelector('[data-ed]');return e&&v3map[e.getAttribute('data-ed')]}
+  function v3all(){return v3rows().map(v3deal).filter(Boolean)}
+  function v3watch(){
+    var D=window.ND;if(!D||D._v3)return;D._v3=1;
+    var L=D.load,P=D.put,X=D.del;
+    D.load=function(k){var r=L.apply(this,arguments);if(k==='deals')r.then(function(l){l.forEach(function(x){v3map[x.id]=x});v3go()}).catch(function(){});return r};
+    D.put=function(k){var r=P.apply(this,arguments);if(k==='deals')r.then(function(x){if(x&&x.id)v3map[x.id]=x;v3close(false);v3go()}).catch(function(){});return r};
+    D.del=function(k,id){var r=X.apply(this,arguments);if(k==='deals')r.then(function(){delete v3map[id];v3go()}).catch(function(){});return r};
+    v3obs=new MutationObserver(v3go);v3obs.observe($('dhost'),{childList:true,subtree:true});
+    /* моливът на карта отваря формата (crm-global попълва полетата) */
+    $('dhost').addEventListener('click',function(e){var ed=e.target.closest('[data-ed]');if(ed&&ed.closest('#g-deals'))setTimeout(function(){v3open();var b=document.getElementById('nd-f-body');if(b)b.scrollIntoView({behavior:'smooth',block:'start'})},0)},true);
+    $('dhost').addEventListener('click',function(e){if(e.target.closest('#nd-f-cancel,.v3-fx')){e.preventDefault();e.stopPropagation();v3close(true)}},true);
+    v3filters();
+    if(/#new/.test(location.hash))v3open();
+  }
+  function v3go(){if(v3raf)return;v3raf=requestAnimationFrame(function(){v3raf=0;if(v3obs)v3obs.disconnect();try{v3dress()}finally{if(v3obs)v3obs.observe($('dhost'),{childList:true,subtree:true})}})}
+  /* --- форма: отваряне / затваряне --- */
+  function v3open(){document.querySelector('.oflow').classList.add('v3-open');v3go()}
+  function v3close(reset){
+    var fl=document.querySelector('.oflow');if(!fl.classList.contains('v3-open'))return;fl.classList.remove('v3-open');
+    if(reset)v3reinit(null);
+    setTimeout(function(){$('v3-cnt').scrollIntoView({behavior:'smooth',block:'start'})},30);
+  }
+  /* нов старт на прозореца на сделките (изчиства режима „редакция“ и попълнените полета) */
+  function v3reinit(cb){v3after=cb||null;v3busy=true;window.NDGlobal.deals({inline:$('dhost')})}
+  function v3new(cb){
+    var b=document.getElementById('nd-f-body');
+    if(!b||b.getAttribute('data-v3mode')==='edit'){v3reinit(function(){v3open();if(cb)setTimeout(cb,60)});return}
+    v3open();if(cb)setTimeout(cb,60);
+  }
+  /* --- филтри --- */
+  function v3opts(id,list,cur,all){var s=$(id);s.innerHTML=(all?'<option value="">Всички</option>':'')+list.map(function(x){var v=Array.isArray(x)?x[0]:x,t=Array.isArray(x)?x[1]:x;return '<option value="'+v3esc(v)+'"'+(v===cur?' selected':'')+'>'+v3esc(t)+'</option>'}).join('');
+    var o=s.options[s.selectedIndex];s.closest('.v3-sel').querySelector('.val').textContent=o?o.textContent:'Всички';s.closest('.v3-sel').classList.toggle('set',!!(all&&cur))}
+  function v3filters(){
+    [['v3-kind','kind'],['v3-broker','broker'],['v3-pay','pay'],['v3-sort','sort']].forEach(function(x){$(x[0]).addEventListener('change',function(){V3F[x[1]]=this.value;v3apply()})});
+    $('v3-stg').addEventListener('click',function(e){var b=e.target.closest('[data-stg]');if(!b)return;V3F.stage=b.getAttribute('data-stg');v3apply()});
+    v3opts('v3-kind',V3KIND,'',true);v3opts('v3-pay',V3PAY,'',true);v3opts('v3-broker',[],'',true);v3opts('v3-sort',V3SORT,'new',false);
+  }
+  function v3apply(){
+    var all=v3all(),q=$('o-q').value.trim().toLowerCase(),cnt={},rows=v3rows();
+    all.forEach(function(d){cnt[d.stage]=(cnt[d.stage]||0)+1});
+    $('v3-stg').innerHTML=V3STG.map(function(x){var n=x[0]?(cnt[x[0]]||0):all.length,on=V3F.stage===x[0];
+      return '<button type="button" class="v3-sc'+(on?' on':'')+(x[0]?' '+v3cls(x[0]):'')+'" data-stg="'+v3esc(x[0])+'" aria-pressed="'+on+'">'+(x[0]?'<i></i>':'')+v3esc(x[1])+'<em>'+n+'</em></button>'}).join('');
+    var brs={};all.forEach(function(d){if(d.broker)brs[d.broker]=1});
+    v3opts('v3-broker',Object.keys(brs).sort(function(a,b){return a.localeCompare(b,'bg')}),V3F.broker,true);
+    v3opts('v3-kind',V3KIND,V3F.kind,true);v3opts('v3-pay',V3PAY,V3F.pay,true);v3opts('v3-sort',V3SORT,V3F.sort,false);
+    var vis=0;
+    rows.forEach(function(r){var d=v3deal(r),ok=!!d;
+      if(d){if(V3F.stage&&d.stage!==V3F.stage)ok=false;if(V3F.kind&&d.kind!==V3F.kind)ok=false;if(V3F.broker&&d.broker!==V3F.broker)ok=false;if(V3F.pay&&d.payment!==V3F.pay)ok=false}
+      if(q&&r.textContent.toLowerCase().indexOf(q)<0)ok=false;
+      r.style.display=ok?'':'none';if(ok)vis++});
+    /* подредба */
+    var sec=document.querySelector('#g-deals .ndsec');
+    if(sec&&rows.length>1){
+      var key=function(r){var d=v3deal(r)||{},i=+r.getAttribute('data-v3i')||0;
+        if(V3F.sort==='price')return [-(Number(d.amount)||0),i];
+        if(V3F.sort==='due'){var n=v3next(d);return [n&&!v3closed(d.stage)?(n.cls==='late'?'0':'1')+n.date:'9',i]}
+        return [i,0]};
+      var sorted=rows.slice().sort(function(a,b){var x=key(a),y=key(b);return x[0]<y[0]?-1:x[0]>y[0]?1:x[1]-y[1]});
+      if(sorted.some(function(r,i){return r!==rows[i]}))sorted.forEach(function(r){sec.appendChild(r)});
+    }
+    var none=sec&&sec.querySelector('.v3-none');
+    if(sec&&rows.length&&!vis){if(!none){none=document.createElement('div');none.className='v3-none';none.textContent='Няма сделки по избраните филтри.';sec.appendChild(none)}}
+    else if(none)none.remove();
+    var filt=V3F.stage||V3F.kind||V3F.broker||V3F.pay||q;
+    $('v3-cnt').textContent='('+(filt?vis+' от '+all.length:all.length)+')';
+    v3kpi(all);
+  }
+  /* --- обобщение от всички сделки --- */
+  function v3kpi(all){
+    var U=v3U(),act=all.filter(function(d){return !v3closed(d.stage)}),t=v3today();
+    var com=act.reduce(function(a,d){return a+(U.commTotal?U.commTotal(d):0)},0);
+    var dep=all.filter(function(d){return !/Отказ/i.test(d.stage||'')}).reduce(function(a,d){return a+(Number(d.deposit)||0)},0);
+    var nx=null;act.forEach(function(d){[['Нотариус',d.d_notary],['Краен срок',d.deadline]].forEach(function(x){if(x[1]&&x[1]>=t&&(!nx||x[1]<nx.date))nx={date:x[1],lab:x[0],title:d.title||''}})});
+    $('v3-kpi').innerHTML=v3spec('handshake',String(act.length),'Активни сделки')+v3spec('coins',v3m(com),'Очаквана комисионна')+v3spec('circle-dollar-sign',v3m(dep),'Получено капаро')+
+      (nx?'<div class="v3-spec v3-nx"><span class="si">'+v3ic('calendar-check')+'</span><div><b>'+v3esc(v3d(nx.date))+'</b><span>Следващ срок</span><small>'+v3esc(nx.lab+' · '+nx.title)+'</small></div></div>'
+        :v3spec('calendar-check','Няма','Следващ срок'));
+  }
+  /* --- картите и формата --- */
+  function v3dress(){
+    var host=$('dhost'),U=v3U();if(!host)return;
+    [].forEach.call(host.querySelectorAll('#g-deals .ndrow'),function(r,n){r.setAttribute('data-v3i',n)});
+    [].forEach.call(host.querySelectorAll('#g-deals .ndrow:not(.v3d)'),function(r){
+      var d=v3deal(r);if(!d)return;var n=+r.getAttribute('data-v3i')||0,id=v3esc(d.id);
+      r.classList.add('v3d');r.setAttribute('data-stage',v3cls(d.stage));
+      r.style.setProperty('--ph','url('+v3img(V3PH[n%V3PH.length])+')');
+      var tx=r.querySelector('.tx');
+      if(tx){var pv=function(icon,lab,v){return '<div class="v3-pv">'+v3ic(icon)+'<span class="k">'+lab+'</span>'+(v?'<span class="v">'+v3esc(v)+'</span>':'<span class="v emp" data-ed="'+id+'">+ добави</span>')+'</div>'};
+        var ln=document.createElement('div');ln.className='v3-line';ln.innerHTML=v3chip(d.stage)+'<em>'+v3esc(d.kind||'Сделка')+(d.broker?' · '+v3esc(d.broker):'')+'</em>';tx.appendChild(ln);
+        var pt=document.createElement('div');pt.className='v3-parties';
+        pt.innerHTML=pv('user',/наем/i.test(d.kind||'')?'Наемател':'Купувач',d.client)+pv('user-round',/наем/i.test(d.kind||'')?'Наемодател':'Продавач',d.seller)+pv('house','Имот',d.property);tx.appendChild(pt)}
+      var nx=v3next(d),ct=U.commTotal?U.commTotal(d):0,sp=document.createElement('div');sp.className='v3-specs';
+      sp.innerHTML=v3spec('coins',d.amount?v3m(d.amount):'','Цена')+v3spec('handshake',ct?v3m(ct):'','Комисионна')+v3spec('circle-dollar-sign',d.deposit?v3m(d.deposit):'','Капаро')+
+        (nx?v3spec(nx.cls==='late'?'clock':'calendar-check',v3d(nx.date),nx.lab,'next '+nx.cls):v3spec('calendar-check','','Срок'));
+      r.appendChild(sp);
+    });
+    var body=host.querySelector('#nd-f-body');
+    if(body&&!body.querySelector('.v3-g-deal')){
+      var gs=[].slice.call(body.querySelectorAll('.ndg')),g1=gs[0];
+      if(g1&&body.querySelector('#s-title')){
+        var h1=g1.querySelector('.ndg-h'),mode=/Редакция/.test(h1.textContent)?'edit':'new';body.setAttribute('data-v3mode',mode);
+        /* „Сделка“ – име, вид и етап; първият раздел става „Страни по сделката“ */
+        var g2=g1.cloneNode(false);g2.classList.add('v3-g-deal');
+        g2.innerHTML='<div class="ndg-h">'+v3ic('tag')+'Сделка</div><div class="ndg-img" style="background-image:url('+v3img(V3G['Сделка'])+')"></div><div class="ndg-f"></div>';
+        var f2=g2.querySelector('.ndg-f');['s-title','s-kind','s-stage'].forEach(function(i){var e=body.querySelector('#'+i);if(e)f2.appendChild(e.closest('.ef'))});
+        h1.innerHTML=v3ic('users')+'Страни по сделката';
+        g1.parentNode.insertBefore(g2,g1.nextSibling);
+        var calc=body.querySelector('#k-res');if(calc){calc=calc.closest('.ndg');body.appendChild(calc)}
+        var fh=document.createElement('div');fh.className='wide v3-fh';
+        fh.innerHTML='<h3>'+v3ic(mode==='edit'?'pencil':'plus')+(mode==='edit'?'Редакция на сделка':'Нова сделка')+'</h3><button type="button" class="v3-fx" aria-label="Затвори формата" title="Затвори">'+v3ic('x')+'</button>';
+        body.insertBefore(fh,body.firstChild);
+        if(mode==='edit')v3open();
+      }
+    }
+    if(body){
+      var stg=body.querySelector('#s-stage');
+      if(stg&&!stg._v3){stg._v3=1;var ef=stg.closest('.ef'),c=document.createElement('span');c.className='v3-stw';ef.appendChild(c);
+        var up=function(){c.innerHTML=v3chip(stg.value)};up();stg.addEventListener('change',up)}
+      [].forEach.call(body.querySelectorAll('.ndg'),function(g){var h=g.querySelector('.ndg-h'),im=g.querySelector('.ndg-img');if(!h||!im||im._v3)return;im._v3=1;
+        var t=h.textContent.trim();if(V3G[t])im.style.backgroundImage='url('+v3img(V3G[t])+')';g.setAttribute('data-v3',t)});
+    }
+    if(v3busy&&host.querySelector('#s-title')){v3busy=false;var cb=v3after;v3after=null;if(cb)cb()}
+    v3apply();
+  }
   start();
-  $('o-new').addEventListener('click',function(){var t=document.getElementById('s-title');if(t){t.scrollIntoView({behavior:'smooth',block:'center'});t.focus()}});
-  $('o-q').addEventListener('input',function(){var q=this.value.trim().toLowerCase();[].forEach.call(document.querySelectorAll('#g-deals .ndrow'),function(r){r.style.display=!q||r.textContent.toLowerCase().indexOf(q)>=0?'':'none'})});
+  $('o-new').addEventListener('click',function(){v3new(function(){var t=document.getElementById('s-title');if(t){t.scrollIntoView({behavior:'smooth',block:'center'});t.focus()}})});
+  $('o-q').addEventListener('input',v3apply);
 })();
 </script>
 <style>

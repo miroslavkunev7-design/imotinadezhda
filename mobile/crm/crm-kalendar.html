@@ -906,6 +906,7 @@ html.desk .ewin .mscroll{overflow:hidden}
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/>
+<link rel="stylesheet" href="crm-v3-kalendar.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1037,6 +1038,15 @@ html.desk .ewin .mscroll{overflow:hidden}
   </section>
 
   <div class="kflow">
+    <div class="v3-kfilt" id="k-filt">
+      <div class="v3-rng" id="k-rng" role="group" aria-label="Период">
+        <button type="button" class="v3-sc" data-rng="today" aria-pressed="false">Днес<em>0</em></button>
+        <button type="button" class="v3-sc on" data-rng="week" aria-pressed="true">Седмица<em>0</em></button>
+        <button type="button" class="v3-sc" data-rng="month" aria-pressed="false">Месец<em>0</em></button>
+      </div>
+      <label class="v3-sel"><svg class="i"><use href="#tag"/></svg><span class="v3-sl"><small>Вид събитие</small><b class="val">Всички</b></span><svg class="i chev"><use href="#chev-d"/></svg><select id="k-type" aria-label="Вид събитие"></select></label>
+      <label class="v3-sel"><svg class="i"><use href="#contact-round"/></svg><span class="v3-sl"><small>Брокер</small><b class="val">Всички</b></span><svg class="i chev"><use href="#chev-d"/></svg><select id="k-broker" aria-label="Брокер"></select></label>
+    </div>
     <section class="nbk" aria-label="Седмичен график">
       <div class="rings" aria-hidden="true"></div>
       <div class="kpage" id="kpage">
@@ -1064,7 +1074,7 @@ html.desk .ewin .mscroll{overflow:hidden}
     <div class="kside">
       <section class="kp kp-up" aria-labelledby="k-up-t">
         <div class="kp-ph" style="background-image:url(assets/k-keys.jpg)"></div>
-        <div class="kp-h"><svg class="i"><use href="#eye"/></svg><h2 id="k-up-t">Предстоящи огледи (0)</h2></div>
+        <div class="kp-h"><svg class="i"><use href="#eye"/></svg><h2 id="k-up-t">Предстоящи (0)</h2></div>
         <div class="kp-list" id="k-up"></div>
       </section>
       <section class="kp kp-qa" aria-labelledby="k-qa-t">
@@ -1095,6 +1105,7 @@ html.desk .ewin .mscroll{overflow:hidden}
       <div class="ev-photo" style="background-image:url(assets/k-notepad.jpg)"></div>
       <div class="ev-body">
         <div class="ev-left">
+          <h3 class="v3-st"><svg class="i"><use href="#pencil"/></svg>Детайли</h3>
           <div class="ef ef-type"><span class="el"><svg class="i"><use href="#calendar-days"/></svg>Тип събитие / задача *</span></div>
           <div class="ef"><label class="el" for="ev-name"><svg class="i"><use href="#pencil"/></svg>Заглавие *</label><input class="in" id="ev-name" placeholder="Въведи заглавие…" maxlength="80"></div>
           <div class="ef"><label class="el" for="ev-date"><svg class="i"><use href="#calendar-days"/></svg>Дата *</label><input class="in" id="ev-date" type="date"></div>
@@ -1102,9 +1113,11 @@ html.desk .ewin .mscroll{overflow:hidden}
           <div class="ef row"><label class="el" for="ev-to"><svg class="i"><use href="#clock"/></svg>Час до *</label><span class="selw sm"><select class="in" id="ev-to"></select><svg class="i"><use href="#chev-d"/></svg></span></div>
           <div class="ef"><label class="el" for="ev-client"><svg class="i"><use href="#users"/></svg>Свързан клиент</label><span class="selw"><select class="in" id="ev-client"></select><svg class="i"><use href="#chev-d"/></svg></span></div>
           <div class="ef"><label class="el" for="ev-prop"><svg class="i"><use href="#house"/></svg>Свързан имот</label><span class="selw"><select class="in" id="ev-prop"></select><svg class="i"><use href="#chev-d"/></svg></span></div>
+          <div class="ef"><label class="el" for="ev-broker"><svg class="i"><use href="#contact-round"/></svg>Брокер</label><span class="selw"><select class="in" id="ev-broker"></select><svg class="i"><use href="#chev-d"/></svg></span></div>
           <div class="ef"><label class="el" for="ev-desc"><svg class="i"><use href="#file-text"/></svg>Описание / Бележки</label><textarea class="in ta" id="ev-desc" placeholder="Добави допълнителна информация…"></textarea></div>
         </div>
         <div class="ev-right">
+          <h3 class="v3-st"><svg class="i"><use href="#calendar-days"/></svg>Тип събитие *</h3>
           <button type="button" class="tsel" id="ev-tsel" aria-haspopup="listbox" aria-expanded="true"><span id="ev-tlabel">Избери тип…</span><svg class="i"><use href="#chev-d"/></svg></button>
           <ul class="tlist" id="ev-tlist" role="listbox" aria-label="Тип събитие"></ul>
           <div class="tcard" id="ev-tcard" hidden>
@@ -1188,20 +1201,24 @@ html.desk .ewin .mscroll{overflow:hidden}
 
   /* ---------- event types ---------- */
   var TYPES=[
-    {id:'meeting',label:'Среща с клиент',emo:'🤝',color:'blue',icon:'users',photo:'k-meeting.jpg',help:'Клиент, адрес, цел и резултат от срещата.',extra:'Място / адрес'},
-    {id:'viewing',label:'Оглед на имот',emo:'🏡',color:'orange',icon:'house',photo:'k-viewing.jpg',help:'Имот, клиент, адрес и брокер, който води огледа.',extra:'Квартал / адрес на имота'},
-    {id:'documents',label:'Подготовка на документи',emo:'📝',color:'yellow',icon:'file-text',photo:'k-documents.jpg',help:'Вид документ, срок и досие.',extra:'Вид документ'},
-    {id:'deal',label:'Сделка / Подписване',emo:'🔑',color:'rose',icon:'handshake',photo:'k-deal.jpg',help:'Сделка, нотариус и страна по сделката.',extra:'Нотариус'},
-    {id:'bank',label:'Среща в банка / Кредит',emo:'🏦',color:'purple',icon:'landmark',photo:'k-bank.jpg',help:'Банка, клон, клиент и служител.',extra:'Банка / клон'},
-    {id:'team',label:'Екипна среща',emo:'👥',color:'blue',icon:'users',photo:'k-team.jpg',help:'Участници и дневен ред.',extra:'Участници'},
-    {id:'task',label:'Задача / Действие',emo:'📋',color:'green',icon:'chart',photo:'k-task.jpg',help:'Отговорник, приоритет и статус.',extra:'Отговорник'},
-    {id:'call',label:'Телефонен разговор',emo:'📞',color:'rose',icon:'phone',photo:'k-call.jpg',help:'Номер, клиент и цел на разговора.',extra:'Телефон'},
-    {id:'video',label:'Онлайн среща (Видео)',emo:'💻',color:'blue',icon:'users',photo:'k-video.jpg',help:'Линк, платформа и участници.',extra:'Линк към срещата'},
-    {id:'other',label:'Друго',emo:'📣',color:'yellow',icon:'calendar-days',photo:'k-other.jpg',help:'Персонализирано събитие.',extra:'Бележка'}
+    {id:'meeting',label:'Среща с клиент',emo:'🤝',color:'blue',icon:'users',photo:'card-clients.jpg',help:'Клиент, адрес, цел и резултат от срещата.',extra:'Място / адрес'},
+    {id:'viewing',label:'Оглед на имот',emo:'🏡',color:'orange',icon:'house',photo:'nd/ph12.jpg',help:'Имот, клиент, адрес и брокер, който води огледа.',extra:'Квартал / адрес на имота'},
+    {id:'documents',label:'Подготовка на документи',emo:'📝',color:'yellow',icon:'file-text',photo:'nd/ph20.jpg',help:'Вид документ, срок и досие.',extra:'Вид документ'},
+    {id:'deal',label:'Сделка / Подписване',emo:'🔑',color:'rose',icon:'handshake',photo:'card-deals.jpg',help:'Сделка, нотариус и страна по сделката.',extra:'Нотариус'},
+    {id:'bank',label:'Среща в банка / Кредит',emo:'🏦',color:'purple',icon:'landmark',photo:'co-bank.jpg',help:'Банка, клон, клиент и служител.',extra:'Банка / клон'},
+    {id:'team',label:'Екипна среща',emo:'👥',color:'blue',icon:'users',photo:'nd/ph06.jpg',help:'Участници и дневен ред.',extra:'Участници'},
+    {id:'task',label:'Задача / Действие',emo:'📋',color:'green',icon:'chart',photo:'card-viewings.jpg',help:'Отговорник, приоритет и статус.',extra:'Отговорник'},
+    {id:'call',label:'Телефонен разговор',emo:'📞',color:'rose',icon:'phone',photo:'nd/ph02.jpg',help:'Номер, клиент и цел на разговора.',extra:'Телефон'},
+    {id:'video',label:'Онлайн среща (Видео)',emo:'💻',color:'blue',icon:'users',photo:'nd/ph03.jpg',help:'Линк, платформа и участници.',extra:'Линк към срещата'},
+    {id:'other',label:'Друго',emo:'📣',color:'yellow',icon:'calendar-days',photo:'nd/ph01.jpg',help:'Персонализирано събитие.',extra:'Бележка'}
   ];
   var typeOf=function(id){return TYPES.filter(function(x){return x.id===id})[0]||TYPES[9]};
   var CLIENTS=[];
   var PROPS=[];
+  var BROKERS=[];
+  /* филтри (Вариант 3): вид събитие, брокер и период за списъка „Предстоящи“ */
+  var kF={type:'',broker:'',range:'week'};
+  function kMatch(e){return (!kF.type||e.type===kF.type)&&(!kF.broker||e.broker===kF.broker)}
   var DAYS=['Понеделник','Вторник','Сряда','Четвъртък','Петък'];
   var MONTHS=['Януари','Февруари','Март','Април','Май','Юни','Юли','Август','Септември','Октомври','Ноември','Декември'];
   var pad=function(n){return ('0'+n).slice(-2)};
@@ -1277,6 +1294,7 @@ html.desk .ewin .mscroll{overflow:hidden}
     /* events */
     var headH=desk?54:50,colW=(g.clientWidth-86)/5;
     events.forEach(function(e){
+      if(!kMatch(e))return;
       var di=dates.map(iso).indexOf(e.date);if(di<0)return;
       var s=mins(e.from)-480;if(s<0||s>=660)return;
       var ty=typeOf(e.type),dur=Math.max(30,Math.min(mins(e.to)-mins(e.from),90));
@@ -1285,6 +1303,7 @@ html.desk .ewin .mscroll{overflow:hidden}
       b.style.top=(headH+s/60*rowH+3)+'px';b.style.height=Math.max(rowH*1.45,dur/60*rowH*1.45)+'px';b.style.right='auto';
       b.title=e.from+'–'+e.to+' · '+e.title;
       b.setAttribute('aria-label',DAYS[di]+' '+e.from+'–'+e.to+': '+e.title);
+      b.dataset.type=e.type;b.style.setProperty('--ph','url('+img(ty.photo)+')');
       b.innerHTML=ic(ty.icon)+'<span>'+esc(e.title)+'</span>';g.appendChild(b)});
     upcoming();
   }
@@ -1322,16 +1341,31 @@ html.desk .ewin .mscroll{overflow:hidden}
 
   function upcoming(){
     var now=new Date(),nowIso=iso(today),nowM=now.getHours()*60+now.getMinutes();
-    var list=events.filter(function(e){return e.type==='viewing'&&(e.date>nowIso||(e.date===nowIso&&mins(e.to)>nowM))})
+    var wEnd=new Date(today);wEnd.setDate(wEnd.getDate()+6);var mEnd=new Date(today.getFullYear(),today.getMonth()+1,0);
+    var lim={today:nowIso,week:iso(wEnd),month:iso(mEnd)};
+    var fut=events.filter(function(e){return kMatch(e)&&(e.date>nowIso||(e.date===nowIso&&mins(e.to)>nowM))})
       .sort(function(a,b){return a.date===b.date?mins(a.from)-mins(b.from):a.date<b.date?-1:1});
-    $('k-up-t').textContent='Предстоящи огледи ('+list.length+')';
-    $('k-up').innerHTML=list.length?list.slice(0,desk?7:3).map(function(e){var d=parse(e.date);
-      var when=e.date===nowIso?'днес':(d-today)/864e5===1?'утре':DAYS[(d.getDay()+6)%7]||pad(d.getDate())+'.'+pad(d.getMonth()+1);
-      var place=e.extra||e.title.replace(/^Оглед\s*/i,'');
-      return '<button class="ku" data-id="'+e.id+'">'+ic('house')+'<b>'+e.from+'</b><span>'+esc(place)+'</span><small>'+esc(when)+'</small></button>'}).join('')
-      :'<p class="ku none">Няма предстоящи огледи.</p>';
+    [].forEach.call($('k-rng').querySelectorAll('[data-rng]'),function(bt){var r=bt.getAttribute('data-rng'),on=r===kF.range;bt.classList.toggle('on',on);bt.setAttribute('aria-pressed',on);
+      bt.querySelector('em').textContent=fut.filter(function(e){return e.date<=lim[r]}).length});
+    var list=fut.filter(function(e){return e.date<=lim[kF.range]});
+    $('k-up-t').textContent=(kF.type==='viewing'?'Предстоящи огледи':'Предстоящи')+' ('+list.length+')';
+    $('k-up').innerHTML=list.length?list.slice(0,desk?7:4).map(function(e){var d=parse(e.date),ty=typeOf(e.type);
+      var when=e.date===nowIso?'днес':(d-today)/864e5===1?'утре':(d-today)/864e5<7?(DAYS[(d.getDay()+6)%7]||pad(d.getDate())+'.'+pad(d.getMonth()+1)):pad(d.getDate())+'.'+pad(d.getMonth()+1);
+      var place=e.type==='viewing'?(e.extra||e.title.replace(/^Оглед\s*[–-]?\s*/i,'')):e.title;
+      return '<button class="ku" data-id="'+e.id+'">'+ic(ty.icon)+'<b>'+e.from+'</b><span>'+esc(place)+'</span><small>'+esc(when)+'</small></button>'}).join('')
+      :'<p class="ku none">Няма предстоящи събития за избрания период.</p>';
   }
   $('k-up').addEventListener('click',function(e){var b=e.target.closest('.ku[data-id]');if(b)openE(b.dataset.id,null,b)});
+  function kSel(id,list,cur){var sl=$(id);sl.innerHTML='<option value="">Всички</option>'+list.map(function(x){return '<option value="'+esc(x[0])+'"'+(x[0]===cur?' selected':'')+'>'+esc(x[1])+'</option>'}).join('');
+    var o=sl.options[sl.selectedIndex];sl.closest('.v3-sel').querySelector('.val').textContent=o?o.textContent:'Всички';sl.closest('.v3-sel').classList.toggle('set',!!cur)}
+  function kFill(){kSel('k-type',TYPES.map(function(x){return [x.id,x.label]}),kF.type);
+    var bs={};BROKERS.forEach(function(n){bs[n]=1});events.forEach(function(e){if(e.broker)bs[e.broker]=1});
+    kSel('k-broker',Object.keys(bs).sort(function(a,b){return a.localeCompare(b,'bg')}).map(function(n){return [n,n]}),kF.broker)}
+  $('k-type').addEventListener('change',function(){kF.type=this.value;kFill();render()});
+  $('k-broker').addEventListener('change',function(){kF.broker=this.value;kFill();render()});
+  $('k-rng').addEventListener('click',function(e){var b=e.target.closest('[data-rng]');if(!b)return;kF.range=b.getAttribute('data-rng');
+    if(kF.range==='today'&&monday(today).getTime()!==cur.getTime()){cur=monday(today);if(today.getDay()===0||today.getDay()===6)cur.setDate(cur.getDate()+7)}render()});
+  kFill();
   document.querySelectorAll('[data-new]').forEach(function(b){b.addEventListener('click',function(){openE(null,{type:b.getAttribute('data-new')},b)})});
 
   /* ---------- event window ---------- */
@@ -1341,6 +1375,8 @@ html.desk .ewin .mscroll{overflow:hidden}
   $('ev-to').innerHTML=times.map(function(x){return '<option>'+x+'</option>'}).join('');
   $('ev-client').innerHTML='<option value="">Избери клиент…</option>'+CLIENTS.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');
   $('ev-prop').innerHTML='<option value="">Избери имот…</option>'+PROPS.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');
+  function fillBrokers(){$('ev-broker').innerHTML='<option value="">Избери брокер…</option>'+BROKERS.map(function(c){return '<option>'+esc(c)+'</option>'}).join('')}
+  fillBrokers();
   $('ev-tlist').innerHTML=TYPES.map(function(x){return '<li role="option" tabindex="0" data-t="'+x.id+'"><span class="e">'+x.emo+'</span><span>'+esc(x.label)+'</span><i style="background-image:url('+img(x.photo)+')"></i></li>'}).join('');
   function listOpen(o){$('ev-tlist').hidden=!o;$('ev-tsel').setAttribute('aria-expanded',o);$('ev-tcard').hidden=o||!selType}
   function pickType(id){
@@ -1364,7 +1400,7 @@ html.desk .ewin .mscroll{overflow:hidden}
     $('ev-date').value=e?e.date:(preset.date||iso(today));
     $('ev-from').value=e?e.from:(preset.from||'10:00');
     var fi=times.indexOf($('ev-from').value);$('ev-to').value=e?e.to:times[Math.min(fi+2,times.length-1)];
-    $('ev-client').value=e?e.client:'';$('ev-prop').value=e?e.prop:'';
+    $('ev-client').value=e?e.client:'';$('ev-prop').value=e?e.prop:'';$('ev-broker').value=e&&e.broker||'';
     var ty=e?e.type:preset.type;
     if(ty)pickType(ty);else{selType=null;$('ev-tlabel').textContent='Избери тип…';[].forEach.call($('ev-tlist').children,function(li){li.classList.remove('on')});listOpen(true)}
     eback.hidden=false;ewin.hidden=false;root.classList.add('locked');
@@ -1396,11 +1432,11 @@ html.desk .ewin .mscroll{overflow:hidden}
     if(mins($('ev-to').value)<=mins($('ev-from').value)){errs.push('крайният час трябва да е след началния');$('ev-to').classList.add('bad')}
     if(errs.length){$('ev-err').textContent='Моля, '+errs.join(', ')+'.';return}
     var rec={id:editId||('e'+Date.now()),type:selType,title:$('ev-name').value.trim(),date:$('ev-date').value,from:$('ev-from').value,to:$('ev-to').value,
-      client:$('ev-client').value,prop:$('ev-prop').value,desc:$('ev-desc').value.trim(),extra:$('ev-extra').value.trim()};
+      client:$('ev-client').value,prop:$('ev-prop').value,broker:$('ev-broker').value,desc:$('ev-desc').value.trim(),extra:$('ev-extra').value.trim()};
     if(editId){events=events.map(function(x){return x.id===editId?rec:x})}else events.push(rec);
     persist();
     var d=parse(rec.date);if(d<cur||d>=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+7))cur=monday(d);
-    render();closeE();say(editId?'Събитието е обновено':'Събитието е запазено в календара');
+    kFill();render();closeE();say(editId?'Събитието е обновено':'Събитието е запазено в календара');
   });
   $('ev-del').addEventListener('click',function(){
     var b=this;if(!b.dataset.ok){b.dataset.ok='1';b.lastChild.textContent='Потвърди';setTimeout(function(){delete b.dataset.ok;b.lastChild.textContent='Изтрий'},2500);return}
@@ -1426,11 +1462,15 @@ html.desk .ewin .mscroll{overflow:hidden}
   fit();
   try{document.fonts.ready.then(render)}catch(e){}
   ND.busy(1);
-  ND.ready().then(function(){return Promise.all([ND.load('events'),ND.load('clients'),ND.load('properties')])}).then(function(r){
+  ND.ready().then(function(){return Promise.all([ND.load('events'),ND.load('clients'),ND.load('properties'),ND.load('brokers').catch(function(){return []})])}).then(function(r){
     ND.busy(0);events=r[0];
     var hm=/^#d=(\d{4}-\d\d-\d\d)$/.exec(location.hash||'');if(hm){var dd=new Date(hm[1]+'T00:00');if(!isNaN(dd))cur=monday(dd)}
     CLIENTS.length=0;r[1].forEach(function(c){if(c.name)CLIENTS.push(c.name)});
     PROPS.length=0;r[2].forEach(function(p){PROPS.push((p.code||p.id)+' · '+(p.title||'')+(p.city?', '+p.city:''))});
+    BROKERS.length=0;(r[3]||[]).forEach(function(b){if(b.name)BROKERS.push(b.name)});fillBrokers();kFill();
+    /* списъците „Свързан клиент“ / „Свързан имот“ се попълват след зареждането на данните */
+    $('ev-client').innerHTML='<option value="">Избери клиент…</option>'+CLIENTS.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');
+    $('ev-prop').innerHTML='<option value="">Избери имот…</option>'+PROPS.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');
     render();
   }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
 })();

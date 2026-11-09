@@ -943,6 +943,7 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/>
+<link rel="stylesheet" href="crm-v3-naemi.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1075,10 +1076,13 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
       <button class="o-filt" id="o-filt" aria-expanded="false"><svg class="i"><use href="#funnel"/></svg><span id="o-filt-t">Статус</span><svg class="i chev"><use href="#chev-d"/></svg></button>
       <ul class="o-pop" id="o-pop" role="listbox" aria-label="Статус" hidden></ul>
     </div>
+    <div class="v3-stg" id="r-chips" role="group" aria-label="Статус на наема"></div>
     <div class="r-filt" id="r-filt">
       <label class="fld r-sel"><svg class="i"><use href="#pin"/></svg><span class="val">Всички градове</span><svg class="i chev"><use href="#chev-d"/></svg><select id="r-city" aria-label="Град"></select></label>
       <label class="fld r-sel"><svg class="i"><use href="#map"/></svg><span class="val">Всички квартали</span><svg class="i chev"><use href="#chev-d"/></svg><select id="r-hood" aria-label="Квартал"></select></label>
       <label class="fld r-sel"><svg class="i"><use href="#building-2"/></svg><span class="val">Всички типове</span><svg class="i chev"><use href="#chev-d"/></svg><select id="r-type" aria-label="Тип имот"></select></label>
+      <label class="fld r-sel"><svg class="i"><use href="#user-round"/></svg><span class="val">Всички наематели</span><svg class="i chev"><use href="#chev-d"/></svg><select id="r-tenant" aria-label="Наемател"></select></label>
+      <label class="fld r-sel"><svg class="i"><use href="#house"/></svg><span class="val">Всички имоти</span><svg class="i chev"><use href="#chev-d"/></svg><select id="r-prop" aria-label="Имот"></select></label>
     </div>
     <div class="r-stats" id="r-stats"></div>
     <div class="ocols">
@@ -1174,10 +1178,10 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
 
   /* ---------- property types, statuses, helpers ---------- */
   var TYPES=[
-    {id:'Апартамент',icon:'building-2',photo:'p-dvust.jpg'},{id:'Студио',icon:'bed-double',photo:'g-bedroom.jpg'},
-    {id:'Къща',icon:'house',photo:'p-kashta.jpg'},{id:'Етаж от къща',icon:'house',photo:'g-facade.jpg'},
-    {id:'Офис',icon:'briefcase-business',photo:'g-living.jpg'},{id:'Магазин',icon:'tag',photo:'g-facade.jpg'},
-    {id:'Гараж',icon:'key-round',photo:'p-parcel.jpg'},{id:'Друго',icon:'map-pin-house',photo:'p-trist.jpg'}
+    {id:'Апартамент',icon:'building-2',photo:'nd/ph06.jpg'},{id:'Студио',icon:'bed-double',photo:'nd/ph04.jpg'},
+    {id:'Къща',icon:'house',photo:'nd/ph09.jpg'},{id:'Етаж от къща',icon:'house',photo:'nd/ph17.jpg'},
+    {id:'Офис',icon:'briefcase-business',photo:'nd/ph15.jpg'},{id:'Магазин',icon:'tag',photo:'nd/ph02.jpg'},
+    {id:'Гараж',icon:'key-round',photo:'nd/ph18.jpg'},{id:'Друго',icon:'map-pin-house',photo:'nd/ph12.jpg'}
   ];
   var typeOf=function(id){return TYPES.filter(function(x){return x.id===id})[0]||TYPES[TYPES.length-1]};
   var STATS=[{id:'',label:'Всички наеми',icon:'key-round'},{id:'rented',label:'Отдадени',icon:'circle-check'},{id:'due',label:'Чакат плащане',icon:'clock'},{id:'free',label:'Свободни',icon:'house'},{id:'end',label:'Изтекли',icon:'archive'}];
@@ -1196,6 +1200,12 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     return 'rented';
   }
   var ST_TXT={rented:'Отдаден',due:'Чака плащане',free:'Свободен',end:'Изтекъл'};
+  /* филтър по статус (Вариант 3): активен, изтича до 30 дни, приключил + чака плащане / свободен */
+  var CHIPS=[['','Всички'],['active','Активни'],['soon','Изтичат до 30 дни'],['end','Приключили'],['due','Чакат плащане'],['free','Свободни']];
+  function in30(){var d=new Date();d.setDate(d.getDate()+30);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function stMatch(r,f){var s=status(r);if(f==='active')return s==='rented'||s==='due';if(f==='soon')return (s==='rented'||s==='due')&&!!r.end&&r.end<=in30();return s===f}
+  /* златна плочка (Вариант 3): кръгла златна иконка, стойност, етикет */
+  var vt=function(icn,val,lab){return '<div class="v3-spec"><span class="si">'+ic(icn)+'</span><div><b'+(val?'':' class="emp"')+'>'+esc(val||'—')+'</b><span>'+esc(lab)+'</span></div></div>'};
   /* Bulgarian amount in words (евро) for receipts */
   function words(n){
     n=Math.floor(Math.abs(n));if(!n)return 'нула';
@@ -1250,7 +1260,7 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
   addEventListener('resize',fit);addEventListener('orientationchange',fit);
 
   /* ---------- filters: status (button), city / district / type (selects) ---------- */
-  var st='',fCity='',fHood='',fType='',sel=null,calc={c50:true,m10:false};
+  var st='',fCity='',fHood='',fType='',fTenant='',fProp='',sel=null,calc={c50:true,m10:false};
   $('o-pop').innerHTML=STATS.map(function(s){return '<li role="option" data-c="'+s.id+'"'+(s.id===''?' class="on"':'')+'>'+ic(s.icon)+esc(s.label)+'</li>'}).join('');
   $('o-filt').addEventListener('click',function(e){e.stopPropagation();var p=$('o-pop'),o=p.hidden;p.hidden=!o;this.setAttribute('aria-expanded',o)});
   document.addEventListener('click',function(e){if(!e.target.closest('#o-pop')&&!e.target.closest('#o-filt')){$('o-pop').hidden=true;$('o-filt').setAttribute('aria-expanded','false')}});
@@ -1265,10 +1275,17 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     var hoods=uniq(rents.filter(function(r){return !fCity||r.city===fCity}).map(function(r){return r.hood}));if(fHood&&hoods.indexOf(fHood)<0)fHood='';
     fillSel('r-city','Всички градове',cities,fCity);fillSel('r-hood','Всички квартали',hoods,fHood);
     fillSel('r-type','Всички типове',uniq(TYPES.map(function(x){return x.id}).concat(rents.map(function(r){return r.type}))),fType);
+    var tn=uniq(rents.map(function(r){return r.tenant}));if(fTenant&&tn.indexOf(fTenant)<0)fTenant='';fillSel('r-tenant','Всички наематели',tn,fTenant);
+    var pl=uniq(rents.map(propName));if(fProp&&pl.indexOf(fProp)<0)fProp='';fillSel('r-prop','Всички имоти',pl,fProp);
   }
+  function propName(r){var p=r.prop&&props.filter(function(x){return x.id===r.prop})[0];return p?((p.code?p.code+' · ':'')+(p.title||p.type||'Имот')):(r.title||'')}
   $('r-city').addEventListener('change',function(){fCity=this.value;fHood='';fillFilters();renderList()});
   $('r-hood').addEventListener('change',function(){fHood=this.value;fillFilters();renderList()});
   $('r-type').addEventListener('change',function(){fType=this.value;fillFilters();renderList()});
+  $('r-tenant').addEventListener('change',function(){fTenant=this.value;fillFilters();renderList()});
+  $('r-prop').addEventListener('change',function(){fProp=this.value;fillFilters();renderList()});
+  $('r-chips').addEventListener('click',function(e){var b=e.target.closest('[data-st]');if(!b)return;st=b.getAttribute('data-st');
+    [].forEach.call($('o-pop').children,function(x){x.classList.toggle('on',x.dataset.c===st)});$('o-filt-t').textContent='Статус';renderList()});
 
   function sizeCards(){if(!desk){root.style.removeProperty('--och');root.style.removeProperty('--ocd');return}var n=Math.max(1,$('olist').querySelectorAll('.oc').length),lh=parseFloat(getComputedStyle(root).getPropertyValue('--lh'))||700;
     var h=Math.max(118,Math.min(200,(lh-22-16*(n-1))/n));root.style.setProperty('--och',h+'px');root.style.setProperty('--ocd',((h-118)/2)+'px')}
@@ -1283,8 +1300,10 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
   }
   function renderList(){
     var q=$('o-q').value.trim().toLocaleLowerCase('bg');
-    var base=rents.filter(function(r){return (!fCity||r.city===fCity)&&(!fHood||r.hood===fHood)&&(!fType||r.type===fType)});
-    var list=base.filter(function(r){if(st&&status(r)!==st)return false;if(!q)return true;
+    var base=rents.filter(function(r){return (!fCity||r.city===fCity)&&(!fHood||r.hood===fHood)&&(!fType||r.type===fType)&&(!fTenant||r.tenant===fTenant)&&(!fProp||propName(r)===fProp)});
+    $('r-chips').innerHTML=CHIPS.map(function(c){var n=c[0]?base.filter(function(r){return stMatch(r,c[0])}).length:base.length,on=st===c[0];
+      return '<button type="button" class="v3-sc'+(on?' on':'')+(c[0]?' s-'+c[0]:'')+'" data-st="'+c[0]+'" aria-pressed="'+on+'">'+(c[0]?'<i></i>':'')+esc(c[1])+'<em>'+n+'</em></button>'}).join('');
+    var list=base.filter(function(r){if(st&&!stMatch(r,st))return false;if(!q)return true;
       return [r.title,r.city,r.hood,r.address,r.type,r.owner,r.tenant,r.ownerPhone,r.tenantPhone].join(' ').toLocaleLowerCase('bg').indexOf(q)>=0});
     renderStats(base);
     $('olist').innerHTML=list.length?list.map(function(r){var tp=typeOf(r.type),s=status(r);
@@ -1292,7 +1311,8 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
         '<span class="op" style="background-image:url('+photoOf(r)+')"></span><span class="oi">'+ic(tp.icon)+'</span>'+
         '<h3 class="on2">'+esc(r.title||'Наем')+'</h3><span class="rpill '+s+'">'+ST_TXT[s]+'</span>'+
         '<p class="oca">'+esc([r.type,[r.city,r.hood].filter(Boolean).join(', ')].filter(Boolean).join(' • '))+'</p>'+
-        '<p class="om"><span>'+ic('coins')+'<b>'+eur(r.rent)+'</b>/мес.</span><i></i><span>'+ic('user-round')+esc(r.tenant||'без наемател')+'</span></p>'+
+        '<div class="v3-specs r-tiles">'+vt('coins',eur(r.rent),'Наем / мес.')+vt('shield',num(r.deposit)?eur(r.deposit):'','Депозит')+
+          vt('calendar',r.end?'до '+bgd(r.end):r.start?'от '+bgd(r.start):'','Период')+vt('user-round',r.tenant||'','Наемател')+'</div>'+
         '<span class="ar">'+ic('chev-r')+'</span></article>'}).join('')
       :'<div class="empty">'+(rents.length?'Няма наеми по избраните критерии.':'Все още няма добавени наеми. Натиснете „Нов наем“.')+'</div>';
     sizeCards();
@@ -1318,34 +1338,34 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     var row=function(icn,v,href){return v?(href?'<a href="'+href+'">'+ic(icn)+esc(v)+'</a>':'<span>'+ic(icn)+esc(v)+'</span>'):'<span>'+ic(icn)+'<em>няма данни</em></span>'};
     var tel=function(p){return p?'tel:'+String(p).split(/[,;]/)[0].replace(/[^\d+]/g,''):''};
     var files=r.files||[];
-    box.innerHTML='<header class="od-h">'+ic('key-round')+'<h2>'+esc(r.title||'Наем')+'</h2>'+
-        '<button type="button" data-edit aria-label="Редактирай наема" title="Редактирай">'+ic('pencil')+'</button>'+
+    var per=(r.start||r.end)?(bgd(r.start)||'…')+' – '+(bgd(r.end)||'безсрочен'):'';
+    var kv=function(icn,lab,v,href){return '<div class="v3-kv">'+ic(icn)+'<span class="k">'+esc(lab)+'</span>'+
+      (v?(href?'<a class="v" href="'+href+'">'+esc(v)+'</a>':'<span class="v">'+esc(v)+'</span>'):'<span class="v emp" data-edit role="button" tabindex="0">+ добави</span>')+'</div>'};
+    box.innerHTML='<header class="od-h">'+ic('key-round')+'<h2>'+esc(r.title||'Наем')+'</h2><span class="rpill '+s+'">'+ST_TXT[s]+'</span>'+
+        '<button type="button" class="v3-edit" data-edit aria-label="Редактирай наема" title="Редактирай">'+ic('pencil')+'<span>Редактирай</span></button>'+
         '<button type="button" data-collapse aria-label="Свий" title="Свий">'+ic('chevron-up')+'</button></header>'+
-      '<div class="od-info"><span class="od-ph" style="background-image:url('+photoOf(r)+')"></span>'+
-        '<div class="od-c">'+row('pin',[r.city,r.hood,r.address].filter(Boolean).join(', '))+row(tp.icon,[r.type,r.rooms?r.rooms+' стаи':'',r.area?r.area+' м²':''].filter(Boolean).join(' • '))+
-          row('user',r.owner?'Наемодател: '+r.owner:'')+row('phone',r.ownerPhone,tel(r.ownerPhone))+
-          row('user-round',r.tenant?'Наемател: '+r.tenant:'')+row('phone',r.tenantPhone,tel(r.tenantPhone))+
-          row('calendar',(r.start||r.end)?(bgd(r.start)||'…')+' – '+(bgd(r.end)||'безсрочен'):'')+'</div>'+
-        '<div class="r-price"><div class="r-big">'+eur(r.rent)+'<small>/ месец</small></div>'+
-          '<dl class="r-kv"><dt>'+ic('shield')+'Депозит</dt><dd>'+(num(r.deposit)?eur(r.deposit):'—')+'</dd>'+
-          '<dt>'+ic('calendar-check')+'Падеж</dt><dd>'+(num(r.payDay)?num(r.payDay)+'-о число':'—')+'</dd>'+
-          '<dt>'+ic('badge-check')+'Статус</dt><dd>'+ST_TXT[s]+'</dd></dl>'+
-          (r.tenant?'<span class="r-pay'+(paid?'':' no')+'">'+ic(paid?'circle-check':'clock')+(paid?'Платен за ':'Неплатен за ')+monName(ym())+'</span>':'')+'</div></div>'+
-      '<div class="od-eh">'+ic('calculator')+'<h3>Калкулатор</h3></div><div class="r-box" id="r-calc">'+calcHtml(r)+'</div>'+
-      '<div class="od-eh">'+ic('file-text')+'<h3>Документи ('+files.length+')</h3></div><div class="r-box">'+
+      '<div class="v3-specs r-specs">'+vt('coins',eur(r.rent),'Наем / месец')+vt('shield',num(r.deposit)?eur(r.deposit):'','Депозит')+vt('calendar',per,'Период')+vt('user-round',r.tenant||'','Наемател')+'</div>'+
+      '<section class="v3-rs v3-info" style="--ph:url('+photoOf(r)+')"><h3 class="v3-st">'+ic(tp.icon)+'Данни за наема</h3><div class="v3-rows">'+
+        kv('pin','Адрес',[r.city,r.hood,r.address].filter(Boolean).join(', '))+kv(tp.icon,'Имот',[r.type,r.rooms?r.rooms+' стаи':'',r.area?r.area+' м²':''].filter(Boolean).join(' • '))+
+        kv('user','Наемодател',r.owner)+kv('phone','Тел. наемодател',r.ownerPhone,tel(r.ownerPhone))+
+        kv('user-round','Наемател',r.tenant)+kv('phone','Тел. наемател',r.tenantPhone,tel(r.tenantPhone))+
+        kv('calendar-check','Падеж',num(r.payDay)?num(r.payDay)+'-о число':'')+
+        (r.tenant?'<div class="v3-kv">'+ic('badge-check')+'<span class="k">Плащане</span><span class="v"><span class="r-pay'+(paid?'':' no')+'">'+ic(paid?'circle-check':'clock')+(paid?'Платен за ':'Неплатен за ')+monName(ym())+'</span></span></div>':'')+'</div></section>'+
+      '<section class="v3-rs" style="--ph:url('+img('nd/ph11.jpg')+')"><h3 class="v3-st">'+ic('calculator')+'Калкулатор</h3><div class="r-box" id="r-calc">'+calcHtml(r)+'</div></section>'+
+      '<section class="v3-rs" style="--ph:url('+img('nd/ph20.jpg')+')"><h3 class="v3-st">'+ic('file-text')+'Документи ('+files.length+')</h3><div class="r-box">'+
         '<div class="r-slots">'+['contract','rent','other'].map(function(k){return '<label class="r-slot">'+ic(FK[k].icon)+FK[k].label+'<small>Прикачи файл</small><input type="file" data-up="'+k+'" multiple></label>'}).join('')+'</div>'+
         '<div class="r-files">'+(files.length?files.map(function(f,i){var k=FK[f.kind]||FK.other;
           return '<div class="r-file">'+ic(k.icon)+'<span class="fn"><b>'+esc(f.name)+'</b><span>'+k.label+' • '+bgd(f.at)+'</span></span>'+
             '<button type="button" data-open="'+i+'" aria-label="Отвори" title="Отвори">'+ic('link')+'</button><button type="button" data-rm="'+i+'" aria-label="Премахни" title="Премахни">'+ic('trash-2')+'</button></div>'}).join('')
-          :'<p class="r-none">Няма прикачени документи.</p>')+'</div></div>'+
-      '<div class="od-eh">'+ic('coins')+'<h3>Плащания и разписки</h3></div><div class="r-box">'+
+          :'<p class="r-none">Няма прикачени документи.</p>')+'</div></div></section>'+
+      '<section class="v3-rs" style="--ph:url('+img('card-deals.jpg')+')"><h3 class="v3-st">'+ic('coins')+'Плащания и разписки</h3><div class="r-box">'+
         '<div class="r-acts"><button type="button" class="ba hot" data-act="paid">'+ic('circle-check')+'Платен наем – '+MON[new Date().getMonth()]+'</button>'+
         '<button type="button" class="ba" data-act="rentrec">'+ic('file-text')+'Разписка за наем</button>'+
         '<button type="button" class="ba" data-act="deprec">'+ic('shield')+'Разписка за депозит</button>'+
         '<button type="button" class="ba" data-act="deprel">'+ic('coins')+'Връщане на депозит</button>'+
         '<button type="button" class="ba wide" data-act="handover">'+ic('key-round')+'Приемо-предавателен протокол</button></div>'+
         '<div class="r-pays">'+((r.payments||[]).slice().sort(function(a,b){return a.month<b.month?1:-1}).slice(0,12).map(function(p){
-          return '<span>'+ic('circle-check')+monName(p.month)+' • '+eur(p.amount)+'<button type="button" data-unpay="'+p.month+'" aria-label="Премахни плащането">✕</button></span>'}).join('')||'<p class="r-none">Още няма отбелязани плащания.</p>')+'</div></div>';
+          return '<span>'+ic('circle-check')+monName(p.month)+' • '+eur(p.amount)+'<button type="button" data-unpay="'+p.month+'" aria-label="Премахни плащането">✕</button></span>'}).join('')||'<p class="r-none">Още няма отбелязани плащания.</p>')+'</div></div></section>';
   }
   function select(id,scroll){
     sel=(sel===id&&!desk)?null:id;renderList();renderDet();
@@ -1354,6 +1374,7 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
   var cur=function(){return rents.filter(function(x){return x.id===sel})[0]};
   $('olist').addEventListener('click',function(e){var c=e.target.closest('.oc');if(c)select(c.dataset.id,true)});
   $('olist').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.classList.contains('oc'))e.target.click()});
+  $('odet').addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches('.v3-kv [data-edit]')){e.preventDefault();e.target.click()}});
   $('odet').addEventListener('click',function(e){
     var r=cur();if(!r)return;
     if(e.target.closest('[data-collapse]')){sel=null;renderList();renderDet();return}
@@ -1435,22 +1456,23 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     $('f-title').textContent=id?'Редакция на наем':'Нов наем';
     $('f-photo').style.backgroundImage='url('+(id?photoOf(o):img('k-keys.jpg'))+')';
     var popts=[{v:'',l:'— без връзка —'}].concat(props.filter(function(p){return p.deal==='rent'}).concat(props.filter(function(p){return p.deal!=='rent'})).map(function(p){return {v:p.id,l:(p.code?p.code+' · ':'')+(p.title||p.type||'Имот')+(p.city?' – '+p.city:'')+(p.deal==='rent'?' (наем)':'')}}));
-    $('f-body').innerHTML=sec('house','Имот')+
+    var fs=function(ph){return '<div class="v3-fs" style="--ph:url('+ph+')">'};
+    $('f-body').innerHTML=fs(id?photoOf(o):img('nd/ph12.jpg'))+sec('house','Имот')+
       fld('f-name','Заглавие *','key-round',o.title,'text',true,'напр. Двустаен ап. ул. „Цар Освободител“')+
       selF('f-prop','Свържи с имот от „Имоти“','link',popts,o.prop||'',true)+
       selF('f-type','Тип имот','building-2',TYPES.map(function(x){return x.id}),o.type)+fld('f-city','Град *','pin',o.city,'text',false,'напр. Шумен')+
       fld('f-hood','Квартал','map',o.hood,'text',false,'напр. Добруджански')+fld('f-addr','Адрес','map-pin-house',o.address,'text')+
-      fld('f-rooms','Стаи','bed-double',o.rooms,'number')+fld('f-area','Площ (м²)','ruler',o.area,'number')+
-      sec('coins','Наем и депозит')+
+      fld('f-rooms','Стаи','bed-double',o.rooms,'number')+fld('f-area','Площ (м²)','ruler',o.area,'number')+'</div>'+
+      fs(img('nd/ph16.jpg'))+sec('coins','Наем и договор')+
       fld('f-rent','Месечен наем (€) *','coins',o.rent,'number')+fld('f-dep','Депозит (€)','shield',o.deposit,'number')+
-      fld('f-payday','Падеж (число от месеца)','calendar-check',o.payDay,'number')+fld('f-start','Начало на договора','calendar',o.start,'date')+
-      fld('f-end','Край на договора','calendar-days',o.end,'date')+'<div class="ef"></div>'+
-      sec('user','Наемодател (собственик)')+
-      fld('f-owner','Име','user',o.owner,'text')+fld('f-ophone','Телефон','phone',o.ownerPhone,'tel')+fld('f-iban','IBAN за превод','landmark',o.ownerIban,'text',true)+
-      sec('user-round','Наемател')+
+      fld('f-start','Начало на договора','calendar',o.start,'date')+fld('f-end','Край на договора','calendar-days',o.end,'date')+
+      fld('f-payday','Падеж (число от месеца)','calendar-check',o.payDay,'number')+
+      fld('f-notes','Бележки','file-text',o.notes,'ta',true,'Условия, сметки, ключове…')+'</div>'+
+      fs(img('nd/ph13.jpg'))+sec('user-round','Наемател')+
       fld('f-tenant','Име','user-round',o.tenant,'text')+fld('f-tphone','Телефон','phone',o.tenantPhone,'tel')+
-      fld('f-tmail','Имейл','mail',o.tenantMail,'email')+fld('f-tid','ЛК / ЕГН (за разписки)','id-card',o.tenantId,'text')+
-      fld('f-notes','Бележки','file-text',o.notes,'ta',true,'Условия, сметки, ключове…');
+      fld('f-tmail','Имейл','mail',o.tenantMail,'email')+fld('f-tid','ЛК / ЕГН (за разписки)','id-card',o.tenantId,'text')+'</div>'+
+      fs(img('nd/ph09.jpg'))+sec('user','Наемодател (собственик)')+
+      fld('f-owner','Име','user',o.owner,'text')+fld('f-ophone','Телефон','phone',o.ownerPhone,'tel')+fld('f-iban','IBAN за превод','landmark',o.ownerIban,'text',true)+'</div>';
     $('f-prop').addEventListener('change',function(){var p=props.filter(function(x){return x.id===this.value},this)[0];if(!p)return;
       var set=function(id,v){var el=$(id);if(el&&v!=null&&v!==''&&!el.value)el.value=v};
       set('f-name',p.title);set('f-city',p.city||p.place);set('f-hood',p.hood);set('f-addr',p.address);set('f-rooms',p.rooms);set('f-area',p.area);

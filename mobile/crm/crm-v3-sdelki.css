@@ -1,0 +1,264 @@
+/* CRM · Сделки – Вариант 3 (стилът, одобрен на Имоти и Клиенти).
+   Шапката горе НЕ се променя. Под нея: голям прозрачен стъклен прозорец върху тъмна вечерна снимка.
+   Сделките са „квадратни“ кремави карти със златен пръстен, чип за етапа (активна – винен, капаро/резервирана – златен,
+   приключена – тъмночервен, чернова – сив) и златни плочки с ключовите суми; всяка карта и раздел има ясна HD снимка,
+   която прелива отдясно (без размазване и без матов слой). Текст върху снимката – тъмен с бял ореол.
+   Прозорецът на сделката (crm-ui.js) е вграден в страницата – затова правилата са с #dhost #nd-fwin. */
+
+:root{
+  --v3cream:linear-gradient(180deg,rgba(255,252,247,.95) 0%,rgba(253,242,231,.92) 100%);
+  --v3ring:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3px rgba(214,163,92,.3),0 0 22px rgba(255,228,196,.5),0 14px 26px -14px rgba(60,10,10,.6),inset 0 1.5px 0 #fff;
+  --v3mask:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);
+  --v3halo:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff,0 0 1px #fff;
+  --v3wine:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);
+  --v3gold:linear-gradient(180deg,#f8dc98,#d9a254);
+  --v3rib:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%235a0717'/%3E%3Cstop offset='.45' stop-color='%238d1129'/%3E%3Cstop offset='.8' stop-color='%23b2193d'/%3E%3Cstop offset='1' stop-color='%23d4436b'/%3E%3C/linearGradient%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23b37a32'/%3E%3Cstop offset='.55' stop-color='%23ffe9ad'/%3E%3Cstop offset='1' stop-color='%23c88f3d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0H1000C905 3 830 90 610 97L0 100Z' fill='url(%23a)'/%3E%3Cpath d='M0 99L610 96C830 89 905 3 1000 1' fill='none' stroke='url(%23g)' stroke-width='3' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   1) СТРАНИЦАТА – тъмна вечерна снимка зад голямото стъкло
+   ============================================================ */
+html,body,html:not(.desk){background:#2a050d!important}
+#stage{background:#2a050d!important}
+#stage::before{background:none!important}
+#canvas.ocv{background:
+  linear-gradient(180deg,rgba(42,5,13,.12) 0,rgba(42,5,13,.12) 298px,rgba(42,5,13,.4) 690px,rgba(42,5,13,.82) 1080px,#2a050d 1340px),
+  url(assets/card-properties.jpg) 50% 298px/100% auto no-repeat,#2a050d}
+html.desk #canvas.ocv{background:
+  linear-gradient(180deg,rgba(42,5,13,.2) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.7) 100%),
+  url(assets/card-properties.jpg) 50% 70%/cover no-repeat,#2a050d}
+
+/* голямото стъклено пано */
+.oflow{position:relative;isolation:isolate;margin:10px 14px 30px;padding:24px 0 10px;border-radius:50px;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.7),inset 0 0 60px rgba(255,214,160,.12),
+    0 0 44px rgba(246,212,142,.3),0 40px 80px -30px rgba(0,0,0,.65)}
+.oflow::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25)}
+html.desk .oflow{margin:16px calc(var(--xL,24px) - 22px) 30px;padding:20px 26px 6px!important;border-radius:44px}
+
+/* горен ред: „Нова сделка“ (винен) + търсачка от прозрачно стъкло */
+.otools{gap:18px;padding:0 22px}
+html.desk .otools{padding:0}
+.o-new{position:relative;overflow:hidden;flex:0 0 300px;height:76px;border:0;border-radius:24px;gap:16px;font:700 30px/1 var(--cond);color:#fff3dc;
+  background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);
+  box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 5px rgba(255,170,180,.4),0 0 24px rgba(230,191,91,.45),0 12px 24px -12px rgba(80,10,20,.7)}
+.o-new svg.i{color:#f8d777;font-size:36px;stroke-width:2.6}
+.otools .o-q{height:76px;border-radius:24px!important;padding:0 26px!important;gap:18px;
+  background:linear-gradient(160deg,rgba(255,248,238,.34),rgba(255,236,214,.14))!important;
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.35),0 10px 22px -14px rgba(0,0,0,.5)!important}
+.otools .o-q svg.i{color:#fff0d6;font-size:34px}
+.otools .o-q input{color:#fff8ec!important;font:400 28px/1 var(--cond)!important}
+.otools .o-q input::placeholder{color:rgba(255,240,220,.88)!important;font-style:normal!important}
+.otools .o-q:focus-within{box-shadow:inset 0 0 0 2px #f6d48e,0 0 20px rgba(246,212,142,.6)!important}
+
+/* ============================================================
+   2) ВГРАДЕНИЯТ ПРОЗОРЕЦ – върху стъклото, без собствен фон
+   ============================================================ */
+.dhost{padding:18px 18px 10px}
+html.desk .dhost{padding:18px 0 10px!important}
+#dhost #nd-fwin.inline{background:none!important;border:0!important;border-radius:0;box-shadow:none!important}
+#dhost #nd-fwin.inline .mscroll{background:none!important}
+#dhost #nd-fwin .fcv{padding:0 0 20px}
+/* заглавието „Сделки“ – върху стъклото: винен медальон + светло серифно заглавие */
+#dhost #nd-fwin .f-bar{height:84px;padding:0 4px;gap:18px;background:none;border:0;box-shadow:none}
+#dhost #nd-fwin .f-bar svg.i{width:62px;height:62px;padding:14px;border-radius:50%;font-size:34px;color:#ffe9b8;stroke-width:2.2;background:var(--v3wine);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.6)}
+#dhost #nd-fwin .f-bar h2{font:700 46px/1.1 var(--serif);color:#fff6e6;text-shadow:0 2px 8px rgba(40,0,8,.7)}
+#dhost #nd-fwin .f-body{padding:0;gap:0 26px}
+
+/* --- „Всички сделки“: заглавие на стъклото, картите са отделни --- */
+#dhost #nd-fwin .ndsec{padding:0;margin:6px 0 26px;background:none!important;border:0;box-shadow:none;border-radius:0;overflow:visible}
+#dhost #nd-fwin .ndsec>.ndsec-img{display:none}
+#dhost #nd-fwin .ndsec>h3{position:relative;left:auto;top:auto;height:auto;margin:0 0 18px;padding:0 4px;background:none;box-shadow:none;clip-path:none;border-radius:0;
+  gap:14px;font:700 40px/1.1 var(--cond);color:#fff6e6;text-shadow:0 2px 6px rgba(40,0,8,.6)}
+#dhost #nd-fwin .ndsec>h3 svg.i{font-size:40px;color:#f6d48e;stroke-width:2.2}
+#dhost #nd-fwin .ndsec>.ndempty{margin:0;padding:26px 30px;border-radius:26px;font:700 27px/1.4 var(--cond);color:#3d1d18;background:var(--v3cream);box-shadow:var(--v3ring)}
+
+/* карта на сделка */
+#dhost #nd-fwin .ndrow{position:relative;isolation:isolate;overflow:hidden;margin:0 0 22px;min-height:0;padding:22px 22px 22px;border:0;border-radius:30px;
+  background:var(--v3cream)!important;box-shadow:var(--v3ring);font:400 26px/1.2 var(--cond);color:#14070a}
+#dhost #nd-fwin .ndrow::after{content:"";position:absolute;right:0;top:0;bottom:0;width:52%;z-index:-1;pointer-events:none;
+  background:var(--ph,url(assets/nd/ph18.jpg)) center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);-webkit-mask-image:var(--v3mask);mask-image:var(--v3mask)}
+#dhost #nd-fwin .ndrow.v3d{display:grid;grid-template-columns:72px minmax(0,1fr) auto auto;grid-template-areas:"ic tx ed rm" "sp sp sp sp";column-gap:16px;row-gap:18px;align-items:center}
+#dhost #nd-fwin .ndrow>svg.i{grid-area:ic;width:72px;height:72px;padding:17px;border-radius:50%;font-size:38px;color:#ffe9b8;stroke-width:2.2;background:var(--v3wine);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.55)}
+#dhost #nd-fwin .ndrow .tx{grid-area:tx;min-width:0}
+#dhost #nd-fwin .ndrow .tx b{font:700 36px/1.15 var(--serif);color:#3b0a0e;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-shadow:var(--v3halo)}
+#dhost #nd-fwin .ndrow.v3d .tx>span{display:none}
+#dhost #nd-fwin .ndrow .tx>span{color:#3d1d18;font:700 23px/1.25 var(--cond);text-shadow:var(--v3halo)}
+#dhost #nd-fwin .ndrow.v3d .tm{display:none}
+#dhost #nd-fwin .ndrow .tm{color:#3d1d18;font-weight:700;text-shadow:var(--v3halo)}
+.v3-line{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin-top:10px}
+.v3-line em{font:700 25px/1.2 var(--cond);font-style:normal;color:#3d1d18;text-shadow:var(--v3halo);min-width:0}
+#dhost #nd-fwin .ndrow button[data-ed]{grid-area:ed}
+#dhost #nd-fwin .ndrow .rm{grid-area:rm}
+#dhost #nd-fwin .ndrow button{align-self:start;width:66px;height:66px;font-size:30px;color:#7b1020;
+  background:radial-gradient(120% 90% at 30% 18%,#fff,rgba(255,248,238,.96) 55%,rgba(246,226,200,.96));
+  box-shadow:0 0 0 2px rgba(246,212,142,.9),0 0 14px rgba(246,212,142,.55),0 6px 12px rgba(0,0,0,.28)}
+#dhost #nd-fwin .ndrow button svg.i{stroke-width:2.6}
+#dhost #nd-fwin .ndrow button[data-ed]{color:#3a1d00;background:var(--v3gold);box-shadow:inset 0 0 0 1.5px rgba(255,248,220,.85),0 0 14px rgba(246,212,142,.65),0 6px 12px -6px rgba(80,40,0,.6)}
+#dhost #nd-fwin .ndrow button[data-ed] svg.i{color:#7b1020}
+#dhost #nd-fwin .ndrow button.rm{color:#a30d26}
+#dhost #nd-fwin .ndrow .v3-specs{grid-area:sp}
+#dhost #nd-fwin .ndrow:hover{transform:translateY(-2px);box-shadow:0 0 0 1.5px #fff,0 0 0 3.5px rgba(230,191,91,.8),0 0 26px rgba(246,212,142,.6),0 18px 30px -16px rgba(60,10,10,.6)}
+
+/* чип за етапа – еднакви цветове навсякъде (картата и прозорецът) */
+#dhost #nd-fwin .v3-chip{display:inline-flex;align-items:center;gap:10px;height:44px;margin:0;padding:0 18px 0 14px;border-radius:22px;font:700 23px/1 var(--cond);white-space:nowrap;text-shadow:none}
+#dhost #nd-fwin .v3-chip i{width:14px;height:14px;border-radius:50%;flex:none}
+#dhost #nd-fwin .v3-chip.wine{color:#fff3dc;background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 1.5px rgba(246,212,142,.8),0 0 14px rgba(163,33,58,.45)}
+#dhost #nd-fwin .v3-chip.wine i{background:#f8d777;box-shadow:0 0 8px rgba(248,215,119,.9)}
+#dhost #nd-fwin .v3-chip.gold{color:#4a2a00;background:linear-gradient(180deg,#fff1c8,#f2cf7c);box-shadow:inset 0 0 0 1.5px rgba(200,150,60,.6),0 0 14px rgba(246,212,142,.6)}
+#dhost #nd-fwin .v3-chip.gold i{background:#b8780e;box-shadow:0 0 8px rgba(240,180,40,.8)}
+#dhost #nd-fwin .v3-chip.sold{color:#ffe6d6;background:linear-gradient(135deg,#5a0612,#2c0207);box-shadow:inset 0 0 0 1.5px rgba(246,212,142,.75),0 0 14px rgba(90,6,18,.5)}
+#dhost #nd-fwin .v3-chip.sold i{background:#ff6b7f;box-shadow:0 0 8px rgba(255,90,110,.8)}
+#dhost #nd-fwin .v3-chip.grey{color:#3d302c;background:linear-gradient(180deg,#f5efeb,#dfd3cc);box-shadow:inset 0 0 0 1.5px rgba(150,120,110,.5)}
+#dhost #nd-fwin .v3-chip.grey i{background:#8a7a72;box-shadow:none}
+
+/* златни плочки (като в картата на клиента) */
+.v3-specs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:18px 4px 16px;border-radius:24px;
+  background:linear-gradient(180deg,rgba(255,252,247,.94),rgba(253,242,231,.9));
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3px rgba(214,163,92,.3),0 0 18px rgba(255,228,196,.55),0 10px 20px -12px rgba(60,10,10,.5)}
+.v3-specs.five{grid-template-columns:repeat(5,minmax(0,1fr))}
+.v3-spec{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0 6px;min-width:0}
+.v3-spec+.v3-spec{border-left:1.5px solid rgba(214,163,92,.4)}
+.v3-spec .si{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:26px;color:#7b1020;
+  background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 45%,#d9a650 100%);box-shadow:0 0 0 1.5px #fff2c4,0 0 0 3px rgba(214,163,92,.55),0 0 12px rgba(246,212,142,.75)}
+.v3-spec .si svg.i{stroke-width:2.6}
+.v3-spec>div{min-width:0;max-width:100%}
+.v3-spec b{display:block;font:800 30px/1.1 var(--cond);color:#14070a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v3-spec b.emp{color:#5a4038;font-weight:700;font-style:italic}
+.v3-spec>div>span{display:block;margin-top:4px;font:700 22px/1.05 var(--cond);color:#7b1020}
+
+/* ============================================================
+   3) ПРОЗОРЕЦЪТ НА СДЕЛКАТА – разделите са кремави карти
+   ============================================================ */
+#dhost #nd-fwin .ndg{isolation:isolate;margin:0 0 26px;padding:100px 0 26px;border:0;border-radius:32px;background:var(--v3cream);box-shadow:var(--v3ring)}
+#dhost #nd-fwin .ndg-img{z-index:-1;width:30%;opacity:1!important;filter:saturate(1.1) contrast(1.04);-webkit-mask-image:var(--v3mask)!important;mask-image:var(--v3mask)!important}
+/* заглавие на раздела: винена лента (телефон) */
+#dhost #nd-fwin .ndg-h{left:0;top:0;width:80%;height:84px;padding:0 0 10px 30px;gap:18px;border-radius:0;clip-path:none;box-shadow:none;
+  background:var(--v3rib) 0 0/100% 100% no-repeat;filter:drop-shadow(0 3px 4px rgba(60,0,15,.3));font:700 34px/1 var(--serif);color:#fff3dc;text-shadow:0 2px 3px rgba(40,0,8,.6)}
+#dhost #nd-fwin .ndg-h svg.i{font-size:38px;color:#fff1de;stroke-width:2}
+#dhost #nd-fwin .ndg-f{margin-left:28px;padding-right:28px;gap:16px 24px}
+/* полета: етикет винен (на крем) + плочка за стойността */
+#dhost #nd-fwin .ndg .ef{grid-template-columns:minmax(0,1fr)!important;gap:8px;align-items:start}
+#dhost #nd-fwin .ndg .el{width:auto;padding:0 2px;background:none!important;box-shadow:none!important;border-radius:0;gap:10px;font:700 25px/1.15 var(--cond)!important;color:#7b1020!important;text-shadow:0 0 6px #fff8f0,0 0 2px #fff!important}
+#dhost #nd-fwin .ndg .el svg.i{display:inline-block;font-size:26px;color:#7b1020;stroke-width:2.6}
+#dhost #nd-fwin .ndg .in{height:58px;border:0!important;border-radius:18px!important;padding:0 18px;font:800 26px/1 var(--cond)!important;color:#14070a!important;
+  background:linear-gradient(180deg,rgba(255,253,249,.97),rgba(252,242,232,.93))!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3px rgba(214,163,92,.34),0 6px 12px -8px rgba(60,10,10,.45),inset 0 1.5px 0 #fff!important}
+#dhost #nd-fwin .ndg .in.ta{height:130px;padding:14px 18px;font-weight:700!important;line-height:1.35}
+#dhost #nd-fwin .ndg .in::placeholder{color:#5a4038!important;font-style:italic;font-weight:700;opacity:.85}
+#dhost #nd-fwin .ndg .in:focus{box-shadow:0 0 0 2px #fff,0 0 0 4px #e6bf5b,0 0 18px rgba(246,212,142,.75)!important}
+#dhost #nd-fwin .ndg .in.bad{box-shadow:0 0 0 2.5px #c81a3a,0 0 12px rgba(200,26,58,.4)!important}
+#dhost #nd-fwin .ndg .selw svg.i{color:#7b1020;stroke-width:2.8}
+#dhost #nd-fwin .ndg .ef.cm-vatw{display:flex}
+/* чипът до „Етап“ */
+#dhost #nd-fwin .ef .v3-stw{grid-column:1;margin-top:2px}
+/* комисионна и калкулатор: резултатите като златни плочки, „Остава“ / „Месечна вноска“ – винени */
+#dhost #nd-fwin .ndres{gap:14px}
+#dhost #nd-fwin .ndres div{padding:18px 22px;border-radius:22px;background:linear-gradient(180deg,rgba(255,252,247,.96),rgba(253,242,231,.92));
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3px rgba(214,163,92,.32),0 0 16px rgba(255,228,196,.5),0 10px 18px -12px rgba(60,10,10,.5)}
+#dhost #nd-fwin .ndres div span{font:700 23px/1.1 var(--cond);color:#7b1020}
+#dhost #nd-fwin .ndres div b{margin-top:10px;font:800 36px/1 var(--cond);color:#14070a}
+#dhost #nd-fwin .ndres div.big{background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);box-shadow:inset 0 0 0 2px #e6bf5b,0 0 22px rgba(230,191,91,.45),0 12px 22px -12px rgba(80,10,20,.7)}
+#dhost #nd-fwin .ndres div.big span{color:#ffe7b5}
+#dhost #nd-fwin .ndres div.big b{color:#fff3dc}
+#dhost #nd-fwin .cm-pay{border-radius:24px;background:linear-gradient(180deg,rgba(255,252,247,.96),rgba(253,242,231,.92));box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3px rgba(214,163,92,.32),0 8px 16px -10px rgba(60,10,10,.45)}
+#dhost #nd-fwin .cm-pt b{font:700 25px/1.1 var(--cond);color:#7b1020}
+#dhost #nd-fwin .cm-pt span{font:800 30px/1.1 var(--cond);color:#14070a}
+#dhost #nd-fwin .cm-in small{color:#7b1020}
+#dhost #nd-fwin .cm-vat{height:66px;border-radius:22px;font-size:25px;color:#fff3dc;background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 2px #e6bf5b,0 0 18px rgba(230,191,91,.45)}
+/* запис */
+#dhost #nd-fwin .ev-acts{padding:4px 0 0}
+#dhost #nd-fwin .ea.hot{position:relative;overflow:hidden;height:78px;min-width:380px;border:0;border-radius:24px;font:700 30px/1 var(--cond);color:#fff3dc;
+  background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 5px rgba(255,170,180,.4),0 0 26px rgba(230,191,91,.5),0 12px 24px -12px rgba(80,10,20,.7)}
+#dhost #nd-fwin .ea.hot svg.i{color:#f8d777}
+#dhost #nd-fwin .ev-err{color:#ffd6d6;text-shadow:0 1px 3px rgba(40,0,8,.8)}
+
+/* ---- компютър: картите на сделките по 2 на ред, разделите на прозореца по 2 на ред ---- */
+html.desk #dhost #nd-fwin .f-body{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html.desk #dhost #nd-fwin #g-deals,html.desk #dhost #nd-fwin .v3-fh{grid-column:1/-1}
+html.desk #dhost #nd-fwin .ndsec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:26px}
+html.desk #dhost #nd-fwin .ndsec>h3,html.desk #dhost #nd-fwin .ndsec>.ndempty{grid-column:1/-1}
+html.desk #dhost #nd-fwin .ndg{grid-column:auto}
+html.desk #dhost #nd-fwin .ndg-h{width:auto;height:96px;padding:0 30px;background:none;filter:none;color:#3b0a0e;font-size:40px;text-shadow:0 0 8px #fff8f0}
+html.desk #dhost #nd-fwin .ndg-h svg.i{width:62px;height:62px;padding:14px;border-radius:50%;font-size:34px;color:#ffe9b8;stroke-width:2.2;background:var(--v3wine);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.55)}
+html.desk #dhost #nd-fwin .ndg{padding-top:104px}
+html.desk #dhost #nd-fwin .ndg .el{font-size:27px!important}
+html.desk #dhost #nd-fwin .ndg .in:not(.ta){height:62px}
+html.desk #dhost #nd-fwin .ndg .in{font-size:28px!important}
+html.desk #dhost #nd-fwin .ndrow .tx b{font-size:36px}
+html.desk .v3-line em{font-size:27px}
+html.desk #dhost #nd-fwin .v3-chip{height:48px;font-size:25px}
+html.desk .v3-spec b{font-size:32px}
+html.desk .v3-spec>div>span{font-size:23px}
+
+
+/* ============================================================
+   4) ПОДРЕДБА (09.11): едно заглавие, обобщение, филтри; формата се отваря само при нужда
+   ============================================================ */
+#dhost #nd-fwin .f-bar,#dhost #nd-fwin .ndsec>h3{display:none}
+.oflow:not(.v3-open) #dhost #nd-fwin :is(.ndg,.v3-fh,.ev-acts,.ev-err){display:none!important}
+.oflow.v3-open #dhost #nd-fwin #g-deals,.oflow.v3-open #v3-filt{display:none!important}
+#dhost #nd-fwin.inline #nd-f-cancel{display:inline-flex}
+#dhost #nd-fwin .ev-acts{gap:20px}
+#dhost #nd-fwin #nd-f-cancel{height:78px;min-width:220px;border:0;border-radius:24px;font:700 28px/1 var(--cond);color:#5a0a12;
+  background:linear-gradient(180deg,rgba(255,253,249,.97),rgba(252,241,231,.94));box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3.5px rgba(214,163,92,.32),0 0 18px rgba(255,228,196,.45),0 12px 20px -12px rgba(60,10,10,.6)}
+/* заглавие на страницата – върху стъклото */
+.v3-ttl{display:flex;align-items:center;gap:18px;margin:0 22px 18px;font:700 48px/1.1 var(--serif);color:#fff6e6;text-shadow:0 2px 8px rgba(40,0,8,.7)}
+.v3-ttl svg.i{width:66px;height:66px;padding:15px;border-radius:50%;flex:none;color:#ffe9b8;stroke-width:2.2;background:var(--v3wine);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.6)}
+.v3-ttl em{font:400 38px/1 var(--cond);font-style:normal;color:#f6e3c8}
+html.desk .v3-ttl{margin:0 0 16px}
+/* обобщение – златни плочки */
+.v3-kpi{margin:0 22px 22px;padding:20px 6px 18px}
+html.desk .v3-kpi{margin:0 0 20px}
+.v3-kpi .v3-spec b{font-size:34px}
+.v3-spec small{display:block;max-width:100%;margin-top:4px;font:700 20px/1.15 var(--cond);color:#3d1d18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* филтри */
+.v3-filt{padding:18px 22px 0}
+html.desk .v3-filt{padding:18px 0 0}
+.v3-stg{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:6px 4px 10px;margin:0 -4px}
+.v3-stg::-webkit-scrollbar{display:none}
+html.desk .v3-stg{flex-wrap:wrap;overflow:visible}
+.v3-sc{flex:none;display:inline-flex;align-items:center;gap:10px;height:60px;padding:0 12px 0 18px;border-radius:30px;font:700 25px/1 var(--cond);color:#3b0a0e;white-space:nowrap;
+  background:linear-gradient(180deg,rgba(255,253,249,.97),rgba(252,241,231,.94));box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3.5px rgba(214,163,92,.3),0 10px 18px -12px rgba(60,10,10,.6)}
+.v3-sc i{width:14px;height:14px;border-radius:50%;flex:none;background:#8a7a72}
+.v3-sc.wine i{background:#a3213a}.v3-sc.gold i{background:#d9a254}.v3-sc.sold i{background:#5a0612}.v3-sc.grey i{background:#a89890}
+.v3-sc em{display:grid;place-items:center;min-width:36px;height:36px;padding:0 8px;border-radius:18px;font:800 21px/1 var(--cond);font-style:normal;color:#7b1020;background:rgba(123,16,32,.09)}
+.v3-sc.on{color:#fff3dc;background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);box-shadow:inset 0 0 0 2px #e6bf5b,0 0 0 3px rgba(255,240,205,.4),0 0 20px rgba(230,191,91,.5)}
+.v3-sc.on i{background:#f8d777}
+.v3-sc.on em{color:#3a1d00;background:var(--v3gold)}
+.v3-sels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}
+html.desk .v3-sels{grid-template-columns:repeat(4,minmax(0,1fr))}
+.v3-sel{position:relative;height:86px;border-radius:24px;display:flex;align-items:center;gap:12px;padding:0 16px 0 18px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(255,253,249,.97),rgba(252,241,231,.94));box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3.5px rgba(214,163,92,.3),0 0 18px rgba(255,228,196,.4),0 12px 20px -12px rgba(60,10,10,.6)}
+.v3-sel>svg.i{font-size:32px;color:#7b1020;stroke-width:2.6}
+.v3-sel .chev{font-size:26px;color:#7a5a52;stroke-width:2.6}
+.v3-sl{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.v3-sl small{font:700 20px/1 var(--cond);color:#7b1020}
+.v3-sl .val{font:800 26px/1.05 var(--cond);color:#14070a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v3-sel select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.v3-sel.set{box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5px rgba(255,240,205,.45),0 0 22px rgba(246,212,142,.7)}
+.v3-sel:focus-within{box-shadow:0 0 0 2px #fff,0 0 0 4px #e6bf5b,0 0 18px rgba(246,212,142,.75)}
+#dhost #nd-fwin .ndsec{margin-top:18px}
+#dhost #nd-fwin .v3-none{grid-column:1/-1;margin:0;padding:28px 30px;border-radius:26px;text-align:center;font:700 27px/1.4 var(--cond);color:#3d1d18;background:var(--v3cream);box-shadow:var(--v3ring)}
+/* картата: страни и имот като редове „етикет: стойност“ */
+.v3-parties{margin-top:10px}
+#dhost #nd-fwin .v3-pv{display:grid;grid-template-columns:32px auto minmax(0,1fr);align-items:center;column-gap:10px;min-height:42px;padding:4px 0;border-bottom:1.5px solid rgba(214,163,92,.26)}
+#dhost #nd-fwin .v3-pv:last-child{border-bottom:0}
+#dhost #nd-fwin .v3-pv svg.i{font-size:26px;color:#7b1020;stroke-width:2.6}
+#dhost #nd-fwin .v3-pv .k{display:block;margin:0;font:700 23px/1.2 var(--cond);color:#7b1020;text-shadow:0 0 6px #fff8f0,0 0 2px #fff}
+#dhost #nd-fwin .v3-pv .k::after{content:":"}
+#dhost #nd-fwin .v3-pv .v{display:block;margin:0;min-width:0;font:800 25px/1.2 var(--cond);color:#14070a;text-shadow:var(--v3halo);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dhost #nd-fwin .v3-pv .v.emp{color:#5a4038;font-style:italic;font-weight:700;cursor:pointer}
+/* следващата стъпка: златна при близък срок, червена при просрочие */
+.v3-spec.next.soon .si{box-shadow:0 0 0 1.5px #fff2c4,0 0 0 3.5px #e6bf5b,0 0 18px rgba(246,190,80,.95)}
+.v3-spec.next.soon b{color:#6a3a00}
+.v3-spec.next.late .si{color:#fff;background:radial-gradient(circle at 35% 28%,#ff8a9a 0%,#c81a3a 60%,#7a0a1e 100%);box-shadow:0 0 0 1.5px #ffd6dc,0 0 0 3px rgba(200,26,58,.5),0 0 14px rgba(200,26,58,.6)}
+.v3-spec.next.late b,.v3-spec.next.late>div>span{color:#b0102e}
+/* заглавие на отворената форма */
+#dhost #nd-fwin .v3-fh{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 4px 20px}
+#dhost #nd-fwin .v3-fh h3{display:flex;align-items:center;gap:18px;margin:0;font:700 44px/1.1 var(--serif);color:#fff6e6;text-shadow:0 2px 8px rgba(40,0,8,.7)}
+#dhost #nd-fwin .v3-fh h3 svg.i{width:62px;height:62px;padding:14px;border-radius:50%;color:#ffe9b8;stroke-width:2.4;background:var(--v3wine);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.6)}
+#dhost #nd-fwin .v3-fx{width:66px;height:66px;border:0;border-radius:50%;display:grid;place-items:center;font-size:30px;color:#fff3dc;cursor:pointer;
+  background:radial-gradient(circle at 35% 28%,#d0405c 0%,#a3213a 45%,#6a0a1d 100%);box-shadow:0 0 0 2.5px #e6b866,0 0 16px rgba(230,191,91,.5),0 6px 12px rgba(0,0,0,.35)}
+#dhost #nd-fwin .v3-fx svg.i{stroke-width:2.8}
