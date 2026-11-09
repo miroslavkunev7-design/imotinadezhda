@@ -59,6 +59,8 @@ body{font-family:var(--cond);color:var(--ink)}
 .card:hover{transform:translateY(-5px);box-shadow:0 0 0 2px #f6cf6c,0 0 22px rgba(255,214,130,.9),0 14px 22px rgba(30,0,8,.5)}
 .card .ph{position:absolute;left:0;top:0;width:100%;height:160px;background-size:cover;background-position:center;transition:transform .8s}
 .card:hover .ph{transform:scale(1.06)}
+/* drone video instead of the photo: own proportions (cover = no squeezing or stretching), poster until it starts */
+.card video.ph{display:block;object-fit:cover;background:#efe3d3;pointer-events:none}
 .card .fd{position:absolute;left:0;right:0;top:96px;bottom:0;background:linear-gradient(180deg,rgba(255,247,236,0) 0%,rgba(255,248,239,.86) 30%,#fff7ec 52%,#fff7ec 100%)}
 .card .pin{position:absolute;left:28px;top:150px;width:38px;height:38px;color:var(--gold)}
 .card h3{position:absolute;left:72px;top:150px;margin:0;font:700 30px/1.1 var(--serif);color:#6a001b}
@@ -114,9 +116,9 @@ body{font-family:var(--cond);color:var(--ink)}
     <button type="submit" class="go"><svg><use href="#search"/></svg>Търси</button>
   </form>
 
-  <a class="abs card" style="left:70px;width:501px" href="/mobile/ilj.html#/city/shumen"><span class="ph" style="background-image:url(desktop-home-assets/city-shumen.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Шумен</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
-  <a class="abs card" style="left:585px;width:501px" href="/mobile/ilj.html#/city/varna"><span class="ph" style="background-image:url(desktop-home-assets/city-varna.webp)"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Варна</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
-  <a class="abs card" style="left:1100px;width:501px" href="/mobile/ilj.html#/city/burgas"><span class="ph" style="background-image:url(desktop-home-assets/city-burgas.webp);background-position:center 80%"></span><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Бургас</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:70px;width:501px" href="/mobile/ilj.html#/city/shumen"><video class="ph" src="/mobile/home-assets/city-shumen.mp4" poster="/mobile/home-assets/city-shumen-poster.webp" style="object-position:center 42%" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" tabindex="-1"></video><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Шумен</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:585px;width:501px" href="/mobile/ilj.html#/city/varna"><video class="ph" src="/mobile/home-assets/city-varna.mp4" poster="/mobile/home-assets/city-varna-poster.webp" style="object-position:center 50%" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" tabindex="-1"></video><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Варна</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:1100px;width:501px" href="/mobile/ilj.html#/city/burgas"><video class="ph" src="/mobile/home-assets/city-burgas.mp4" poster="/mobile/home-assets/city-burgas-poster.webp" style="object-position:center 62%" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" tabindex="-1"></video><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Бургас</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
 </div></div>
 
 <div class="ab" id="about" role="dialog" aria-modal="true" aria-labelledby="ab-t"><div>
@@ -160,5 +162,11 @@ body{font-family:var(--cond);color:var(--ink)}
   addEventListener('keydown',function(e){if(e.key==='Escape')$('about').classList.remove('on')});
 })();
 </script>
+<script>/* city videos: start them (and again when the tab comes back) */
+(function () { var vs = [].slice.call(document.querySelectorAll("video.ph")); if (!vs.length) return;
+  function go() { vs.forEach(function (v) { v.muted = true; if (v.paused) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } }); }
+  go(); document.addEventListener("visibilitychange", function () { if (!document.hidden) go(); });
+  ["pointerdown", "scroll", "keydown"].forEach(function (e) { window.addEventListener(e, go, { passive: true, once: true }); });
+})();</script>
 </body>
 </html>

@@ -117,6 +117,14 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .city.c3 .ph{height:80%;object-position:center 55%}
 .city.c3 .fade{height:52%}
 .city.c3 .nm{font:700 35px/1 Bitter,Georgia,serif}.city.c3 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
+/* drone videos in the city cards: Шумен and Варна are drawn live like Бургас (over the baked artwork cards) */
+.city.c1,.city.c2{background:#fff7ed;border:2px solid #e2a33b;box-shadow:0 8px 17px rgba(32,13,8,.4),0 0 14px rgba(255,214,150,.35)}
+.city.c1>*,.city.c2>*{opacity:1}
+.city.c1 .nm,.city.c2 .nm{font:700 33px/1 Bitter,Georgia,serif}.city.c1 .vc,.city.c2 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
+.city video.ph{display:block;background:#efe3d3;pointer-events:none}
+/* Шумен/Варна: the whole frame in its own proportions (full width, natural height) – nothing squeezed, stretched or cut at the sides */
+.city.c1 video.ph{height:auto;aspect-ratio:1280/730}.city.c2 video.ph{height:auto;aspect-ratio:1280/724}
+.city.c3 video.ph{object-position:center 62%}
 </style>
 </head>
 <body>
@@ -150,9 +158,9 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
     </div>
   </form>
 
-  <button class="abs city c1" data-city="shumen"><img class="ph" src="/mobile/home-assets/city-shumen.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c2" data-city="varna"><img class="ph" src="/mobile/home-assets/city-varna.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c3" data-city="burgas"><img class="ph" src="/mobile/home-assets/city-burgas.webp" alt=""><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c1" data-city="shumen"><video class="ph" src="/mobile/home-assets/city-shumen.mp4" poster="/mobile/home-assets/city-shumen-poster.webp" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c2" data-city="varna"><video class="ph" src="/mobile/home-assets/city-varna.mp4" poster="/mobile/home-assets/city-varna-poster.webp" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c3" data-city="burgas"><video class="ph" src="/mobile/home-assets/city-burgas.mp4" poster="/mobile/home-assets/city-burgas-poster.webp" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
 </div>
 
 
@@ -245,5 +253,11 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   var m0 = /^#\/city\/([\w-]+)/.exec(location.hash); if (m0) openCity(m0[1]);
 })();
 </script>
+<script>/* city videos: start them (also after a tap when the phone blocks autoplay, e.g. low power mode) */
+(function () { var vs = [].slice.call(document.querySelectorAll("video.ph")); if (!vs.length) return;
+  function go() { vs.forEach(function (v) { v.muted = true; if (v.paused) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } }); }
+  go(); document.addEventListener("visibilitychange", function () { if (!document.hidden) go(); });
+  ["touchstart", "pointerdown", "scroll"].forEach(function (e) { window.addEventListener(e, go, { passive: true, once: true }); });
+})();</script>
 </body>
 </html>
