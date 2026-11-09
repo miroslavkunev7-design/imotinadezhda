@@ -68,6 +68,15 @@ async function upload(ctx, p, buf, mime) {
   const { error } = await ctx.sb.storage.from(BUCKET).upload(p, buf, { contentType: mime, upsert: true });
   if (error) throw new ToolError("Качването не успя: " + error.message, 500);
 }
+/* кратък линк към документ (/f/<id>.<ext>?k=…, 7 дни) – дългите подписани линкове се развалят, когато AI ги преписва; виж api/f.js */
+const crypto_ = require("crypto");
+function shortLink(d, days) {
+  const SRK = process.env.SUPABASE_SERVICE_ROLE_KEY; if (!SRK || !d || !d.id || !/^[a-z0-9]{8,64}$/i.test(String(d.id))) return null;
+  const exp = Math.floor(Date.now() / 1000 + (days || 7) * 86400).toString(36);
+  const sg = crypto_.createHmac("sha256", "nd-file-link:" + SRK).update(d.id + "." + exp).digest("hex").slice(0, 16);
+  const ext = (/\.([a-z0-9]{1,6})$/i.exec(String(d.name || "")) || /\.([a-z0-9]{1,6})$/i.exec(String(d.path || "")) || [])[1];
+  return "https://imotinadezhda.bg/f/" + d.id + (ext ? "." + ext.toLowerCase() : "") + "?k=" + exp + "." + sg;
+}
 async function signed(ctx, p, secs) {
   const { data, error } = await ctx.sb.storage.from(BUCKET).createSignedUrl(p, secs || SIGN_SECS);
   if (error) throw new ToolError(error.message); return data.signedUrl;
@@ -86,7 +95,7 @@ async function clientOf(ctx, id, name) {
 async function registerArtifact(ctx, client, name, p, size, mime, folder, note) {
   const doc = await put(ctx, "documents", { client_id: client ? client.id : null, client: client ? client.name : "", name, folder: folder || "Тед", path: p, mime, size, at: new Date().toISOString(), by: "ted" });
   if (client) await put(ctx, "activities", { client_id: client.id, client: client.name, icon: "file-text", text: note || ("Тед изготви файл: " + name), at: new Date().toISOString() }).catch(() => null);
-  const url = await signed(ctx, p);
+  const url = shortLink({ id: doc.id, name, path: p }) || await signed(ctx, p);
   return { document_id: doc.id, name, size_bytes: size, mime, download_url: url, expires_in_days: 7, path: p };
 }
 /* Supabase Storage приема само ASCII ключове („Invalid key“ при кирилица): името на файла в хранилището се транслитерира, а в списъка с документи остава на български. */
@@ -290,7 +299,7 @@ const tools = {
       const q = (i.query || "").toLocaleLowerCase("bg"), f = (i.folder || "").toLocaleLowerCase("bg");
       list = list.filter((d) => (!q || [d.name, d.folder, d.client].join(" ").toLocaleLowerCase("bg").includes(q)) && (!f || String(d.folder || "").toLocaleLowerCase("bg").includes(f))).slice(0, i.limit);
       const out = [];
-      for (const d of list) out.push({ id: d.id, name: d.name, folder: d.folder, client: d.client, client_id: d.client_id, mime: d.mime, size_bytes: d.size, at: d.at, download_url: await signed(ctx, d.path, 3600).catch(() => null) });
+      for (const d of list) out.push({ id: d.id, name: d.name, folder: d.folder, client: d.client, client_id: d.client_id, mime: d.mime, size_bytes: d.size, at: d.at, by_ted: d.by === "ted" || undefined, download_url: shortLink(d) || await signed(ctx, d.path, 3600).catch(() => null) });
       return { client: c ? { id: c.id, name: c.name } : null, count: out.length, documents: out };
     }
   },
@@ -548,7 +557,7 @@ const tools = {
       let atts = [];
       for (const g of groups) {
         if (i.merge) atts = atts.concat(await groupToFiles(ctx, client, g.title, g.docs));
-        else for (const d of g.docs) { const info = await pagesOf(ctx, d).catch(() => null); atts.push({ name: d.name, path: d.path, size: info ? info.size : d.size || 0, mime: d.mime || "", pages: info ? info.pages : null }); }
+        else for (const d of g.docs) { const info = await pagesOf(ctx, d).catch(() => null); atts.push({ id: d.id, name: d.name, path: d.path, size: info ? info.size : d.size || 0, mime: d.mime || "", pages: info ? info.pages : null }); }
       }
       const total = atts.reduce((a, x) => a + (x.size || 0), 0);
       if (total > 25 * 1048576) throw new ToolError("Документите са " + Math.round(total / 1048576) + " MB – над 25 MB. Ограничи ги (doc_filter) или изпрати на части.");
@@ -557,7 +566,7 @@ const tools = {
       const draft = { kind: "maildraft", to, subject: i.subject, body: i.body, attachments: atts, client_id: client ? client.id : null, client: client ? client.name : "", property: prop ? prop.code || prop.id : null, at: new Date().toISOString() };
       await put(ctx, "prefs", draft, DRAFT(ctx));
       const shown = [];
-      for (const x of atts) shown.push({ name: x.name, pages: x.pages, size_kb: Math.round((x.size || 0) / 1024), download_url: await signed(ctx, x.path).catch(() => null) });
+      for (const x of atts) shown.push({ name: x.name, pages: x.pages, size_kb: Math.round((x.size || 0) / 1024), download_url: shortLink(x) || await signed(ctx, x.path).catch(() => null) });
       return { draft_saved: true, to, subject: i.subject, body: i.body, attachments: shown, total_kb: Math.round(total / 1024), property: prop ? { code: prop.code, title: prop.title, deal: prop._deal || undefined } : null, from: snd.from, sender: snd.kind, reply_to: snd.reply_to || undefined, can_send: !!snd.cfg,
         ask: "Да го изпратя ли?", note: snd.cfg ? "Покажи прегледа и попитай „Да го изпратя ли?“. При „да“ → email.send {confirm:true} без други полета." : "Няма поща за изпращане – извикай open_panel {panel:\"mail\"} (еднократно: само паролата на пощата, или обща поща на агенцията)." };
     }

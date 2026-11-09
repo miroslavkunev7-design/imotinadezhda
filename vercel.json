@@ -54,6 +54,10 @@
   ],
   "rewrites": [
     {
+      "source": "/f/:file",
+      "destination": "/api/f?file=:file"
+    },
+    {
       "source": "/api/tts",
       "destination": "/api/voice?fn=tts"
     },
@@ -112,6 +116,9 @@
     },
     "api/voice.js": {
       "maxDuration": 60
+    },
+    "api/f.js": {
+      "maxDuration": 15
     }
   },
   "redirects": [
