@@ -717,6 +717,37 @@ const tools = {
     description: "Последните действия на Тед (одит): кой, кога, какъв инструмент, успех.",
     input: schema({ limit: S("number", { min: 1, max: 100, default: 20 }) }),
     run: async (ctx, i) => { const { data, error } = await ctx.sb.from("nd_audit").select("at,user_email,tool,ok,ms,summary").order("at", { ascending: false }).limit(i.limit); if (error) throw new ToolError(error.message); return { events: data }; }
+  },
+  /* „Събиране на имоти и клиенти“ – същото като find_owner_listings / collect_page в чата на сайта, достъпно и за агента в n8n през /api/tools */
+  "listings.find_owners": {
+    description: "Намира в интернет обяви на имоти ОТ СОБСТВЕНИЦИ (без агенции) за село, град или област в България: заглавие, цена, площ, телефон (ако е в обявата), линк, източник. Записва ги в „Събрани“. Нужно е place или region.",
+    input: schema({ place: S("string", { max: 120 }), region: S("string", { max: 120 }), type: S("string", { max: 60 }), deal: S("string", { enum: ["sale", "rent"] }), max_price: S("number", { min: 0 }) }),
+    run: async (ctx, i) => {
+      if (!ctx.token) throw new ToolError("Влезте в CRM.", 401);
+      const OWNERS = require("./_owners.js");
+      return OWNERS.findOwners({ token: ctx.token, staff: true }, Object.assign({ budget_ms: 45000 }, i));
+    }
+  },
+  "listings.collect_page": {
+    description: "Събиране от конкретен източник: чете публична страница с обяви (url) или поставен текст на пост от група (text) и пази само частните обяви без агенции (с телефон) и хората, които търсят/предлагат. Записва ги в „Събрани“ (без дубликати).",
+    input: schema({ url: S("string", { max: 1000 }), text: S("string", { max: 20000 }), source: S("string", { max: 80 }), keywords: S("string", { max: 300 }) }),
+    run: async (ctx, i) => {
+      if (!ctx.token) throw new ToolError("Влезте в CRM.", 401);
+      if (!i.url && !i.text) throw new ToolError("Дай линк (url) или текст на поста (text).");
+      const r = await fetch("https://imotinadezhda.bg/api/collect", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + ctx.token }, body: JSON.stringify({ url: i.url || "", text: i.text || "", source: i.source || "", keywords: i.keywords || "без посредник, от собственик, без комисионна, лично", properties: true, clients: true }) });
+      const j = await r.json().catch(() => ({ ok: false, error: "HTTP " + r.status }));
+      if (!j || !j.ok) throw new ToolError((j && j.error) || "Страницата не се прочете", 502);
+      const items = Array.isArray(j.items) ? j.items : [];
+      let saved = 0;
+      if (items.length) {
+        const nk = (x) => String(x.phone || "").split(",")[0].trim() + "|" + String(x.text || x.title || "").toLowerCase().replace(/[^a-zа-я0-9]+/gi, " ").trim().slice(0, 120);
+        const { data: ex } = await ctx.sb.from("nd_collected").select("data");
+        const have = new Set((ex || []).map((r2) => nk(r2.data || {})));
+        const rows = items.filter((x) => !have.has(nk(x))).map((x) => ({ name: x.title || x.name || "Обява", data: Object.assign({}, x, { source: i.source || x.source || "", found_by: "Тед" }) }));
+        if (rows.length) { const { error } = await ctx.sb.from("nd_collected").insert(rows); if (!error) saved = rows.length; }
+      }
+      return { found: items.length, saved_to_collected: saved, skipped: j.skipped || {}, items: items.slice(0, 20).map((x) => ({ kind: x.kind, title: x.title, price: x.price, city: x.city, hood: x.hood, phone: x.phone, name: x.name, link: x.link, wants: x.wants || undefined })), note: "Записани са в „Събрани“; оттам „Запамети в архив“ ги прехвърля в Имоти/Клиенти." };
+    }
   }
 };
 

@@ -26651,7 +26651,7 @@ async function handler(req, res) {
   if (!parsed.success) return send({ ok: false, error: "Invalid input", issues: parsed.error.issues }, 400);
   const t0 = Date.now(), toolName = String(body.tool);
   try {
-    const result = await tool.run({ sb, userId: u.user.id, user: u.user }, parsed.data);
+    const result = await tool.run({ sb, userId: u.user.id, user: u.user, token }, parsed.data);
     if (TED) TED.audit(sb, u.user, toolName, true, Date.now() - t0, JSON.stringify(parsed.data).slice(0, 200));
     return send({ ok: true, result });
   } catch (e) {
