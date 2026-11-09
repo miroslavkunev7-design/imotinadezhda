@@ -1,0 +1,293 @@
+/* CRM · Компании · Вариант 3 (одобреният стил от „Имоти“ и „Клиенти“).
+   Главата (горната секция) НЕ се променя. Под нея – голямо прозрачно матово стъкло върху вечерна снимка.
+   Картите на компаниите запазват своите иконки (по желание на собственика) и стават кремаво стъкло
+   с бял ръб, златен пръстен и чиста HD снимка, която прелива отдясно. Картата на компанията е разделена
+   на раздели „Данни за контакт“, „Описание“ и „Служители“ с редове „иконка · етикет: стойност“.
+   Текстът върху снимка е тъмен с бял ореол; виненото е само за иконки, етикети върху крема, чипове и бутони.
+   Функциите, id-тата и data-атрибутите са същите. Мерките са в px на платното (телефон 1024 широко; компютър 2072). */
+
+:root{--v3m:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);
+  --cream:linear-gradient(180deg,rgba(255,252,247,.96),rgba(253,242,231,.93));
+  --gold:linear-gradient(180deg,#f8dc98,#d9a254);
+  --wine:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);
+  --disc:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);
+  --rib:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 64' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='r' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%236c0a1d'/%3E%3Cstop offset='.55' stop-color='%238d1129'/%3E%3Cstop offset='.8' stop-color='%23b2193d'/%3E%3Cstop offset='1' stop-color='%23e34f72'/%3E%3C/linearGradient%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23a8702c'/%3E%3Cstop offset='.25' stop-color='%23ffe9ad'/%3E%3Cstop offset='.5' stop-color='%23c88f3d'/%3E%3Cstop offset='.75' stop-color='%23fff0c0'/%3E%3Cstop offset='1' stop-color='%23b37a32'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z' fill='url(%23r)'/%3E%3Cpath d='M700 1 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3C/svg%3E")}
+html:not(.desk){--hl:0 0 20px #fff,0 0 10px #fff,0 0 5px #fff,0 0 2.5px #fff;--e:3px;--rg:8px}
+html.desk{--hl:0 0 11px #fff,0 0 5.5px #fff,0 0 2.8px #fff,0 0 1.4px #fff;--e:2px;--rg:5px}
+html{--ring:0 0 0 var(--e) rgba(255,255,255,.95),0 0 0 var(--rg) rgba(214,163,92,.32),0 0 calc(var(--rg)*4) rgba(255,228,196,.4),0 calc(var(--rg)*3) calc(var(--rg)*5) calc(var(--rg)*-3) rgba(0,0,0,.62);
+  --ringc:0 0 0 var(--e) rgba(255,255,255,.95),0 0 0 var(--rg) rgba(214,163,92,.32),0 0 calc(var(--rg)*4) rgba(255,228,196,.75),0 calc(var(--rg)*2) calc(var(--rg)*4) calc(var(--rg)*-2) rgba(60,10,10,.45);
+  --pmask:saturate(1.1) contrast(1.04)}
+
+/* ======================================================================
+   1) СТРАНИЦАТА: вечерна снимка зад голямо матово стъкло
+   ====================================================================== */
+html,body,#stage{background:#2a050d}
+#canvas.ocv{background:
+  linear-gradient(180deg,rgba(42,5,13,.12) 0,rgba(42,5,13,.12) 298px,rgba(42,5,13,.45) 760px,rgba(42,5,13,.86) 1200px,#2a050d 1500px),
+  url(assets/nd/ph14.jpg) 50% 298px/auto 1000px no-repeat,#2a050d}
+html.desk #canvas.ocv{background:linear-gradient(180deg,rgba(42,5,13,.18) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.72) 100%),url(assets/nd/ph14.jpg) 50% 72%/cover no-repeat,#2a050d}
+
+.oflow{border-radius:50px;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.7),inset 0 0 60px rgba(255,214,160,.12),0 0 44px rgba(246,212,142,.3),0 40px 80px -30px rgba(0,0,0,.65)}
+html:not(.desk) .oflow{margin:18px 14px 30px;padding:24px 20px 30px}
+html.desk .oflow{margin:16px calc(var(--xL,24px) - 16px) 24px;padding:24px 28px 30px;border-radius:44px}
+
+/* лента: „Нова компания“ (основно – винено), търсене и филтри (кремаво стъкло) */
+.otools{padding:0!important;gap:16px}
+.o-new{border:0;font-weight:700;color:#fff3dc;background:var(--wine);
+  box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 4px rgba(255,170,180,.4),0 0 22px rgba(230,191,91,.5),0 14px 24px -14px rgba(20,0,6,.75)}
+.o-new svg.i{color:#ffe1a6}
+.o-q,.o-filt{background:linear-gradient(180deg,rgba(255,253,249,.97) 0%,rgba(252,241,231,.93) 100%)!important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.28),0 0 22px rgba(255,228,196,.35),0 16px 26px -16px rgba(0,0,0,.65),inset 0 2px 0 #fff!important}
+.o-q:focus-within,.o-filt[aria-expanded="true"]{box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5px rgba(255,240,205,.45),0 0 22px rgba(246,212,142,.7)!important}
+.o-q input{color:#14070a}.o-q input::placeholder{color:#6a4a40}
+.o-filt{color:#5a0a12}
+.o-pop{border-radius:26px;background:linear-gradient(180deg,rgba(255,252,247,.98),rgba(253,242,231,.97));box-shadow:var(--ring)}
+.o-pop li{color:#14070a;font-weight:700}
+.o-pop li.on{color:#fff3dc;background:var(--wine);box-shadow:inset 0 0 0 1.5px #e6bf5b}
+.o-pop li.on svg.i{color:#ffe1a6}
+html:not(.desk) .o-new,html:not(.desk) .o-q,html:not(.desk) .o-filt{height:72px}
+html:not(.desk) .o-new{flex:0 0 auto;padding:0 26px}
+html.desk .o-new,html.desk .o-q,html.desk .o-filt{height:66px}
+html.desk .o-pop{right:0;top:84px}
+/* филтри: „Град“ (нов) и „Вид компания“ */
+.o-city{position:relative!important;left:auto!important;top:auto!important;flex:0 0 300px;min-width:0;height:62px;border-radius:24px;padding:0 20px 0 22px;gap:14px;
+  background:linear-gradient(180deg,rgba(255,253,249,.97) 0%,rgba(252,241,231,.93) 100%);
+  box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.28),0 0 22px rgba(255,228,196,.35),0 16px 26px -16px rgba(0,0,0,.65),inset 0 2px 0 #fff}
+.o-city>svg.i{font-size:32px;color:#7b1020;stroke-width:2.2}
+.o-city .val{flex:1;min-width:0;font:700 26px/1 var(--cond);color:#14070a}
+.o-city .chev{color:#5a0a12}
+.o-city.set,.o-city:focus-within{box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5px rgba(255,240,205,.45),0 0 22px rgba(246,212,142,.7)}
+.o-filt{flex:0 0 320px;min-width:0}
+.o-filt span{flex:1;min-width:0;max-width:none}
+html.desk .o-city{height:66px}
+html:not(.desk) .otools{flex-wrap:wrap;row-gap:16px}
+html:not(.desk) .o-q{order:-1;flex:1 1 100%}
+html:not(.desk) .o-city,html:not(.desk) .o-filt{flex:1 1 0;height:72px}
+html:not(.desk) .o-city .val{font-size:27px!important}
+html:not(.desk) .o-filt{font-size:27px}
+html:not(.desk) .o-pop{top:176px;right:0}
+html:not(.desk) .oc .v3-ci{display:none}
+
+/* ======================================================================
+   2) КАРТИТЕ НА КОМПАНИИТЕ – иконките остават; кремаво стъкло + чиста HD снимка отдясно
+   ====================================================================== */
+.olist{padding:24px 0 0!important;gap:20px}
+.oc{overflow:hidden;isolation:isolate;border:0;border-radius:28px;background:var(--cream);box-shadow:var(--ring)}
+.oc.on{box-shadow:0 0 0 var(--e) #fff6dc,0 0 0 calc(var(--rg) + 1.5px) #e6bf5b,0 0 calc(var(--rg)*5) rgba(246,212,142,.75),0 calc(var(--rg)*3) calc(var(--rg)*5) calc(var(--rg)*-3) rgba(0,0,0,.62)}
+.oc .op{right:0;left:auto;width:48%!important;z-index:-1;background-size:cover!important;background-position:center!important;opacity:1!important;filter:var(--pmask);
+  -webkit-mask-image:var(--v3m)!important;mask-image:var(--v3m)!important}
+.oc[data-cat=bank] .op{background-image:url(assets/co-bank.jpg)!important;background-position:78% center!important}
+.oc[data-cat=build] .op{background-image:url(assets/co-build.jpg)!important;background-position:80% center!important}
+.oc[data-cat=interior] .op{background-image:url(assets/nd/ph15.jpg)!important}
+.oc[data-cat=invest] .op{background-image:url(assets/g-facade.jpg)!important}
+.oc[data-cat=service] .op{background-image:url(assets/card-clients.jpg)!important}
+/* иконката на компанията – същата, само с лек ореол */
+.oc .oi{color:#7b1020;filter:drop-shadow(0 0 6px #fff8f0) drop-shadow(0 0 2px #fff)}
+.oc .on2{color:#14070a;font-weight:800;text-shadow:var(--hl)}
+.oc .oca{color:#3d1d18;font-weight:700;text-shadow:var(--hl)}
+.oc .om{color:#14070a;font-weight:700;text-shadow:var(--hl)}
+.oc .om svg.i{color:#7b1020;stroke-width:2.6;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff)}
+.oc .om i{background:rgba(214,163,92,.6)}
+.oc .ar{width:60px;height:60px;margin-top:-30px;border-radius:50%;display:grid;place-items:center;font-size:32px;color:#4a0a10;
+  background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%);box-shadow:0 0 0 2px rgba(246,212,142,.9),0 0 14px rgba(255,220,150,.7),0 4px 8px rgba(0,0,0,.35)}
+.oc .ar svg.i{stroke-width:2.8}
+.olist .empty{border-radius:28px;background:var(--cream);box-shadow:var(--ring);color:#3d1d18}
+/* телефон – по-високи карти, по-едри надписи */
+html:not(.desk) .oc{height:178px}
+html:not(.desk) .oc .oi{left:34px;margin-top:-44px;font-size:88px}
+html:not(.desk) .oc .on2{left:156px;right:110px;top:26px;font-size:40px}
+html:not(.desk) .oc .oca{left:158px;top:78px;font-size:31px!important}
+html:not(.desk) .oc .om{left:158px;top:122px;gap:18px;font-size:31px!important}
+html:not(.desk) .oc .om span{gap:12px;font-size:31px!important}
+html:not(.desk) .oc .om svg.i{font-size:32px}
+html:not(.desk) .oc .ar{right:22px}
+/* компютър */
+html.desk .ocols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:30px}
+html.desk .olist{max-height:calc(var(--lh,700px) - 48px);padding:24px 14px 14px 10px!important;margin:0 -14px 0 -10px;scrollbar-color:rgba(246,212,142,.7) transparent}
+html.desk .oc{height:calc(var(--och,118px) - 12px);min-height:150px}
+html.desk .oc .oi{left:38px;font-size:90px;margin-top:-46px}
+html.desk .oc .on2{left:164px;right:120px;top:calc(50% - 68px);font-size:38px}
+html.desk .oc .oca{left:166px;top:calc(50% - 16px);font-size:27px}
+html.desk .oc .om{left:166px;top:calc(50% + 26px);font-size:27px}
+html.desk .oc .om svg.i{font-size:29px}
+html.desk .oc .ar{right:26px}
+
+/* ======================================================================
+   3) КАРТАТА НА КОМПАНИЯТА – заглавие върху стъклото и раздели с редове
+   ====================================================================== */
+.odet{display:flex;flex-direction:column;gap:22px;margin:30px 0 0;border:0;border-radius:0;overflow:visible;background:none;box-shadow:none}
+html.desk .odet{margin:24px 0 0;padding:6px 14px 18px 10px;margin-right:-14px;margin-left:-10px;max-height:calc(var(--lh,700px) - 48px);min-height:0;scrollbar-color:rgba(246,212,142,.7) transparent}
+html.desk .odet:empty{display:block;min-height:260px;margin-left:0;margin-right:0;border-radius:30px;background:var(--cream);box-shadow:var(--ring)}
+html.desk .odet:empty:before{color:#3d1d18}
+/* заглавие: медальон с иконката на компанията + име; „Редактирай“ – златен, „Свий“ – стъклен */
+.od-h{height:auto;min-height:72px;gap:20px;padding:0 4px;background:none;border:0;box-shadow:none;color:#fff6e6}
+.od-h>svg.i{box-sizing:content-box;width:36px;height:36px;padding:15px;border-radius:50%;font-size:36px;color:#ffe9b8;stroke-width:1.9;background:var(--disc);box-shadow:0 0 0 2.5px #f1c37f,0 0 16px rgba(240,196,110,.6)}
+.od-h h2{font:700 46px/1.1 var(--serif);color:#fff6e6;text-shadow:0 2px 8px rgba(40,0,8,.65)}
+.od-h button{width:64px;height:64px;border-radius:50%}
+.od-h button[data-edit]{background:var(--gold);box-shadow:inset 0 0 0 1.5px rgba(255,248,220,.85),0 0 16px rgba(246,212,142,.65),0 8px 14px -8px rgba(80,40,0,.6)}
+.od-h button[data-edit] svg.i{color:#7b1020;stroke-width:2.6;font-size:30px}
+.od-h button[data-collapse]{background:linear-gradient(160deg,rgba(255,248,238,.34),rgba(255,236,214,.14));box-shadow:inset 0 0 0 2px rgba(255,236,200,.6),0 6px 12px -6px rgba(0,0,0,.5)}
+.od-h button:hover{filter:brightness(1.08)}
+.od-info{display:contents}
+.od-ph{display:none}
+/* раздели (общо) */
+.od-c,.od-d,.v3-esec{position:relative;overflow:hidden;isolation:isolate;flex:none;border-radius:30px;background:var(--cream);box-shadow:var(--ringc)}
+.od-c::after,.od-d::after,.v3-esec::after{content:"";position:absolute;right:0;top:0;bottom:0;width:48%;z-index:-1;pointer-events:none;
+  background:center/cover no-repeat;opacity:1;filter:var(--pmask);-webkit-mask-image:var(--v3m);mask-image:var(--v3m)}
+.od-c::after{background-image:url(assets/nd/ph17.jpg)}
+.odet:has(.od-h use[href="#landmark"]) .od-c::after{background-image:url(assets/co-bank.jpg);background-position:80% center}
+.odet:has(.od-h use[href="#hard-hat"]) .od-c::after{background-image:url(assets/co-build.jpg);background-position:80% center}
+.odet:has(.od-h use[href="#armchair"]) .od-c::after{background-image:url(assets/nd/ph15.jpg)}
+.odet:has(.od-h use[href="#coins"]) .od-c::after{background-image:url(assets/g-facade.jpg)}
+.odet:has(.od-h use[href="#handshake"]) .od-c::after{background-image:url(assets/card-clients.jpg)}
+.od-d::after{background-image:url(assets/card-deals.jpg)}
+.v3-esec::after{background-image:url(assets/nd/ph03.jpg);width:30%}
+/* данни за контакт: редове „иконка · етикет: стойност“ */
+.od-c{display:block;padding:0 0 22px;border:0}
+.od-c>a,.od-c>span{display:grid;grid-template-columns:auto minmax(0,38%) minmax(0,1fr);align-items:center;column-gap:14px;margin:0 0 0 30px;
+  border-bottom:1.5px solid rgba(214,163,92,.32);text-decoration:none;color:#14070a}
+.od-c>:last-child{border-bottom:0}
+.od-c>a>svg.i,.od-c>span>svg.i{color:#7b1020;stroke-width:2.7}
+.od-c .v3-l{font-style:normal;font-weight:700;color:#7b1020;text-shadow:0 0 6px #fff8f0,0 0 2px #fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.od-c .v3-v{font-weight:800;color:#14070a;text-shadow:var(--hl);overflow-wrap:anywhere}
+.od-c>a:hover .v3-v{text-decoration:underline;text-decoration-color:rgba(214,163,92,.8)}
+.v3-add{justify-self:start;padding:0;background:none;border:0;font-style:italic;font-weight:700;color:#5a4038;text-shadow:var(--hl);cursor:pointer}
+.v3-add:hover{color:#3d1d18;text-decoration:underline}
+/* заглавия на разделите: телефон – винена панделка; компютър – медальон и сериф */
+.v3-st,.od-eh{display:flex;align-items:center;margin:0;color:#fff3dc;font-weight:700;font-family:var(--serif)}
+/* описание */
+.od-d{display:block;padding:0 0 26px}
+.od-d>b{display:flex;align-items:center;font-family:var(--serif);font-weight:700}
+.od-d p{margin:0 0 0 30px;font-weight:600;color:#14070a;text-shadow:var(--hl);white-space:pre-wrap}
+/* служители */
+.od-eh{position:relative;border-radius:0;background:none;box-shadow:none}
+.od-eh h3{flex:1;font-family:var(--serif);font-weight:700}
+.od-add{border:0;font-weight:700;color:#3a1d00;background:var(--gold);box-shadow:inset 0 0 0 1.5px rgba(255,248,220,.85),0 0 16px rgba(246,212,142,.65),0 8px 14px -8px rgba(80,40,0,.6)}
+.od-add svg.i{color:#7b1020}
+.od-emps{margin:0;padding:6px 0 20px 30px;border-radius:0;background:none;gap:0}
+.oe{height:auto;border-radius:0;overflow:visible;background:none;box-shadow:none;border-bottom:1.5px solid rgba(214,163,92,.32);transition:background .2s,box-shadow .2s}
+.oe:last-child{border-bottom:0}
+.oe:hover{border-radius:18px;background:rgba(255,253,250,.7);box-shadow:0 0 0 1.5px rgba(237,196,122,.85),0 0 14px rgba(255,214,160,.7)}
+.oe .ep{display:none}
+.oe>svg.i{color:#7b1020;stroke-width:2.4}
+.oe .en b{color:#14070a;font-weight:800}
+.oe .en span{color:#3d1d18;font-weight:600}
+.oe .sep{background:rgba(214,163,92,.55)}
+.oe .ek span{color:#14070a;font-weight:700}
+.oe .ek svg.i{color:#7b1020;stroke-width:2.6}
+.oe .ar{color:#7b1020}
+.od-emps .none{color:#5a4038;font-weight:700;font-style:italic;text-shadow:var(--hl)}
+
+/* --- телефон --- */
+html:not(.desk) .v3-st,html:not(.desk) .od-eh{height:86px;padding:0 24px 0 34px;gap:22px;font-size:46px;background:var(--rib) 0 0/100% 100% no-repeat}
+html:not(.desk) .v3-st svg.i,html:not(.desk) .od-eh>svg.i{font-size:46px;color:#fff1de;stroke-width:1.9}
+html:not(.desk) .v3-st{margin-bottom:16px}
+html:not(.desk) .od-eh h3{font-size:46px;color:#fff3dc;text-shadow:0 2px 3px rgba(40,0,8,.6)}
+html:not(.desk) .od-add{height:62px;padding:0 24px;gap:10px;font-size:29px;margin-top:-10px}
+html:not(.desk) .od-add svg.i{font-size:30px}
+html:not(.desk) .od-c>a,html:not(.desk) .od-c>span{max-width:84%;min-height:76px;grid-template-columns:auto minmax(0,250px) minmax(0,1fr)}
+html:not(.desk) .od-c>a>svg.i,html:not(.desk) .od-c>span>svg.i{font-size:36px}
+html:not(.desk) #odet .od-c .v3-l{font-size:34px!important}
+html:not(.desk) #odet .od-c .v3-v,html:not(.desk) #odet .od-c .v3-add{font-size:36px!important;line-height:1.2}
+html:not(.desk) #odet .od-c>a,html:not(.desk) #odet .od-c>span{font-size:36px!important}
+html:not(.desk) .od-d>b{height:86px;padding:0 0 0 110px;margin-bottom:16px;font-size:46px;color:#fff3dc;text-shadow:0 2px 3px rgba(40,0,8,.6);background:var(--rib) 0 0/100% 100% no-repeat}
+html:not(.desk) .od-d>svg.i{position:absolute;left:34px;top:20px;z-index:1;font-size:46px;color:#fff1de;stroke-width:1.9}
+html:not(.desk) #odet .od-d p{max-width:84%;font-size:36px!important;line-height:1.4}
+html:not(.desk) .od-d p .v3-add{font-size:36px}
+html:not(.desk) .od-emps{padding:10px 0 22px 26px}
+html:not(.desk) .oe{max-width:88%;min-height:118px;grid-template-columns:62px minmax(0,1fr) 2px minmax(0,1fr) 44px}
+html:not(.desk) .oe>svg.i{font-size:44px}
+html:not(.desk) .oe .en b{font-size:36px}
+html:not(.desk) .oe .en span{font-size:29px!important;white-space:normal}
+html:not(.desk) .oe .sep{height:70px}
+html:not(.desk) .oe .ek{padding-left:20px;gap:10px}
+html:not(.desk) .oe .ek span{font-size:29px!important;gap:12px}
+html:not(.desk) .oe .ek svg.i{font-size:30px}
+html:not(.desk) .oe .ar{font-size:38px}
+html:not(.desk) .od-emps .none{font-size:34px}
+
+/* --- компютър --- */
+html.desk .v3-st,html.desk .od-eh,html.desk .od-d>b{height:auto;padding:24px 26px 12px;gap:16px;font-size:38px;color:#3b0a0e;text-shadow:var(--hl)}
+html.desk .v3-st svg.i,html.desk .od-eh>svg.i,html.desk .od-d>svg.i{box-sizing:content-box;width:26px;height:26px;padding:12px;border-radius:50%;font-size:26px;color:#ffe9b8;stroke-width:2.2;background:var(--disc);box-shadow:0 0 0 2px #f1c37f,0 0 10px rgba(240,196,110,.55)}
+html.desk .od-d>svg.i{position:absolute;left:26px;top:22px;z-index:1}
+html.desk .od-d>b{padding-left:94px;padding-top:26px}
+html.desk .od-eh h3{font-size:38px;color:#3b0a0e}
+html.desk .od-add{height:56px;padding:0 24px;gap:10px;font-size:25px}
+html.desk .od-add svg.i{font-size:26px}
+html.desk .od-c>a,html.desk .od-c>span{max-width:62%;min-height:52px;grid-template-columns:auto minmax(0,170px) minmax(0,1fr)}
+html.desk .od-c>a>svg.i,html.desk .od-c>span>svg.i{font-size:28px}
+html.desk .od-c .v3-l{font-size:26px}
+html.desk .od-c .v3-v,html.desk .od-c .v3-add{font-size:29px;line-height:1.2}
+html.desk .od-d p{max-width:62%;font-size:29px;line-height:1.4}
+html.desk .od-d p .v3-add{font-size:29px}
+html.desk .oe{max-width:72%;min-height:86px;grid-template-columns:54px minmax(0,1fr) 2px minmax(0,1fr) 40px}
+html.desk .oe>svg.i{font-size:38px}
+html.desk .oe .en b{font-size:29px}
+html.desk .oe .en span{font-size:23px}
+html.desk .oe .sep{height:54px}
+html.desk .oe .ek{padding-left:22px}
+html.desk .oe .ek span{font-size:24px}
+html.desk .oe .ek svg.i{font-size:26px}
+html.desk .od-emps .none{font-size:27px}
+
+/* ======================================================================
+   4) ПРОЗОРЕЦ „НОВА КОМПАНИЯ“ / „СЛУЖИТЕЛ“ – раздел с редове и снимка отдясно
+   ====================================================================== */
+.fwin{background:#fbeee2;border-color:#efc57a}
+.fwin .mscroll{background:linear-gradient(180deg,rgba(255,250,244,.99),rgba(251,236,222,.98))}
+.f-x{color:#fff3dc!important;background:radial-gradient(circle at 35% 28%,#d0405c 0%,#a3213a 45%,#6a0a1d 100%)!important;box-shadow:0 0 0 2px #e6b866,0 0 14px rgba(230,191,91,.5),0 3px 8px rgba(0,0,0,.35)!important}
+.fctl .mbtn:not(.f-x){color:#4a2a00;background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%);box-shadow:0 3px 8px rgba(0,0,0,.35),inset 0 0 0 1px #fff2c4,0 0 12px rgba(246,212,142,.5)}
+.f-bar{height:108px;padding-left:34px;gap:22px;border:0;box-shadow:none;background:linear-gradient(180deg,rgba(255,250,244,.99),rgba(255,248,240,.96))}
+.f-bar::before{content:"";position:absolute;left:0;top:0;bottom:0;right:240px;background:var(--rib) 0 0/100% 100% no-repeat;pointer-events:none}
+.f-bar svg.i,.f-bar h2{position:relative;z-index:1}
+.f-bar svg.i{font-size:50px;color:#fff1de}
+.f-bar h2{font-size:48px;color:#fff3dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:560px}
+.f-photo{display:none}
+.f-body{position:relative;overflow:hidden;isolation:isolate;display:block;margin:22px 22px 18px;padding:24px 0 24px 30px;border-radius:30px;background:var(--cream);box-shadow:var(--ringc)}
+.f-body::after{content:"";position:absolute;right:0;top:0;bottom:0;width:46%;z-index:-1;pointer-events:none;background:url(assets/nd/ph17.jpg) center/cover no-repeat;opacity:1;filter:var(--pmask);-webkit-mask-image:var(--v3m);mask-image:var(--v3m)}
+/* високият раздел на формата – само вертикални HD снимки (без увеличаване и размазване) */
+#fcv:has(#f-cat option[value=bank]:checked) .f-body::after{background-image:url(assets/nd/ph18.jpg)}
+#fcv:has(#f-cat option[value=build]:checked) .f-body::after{background-image:url(assets/nd/ph07.jpg)}
+#fcv:has(#f-cat option[value=interior]:checked) .f-body::after{background-image:url(assets/nd/ph15.jpg)}
+#fcv:has(#f-cat option[value=invest]:checked) .f-body::after{background-image:url(assets/nd/ph11.jpg)}
+#fcv:has(#f-cat option[value=service]:checked) .f-body::after{background-image:url(assets/nd/ph12.jpg)}
+#fcv:has(#f-role) .f-body::after{background-image:url(assets/nd/ph06.jpg)}
+.f-body .ef{display:grid;grid-template-columns:minmax(0,40%) minmax(0,1fr);align-items:center;column-gap:14px;max-width:62%;min-height:84px;margin:0;border-bottom:1.5px solid rgba(214,163,92,.32)}
+.f-body .ef:last-child{border-bottom:0}
+.f-body .el{margin:0;gap:14px;font-size:30px;font-weight:700!important;color:#7b1020!important;text-shadow:0 0 6px #fff8f0,0 0 2px #fff}
+.f-body .el svg.i{font-size:34px;color:#7b1020;stroke-width:2.7}
+#f-body .ef .in:not(.ta){font-size:31px;font-weight:800!important;color:#14070a!important;box-shadow:none!important}
+#f-body .ef .in:not(.ta):hover{box-shadow:inset 0 -2.5px 0 #d9a95a!important}
+#f-body .ef .in:not(.ta):focus{box-shadow:0 0 0 2px #d9a95a,0 0 12px rgba(217,169,90,.55)!important}
+#f-body .ef .in::placeholder{color:#5a4038!important;opacity:1;font-weight:700}
+.f-body .in.ta{margin:12px 0;font-size:29px;border-radius:18px;background:rgba(255,253,249,.96);box-shadow:0 0 0 2px rgba(214,163,92,.5),0 0 12px rgba(255,228,196,.6)}
+.f-body .selw svg.i{color:#7b1020}
+#f-body.view .ef .vv{font-size:32px!important;font-weight:800!important;color:#14070a!important;text-shadow:var(--hl)!important}
+#f-body.view .ef .vv.emp{color:#5a4038!important;font-style:italic!important;font-weight:700!important}
+.ev-err{padding:0 40px}
+.ea:not(.hot){color:#5a0a12;background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(252,241,231,.95));box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 16px rgba(255,228,196,.55),0 10px 18px -10px rgba(60,10,10,.5)}
+.ea.del{color:#a30d26}
+.ea.hot{border:0;font-weight:700;background:var(--wine);box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 4px rgba(255,170,180,.4),0 0 24px rgba(230,191,91,.5),0 12px 22px -10px rgba(80,10,20,.7)}
+.ea.hot svg.i{color:#ffe1a6}
+/* компютър: формата се вписва в прозореца – малко по-сбити редове */
+html.desk .f-body .ef{min-height:70px}
+html.desk .f-body .el{font-size:26px}
+html.desk .f-body .el svg.i{font-size:30px}
+html.desk #f-body .ef .in:not(.ta){font-size:27px}
+html.desk #f-body.view .ef .vv{font-size:28px!important}
+html.desk .f-body .in.ta{font-size:26px}
+/* телефон: по-едри редове и бутони във формата */
+html:not(.desk) .f-body .ef{max-width:86%;min-height:92px}
+html:not(.desk) .f-body .el{font-size:34px}
+html:not(.desk) .f-body .el svg.i{font-size:38px}
+html:not(.desk) #f-body .ef .in:not(.ta){height:72px;font-size:36px}
+html:not(.desk) #f-body.view .ef .vv{font-size:36px!important}
+html:not(.desk) .f-body .in.ta{font-size:34px;height:170px}
+html:not(.desk) .ev-err{font-size:30px}
+html:not(.desk) .ev-acts{gap:18px;padding:10px 22px 0}
+html:not(.desk) .ea{height:92px;min-width:0;flex:1;padding:0 20px;border-radius:46px;font-size:34px}
+html:not(.desk) .ea svg.i{font-size:38px}
+html:not(.desk) .ea.hot{min-width:0;flex:1.4}

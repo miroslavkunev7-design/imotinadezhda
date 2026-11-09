@@ -861,6 +861,7 @@ html.desk .fwin .mscroll{overflow:hidden}
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/>
+<link rel="stylesheet" href="crm-v3-kompanii.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -990,7 +991,8 @@ html.desk .fwin .mscroll{overflow:hidden}
     <div class="otools">
       <button class="o-new" id="o-new"><svg class="i"><use href="#plus"/></svg>Нова компания</button>
       <label class="fld o-q"><svg class="i"><use href="#search"/></svg><input id="o-q" type="search" placeholder="Търси компания…" autocomplete="off" aria-label="Търси компания"></label>
-      <button class="o-filt" id="o-filt" aria-expanded="false"><svg class="i"><use href="#funnel"/></svg><span id="o-filt-t">Филтри</span><svg class="i chev"><use href="#chev-d"/></svg></button>
+      <label class="fld o-city"><svg class="i"><use href="#pin"/></svg><span class="val">Всички градове</span><svg class="i chev"><use href="#chev-d"/></svg><select id="o-city" aria-label="Град"><option value="">Всички градове</option></select></label>
+      <button class="o-filt" id="o-filt" aria-expanded="false" aria-label="Вид компания"><svg class="i"><use href="#funnel"/></svg><span id="o-filt-t">Вид компания</span><svg class="i chev"><use href="#chev-d"/></svg></button>
       <ul class="o-pop" id="o-pop" role="listbox" aria-label="Категория" hidden></ul>
     </div>
     <div class="ocols">
@@ -1154,19 +1156,29 @@ html.desk .fwin .mscroll{overflow:hidden}
   $('o-filt').addEventListener('click',function(e){e.stopPropagation();var p=$('o-pop'),o=p.hidden;p.hidden=!o;this.setAttribute('aria-expanded',o)});
   document.addEventListener('click',function(e){if(!e.target.closest('#o-pop')&&!e.target.closest('#o-filt')){$('o-pop').hidden=true;$('o-filt').setAttribute('aria-expanded','false')}});
   $('o-pop').addEventListener('click',function(e){var li=e.target.closest('li');if(!li)return;cat=li.dataset.c;
-    [].forEach.call(this.children,function(x){x.classList.toggle('on',x===li)});$('o-filt-t').textContent=cat?catOf(cat).group:'Филтри';this.hidden=true;$('o-filt').setAttribute('aria-expanded','false');renderList()});
+    [].forEach.call(this.children,function(x){x.classList.toggle('on',x===li)});$('o-filt-t').textContent=cat?catOf(cat).group:'Вид компания';this.hidden=true;$('o-filt').setAttribute('aria-expanded','false');renderList()});
   $('o-q').addEventListener('input',renderList);
+  /* филтър „Град“ – градът се взима от полето city или от адреса на компанията */
+  var CITIES=['София','Пловдив','Варна','Бургас','Русе','Стара Загора','Плевен','Шумен','Добрич','Велико Търново','Сливен','Хасково','Ямбол','Пазарджик','Благоевград','Перник','Габрово','Търговище','Разград','Силистра','Кърджали','Монтана','Враца','Видин','Ловеч','Кюстендил','Смолян','Несебър','Свети Влас','Нови пазар','Балчик','Каварна','Провадия'],city='';
+  function cityOf(c){if(c.city)return String(c.city).trim();var a=String(c.address||'');for(var i=0;i<CITIES.length;i++)if(a.indexOf(CITIES[i])>=0)return CITIES[i];
+    var p=a.split(',').map(function(x){return x.trim()}).filter(Boolean),l=p[p.length-1]||'';return (l&&!/\d/.test(l)&&l.split(/\s+/).length<=2&&!/^(ул|бул|кв|ж\.?к|пл)\b/i.test(l))?l:''}
+  function fillCities(){var sl=$('o-city'),seen={},list=[];cos.forEach(function(c){var x=cityOf(c);if(x&&!seen[x]){seen[x]=1;list.push(x)}});list.sort(function(a,b){return a.localeCompare(b,'bg')});
+    if(city&&!seen[city])city='';
+    sl.innerHTML='<option value="">Всички градове</option>'+list.map(function(x){return '<option'+(x===city?' selected':'')+'>'+esc(x)+'</option>'}).join('');
+    var f=sl.closest('.fld');f.querySelector('.val').textContent=city||'Всички градове';f.classList.toggle('set',!!city)}
+  $('o-city').addEventListener('change',function(){city=this.value;renderList()});
   function sizeCards(){if(!desk){root.style.removeProperty('--och');root.style.removeProperty('--ocd');return}var n=Math.max(1,$('olist').querySelectorAll('.oc').length),lh=parseFloat(getComputedStyle(root).getPropertyValue('--lh'))||700;
     var h=Math.max(118,Math.min(240,(lh-22-16*(n-1))/n));root.style.setProperty('--och',h+'px');root.style.setProperty('--ocd',((h-118)/2)+'px')}
   function renderList(){
+    fillCities();
     var q=$('o-q').value.trim().toLocaleLowerCase('bg');
-    var list=cos.filter(function(c){if(cat&&c.cat!==cat)return false;if(!q)return true;
-      return (c.name+' '+catOf(c.cat).label+' '+c.emps.map(function(e){return e.name}).join(' ')).toLocaleLowerCase('bg').indexOf(q)>=0});
+    var list=cos.filter(function(c){if(cat&&c.cat!==cat)return false;if(city&&cityOf(c)!==city)return false;if(!q)return true;
+      return (c.name+' '+catOf(c.cat).label+' '+(c.address||'')+' '+c.emps.map(function(e){return e.name}).join(' ')).toLocaleLowerCase('bg').indexOf(q)>=0});
     $('olist').innerHTML=list.length?list.map(function(c){var ct=catOf(c.cat);
-      return '<article class="oc'+(c.id===sel?' on':'')+'" tabindex="0" data-id="'+c.id+'" aria-expanded="'+(c.id===sel)+'" aria-label="'+esc(c.name)+'">'+
+      return '<article class="oc'+(c.id===sel?' on':'')+'" tabindex="0" data-id="'+c.id+'" data-cat="'+esc(c.cat||'')+'" aria-expanded="'+(c.id===sel)+'" aria-label="'+esc(c.name)+'">'+
         '<span class="op" style="background-image:url('+img(ct.photo)+')"></span><span class="oi">'+ic(ct.icon)+'</span>'+
         '<h3 class="on2">'+esc(c.name)+'</h3><p class="oca">'+esc(ct.label)+'</p>'+
-        '<p class="om"><span>'+ic('users')+empWord(c.emps.length)+'</span><i></i><span>'+ic('phone')+esc(c.phone||'—')+'</span></p>'+
+        '<p class="om"><span>'+ic('users')+empWord(c.emps.length)+'</span>'+(c.phone?'<i></i><span>'+ic('phone')+esc(c.phone)+'</span>':'')+(cityOf(c)?'<i class="v3-ci"></i><span class="v3-ci">'+ic('pin')+esc(cityOf(c))+'</span>':'')+'</p>'+
         '<span class="ar">'+ic('chev-r')+'</span></article>'}).join('')
       :'<div class="empty">Няма компании по избраните критерии.</div>';
     sizeCards();
@@ -1174,21 +1186,21 @@ html.desk .fwin .mscroll{overflow:hidden}
   function renderDet(){
     var c=cos.filter(function(x){return x.id===sel})[0],box=$('odet');
     if(!c){box.innerHTML='';return}
-    var ct=catOf(c.cat),row=function(icn,v,href){return v?(href?'<a href="'+href+'">'+ic(icn)+esc(v)+'</a>':'<span>'+ic(icn)+esc(v)+'</span>'):'<span>'+ic(icn)+'<em>няма данни</em></span>'};
+    var ct=catOf(c.cat),row=function(icn,v,href,lab){var l='<i class="v3-l">'+lab+':</i>';return v?(href?'<a href="'+href+'">'+ic(icn)+l+'<b class="v3-v">'+esc(v)+'</b></a>':'<span>'+ic(icn)+l+'<b class="v3-v">'+esc(v)+'</b></span>'):'<span>'+ic(icn)+l+'<button type="button" class="v3-add" data-edit>+ добави</button></span>'};
     var web=c.web?('https://'+c.web.replace(/^https?:\/\//,'')):'';
     box.innerHTML='<header class="od-h">'+ic(ct.icon)+'<h2>'+esc(c.name)+'</h2>'+
         '<button type="button" data-edit aria-label="Редактирай компанията" title="Редактирай">'+ic('pencil')+'</button>'+
         '<button type="button" data-collapse aria-label="Свий" title="Свий">'+ic('chevron-up')+'</button></header>'+
       '<div class="od-info"><span class="od-ph" style="background-image:url('+img(c.cat==='bank'||c.cat==='invest'||c.cat==='service'?'co-desc.jpg':ct.photo)+')"></span>'+
-        '<div class="od-c">'+row('pin',c.address)+row('phone',c.phone,c.phone?'tel:'+c.phone.replace(/\s/g,''):'')+row('mail',c.email,c.email?'mailto:'+c.email:'')+
-          (c.web?'<a href="'+esc(web)+'" target="_blank" rel="noopener">'+ic('link')+esc(c.web)+'</a>':row('link',''))+'</div>'+
-        '<div class="od-d">'+ic('file-text')+'<b>Описание</b><p>'+esc(c.desc||'—')+'</p></div></div>'+
-      '<div class="od-eh">'+ic('users')+'<h3>Служители ('+c.emps.length+')</h3><button type="button" class="od-add" data-addemp>'+ic('plus')+'Добави служител</button></div>'+
+        '<div class="od-c"><h4 class="v3-st">'+ic('building-2')+'Данни за контакт</h4>'+row('tag',ct.label,'','Вид дейност')+row('pin',c.address,'','Адрес')+row('phone',c.phone,c.phone?'tel:'+c.phone.replace(/\s/g,''):'','Телефон')+row('mail',c.email,c.email?'mailto:'+c.email:'','Имейл')+
+          (c.web?'<a href="'+esc(web)+'" target="_blank" rel="noopener">'+ic('link')+'<i class="v3-l">Уебсайт:</i><b class="v3-v">'+esc(c.web)+'</b></a>':row('link','','','Уебсайт'))+'</div>'+
+        '<div class="od-d">'+ic('file-text')+'<b>Описание</b><p>'+(c.desc?esc(c.desc):'<button type="button" class="v3-add" data-edit>+ добави</button>')+'</p></div></div>'+
+      '<div class="v3-esec"><div class="od-eh">'+ic('users')+'<h3>Служители ('+c.emps.length+')</h3><button type="button" class="od-add" data-addemp>'+ic('plus')+'Добави служител</button></div>'+
       '<div class="od-emps">'+(c.emps.length?c.emps.map(function(e,i){
         return '<button type="button" class="oe" data-emp="'+e.id+'"><span class="ep" style="background-image:url('+img('co-emp'+(i%3)+'.jpg')+')"></span>'+ic('user-round')+
           '<span class="en"><b>'+esc(e.name)+'</b><span>'+esc(e.role||'—')+'</span></span><i class="sep"></i>'+
-          '<span class="ek"><span>'+ic('phone')+esc(e.phone||'—')+'</span><span>'+ic('mail')+esc(e.email||'—')+'</span></span><span class="ar">'+ic('chev-r')+'</span></button>'}).join('')
-        :'<p class="none">Няма добавени служители.</p>')+'</div>';
+          '<span class="ek">'+(e.phone?'<span>'+ic('phone')+esc(e.phone)+'</span>':'')+(e.email?'<span>'+ic('mail')+esc(e.email)+'</span>':'')+(e.phone||e.email?'':'<span class="v3-add">+ добави контакт</span>')+'</span><span class="ar">'+ic('chev-r')+'</span></button>'}).join('')
+        :'<p class="none">Няма добавени служители.</p>')+'</div></div>';
   }
   function select(id,scroll){
     sel=(sel===id&&!desk)?null:id;renderList();renderDet();

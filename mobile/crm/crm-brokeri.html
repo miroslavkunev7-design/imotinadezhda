@@ -723,6 +723,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/>
+<link rel="stylesheet" href="crm-v3-brokeri.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -898,44 +899,43 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
           <button class="bt" data-go="bs-roles"><svg class="i"><use href="#shield"/></svg>Роли</button>
           <button class="bt" data-go="bs-tasks"><svg class="i"><use href="#calendar-check"/></svg>Задачи</button>
           <button class="bt" data-go="bs-restr"><svg class="i"><use href="#lock"/></svg>Ограничения</button>
-          <button class="bt" data-go="bs-clients"><svg class="i"><use href="#users"/></svg>Клиенти</button>
           <button class="bt" data-go="bs-stats"><svg class="i"><use href="#chart"/></svg>Статистика</button>
+          <button class="bt" data-go="bs-clients"><svg class="i"><use href="#users"/></svg>Клиенти</button>
         </nav>
         <section class="bsec" id="bs-info">
           <div class="bsh"><svg class="i"><use href="#user"/></svg>Основна информация</div>
           <div class="bimg" style="background-image:url(assets/b-primary.jpg)"></div>
           <div class="binfo">
-            <label class="lb" for="bi-name">Име:</label><input class="in" id="bi-name">
-            <label class="lb" for="bi-pos">Длъжност:</label><span class="selw"><select class="in" id="bi-pos"></select><svg class="i"><use href="#chev-d"/></svg></span>
-            <label class="lb" for="bi-office">Екип / Офис:</label><span class="selw"><select class="in" id="bi-office"></select><svg class="i"><use href="#chev-d"/></svg></span>
-            <label class="lb" for="bi-phone">Телефон:</label><input class="in" id="bi-phone" inputmode="tel">
-            <label class="lb" for="bi-mail">Имейл:</label><input class="in wide" id="bi-mail" type="email">
+            <label class="lb" for="bi-name"><svg class="i"><use href="#user-round"/></svg>Име:</label><input class="in" id="bi-name" placeholder="+ добави">
+            <label class="lb" for="bi-pos"><svg class="i"><use href="#id-card"/></svg>Длъжност:</label><span class="selw"><select class="in" id="bi-pos"></select><svg class="i"><use href="#chev-d"/></svg></span>
+            <label class="lb" for="bi-office"><svg class="i"><use href="#pin"/></svg>Екип / Офис:</label><span class="selw"><select class="in" id="bi-office"></select><svg class="i"><use href="#chev-d"/></svg></span>
+            <label class="lb" for="bi-phone"><svg class="i"><use href="#phone"/></svg>Телефон:</label><input class="in" id="bi-phone" inputmode="tel" placeholder="+ добави">
+            <label class="lb" for="bi-mail"><svg class="i"><use href="#mail"/></svg>Имейл:</label><input class="in wide" id="bi-mail" type="email" placeholder="+ добави">
           </div>
         </section>
-        <section class="bsec" id="bs-stats">
-          <div class="bsh"><svg class="i"><use href="#chart"/></svg>Статистика</div>
-          <div class="bstats" id="bm-stats"></div>
+        <!-- Вариант 3: ред на разделите – контакт → роля → задачи / ограничения → статистика → клиенти -->
+        <section class="bsec" id="bs-roles">
+          <div class="bsh"><svg class="i"><use href="#shield"/></svg>Роли и достъп</div>
+          <div class="bimg tall" style="background-image:url(assets/b-roles.jpg)"></div>
+          <div class="broles"><span class="lb"><svg class="i"><use href="#shield"/></svg>Роля:</span><div class="rsel" id="bm-rolesel"><span id="bm-role-t">Старши брокер</span><svg class="i"><use href="#chev-d"/></svg></div>
+            <ul class="rlist" id="bm-roles" role="listbox" aria-label="Роля"></ul></div>
         </section>
       </div>
       <div class="bm-right">
-        <div class="bpair">
-          <section class="bsec" id="bs-roles">
-            <div class="bsh"><svg class="i"><use href="#shield"/></svg>Роли и достъп</div>
-            <div class="bimg tall" style="background-image:url(assets/b-roles.jpg)"></div>
-            <div class="broles"><span class="lb">Роля:</span><div class="rsel" id="bm-rolesel"><span id="bm-role-t">Старши брокер</span><svg class="i"><use href="#chev-d"/></svg></div>
-              <ul class="rlist" id="bm-roles" role="listbox" aria-label="Роля"></ul></div>
-          </section>
-          <section class="bsec" id="bs-tasks">
-            <div class="bsh"><svg class="i"><use href="#calendar-check"/></svg>Задачи</div>
-            <div class="bimg tall nar" style="background-image:url(assets/b-tasks.jpg)"></div>
-            <div class="btasks"><span class="selw t"><select class="in" id="bm-assign" aria-label="Назначи задача"></select><svg class="i"><use href="#chev-d"/></svg></span>
-              <div class="cks" id="bm-perm"></div></div>
-          </section>
-        </div>
+        <section class="bsec" id="bs-tasks">
+          <div class="bsh"><svg class="i"><use href="#calendar-check"/></svg>Задачи</div>
+          <div class="bimg tall nar" style="background-image:url(assets/b-tasks.jpg)"></div>
+          <div class="btasks"><span class="selw t"><select class="in" id="bm-assign" aria-label="Назначи задача"></select><svg class="i"><use href="#chev-d"/></svg></span>
+            <span class="lb v3-sub">Може да работи с:</span><div class="cks" id="bm-perm"></div></div>
+        </section>
         <section class="bsec" id="bs-restr">
           <div class="bsh"><svg class="i"><use href="#lock"/></svg>Ограничения</div>
           <div class="bimg" style="background-image:url(assets/b-restr.jpg)"></div>
           <div class="cks two" id="bm-restr"></div>
+        </section>
+        <section class="bsec" id="bs-stats">
+          <div class="bsh"><svg class="i"><use href="#chart"/></svg>Статистика</div>
+          <div class="bstats" id="bm-stats"></div>
         </section>
         <section class="bsec" id="bs-clients">
           <div class="bsh"><svg class="i"><use href="#users"/></svg>Прикрепени клиенти <em>(само за този брокер)</em></div>

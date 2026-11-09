@@ -1,0 +1,443 @@
+/* CRM · Брокери · Вариант 3 (одобреният стил от „Имоти“ и „Клиенти“).
+   Главата (горната секция) НЕ се променя. Под нея – голямо прозрачно матово стъкло върху вечерна снимка.
+   Картите и разделите са кремаво стъкло с бял ръб, златен пръстен и мек ореол; всяка има чиста HD снимка,
+   която прелива отдясно (без размазване и без матов слой върху снимката). Портретът на брокера остава главната снимка.
+   Текстът върху снимка е тъмен с бял ореол; виненото е само за иконки, етикети върху крема, чипове и бутони.
+   Функциите, id-тата и data-атрибутите са същите. Мерките са в px на платното (телефон 1024 широко; компютър 2072 / 2048). */
+
+/* ---------- общи променливи ---------- */
+:root{--v3m:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);
+  --cream:linear-gradient(180deg,rgba(255,252,247,.96),rgba(253,242,231,.93));
+  --gold:linear-gradient(180deg,#f8dc98,#d9a254);
+  --wine:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);
+  --disc:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);
+  --gdisc:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 45%,#d9a650 100%)}
+html:not(.desk){--hl:0 0 20px #fff,0 0 10px #fff,0 0 5px #fff,0 0 2.5px #fff;--e:3px;--rg:8px}
+html.desk{--hl:0 0 11px #fff,0 0 5.5px #fff,0 0 2.8px #fff,0 0 1.4px #fff;--e:2px;--rg:5px}
+html{--ring:0 0 0 var(--e) rgba(255,255,255,.95),0 0 0 var(--rg) rgba(214,163,92,.32),0 0 calc(var(--rg)*4) rgba(255,228,196,.4),0 calc(var(--rg)*3) calc(var(--rg)*5) calc(var(--rg)*-3) rgba(0,0,0,.62);
+  --ringc:0 0 0 var(--e) rgba(255,255,255,.95),0 0 0 var(--rg) rgba(214,163,92,.32),0 0 calc(var(--rg)*4) rgba(255,228,196,.75),0 calc(var(--rg)*2) calc(var(--rg)*4) calc(var(--rg)*-2) rgba(60,10,10,.45)}
+
+/* ======================================================================
+   1) СТРАНИЦАТА: вечерна снимка зад голямо матово стъкло
+   ====================================================================== */
+html,body,#stage{background:#2a050d}
+#canvas.bcv{background:
+  linear-gradient(180deg,rgba(42,5,13,.12) 0,rgba(42,5,13,.12) 390px,rgba(42,5,13,.45) 820px,rgba(42,5,13,.86) 1250px,#2a050d 1550px),
+  url(assets/card-properties.jpg) 50% 390px/auto 1100px no-repeat,#2a050d}
+html.desk #canvas.bcv{background:linear-gradient(180deg,rgba(42,5,13,.18) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.72) 100%),url(assets/card-properties.jpg) 50% 72%/cover no-repeat,#2a050d}
+
+.bflow{border-radius:50px;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.7),inset 0 0 60px rgba(255,214,160,.12),0 0 44px rgba(246,212,142,.3),0 40px 80px -30px rgba(0,0,0,.65)}
+html:not(.desk) .bflow{margin:18px 14px 30px;padding:24px 20px 30px}
+
+/* кремаво стъкло – полета и бутони върху стъклото */
+.b-q,.b-filt:not(#b-new),.bc:not(.on){background:linear-gradient(180deg,rgba(255,253,249,.97) 0%,rgba(252,241,231,.93) 100%)!important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.28),0 0 22px rgba(255,228,196,.35),0 16px 26px -16px rgba(0,0,0,.65),inset 0 2px 0 #fff!important}
+.b-q:focus-within{box-shadow:0 0 0 2.5px #e6bf5b,0 0 22px rgba(246,212,142,.7)!important}
+.b-q input{color:#14070a}
+.b-q input::placeholder{color:#6a4a40}
+.b-filt[aria-expanded="true"]{box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5px rgba(255,240,205,.45),0 0 22px rgba(246,212,142,.7)!important}
+/* „Нов брокер“ – основно действие: винено със златен пръстен */
+#b-new{color:#fff3dc;background:var(--wine)!important;border:0;
+  box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 4px rgba(255,170,180,.4),0 0 22px rgba(230,191,91,.5),0 14px 24px -14px rgba(20,0,6,.75)!important}
+#b-new svg.i{color:#ffe1a6}
+/* категории: активната – винено със златен пръстен */
+.bc{border:0!important}
+.bc.on{background:var(--wine)!important;box-shadow:0 0 0 2.5px #f1c37f,0 0 0 5px rgba(255,236,190,.35),0 0 24px rgba(240,196,110,.6),inset 0 3px 4px rgba(255,170,180,.4)!important}
+.bc.on svg.i{color:#ffe1a6}
+.b-pop{border-radius:26px;background:linear-gradient(180deg,rgba(255,252,247,.98),rgba(253,242,231,.97));box-shadow:var(--ring)}
+
+/* --- телефон: лентата с търсене и бутони тече в стъклото --- */
+html:not(.desk) .btools{display:flex;align-items:center;gap:12px;height:auto;padding:0}
+html:not(.desk) .btools .b-q{position:relative;left:auto;top:auto;flex:1;width:auto;min-width:0;height:72px}
+html:not(.desk) .btools #b-new,html:not(.desk) .btools #b-filt{position:relative;left:auto;top:auto;flex:0 0 auto;width:auto;height:72px;padding:0 22px;gap:10px;font-size:28px}
+html:not(.desk) .b-pop{top:90px;right:0}
+html:not(.desk) .bchips{grid-template-columns:minmax(0,1.42fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,1.04fr);gap:10px;padding:18px 0 0}
+html:not(.desk) .bc{height:66px;gap:8px;padding:0 8px;font-size:25px}
+html:not(.desk) .bc svg.i{font-size:30px}
+
+/* --- компютър: един ред (търсене · категории · Нов брокер · Филтри), отдолу картите --- */
+html.desk .bflow{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-rows:auto auto;column-gap:16px;align-items:center;
+  margin:16px calc(var(--xL,24px) - 16px) 24px;padding:24px 28px 30px;border-radius:44px}
+html.desk .btools{display:contents}
+html.desk .btools .b-q{grid-column:1;grid-row:1;position:relative!important;left:auto!important;top:auto!important;width:auto;max-width:none!important;height:66px}
+html.desk .bchips{position:static;grid-column:2;grid-row:1;display:flex;gap:12px;padding:0}
+html.desk .bc{height:66px;padding:0 22px}
+html.desk .btools #b-new{grid-column:3;grid-row:1;position:relative;left:auto;top:auto;flex:none;width:236px;height:66px;margin:0}
+html.desk .btools #b-filt{grid-column:4;grid-row:1;position:relative;left:auto;top:auto;flex:none;width:198px;height:66px;margin:0}
+html.desk .b-pop{top:104px;right:28px}
+html.desk .bgrid{grid-column:1/-1;grid-row:2;padding:26px 0 0;gap:24px 24px}
+
+/* ======================================================================
+   2) КАРТИТЕ НА БРОКЕРИТЕ – портрет вляво, кремаво стъкло, HD снимка преливаща отдясно зад текста
+   ====================================================================== */
+html:not(.desk) .bgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px 16px;padding:22px 0 0}
+.bk{overflow:hidden;isolation:isolate;border:0;border-radius:28px;background:var(--cream);box-shadow:var(--ring)}
+.bk::before{content:"";position:absolute;right:0;top:0;bottom:0;width:48%;z-index:-1;pointer-events:none;
+  background:center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);-webkit-mask-image:var(--v3m);mask-image:var(--v3m)}
+.bk:nth-child(8n+1)::before{background-image:url(assets/nd/ph18.jpg)}
+.bk:nth-child(8n+2)::before{background-image:url(assets/nd/ph09.jpg)}
+.bk:nth-child(8n+3)::before{background-image:url(assets/nd/ph17.jpg)}
+.bk:nth-child(8n+4)::before{background-image:url(assets/nd/ph12.jpg)}
+.bk:nth-child(8n+5)::before{background-image:url(assets/nd/ph07.jpg)}
+.bk:nth-child(8n+6)::before{background-image:url(assets/nd/ph13.jpg)}
+.bk:nth-child(8n+7)::before{background-image:url(assets/nd/ph01.jpg)}
+.bk:nth-child(8n+8)::before{background-image:url(assets/nd/ph16.jpg)}
+/* портретът – главната снимка, без преливане върху лицето */
+.bk .pt{background-position:center 22%;border-radius:22px;box-shadow:0 0 0 3px #fffaf2,0 0 0 6px rgba(214,163,92,.45),0 0 18px rgba(246,212,142,.55),0 8px 16px -6px rgba(60,10,10,.5)}
+/* текстът върху снимката – тъмно мастило с бял ореол */
+.bk .nm{color:#14070a;text-shadow:var(--hl)}
+.bk .ti{color:#3d1d18;font-weight:700;text-shadow:var(--hl)}
+.bk .rt{color:#14070a;font-weight:800;text-shadow:var(--hl)}
+.stars svg.i{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px rgba(255,255,255,.9))}
+.bk .tg{background:var(--wine);box-shadow:inset 0 0 0 1.5px #e6bf5b,0 0 12px rgba(230,191,91,.45),0 3px 6px rgba(60,0,10,.35)}
+.bk .tg svg.i{color:#ffe1a6}
+.bk .hrt{width:56px;height:56px;border-radius:50%;font-size:30px;color:#7b1020;
+  background:radial-gradient(120% 90% at 30% 18%,#fff,rgba(255,248,238,.95) 55%,rgba(246,226,200,.95));box-shadow:0 0 0 2px #e6bf5b,0 0 14px rgba(246,212,142,.6),0 4px 8px rgba(60,10,10,.3)}
+.bk .ab{background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(252,241,231,.95));color:#2b1414;
+  box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4px rgba(214,163,92,.3),0 0 14px rgba(255,228,196,.5),0 8px 14px -8px rgba(60,10,10,.5)}
+.bk .go{color:#4a0a10;background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%);
+  box-shadow:0 0 0 2px rgba(246,212,142,.9),0 0 14px rgba(255,220,150,.7),0 4px 8px rgba(0,0,0,.35)}
+.bgrid .empty{border-radius:28px;background:var(--cream);box-shadow:var(--ring);color:#3d1d18}
+/* телефон – същата подредба, редът с действията не излиза от картата */
+html:not(.desk) .bk{height:262px}
+html:not(.desk) .bk .pt{left:16px;top:16px;width:160px;height:168px}
+html:not(.desk) .bk .nm{left:192px;right:62px;top:22px}
+html:not(.desk) .bk .ti{left:193px;top:64px;right:14px}
+html:not(.desk) .bk .rt{left:193px;top:98px}
+html:not(.desk) .bk .tags{left:193px;top:136px}
+html:not(.desk) .bk .hrt{right:12px;top:14px;width:48px;height:48px;font-size:26px}
+html:not(.desk) .bk .acts{left:14px;right:14px;bottom:14px;gap:8px}
+html:not(.desk) .bk .acts .ab{height:50px;padding:0 12px;gap:8px;font-size:22px!important;min-width:0;overflow:hidden}
+html:not(.desk) .bk .ab.call{width:auto;flex:0 0 auto}
+html:not(.desk) .bk .go{flex:0 0 50px;height:50px}
+/* компютър – по-едри надписи, текстът е центриран спрямо портрета */
+html.desk .bk{height:calc(var(--bkh,250px) - 30px)}
+html.desk .bk .pt{left:18px;top:18px;width:var(--ptw,166px);height:calc(var(--bkh,250px) - 140px)}
+html.desk .bk .nm{left:calc(var(--ptw,166px) + 40px);right:84px;top:calc(30px + (var(--bkh,250px) - 396px)*.3);font-size:36px}
+html.desk .bk .ti{left:calc(var(--ptw,166px) + 41px);right:18px;top:calc(84px + (var(--bkh,250px) - 396px)*.35);font-size:27px}
+html.desk .bk .rt{left:calc(var(--ptw,166px) + 41px);top:calc(126px + (var(--bkh,250px) - 396px)*.4);font-size:27px}
+html.desk .bk .rt .stars svg.i{font-size:29px}
+html.desk .bk .tags{left:calc(var(--ptw,166px) + 41px);top:calc(176px + (var(--bkh,250px) - 396px)*.45);gap:10px}
+html.desk .bk .tg{height:42px;padding:0 18px 0 14px;font-size:23px}
+html.desk .bk .tg svg.i{font-size:24px}
+html.desk .bk .hrt{right:18px;top:18px}
+html.desk .bk .acts{left:18px;right:18px;bottom:18px;gap:10px}
+html.desk .bk .ab{height:62px;border-radius:31px;font-size:25px;padding:0 22px}
+html.desk .bk .ab svg.i{font-size:28px}
+html.desk .bk .ab.call{width:auto;flex:0 0 auto}
+html.desk .bk .go{flex:0 0 62px;height:62px;font-size:30px}
+
+/* ======================================================================
+   3) КАРТА НА БРОКЕР (общо)
+   ====================================================================== */
+.bwin{background:#fbeee2;border-color:#efc57a}
+.bwin .mscroll{background:linear-gradient(180deg,rgba(255,250,244,.99),rgba(251,236,222,.98))}
+.bm-x{color:#fff3dc!important;background:radial-gradient(circle at 35% 28%,#d0405c 0%,#a3213a 45%,#6a0a1d 100%)!important;box-shadow:0 0 0 2px #e6b866,0 0 14px rgba(230,191,91,.5),0 3px 8px rgba(0,0,0,.35)!important}
+.bctl .mbtn:not(.bm-x){color:#4a2a00;background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%);box-shadow:0 3px 8px rgba(0,0,0,.35),inset 0 0 0 1px #fff2c4,0 0 12px rgba(246,212,142,.5)}
+
+/* заглавна лента – винена панделка (телефон) / медальон и сериф върху стъклото (компютър) */
+.bm-bar{background:none;border:0;box-shadow:none}
+.bm-bar::before{inset:0 0 0 0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 64' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='r' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%236c0a1d'/%3E%3Cstop offset='.55' stop-color='%238d1129'/%3E%3Cstop offset='.8' stop-color='%23b2193d'/%3E%3Cstop offset='1' stop-color='%23e34f72'/%3E%3C/linearGradient%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23a8702c'/%3E%3Cstop offset='.25' stop-color='%23ffe9ad'/%3E%3Cstop offset='.5' stop-color='%23c88f3d'/%3E%3Cstop offset='.75' stop-color='%23fff0c0'/%3E%3Cstop offset='1' stop-color='%23b37a32'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z' fill='url(%23r)'/%3E%3Cpath d='M700 1 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+.bm-bar h2{z-index:1;color:#fff3dc}
+.bm-bar h2 svg.i{color:#fff1de}
+
+/* профилен блок – портретът остава, снимката прелива отдясно */
+.bm-prof{overflow:hidden;isolation:isolate;border-radius:30px;background:var(--cream);box-shadow:var(--ringc)}
+.bm-prof::before{content:"";position:absolute;right:0;top:0;bottom:0;width:48%;z-index:-1;pointer-events:none;
+  background:url(assets/nd/ph07.jpg) center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);-webkit-mask-image:var(--v3m);mask-image:var(--v3m)}
+.bm-ph{box-shadow:0 0 0 3px #fffaf2,0 0 0 6.5px rgba(214,163,92,.5),0 0 20px rgba(246,212,142,.6),0 10px 18px -8px rgba(60,10,10,.55)}
+.bm-ph img{object-position:center 20%}
+.bm-cam{box-shadow:0 0 0 2.5px #f1c37f,0 0 12px rgba(240,196,110,.6),0 2px 6px rgba(0,0,0,.4)}
+.bm-prof h3{color:#14070a;text-shadow:var(--hl)}
+.bm-role{color:#3d1d18;font-weight:700;text-shadow:var(--hl)}
+.bm-rate{color:#14070a;font-weight:800;text-shadow:var(--hl)}
+.bm-contact{background:none;box-shadow:none;padding:0;border-radius:0;height:auto}
+.bm-tel{color:#14070a;font-weight:800;border-bottom:1.5px solid rgba(214,163,92,.35);text-shadow:var(--hl)}
+.bm-row2{display:block;height:auto}
+.bm-row2 a,.bm-off{display:flex;align-items:center;color:#14070a;font-weight:700;text-shadow:var(--hl);border-bottom:1.5px solid rgba(214,163,92,.35)}
+.bm-off{border-bottom:0}
+.bm-row2 .sep{display:none}
+.bm-tel svg.i,.bm-row2 svg.i{color:#7b1020;stroke-width:2.6;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff)}
+.bm-stat{box-shadow:inset 0 0 0 1.5px rgba(120,170,80,.55),0 0 14px rgba(120,200,90,.35),0 3px 8px rgba(30,60,10,.25)}
+
+/* табове – активният е винен със златен пръстен */
+.bt{border-radius:18px;color:#5a0a12;background:linear-gradient(180deg,rgba(255,253,249,.97),rgba(252,241,231,.93));
+  box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4px rgba(214,163,92,.3),0 0 14px rgba(255,228,196,.5),0 8px 14px -8px rgba(60,10,10,.45)}
+.bt svg.i{color:#7b1020;stroke-width:2.4}
+.bt.on{color:#fff3dc;background:var(--wine);box-shadow:0 0 0 2.5px #f1c37f,0 0 0 5px rgba(255,236,190,.35),0 0 20px rgba(240,196,110,.6),inset 0 3px 4px rgba(255,170,180,.4)}
+.bt.on svg.i{color:#ffe1a6}
+
+/* разделите – кремаво стъкло, заглавие, чиста HD снимка отдясно */
+.bsec{isolation:isolate;border:0;border-radius:30px;background:var(--cream);box-shadow:var(--ringc)}
+.bsh{z-index:2}
+.bimg,#bs-stats::after{position:absolute;left:auto;right:0;top:0;bottom:0;width:48%;z-index:-1;pointer-events:none;
+  background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:var(--v3m)!important;mask-image:var(--v3m)!important}
+.bimg.nar{width:48%}
+#bs-stats::after{content:"";background-image:url(assets/g-facade.jpg)}
+#bs-info .bimg{background-image:url(assets/nd/ph06.jpg)!important}
+#bs-roles .bimg{background-image:url(assets/card-deals.jpg)!important}
+#bs-tasks .bimg{background-image:url(assets/card-viewings.jpg)!important}
+#bs-restr .bimg{background-image:url(assets/nd/ph13.jpg)!important;width:32%}
+#bs-clients .bimg{background-image:url(assets/card-clients.jpg)!important}
+
+/* редове „иконка · етикет: стойност“ */
+.binfo{margin:0;padding:0 0 0 30px;grid-template-columns:minmax(0,39%) minmax(0,1fr);gap:0;align-items:stretch}
+.binfo .lb{display:flex;align-items:center;gap:12px;font-weight:700;color:#7b1020!important;border-bottom:1.5px solid rgba(214,163,92,.32);text-shadow:0 0 6px #fff8f0,0 0 2px #fff}
+.binfo .lb svg.i{flex:none;color:#7b1020;stroke-width:2.7}
+.binfo>.in,.binfo>.selw{border-bottom:1.5px solid rgba(214,163,92,.32)}
+.binfo>:nth-last-child(-n+2){border-bottom:0}
+.binfo .in{height:100%;box-shadow:none!important;padding-left:4px!important;font-weight:800!important;color:#14070a!important;text-shadow:var(--hl)!important}
+.binfo .in:hover{box-shadow:inset 0 -2.5px 0 #d9a95a!important}
+.binfo .in:focus{box-shadow:0 0 0 2px #d9a95a,0 0 12px rgba(217,169,90,.55)!important}
+.binfo .in::placeholder{color:#5a4038!important;opacity:1!important;font-style:italic;font-weight:700!important}
+.binfo .in.wide{grid-column:auto;max-width:none}
+.binfo .selw{display:flex;align-items:center}
+.binfo .selw .in{width:auto;flex:0 1 auto;max-width:100%}
+.binfo .selw svg.i{position:static;flex:none;margin:0 0 0 -44px!important;color:#7b1020;stroke-width:2.6}
+
+/* статистика – златни плочки */
+.bstats{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:0 0 0 24px;padding:16px 4px;border-radius:24px;
+  background:linear-gradient(180deg,rgba(255,252,247,.95),rgba(253,242,231,.92));box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 5px rgba(214,163,92,.3),0 0 18px rgba(255,228,196,.55),0 10px 20px -12px rgba(60,10,10,.5)}
+#bs-stats .bst{min-height:0;padding:0 6px;gap:8px;border-right:0!important}
+#bs-stats .bst+.bst{border-left:2px solid rgba(214,163,92,.4)}
+#bs-stats .bst svg.i{box-sizing:content-box;padding:12px;border-radius:50%;color:#7b1020;stroke-width:2.2;background:var(--gdisc);
+  box-shadow:0 0 0 2px #fff2c4,0 0 0 4.5px rgba(214,163,92,.55),0 0 14px rgba(246,212,142,.75)}
+#bs-stats .bst b{font-weight:800!important;color:#14070a!important;line-height:1.05}
+#bs-stats .bst span{color:#7a5a52!important;font-weight:500}
+
+/* роли */
+.broles{margin:0;padding:0 0 0 28px}
+.broles .lb{position:static;display:flex;align-items:center;gap:12px;font-weight:700;color:#7b1020;text-shadow:0 0 6px #fff8f0,0 0 2px #fff}
+.broles .lb svg.i{color:#7b1020;stroke-width:2.7}
+.rsel{display:none!important;margin:10px 0 0;border-radius:18px;font-weight:800;color:#14070a;background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(252,241,231,.95));box-shadow:0 0 0 2px #e6bf5b,0 0 14px rgba(246,212,142,.55)}
+.rsel svg.i{color:#7b1020}
+.rlist{margin:10px 0 0;border-radius:18px;background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(252,241,231,.96));box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 16px rgba(255,228,196,.6)}
+.rlist li{color:#14070a;font-weight:700}
+.rlist li.on{color:#fff3dc;background:var(--wine);box-shadow:inset 0 0 0 1.5px #e6bf5b}
+/* задачи и ограничения */
+.v3-sub{display:flex;align-items:center;margin-top:14px;font-weight:700;color:#7b1020;text-shadow:0 0 6px #fff8f0,0 0 2px #fff}
+.btasks{margin:0;padding:0 0 0 28px}
+.selw.t .in,.b-addbox .in{border:0;font-weight:800;color:#14070a;background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(252,241,231,.95));box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.32),0 0 14px rgba(255,228,196,.55)}
+.ck{color:#14070a;font-weight:700;text-shadow:var(--hl)}
+.ck b{border-radius:8px;background:#fffdf9;box-shadow:0 0 0 2px rgba(214,163,92,.7),0 0 10px rgba(255,228,196,.8),inset 0 1px 2px rgba(120,60,40,.15)}
+.ck input:checked+b{background:var(--wine);box-shadow:0 0 0 2px #e6bf5b,0 0 10px rgba(230,191,91,.5)}
+.cks.two{margin:0;padding:0 0 0 28px;column-gap:26px}
+/* прикрепени клиенти – „Добави клиент“ е златен бутон (второстепенно действие в раздела) */
+.b-add{color:#3a1d00;background:var(--gold);box-shadow:inset 0 0 0 1.5px rgba(255,248,220,.85),0 0 16px rgba(246,212,142,.65),0 8px 14px -8px rgba(80,40,0,.6)}
+.b-add svg.i{color:#7b1020}
+.b-ok{background:var(--wine);box-shadow:inset 0 0 0 1.5px #e6bf5b,0 0 12px rgba(230,191,91,.45)}
+.b-addbox{margin:0 0 14px;padding:0 0 0 28px}
+.bcl{margin:0;padding:0 0 0 28px}
+.chipc{color:#14070a;font-weight:700;background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(252,241,231,.95));box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4px rgba(214,163,92,.32),0 0 12px rgba(255,228,196,.55)}
+.bcl .none{color:#5a4038;font-weight:700;font-style:italic;text-shadow:var(--hl)}
+.bsh em{color:#ffe7c9}
+/* действия долу */
+.ba{color:#5a0a12;background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(252,241,231,.95));box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 16px rgba(255,228,196,.55),0 10px 18px -10px rgba(60,10,10,.5)}
+.ba svg.i{color:#7b1020}
+.ba.hot{color:#fff3dc;border:0;font-weight:700;background:var(--wine);box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 4px rgba(255,170,180,.4),0 0 24px rgba(230,191,91,.5),0 12px 22px -10px rgba(80,10,20,.7)}
+.ba.hot svg.i{color:#ffe1a6}
+
+/* ======================================================================
+   4) КАРТА НА БРОКЕР – ТЕЛЕФОН (същата подредба, по-едри надписи, винени панделки)
+   ====================================================================== */
+html:not(.desk) .bmcv{padding:0 0 40px}
+html:not(.desk) .bm-bar{height:108px;background:linear-gradient(180deg,rgba(255,250,244,.99),rgba(255,248,240,.96))}
+html:not(.desk) .bm-bar::before{right:240px}
+html:not(.desk) .bm-bar h2{left:34px;top:24px;font-size:52px;gap:22px}
+html:not(.desk) .bm-bar h2 svg.i{font-size:52px}
+html:not(.desk) .bctl{top:calc(var(--bz,.37)*20px)}
+html:not(.desk) .bm-prof{height:356px;margin:18px 20px 0}
+html:not(.desk) .bm-ph{left:18px;top:18px;width:240px;height:320px;border-radius:26px}
+html:not(.desk) .bm-cam{width:64px;height:64px;font-size:34px}
+html:not(.desk) .bm-prof h3{left:282px;top:24px;max-width:470px;font-size:56px}
+html:not(.desk) .bm-role{left:284px;top:90px;font-size:36px}
+html:not(.desk) .bm-rate{left:284px;top:138px;font-size:36px}
+html:not(.desk) .bm-rate .stars svg.i{font-size:38px}
+html:not(.desk) .bm-stat{top:auto;bottom:22px;right:22px;height:60px;font-size:30px}
+html:not(.desk) .bm-contact{left:282px;right:auto;width:440px;top:188px}
+html:not(.desk) .bm-tel{height:56px;gap:18px;font-size:40px}
+html:not(.desk) .bm-row2 a,html:not(.desk) .bm-off{height:52px;gap:18px;font-size:33px}
+html:not(.desk) .bm-tel svg.i,html:not(.desk) .bm-row2 svg.i{font-size:36px}
+/* табове – 3 × 2 плочки, едри */
+html:not(.desk) .bm-tabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:22px 20px 0}
+html:not(.desk) .bt{height:84px;border-radius:22px;gap:12px;font-size:34px}
+html:not(.desk) .bt svg.i{font-size:38px}
+/* раздели */
+html:not(.desk) .bsec{margin:24px 20px 0;padding:104px 0 28px;min-height:0}
+html:not(.desk) .bsh{left:0;top:0;right:0;height:84px;padding:0 0 0 34px;gap:22px;border-radius:0;clip-path:none;box-shadow:none;font-size:46px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 64' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='r' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%236c0a1d'/%3E%3Cstop offset='.55' stop-color='%238d1129'/%3E%3Cstop offset='.8' stop-color='%23b2193d'/%3E%3Cstop offset='1' stop-color='%23e34f72'/%3E%3C/linearGradient%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23a8702c'/%3E%3Cstop offset='.25' stop-color='%23ffe9ad'/%3E%3Cstop offset='.5' stop-color='%23c88f3d'/%3E%3Cstop offset='.75' stop-color='%23fff0c0'/%3E%3Cstop offset='1' stop-color='%23b37a32'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z' fill='url(%23r)'/%3E%3Cpath d='M700 1 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+html:not(.desk) .bsh svg.i{font-size:46px}
+html:not(.desk) .bsh em{font-size:28px}
+html:not(.desk) .bimg,html:not(.desk) #bs-stats::after{width:50%}
+html:not(.desk) #bs-restr .bimg{width:36%}
+html:not(.desk) .binfo{max-width:84%}
+html:not(.desk) .binfo .lb{min-height:74px;font-size:34px}
+html:not(.desk) .binfo .lb svg.i{font-size:36px}
+html:not(.desk) .binfo .in{min-height:74px;font-size:37px}
+html:not(.desk) .binfo .selw svg.i{font-size:36px;margin-top:-18px}
+html:not(.desk) .bstats{margin:0 24px;max-width:none}
+html:not(.desk) #bs-stats .bst svg.i{font-size:40px}
+html:not(.desk) #bs-stats .bst b{font-size:50px!important}
+html:not(.desk) #bs-stats .bst span{font-size:30px}
+html:not(.desk) .broles{max-width:72%}
+html:not(.desk) .broles .lb{font-size:36px}
+html:not(.desk) .broles .lb svg.i{font-size:38px}
+html:not(.desk) .rsel{height:72px;font-size:36px;padding:0 20px 0 24px}
+html:not(.desk) .rsel svg.i{font-size:36px}
+html:not(.desk) .rlist{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;padding:10px}
+html:not(.desk) .rlist li{height:64px;margin:0;font-size:31px;padding:0 14px 0 18px}
+html:not(.desk) .rlist li svg.i{font-size:32px}
+html:not(.desk) .btasks{max-width:76%}
+html:not(.desk) #bm-perm{grid-template-columns:1fr 1fr;column-gap:20px}
+html:not(.desk) .v3-sub{font-size:34px;margin-top:22px}
+html:not(.desk) .selw.t .in{height:72px;font-size:34px;border-radius:20px}
+html:not(.desk) .selw svg.i{font-size:36px;margin-top:-18px}
+html:not(.desk) .cks{gap:14px;margin-top:18px}
+html:not(.desk) .ck{gap:22px;font-size:36px;min-height:56px}
+html:not(.desk) .ck b{flex:0 0 46px;height:46px}
+html:not(.desk) .ck b svg.i{font-size:32px}
+html:not(.desk) .cks.two{grid-template-columns:1fr;max-width:70%}
+html:not(.desk) .b-add{top:auto;bottom:auto;position:relative;right:auto;margin:-6px 0 18px 28px;height:68px;padding:0 28px;font-size:32px;width:max-content}
+html:not(.desk) .b-add svg.i{font-size:34px}
+html:not(.desk) .b-addbox .in{height:72px;font-size:34px}
+html:not(.desk) .b-ok{height:72px;font-size:32px;padding:0 30px}
+html:not(.desk) .bcl{grid-template-columns:1fr;max-width:72%;min-height:0}
+html:not(.desk) .chipc{height:64px;font-size:33px;border-radius:32px}
+html:not(.desk) .chipc>svg.i{font-size:34px}
+html:not(.desk) .bcl .none{font-size:34px}
+html:not(.desk) .bm-acts{grid-template-columns:1fr 1fr;gap:18px;padding:30px 20px 0}
+html:not(.desk) .ba{height:88px;border-radius:44px;font-size:34px}
+html:not(.desk) .ba svg.i{font-size:38px}
+html:not(.desk) .ba.hot{grid-column:1/-1;order:-1}
+
+/* ======================================================================
+   5) КАРТА НА БРОКЕР – КОМПЮТЪР: прозрачно стъкло върху вечерна снимка
+   ====================================================================== */
+html.desk .bwin{background:#2a050d;border-width:0!important;box-shadow:0 0 0 2px #efc57a,0 0 0 3.5px rgba(255,235,190,.55),0 0 24px rgba(255,200,120,.55),0 20px 50px rgba(30,0,8,.55)}
+html.desk .bwin .mscroll{background:#2a050d}
+html.desk .bmcv{isolation:isolate}
+html.desk .bmcv::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
+  background:radial-gradient(90% 60% at 50% 0%,rgba(46,6,16,.15),rgba(46,6,16,.55) 70%,rgba(30,4,10,.8)),linear-gradient(180deg,rgba(46,6,16,.25),rgba(46,6,16,.5)),url(assets/hero-villa.jpg) center/cover no-repeat;
+  filter:saturate(1.15) brightness(.82)}
+html.desk .bmcv::after{content:"";position:absolute;inset:16px;z-index:-1;pointer-events:none;border-radius:32px;
+  background:linear-gradient(160deg,rgba(255,248,238,.30),rgba(255,236,214,.12) 60%,rgba(255,236,214,.08));
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 0 0 1.5px rgba(255,236,200,.55),inset 0 1.5px 0 rgba(255,255,255,.7),inset 0 0 50px rgba(255,214,160,.12),0 0 40px rgba(246,212,142,.28)}
+html.desk .bctl{top:24px;right:30px;gap:12px}
+html.desk .bctl .mbtn{width:46px;height:46px;border-radius:15px;font-size:20px}
+html.desk .bctl .mbtn:not(.bm-x){color:#fff3dc;background:linear-gradient(160deg,rgba(90,14,30,.62),rgba(46,6,16,.55));box-shadow:inset 0 0 0 1px rgba(255,236,200,.6),0 4px 10px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+html.desk .bm-x{border-radius:15px!important;background:var(--wine)!important;box-shadow:inset 0 0 0 1.5px #e6bf5b,0 0 14px rgba(230,191,91,.5)!important}
+/* лява колона: заглавие, профил, табове, основна информация, статистика */
+html.desk .bm-left{height:1010px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding-bottom:26px}
+html.desk .bm-left::-webkit-scrollbar{display:none}
+html.desk .bm-bar{position:relative;height:76px;width:1024px}
+html.desk .bm-bar::before{display:none}
+html.desk .bm-bar h2{left:40px;top:24px;gap:18px;font:700 42px/1 var(--serif);color:#fff6e6;text-shadow:0 2px 8px rgba(40,0,8,.6)}
+html.desk .bm-bar h2 svg.i{box-sizing:content-box;width:28px;height:28px;padding:12px;border-radius:50%;font-size:28px;color:#ffe9b8;stroke-width:2.2;background:var(--disc);box-shadow:0 0 0 2px #f1c37f,0 0 12px rgba(240,196,110,.6)}
+html.desk .bm-prof{height:240px;margin:4px 14px 0 36px}
+html.desk .bm-ph{left:16px;top:16px;width:200px;height:208px}
+html.desk .bm-cam{width:50px;height:50px;font-size:26px}
+html.desk .bm-prof h3{left:240px;top:18px;max-width:420px;font-size:44px}
+html.desk .bm-role{left:242px;top:70px;font-size:27px}
+html.desk .bm-rate{left:242px;top:104px;font-size:27px}
+html.desk .bm-rate .stars svg.i{font-size:30px}
+html.desk .bm-stat{top:20px;right:20px;height:50px;font-size:24px}
+html.desk .bm-contact{left:240px;right:auto;width:400px;top:136px}
+html.desk .bm-tel{height:36px;gap:14px;font-size:28px}
+html.desk .bm-row2 a,html.desk .bm-off{height:31px;gap:14px;font-size:24px}
+html.desk .bm-tel svg.i,html.desk .bm-row2 svg.i{font-size:26px}
+html.desk .bm-tabs{display:flex;gap:10px;padding:12px 14px 0 36px}
+html.desk .bt{flex:1 1 auto;height:56px;padding:0 12px;font-size:23px}
+html.desk .bt svg.i{font-size:25px}
+html.desk .bsec{padding:78px 0 18px;min-height:0}
+html.desk .bm-left .bsec{margin:12px 14px 0 36px}
+html.desk .bsh{left:26px;top:18px;height:auto;padding:0;gap:16px;background:none;border-radius:0;clip-path:none;box-shadow:none;
+  font:700 36px/1.1 var(--serif);color:#3b0a0e;text-shadow:var(--hl)}
+html.desk .bsh svg.i{box-sizing:content-box;width:24px;height:24px;padding:11px;border-radius:50%;font-size:24px;color:#ffe9b8;stroke-width:2.2;background:var(--disc);box-shadow:0 0 0 2px #f1c37f,0 0 10px rgba(240,196,110,.55)}
+html.desk .bsh em{font-size:22px;color:#3d1d18;text-shadow:var(--hl)}
+html.desk .binfo{max-width:64%}
+html.desk .binfo .lb{min-height:44px;font-size:25px}
+html.desk .binfo .lb svg.i{font-size:26px}
+html.desk .binfo .in{min-height:44px;font-size:28px}
+html.desk .binfo .selw svg.i{font-size:26px;margin-top:-13px}
+html.desk .bstats{max-width:66%;margin-left:24px;padding:10px 4px}
+html.desk #bs-stats .bst{gap:5px}
+html.desk #bs-stats .bst svg.i{font-size:24px;padding:9px}
+html.desk #bs-stats .bst b{font-size:34px!important}
+html.desk #bs-stats .bst span{font-size:21px}
+/* дясна колона: роли · задачи, ограничения, клиенти, действия */
+html.desk .bm-right{left:1012px;top:84px;width:1022px;height:916px;padding:4px 0 26px}
+html.desk .bm-right .bsec,html.desk .bm-right .bsec:first-child{margin:16px 22px 0 14px}
+html.desk .broles{max-width:66%}
+html.desk .broles .lb{display:none}
+html.desk .rlist{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;margin:0;padding:10px}
+html.desk .rlist li{margin:0;padding:0 14px}
+html.desk .broles .lb{font-size:25px}
+html.desk .broles .lb svg.i{font-size:26px}
+html.desk .rsel{height:50px;font-size:25px}
+html.desk .rlist li{height:38px;font-size:23px}
+html.desk .btasks{max-width:64%}
+html.desk .btasks .selw.t{max-width:420px}
+html.desk #bm-perm{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:18px}
+html.desk .v3-sub{font-size:25px}
+html.desk .selw.t .in{height:50px;font-size:24px;border-radius:16px}
+html.desk .ck{font-size:25px;min-height:38px}
+html.desk .ck b{flex:0 0 32px;height:32px}
+html.desk .cks.two{max-width:72%;grid-template-columns:1fr 1fr}
+html.desk .cks.two .ck{font-size:24px}
+html.desk .b-add{top:16px;right:20px;height:52px;font-size:24px}
+html.desk .bcl{max-width:64%;min-height:80px}
+html.desk .chipc{height:48px;font-size:24px}
+html.desk .bcl .none{font-size:25px}
+html.desk .bm-acts{grid-template-columns:auto auto 1fr;gap:18px;padding:22px 22px 0 14px}
+html.desk .ba{height:66px;border-radius:33px;padding:0 30px;font-size:27px}
+
+/* ======================================================================
+   6) ФОРМА „НОВ БРОКЕР“ (обща форма от crm-ui) – същият стил: панделка, раздел с редове и снимка отдясно
+   (селекторите са с „html body“, защото стиловете на crm-ui се добавят по-късно в страницата)
+   ====================================================================== */
+html body #nd-fwin{background:#fbeee2}
+html body #nd-fwin .mscroll{background:linear-gradient(180deg,rgba(255,250,244,.99),rgba(251,236,222,.98))}
+html body #nd-fwin #nd-f-close{color:#fff3dc;background:radial-gradient(circle at 35% 28%,#d0405c 0%,#a3213a 45%,#6a0a1d 100%);box-shadow:0 0 0 2px #e6b866,0 0 14px rgba(230,191,91,.5),0 3px 8px rgba(0,0,0,.35)}
+html body #nd-fwin .f-bar{height:108px;padding-left:34px;gap:22px;border:0;box-shadow:none;background:linear-gradient(180deg,rgba(255,250,244,.99),rgba(255,248,240,.96))}
+html body #nd-fwin .f-bar::before{content:"";position:absolute;left:0;top:0;bottom:0;right:240px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 64' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='r' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%236c0a1d'/%3E%3Cstop offset='.55' stop-color='%238d1129'/%3E%3Cstop offset='.8' stop-color='%23b2193d'/%3E%3Cstop offset='1' stop-color='%23e34f72'/%3E%3C/linearGradient%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23a8702c'/%3E%3Cstop offset='.25' stop-color='%23ffe9ad'/%3E%3Cstop offset='.5' stop-color='%23c88f3d'/%3E%3Cstop offset='.75' stop-color='%23fff0c0'/%3E%3Cstop offset='1' stop-color='%23b37a32'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z' fill='url(%23r)'/%3E%3Cpath d='M700 1 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+html body #nd-fwin .f-bar svg.i,html body #nd-fwin .f-bar h2{position:relative;z-index:1}
+html body #nd-fwin .f-bar svg.i{font-size:50px;color:#fff1de}
+html body #nd-fwin .f-bar h2{font-size:48px;color:#fff3dc;max-width:560px}
+html body #nd-fwin .f-photo{display:none}
+html body #nd-fwin .f-body{padding:22px 22px 0}
+html body #nd-fwin .ndg{margin:0 0 18px;padding:104px 0 22px;border:0;border-radius:30px;isolation:isolate;background:var(--cream);box-shadow:var(--ringc)}
+html body #nd-fwin .ndg-img{width:46%;z-index:-1;-webkit-mask-image:var(--v3m);mask-image:var(--v3m)}
+html body #nd-fwin .ndg-h{left:0;top:0;right:0;height:84px;padding:0 0 0 34px;gap:20px;border-radius:0;clip-path:none;box-shadow:none;font-size:42px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 64' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='r' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%236c0a1d'/%3E%3Cstop offset='.55' stop-color='%238d1129'/%3E%3Cstop offset='.8' stop-color='%23b2193d'/%3E%3Cstop offset='1' stop-color='%23e34f72'/%3E%3C/linearGradient%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%23a8702c'/%3E%3Cstop offset='.25' stop-color='%23ffe9ad'/%3E%3Cstop offset='.5' stop-color='%23c88f3d'/%3E%3Cstop offset='.75' stop-color='%23fff0c0'/%3E%3Cstop offset='1' stop-color='%23b37a32'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z' fill='url(%23r)'/%3E%3Cpath d='M700 1 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+html body #nd-fwin .ndg-h svg.i{font-size:42px}
+html body #nd-fwin .ndg-f,html body #nd-fwin.widecv .ndg-f{grid-template-columns:1fr!important;gap:0;margin-left:30px;padding:0;max-width:84%}
+html body #nd-fwin .ndg .ef{grid-template-columns:minmax(0,40%) minmax(0,1fr)!important;gap:12px;min-height:80px;border-bottom:1.5px solid rgba(214,163,92,.32)}
+html body #nd-fwin .ndg .ef:last-child{border-bottom:0}
+html body #nd-fwin .ndg .el{display:flex;align-items:center;gap:14px;padding:0;background:none;box-shadow:none;width:auto;font:700 32px/1.1 var(--cond)!important;color:#7b1020!important;text-shadow:0 0 6px #fff8f0,0 0 2px #fff!important}
+html body #nd-fwin .ndg .el svg.i{display:inline-block;flex:none;font-size:34px;color:#7b1020;stroke-width:2.7}
+html body #nd-fwin .ndg .in:not(.ta){height:64px;font-size:34px;box-shadow:none!important;font-weight:800!important;color:#14070a!important;text-shadow:var(--hl)}
+html body #nd-fwin .ndg .in:not(.ta):hover{box-shadow:inset 0 -2.5px 0 #d9a95a!important}
+html body #nd-fwin .ndg .in:not(.ta):focus{background:rgba(255,253,250,.96)!important;box-shadow:0 0 0 2px #d9a95a,0 0 12px rgba(217,169,90,.55)!important;text-shadow:none}
+html body #nd-fwin .ndg .in::placeholder{color:#5a4038!important;opacity:1;font-weight:700}
+html body #nd-fwin .ndg .selw svg.i{color:#7b1020}
+html.desk body #nd-fwin .ndg{padding-top:92px}
+html.desk body #nd-fwin .ndg-h{left:26px;top:22px;right:auto;height:auto;padding:0;gap:16px;background:none;font:700 38px/1.1 var(--serif);color:#3b0a0e;text-shadow:var(--hl)}
+html.desk body #nd-fwin .ndg-h svg.i{box-sizing:content-box;width:26px;height:26px;padding:12px;border-radius:50%;font-size:26px;color:#ffe9b8;stroke-width:2.2;background:var(--disc);box-shadow:0 0 0 2px #f1c37f,0 0 10px rgba(240,196,110,.55)}
+html:not(.desk) body #nd-fwin .ndg .el{font-size:32px!important}
+html.desk body #nd-fwin .ndg-f,html.desk body #nd-fwin.widecv .ndg-f{max-width:60%}
+html.desk body #nd-fwin .ndg .ef{min-height:60px}
+html.desk body #nd-fwin .ndg .el{font-size:26px!important}
+html.desk body #nd-fwin .ndg .el svg.i{font-size:28px}
+html.desk body #nd-fwin .ndg .in:not(.ta){height:52px;font-size:27px}
+html body #nd-fwin .ea:not(.hot){color:#5a0a12;background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(252,241,231,.95));box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 16px rgba(255,228,196,.55),0 10px 18px -10px rgba(60,10,10,.5)}
+html body #nd-fwin .ea.hot{border:0;font-weight:700;background:var(--wine);box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 4px rgba(255,170,180,.4),0 0 24px rgba(230,191,91,.5),0 12px 22px -10px rgba(80,10,20,.7)}
+html body #nd-fwin .ea.hot svg.i{color:#ffe1a6}
+html:not(.desk) body #nd-fwin .ev-acts{gap:18px;padding:10px 22px 0}
+html:not(.desk) body #nd-fwin .ea{height:92px;min-width:0;flex:1;padding:0 20px;border-radius:46px;font-size:34px}
+html:not(.desk) body #nd-fwin .ea svg.i{font-size:38px}
+html:not(.desk) body #nd-fwin .ea.hot{flex:1.4}
