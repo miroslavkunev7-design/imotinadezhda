@@ -969,7 +969,7 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
     desk=isDesk();root.classList.toggle('desk',desk);
     if(desk){
       var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1200,k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
-      var Hh=380+Math.min(exH*.5,160),G=24+Math.min(exW*.15,80),xL=(Wc-2000-G)/2;
+      var Hh=330+Math.min(exH*.5,160),G=24+Math.min(exW*.15,80),xL=(Wc-2000-G)/2; /* шапката е малко по-ниска (380→330), блокът с имотите е по-висок (09.11) */
       canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height=Hc+'px';canvas.style.paddingTop=Hh+'px';
       top.style.height=Hh+'px';
       texts.forEach(function(o,i){o.el.style.top=((i?298:224)+(Hh-380)*.75)+'px'});
