@@ -1,0 +1,395 @@
+/* CRM · Имоти – Вариант 3 (одобрен от собственика).
+   Шапката горе НЕ се променя. Под нея: голям прозрачен стъклен прозорец (матово стъкло, светъл ръб, златно сияние),
+   филтрите са кремави стъклени плочки, резултатите са групирани „Продажби“ / „Наеми“ в хоризонтални редове.
+   Картата на имота: компютър – галерия + информационна карта, табове, раздели по два на ред със снимка, която прелива отдясно;
+   телефон – същата подредба като досега, всеки раздел със снимка, отворените редове показват „етикет: стойност“.
+   Снимките преливат еднакво (като редовете в картата) и са в HD – без размазване и без матов слой върху тях.
+   Мерките са в пикселите на платното (телефон 1024 широко; компютър – 2072/2048 широко), което страницата мащабира. */
+
+/* ============================================================
+   1) СТРАНИЦА „ИМОТИ“ – всичко под шапката
+   ============================================================ */
+html,body,#stage{background:#2a050d}
+/* вечерна снимка зад стъклото (отделна от снимката в шапката), преливаща в тъмно бордо */
+#canvas.icv{background:
+  linear-gradient(180deg,rgba(42,5,13,.1) 0,rgba(42,5,13,.1) 455px,rgba(42,5,13,.42) 820px,rgba(42,5,13,.86) 1180px,#2a050d 1420px),
+  radial-gradient(60% 900px at 88% 1500px,rgba(168,46,66,.34),transparent 70%),
+  radial-gradient(55% 900px at 6% 2600px,rgba(196,120,64,.2),transparent 70%),
+  url(assets/nd/ph14.jpg) 50% 455px/100% auto no-repeat,
+  #2a050d}
+html.desk #canvas.icv{background:
+  linear-gradient(180deg,rgba(42,5,13,.18) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.7) 100%),
+  url(assets/nd/ph14.jpg) 50% 72%/cover no-repeat,#2a050d}
+
+/* --- големият стъклен прозорец --- */
+.iflow{margin:18px 16px 34px;padding:28px 24px 34px;border-radius:50px;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.7),inset 0 0 60px rgba(255,214,160,.12),
+    0 0 44px rgba(246,212,142,.3),0 40px 80px -30px rgba(0,0,0,.65)}
+
+/* кремаво стъкло – общо за плочки, бутони и полета върху прозореца */
+.iacts .ia,.ipanel .chip,.i-more,.ipanel .dl:not(.on),.i-clear,.vb:not(.on){
+  background:linear-gradient(180deg,rgba(255,253,249,.97) 0%,rgba(252,241,231,.93) 100%)!important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4px rgba(214,163,92,.26),0 0 22px rgba(255,228,196,.35),0 16px 26px -16px rgba(0,0,0,.65),inset 0 2px 0 #fff!important}
+
+/* бързи действия */
+.iacts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;padding:0!important}
+.iacts .ia{width:auto!important;height:104px;border-radius:26px}
+.iacts .ia.on{box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5px rgba(255,240,205,.5),0 0 26px rgba(246,212,142,.75),0 16px 26px -16px rgba(0,0,0,.65)!important}
+
+/* панелът с филтри се „разтваря“ в стъклото: без кремав фон, полетата текат едно под друго */
+.ipanel{position:relative;margin:26px 0 0!important;width:auto;height:auto;border-radius:0;overflow:visible;
+  background:none!important;border:0!important;box-shadow:none!important;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 250px;gap:18px 16px}
+.ipanel::after{display:none!important}
+.ipanel .iribbon{display:none}
+.ipanel .ititle{position:static;grid-column:1/-1;gap:18px;margin:2px 4px 0;font:700 46px/1.1 var(--serif);color:#fff6e6;text-shadow:0 2px 8px rgba(40,0,8,.6)}
+.ipanel .ititle svg.i{font-size:40px;color:#f6d48e}
+/* търсачка – прозрачно стъкло със светъл текст */
+.ipanel .i-q{position:relative;left:auto;top:auto;width:auto;height:86px;grid-column:1/3;border-radius:24px;padding:0 26px;gap:18px;
+  background:linear-gradient(160deg,rgba(255,248,238,.34),rgba(255,236,214,.14));box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.35),0 10px 22px -14px rgba(0,0,0,.5)}
+.ipanel .i-q svg.i{color:#fff0d6;font-size:34px}
+.ipanel .i-q input{color:#fff8ec;font:400 28px/1 var(--sans);font-style:normal}
+.ipanel .i-q input::placeholder{color:rgba(255,240,220,.85);font-style:normal}
+.ipanel .i-q:focus-within{box-shadow:inset 0 0 0 2px #f6d48e,0 0 20px rgba(246,212,142,.6)}
+.i-more{position:relative;left:auto;top:auto;width:auto;height:86px;grid-column:3;border-radius:24px;display:flex;align-items:center;justify-content:center;gap:12px;
+  font:700 29px/1 var(--cond);color:#5a0a12}
+.i-more svg.i{font-size:34px;color:#7b1020}
+.imtx{white-space:nowrap}
+/* плочките-филтри: иконка + малък етикет + стойност */
+.ipanel .chips{position:static;grid-column:1/-1;width:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 14px}
+.ipanel .chip{height:100px;border-radius:26px;padding:0 16px 0 18px;gap:12px;justify-content:flex-start!important}
+.ipanel .chip>svg.i:first-child{font-size:40px;color:#7b1020}
+.ipanel .chip .ftx{display:flex;flex-direction:column;justify-content:center;gap:7px;min-width:0;flex:1}
+.ipanel .chip .flab{font:500 21px/1 var(--cond);color:#7a5a52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ipanel .chip .val{font:700 27px/1.08 var(--cond)!important;color:#22090d!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ipanel .chip .chev{margin-left:0;font-size:26px;color:#7a5a52}
+.ipanel .chip.set{box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5px rgba(255,240,205,.45),0 0 22px rgba(246,212,142,.7),0 16px 26px -16px rgba(0,0,0,.65)!important}
+.ipanel .chip.set .flab{color:#8a1a2c}
+/* продажби / наеми, търсене, изчисти */
+.ipanel .deal{position:static;grid-column:1/-1;width:auto;grid-template-columns:1fr 1fr;column-gap:16px}
+.ipanel .dl{height:80px;font-size:32px;gap:22px}
+.ipanel .dl svg.i{font-size:40px}
+.ipanel .i-go{position:relative;left:auto;top:auto;width:auto;height:80px;grid-column:1/3}
+.ipanel .i-clear{position:relative;left:auto;top:auto;width:auto;height:80px;grid-column:3}
+/* намерени + изглед (активният – златен) */
+.rbar{padding:30px 4px 4px!important;height:auto}
+.found{color:#fff6e6;text-shadow:0 2px 6px rgba(40,0,8,.6)}
+.found b{color:#f8dc98}
+.vb{border-radius:18px}
+.vb.on{color:#3a1d00!important;background:linear-gradient(180deg,#f8dc98,#d9a254)!important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,248,220,.85),0 0 0 2px rgba(255,240,205,.5),0 0 20px rgba(246,212,142,.7)!important}
+
+/* --- резултати --- */
+.plist{padding:10px 0 0!important}
+.plist .pc{zoom:.97}
+.plist .empty{background:rgba(255,248,242,.92)}
+.plist.folders{padding:10px 0 0!important}
+
+/* групи „Продажби (N) ›“ / „Наеми (N) ›“ + „Виж всички“ */
+.isec{position:relative;margin:0;padding:28px 0 0;border-top:2px solid rgba(255,236,200,.32)}
+.isec:first-child{border-top:0;padding-top:8px}
+.isec-h{display:flex;align-items:center;gap:12px;margin:0 4px 14px}
+.isec-h button{display:inline-flex;align-items:center;gap:12px;color:#fff6e6;text-shadow:0 2px 6px rgba(40,0,8,.55)}
+.ish b{font:700 58px/1 var(--cond)}
+.ish span{font:400 46px/1 var(--cond);opacity:.86}
+.ish svg.i{font-size:46px;stroke-width:2.4}
+.isa{margin-left:auto;font:700 40px/1 var(--cond)}
+.isa svg.i{font-size:40px;stroke-width:2.4}
+.isec.one .ish svg.i,.isec.one .isa{display:none}
+.isec.one .ish{cursor:default}
+/* хоризонтален ред с карти */
+.irow{position:relative}
+.irw{display:flex;gap:30px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  padding:16px 8px 34px;margin:-12px -8px 0;scroll-padding:0 8px}
+.irw::-webkit-scrollbar{display:none}
+.irw .pc{scroll-snap-align:start}
+.plist.grp .irw .pc{zoom:.82}
+.rarr{display:none}
+/* разгърната група („Виж всички“) – картите една под друга */
+.isec.all .irw{flex-direction:column;overflow:visible;scroll-snap-type:none;padding:4px 0 8px;margin:0}
+.plist.grp .isec.all .irw .pc{zoom:.97}
+
+/* --- компютър: един широк стъклен прозорец под шапката --- */
+html.desk .iflow{display:grid;grid-template-columns:800px 290px 190px minmax(0,1fr) 200px;grid-template-rows:auto auto auto minmax(0,1fr);gap:16px 14px;
+  margin:16px 0 0 var(--xL,24px)!important;padding:26px 26px 16px!important;width:calc(2000px + var(--G,24px));height:calc(var(--lh,640px) + 76px);border-radius:44px}
+html.desk .icol,html.desk .ipanel{display:contents}
+html.desk .ipanel .ititle{display:none}
+html.desk .iacts{grid-column:1;grid-row:1;gap:12px}
+html.desk .iacts .ia{height:86px;border-radius:22px;font-size:22px;gap:6px}
+html.desk .iacts .ia svg.i{font-size:36px}
+html.desk .ipanel .i-q{grid-column:2/5;grid-row:1;height:86px}
+html.desk .i-more{grid-column:5;grid-row:1;height:86px;font-size:26px}
+html.desk .ipanel .chips{grid-column:1/-1;grid-row:2;grid-template-columns:repeat(9,minmax(0,1fr));gap:12px}
+html.desk .ipanel .chip{height:84px;border-radius:22px;padding:0 12px 0 14px;gap:10px}
+html.desk .ipanel .chip>svg.i:first-child{font-size:32px}
+html.desk .ipanel .chip .flab{font-size:18px}
+html.desk .ipanel .chip .val{font-size:23px!important}
+html.desk .ipanel .chip .chev{font-size:22px}
+html.desk .ipanel .deal{grid-column:1;grid-row:3;align-self:center}
+html.desk .ipanel .dl{height:66px;font-size:27px;gap:16px;border-radius:33px}
+html.desk .ipanel .dl svg.i{font-size:32px}
+html.desk .ipanel .i-go{grid-column:2;grid-row:3;height:66px;font-size:26px;gap:14px;align-self:center}
+html.desk .ipanel .i-go svg.i{font-size:30px}
+html.desk .ipanel .i-clear{grid-column:3;grid-row:3;height:66px;font-size:25px;align-self:center}
+html.desk .rbar{grid-column:4/-1;grid-row:3;padding:0 0 0 18px!important;height:66px;align-self:center}
+html.desk .found{font-size:27px}
+html.desk .vb{width:76px;height:58px;font-size:30px}
+html.desk .plist{grid-column:1/-1;grid-row:4;height:auto!important;min-height:0;margin:0 -26px;padding:2px 26px 10px!important;overflow-y:auto}
+html.desk .plist.grp:not(.list):not(.folders){display:block}
+html.desk .isec{padding-top:18px}
+html.desk .isec:first-child{padding-top:4px}
+html.desk .isec-h{margin:0 2px 8px}
+html.desk .ish b{font-size:36px}
+html.desk .ish span{font-size:28px}
+html.desk .ish svg.i{font-size:30px}
+html.desk .isa{font-size:25px}
+html.desk .isa svg.i{font-size:26px}
+html.desk .irw{gap:22px;padding:12px 6px 22px;margin:-8px -6px 0}
+html.desk .plist.grp .irw .pc{zoom:.42}
+html.desk .plist.grp .isec.all .irw{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 20px;padding:4px 0 10px}
+html.desk .plist.grp .isec.all .irw .pc{zoom:.485}
+/* кръгли стрелки със златен кант */
+html.desk .rarr{display:grid;place-items:center;position:absolute;z-index:3;top:50%;margin-top:-44px;width:76px;height:76px;border-radius:50%;font-size:34px;color:#5a0a12;
+  background:radial-gradient(120% 90% at 30% 18%,#fff,rgba(255,248,238,.95) 55%,rgba(246,226,200,.95));
+  box-shadow:0 0 0 2.5px rgba(246,212,142,.9),0 0 22px rgba(246,212,142,.6),0 10px 22px rgba(0,0,0,.42);transition:opacity .2s,transform .18s}
+html.desk .rarr svg.i{stroke-width:2.6}
+html.desk .rarr.l{left:-20px}html.desk .rarr.r{right:-20px}
+html.desk .irow.s0 .rarr.l,html.desk .irow.s1 .rarr.r,html.desk .isec.all .rarr{opacity:0;pointer-events:none}
+/* списък и папки на компютър – в широкия прозорец */
+html.desk .plist.list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 20px;align-content:start}
+html.desk .plist.list .pc{zoom:1;width:auto}
+html.desk .fcards:not(.list){grid-template-columns:repeat(4,minmax(0,1fr))}
+html.desk .fcards:not(.list) .pc{zoom:.485}
+html.desk .fcards.list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 20px}
+html.desk .fcards.list .pc{zoom:1;width:auto}
+html.desk .fgrid{grid-template-columns:repeat(4,1fr)}
+
+/* ============================================================
+   2) КАРТА НА ИМОТ – обща част (телефон)
+   ============================================================ */
+/* общото преливане на снимка (като редовете в картата) */
+.pm-sec,.pm-tt{isolation:isolate}
+.pm-sec>*{position:relative;z-index:1}
+.pm-sec::after{content:'';position:absolute;right:0;top:0;bottom:0;width:52%;z-index:0;pointer-events:none;
+  background:var(--v3ph,url(assets/nd/ph13.jpg)) center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+.pm-sec.sec-data{--v3ph:url(assets/nd/ph13.jpg)}
+.pm-sec.sec-desc{--v3ph:url(assets/nd/ph06.jpg)}
+.pm-sec.sec-desc::after{opacity:1}
+/* отворен ред: снимката остава само на заглавния ред, отдолу – чисти редове „етикет: стойност“ */
+.acc.open::after{bottom:auto;height:87px}
+.acc .body{padding:2px 34px 24px}
+.acc .body .row{display:grid;grid-template-columns:52px minmax(0,40%) minmax(0,1fr);align-items:center;column-gap:10px;min-height:66px;padding:10px 0;
+  border-top:0;border-bottom:1.5px solid rgba(214,163,92,.32)}
+.acc .body .row>svg.i{font-size:34px}
+.acc .body .row>span:not(.r){font:500 28px/1.22 var(--cond);color:#8a1a2c;min-width:0;overflow-wrap:anywhere}
+.acc:is([data-acc="owner"],[data-acc="bank"]) .body .row>span:not(.r):not(:last-child)::after{content:':'}
+.acc .body .row>span:not(.r):last-child{grid-column:2/-1;color:#22090d;font-weight:500}
+.acc .body .row .r{margin-left:0;min-width:0;text-align:left;color:#22090d;font:700 30px/1.25 var(--cond);overflow-wrap:anywhere}
+.acc .body .row .r a{color:#7b1020;text-decoration:underline;text-decoration-color:rgba(123,16,32,.35);text-underline-offset:5px}
+.acc .body .row[data-doc]:hover,.acc .body .row[data-open]:hover{background:linear-gradient(90deg,rgba(237,196,122,.22),rgba(255,255,255,0))}
+.acc .body .pics{margin-bottom:6px}
+/* елементи само за компютър */
+.pm-chips,.pm-tt .pm-psub,.pm-specs,.pm-dacts,.pm-tabs{display:none}
+.pm-thumbs .pm-th:nth-child(n+5){display:none}
+.pm-more .m6{display:none}
+/* кратко златно светване на раздел, към който е отведен табът */
+.flash{animation:v3flash 1.3s ease-out}
+@keyframes v3flash{0%{outline:5px solid rgba(230,191,91,.95);outline-offset:4px}100%{outline:5px solid rgba(230,191,91,0);outline-offset:14px}}
+
+/* ============================================================
+   3) КАРТА НА ИМОТ – компютър (платно 2048 широко, превърта се)
+   ============================================================ */
+html.desk #pback{background:rgba(28,3,9,.5)}
+/* прозорецът – прозрачно матово стъкло със светъл ръб и златно сияние (стъклото е отделен слой, не съдържа снимки) */
+html.desk .pwin{background:transparent;border-color:rgba(255,236,200,.75)!important;
+  box-shadow:0 0 0 1px rgba(246,212,142,.35),0 0 40px rgba(246,212,142,.34),0 30px 70px -24px rgba(0,0,0,.75)}
+html.desk .pwin::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%),rgba(70,11,24,.34);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.7),inset 0 0 50px rgba(255,214,160,.12)}
+html.desk .pwin .mscroll{background:transparent;overflow-x:hidden!important;overflow-y:auto!important}
+html.desk .pmcv{height:auto!important;min-height:1250px;padding:26px 26px 30px!important}
+
+/* кремаво стъкло – картите в прозореца */
+html.desk .pm-gal,html.desk .pm-tt,html.desk .pm-right .pm-sec,html.desk .pm-right .acc{
+  background:linear-gradient(180deg,rgba(255,252,247,.95) 0%,rgba(253,242,231,.91) 100%)!important;border:0!important;border-radius:36px;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3.5px rgba(214,163,92,.28),0 0 32px rgba(255,228,196,.5),0 22px 40px -20px rgba(60,10,10,.6),inset 0 1.5px 0 #fff!important}
+
+/* горен ред: галерия | информация */
+html.desk .pm-left{position:relative!important;left:auto;top:auto;width:auto!important;display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);gap:26px;align-items:stretch}
+html.desk .pm-head,html.desk .pm-rib{display:none}
+html.desk .pm-gal{padding:16px}
+html.desk .pm-hero{margin:0!important;height:auto!important;aspect-ratio:16/9.3;border-radius:26px;box-shadow:0 0 0 1.5px rgba(226,180,120,.55)}
+html.desk .pm-id{left:20px;right:auto;top:20px;height:52px;padding:0 22px;border-radius:26px;font:700 25px/1 var(--cond);color:#fff3dc;
+  background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 1.5px rgba(246,212,142,.8),0 0 16px rgba(163,33,58,.5)}
+html.desk .pm-arr{width:74px;height:74px;margin-top:-37px;font-size:34px;color:#5a0a12;
+  background:radial-gradient(120% 90% at 30% 18%,#fff,rgba(255,248,238,.92) 55%,rgba(246,226,200,.92));box-shadow:0 0 0 2.5px rgba(246,212,142,.85),0 0 22px rgba(246,212,142,.6),0 10px 20px rgba(0,0,0,.35)}
+html.desk .pm-arr.l{left:20px}html.desk .pm-arr.r{right:20px}
+html.desk .pm-cnt{left:20px;right:auto;bottom:20px;height:50px;padding:0 20px 0 16px;gap:10px;border-radius:25px;font:700 24px/1 var(--cond);
+  background:rgba(46,6,16,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1.5px rgba(246,212,142,.6)}
+html.desk .pm-cnt svg.i{font-size:26px}
+html.desk .pm-thumbs{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;height:auto!important;margin-top:16px!important;padding:0!important}
+html.desk .pm-thumbs .pm-th:nth-child(n+5){display:block}
+html.desk .pm-thumbs:has(.pm-more:not(.no6)) .pm-th:nth-child(6){display:none}
+html.desk .pm-th{aspect-ratio:4/3;height:auto;border-radius:16px;box-shadow:0 0 0 2px rgba(226,180,120,.65),0 4px 10px rgba(90,30,20,.2)}
+html.desk .pm-th.on{box-shadow:0 0 0 4px #b42446,0 0 18px rgba(180,36,70,.55)}
+html.desk .pm-more{aspect-ratio:4/3;height:auto;border-radius:16px;font:800 36px/1 var(--cond);box-shadow:0 0 0 2px #e6b866,0 0 14px rgba(230,191,91,.5),inset 0 2px 3px rgba(255,170,180,.45)}
+html.desk .pm-more.no6{display:none}
+html.desk .pm-more .m4{display:none}html.desk .pm-more .m6{display:inline}
+
+/* информационна карта */
+html.desk .pm-tt{position:relative;height:auto!important;padding:30px 30px 28px!important;display:flex;flex-direction:column;align-items:flex-start;overflow:hidden}
+html.desk .pm-tt::before{content:'';position:absolute;right:0;top:0;bottom:0;width:52%;z-index:-1;pointer-events:none;background:url(assets/nd/ph13.jpg) center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+html.desk .pm-chips{display:flex;flex-wrap:wrap;gap:12px;padding-right:150px}
+.pchip{display:inline-flex;align-items:center;gap:10px;height:50px;padding:0 20px;border-radius:25px;font:700 23px/1 var(--cond);white-space:nowrap}
+.pchip svg.i{font-size:24px}
+.pchip.wine{color:#fff3dc;background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 1.5px rgba(246,212,142,.8),0 0 16px rgba(163,33,58,.45)}
+.pchip.lite{color:#5a0a12;background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1.5px rgba(226,180,120,.75),0 0 12px rgba(255,214,160,.45)}
+.pchip.gold{color:#4a2a00;background:linear-gradient(180deg,#fff1c8,#f2cf7c);box-shadow:inset 0 0 0 1.5px rgba(200,150,60,.6),0 0 14px rgba(246,212,142,.6)}
+.pdot{width:16px;height:16px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#7de86a,#1e9c1a 70%);box-shadow:0 0 10px rgba(80,200,60,.75)}
+.pdot.y{background:radial-gradient(circle at 35% 30%,#ffd36a,#b8780e 70%);box-shadow:0 0 10px rgba(240,180,40,.7)}
+.pdot.r{background:radial-gradient(circle at 35% 30%,#ff9aa6,#a0102a 70%);box-shadow:0 0 10px rgba(220,40,70,.7)}
+.pdot.g{background:radial-gradient(circle at 35% 30%,#d9cec8,#7d6e68 70%);box-shadow:none}
+html.desk .pm-tt h3{margin:20px 0 0;max-width:none;white-space:normal;font:800 50px/1.12 var(--cond);color:#4a0712;letter-spacing:-.2px;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;text-shadow:0 0 10px #fff8f0,0 0 3px #fff}
+html.desk .pm-tt #pm-loc{margin-top:14px;gap:12px;font:500 27px/1.15 var(--cond);color:#3a1515;text-shadow:0 0 8px #fff8f0}
+html.desk .pm-tt #pm-loc svg.i{font-size:30px}
+html.desk .pm-price{position:static!important;height:auto;min-width:0;margin-top:22px;padding:0 4px 4px 0;border-radius:0;justify-content:flex-start;
+  font:800 72px/1.02 var(--cond);letter-spacing:-.5px;color:transparent;box-shadow:none;
+  background:linear-gradient(180deg,#a3213a 0%,#6e0c1f 55%,#b9873a 100%);-webkit-background-clip:text;background-clip:text}
+html.desk .pm-price small{font-size:32px;font-weight:700}
+html.desk .pm-stage{display:none!important}
+html.desk .pm-psub{display:block;margin-top:4px;font:400 23px/1.2 var(--cond);color:#6b4a40}
+html.desk .pm-specs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%;margin-top:22px}
+.pm-sgrp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:22px 4px 20px;border-radius:24px;
+  background:linear-gradient(180deg,rgba(255,252,247,.94),rgba(253,242,231,.9));
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3px rgba(214,163,92,.26),0 0 20px rgba(255,228,196,.5),0 12px 22px -14px rgba(60,10,10,.5)}
+.pm-spec{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:0 6px;min-width:0}
+.pm-spec+.pm-spec{border-left:1.5px solid rgba(214,163,92,.38)}
+.pm-spec .si{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:23px;color:#7b1020;
+  background:linear-gradient(180deg,#fff6ec,#f6e2cc);box-shadow:0 0 0 1.5px rgba(226,180,120,.6),0 0 10px rgba(255,214,160,.5)}
+.pm-spec>div{min-width:0;max-width:100%}
+.pm-spec b{display:block;font:800 25px/1.08 var(--cond);color:#22090d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-spec>div>span{display:block;margin-top:4px;font:500 19px/1.05 var(--cond);color:#7a5a52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.desk .pm-dacts{display:grid;grid-template-columns:1.25fr 1.1fr 1fr 1fr;gap:12px;width:100%;margin-top:auto;padding-top:24px}
+.pd{height:74px;border-radius:22px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 10px;min-width:0;white-space:nowrap;overflow:hidden;
+  font:700 24px/1 var(--cond);color:#5a0a12;background:linear-gradient(180deg,#fffdf9,#fcf1e7);
+  box-shadow:0 0 0 1.5px rgba(226,180,120,.75),0 0 18px rgba(255,214,160,.45),0 10px 20px -12px rgba(80,30,10,.45),inset 0 1.5px 0 #fff;
+  transition:transform .18s cubic-bezier(.2,.8,.3,1.25),box-shadow .2s}
+.pd svg.i{font-size:28px;color:#7b1020}
+.pd span{overflow:hidden;text-overflow:ellipsis}
+.pd.pri,.pd.on{color:#fff3dc;background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);
+  box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 5px rgba(255,170,180,.4),0 0 26px rgba(230,191,91,.45),0 12px 24px -12px rgba(80,10,20,.7)}
+.pd.pri svg.i,.pd.on svg.i{color:#fff3dc}
+.pd:active,.ptab:active{transform:scale(.96)}
+
+/* табове */
+html.desk .pm-tabs{display:flex;gap:13px;margin:26px 0 24px}
+.ptab{flex:1 1 auto;height:74px;border-radius:22px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;white-space:nowrap;
+  font:700 24px/1 var(--cond);color:#5a0a12;background:linear-gradient(180deg,rgba(255,253,249,.96),rgba(252,241,231,.93));
+  box-shadow:0 0 0 1.5px rgba(226,180,120,.7),0 0 18px rgba(255,228,196,.35),0 10px 20px -12px rgba(60,10,10,.55);transition:transform .18s cubic-bezier(.2,.8,.3,1.25),box-shadow .2s}
+.ptab svg.i{font-size:27px;color:#7b1020}
+.ptab.on{color:#fff3dc;background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 2px #e6bf5b,0 0 26px rgba(230,191,91,.5)}
+.ptab.on svg.i{color:#f8d777}
+
+/* раздели – по два на ред */
+html.desk .pm-right{position:static!important;left:auto;top:auto;width:auto!important;height:auto!important;overflow:visible!important;padding:0!important;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:stretch}
+html.desk .pm-right .pm-tabhost{grid-column:1/-1;margin:0!important;padding:0!important}
+html.desk #pm-acc{display:contents}
+html.desk #pm-acc>.acc:last-child:nth-child(odd){grid-column:1/-1}
+html.desk .pm-right .pm-sec,html.desk .pm-right .acc{position:relative;margin:0!important;padding:26px 30px 28px;min-height:300px;overflow:hidden;isolation:isolate}
+/* заглавия: винен медальон със златен кант + тъмно серифно заглавие */
+html.desk .pm-sh{height:auto;margin:0 0 12px}
+html.desk .pm-sh .srib{display:none}
+html.desk .pm-sh h4{position:static;gap:16px;font:700 33px/1.15 var(--serif);color:#3b0a0e;text-shadow:0 0 8px #fff8f0}
+html.desk .pm-sh h4 svg.i,html.desk .acc>button>svg.i:first-child{width:58px;height:58px;padding:13px;border-radius:50%;flex:none;color:#ffe9b8;stroke-width:2;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.55)}
+html.desk .acc>button{height:auto;padding:0;margin:0 0 12px;gap:16px;cursor:default;font:700 33px/1.15 var(--serif);color:#3b0a0e;text-shadow:0 0 8px #fff8f0}
+html.desk .acc>button .cv{display:none}
+html.desk .acc .body{display:block!important;max-width:66%;padding:0;font-size:25px}
+/* снимка отдясно на всеки раздел */
+html.desk .pwin .acc::after{bottom:0!important;height:auto!important;width:52%!important;opacity:1!important;filter:saturate(1.1) contrast(1.04)!important;background-image:var(--v3ph,var(--accph))!important;background-size:cover!important;background-position:center!important;
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important;mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important}
+html.desk .pm-right .pm-sec.sec-data{--v3ph:url(assets/nd/ph15.jpg)}
+html.desk .acc[data-acc="docs"]{--v3ph:url(assets/nd/ph03.jpg)}
+html.desk .acc[data-acc="pdocs"]{--v3ph:url(assets/nd/ph20.jpg)}
+html.desk .acc[data-acc="fb"]{--v3ph:url(assets/nd/ph09.jpg)}
+html.desk .acc[data-acc="owner"]{--v3ph:url(assets/k-keys.jpg)}
+html.desk .acc[data-acc="others"]{--v3ph:url(assets/nd/ph17.jpg)}
+html.desk .acc[data-acc="bank"]{--v3ph:url(assets/co-desc.jpg)}
+html.desk .acc[data-acc="log"]{--v3ph:url(assets/nd/ph11.jpg)}
+/* снимките с рамка по десния ръб – леко изрязване, за да остане само чистата картина */
+html.desk .pwin .acc[data-acc="owner"]::after,html.desk .pwin .acc[data-acc="bank"]::after{right:-5%!important;top:-6%!important;bottom:-2%!important;width:57%!important}
+/* редове „иконка · етикет: стойност“ */
+html.desk .acc .body .row{grid-template-columns:40px minmax(0,42%) minmax(0,1fr);min-height:0;padding:11px 0}
+html.desk .acc .body .row>svg.i{font-size:27px}
+html.desk .acc .body .row>span:not(.r){font-size:24px}
+html.desk .acc .body .row .r{font-size:25px}
+html.desk .acc .body .row>*,html.desk .acc .note{text-shadow:0 0 6px #fff8f0,0 0 2px #fff}
+html.desk .acc .note{font-size:20px;margin-top:12px}
+html.desk .acc .body .pics{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:2px 0 8px}
+html.desk .acc .body .pics span{height:auto;aspect-ratio:4/3;border-radius:12px;box-shadow:0 0 0 1.5px rgba(226,180,120,.6)}
+html.desk .acc .body .pics span:nth-child(n+13){display:none}
+html.desk .acc .body .bankbtn{height:60px;margin-top:18px;padding:0 26px;gap:12px;font-size:24px;border-radius:20px;
+  background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);box-shadow:inset 0 0 0 2px #e6bf5b,0 0 20px rgba(230,191,91,.45),0 10px 20px -10px rgba(80,10,20,.7)}
+html.desk .acc .body .bankbtn svg.i{font-size:28px}
+/* „Основни данни“ – редове етикет : стойност в две колони */
+html.desk .pm-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0 26px!important;padding:0!important;max-width:76%}
+html.desk .pm-cell{flex-direction:row!important;justify-content:flex-start!important;align-items:center!important;min-height:0!important;gap:10px!important;padding:12px 0;
+  border-right:0!important;border-bottom:1.5px solid rgba(214,163,92,.32)}
+html.desk .pm-cell svg.i{font-size:27px!important;margin:0!important;flex:none}
+html.desk .pm-cell span{font:500 24px/1.2 var(--cond)!important;color:#8a1a2c!important;white-space:nowrap}
+html.desk .pm-cell span::after{content:':'}
+html.desk .pm-cell b{min-width:0;overflow:hidden;text-overflow:ellipsis;font:700 25px/1.2 var(--cond)!important;color:#22090d!important}
+html.desk .pm-desc{max-width:68%;margin:0!important;padding:0!important;font:400 25px/1.55 var(--cond)!important;color:#1f1111}
+/* шестте плочки от телефона – на компютър функциите им са в информационната карта и в табовете */
+html.desk .pm-actions{display:none}
+
+/* телефон: плочките на „Основни данни“ върху ясната снимка – като малки стъклени карти, за да се четат */
+html:not(.desk) .pm-grid{gap:14px 12px!important;padding:16px 16px 20px!important}
+html:not(.desk) .pm-cell{min-height:132px!important;border-right:0!important;border-radius:22px!important;
+  background:linear-gradient(180deg,rgba(255,252,248,.9),rgba(253,243,233,.84))!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.9),0 0 0 3px rgba(214,163,92,.28),0 6px 14px -8px rgba(60,10,10,.45)!important}
+
+/* ===== компютър: по-едър и по-четлив текст навсякъде (09.11) ===== */
+/* карта на имота */
+html.desk .pm-chips>*{font-size:27px!important}
+html.desk .pm-tt h3{font-size:56px!important}
+html.desk .pm-tt #pm-loc{font-size:32px!important}
+html.desk .pm-tt #pm-loc svg.i{font-size:34px!important}
+html.desk .pm-psub{font-size:28px!important}
+html.desk .pm-spec .si{width:52px;height:52px;font-size:27px}
+html.desk .pm-spec b{font-size:28px!important}
+html.desk .pm-spec>div>span{font-size:21px!important;white-space:normal!important;line-height:1.05!important}
+html.desk .pm-dacts .btn,html.desk .pm-dacts>*{font-size:28px!important}
+html.desk .pm-tabs>*{font-size:28px!important}
+html.desk .pm-tabs svg.i{font-size:31px!important}
+html.desk .pm-sh h4,html.desk .acc>button{font-size:40px!important}
+html.desk .pm-sh h4 svg.i,html.desk .acc>button svg.i{font-size:36px!important}
+html.desk .pm-cell{padding:15px 0!important;gap:12px!important}
+html.desk .pm-cell svg.i{font-size:33px!important}
+html.desk .pm-cell span{font-size:30px!important}
+html.desk .pm-cell b{font-size:32px!important}
+html.desk .pm-desc{font-size:31px!important;line-height:1.55!important}
+html.desk .acc .body{font-size:31px!important}
+html.desk .acc .body .row{min-height:66px}
+html.desk .acc .body .row>svg.i{font-size:33px!important}
+html.desk .acc .body .row>span:not(.r),html.desk .acc .body .row .r{font-size:31px!important}
+html.desk .acc .note{font-size:26px!important}
+html.desk .acc .body .bankbtn{font-size:29px!important;height:70px}
+/* страница Имоти: филтри, заглавия на редовете и по-големи карти */
+html.desk .iacts .ia{font-size:27px!important}
+html.desk .ipanel .chip .flab{font-size:22px!important}
+html.desk .ipanel .chip .val{font-size:28px!important}
+html.desk .ipanel .dl{font-size:31px!important}
+html.desk .ipanel .i-go,html.desk .ipanel .i-clear,html.desk .i-more{font-size:30px!important}
+html.desk .found{font-size:31px!important}
+html.desk .ish b{font-size:42px!important}
+html.desk .ish span{font-size:32px!important}
+html.desk .isa{font-size:29px!important}
+html.desk .plist.grp .irw .pc{zoom:.54!important}

@@ -607,6 +607,7 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/>
+<link rel="stylesheet" href="crm-v3-imoti.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -749,17 +750,17 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
         </svg>
         <h2 class="ititle" id="i-ft"><svg class="i"><use href="#menu"/></svg>Търсене и филтри</h2>
         <label class="fld i-q"><svg class="i"><use href="#search"/></svg><input id="i-q" type="search" placeholder="Търси по И#, №, заглавие, клиент…" autocomplete="off" aria-label="Търси имот по номер, заглавие или клиент"></label>
-        <button class="i-more" id="i-more" aria-label="Още филтри" title="Още филтри"><svg class="i"><use href="#sliders-horizontal"/></svg></button>
+        <button class="i-more" id="i-more" aria-label="Още филтри" title="Още филтри"><svg class="i"><use href="#sliders-horizontal"/></svg><span class="imtx">Филтри</span></button>
         <div class="chips">
-          <label class="fld chip"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-city" aria-label="Град"></select></label>
-          <label class="fld chip"><svg class="i"><use href="#map"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-region" aria-label="Област"></select></label>
-          <label class="fld chip"><svg class="i"><use href="#map-pin-house"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-hood" aria-label="Квартал"></select></label>
-          <label class="fld chip"><svg class="i"><use href="#house"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-type" aria-label="Тип имот"></select></label>
-          <label class="fld chip c-mid"><svg class="i"><use href="#coins"/></svg><span class="val"></span><select id="f-price" aria-label="Цена от – до"></select></label>
-          <label class="fld chip"><svg class="i"><use href="#m2"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-area" aria-label="Площ"></select></label>
-          <label class="fld chip"><svg class="i"><use href="#sparkles"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-cond" aria-label="Състояние"></select></label>
-          <label class="fld chip"><svg class="i"><use href="#calendar-check"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-status" aria-label="Статус"></select></label>
-          <label class="fld chip"><svg class="i"><use href="#arrow-up-down"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-sort" aria-label="Подредба"></select></label>
+          <label class="fld chip"><svg class="i"><use href="#pin"/></svg><span class="ftx"><small class="flab">Град</small><span class="val"></span></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-city" aria-label="Град"></select></label>
+          <label class="fld chip"><svg class="i"><use href="#map"/></svg><span class="ftx"><small class="flab">Област</small><span class="val"></span></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-region" aria-label="Област"></select></label>
+          <label class="fld chip"><svg class="i"><use href="#map-pin-house"/></svg><span class="ftx"><small class="flab">Квартал</small><span class="val"></span></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-hood" aria-label="Квартал"></select></label>
+          <label class="fld chip"><svg class="i"><use href="#house"/></svg><span class="ftx"><small class="flab">Тип имот</small><span class="val"></span></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-type" aria-label="Тип имот"></select></label>
+          <label class="fld chip c-mid"><svg class="i"><use href="#coins"/></svg><span class="ftx"><small class="flab">Цена от – до</small><span class="val"></span></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-price" aria-label="Цена от – до"></select></label>
+          <label class="fld chip"><svg class="i"><use href="#m2"/></svg><span class="ftx"><small class="flab">Площ</small><span class="val"></span></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-area" aria-label="Площ"></select></label>
+          <label class="fld chip"><svg class="i"><use href="#sparkles"/></svg><span class="ftx"><small class="flab">Състояние</small><span class="val"></span></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-cond" aria-label="Състояние"></select></label>
+          <label class="fld chip"><svg class="i"><use href="#calendar-check"/></svg><span class="ftx"><small class="flab">Статус</small><span class="val"></span></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-status" aria-label="Статус"></select></label>
+          <label class="fld chip"><svg class="i"><use href="#arrow-up-down"/></svg><span class="ftx"><small class="flab">Подредба</small><span class="val"></span></span><svg class="i chev"><use href="#chev-d"/></svg><select id="f-sort" aria-label="Подредба"></select></label>
         </div>
         <div class="deal" role="group" aria-label="Вид сделка">
           <button class="dl on" data-deal="sale" aria-pressed="true"><svg class="i"><use href="#house"/></svg>Продажби</button>
@@ -805,6 +806,7 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
           </svg>
           <h2><svg class="i"><use href="#house"/></svg>Карта – Имот</h2>
         </div>
+        <div class="pm-gal">
         <div class="pm-hero">
           <img id="pm-img" src="" alt="">
           <span class="pm-id" id="pm-id">№ ID: 7482</span>
@@ -813,17 +815,37 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
           <span class="pm-cnt" id="pm-cnt"><svg class="i"><use href="#camera"/></svg><span>1 / 12</span></span>
         </div>
         <div class="pm-thumbs" id="pm-thumbs"></div>
+        </div>
         <div class="pm-tt">
+          <div class="pm-chips" id="pm-chips"></div>
           <h3 id="pm-title">Тристаен апартамент</h3>
           <p id="pm-loc"><svg class="i"><use href="#pin"/></svg><span>Шумен, кв. Тракия</span></p>
           <span class="pm-price" id="pm-price">200 000 €</span>
           <span class="pm-stage" id="pm-stage" hidden><i></i><span></span></span>
+          <p class="pm-psub" id="pm-psub"></p>
+          <div class="pm-specs" id="pm-specs"></div>
+          <div class="pm-dacts">
+            <button class="pd pri" data-pa="publish"><svg class="i"><use href="#megaphone"/></svg><span>Публикувай</span></button>
+            <button class="pd" data-pa="edit"><svg class="i"><use href="#pencil"/></svg>Редактирай</button>
+            <button class="pd" data-pa="share"><svg class="i"><use href="#share-2"/></svg>Сподели</button>
+            <button class="pd" data-pa="archive"><svg class="i"><use href="#archive"/></svg>Архив</button>
+          </div>
         </div>
       </div>
 
+      <nav class="pm-tabs" id="pm-tabs" aria-label="Раздели на картата">
+        <button class="ptab on" data-go="top"><svg class="i"><use href="#house"/></svg>Основна информация</button>
+        <button class="ptab" data-go="docs"><svg class="i"><use href="#image"/></svg>Снимки и медия</button>
+        <button class="ptab" data-go="data"><svg class="i"><use href="#list"/></svg>Характеристики</button>
+        <button class="ptab" data-pa="all"><svg class="i"><use href="#globe"/></svg>Публикувай навсякъде</button>
+        <button class="ptab" data-pa="pdocs"><svg class="i"><use href="#file-text"/></svg>Документи</button>
+        <button class="ptab" data-pa="owner"><svg class="i"><use href="#user"/></svg>Собственик</button>
+        <button class="ptab" data-go="log"><svg class="i"><use href="#history"/></svg>История</button>
+      </nav>
+
       <div class="pm-right" id="pm-right">
         <div class="pm-tabhost" id="pm-tabhost" hidden></div>
-        <section class="pm-sec" aria-labelledby="pm-dt">
+        <section class="pm-sec sec-data" aria-labelledby="pm-dt">
           <div class="pm-sh"><svg class="srib" viewBox="0 0 700 92" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0 0 H 700 C 630 5 590 40 540 66 C 510 82 480 86 430 86 H 0 Z" fill="url(#ribbonFill)"/>
             <path d="M0 0 H 700 C 630 5 590 40 540 66 C 510 82 480 86 430 86 H 0 Z" fill="url(#satin)" opacity=".45"/>
@@ -831,7 +853,7 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
             <h4 id="pm-dt"><svg class="i"><use href="#house"/></svg>Основни данни</h4></div>
           <div class="pm-grid" id="pm-grid"></div>
         </section>
-        <section class="pm-sec" aria-labelledby="pm-ds">
+        <section class="pm-sec sec-desc" aria-labelledby="pm-ds">
           <div class="pm-sh"><svg class="srib" viewBox="0 0 700 92" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0 0 H 700 C 630 5 590 40 540 66 C 510 82 480 86 430 86 H 0 Z" fill="url(#ribbonFill)"/>
             <path d="M0 0 H 700 C 630 5 590 40 540 66 C 510 82 480 86 430 86 H 0 Z" fill="url(#satin)" opacity=".45"/>
@@ -970,7 +992,8 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
   var labels={city:'Град',region:'Област',hood:'Квартал',type:'Тип имот',price:'Цена от – до',area:'Площ',cond:'Състояние',status:'Статус',sort:'Подредба'};
   function fill(s,key,opts){var cur=s.value;s.innerHTML='<option value="">'+labels[key]+'</option>'+opts.map(function(o){var v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;return '<option value="'+esc(v)+'">'+esc(t)+'</option>'}).join('');
     s.value=opts.some(function(o){return (Array.isArray(o)?o[0]:o)===cur})?cur:'';show(s)}
-  function show(s){var l=s.closest('.fld');l.querySelector('.val').textContent=s.value?s.options[s.selectedIndex].text:labels[Object.keys(sel).filter(function(k){return sel[k]===s})[0]];l.classList.toggle('set',!!s.value)}
+  /* плочка филтър: малък етикет (в разметката) + стойност; празно = „Всички“ (подредба – „Най-нови“) */
+  function show(s){var l=s.closest('.fld'),k=Object.keys(sel).filter(function(x){return sel[x]===s})[0];l.querySelector('.val').textContent=s.value?s.options[s.selectedIndex].text:(l.querySelector('.flab')?(k==='sort'?'Най-нови':'Всички'):labels[k]);l.classList.toggle('set',!!s.value)}
   var prices=[['0-50000','до 50 000 €'],['50000-100000','50 000 – 100 000 €'],['0-100000','до 100 000 €'],['100000-150000','100 000 – 150 000 €'],['150000-250000','150 000 – 250 000 €'],['100000-250000','100 000 – 250 000 €'],['250000-500000','250 000 – 500 000 €'],['500000-99999999','над 500 000 €'],['0-1500','Наем до 1 500 €'],['1500-99999','Наем над 1 500 €']];
   var areas=[['0-50','до 50 м²'],['50-80','50 – 80 м²'],['80-100','80 – 100 м²'],['100-150','100 – 150 м²'],['0-80','до 80 м²'],['80-150','80 – 150 м²'],['150-300','150 – 300 м²'],['300-999999','над 300 м²']];
   var sorts=[['new','Най-нови'],['pasc','Цена: възходящо'],['pdesc','Цена: низходящо'],['area','Най-голяма площ']];
@@ -1019,12 +1042,30 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
     var list=props.filter(function(p){return match(p,f)}),s=sel.sort.value||'new';
     list.sort(function(a,b){return s==='pasc'?a.price-b.price:s==='pdesc'?b.price-a.price:s==='area'?b.area-a.area:a.days-b.days});
     $('found').innerHTML='Намерени имоти: <b>'+list.length+'</b>';
-    var box=$('plist');box.classList.toggle('list',view==='list');
+    var box=$('plist');box.classList.toggle('list',view==='list');box.classList.remove('grp');
     if(f&&f.city&&f.hood&&!f.only&&!(window.NDFoldOff)){renderFolders(list,box,f);return}
     box.classList.remove('folders');
+    if(list.length&&view==='grid'){box.classList.add('grp');box.innerHTML=groupsHtml(list);[].forEach.call(box.querySelectorAll('.irw'),rowEdge);return}
     box.innerHTML=list.length?list.map(cardHtml).join('')
       :'<div class="empty">Няма имоти по избраните критерии.</div>';
   }
+  /* изглед с карти: групи „Продажби“ / „Наеми“, всяка в хоризонтален ред със стрелки; „Виж всички“ разгъва групата */
+  var GRP=[['sale','Продажби'],['rent','Наеми']],xp={};
+  function groupsHtml(list){
+    var gs=GRP.map(function(g){return [g[0],g[1],list.filter(function(p){return p.deal===g[0]})]}).filter(function(g){return g[2].length}),one=gs.length===1;
+    return gs.map(function(g){var all=one||!!xp[g[0]];
+      return '<section class="isec'+(all?' all':'')+(one?' one':'')+'" data-grp="'+g[0]+'">'+
+        '<div class="isec-h"><button type="button" class="ish" data-xp="'+g[0]+'" aria-expanded="'+all+'"><b>'+g[1]+'</b><span>('+g[2].length+')</span>'+ic('chev-r')+'</button>'+
+        '<button type="button" class="isa" data-xp="'+g[0]+'">'+(all?'Свий':'Виж всички')+ic(all?'chevron-up':'chev-r')+'</button></div>'+
+        '<div class="irow s0"><button type="button" class="rarr l" data-rs="-1" aria-label="Назад">'+ic('chevron-left')+'</button>'+
+        '<div class="irw">'+g[2].map(cardHtml).join('')+'</div>'+
+        '<button type="button" class="rarr r" data-rs="1" aria-label="Напред">'+ic('chev-r')+'</button></div></section>'}).join('')}
+  function rowEdge(r){var w=r.parentNode;w.classList.toggle('s0',r.scrollLeft<6);w.classList.toggle('s1',r.scrollLeft+r.clientWidth>=r.scrollWidth-6)}
+  $('plist').addEventListener('scroll',function(e){var r=e.target;if(r.classList&&r.classList.contains('irw'))rowEdge(r)},true);
+  $('plist').addEventListener('click',function(e){
+    var x=e.target.closest('[data-xp]');if(x){if(x.closest('.isec.one'))return;var k=x.getAttribute('data-xp');xp[k]=!xp[k];render(applied);var s=$('plist').querySelector('[data-grp="'+k+'"]');if(s&&xp[k])s.scrollIntoView({behavior:'smooth',block:'start'});return}
+    var a=e.target.closest('[data-rs]');if(a){var r=a.parentNode.querySelector('.irw'),c=r.querySelector('.pc'),st=c?c.getBoundingClientRect().width*(r.clientWidth/r.getBoundingClientRect().width||1)+24:r.clientWidth*.8;
+      r.scrollBy({left:(+a.getAttribute('data-rs'))*Math.max(st,Math.floor(r.clientWidth/st)*st),behavior:'smooth'})}});
 
   /* ---------- Папки: Тип → Строителство (Ново / Старо) → Стаи → карти (след избор на град и квартал) ---------- */
   var fold={},foldKey='';
@@ -1142,9 +1183,17 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
     $('pm-title').textContent=p.title;
     $('pm-loc').querySelector('span').textContent=p.city+', кв. '+p.hood;
     $('pm-price').innerHTML=priceText(p);
-    var th=d.gallery.slice(0,4).map(function(g,i){return '<button class="pm-th" data-i="'+i+'" aria-label="Снимка '+(i+1)+'" style="background-image:url('+img(g)+')"></button>'}).join('');
-    var more=p.photos-Math.min(4,d.gallery.length);
-    $('pm-thumbs').innerHTML=th+(more>0?'<button class="pm-more" data-more aria-label="Всички '+p.photos+' снимки">+'+more+'</button>':'');
+    /* миниатюри: телефон – 4 + „+N“; компютър – до 6 (5 + „+N“, ако снимките са повече) */
+    var th=d.gallery.slice(0,6).map(function(g,i){return '<button class="pm-th" data-i="'+i+'" aria-label="Снимка '+(i+1)+'" style="background-image:url('+img(g)+')"></button>'}).join('');
+    var more=p.photos-Math.min(4,d.gallery.length),more6=p.photos>6?p.photos-5:0;
+    $('pm-thumbs').innerHTML=th+(more>0?'<button class="pm-more'+(more6?'':' no6')+'" data-more aria-label="Всички '+p.photos+' снимки"><span class="m4">+'+more+'</span><span class="m6">+'+more6+'</span></button>':'');
+    /* компютър: чипове тип/статус, подзаглавие на цената и плочки с данни в информационната карта */
+    var stv=p.stage||p.status,dot=p.stage==='Продаден'?'r':(p.stage||p.status==='Резервиран')?'y':(p.status==='Чернова'||p.status==='Архивиран')?'g':'';
+    $('pm-chips').innerHTML='<span class="pchip wine">'+ic(p.deal==='rent'?'key-round':'house')+esc(p.type)+'</span><span class="pchip lite"><i class="pdot '+dot+'"></i>'+esc(stv)+'</span>'+(p.exclusive?'<span class="pchip gold">'+ic('star')+'Ексклузивен</span>':'');
+    $('pm-psub').textContent=p.deal==='rent'?'Цена за наем':'Цена за продажба';
+    var spec=function(icon,v,l){return '<div class="pm-spec"><span class="si">'+ic(icon)+'</span><div><b>'+esc(v)+'</b><span>'+l+'</span></div></div>'};
+    $('pm-specs').innerHTML='<div class="pm-sgrp">'+spec('m2',money(p.area)+' м²','Площ')+spec('bed-double',d.rooms,'Стаи')+spec('bath',d.baths,'Бани')+'</div>'+
+      '<div class="pm-sgrp">'+spec('building-2',d.floor,'Етаж')+spec('brick-wall',d.build,'Строителство')+spec('sparkles',p.cond||'—','Състояние')+'</div>';
     $('pm-grid').innerHTML=[cell('m2','Площ',money(p.area)+' м²'),cell('bed-double','Стаи',d.rooms),cell('bed-double','Спални',d.beds),cell('bath','Бани',d.baths),
       cell('building-2','Етаж',d.floor),cell('book-open','Тип',d.kind),cell('brick-wall','Строителство',d.build),cell('calendar','Година',d.year)].join('');
     $('pm-desc').textContent=d.desc;
@@ -1154,11 +1203,12 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
       acc('docs','image','Снимки и документи ('+p.photos+')','<div class="pics">'+pics+'</div>'+(p.docs.length?p.docs.map(function(x,i){return '<div class="row" data-doc="'+i+'" role="button" tabindex="0" style="cursor:pointer">'+ic('file-text')+'<span>'+esc(x.name)+'</span><span class="r">'+Math.max(1,Math.round((x.size||0)/1024))+' KB</span></div>'}).join(''):'<div class="row">'+ic('file-text')+'<span>Няма качени документи</span></div>')+'<p class="note">Добавяне на снимки и документи – бутон „Редактирай“.</p>')+
       acc('pdocs','file-text','Документи на имота (чеклист)','<div class="row">'+ic('shield')+'<span>Нотариален акт, скица, тежести, данъчна оценка… + специални ситуации</span></div><button class="bankbtn" data-pa="pdocs">'+ic('file-text')+'Отвори документите</button>')+
       (function(){var f=p.fb&&p.fb.post_id?p.fb:null;return acc('fb','share-2','Facebook страница',(f?'<div class="row">'+ic('circle-check')+'<span>'+(f.hidden?'Скрит във Facebook (архив)':'Публикуван в страницата')+(f.at?' · '+esc(window.NDUI.bgDate(f.at)):'')+'</span><span class="r"><a href="'+esc(f.link||'#')+'" target="_blank" rel="noopener">Отвори</a></span></div>':'<div class="row">'+ic('megaphone')+'<span>Не е публикуван в страницата „Недвижими Имоти • Надежда •“</span></div>')+'<button class="bankbtn" data-pa="fbpost">'+ic('share-2')+(f?'Публикувай отново':'Публикувай в страницата')+'</button><p class="note">До 10 снимки, описание, цена, Реф. №, всички телефони и линк към сайта. При архив или сваляне от сайта постът се скрива, при изтриване – изтрива се.</p>')})()+
-      acc('owner','user','Собственик',(p.client?'<div class="row">'+ic('user')+'<span>'+esc(p.client)+'</span><span class="r">'+(CL[p.client]?'<a href="crm-klienti.html#'+esc(CL[p.client].id)+'">Клиент</a>':'Клиент')+'</span></div><div class="row">'+ic('phone')+'<span>Телефон</span><span class="r">'+(CL[p.client]&&CL[p.client].phone?'<a href="tel:'+esc(CL[p.client].phone.replace(/\s/g,''))+'">'+esc(CL[p.client].phone)+'</a>':'няма данни')+'</span></div>':'<div class="row">'+ic('user')+'<span>Няма посочен собственик</span></div>')+(p.ownerPhone?'<div class="row">'+ic('phone')+'<span>Тел. собственик</span><span class="r"><a href="tel:'+esc(String(p.ownerPhone).replace(/[^\d+]/g,''))+'">'+esc(p.ownerPhone)+'</a></span></div>':'')+(p.ownerPrice?'<div class="row">'+ic('coins')+'<span>Цена към собственика</span><span class="r">'+esc(money(p.ownerPrice))+' €</span></div>':'')+(p.privDesc?'<div class="row" style="align-items:flex-start"><svg class="i"><use href="#lock"/></svg><span style="white-space:pre-wrap;line-height:1.35">'+esc(p.privDesc)+'</span></div>':'')+'<p class="note">Описът и данните на собственика не се публикуват.</p>')+
+      acc('owner','user','Собственик',(p.client?'<div class="row">'+ic('user')+'<span>Име</span><span class="r">'+(CL[p.client]?'<a href="crm-klienti.html#'+esc(CL[p.client].id)+'" title="Отвори картата на клиента">'+esc(p.client)+'</a>':esc(p.client))+'</span></div><div class="row">'+ic('phone')+'<span>Телефон</span><span class="r">'+(CL[p.client]&&CL[p.client].phone?'<a href="tel:'+esc(CL[p.client].phone.replace(/\s/g,''))+'">'+esc(CL[p.client].phone)+'</a>':'няма данни')+'</span></div>':'<div class="row">'+ic('user')+'<span>Няма посочен собственик</span></div>')+(p.ownerPhone?'<div class="row">'+ic('phone')+'<span>Тел. собственик</span><span class="r"><a href="tel:'+esc(String(p.ownerPhone).replace(/[^\d+]/g,''))+'">'+esc(p.ownerPhone)+'</a></span></div>':'')+(p.ownerPrice?'<div class="row">'+ic('coins')+'<span>Цена към собственика</span><span class="r">'+esc(money(p.ownerPrice))+' €</span></div>':'')+(p.privDesc?'<div class="row" style="align-items:flex-start"><svg class="i"><use href="#lock"/></svg><span style="white-space:pre-wrap;line-height:1.35">'+esc(p.privDesc)+'</span></div>':'')+'<p class="note">Описът и данните на собственика не се публикуват.</p>')+
       (function(){var o=sameOwner(p);return o.length?acc('others','house','Други имоти на собственика ('+o.length+')',o.map(function(x){return '<div class="row" data-open="'+esc(x.id)+'" role="button" tabindex="0" style="cursor:pointer">'+ic('house')+'<span>'+esc((x.code?x.code+' · ':'')+x.title)+'</span><span class="r">'+esc([x.city,x.hood].filter(Boolean).join(', '))+(x.price?' · '+priceText(x):'')+'</span></div>'}).join('')+'<p class="note">Свързани автоматично по телефона на собственика.</p>'):''})()+
       acc('bank','landmark','Финансиране / Банка',(monthly?'<div class="row">'+ic('coins')+'<span>Примерна вноска (80% кредит, 30 г., 3,25%)</span><span class="r">'+monthly+' € / мес.</span></div>':'<div class="row">'+ic('coins')+'<span>Имотът е под наем – без кредит</span></div>')+'<button class="bankbtn" data-pa="bank">'+ic('landmark')+'Банков модул</button>')+
       acc('log','clock','Коментари и активност',(p.log.length?p.log.slice(0,12).map(function(l){return '<div class="row">'+ic(l.icon||'clock')+'<span>'+esc(l.text)+'</span><span class="r">'+esc(window.NDUI.bgDateTime(l.at))+'</span></div>'}).join(''):'<div class="row">'+ic('megaphone')+'<span>Статус: '+esc(p.status)+'</span></div>'));
-    var pub=pwin.querySelector('[data-pa="publish"] span');pub.textContent=p.status==='Публикуван'?'Публикуван ▾':'Публикувай';
+    [].forEach.call(pwin.querySelectorAll('[data-pa="publish"] span'),function(pub){pub.textContent=p.status==='Публикуван'?'Публикуван ▾':'Публикувай'});
+    tabSync(null);
     var sp=$('pm-stage');if(p.stage){sp.hidden=false;sp.classList.toggle('sold',p.stage==='Продаден');sp.querySelector('span').textContent=p.stage}else sp.hidden=true;
     pwin.dataset.title=p.title;
     pback.hidden=false;pwin.hidden=false;root.classList.add('locked');
@@ -1172,15 +1222,24 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
   }
   /* табове: Редактирай / Публикувай навсякъде / Документи / Собственик се отварят вътре в картата */
   var tabHost=$('pm-tabhost'),tabActive=null;
-  function tabOff(){tabActive=null;pwin.classList.remove('tab');tabHost.hidden=true;[].forEach.call(pwin.querySelectorAll('.pa.on'),function(b){b.classList.remove('on')});window.NDUI.inlineHost(null);window.NDUI.detachInline()}
+  function tabOff(){tabActive=null;pwin.classList.remove('tab');tabHost.hidden=true;[].forEach.call(pwin.querySelectorAll('.pa.on,.pd.on'),function(b){b.classList.remove('on')});tabSync(null);window.NDUI.inlineHost(null);window.NDUI.detachInline()}
   function tabOn(name,btn,opener){
     if(tabActive===name){tabOff();return}
     if(tabActive)tabOff();
-    tabActive=name;pwin.classList.add('tab');tabHost.hidden=false;if(btn)btn.classList.add('on');
+    tabActive=name;pwin.classList.add('tab');tabHost.hidden=false;if(btn)btn.classList.add('on');tabSync(name);
     window.NDUI.inlineHost(tabHost,function(){if(tabActive===name)tabOff()});
     opener();
     if(!desk)setTimeout(function(){tabHost.scrollIntoView({behavior:'smooth',block:'start'})},60);
+    else setTimeout(function(){var n=$('pm-tabs');if(n)n.scrollIntoView({behavior:'smooth',block:'nearest'})},60);
   }
+  /* компютър: редът с табове – активният е винен; „Основна информация“ = картите с разделите */
+  function tabSync(name){[].forEach.call($('pm-tabs').querySelectorAll('.ptab'),function(t){t.classList.toggle('on',name?t.getAttribute('data-pa')===name:t.getAttribute('data-go')==='top')})}
+  $('pm-tabs').addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(!b)return;var g=b.getAttribute('data-go');if(tabActive)tabOff();
+    [].forEach.call(this.querySelectorAll('.ptab'),function(t){t.classList.toggle('on',t===b)});
+    if(g==='top'){pscroll.scrollTo({top:0,behavior:'smooth'});return}
+    var el=g==='data'?pwin.querySelector('.pm-sec.sec-data'):pwin.querySelector('[data-acc="'+g+'"]');if(!el)return;
+    if(el.classList.contains('acc')&&!el.classList.contains('open')){el.classList.add('open');el.querySelector('button').setAttribute('aria-expanded','true')}
+    el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')});
   function closeProp(){
     tabOff();
     pwin.classList.remove('show');pback.classList.remove('show');root.classList.remove('locked');

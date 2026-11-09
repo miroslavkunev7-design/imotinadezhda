@@ -1,0 +1,400 @@
+/* CRM · Клиенти · Вариант 3 (одобрен) – стъклен глас с глоу и преливащи снимки.
+   Главата (горната секция) на страницата НЕ се променя. Под нея съдържанието е прозрачно матово стъкло;
+   всяка карта и секция има чиста HD снимка, която прелива отдясно (без размазване върху снимката).
+   Функциите, id-тата и data-атрибутите са същите. Единици: --q = 1 px от макета върху страницата, --u = 1 px от макета в картата. */
+
+/* ======================================================================
+   1) СТРАНИЦАТА: тъмна вечерна снимка зад голямо матово стъкло
+   ====================================================================== */
+#stage{background:
+  radial-gradient(90% 60% at 50% 0%,rgba(46,6,16,.10),rgba(46,6,16,.50) 70%,rgba(30,4,10,.78)),
+  linear-gradient(180deg,rgba(46,6,16,.30),rgba(46,6,16,.55)),
+  url(assets/card-properties.jpg) 50% 0/cover no-repeat,#2a050d}
+#stage::before{background:none}            /* топлата мъгла отгоре не е нужна върху тъмния фон */
+#canvas{--q:2.63px}
+html.desk #canvas{--q:1.39px}
+
+/* голямото стъкло – всичко под главата (размерите вътре са в px на платното 1024/2072, като досега) */
+#canvas .flow{border-radius:56px;
+  background:linear-gradient(160deg,rgba(255,248,238,.30),rgba(255,236,214,.12) 60%,rgba(255,236,214,.08));
+  -webkit-backdrop-filter:blur(calc(22*var(--q))) saturate(1.25);backdrop-filter:blur(calc(22*var(--q))) saturate(1.25);
+  box-shadow:inset 0 0 0 calc(1*var(--q)) rgba(255,236,200,.55),inset 0 calc(1*var(--q)) 0 rgba(255,255,255,.7),inset 0 0 calc(40*var(--q)) rgba(255,214,160,.12),0 0 calc(34*var(--q)) rgba(246,212,142,.28),0 calc(30*var(--q)) calc(60*var(--q)) calc(-24*var(--q)) rgba(0,0,0,.65)}
+html:not(.desk) #canvas .flow{margin:0 14px;padding:20px 18px 30px}
+html.desk #canvas .flow{--gp:min(30px,calc(var(--xL,24px) - 6px));border-radius:42px;margin-left:calc(var(--xL,24px) - var(--gp));width:calc(2000px + var(--G,24px) + 2*var(--gp));padding:18px var(--gp) 0!important}
+html.desk #canvas .cgrid{height:calc(var(--gh,420px) - 22px);padding-bottom:18px}
+
+/* секциите „Клиенти – Продажби / Наеми“ – остават, но върху стъклото */
+#canvas .cpanel{margin:0!important;border-radius:0;background:none;border:0;box-shadow:none;overflow:visible}
+#canvas .cpanel::after{display:none}
+html:not(.desk) #canvas .cpanel[data-cat=rent]{margin-top:44px!important}
+html:not(.desk) #canvas .cpanel[data-cat=rent]::before{content:"";position:absolute;left:0;right:0;top:-22px;height:calc(1*var(--q));background:linear-gradient(90deg,rgba(255,236,200,.08),rgba(255,236,200,.55) 50%,rgba(255,236,200,.08))}
+#canvas .cribbon{display:none}
+#canvas .ctitle{left:2px;top:9px;gap:18px;color:#fff6e6;font:700 38px/1 var(--serif);letter-spacing:.2px;text-shadow:0 calc(2*var(--q)) calc(6*var(--q)) rgba(40,0,8,.7)}
+#canvas .ctitle svg.i{width:52px;height:52px;padding:12px;border-radius:50%;color:#ffe9b8;stroke-width:2;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 calc(1.5*var(--q)) #f1c37f,0 0 calc(10*var(--q)) rgba(240,196,110,.6)}
+#canvas .ccount{margin-left:12px;font:400 28px/1 var(--cond);color:#f6e3c8;opacity:.92}
+#canvas .cpanel .nd-new{right:2px!important;top:10px!important;height:50px!important;padding:0 22px!important;border-radius:16px!important;
+  border:0!important;color:#fff3dc;background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%)!important;
+  box-shadow:inset 0 0 0 calc(1*var(--q)) #e6bf5b,inset 0 calc(1*var(--q)) calc(2*var(--q)) rgba(255,170,180,.4),0 0 calc(12*var(--q)) rgba(230,191,91,.45),0 calc(5*var(--q)) calc(10*var(--q)) calc(-5*var(--q)) rgba(20,0,6,.7)!important}
+
+/* филтрите – кремави стъклени плочки */
+#canvas .cpanel .filters{left:0;right:0;top:76px;display:grid;grid-template-columns:repeat(24,minmax(0,1fr));grid-auto-rows:52px;gap:10px}
+#canvas .cpanel .fld{position:relative;left:auto!important;top:auto!important;width:auto!important;height:auto;min-width:0;gap:12px;padding:0 14px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(255,253,249,.96),rgba(252,241,231,.92));
+  box-shadow:0 0 0 calc(1*var(--q)) rgba(255,255,255,.95),0 0 0 calc(2*var(--q)) rgba(214,163,92,.25),0 calc(8*var(--q)) calc(16*var(--q)) calc(-10*var(--q)) rgba(0,0,0,.6),0 0 calc(10*var(--q)) rgba(255,228,196,.25)}
+#canvas .cpanel .fld>svg.i{font-size:27px;color:#7b1020}
+#canvas .cpanel .fld .chev{font-size:24px;color:#7a5a52;stroke-width:2.4}
+#canvas .cpanel .fld:focus-within{box-shadow:0 0 0 calc(1.5*var(--q)) #e6bf5b,0 0 calc(12*var(--q)) rgba(246,212,142,.7)}
+#canvas .f-q{grid-column:span 9}#canvas .f-city{grid-column:span 7}#canvas .f-hood{grid-column:span 8}
+#canvas .f-type{grid-column:span 11}#canvas .f-sort{grid-column:span 9}#canvas .f-more{grid-column:span 4;justify-content:center;color:#5a0a12}
+#canvas .cpanel .f-more.set{box-shadow:inset 0 0 0 calc(1*var(--q)) #e6bf5b,0 0 calc(12*var(--q)) rgba(230,191,91,.5)}
+/* етикет над стойността – на компютър (на телефона е твърде дребен) */
+html.desk #canvas .cpanel .fld .val{line-height:1.12!important}
+html.desk #canvas .cpanel .fld .val::before{display:block;margin-bottom:3px;font:500 17px/1 var(--cond);color:#7a5a52}
+html.desk #canvas .f-city .val::before{content:"Град"}html.desk #canvas .f-hood .val::before{content:"Квартал"}
+html.desk #canvas .f-type .val::before{content:"Вид имот"}html.desk #canvas .f-sort .val::before{content:"Подредба"}
+
+/* картите на клиентите – крем стъкло + чиста HD снимка, преливаща отдясно */
+html:not(.desk) #canvas .cgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 14px;padding:16px 0 0}
+#canvas .ccard{border:0;border-radius:26px;
+  background:linear-gradient(180deg,rgba(255,252,247,.95),rgba(253,242,231,.92));
+  box-shadow:0 0 0 calc(1*var(--q)) rgba(255,255,255,.95),0 0 0 calc(2*var(--q)) rgba(214,163,92,.3),0 0 calc(18*var(--q)) rgba(255,228,196,.35),0 calc(12*var(--q)) calc(22*var(--q)) calc(-12*var(--q)) rgba(0,0,0,.7)}
+#stage .ccard .ph{right:0;top:0;bottom:0;width:52%;border-radius:0;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;opacity:1!important;filter:saturate(1.1) contrast(1.04)!important;
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important;mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important}
+#canvas .ccard .go{box-shadow:0 0 0 calc(1.5*var(--q)) rgba(246,212,142,.85),0 calc(3*var(--q)) calc(8*var(--q)) rgba(0,0,0,.35),0 0 calc(10*var(--q)) rgba(255,220,150,.6)}
+#canvas .cgrid .empty{background:linear-gradient(180deg,rgba(255,252,247,.95),rgba(253,242,231,.92));box-shadow:0 0 0 calc(1*var(--q)) rgba(255,255,255,.95),0 0 0 calc(2*var(--q)) rgba(214,163,92,.3)}
+html.desk #canvas .cgrid{scrollbar-color:rgba(246,212,142,.7) transparent}
+
+/* ======================================================================
+   2) КАРТА НА КЛИЕНТ
+   ====================================================================== */
+#mwin .mcv{--u:2.74px;padding:0 0 calc(16*var(--u))}
+html.desk #mwin .mcv{--u:1.4px}
+#mwin .v3-fwrap{display:contents}
+
+/* --- телефон: кремав прозорец като картата на имота --- */
+html:not(.desk) #mwin{background:#fbeee2}
+html:not(.desk) #mwin .mscroll{background:linear-gradient(180deg,rgba(255,250,244,.98),rgba(251,236,222,.97))}
+html:not(.desk) #mwin .mcv{display:flex;flex-direction:column}
+html:not(.desk) #mwin .v3-head{order:1}html:not(.desk) #mwin .v3-prof{order:2}html:not(.desk) #mwin #m-tabhost{order:3}
+html:not(.desk) #mwin .m-data{order:4}html:not(.desk) #mwin .m-prefs{order:5}html:not(.desk) #mwin .m-act{order:6}
+html:not(.desk) #mwin .m-notes{order:7}html:not(.desk) #mwin .v3-quick{display:none}html:not(.desk) #mwin .m-actions{order:9}
+html:not(.desk) #mwin .mctl{top:12px!important;right:12px}
+html:not(.desk) #mwin .mbtn{width:42px;height:42px;font-size:18px;color:#4a2a00;
+  background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%);box-shadow:0 3px 8px rgba(0,0,0,.35),inset 0 0 0 1px #fff2c4}
+html:not(.desk) #mwin #m-close{color:#fff3dc;background:radial-gradient(circle at 35% 28%,#d0405c 0%,#a3213a 45%,#6a0a1d 100%);box-shadow:0 3px 8px rgba(0,0,0,.35),0 0 0 2px #e6b866}
+
+/* заглавие на прозореца */
+#mwin .v3-head{position:relative}
+#mwin .v3-logo{display:block;height:calc(72*var(--u));width:auto;margin:calc(10*var(--u)) auto calc(6*var(--u))}
+#mwin .v3-rib{position:relative;height:calc(50*var(--u));margin:0 calc(6*var(--u))}
+#mwin .v3-rsv{position:absolute;inset:0;width:100%;height:100%}
+#mwin .v3-wt{position:relative;display:flex;align-items:center;gap:0;height:100%;margin:0;padding-left:calc(22*var(--u));color:#fff3dc;font:700 calc(24*var(--u))/1 var(--serif);text-shadow:0 calc(2*var(--u)) calc(3*var(--u)) rgba(40,0,8,.6)}
+#mwin .v3-md{display:grid;place-items:center;margin-right:calc(12*var(--u));font-size:calc(22*var(--u));color:#fff1de}
+
+/* профилен блок */
+#mwin .v3-prof{position:relative;overflow:hidden;isolation:isolate;margin:calc(12*var(--u)) calc(10*var(--u)) 0;padding:calc(14*var(--u));border-radius:calc(20*var(--u));
+  background:linear-gradient(180deg,rgba(255,252,247,.95),rgba(253,242,231,.92));
+  box-shadow:0 0 0 calc(1*var(--u)) rgba(255,255,255,.95),0 0 0 calc(2*var(--u)) rgba(214,163,92,.3),0 0 calc(18*var(--u)) rgba(255,228,196,.7),0 calc(10*var(--u)) calc(18*var(--u)) calc(-12*var(--u)) rgba(60,10,10,.5)}
+#mwin .v3-prof::before{content:"";position:absolute;right:0;top:0;bottom:0;width:52%;z-index:-1;pointer-events:none;
+  background:url(assets/nd/ph18.jpg) center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+#mwin .v3-cav{display:grid;place-items:center;width:calc(62*var(--u));height:calc(62*var(--u));border-radius:calc(18*var(--u));font:700 calc(24*var(--u))/1 var(--serif);color:#fff3dc;letter-spacing:calc(.5*var(--u));
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 calc(3*var(--u)) #f1c37f,0 0 calc(18*var(--u)) rgba(240,196,110,.6),0 calc(10*var(--u)) calc(18*var(--u)) calc(-8*var(--u)) rgba(60,0,10,.7)}
+#mwin .v3-k{display:flex;align-items:center;gap:calc(6*var(--u));font:500 calc(13*var(--u))/1 var(--cond);color:#8a1a2c}
+#mwin .v3-k b{font-weight:700}
+#mwin .v3-k svg.i{font-size:calc(14*var(--u))}
+#mwin .m-name{position:static;margin:0;background:none;-webkit-text-fill-color:currentColor;color:#3b0a0e;filter:none;white-space:normal;
+  font:700 calc(22*var(--u))/1.1 var(--serif);text-shadow:0 0 calc(2*var(--u)) #fff,0 0 calc(6*var(--u)) #fff,0 0 calc(12*var(--u)) rgba(255,248,240,.95),0 0 calc(18*var(--u)) rgba(255,248,240,.8)}
+#mwin .m-phone{position:static;display:inline-flex;align-items:center;justify-content:center;gap:calc(8*var(--u));height:calc(46*var(--u));min-width:0;padding:0 calc(12*var(--u));border:0;border-radius:calc(23*var(--u));white-space:nowrap;
+  color:#fff;text-decoration:none;font:800 calc(15.5*var(--u))/1 var(--cond);letter-spacing:.2px;
+  background:linear-gradient(180deg,#b02a45 0%,#83102a 42%,#5a0719 100%);box-shadow:0 0 0 calc(2*var(--u)) #e6b866,0 0 calc(12*var(--u)) rgba(230,191,91,.45),inset 0 calc(2*var(--u)) calc(3*var(--u)) rgba(255,170,180,.4)}
+#mwin .m-phone span{font:inherit;letter-spacing:inherit;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+#mwin .m-phone svg.i{font-size:calc(17*var(--u));color:#fff2e0;stroke-width:2}
+#mwin .v3-mq{display:grid;place-items:center;width:calc(44*var(--u));height:calc(44*var(--u));border-radius:50%;
+  background:radial-gradient(120% 90% at 30% 18%,#fff,rgba(255,248,238,.92) 55%,rgba(246,226,200,.92));box-shadow:0 0 0 calc(2*var(--u)) #e6bf5b,0 0 calc(12*var(--u)) rgba(246,212,142,.6)}
+#mwin .v3-mq svg{width:calc(26*var(--u));height:calc(26*var(--u))}
+#mwin .v3-mq[hidden],#mwin .v3-btn[hidden]{display:none!important}
+#mwin .v3-chips{display:flex;flex-wrap:wrap;gap:calc(7*var(--u))}
+#mwin .v3-chip{display:inline-flex;align-items:center;gap:calc(7*var(--u));height:calc(30*var(--u));padding:0 calc(13*var(--u));border-radius:999px;font:700 calc(14*var(--u))/1 var(--cond);white-space:nowrap}
+#mwin .v3-chip svg.i{font-size:calc(15*var(--u))}
+#mwin .v3-chip.green{color:#eaffea;background:linear-gradient(135deg,#2f9a3a,#1d6e26);box-shadow:inset 0 0 0 calc(1*var(--u)) rgba(200,255,200,.6),0 0 calc(10*var(--u)) rgba(60,180,70,.45)}
+#mwin .v3-chip.gold{color:#4a2a00;background:linear-gradient(180deg,#fff1c8,#f2cf7c);box-shadow:inset 0 0 0 calc(1*var(--u)) rgba(200,150,60,.6),0 0 calc(10*var(--u)) rgba(246,212,142,.6)}
+#mwin .v3-chip.warn{color:#6a4300;background:linear-gradient(180deg,#fff1cc,#f7dc9a);box-shadow:inset 0 0 0 calc(1*var(--u)) rgba(200,150,60,.55),0 0 calc(8*var(--u)) rgba(246,212,142,.5)}
+#mwin .v3-chip.lite{color:#5a0a12;background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 calc(1*var(--u)) rgba(226,180,120,.7)}
+#mwin .v3-meta{display:flex;flex-wrap:wrap;gap:calc(6*var(--u)) calc(18*var(--u));margin-top:calc(12*var(--u));font:500 calc(14*var(--u))/1.2 var(--cond);color:#3a1515}
+#mwin .v3-meta span{display:flex;align-items:center;gap:calc(6*var(--u));text-shadow:0 0 calc(2*var(--u)) #fff,0 0 calc(6*var(--u)) #fff,0 0 calc(12*var(--u)) rgba(255,248,240,.95),0 0 calc(18*var(--u)) rgba(255,248,240,.8)}
+#mwin .v3-meta svg.i{font-size:calc(16*var(--u));color:#7b1020}
+#mwin .v3-meta:empty{display:none}
+/* телефон: подредба като макета (инициали + име, телефон + WhatsApp/Viber, чипове) */
+html:not(.desk) #mwin .v3-prof{display:grid;grid-template-columns:calc(62*var(--u)) minmax(0,1fr) auto auto;grid-template-areas:"cav k k k" "cav nm nm nm" "ph ph wa vb" "ch ch ch ch";column-gap:calc(10*var(--u));align-items:center}
+html:not(.desk) #mwin .v3-pn,html:not(.desk) #mwin .v3-line{display:contents}
+html:not(.desk) #mwin .v3-cav{grid-area:cav}
+html:not(.desk) #mwin .v3-k{grid-area:k;align-self:end;padding-left:calc(2*var(--u))}
+html:not(.desk) #mwin .m-name{grid-area:nm;align-self:start;margin-top:calc(5*var(--u));padding-left:calc(2*var(--u))}
+html:not(.desk) #mwin .m-phone{grid-area:ph;margin-top:calc(12*var(--u))}
+html:not(.desk) #mwin .v3-mq.wa{grid-area:wa;margin-top:calc(12*var(--u))}
+html:not(.desk) #mwin .v3-mq.vb{grid-area:vb;margin-top:calc(12*var(--u))}
+html:not(.desk) #mwin .v3-chips{grid-area:ch;margin-top:calc(12*var(--u))}
+html:not(.desk) #mwin .v3-meta{display:none}
+
+/* бутоните-раздели: телефон = плочки 3×2 долу; компютър = табове */
+#mwin .m-actions{position:relative;left:auto;top:auto;width:auto}
+html:not(.desk) #mwin .m-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(9*var(--u));margin:calc(14*var(--u)) calc(10*var(--u)) 0;padding:0}
+html:not(.desk) #mwin .v3-info{display:none}
+#mwin .ma{height:calc(78*var(--u));border-radius:calc(18*var(--u));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(7*var(--u));padding:0 calc(4*var(--u));text-align:center;
+  font:700 calc(13.5*var(--u))/1.05 var(--cond);color:#2b1414;
+  background:linear-gradient(180deg,#fffdf9,#fcf0e6);box-shadow:0 0 0 calc(1*var(--u)) rgba(226,180,120,.65),0 0 calc(12*var(--u)) rgba(255,214,160,.5),0 calc(6*var(--u)) calc(12*var(--u)) calc(-8*var(--u)) rgba(80,30,10,.5),inset 0 calc(1*var(--u)) 0 #fff;
+  transition:transform .18s cubic-bezier(.2,.8,.3,1.25),box-shadow .2s}
+#mwin .ma svg.i{font-size:calc(24*var(--u));color:#8c0d22;stroke-width:1.8}
+#mwin .ma:active{transform:scale(.95)}
+html:not(.desk) #mwin .ma[data-act="Срещи"],#mwin .ma.on{color:#fff;background:linear-gradient(180deg,#b02a45 0%,#83102a 42%,#5a0719 100%);box-shadow:0 0 0 calc(1.5*var(--u)) #e6b866,0 0 calc(14*var(--u)) rgba(230,191,91,.45),inset 0 calc(2*var(--u)) calc(3*var(--u)) rgba(255,170,180,.4)}
+html:not(.desk) #mwin .ma[data-act="Срещи"] svg.i,#mwin .ma.on svg.i{color:#fff}
+html:not(.desk) #mwin .ma.on{box-shadow:0 0 0 calc(2.5*var(--u)) #f6d48e,0 0 calc(18*var(--u)) rgba(246,212,142,.85),inset 0 calc(2*var(--u)) calc(3*var(--u)) rgba(255,170,180,.4)}
+
+/* табове, отворени в картата */
+#mwin #m-tabhost{position:relative;left:auto;top:auto;width:auto;margin:calc(12*var(--u)) calc(10*var(--u)) 0}
+
+/* секции (общо) */
+#mwin .mpanel{position:relative;left:auto;top:auto;width:auto;overflow:hidden;isolation:isolate;margin:calc(12*var(--u)) calc(10*var(--u)) 0;border:0;border-radius:calc(20*var(--u));
+  background:linear-gradient(180deg,rgba(255,252,247,.95),rgba(253,242,231,.92));
+  box-shadow:0 0 0 calc(1*var(--u)) rgba(255,255,255,.95),0 0 0 calc(2*var(--u)) rgba(214,163,92,.3),0 0 calc(18*var(--u)) rgba(255,228,196,.7),0 calc(10*var(--u)) calc(18*var(--u)) calc(-12*var(--u)) rgba(60,10,10,.5)}
+#mwin .mribbon{left:0;top:0;width:100%;height:calc(44*var(--u))}
+#mwin .mtitle{position:relative;height:calc(44*var(--u));margin:0;gap:calc(12*var(--u));padding-left:calc(18*var(--u));color:#fff3dc;font:700 calc(20*var(--u))/1 var(--serif);text-shadow:0 calc(2*var(--u)) calc(3*var(--u)) rgba(40,0,8,.6)}
+#mwin .mtitle svg.i{font-size:calc(22*var(--u));color:#fff1de;stroke-width:1.8}
+#mwin :is(.m-data,.m-act,.m-notes,.m-prefs,.v3-quick)::after{content:"";position:absolute;right:0;top:0;bottom:0;left:auto;width:52%!important;z-index:-1;pointer-events:none;border-radius:0;
+  background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;opacity:1!important;filter:saturate(1.1) contrast(1.04)!important;
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important;mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important}
+#mwin .m-data::after{background-image:url(assets/nd/ph17.jpg)!important}
+#mwin .m-act::after{background-image:url(assets/nd/ph16.jpg)!important}
+#mwin .m-notes::after{background-image:url(assets/nd/ph05.jpg)!important}
+#mwin .m-prefs::after{background-image:url(assets/nd/ph15.jpg)!important}
+#mwin .v3-quick::after{background-image:url(assets/nd/ph03.jpg)!important}
+#mwin .v3-hbtn{display:none}
+
+/* редове „иконка · етикет: стойност“ (докосване на стойността → поле за редакция, записва се веднага) */
+#mwin #m-fields,#mwin #m-prefs{padding:calc(4*var(--u)) calc(14*var(--u)) calc(12*var(--u))}
+#mwin .dmain,#mwin .dgb{display:block!important;row-gap:0!important}
+#mwin .dgrid .ditem{display:grid;grid-template-columns:minmax(0,46%) minmax(0,1fr);align-items:center;column-gap:calc(12*var(--u));row-gap:0;min-height:calc(34*var(--u));border-bottom:calc(1*var(--u)) solid rgba(214,163,92,.25)}
+#mwin .dgrid .ditem:last-child{border-bottom:0}
+#mwin .ditem .dl{display:block!important;position:relative;padding:calc(7*var(--u)) 0 calc(7*var(--u)) calc(24*var(--u))!important;font:500 calc(14.5*var(--u))/1.2 var(--cond)!important;color:#8a1a2c!important;text-shadow:0 0 calc(2*var(--u)) #fff,0 0 calc(6*var(--u)) #fff,0 0 calc(12*var(--u)) rgba(255,248,240,.95),0 0 calc(18*var(--u)) rgba(255,248,240,.8)!important}
+#mwin .ditem .dl::after{content:":"}
+#mwin .ditem .dl svg.i{position:absolute;left:0;top:50%;transform:translateY(-50%);font-size:calc(16*var(--u))!important;color:#7b1020;stroke-width:2!important}
+#mwin .dgrid .ditem.view .dvv{min-height:0!important;padding:calc(7*var(--u)) calc(4*var(--u))!important;margin:0 calc(-4*var(--u));border-radius:calc(8*var(--u))!important;background:none!important;box-shadow:none!important;
+  font:700 calc(15*var(--u))/1.25 var(--cond)!important;color:#22090d!important;text-shadow:0 0 calc(2*var(--u)) #fff,0 0 calc(6*var(--u)) #fff,0 0 calc(12*var(--u)) rgba(255,248,240,.95),0 0 calc(18*var(--u)) rgba(255,248,240,.8)!important}
+#mwin .dgrid .ditem.view .dvv.emp{color:#8c0d22!important;font-weight:600!important;font-style:italic!important;opacity:.85}
+#mwin .dgrid .ditem.view .dvv:hover{background:rgba(255,253,250,.72)!important;box-shadow:0 0 0 calc(1*var(--u)) rgba(237,196,122,.85),0 0 calc(10*var(--u)) rgba(255,214,160,.7)!important}
+#mwin .dgrid .ditem .dro{display:flex;min-height:0;padding:calc(7*var(--u)) 0!important;font:700 calc(15*var(--u))/1.25 var(--cond)!important;color:#22090d!important;text-shadow:0 0 calc(6*var(--u)) #fff8f0!important}
+#mwin .ditem .din{height:calc(36*var(--u));margin:calc(3*var(--u)) 0;padding:0 calc(10*var(--u));border-radius:calc(10*var(--u));border:calc(1.5*var(--u)) solid rgba(227,178,94,.9);background:#fffdfa;font:700 calc(15*var(--u))/1 var(--cond);color:#1f1111;box-shadow:0 0 calc(10*var(--u)) rgba(255,214,150,.55)}
+#mwin .ditem .din:focus{box-shadow:0 0 0 calc(2*var(--u)) #edc47a,0 0 calc(14*var(--u)) rgba(255,200,140,.8)}
+#mwin .ditem .dsw select{padding-right:calc(30*var(--u))}
+#mwin .ditem .dsw svg.i{right:calc(9*var(--u));font-size:calc(16*var(--u))}
+#mwin .ditem.saved .din{border-color:#5fa82a}
+#mwin .dgrid .ditem.view .nd-dw{display:none}   /* обвивката на полето за дата (crm-ui) – само при редакция */
+#mwin .dgrid .ditem .nd-dw{grid-column:2;min-width:0}
+
+/* групите – редове-акордеони със снимки, които преливат */
+#mwin .dgrp{position:relative;overflow:hidden;isolation:isolate;margin:calc(9*var(--u)) 0 0;border-radius:calc(18*var(--u));
+  background:linear-gradient(180deg,#fffdf9 0%,#fbefe4 100%);box-shadow:0 0 0 calc(1.5*var(--u)) rgba(231,196,160,.6),0 0 calc(12*var(--u)) rgba(255,228,196,.85),0 calc(4*var(--u)) calc(10*var(--u)) rgba(120,50,20,.18)}
+#mwin .dgrp::before{content:"";position:absolute;right:0;top:0;height:calc(52*var(--u));width:50%;z-index:-1;pointer-events:none;background:center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+#mwin .dgrp[data-g="0"]::before{background-image:url(assets/nd/ph09.jpg)}
+#mwin .dgrp[data-g="1"]::before{background-image:url(assets/nd/ph12.jpg)}
+#mwin .dgrp[data-g="2"]::before{background-image:url(assets/nd/ph06.jpg)}
+#mwin .dgh{height:calc(52*var(--u));padding:0 calc(14*var(--u)) 0 calc(16*var(--u));gap:calc(12*var(--u));font:700 calc(16*var(--u))/1 var(--cond);color:#8c0d22;text-shadow:0 0 calc(2*var(--u)) #fff,0 0 calc(6*var(--u)) #fff,0 0 calc(12*var(--u)) rgba(255,248,240,.95),0 0 calc(18*var(--u)) rgba(255,248,240,.8)}
+#mwin .dgh svg.i{font-size:calc(21*var(--u));color:#7b1020}
+#mwin .dgh span{flex:0 1 auto}
+#mwin .dgh em{display:grid;place-items:center;min-width:calc(24*var(--u));height:calc(22*var(--u));padding:0 calc(7*var(--u));border-radius:999px;font:800 calc(12*var(--u))/1 var(--cond);font-style:normal;color:#fff3dc;
+  background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 calc(1*var(--u)) #e6bf5b}
+#mwin .dgh svg.i:last-child{margin-left:auto;font-size:calc(20*var(--u));color:#3a1212;filter:drop-shadow(0 0 calc(2*var(--u)) #fff) drop-shadow(0 0 calc(5*var(--u)) #fff)}
+#mwin .dgrp .dgb{display:none!important;padding:0 calc(14*var(--u)) calc(10*var(--u))}
+#mwin .dgrp.open .dgb{display:block!important}
+html:not(.desk) #mwin .m-prefs{margin:calc(2*var(--u)) calc(10*var(--u)) 0;background:none;box-shadow:none;overflow:visible;border-radius:0}
+html:not(.desk) #mwin .m-prefs::after,html:not(.desk) #mwin .m-prefs .mribbon,html:not(.desk) #mwin .m-prefs .mtitle{display:none}
+html:not(.desk) #mwin #m-prefs{padding:0}
+
+/* последна активност – времева линия със златни точки */
+#mwin .mall{right:calc(14*var(--u));top:calc(12*var(--u));gap:calc(5*var(--u));font:700 calc(13*var(--u))/1 var(--cond);color:#5a0a12}
+#mwin .mall svg.i{font-size:calc(14*var(--u))}
+html:not(.desk) #mwin .m-act{display:flex;flex-direction:column}
+html:not(.desk) #mwin .m-act .alist{order:1}
+html:not(.desk) #mwin .mall{position:relative;right:auto;top:auto;order:2;align-self:flex-end;height:calc(30*var(--u));margin:calc(-4*var(--u)) calc(14*var(--u)) calc(12*var(--u)) 0;padding:0 calc(10*var(--u)) 0 calc(12*var(--u));border-radius:calc(10*var(--u));
+  background:linear-gradient(180deg,#fffdf9,#fcf1e7);box-shadow:0 0 0 calc(1*var(--u)) rgba(226,180,120,.75),0 0 calc(10*var(--u)) rgba(255,214,160,.45),inset 0 calc(1*var(--u)) 0 #fff}
+#mwin .alist{margin:0;padding:calc(10*var(--u)) calc(14*var(--u)) calc(4*var(--u));border-radius:0;background:none;box-shadow:none}
+#mwin .arow{position:relative;display:grid;grid-template-columns:calc(22*var(--u)) minmax(0,1fr) auto;grid-template-areas:"d tm ic" "d at ic";column-gap:calc(10*var(--u));row-gap:calc(3*var(--u));height:auto;align-items:start;padding:0 0 calc(12*var(--u));font:inherit}
+#mwin .arow+.arow{border-top:0}
+#mwin .arow::before{content:"";grid-area:d;width:calc(22*var(--u));height:calc(22*var(--u));margin-top:calc(1*var(--u));border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,#c43a55 0,#7d0f20 calc(5*var(--u)),rgba(125,15,32,0) calc(5.5*var(--u))),#fff7ef;box-shadow:0 0 0 calc(2*var(--u)) #e0b76b,0 0 calc(8*var(--u)) rgba(240,196,110,.6)}
+#mwin .arow::after{content:"";position:absolute;left:calc(10*var(--u));top:calc(25*var(--u));bottom:calc(1*var(--u));width:calc(2*var(--u));background:linear-gradient(180deg,rgba(214,163,92,.8),rgba(214,163,92,.25))}
+#mwin .arow:last-child::after{display:none}
+#mwin .arow:first-child::before{animation:v3pulse 2s ease-in-out infinite}
+@keyframes v3pulse{50%{box-shadow:0 0 0 calc(2*var(--u)) #e0b76b,0 0 0 calc(6*var(--u)) rgba(210,74,94,.25)}}
+#mwin .arow .tm{grid-area:tm;display:block;font:700 calc(13.5*var(--u))/1.1 var(--cond);color:#8a1a2c;white-space:nowrap;text-shadow:0 0 calc(2*var(--u)) #fff,0 0 calc(6*var(--u)) #fff,0 0 calc(12*var(--u)) rgba(255,248,240,.95),0 0 calc(18*var(--u)) rgba(255,248,240,.8)}
+#mwin .arow .tm::first-letter{text-transform:uppercase}
+#mwin .arow .at{grid-area:at;display:block;font:500 calc(14.5*var(--u))/1.25 var(--cond);color:#22090d;white-space:normal;overflow:visible;text-shadow:0 0 calc(2*var(--u)) #fff,0 0 calc(6*var(--u)) #fff,0 0 calc(12*var(--u)) rgba(255,248,240,.95),0 0 calc(18*var(--u)) rgba(255,248,240,.8)}
+#mwin .arow svg.i{grid-area:ic;margin:calc(1*var(--u)) 0 0;font-size:calc(16*var(--u));color:#7b1020;stroke-width:2;filter:drop-shadow(0 0 calc(2*var(--u)) #fff) drop-shadow(0 0 calc(4*var(--u)) #fff)}
+#mwin .arow:not(:has(.tm)) .at{grid-row:1/-1;align-self:center}
+
+/* бележки */
+#mwin .nstate{right:calc(16*var(--u));top:calc(14*var(--u));font:700 calc(13*var(--u))/1 var(--cond);color:#5a0a12}
+#mwin .nbox{margin:0;padding:calc(10*var(--u)) calc(14*var(--u)) calc(14*var(--u));border-radius:0;background:none;box-shadow:none}
+#mwin .ntext{min-height:calc(110*var(--u));padding:calc(12*var(--u)) calc(14*var(--u));border:0;border-left:calc(5*var(--u)) solid #e0b76b;border-radius:calc(14*var(--u));font:400 calc(15*var(--u))/1.4 var(--cond);color:#1f1111;
+  background:linear-gradient(180deg,rgba(255,253,249,.97),rgba(253,243,232,.95));box-shadow:inset 0 0 0 calc(1*var(--u)) rgba(226,180,120,.7),inset 0 calc(6*var(--u)) calc(12*var(--u)) calc(-10*var(--u)) rgba(140,70,40,.35)}
+#mwin .ntext::placeholder{color:#9a7a6a;font-style:italic}
+#mwin .ntext:focus{box-shadow:inset 0 0 0 calc(1.5*var(--u)) #d9a248,0 0 0 calc(3*var(--u)) rgba(227,178,94,.3),0 0 calc(14*var(--u)) rgba(255,214,150,.6)}
+#mwin .nrow{display:grid;grid-template-columns:1fr 1fr;gap:calc(8*var(--u));margin-top:calc(10*var(--u))}
+#mwin .nbtn{height:calc(40*var(--u));padding:0 calc(10*var(--u));border-radius:calc(12*var(--u));gap:calc(7*var(--u));font:700 calc(13.5*var(--u))/1 var(--cond);color:#5a0a12;
+  background:linear-gradient(180deg,#fffdf9,#fcf1e7);box-shadow:0 0 0 calc(1*var(--u)) rgba(226,180,120,.75),0 0 calc(12*var(--u)) rgba(255,214,160,.45),0 calc(6*var(--u)) calc(12*var(--u)) calc(-8*var(--u)) rgba(80,30,10,.45),inset 0 calc(1*var(--u)) 0 #fff}
+#mwin .nbtn svg.i{font-size:calc(16*var(--u));color:#7b1020}
+#mwin .nbtn.nsave{grid-column:1/-1;order:-1;height:calc(44*var(--u));border-radius:calc(14*var(--u));font-size:calc(15*var(--u));color:#fff3dc;
+  background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);box-shadow:inset 0 0 0 calc(1.5*var(--u)) #e6bf5b,inset 0 calc(2*var(--u)) calc(3*var(--u)) rgba(255,170,180,.4),0 0 calc(18*var(--u)) rgba(230,191,91,.45),0 calc(8*var(--u)) calc(16*var(--u)) calc(-8*var(--u)) rgba(80,10,20,.7)}
+#mwin .nbtn.nsave svg.i{color:#ffe1a6}
+
+/* бързи действия */
+#mwin .v3-qa{display:grid;gap:calc(8*var(--u));margin-top:calc(12*var(--u))}
+#mwin .v3-btn{display:flex;align-items:center;gap:calc(9*var(--u));height:calc(44*var(--u));padding:0 calc(18*var(--u));border-radius:calc(14*var(--u));font:700 calc(15*var(--u))/1 var(--cond);white-space:nowrap;text-decoration:none;
+  transition:transform .18s cubic-bezier(.2,.8,.3,1.25),box-shadow .2s}
+#mwin .v3-btn svg.i{font-size:calc(18*var(--u))}
+#mwin .v3-btn:active{transform:scale(.96)}
+#mwin .v3-btn.call{color:#fff3dc;background:linear-gradient(135deg,#2f9a3a,#1d6e26);box-shadow:inset 0 0 0 calc(1.5*var(--u)) rgba(200,255,200,.6),0 0 calc(14*var(--u)) rgba(60,180,70,.45)}
+#mwin .v3-btn.pri{color:#fff3dc;background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);box-shadow:inset 0 0 0 calc(1.5*var(--u)) #e6bf5b,inset 0 calc(2*var(--u)) calc(3*var(--u)) rgba(255,170,180,.4),0 0 calc(18*var(--u)) rgba(230,191,91,.45),0 calc(8*var(--u)) calc(16*var(--u)) calc(-8*var(--u)) rgba(80,10,20,.7)}
+#mwin .v3-btn.sec{color:#5a0a12;background:linear-gradient(180deg,#fffdf9,#fcf1e7);box-shadow:0 0 0 calc(1*var(--u)) rgba(226,180,120,.75),0 0 calc(12*var(--u)) rgba(255,214,160,.45),0 calc(6*var(--u)) calc(12*var(--u)) calc(-8*var(--u)) rgba(80,30,10,.45),inset 0 calc(1*var(--u)) 0 #fff}
+#mwin .v3-btn.sec svg.i{color:#7b1020}
+/* отворен таб: блоковете се скриват (като досега); на компютър „Последна активност“ остава вдясно */
+#mwin .mcv.tab :is(.m-data,.m-prefs,.m-notes,.v3-quick){display:none!important}
+html:not(.desk) #mwin .mcv.tab .m-act{display:none!important}
+
+/* ======================================================================
+   3) КАРТА НА КЛИЕНТ – КОМПЮТЪР: прозрачно стъкло върху вечерна снимка, подредба като макета
+   ====================================================================== */
+html.desk #mwin{background:#2a050d;border-width:0!important;box-shadow:0 0 0 2px #efc57a,0 0 0 3.5px rgba(255,235,190,.55),0 0 24px rgba(255,200,120,.55),0 20px 50px rgba(30,0,8,.55)}
+html.desk #mwin .mscroll{background:#2a050d;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(246,212,142,.6) transparent}
+html.desk #mwin .mcv{display:grid;isolation:isolate;width:2048px;height:auto;align-content:stretch;
+  grid-template-columns:minmax(0,32fr) minmax(0,2fr) minmax(0,12fr) minmax(0,14fr);
+  grid-template-rows:auto auto auto auto auto auto 1fr;
+  grid-template-areas:"wh wh wh wh" "pr pr pr pr" "sp sp sp sp" "tb tb tb tb" "th th th th" "da da ac ac" "pf no no qk";
+  column-gap:calc(14*var(--u));padding:calc(28*var(--u)) calc(34*var(--u)) calc(30*var(--u))}
+html.desk #mwin .mcv::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
+  background:radial-gradient(90% 60% at 50% 0%,rgba(46,6,16,.15),rgba(46,6,16,.55) 70%,rgba(30,4,10,.8)),linear-gradient(180deg,rgba(46,6,16,.25),rgba(46,6,16,.5)),url(assets/k-hero.jpg) center/cover no-repeat;
+  filter:saturate(1.15) brightness(.82)}
+html.desk #mwin .mcv::after{content:"";position:absolute;inset:calc(16*var(--u));z-index:-1;pointer-events:none;border-radius:calc(30*var(--u));
+  background:linear-gradient(160deg,rgba(255,248,238,.30),rgba(255,236,214,.12) 60%,rgba(255,236,214,.08));
+  -webkit-backdrop-filter:blur(calc(22*var(--u))) saturate(1.25);backdrop-filter:blur(calc(22*var(--u))) saturate(1.25);
+  box-shadow:inset 0 0 0 calc(1*var(--u)) rgba(255,236,200,.55),inset 0 calc(1*var(--u)) 0 rgba(255,255,255,.7),inset 0 0 calc(40*var(--u)) rgba(255,214,160,.12),0 0 calc(34*var(--u)) rgba(246,212,142,.28)}
+html.desk #mwin .mctl{top:30px;right:32px;gap:10px}
+html.desk #mwin .mbtn{width:40px;height:40px;border-radius:13px;font-size:18px;color:#fff3dc;
+  background:linear-gradient(160deg,rgba(90,14,30,.62),rgba(46,6,16,.55));box-shadow:inset 0 0 0 1px rgba(255,236,200,.6),0 4px 10px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+html.desk #mwin #m-close{background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 1.5px #e6bf5b,0 0 14px rgba(230,191,91,.5)}
+
+/* заглавие „Клиент“ */
+html.desk #mwin .v3-head{grid-area:wh;display:flex;align-items:center;margin:0 0 calc(10*var(--u));padding-right:calc(110*var(--u))}
+html.desk #mwin .v3-logo,html.desk #mwin .v3-rsv,html.desk #mwin .v3-mob{display:none}
+html.desk #mwin .v3-rib{height:auto;margin:0}
+html.desk #mwin .v3-wt{padding:0;font:700 calc(30*var(--u))/1 var(--serif);color:#fff6e6;text-shadow:0 calc(2*var(--u)) calc(8*var(--u)) rgba(40,0,8,.6)}
+html.desk #mwin .v3-md{width:calc(40*var(--u));height:calc(40*var(--u));border-radius:50%;font-size:calc(22*var(--u));color:#ffe9b8;
+  background:radial-gradient(circle at 35% 28%,#b42446,#7d0f22 58%,#55071a);box-shadow:0 0 0 calc(2*var(--u)) #f1c37f,0 0 calc(12*var(--u)) rgba(240,196,110,.6)}
+
+/* профилен ред */
+html.desk #mwin .v3-prof{grid-area:pr;display:flex;align-items:center;gap:calc(16*var(--u));margin:0 0 calc(12*var(--u));padding:calc(13*var(--u)) calc(18*var(--u));border-radius:calc(22*var(--u));
+  background:linear-gradient(180deg,rgba(255,252,247,.94),rgba(253,242,231,.90));
+  box-shadow:0 0 0 calc(1*var(--u)) rgba(255,255,255,.95),0 0 0 calc(2*var(--u)) rgba(214,163,92,.28),0 0 calc(22*var(--u)) rgba(255,228,196,.55),0 calc(14*var(--u)) calc(26*var(--u)) calc(-14*var(--u)) rgba(60,10,10,.55),inset 0 calc(1*var(--u)) 0 #fff}
+html.desk #mwin .v3-prof::before{width:50%}
+html.desk #mwin .v3-cav{flex:none;width:calc(86*var(--u));height:calc(86*var(--u));border-radius:calc(22*var(--u));font-size:calc(33*var(--u))}
+html.desk #mwin .v3-pn{flex:1;min-width:0}
+html.desk #mwin .v3-line{display:flex;align-items:center;gap:calc(14*var(--u));flex-wrap:wrap;margin-top:calc(6*var(--u))}
+html.desk #mwin .m-name{font-size:calc(30*var(--u));line-height:1.05}
+html.desk #mwin .m-phone{height:auto;padding:0;gap:calc(8*var(--u));border-radius:0;background:none;box-shadow:none;color:#3b0a0e;font:800 calc(18*var(--u))/1 var(--cond)}
+html.desk #mwin .m-phone span{text-shadow:0 0 calc(2*var(--u)) #fff,0 0 calc(6*var(--u)) #fff,0 0 calc(12*var(--u)) rgba(255,248,240,.95),0 0 calc(18*var(--u)) rgba(255,248,240,.8)}
+html.desk #mwin .m-phone svg.i{color:#7b1020;font-size:calc(19*var(--u))}
+html.desk #mwin .m-phone:hover{color:#8c0d22}
+html.desk #mwin .v3-mq{display:none}
+html.desk #mwin .v3-chips{margin-left:auto;padding-right:calc(6*var(--u));gap:calc(8*var(--u))}
+
+/* табове */
+html.desk #mwin .m-actions{grid-area:tb;display:flex;gap:calc(8*var(--u));margin:0 0 calc(11*var(--u));padding:calc(3*var(--u)) calc(2*var(--u));overflow-x:auto;scrollbar-width:none}
+html.desk #mwin .m-actions::-webkit-scrollbar{display:none}
+html.desk #mwin .ma{flex:none;flex-direction:row;height:calc(42*var(--u));padding:0 calc(16*var(--u));gap:calc(8*var(--u));border-radius:calc(14*var(--u));font:700 calc(14.5*var(--u))/1 var(--cond);color:#5a0a12;
+  background:linear-gradient(180deg,rgba(255,253,249,.95),rgba(252,241,231,.92));box-shadow:0 0 0 calc(1*var(--u)) rgba(226,180,120,.7),0 calc(6*var(--u)) calc(12*var(--u)) calc(-8*var(--u)) rgba(60,10,10,.55)}
+html.desk #mwin .ma svg.i{font-size:calc(17*var(--u));color:#7b1020;stroke-width:2}
+html.desk #mwin .ma.on,html.desk #mwin .mcv:not(.tab) .v3-info{color:#fff3dc;background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 calc(1.5*var(--u)) #e6bf5b,0 0 calc(16*var(--u)) rgba(230,191,91,.5)}
+html.desk #mwin .ma.on svg.i,html.desk #mwin .mcv:not(.tab) .v3-info svg.i{color:#f8d777}
+
+/* секциите като крем стъкло (.cream) */
+html.desk #mwin .mpanel{margin:0 0 calc(12*var(--u));padding:calc(13*var(--u)) calc(16*var(--u)) calc(14*var(--u));border-radius:calc(22*var(--u));display:flex;flex-direction:column;
+  background:linear-gradient(180deg,rgba(255,252,247,.94),rgba(253,242,231,.90));
+  box-shadow:0 0 0 calc(1*var(--u)) rgba(255,255,255,.95),0 0 0 calc(2*var(--u)) rgba(214,163,92,.28),0 0 calc(22*var(--u)) rgba(255,228,196,.55),0 calc(14*var(--u)) calc(26*var(--u)) calc(-14*var(--u)) rgba(60,10,10,.55),inset 0 calc(1*var(--u)) 0 #fff}
+html.desk #mwin .mribbon{display:none}
+html.desk #mwin .mtitle{height:calc(34*var(--u));padding:0;gap:calc(10*var(--u));color:#3b0a0e;font:700 calc(19*var(--u))/1.15 var(--serif);text-shadow:0 0 calc(8*var(--u)) #fff8f0}
+html.desk #mwin .mtitle svg.i{width:calc(34*var(--u));height:calc(34*var(--u));padding:calc(8.5*var(--u));border-radius:50%;color:#ffe9b8;stroke-width:2.2;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 calc(2*var(--u)) #f1c37f,0 0 calc(10*var(--u)) rgba(240,196,110,.55)}
+html.desk #mwin .m-data{grid-area:da}
+html.desk #mwin .m-act{grid-area:ac}
+html.desk #mwin .m-prefs{grid-area:pf;margin-bottom:0}
+html.desk #mwin .m-notes{grid-area:no;margin-bottom:0}
+html.desk #mwin .v3-quick{grid-area:qk;margin-bottom:0}
+html.desk #mwin #m-tabhost{grid-area:th;margin:0 0 calc(14*var(--u));align-self:start}
+html.desk #mwin .mcv.tab #m-tabhost{grid-area:5/1/7/3}
+html.desk #mwin .mcv.tab .m-act{align-self:start}
+html.desk #mwin .m-data::after{width:50%!important}
+html.desk #mwin .v3-hbtn{position:absolute;right:calc(16*var(--u));top:calc(14*var(--u));display:inline-flex;align-items:center;gap:calc(8*var(--u));height:calc(36*var(--u));padding:0 calc(14*var(--u));border-radius:calc(12*var(--u));
+  font:700 calc(14*var(--u))/1 var(--cond);color:#5a0a12;background:linear-gradient(180deg,#fffdf9,#fcf1e7);
+  box-shadow:0 0 0 calc(1*var(--u)) rgba(226,180,120,.75),0 0 calc(12*var(--u)) rgba(255,214,160,.45),0 calc(6*var(--u)) calc(12*var(--u)) calc(-8*var(--u)) rgba(80,30,10,.45),inset 0 calc(1*var(--u)) 0 #fff}
+html.desk #mwin .v3-hbtn svg.i{font-size:calc(17*var(--u));color:#7b1020}
+html.desk #mwin .mall{top:calc(14*var(--u));right:calc(16*var(--u));height:calc(36*var(--u));padding:0 calc(12*var(--u)) 0 calc(14*var(--u));border-radius:calc(12*var(--u));font-size:calc(14*var(--u));
+  background:linear-gradient(180deg,#fffdf9,#fcf1e7);box-shadow:0 0 0 calc(1*var(--u)) rgba(226,180,120,.75),0 0 calc(12*var(--u)) rgba(255,214,160,.45),inset 0 calc(1*var(--u)) 0 #fff}
+html.desk #mwin .nstate{top:calc(22*var(--u))}
+/* редове */
+html.desk #mwin #m-fields,html.desk #mwin #m-prefs{padding:0;margin-top:calc(8*var(--u))}
+html.desk #mwin .m-data .dgrid .ditem{grid-template-columns:calc(196*var(--u)) minmax(0,1fr);min-height:calc(32*var(--u))}
+html.desk #mwin .m-data .ditem .dl,html.desk #mwin .m-data .dgrid .ditem.view .dvv{padding-top:calc(6*var(--u))!important;padding-bottom:calc(6*var(--u))!important}
+html.desk #mwin .alist{padding:calc(12*var(--u)) 0 0}
+/* предпочитания: групите като подредени блокове в две колони (всичко се вижда) */
+html.desk #mwin #m-prefs{columns:2;column-gap:calc(22*var(--u))}
+html.desk #mwin .dgrp{margin:0;border-radius:0;background:none;box-shadow:none;overflow:visible;isolation:auto}
+html.desk #mwin .dgrp::before{display:none}
+html.desk #mwin .dgh{height:auto;padding:calc(6*var(--u)) 0 calc(6*var(--u));gap:calc(8*var(--u));font:700 calc(13*var(--u))/1.1 var(--cond);letter-spacing:.3px;text-transform:uppercase;color:#8c0d22;cursor:default;
+  border-bottom:calc(1.5*var(--u)) solid rgba(214,163,92,.55);break-after:avoid}
+html.desk #mwin .dgrp+.dgrp .dgh{margin-top:calc(8*var(--u))}
+html.desk #mwin .dgh svg.i{font-size:calc(15*var(--u))}
+html.desk #mwin .dgh em{height:calc(18*var(--u));min-width:calc(20*var(--u));font-size:calc(11*var(--u))}
+html.desk #mwin .dgh svg.i:last-child{display:none}
+html.desk #mwin .dgrp .dgb{display:block!important;padding:0}
+html.desk #mwin .m-prefs .dgrid .ditem{break-inside:avoid;grid-template-columns:minmax(0,52%) minmax(0,1fr);min-height:calc(31*var(--u))}
+html.desk #mwin .m-prefs .ditem .dl,html.desk #mwin .m-prefs .dgrid .ditem.view .dvv{padding-top:calc(5*var(--u))!important;padding-bottom:calc(5*var(--u))!important}
+html.desk #mwin .dgrid .ditem:last-child{border-bottom:calc(1*var(--u)) solid rgba(214,163,92,.25)}
+html.desk #mwin .dgrp:last-child .ditem:last-child,html.desk #mwin .dmain .ditem:last-child{border-bottom:0}
+/* бележки: полето расте с прозореца */
+html.desk #mwin .m-notes .nbox{display:flex;flex-direction:column;flex:1;padding:calc(12*var(--u)) 0 0}
+html.desk #mwin .m-notes .ntext{flex:1;height:auto;min-height:calc(110*var(--u))}
+html.desk #mwin .v3-qa{margin-top:calc(14*var(--u))}
+
+/* ===== компютър: по-едър и по-четлив текст (09.11) – всички размери в картата следват --u ===== */
+html.desk #mwin .mcv{--u:1.68px}
+html.desk #canvas{--q:1.6px}
+/* „Предпочитания“ е с 2 колони текст – снимката стои само в десния край, за да не пречи на четенето */
+html.desk #mwin .m-prefs::after{width:30%!important}
+html.desk #mwin #m-prefs{margin-right:24%}
+html.desk #mwin .m-prefs .dgh em,html.desk #mwin .m-prefs [class*="cnt"]{flex:none;white-space:nowrap}
+
+/* ===== плочки „накратко“ – като в картата на имота (09.11) ===== */
+#mwin .v3-specs{display:grid;grid-template-columns:1fr;gap:calc(10*var(--u));margin:calc(12*var(--u)) calc(10*var(--u)) 0}
+#mwin .v3-sgrp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:calc(12*var(--u)) calc(2*var(--u));border-radius:calc(20*var(--u));
+  background:linear-gradient(180deg,rgba(255,252,247,.95),rgba(253,242,231,.92));
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3px rgba(214,163,92,.3),0 0 18px rgba(255,228,196,.55),0 10px 20px -12px rgba(60,10,10,.5)}
+#mwin .v3-spec{display:flex;flex-direction:column;align-items:center;text-align:center;gap:calc(5*var(--u));padding:0 calc(4*var(--u));min-width:0}
+#mwin .v3-spec+.v3-spec{border-left:1.5px solid rgba(214,163,92,.4)}
+#mwin .v3-spec .si{width:calc(34*var(--u));height:calc(34*var(--u));border-radius:50%;display:grid;place-items:center;flex:none;font-size:calc(17*var(--u));color:#7b1020;
+  background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 45%,#d9a650 100%);box-shadow:0 0 0 1.5px #fff2c4,0 0 0 3px rgba(214,163,92,.55),0 0 12px rgba(246,212,142,.75)}
+#mwin .v3-spec>div{min-width:0;max-width:100%}
+#mwin .v3-spec b{display:block;font:800 calc(15.5*var(--u))/1.1 var(--cond);color:#22090d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mwin .v3-spec b.emp{color:#9a7a6a;font-weight:600}
+#mwin .v3-spec>div>span{display:block;margin-top:calc(3*var(--u));font:500 calc(12*var(--u))/1.05 var(--cond);color:#7a5a52}
+html.desk #mwin .v3-specs{grid-template-columns:1fr 1fr;gap:calc(14*var(--u));margin:calc(12*var(--u)) 0 0}
+html.desk #mwin .v3-spec b{font-size:calc(17*var(--u))}
+html.desk #mwin .v3-spec>div>span{font-size:calc(13.5*var(--u))}
+/* златните акценти като в картата на имота: „Редактирай“ / „Виж всички“ – златни бутони */
+#mwin :is(.m-data,.m-act) :is(.v3-hbtn,.mall){background:linear-gradient(180deg,#f8dc98,#d9a254)!important;color:#3a1d00!important;box-shadow:inset 0 0 0 1px rgba(255,248,220,.85),0 0 14px rgba(246,212,142,.6),0 6px 12px -8px rgba(80,40,0,.6)!important}
+#mwin :is(.m-data,.m-act) :is(.v3-hbtn,.mall) svg.i{color:#7b1020!important}
+
+html.desk #mwin .v3-specs{grid-area:sp;margin-bottom:calc(14*var(--u))}
+html:not(.desk) #mwin .v3-specs{order:2}

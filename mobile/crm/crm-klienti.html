@@ -405,6 +405,7 @@ html.desk .mcv.tab .m-act{display:block}
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/><link rel="stylesheet" href="crm-premium.css"/>
+<link rel="stylesheet" href="crm-v3-klienti.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -474,6 +475,9 @@ html.desk .mcv.tab .m-act{display:block}
 <symbol id="chevron-up" viewBox="0 0 24 24"> <path d="m18 15-6-6-6 6"/></symbol>
 <symbol id="globe" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10"/> <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/> <path d="M2 12h20"/></symbol>
 <symbol id="funnel" viewBox="0 0 24 24"> <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+<symbol id="v3-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+<symbol id="v3-spark" viewBox="0 0 24 24"><path d="M9.94 14.06 4 12l5.94-2.06L12 4l2.06 5.94L20 12l-5.94 2.06L12 20z"/></symbol>
+<symbol id="v3-msg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
   </defs>
 </svg>
 <div id="stage">
@@ -508,7 +512,7 @@ html.desk .mcv.tab .m-act{display:block}
         <path d="M0 0 H 720 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0 Z" fill="url(#satin)" opacity=".45"/>
         <path d="M720 1 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
       </svg>
-      <h2 class="ctitle" id="t-sales"><svg class="i"><use href="#users"/></svg>Клиенти – Продажби</h2>
+      <h2 class="ctitle" id="t-sales"><svg class="i"><use href="#users"/></svg>Клиенти – Продажби<span class="ccount" id="cnt-sales"></span></h2>
       <button type="button" class="nd-new" data-new="sales" aria-label="Нов клиент – продажби"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
       <div class="filters">
         <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-sales" type="search" placeholder="Търси клиент, телефон или К#…" autocomplete="off" aria-label="Търси клиент в продажби"></label>
@@ -528,7 +532,7 @@ html.desk .mcv.tab .m-act{display:block}
         <path d="M0 0 H 720 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0 Z" fill="url(#satin)" opacity=".45"/>
         <path d="M720 1 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
       </svg>
-      <h2 class="ctitle" id="t-rent"><svg class="i"><use href="#users"/></svg>Клиенти – Наеми</h2>
+      <h2 class="ctitle" id="t-rent"><svg class="i"><use href="#users"/></svg>Клиенти – Наеми<span class="ccount" id="cnt-rent"></span></h2>
       <button type="button" class="nd-new" data-new="rent" aria-label="Нов клиент – наеми"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
       <div class="filters">
         <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-rent" type="search" placeholder="Търси клиент, телефон или К#…" autocomplete="off" aria-label="Търси клиент в наеми"></label>
@@ -553,26 +557,37 @@ html.desk .mcv.tab .m-act{display:block}
         </div>
   <div class="mscroll" id="mscroll">
     <div class="mcv" id="mcv">
-      <section class="abs top mtop">
-        <img class="abs photo" src="assets/hero-villa.jpg" alt="" style="left:186px;top:66px;width:810px">
-        <div class="abs shade"></div>
-        <svg class="abs swoosh" viewBox="0 0 1024 380" aria-hidden="true">
-          <path d="M0 258 C 70 214 190 200 262 186 C 330 172 352 130 392 92 C 440 46 530 24 640 8 C 680 3 712 0 735 0 L 600 0 C 500 6 420 24 372 60 C 330 92 312 150 250 170 C 180 192 70 196 0 232 Z" fill="url(#satin)"/>
-          <path d="M0 258 C 70 214 190 200 262 186 C 330 172 352 130 392 92 C 440 46 530 24 640 8 C 680 3 712 0 735 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
-          <path d="M0 74 C 0 56 10 47 30 46 L 438 44 C 392 52 352 84 330 126 C 306 170 270 182 226 189 C 150 200 60 205 0 236 Z" fill="url(#creamg)"/>
-          <path d="M438 44 C 392 52 352 84 330 126 C 306 170 270 182 226 189 C 150 200 60 205 0 236" fill="none" stroke="url(#gold)" stroke-width="4"/>
-        </svg>
-        <img class="abs logo" src="assets/logo.png" alt="Недвижими имоти Надежда">
-
-        <button class="abs ctrl bell nb" aria-label="Известия" data-msg="Известия" style="top:80px"><svg class="i"><use href="#bell"/></svg><b>1</b></button>
-        <button class="abs ctrl search" aria-label="Търсене" data-msg="Търсене" style="top:80px"><svg class="i"><use href="#search"/></svg></button>
-        <button class="abs ctrl gear" aria-label="Настройки" data-msg="Настройки" style="top:80px"><svg class="i"><use href="#settings"/></svg></button>
-        <button class="abs avatar" aria-label="Моят профил" data-msg="Моят профил" style="top:65px"><img src="assets/avatar.jpg" alt=""></button>
-        <h2 class="abs m-name" id="m-name">Иван Петров</h2>
-        <a class="abs m-phone" id="m-phone" href="tel:0899765432"><svg class="i"><use href="#phone"/></svg><span>0899 765 432</span></a>
+      <!-- Вариант 3: заглавие на прозореца (телефон: лого + лента „Карта – Клиент“; компютър: медальон + „Клиент“) -->
+      <header class="v3-head">
+        <img class="v3-logo" src="assets/logo.png" alt="Недвижими имоти Надежда">
+        <div class="v3-rib">
+          <svg class="v3-rsv" viewBox="0 0 700 64" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z" fill="url(#ribbonFill)"/>
+            <path d="M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z" fill="url(#satin)" opacity=".45"/>
+            <path d="M700 1 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
+          </svg>
+          <p class="v3-wt"><span class="v3-md"><svg class="i"><use href="#users"/></svg></span><span class="v3-mob">Карта –&nbsp;</span>Клиент</p>
+        </div>
+      </header>
+      <!-- профил: инициали, К#, име, телефон, статус, мета -->
+      <section class="v3-prof" aria-label="Профил на клиента">
+        <span class="v3-cav" id="m-ini" aria-hidden="true"></span>
+        <div class="v3-pn">
+          <small class="v3-k"><svg class="i"><use href="#user"/></svg>Клиент&nbsp;<b id="m-knum"></b></small>
+          <div class="v3-line">
+            <h2 class="m-name" id="m-name">Иван Петров</h2>
+            <a class="m-phone" id="m-phone" href="tel:0899765432"><svg class="i"><use href="#phone"/></svg><span>0899 765 432</span></a>
+            <a class="v3-mq wa" id="m-wa" href="#" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24"><path fill="#25D366" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path fill="#fff" d="M17.3 14.4c-.3-.1-1.7-.8-1.9-.9s-.5-.1-.7.1-.8.9-.9 1.1-.3.2-.6.1a7.6 7.6 0 0 1-3.8-3.3c-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.5l-.9-2.1c-.2-.5-.5-.5-.7-.5h-.6a1.1 1.1 0 0 0-.8.4 3.4 3.4 0 0 0-1 2.5 5.9 5.9 0 0 0 1.2 3.1 13.4 13.4 0 0 0 5.2 4.6c1.9.8 2.7.9 3.6.7a3 3 0 0 0 2-1.4 2.4 2.4 0 0 0 .2-1.4c-.1-.1-.3-.2-.6-.3z"/></svg></a>
+            <a class="v3-mq vb" id="m-vb" href="#" aria-label="Viber" title="Viber"><svg viewBox="0 0 24 24"><path fill="#7360F2" d="M12 2C6.5 2 2.6 3.7 2.6 10.6c0 3.3 1 5.4 2.6 6.6V21l3.1-2.5c1.2.3 2.4.4 3.7.4 5.5 0 9.4-1.7 9.4-8.3S17.5 2 12 2z"/><path fill="#fff" d="M15.6 13.7c-.4-.3-.9-.6-1.3-.4l-.6.6c-.2.2-.5.2-.5.2a5 5 0 0 1-3.3-3.3s0-.3.2-.5l.6-.6c.2-.4-.1-.9-.4-1.3-.2-.3-.7-.8-1-1a.7.7 0 0 0-.9.1c-.6.6-1 1.2-.7 2a10 10 0 0 0 5.8 5.8c.8.3 1.4-.1 2-.7a.7.7 0 0 0 .1-.9c-.2-.3-.7-.8-1-1z"/></svg></a>
+            <span class="v3-chips" id="m-chips"></span>
+          </div>
+          <div class="v3-meta" id="m-meta"></div>
+        </div>
       </section>
+      <div class="v3-specs" id="m-specs" aria-label="Накратко"></div>
 
       <div class="m-actions">
+        <button type="button" class="ma v3-info" id="m-info"><svg class="i"><use href="#user"/></svg>Информация</button>
         <button class="ma" data-act="Редактирай"><svg class="i"><use href="#square-pen"/></svg>Редактирай</button>
         <button class="ma" data-act="Срещи"><svg class="i"><use href="#calendar-check"/></svg>Срещи</button>
         <button class="ma" data-act="Документи"><svg class="i"><use href="#file-text"/></svg>Документи</button>
@@ -582,15 +597,28 @@ html.desk .mcv.tab .m-act{display:block}
       </div>
       <div class="m-tabhost" id="m-tabhost" hidden></div>
 
+      <!-- „Основна информация“ + „Предпочитания“ – общ контейнер (display:contents), за да работят редакцията и групите като досега -->
+      <div class="v3-fwrap" id="m-fwrap">
       <section class="mpanel m-data" aria-labelledby="m-data-t">
         <svg class="mribbon" viewBox="0 0 700 64" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z" fill="url(#ribbonFill)"/>
           <path d="M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z" fill="url(#satin)" opacity=".45"/>
           <path d="M700 1 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
         </svg>
-        <h3 class="mtitle" id="m-data-t"><svg class="i"><use href="#user"/></svg>Данни за клиента</h3>
+        <h3 class="mtitle" id="m-data-t"><svg class="i"><use href="#file-text"/></svg>Основна информация</h3>
+        <button type="button" class="v3-hbtn" data-act="Редактирай"><svg class="i"><use href="#square-pen"/></svg>Редактирай</button>
         <div class="fgrid" id="m-fields"></div>
       </section>
+      <section class="mpanel m-prefs" aria-labelledby="m-prefs-t">
+        <svg class="mribbon" viewBox="0 0 700 64" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z" fill="url(#ribbonFill)"/>
+          <path d="M0 0 H 700 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0 Z" fill="url(#satin)" opacity=".45"/>
+          <path d="M700 1 C 630 5 590 30 540 48 C 510 58 480 60 430 60 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
+        </svg>
+        <h3 class="mtitle" id="m-prefs-t"><svg class="i"><use href="#v3-heart"/></svg>Предпочитания</h3>
+        <div id="m-prefs"></div>
+      </section>
+      </div>
 
       <section class="mpanel m-act" aria-labelledby="m-act-t">
         <svg class="mribbon" viewBox="0 0 700 64" preserveAspectRatio="none" aria-hidden="true">
@@ -618,6 +646,17 @@ html.desk .mcv.tab .m-act{display:block}
             <button type="button" class="nbtn nstamp" id="m-nstamp" aria-label="Добави дата и час"><svg class="i"><use href="#clock"/></svg><span>Дата и час</span></button>
             <button type="button" class="nbtn nsave" id="m-nsave"><svg class="i"><use href="#save"/></svg><span>Запази бележките</span></button>
           </div>
+        </div>
+      </section>
+
+      <!-- Бързи действия (компютър) -->
+      <section class="mpanel v3-quick" aria-labelledby="m-quick-t">
+        <h3 class="mtitle" id="m-quick-t"><svg class="i"><use href="#v3-spark"/></svg>Бързи действия</h3>
+        <div class="v3-qa">
+          <a class="v3-btn call" id="m-call" href="tel:"><svg class="i"><use href="#phone"/></svg>Обади се</a>
+          <button type="button" class="v3-btn pri" data-act="Срещи"><svg class="i"><use href="#calendar-check"/></svg>Насрочи среща</button>
+          <a class="v3-btn sec" id="m-qwa" href="#" target="_blank" rel="noopener"><svg class="i"><use href="#v3-msg"/></svg>WhatsApp</a>
+          <button type="button" class="v3-btn sec" data-act="Банка"><svg class="i"><use href="#landmark"/></svg>Кредит / Банка</button>
         </div>
       </section>
     </div>
@@ -748,7 +787,9 @@ html.desk .mcv.tab .m-act{display:block}
     if(win.hidden)return;
     if(desk){
       var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||(window.NDRAIL?0:100),ah=innerHeight-dh-14;
-      var aw=full?vw-16:(window.NDRAIL?vw-20:vw*.94),av=full?ah-8:(window.NDRAIL?ah-10:ah*.94),z=aw/2048,w=2048*z,h=full?av:Math.min(av,Math.max(900,DH)*z+8);var CH=Math.max(Math.max(900,DH),h/z);mcv.style.height=CH+"px";root.style.setProperty('--mcvH',CH+'px');
+      var aw=full?vw-16:(window.NDRAIL?vw-20:vw*.94),av=full?ah-8:(window.NDRAIL?ah-10:ah*.94),z=aw/2048;
+      /* картата е винаги в пълна ширина с едър текст; ако е по-висока от екрана – превърта се вътре */
+      var w=2048*z,h=full?av:Math.min(av,Math.max(900,DH)*z+8);var CH=Math.max(Math.max(900,DH),h/z);mcv.style.height=CH+"px";root.style.setProperty('--mcvH',CH+'px');
       win.style.width=w+'px';win.style.height=h+'px';win.style.left=((vw-w)/2)+'px';win.style.top=Math.max(6,(ah-h)/2)+'px';
       mcv.style.zoom=z;
       ctlBox.style.top='';
@@ -778,6 +819,9 @@ html.desk .mcv.tab .m-act{display:block}
         var any=Object.keys(o).some(function(k){return o[k]!==''&&o[k]!=null&&o[k]!==false});MOREK[cat]=any?o:null;btn.classList.toggle('set',any);done()},
       onDelete:function(){MOREK[cat]=null;btn.classList.remove('set');done()}});
     var del=document.querySelector('#nd-f-del span');if(del)del.textContent='Изчисти'}
+  /* Вариант 3: всяка карта на клиент – различна HD снимка, която прелива отдясно (стабилна за клиента по К#) */
+  var CPICS=['ph18','ph09','ph17','ph13','ph07','ph12','ph11','ph01','ph15','ph06','ph16','ph08','ph03','ph04','ph20','ph10'];
+  function cardPic(c){var n=parseInt(c.num,10);if(isNaN(n))n=c.order||0;return img('nd/'+CPICS[Math.abs(n)%CPICS.length]+'.jpg')}
   var sorts=[['new','Най-нови'],['name','Име (А–Я)'],['asc','Бюджет: възходящо'],['desc','Бюджет: низходящо']];
   function fillSelect(sel,opts,val){sel.innerHTML=opts.map(function(o){var v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;return '<option value="'+esc(v)+'"'+(v===val?' selected':'')+'>'+esc(t)+'</option>'}).join('')}
   function showVal(sel){var l=sel.closest('.fld');l.querySelector('.val').textContent=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:''}
@@ -810,9 +854,10 @@ html.desk .mcv.tab .m-act{display:block}
         return true});
       list.sort(function(a,b){return sort.value==='name'?a.name.localeCompare(b.name,'bg'):sort.value==='asc'?a.budget-b.budget:sort.value==='desc'?b.budget-a.budget:a.days-b.days||a.order-b.order});
       var g=geo[cat];
+      var cn=document.getElementById('cnt-'+cat);if(cn)cn.textContent=window.__ndClientsLoaded?'('+list.length+')':'';
       grid.innerHTML=list.length?list.map(function(c){
         return '<button class="ccard" data-id="'+c.id+'" style="--h:'+g.h+'px;--gob:'+g.gob+'px" aria-label="Отвори картата на '+esc(c.name)+'">'+
-          '<span class="ph" style="background-image:url('+(c.photo||img('card-clients.jpg'))+')"></span>'+
+          '<span class="ph" style="background-image:url('+(c.photo||cardPic(c))+')"></span>'+
           '<span class="nm" style="top:'+g.name+'px">'+(c.num?'<span class="knum">К#'+esc(c.num)+'</span>':'')+esc(c.name)+'</span>'+
           '<span class="ph-n" style="top:'+g.phone+'px">'+ic('phone')+esc(c.phone)+'</span>'+
           '<span class="row" style="top:'+g.rows[0]+'px">'+ic('house')+esc(c.type)+'</span>'+
@@ -875,11 +920,13 @@ html.desk .mcv.tab .m-act{display:block}
   function fitem(c,k){var d=fdef(k);if(!d)return '';var ro=d[4]==='ro',vv=ro?'':fvv(c,d);return '<label class="ditem'+(d[6]?' wide':'')+(ro?'':' view')+'" data-fk="'+esc(k)+'"><span class="dl">'+ic(d[1])+esc(d[2])+'</span>'+fctl(c,d)+(ro?'':'<span class="dvv'+(vv?'':' emp')+'">'+(vv||'+ добави')+'</span>')+'</label>'}
   function fdl(c){var P=window.NDPlaces;if(!P)return '';return '<datalist id="fl-cities">'+P.cities.map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist><datalist id="fl-hoods">'+(P.PLACES[P.city(c.city)]||[]).map(function(n){return '<option value="'+esc(n)+'">'}).join('')+'</datalist>'}
   function filled(c,ks){return ks.filter(function(k){return c[k]!=null&&c[k]!==''}).length}
-  function renderFields(c){var box=document.getElementById('m-fields');box.className='dgrid';
-    box.innerHTML='<div class="dmain">'+FMAIN.map(function(k){return fitem(c,k)}).join('')+'</div>'+
-      FGRP.map(function(g,i){var on=!!fOpen[i];return '<div class="dgrp'+(on?' open':'')+'" data-g="'+i+'"><button type="button" class="dgh" aria-expanded="'+on+'">'+ic(g[1])+'<span>'+esc(g[0])+'</span><em>'+filled(c,g[2])+' / '+g[2].length+'</em>'+ic('chev-d')+'</button><div class="dgb">'+g[2].map(function(k){return fitem(c,k)}).join('')+'</div></div>'}).join('')+fdl(c)}
-  function relayout(){if(!desk)return;var md=document.querySelector('.m-data'),mn=document.querySelector('.m-notes'),th=document.getElementById('m-tabhost');requestAnimationFrame(function(){var nt=12+md.offsetHeight+22;mcv.style.setProperty('--ntop',nt+'px');DH=Math.max(1420,nt+mn.offsetHeight+16,th&&!th.hidden?th.offsetHeight+60:0);fitModal()})}
-  var mf=document.getElementById('m-fields');
+  function renderFields(c){var box=document.getElementById('m-fields'),pf=document.getElementById('m-prefs');box.className=pf.className='dgrid';
+    box.innerHTML='<div class="dmain">'+FMAIN.map(function(k){return fitem(c,k)}).join('')+'</div>'+fdl(c);
+    pf.innerHTML=FGRP.map(function(g,i){var on=!!fOpen[i];return '<div class="dgrp'+(on?' open':'')+'" data-g="'+i+'"><button type="button" class="dgh" aria-expanded="'+on+'">'+ic(g[1])+'<span>'+esc(g[0])+'</span><em>'+filled(c,g[2])+' / '+g[2].length+'</em>'+ic('chev-d')+'</button><div class="dgb">'+g[2].map(function(k){return fitem(c,k)}).join('')+'</div></div>'}).join('')}
+  var DHi=0;   /* височината на картата без отворен таб – по нея се мащабира прозорецът */
+  function relayout(){if(!desk)return;requestAnimationFrame(function(){if(!desk)return;mcv.style.height='auto';DH=Math.max(700,mcv.offsetHeight);if(!mcv.classList.contains('tab'))DHi=DH;fitModal()})}
+  /* both blocks (#m-fields + #m-prefs) live in #m-fwrap, so the same handlers edit and save every field */
+  var mf=document.getElementById('m-fwrap');
   mf.addEventListener('click',function(e){var h=e.target.closest('.dgh');if(!h)return;var g=h.parentNode,i=g.getAttribute('data-g');fOpen[i]=!fOpen[i];g.classList.toggle('open',fOpen[i]);h.setAttribute('aria-expanded',String(fOpen[i]));relayout()});
   mf.addEventListener('focusin',function(e){var t=e.target;if(t.dataset&&t.dataset.mask){var c=clients.filter(function(x){return x.id===win.dataset.id})[0];if(c)t.value=c.egn||''}});
   function fsave(t){var c=clients.filter(function(x){return x.id===win.dataset.id})[0];if(!c||!t.dataset||!t.dataset.k)return;
@@ -888,8 +935,9 @@ html.desk .mcv.tab .m-act{display:block}
     if(String(nv==null?'':nv)===String(old)){if(t.dataset.mask)t.value=fctlMask(old);return}
     if(k==='phone'&&!nv){say('Телефонът е задължителен');t.value=old;return}
     var patch={};patch[k]=nv;t.closest('.ditem').classList.add('saving');
-    window.NDKTabs.saveField(c,patch).then(function(){var it=t.closest('.ditem');if(it){it.classList.remove('saving');it.classList.add('saved');setTimeout(function(){it.classList.remove('saved')},1200);toView(it)}say('Записано: '+d[2]);
-      if(k==='phone'){var mp=document.getElementById('m-phone');mp.querySelector('span').textContent=c.phone;mp.href='tel:'+String(c.phone).replace(/\s/g,'')}
+    window.NDKTabs.saveField(c,patch).then(function(){var it=t.closest('.ditem');if(it){it.classList.remove('saving');it.classList.add('saved');setTimeout(function(){it.classList.remove('saved')},1200);toView(it)}say('Записано: '+d[2]);try{specTiles(c);profInfo(c)}catch(x){}
+      if(k==='phone')setPhone(c);
+      if(/^(status|priority|cat|city|hood|budget|source)$/.test(k))profInfo(c);
       if(k==='city'||k==='hood'){var hi=mf.querySelector('[data-k="hood"]'),ci=mf.querySelector('[data-k="city"]');if(ci)ci.value=c.city||'';if(hi)hi.value=c.hood||'';var dl=document.getElementById('fl-hoods'),P=window.NDPlaces;if(dl&&P)dl.innerHTML=(P.PLACES[P.city(c.city)]||[]).map(function(n){return '<option value="'+esc(n)+'">'}).join('')}
       if(t.dataset.mask)t.value=fctlMask(c.egn);
       var g=t.closest('.dgrp');if(g){var gi=+g.getAttribute('data-g');g.querySelector('.dgh em').textContent=filled(c,FGRP[gi][2])+' / '+FGRP[gi][2].length}
@@ -901,11 +949,32 @@ html.desk .mcv.tab .m-act{display:block}
   mf.addEventListener('change',function(e){if(e.target.matches('.din'))fsave(e.target)});
   mf.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.matches('input.din')){e.preventDefault();e.target.blur()}});
   mf.addEventListener('focusout',function(e){var t=e.target;if(t.dataset&&t.dataset.mask){var c=clients.filter(function(x){return x.id===win.dataset.id})[0];setTimeout(function(){if(document.activeElement!==t&&c&&String(t.value)===String(c.egn||''))t.value=fctlMask(c.egn)},50)}});
+  /* Вариант 3 – профилен ред: инициали, телефон (tel / WhatsApp / Viber), статус и мета */
+  function initials(n){var w=String(n||'').trim().split(/\s+/).filter(function(x){return x.length>1});if(!w.length)w=[String(n||'?').trim()||'?'];return (w[0].charAt(0)+(w.length>1?w[w.length-1].charAt(0):'')).toUpperCase()}
+  function intl(p){var x=String(p||'').replace(/[^\d+]/g,'');if(!x)return '';if(x.charAt(0)==='+')return x.slice(1);if(x.slice(0,2)==='00')return x.slice(2);if(x.charAt(0)==='0')return '359'+x.slice(1);return x}
+  function setPhone(c){var tel='tel:'+String(c.phone||'').replace(/\s/g,''),n=intl(c.phone),mp=document.getElementById('m-phone');
+    mp.querySelector('span').textContent=c.phone||'';mp.href=tel;var cl=document.getElementById('m-call');if(cl)cl.href=tel;
+    [['m-wa',n?'https://wa.me/'+n:''],['m-qwa',n?'https://wa.me/'+n:''],['m-vb',n?'viber://chat?number=%2B'+n:'']].forEach(function(x){var a=document.getElementById(x[0]);if(a){a.href=x[1]||'#';a.hidden=!x[1]}})}
+  function profInfo(c){var h='';
+    if(c.status)h+='<span class="v3-chip '+(c.status==='Активен'?'green':'warn')+'">'+ic('users')+esc(c.status==='Активен'?'Активен клиент':c.status)+'</span>';
+    if(c.priority)h+='<span class="v3-chip gold">'+ic('star')+esc(c.priority)+'</span>';
+    h+='<span class="v3-chip lite">'+ic('house')+(c.cat==='rent'?'Наем':'Купува')+'</span>';
+    document.getElementById('m-chips').innerHTML=h;
+    var cr=c._created?new Date(c._created):null,ds=cr&&!isNaN(cr)?('0'+cr.getDate()).slice(-2)+'.'+('0'+(cr.getMonth()+1)).slice(-2)+'.'+cr.getFullYear():'';
+    document.getElementById('m-meta').innerHTML=[['pin',c.city],['building-2',c.hood],['coins',c.budget!=null&&!isNaN(c.budget)?budget(c):''],['calendar',ds],['link',c.source]]
+      .filter(function(x){return x[1]}).map(function(x){return '<span>'+ic(x[0])+esc(x[1])+'</span>'}).join('')}
+  /* Вариант 3 – плочки „накратко“ като в картата на имота (кремаво стъкло, златни кръгчета, златни разделители) */
+  function specTiles(c){var rooms=c.rooms!=null&&c.rooms!==''?String(c.rooms):'';
+    var g=[[['tag','Търси',c.cat==='rent'?'Наем':'Покупка'],['house','Вид имот',c.type],['coins','Бюджет',c.budget!=null&&!isNaN(c.budget)&&c.budget!==''?budget(c):'']],
+           [['pin','Квартал',c.hood||c.city],['armchair','Стаи',rooms],['landmark','Плащане',c.payment]]];
+    document.getElementById('m-specs').innerHTML=g.map(function(grp){return '<div class="v3-sgrp">'+grp.map(function(t){return '<div class="v3-spec"><span class="si">'+ic(t[0])+'</span><div><b class="'+(t[2]?'':'emp')+'">'+esc(t[2]||'—')+'</b><span>'+esc(t[1])+'</span></div></div>'}).join('')+'</div>'}).join('')}
   function open(id,from){
     var c=clients.filter(function(x){return x.id===id})[0];if(!c)return;
     lastFocus=from||document.activeElement;
-    document.getElementById('m-name').innerHTML=(c.num?'<span class="knum big">К#'+esc(c.num)+'</span>':'')+esc(c.name);
-    var ph=document.getElementById('m-phone');ph.querySelector('span').textContent=c.phone;ph.href='tel:'+c.phone.replace(/\s/g,'');
+    document.getElementById('m-name').textContent=c.name;
+    document.getElementById('m-knum').textContent=c.num?'К#'+c.num:'';
+    document.getElementById('m-ini').textContent=initials(c.name);
+    setPhone(c);profInfo(c);specTiles(c);
     var st=c.status==='Активен'?'<span class="pill"><i></i>'+esc(c.status)+'</span>':'<span class="pill warn"><i></i>'+esc(c.status)+'</span>';
     renderFields(c);relayout();
     document.getElementById('m-acts').innerHTML=c.acts.length?c.acts.map(function(a){return '<div class="arow">'+ic(a[0])+'<span class="at">'+esc(a[1])+'</span><span class="tm">'+esc(a[2])+'</span></div>'}).join(''):'<div class="arow">'+ic('clock')+'<span class="at">Още няма записана активност</span></div>';
@@ -946,7 +1015,7 @@ html.desk .mcv.tab .m-act{display:block}
     if(act==='Банка'){openBank(win.dataset.client);return}
     if(!cc)return;
     var T=window.NDKTabs,map={'Редактирай':T.edit,'Срещи':T.meetings,'Документи':T.docs,'Калкулатор':T.calc,'Собственик':T.owner,'Сделка':T.deal,'Всички активности':T.acts};
-    if(map[act])tabOn(act,b.classList.contains('ma')?b:null,function(){map[act](cc)});else say(act+' – '+(win.dataset.client||''))});
+    if(map[act])tabOn(act,b.classList.contains('ma')?b:win.querySelector('.m-actions .ma[data-act="'+act+'"]'),function(){map[act](cc)});else say(act+' – '+(win.dataset.client||''))});
   /* табове в картата */
   var tabHost=document.getElementById('m-tabhost'),tabActive=null,tabRO=null;
   function tabOff(){tabActive=null;mcv.classList.remove('tab');tabHost.hidden=true;[].forEach.call(win.querySelectorAll('.ma.on'),function(b){b.classList.remove('on')});window.NDUI.inlineHost(null);window.NDUI.detachInline();if(tabRO){tabRO.disconnect();tabRO=null}relayout()}
@@ -959,6 +1028,7 @@ html.desk .mcv.tab .m-act{display:block}
     if(window.ResizeObserver){tabRO=new ResizeObserver(function(){relayout()});tabRO.observe(tabHost)}else relayout();
     if(!desk)setTimeout(function(){tabHost.scrollIntoView({behavior:'smooth',block:'start'})},60);
   }
+  document.getElementById('m-info').addEventListener('click',function(){if(tabActive)tabOff()});
   /* bank module opens over the client card, on the same page */
   var bankBox=null;
   /* Банка от картата на клиента: взима избрания имот на клиента (от сделката или полето „prop“) – цената/заглавието са реални; офертата се записва при клиента заедно с имота */
