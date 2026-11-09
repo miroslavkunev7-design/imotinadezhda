@@ -26670,7 +26670,7 @@ async function handler(req, res) {
   } catch (e) {
     const status = e instanceof ToolError || (e && typeof e.status === "number") ? e.status : 500;
     if (TED) TED.audit(sb, u.user, toolName, false, Date.now() - t0, (e && e.message) || String(e));
-    try { require("./_monitor.js").report({ event: "tool_error", errorCode: "tool_" + toolName, endpoint: "/api/tools", requestId: String(req.headers["x-vercel-id"] || "") }); } catch (e2) {}
+    await require("./_monitor.js").report({ event: "tool_error", errorCode: "tool_" + toolName, endpoint: "/api/tools", requestId: String(req.headers["x-vercel-id"] || "") }).catch(() => null);
     return send({ ok: false, error: e instanceof Error ? e.message : String(e) }, status);
   }
 }

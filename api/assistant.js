@@ -213,6 +213,6 @@ module.exports = async (req, res) => {
   }
   /* безплатен лимит: презарежда се сам – без съобщения за плащане */
   if (quota || /credit|billing|payment|funds|purchase|quota|exhaust|limit|кредит/i.test(lastErr)) return send(res, 200, { ok: false, quota: true, error: "Безплатният лимит на Gemini за момента е изчерпан – презарежда се автоматично. Опитайте отново след минута." });
-  try { require("./_monitor.js").report({ event: "assistant_error", errorCode: quota ? "quota" : "assistant_failed", endpoint: "/api/assistant", requestId: String(req.headers["x-vercel-id"] || "") }); } catch (e2) {}
+  await require("./_monitor.js").report({ event: "assistant_error", errorCode: "assistant_failed", endpoint: "/api/assistant", requestId: String(req.headers["x-vercel-id"] || "") }).catch(() => null);
   return send(res, 502, { ok: false, error: "AI асистентът не отговори: " + lastErr });
 };

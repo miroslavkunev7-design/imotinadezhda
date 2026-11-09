@@ -33,7 +33,6 @@ async function report(ev) {
   const now = Date.now();
   if (now - (seen.get(sig) || 0) < 30 * 60 * 1000) return { sent: false, dedup: true };
   if (seen.size > 200) seen.clear();
-  seen.set(sig, now);
   const body = {
     source: "ted-monitor",
     event: String((ev && ev.event) || "error").slice(0, 40),
@@ -50,7 +49,8 @@ async function report(ev) {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(2500)
     });
-    return { sent: r.ok };
+    if (r.ok) seen.set(sig, now);
+    return { sent: r.ok, status: r.status };
   } catch (e) {
     return { sent: false };
   }
