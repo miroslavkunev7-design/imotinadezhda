@@ -412,7 +412,7 @@ async function attachChatFile(ctx, i) {
   if (client) {
     const docs = await rows(ctx, "documents", (q) => q.eq("client_id", client.id));
     const hit = docs.find((d) => d.source_path === src);
-    if (hit) out.client = { id: client.id, name: client.name, document_id: hit.id, file: hit.name, already: true, download_url: shortLink(hit) };
+    if (hit) out.client = { id: client.id, name: client.name, document_id: hit.id, file: hit.name, path: hit.path, already: true, download_url: shortLink(hit) };
     else {
       const bytes = await needBytes();
       const dest = "clients/" + client.id + "/chat/" + Date.now() + "-" + asciiName(name);
@@ -420,7 +420,7 @@ async function attachChatFile(ctx, i) {
       const doc = await put(ctx, "documents", { client_id: client.id, client: client.name || "", name, folder: i.folder || "Чат", path: dest, source_path: src, mime, size: bytes.length, at: new Date().toISOString(), by: "ted" });
       if (!doc || !doc.id) throw new ToolError("Файлът се качи, но връзката с клиента не се записа");
       await put(ctx, "activities", { client_id: client.id, client: client.name || "", icon: "file-text", text: "Тед прикачи файл от чата: " + name, at: new Date().toISOString() }).catch(() => null);
-      out.client = { id: client.id, name: client.name, document_id: doc.id, file: name, already: false, download_url: shortLink({ id: doc.id, name, path: dest }) };
+      out.client = { id: client.id, name: client.name, document_id: doc.id, file: name, path: dest, already: false, download_url: shortLink({ id: doc.id, name, path: dest }) };
     }
   }
   if (prop) {
