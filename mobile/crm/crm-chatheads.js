@@ -15,6 +15,7 @@
   var css =
     "#nch{position:fixed;z-index:70;display:flex;flex-direction:column;gap:12px;touch-action:none;user-select:none;-webkit-user-select:none;transition:left .25s cubic-bezier(.2,.9,.3,1.2),top .25s}" +
     "#nch.drag{transition:none}#nch[hidden]{display:none}" +
+    "@media(max-width:640px){#nch{gap:10px}.nch-h{width:50px!important;height:50px!important;font-size:.88em}}" +
     "html.locked #nch{visibility:hidden;pointer-events:none}" +
     ".nch-h{position:relative;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;cursor:pointer;border:2px solid #edc47a;" +
     "background:radial-gradient(circle at 35% 30%,#b42446,#7a0f22 60%,#4f0716);color:#fff3dc;font:400 21px/1 Georgia,'PT Serif',serif;text-shadow:0 1px 2px rgba(30,0,8,.6);" +
@@ -57,15 +58,19 @@
     gd.innerHTML = '<svg width="0" height="0"><defs><linearGradient id="nch-mg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0866FF"/><stop offset=".6" stop-color="#A033FF"/><stop offset="1" stop-color="#FF5C87"/></linearGradient><linearGradient id="nch-ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".35" stop-color="#FA7E1E"/><stop offset=".6" stop-color="#D62976"/><stop offset=".85" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs></svg>';
     document.body.appendChild(gd);
     document.body.appendChild(xz); document.body.appendChild(box);
-    pos = ls(KEY) || { side: "r", y: 0.42 };
+    pos = ls(KEY) || { side: "r", y: null }; /* по подразбиране: точно над Тед */
     drag();
   }
   function place() {
     if (!box || box.hidden) return;
     var w = innerWidth, h = innerHeight, bh = box.offsetHeight || 60, minY = 70, maxY = h - dockH() - bh - 16;
-    var y = Math.max(minY, Math.min(maxY, pos.y * h));
+    var y = pos.y == null ? h - (/\/mobile\/crm\//.test(location.pathname) ? 96 : 20) - 60 - 16 - bh : pos.y * h; /* Тед е на 96px от дъното, 60px висок */
+    y = Math.max(minY, Math.min(maxY, y));
     box.style.top = y + "px"; box.style.left = (pos.side === "l" ? 10 : w - 58 - 10 - (window.NDRAIL ? 0 : 0)) + "px";
     box.className = pos.side === "l" ? "l" : "r";
+    /* компютър: по подразбиране в лявата лента, точно над Тед (там има свободно място) */
+    var foot = pos.y == null && window.NDRAIL && document.querySelector(".sb-foot");
+    if (foot) { var ft = foot.getBoundingClientRect().top; box.style.top = Math.max(minY, ft - 14 - bh) + "px"; box.style.left = Math.round((window.NDRAIL - (box.firstChild ? box.firstChild.offsetWidth : 58)) / 2) + "px"; box.className = "l"; }
     placeWin();
   }
   function render() {
