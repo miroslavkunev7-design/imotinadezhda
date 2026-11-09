@@ -393,6 +393,8 @@ html.desk .ish b{font-size:42px!important}
 html.desk .ish span{font-size:32px!important}
 html.desk .isa{font-size:29px!important}
 html.desk .plist.grp .irw .pc{zoom:.54!important}
+/* компютър, „Виж всички“ / една група: картите (zoom .54 ≈ 526px) са по-широки от колоната на 4-те колони и се залепваха – колони с размера на картата и разстояние между тях (09.11) */
+html.desk .plist.grp .isec.all .irw{grid-template-columns:repeat(auto-fill,527px)!important;gap:30px 30px!important}
 
 /* ===== текст върху прелятата снимка: тъмен с бял ореол, не червен (09.11) ===== */
 html.desk .pm-cell span{color:#3d1d18!important}

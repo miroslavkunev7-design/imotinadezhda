@@ -384,9 +384,14 @@ html.desk .m-act{position:absolute;left:1036px;top:585px;width:1000px;margin:0}
 /* статус — винено стъкло (активен); продаден / резервиран / чернова пазят своите цветове */
 .pc .st{position:absolute;right:54px;top:32px;z-index:2;height:78px;padding:0 26px;border-radius:22px;display:flex;align-items:center;gap:12px;white-space:nowrap;
   font:700 30px/1 var(--sans);color:#fff;text-shadow:0 1px 2px rgba(60,0,15,.45);
-  background:linear-gradient(160deg,#a12139 0%,#7d1226 48%,#5e0a1a 100%);border:2.5px solid rgba(255,196,208,.8);
-  box-shadow:0 6px 16px rgba(70,5,20,.34),0 0 14px rgba(190,40,70,.26),inset 0 2px 2px rgba(255,190,205,.45),inset 0 -3px 7px rgba(40,0,10,.3)}
-.pc .st i{display:none;width:18px;height:18px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.75)}
+  background:linear-gradient(160deg,#55cc74 0%,#279a4b 50%,#14662f 100%);border:2.5px solid rgba(214,255,224,.85);
+  box-shadow:0 6px 16px rgba(10,70,30,.32),0 0 14px rgba(60,190,100,.32),inset 0 2px 2px rgba(220,255,230,.5),inset 0 -3px 7px rgba(0,40,15,.3)}
+/* публикуван = зелен; при клик – менюто Депозиран / Капариран / Продаден (09.11) */
+button.st{cursor:pointer;font-family:var(--sans)}button.st:hover{filter:brightness(1.07)}.pc .st .cv{font-size:.72em;opacity:.85;margin-left:-2px}
+.pc .st2{position:absolute;right:136px;top:136px;z-index:2;height:54px;padding:0 20px;border-radius:18px;display:flex;align-items:center;gap:10px;white-space:nowrap;font:700 24px/1 var(--sans);color:#fff;text-shadow:0 1px 2px rgba(0,40,15,.45);background:linear-gradient(160deg,#55cc74 0%,#279a4b 50%,#14662f 100%);border:2px solid rgba(214,255,224,.85);box-shadow:0 4px 12px rgba(10,70,30,.3),0 0 12px rgba(60,190,100,.3)}
+.pc .st2 i{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0,#d9ffe2 45%,#7fe39a 100%);box-shadow:0 0 0 1.5px rgba(255,255,255,.75)}
+:is(.plist.list,.fcards.list) .pc .st2{display:none}
+.pc .st i{display:block;width:18px;height:18px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.75);background:radial-gradient(circle at 35% 30%,#fff 0,#d9ffe2 45%,#7fe39a 100%)}
 .pc .st.sold i,.pc .st.res i,.pc .st.drf i{display:block}
 .pc .st.sold{background:linear-gradient(160deg,#ee4762 0%,#c81f3e 50%,#930f29 100%);border-color:rgba(255,216,222,.88);
   box-shadow:0 6px 16px rgba(150,10,35,.4),0 0 20px rgba(235,55,85,.5),inset 0 2px 2px rgba(255,210,220,.55),inset 0 -3px 7px rgba(80,0,15,.3)}
@@ -1114,7 +1119,8 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
       return '<article class="pc" tabindex="0" data-id="'+p.id+'" aria-label="'+esc(p.title+(loc?', '+loc:''))+'">'+
         '<div class="pp"><img src="'+esc(img(p.img))+'" alt="" loading="lazy" decoding="async"></div>'+
         '<span class="pid">ID: '+esc(cid)+'</span>'+
-        '<span class="st '+st+'"><i></i>'+esc(p.stage||p.status)+'</span>'+
+        ((p.status==='Публикуван'||p.stage)?'<button type="button" class="st '+st+'" data-stg="'+p.id+'" aria-haspopup="menu" title="Статус на сделката"><i></i>'+esc(p.stage||p.status)+'<span class="cv">▾</span></button>':'<span class="st '+st+'"><i></i>'+esc(p.stage||p.status)+'</span>')+
+        (p.stage==='Депозиран'&&p.status==='Публикуван'?'<span class="st2"><i></i>Активен</span>':'')+
         '<button class="hrt'+(favs[p.id]?' on':'')+'" data-fav="'+p.id+'" aria-pressed="'+!!favs[p.id]+'" aria-label="Любим имот">'+ic('heart')+'</button>'+
         '<div class="bd">'+
           '<h3 class="tt">'+(p.num?'<span class="inum">И#'+esc(p.num)+'</span> ':'')+esc(p.title)+'</h3>'+
@@ -1146,6 +1152,7 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
   $('plist').addEventListener('click',function(e){
     var f=e.target.closest('[data-fav]');if(f){e.stopPropagation();var id=f.getAttribute('data-fav');favs[id]=!favs[id];f.classList.toggle('on',favs[id]);f.setAttribute('aria-pressed',favs[id]);
       try{localStorage.setItem('imoti-favs',JSON.stringify(favs))}catch(x){};if(window.ND)ND.setPref('favs-properties',favs).catch(function(){});say(favs[id]?'Добавен в любими':'Премахнат от любими');return}
+    var sg=e.target.closest('[data-stg]');if(sg){e.stopPropagation();var sp=props.filter(function(x){return x.id===sg.getAttribute('data-stg')})[0];if(sp)stageMenu(sg,sp);return}
     var m=e.target.closest('[data-menu]');if(m){e.stopPropagation();var mp=props.filter(function(x){return x.id===m.getAttribute('data-menu')})[0];if(mp)window.NDProps.edit(mp);return}
     var c=e.target.closest('.pc');if(c)openProp(c.getAttribute('data-id'),c)});
   $('plist').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.classList.contains('pc'))e.target.click()});
@@ -1295,12 +1302,13 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
   /* клик върху „друг имот на собственика“ – отваря неговата карта */
   $('pm-acc').addEventListener('click',function(e){var r=e.target.closest('[data-open]');if(!r)return;var id=r.getAttribute('data-open');if(props.some(function(x){return x.id===id}))openProp(id)});
   /* меню за статус на публикуван имот */
-  function stageMenu(btn){
+  function stageMenu(btn,prop){
+    var P0=prop||cur;
     var old=document.querySelector('.pm-smenu');if(old){old.remove();return}
     var m=document.createElement('div');m.className='pm-smenu';m.setAttribute('role','menu');
-    var cs=cur.stage||'';
-    m.innerHTML='<div class="pm-sm-h">Обявата е на сайта</div>'+
-      '<button type="button" data-st="site"><i></i>Отвори на сайта</button>'+
+    var cs=P0.stage||'';
+    m.innerHTML=(P0.status==='Публикуван'?'<div class="pm-sm-h">Обявата е на сайта</div>'+
+      '<button type="button" data-st="site"><i></i>Отвори на сайта</button>':'')+
       '<div class="pm-sm-h">Статус на сделката</div>'+
       '<button type="button" class="y'+(cs==='Депозиран'?' on':'')+'" data-st="Депозиран"><i></i>Депозиран <small style="font-weight:400;opacity:.8">· остава на сайта</small></button>'+
       '<button type="button" class="y'+(cs==='Капариран'?' on':'')+'" data-st="Капариран"><i></i>Капариран <small style="font-weight:400;opacity:.8">· сваля се, в архива</small></button>'+
@@ -1313,8 +1321,8 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
     function onDoc(ev){if(!m.contains(ev.target))close()}
     setTimeout(function(){document.addEventListener('pointerdown',onDoc,true)},0);
     m.addEventListener('click',function(ev){var b=ev.target.closest('[data-st]');if(!b)return;var v=b.getAttribute('data-st');close();
-      if(v==='site'){window.open(window.NDPublish.siteUrl(cur),'_blank');return}
-      window.NDProps.setStage(cur,v)});
+      if(v==='site'){window.open(window.NDPublish.siteUrl(P0),'_blank');return}
+      window.NDProps.setStage(P0,v,prop?{noOpen:true}:null)});
   }
   $('pm-acc').addEventListener('click',function(e){var r=e.target.closest('[data-doc]');if(!r||!cur)return;var d=cur.docs[+r.getAttribute('data-doc')];if(!d)return;if(window.NDDocs&&window.NDDocs.view){window.NDDocs.view(pwin,cur.docs.slice(),+r.getAttribute('data-doc'));return}var w=window.open('','_blank');ND.fileUrl(d.path).then(function(u){if(w)w.location=u;else location.href=u})});
   document.addEventListener('keydown',function(e){

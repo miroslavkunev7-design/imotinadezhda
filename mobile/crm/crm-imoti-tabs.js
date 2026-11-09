@@ -267,12 +267,12 @@
   }
 
   /* Статус на сделката за публикуван имот: Депозиран (остава на сайта), Капариран / Продаден (свалят се от сайта и отиват в архива) */
-  function setStage(p, stage) {
+  function setStage(p, stage, opt) {
     var o = stored(p); o.stage = stage || "";
     var off = stage === "Продаден" || stage === "Капариран";
     if (off) { o.status = "Архивиран"; o.archived = true; if (o.fb && o.fb.post_id && !o.fb.hidden) { o.fb.hidden = true; if (window.NDPublish && window.NDPublish.fbSync) window.NDPublish.fbSync(o, "hide"); } }
     addLog(o, stage === "Продаден" ? "archive" : "tag", stage ? "Статус: " + stage + (off ? " · обявата е свалена от сайта и е в архива" : " · обявата остава публикувана") : "Статусът на сделката е изчистен");
-    return D.put("properties", o).then(function () { P.say(stage ? (off ? stage + " – свален от сайта, в архива" : "Депозиран – обявата остава на сайта") : "Статусът е изчистен"); return P.refresh().then(function () { P.reopen(o.id); }); });
+    return D.put("properties", o).then(function () { P.say(stage ? (off ? stage + " – свален от сайта, в архива" : "Депозиран – обявата остава на сайта") : "Статусът е изчистен"); return P.refresh().then(function () { if (!(opt && opt.noOpen)) P.reopen(o.id); }); });
   }
   /* „Запази в архив“: публикуван имот само се записва в архива (остава на сайта); непубликуван – става Архивиран */
   function archive(p) {
