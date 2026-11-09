@@ -323,6 +323,14 @@ html.desk .ctop{width:100%}
 html.desk .flow{display:grid;grid-auto-flow:column;grid-template-rows:auto auto;grid-template-columns:1000px 1000px;column-gap:var(--G,24px);padding:16px 0 0 var(--xL,24px)}
 html.desk .cpanel{margin:0!important;width:1000px}
 html.desk .cgrid{padding:15px 8px 4px;height:var(--gh,420px);overflow-y:auto;align-content:start;scrollbar-width:thin;scrollbar-color:#c99a5a transparent}
+/* компютър: картите на клиентите са малко по-големи (~15%) – по-високи, по-едър текст, снимката расте пропорционално; телефонът не се променя */
+html.desk .ccard{height:300px!important;--gob:21px!important}
+html.desk .ccard .ph{width:272px}
+html.desk .ccard .nm{top:20px!important;left:30px;font-size:35px}
+html.desk .ccard .ph-n{top:78px!important;left:28px;font-size:31px;gap:14px}html.desk .ccard .ph-n svg.i{font-size:33px}
+html.desk .ccard .row{left:30px;font-size:25.5px;gap:22px}html.desk .ccard .row svg.i{font-size:27px}
+html.desk .ccard .row:nth-child(4){top:142px!important}html.desk .ccard .row:nth-child(5){top:190px!important}html.desk .ccard .row:nth-child(6){top:238px!important}
+html.desk .ccard .go{width:66px;height:66px;font-size:35px}
 html:not(.desk) .mbtn{width:32px;height:32px;font-size:17px}
 html.desk .mscroll{overflow:hidden}
 html.desk .mwin,html.desk .mwin.full{right:auto;bottom:auto;border-radius:26px;border-width:2px}
