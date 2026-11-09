@@ -2,7 +2,7 @@
 //  - Gemini (GEMINI_API_KEY)                 - OpenAI / ChatGPT (OPENAI_API_KEY)
 //  - Anthropic / Claude (ANTHROPIC_API_KEY)  - Ollama (OLLAMA_URL [+OLLAMA_KEY], OpenAI-съвместим /v1)
 //  - OpenRouter (OPENROUTER_API_KEY – има и безплатни модели „:free“)
-//  - Vercel AI Gateway (AI_GATEWAY_KEY / VERCEL_AI_GATEWAY_KEY – Claude, ChatGPT и др. с кредитите във Vercel)
+//  - (Vercel AI Gateway chat моделите са махнати от каталога; видео gateway е в api/video.js)
 // Ключовете са само във Vercel. Списъкът с модели може да се настрои с *_MODELS (запетая: id|Име|описание).
 "use strict";
 const E = (k) => process.env[k] || "";
@@ -25,7 +25,8 @@ function catalog() {
   if (E("OPENAI_API_KEY")) parseList(E("OPENAI_MODELS"), ["gpt-4.1-mini|ChatGPT 4.1 mini|бърз и евтин", "gpt-4.1|ChatGPT 4.1|по-силен"]).forEach((m) => out.push(Object.assign({ provider: "openai", vision: true, pdf: false }, m)));
   if (E("ANTHROPIC_API_KEY")) parseList(E("ANTHROPIC_MODELS"), ["claude-sonnet-4-5|Claude Sonnet 4.5|много добър за текст и документи", "claude-haiku-4-5|Claude Haiku 4.5|бърз"]).forEach((m) => out.push(Object.assign({ provider: "anthropic", vision: true, pdf: true }, m)));
   if (E("OPENROUTER_API_KEY")) parseList(E("OPENROUTER_MODELS"), ["meta-llama/llama-3.3-70b-instruct:free|Llama 3.3 70B (OpenRouter)|безплатен, без снимки"]).forEach((m) => out.push(Object.assign({ provider: "openrouter", vision: false, pdf: false }, m)));
-  if (GW_KEY()) parseList(E("AI_GATEWAY_MODELS"), ["anthropic/claude-sonnet-4.5|Claude Sonnet 4.5|през Vercel AI Gateway", "openai/gpt-4.1-mini|ChatGPT 4.1 mini|през Vercel AI Gateway", "openai/gpt-4.1|ChatGPT 4.1|през Vercel AI Gateway", "anthropic/claude-haiku-4.5|Claude Haiku 4.5|бърз, през Gateway"]).forEach((m) => out.push(Object.assign({ provider: "gateway", vision: true, pdf: false }, m)));
+  /* Chat през Vercel AI Gateway е изключен: OIDC/ключовете сами не добавят chat модели в пикъра/резерва.
+     Видео (kling/veo) остава в api/video.js. Директните openai/anthropic/openrouter/ollama/gemini са по-горе. */
   if (E("OLLAMA_URL")) parseList(E("OLLAMA_MODELS"), ["llama3.1:8b|Ollama Llama 3.1|локален, безплатен"]).forEach((m) => out.push(Object.assign({ provider: "ollama", vision: false, pdf: false }, m)));
   return out;
 }

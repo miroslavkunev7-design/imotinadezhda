@@ -11,6 +11,44 @@ function wav(pcm, rate) {
   h.writeUInt32LE(rate, 24); h.writeUInt32LE(rate * 2, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write("data", 36); h.writeUInt32LE(pcm.length, 40);
   return Buffer.concat([h, pcm]);
 }
+function sanitizeSpoken(s) {
+  s = String(s == null ? "" : s);
+  /* fenced code blocks (``` / ~~~), including unclosed to end */
+  s = s.replace(/```[\s\S]*?```/g, " ").replace(/~~~[\s\S]*?~~~/g, " ");
+  s = s.replace(/```[\s\S]*$/g, " ").replace(/~~~[\s\S]*$/g, " ");
+  /* images / links → alt or label text only */
+  s = s.replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1");
+  s = s.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+  /* bare URLs */
+  s = s.replace(/https?:\/\/[^\s<>\]\)]+/gi, " ");
+  s = s.replace(/\bwww\.[^\s<>\]\)]+/gi, " ");
+  /* inline code backticks (keep inner text) */
+  s = s.replace(/`([^`\n]+)`/g, "$1");
+  s = s.replace(/`+/g, "");
+  /* headings, quotes, list markers at line starts */
+  s = s.replace(/^#{1,6}\s+/gm, "");
+  s = s.replace(/^>\s?/gm, "");
+  s = s.replace(/^[ \t]*[-*+]\s+/gm, "");
+  s = s.replace(/^[ \t]*\d+\.\s+/gm, "");
+  /* emphasis / strike markers */
+  s = s.replace(/\*\*|__/g, "");
+  s = s.replace(/~~/g, "");
+  s = s.replace(/(^|[^\w*])\*([^*\n]+)\*(?=[^\w*]|$)/g, "$1$2");
+  s = s.replace(/(^|[^\w_])_([^_\n]+)_(?=[^\w_]|$)/g, "$1$2");
+  /* leftover markdown punctuation often left in spoken text */
+  s = s.replace(/[*_~#|]+/g, " ");
+  /* emoji / pictographs + variation selectors / ZWJ sequences */
+  try {
+    s = s.replace(/\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*/gu, " ");
+  } catch (e) {
+    s = s.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, " ");
+  }
+  s = s.replace(/[\uFE0F\u200D]/g, "");
+  /* common leftover symbols (bullets etc.) that are not letters/punct */
+  s = s.replace(/[•✔✅❌⚠︎⚠️📁📎🎤►▶◀■□▪▫●○★☆◆◇]/g, " ");
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
 module.exports = async (req, res) => {
   const fail = (s, e) => { res.statusCode = s; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.end(JSON.stringify({ ok: false, error: e })); };
   if (req.method !== "POST") return fail(405, "POST only");
@@ -20,7 +58,7 @@ module.exports = async (req, res) => {
   if (okStaff !== true) return fail(401, "Само за CRM");
   let b; try { b = await readBody(req); } catch (e) { return fail(400, "Невалидни данни"); }
   /* една заявка ≈ до 1200 знака (≈ 80 s звук, под лимита от 4.5 MB на отговор); по-дългите отговори браузърът ги праща на части */
-  const text = String(b.text || "").replace(/\s+/g, " ").trim().slice(0, 1200);
+  const text = sanitizeSpoken(b.text).slice(0, 1200);
   if (!text) return fail(400, "Няма текст");
   /* глас и стил от настройките на чата (Gemini TTS гласове) */
   const VOICES = ["Charon", "Achernar", "Despina", "Puck", "Kore", "Aoede", "Leda", "Zephyr", "Enceladus", "Callirrhoe"];

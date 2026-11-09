@@ -505,7 +505,50 @@
     try { speechSynthesis.cancel(); } catch (e) {}
     if (playingBtn) playingBtn.classList.remove("on", "ld"); playingBtn = null;
   }
-  function plain(el) { var c = el.cloneNode(true); [].forEach.call(c.querySelectorAll(".nda-say,.acts,a.go,.nda-mc,.nda-img"), function (x) { x.remove(); }); [].forEach.call(c.querySelectorAll("tr"), function (tr) { tr.appendChild(document.createTextNode(". ")); }); return c.textContent.replace(/[•✔📁📎🎤]/g, " ").replace(/\s+/g, " ").trim(); }
+  function sanitizeSpoken(s) {
+    s = String(s == null ? "" : s);
+    /* fenced code blocks (``` / ~~~), including unclosed to end */
+    s = s.replace(/```[\s\S]*?```/g, " ").replace(/~~~[\s\S]*?~~~/g, " ");
+    s = s.replace(/```[\s\S]*$/g, " ").replace(/~~~[\s\S]*$/g, " ");
+    /* images / links → alt or label text only */
+    s = s.replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1");
+    s = s.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+    /* bare URLs */
+    s = s.replace(/https?:\/\/[^\s<>\]\)]+/gi, " ");
+    s = s.replace(/\bwww\.[^\s<>\]\)]+/gi, " ");
+    /* inline code backticks (keep inner text) */
+    s = s.replace(/`([^`\n]+)`/g, "$1");
+    s = s.replace(/`+/g, "");
+    /* headings, quotes, list markers at line starts */
+    s = s.replace(/^#{1,6}\s+/gm, "");
+    s = s.replace(/^>\s?/gm, "");
+    s = s.replace(/^[ \t]*[-*+]\s+/gm, "");
+    s = s.replace(/^[ \t]*\d+\.\s+/gm, "");
+    /* emphasis / strike markers */
+    s = s.replace(/\*\*|__/g, "");
+    s = s.replace(/~~/g, "");
+    s = s.replace(/(^|[^\w*])\*([^*\n]+)\*(?=[^\w*]|$)/g, "$1$2");
+    s = s.replace(/(^|[^\w_])_([^_\n]+)_(?=[^\w_]|$)/g, "$1$2");
+    /* leftover markdown punctuation often left in spoken text */
+    s = s.replace(/[*_~#|]+/g, " ");
+    /* emoji / pictographs + variation selectors / ZWJ sequences */
+    try {
+      s = s.replace(/\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*/gu, " ");
+    } catch (e) {
+      s = s.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, " ");
+    }
+    s = s.replace(/[\uFE0F\u200D]/g, "");
+    /* common leftover symbols (bullets etc.) that are not letters/punct */
+    s = s.replace(/[•✔✅❌⚠︎⚠️📁📎🎤►▶◀■□▪▫●○★☆◆◇]/g, " ");
+    s = s.replace(/\s+/g, " ").trim();
+    return s;
+  }
+  function plain(el) {
+    var c = el.cloneNode(true);
+    [].forEach.call(c.querySelectorAll(".nda-say,.acts,a.go,.nda-mc,.nda-img,pre,code,script,style"), function (x) { x.remove(); });
+    [].forEach.call(c.querySelectorAll("tr"), function (tr) { tr.appendChild(document.createTextNode(". ")); });
+    return sanitizeSpoken(c.textContent);
+  }
   function speakLocal(text, btn) {
     try {
       var u = new SpeechSynthesisUtterance(text); u.lang = "bg-BG"; u.rate = 1;
