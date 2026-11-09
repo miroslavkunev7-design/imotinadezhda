@@ -70,6 +70,18 @@
     ".nda-c textarea.rec{color:#a3112f;font-weight:700}" +
     ".nda-dl{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:6px 12px;margin:2px 0;border-radius:14px;font-weight:700;color:#5a0a18;text-decoration:none;background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1.5px rgba(227,178,94,.8),0 0 10px rgba(255,214,150,.6);word-break:break-all}.nda-dl:hover{box-shadow:0 0 0 1.5px #f6d68c,0 0 16px rgba(255,214,150,.9)}.nda-say{display:inline-grid;place-items:center;vertical-align:middle;width:30px;height:30px;margin:6px 0 0 6px;float:right;border-radius:50%;border:1.5px solid #e3b25e;background:radial-gradient(circle at 35% 28%,#b0213f,#7a0f22 55%,#4a0613);color:#fff3dc;cursor:pointer;padding:0;box-shadow:0 0 8px rgba(255,190,120,.6)}" +
     ".nda-img{display:block;max-width:100%;max-height:260px;margin:6px 0 2px;border-radius:14px;border:1.5px solid #e3b25e;box-shadow:0 0 12px rgba(255,214,150,.55);object-fit:cover}.nda-say svg{width:16px;height:16px}.nda-say.on{background:linear-gradient(150deg,#fff0aa,#f3a518);color:#640319;animation:ndaRec 1.2s ease-in-out infinite}.nda-say.ld{opacity:.6}" +
+    /* преглед на файл в самия прозорец (снимка, PDF, Word/Excel) – без нова страница */
+    ".nda-view{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;background:linear-gradient(165deg,rgba(255,251,247,.97),rgba(251,236,224,.96));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}" +
+    ".nda-view .vh{display:flex;align-items:center;gap:8px;padding:12px 12px 10px;background:linear-gradient(135deg,#7a0a24,#520010);color:#fff3e2;border-bottom:1.5px solid #e3b25e;box-shadow:0 4px 14px rgba(60,0,12,.35)}" +
+    ".nda-view .vh b{flex:1;min-width:0;font:700 15px/1.25 Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+    ".nda-view .vh button{flex:none;display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border-radius:17px;border:1.5px solid #edc47a;background:linear-gradient(180deg,#fff7e3,#f3cf86);color:#6b0a1c;font:700 13px/1 'Roboto Condensed',Arial,sans-serif;cursor:pointer;box-shadow:0 0 10px rgba(255,214,150,.55)}" +
+    ".nda-view .vh button:hover{box-shadow:0 0 0 1px #fff1b8,0 0 16px rgba(255,214,150,.9)}.nda-view .vh .vx{width:34px;padding:0;justify-content:center;font-size:15px}" +
+    ".nda-view .vb{position:relative;flex:1;min-height:0;margin:12px;border-radius:18px;overflow:auto;background:#fffdf9;box-shadow:0 0 0 1.5px rgba(227,178,94,.8),0 0 16px rgba(255,214,150,.6);display:flex;align-items:center;justify-content:center;-webkit-overflow-scrolling:touch}" +
+    ".nda-view .vb img{max-width:100%;max-height:100%;object-fit:contain;display:block}.nda-view .vb iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}" +
+    ".nda-view .vmsg{padding:20px;text-align:center;color:#6b4a40;font:15px/1.45 Georgia,serif}" +
+    ".nda-view .vnav{display:flex;gap:6px;overflow-x:auto;padding:0 12px 12px;-webkit-overflow-scrolling:touch}" +
+    ".nda-view .vnav button{flex:none;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:32px;padding:0 12px;border-radius:16px;border:1.5px solid rgba(227,178,94,.8);background:linear-gradient(180deg,#fffdf9,#fbefe5);color:#5a0a18;font:700 12.5px/1 'Roboto Condensed',Arial,sans-serif;cursor:pointer}" +
+    ".nda-view .vnav button.on{background:linear-gradient(180deg,#fff7e3,#f3cf86);box-shadow:0 0 10px rgba(255,214,150,.75)}" +
     ".nda-files{padding:0 12px;display:flex;gap:6px;flex-wrap:wrap;background:rgba(255,248,240,.85)}" +
     ".nda-case{position:relative;padding:6px 12px 0;background:rgba(255,248,240,.85);border-top:1px solid rgba(227,178,94,.45)}" +
     ".nda-case-btn{border:1px solid #e3b25e;border-radius:12px;padding:5px 10px;background:linear-gradient(180deg,#fffaf3,#fbeee2);color:#6b0a1c;font:400 13px 'Roboto Condensed',Arial,sans-serif;cursor:pointer;box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 8px rgba(255,214,150,.35)}" +
@@ -291,6 +303,45 @@
   var STORE = "nd-ash-chat";
   try { hist = JSON.parse(sessionStorage.getItem(STORE) || "[]") || []; } catch (e) { hist = []; }
   function save() { try { sessionStorage.setItem(STORE, JSON.stringify(hist.slice(-30).map(function (m) { return { role: m.role, text: m.text }; }))); } catch (e) {} }
+  /* Преглед на файл от чата в карта в самия прозорец на Тед (снимка, PDF, Word/Excel през вграден визуализатор) – без нова страница */
+  function isFileUrl(u) { return /imotinadezhda\.bg\/f\/|\/storage\/v1\/object\/(sign|public)\/|\/webhook\/ted-media\?|\.(pdf|jpe?g|png|webp|gif|heic|docx?|xlsx?|pptx?|txt|csv)(\?|#|&|$)/i.test(String(u || "")); }
+  function fileKind(u, name) { var s = (String(name || "") + " " + String(u || "").split("#")[0]).toLowerCase(); if (/\.(jpe?g|png|webp|gif|heic)(\b|$)/.test(s)) return "img"; if (/\.pdf(\b|$)/.test(s)) return "pdf"; if (/\.(docx?|xlsx?|pptx?)(\b|$)/.test(s)) return "doc"; return "other"; }
+  function viewFiles(items, idx) {
+    if (!win || !items.length) return;
+    var old = win.querySelector(".nda-view"); if (old) old.remove();
+    var v = document.createElement("div"); v.className = "nda-view"; v.setAttribute("role", "dialog"); v.setAttribute("aria-label", "Преглед на файл"); win.appendChild(v);
+    function show(i) {
+      idx = i; var f = items[idx], k = fileKind(f.url, f.name);
+      v.innerHTML = '<div class="vh"><b title="' + esc(f.name) + '">' + esc(f.name) + (items.length > 1 ? " · " + (idx + 1) + "/" + items.length : "") + "</b>" +
+        '<button type="button" data-vdl>Изтегли</button><button type="button" data-vnew>Нов прозорец</button><button type="button" class="vx" data-vx aria-label="Затвори">✕</button></div>' +
+        '<div class="vb">' + (k === "img" ? '<img src="' + esc(f.url) + '" alt="' + esc(f.name) + '">' :
+          k === "pdf" ? '<iframe src="' + esc(f.url) + '#toolbar=1&view=FitH" title="' + esc(f.name) + '"></iframe>' :
+          k === "doc" ? '<iframe src="https://docs.google.com/gview?embedded=1&url=' + encodeURIComponent(f.url) + '" title="' + esc(f.name) + '"></iframe>' :
+          '<div class="vmsg">Този вид файл не може да се покаже тук.<br>Натиснете „Изтегли“.</div>') + "</div>" +
+        (items.length > 1 ? '<div class="vnav">' + items.map(function (x, j) { return '<button type="button" data-vi="' + j + '"' + (j === idx ? ' class="on"' : "") + ">" + esc(x.name) + "</button>"; }).join("") + "</div>" : "");
+      var im = v.querySelector(".vb img"); if (im) im.onerror = function () { v.querySelector(".vb").innerHTML = '<div class="vmsg">Файлът не се отвори – линкът може да е изтекъл.<br>Поискайте нов линк от Тед.</div>'; };
+    }
+    v.onclick = function (e) {
+      if (e.target.closest("[data-vx]")) { v.remove(); return; }
+      var vi = e.target.closest("[data-vi]"); if (vi) { show(+vi.getAttribute("data-vi")); return; }
+      var f = items[idx];
+      if (e.target.closest("[data-vnew]")) { window.open(f.url, "_blank", "noopener"); return; }
+      if (e.target.closest("[data-vdl]")) { var a = document.createElement("a"); a.href = f.url; a.download = f.name || "file"; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); }
+    };
+    show(idx || 0);
+  }
+  function fileClick(e) {
+    var a = e.target.closest && e.target.closest("a[href]"); if (!a || !list || !list.contains(a) || !isFileUrl(a.href)) return;
+    e.preventDefault();
+    var box = a.closest(".nda-m") || list, seen = {}, items = [];
+    [].forEach.call(box.querySelectorAll("a[href]"), function (x) {
+      if (!isFileUrl(x.href) || seen[x.href]) return; seen[x.href] = 1;
+      var name = (x.classList.contains("nda-dl") ? x.textContent : "").replace(/^[\s\u{1F4C4}\u{1F5BC}\u{FE0F}\u{1F517}]+/u, "").trim();
+      items.push({ url: x.href, name: name || decodeURIComponent((x.href.split("?")[0].split("/").pop() || "Файл")) });
+    });
+    var i = 0; items.forEach(function (it, j) { if (it.url === a.href) i = j; });
+    viewFiles(items, i);
+  }
   function add(role, html, cls) { var m = document.createElement("div"); m.className = "nda-m " + role + (cls ? " " + cls : ""); m.innerHTML = html; list.appendChild(m); if (role === "a" && cls !== "wait") speaker(m); list.scrollTop = list.scrollHeight; return m; }
 
   /* ---- резултатите от планираните задачи на Тед (напомняния, повтарящи се задачи, промени по сайтове) идват тук, в чата, вместо в Telegram.
@@ -692,6 +743,8 @@
       '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div><div class="nda-set" hidden></div>';
     document.body.appendChild(fab); document.body.appendChild(win);
     list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot");
+    list.addEventListener("click", fileClick);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) { var vw = win.querySelector(".nda-view"); if (vw) vw.remove(); } });
     var sk = win.querySelector(".nda-skill"), gear = win.querySelector(".nda-gear"), setBox = win.querySelector(".nda-set");
     sk.onclick = function (e) { e.stopPropagation(); renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
     menu.onclick = function (e) { var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
