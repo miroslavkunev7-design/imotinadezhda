@@ -220,7 +220,7 @@
       if ((t = e.target.closest("[data-n8nm]"))) { prefs.n8nModel = t.getAttribute("data-n8nm"); savePrefs(); renderSettings(); return; }
       if ((t = e.target.closest("[data-m]"))) { setModel(t.getAttribute("data-m"), true); renderSettings(); return; }
       if ((t = e.target.closest("[data-sw]"))) { var k = t.getAttribute("data-sw"); prefs[k] = !prefs[k]; savePrefs(); applyPrefs(); renderSettings(); return; }
-      if (e.target.closest("[data-clear]")) { hist = []; save(); list.innerHTML = ""; sb.hidden = true; win.querySelector(".nda-gear").classList.remove("on"); add("bot", "Разговорът е изчистен."); return; }
+      if (e.target.closest("[data-clear]")) { hist = []; save(); try { N8N_SID = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2); localStorage.setItem("nd-ted-n8n-sid", N8N_SID); } catch (x) {} list.innerHTML = ""; sb.hidden = true; win.querySelector(".nda-gear").classList.remove("on"); add("bot", "Разговорът е изчистен."); return; }
     };
   }
   function voiceOf(id) { return VOICES.filter(function (v) { return v.id === id; })[0] || VOICES[0]; }
@@ -270,9 +270,32 @@
     if (k.file) h.push("други файлове → parse_document или pdf_convert");
     return "(Прикачени файлове – линковете са в блока ATTACHMENTS, валидни 7 дни: " + h.join("; ") + ".)";
   }
-  function askN8n(history) {
+  /* „Да“ след подготвен имейл → изпраща се веднага (както в Тед на сайта): без AI, точно показаното – email.send {confirm:true} */
+  var N8N_AFFIRM = /^\s*(да|да,?\s*(изпрати|прати|изпращай|го изпрати|го прати)(\s+го)?|изпрати(\s+го)?|прати(\s+го)?|ок|окей|потвърждавам|давай|yes)\s*[.!]*\s*$/i;
+  function lastAssistantText(history) {
+    var a = history.slice(0, -1).filter(function (m) { return m && m.role === "assistant"; }).slice(-1)[0]; if (a && a.text) return a.text;
+    var el = list ? [].slice.call(list.querySelectorAll(".nda-m.a")).filter(function (x) { return !x.classList.contains("wait"); }).pop() : null;
+    return el ? el.textContent : "";
+  }
+  function sendDraft(tok) {
+    return fetch("/api/tools", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ tool: "email.send", input: { confirm: true } }) })
+      .then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); })
+      .then(function (j) {
+        var x = j && j.ok && j.result ? j.result : null;
+        var out = x && x.sent ? "✔ Изпратено до " + (x.to_name ? x.to_name + " <" + x.to + ">" : x.to) + " от " + x.from + (x.via && /агенцията/.test(x.via) ? " (" + x.via + ")" : "") + ".\nТема: " + x.subject + (x.attachments && x.attachments.length ? "\nПрикачени: " + x.attachments.join(", ") : "")
+          : x && x.need_setup ? x.reason + (x.mailto ? "\n[Изпрати от моята поща](" + x.mailto + ")" : "") : "Имейлът не е изпратен: " + ((j && j.error) || "грешка");
+        return { ok: true, text: out, actions: ["email.send" + (x && x.sent ? "" : " ✗")], model: "n8n", model_name: "n8n Agent", ui: x && x.need_setup ? { panel: "mail" } : undefined };
+      });
+  }
+  /* глас → текст с Gemini (/api/transcribe, безплатно), както в Тед на сайта; при грешка записът отива към агента както досега */
+  function hear(tok, f) {
+    return fetch("/api/transcribe", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ mime: f.mime, data: f.data }) })
+      .then(function (r) { return r.json(); }).then(function (j) { return j && j.ok && j.text ? String(j.text).trim() : ""; }).catch(function () { return ""; });
+  }
+  function askN8n(history, extra) {
+    extra = extra || {};
     var last = history[history.length - 1] || {}, text = String(last.text || "").trim(), fl = (last.files || []).filter(function (f) { return f && f.data; });
-    var ctrl = new AbortController(), timer = null;
+    var ctrl = new AbortController(), timer = null, heard = "";
     return token().then(function (tok) {
       var att = [];
       if (!tok) { /* посетител без вход: както досега – само текст */
@@ -280,26 +303,40 @@
         text += fl.length ? "\n(прикачени файлове: " + fl.map(function (f) { return f.name || f.mime; }).join(", ") + ")" : "";
         return [tok, text, att];
       }
+      if (!fl.length && N8N_AFFIRM.test(text) && /изпратя ли/i.test(lastAssistantText(history))) return sendDraft(tok).then(function (r) { return { done: r }; });
       if (!text && !fl.length) throw uErr("Напишете съобщение или прикачете файл.");
-      if (fl.length > N8N_MAX_FILES) throw uErr("Към агента в n8n могат да се прикачат най-много " + N8N_MAX_FILES + " файла наведнъж (сега са " + fl.length + ").");
-      var big = fl.filter(function (f) { return f.data.length * 3 / 4 > N8N_MAX_MB * 1048576; })[0];
-      if (big) throw uErr("Файлът „" + (big.name || "запис") + "“ е " + (big.data.length * 3 / 4 / 1048576).toFixed(1) + " MB – агентът в n8n приема файлове до " + N8N_MAX_MB + " MB.");
-      return Promise.all(fl.map(function (f) { return upFile(tok, f); })).then(function (a) {
-        att = a;
-        if (!text) text = att.every(function (x) { return x.kind === "audio"; }) ? "(гласово съобщение)" : "Анализирай прикачените файлове.";
-        if (att.length) text += "\n\n" + attHint(att) + "\n[ATTACHMENTS]\n" + JSON.stringify(att) + "\n[/ATTACHMENTS]";
-        return [tok, text, att];
+      var aud = fl.filter(function (f) { return /^audio\//.test(String(f.mime)); });
+      return Promise.all(aud.map(function (f) { return hear(tok, f); })).then(function (tx) {
+        var got = tx.filter(Boolean).join("\n");
+        if (got) { heard = got; fl = fl.filter(function (f) { return aud.indexOf(f) < 0; }); text = !text || AUTO_TXT.test(text) ? got : got + "\n" + text; }
+        if (fl.length > N8N_MAX_FILES) throw uErr("Към агента в n8n могат да се прикачат най-много " + N8N_MAX_FILES + " файла наведнъж (сега са " + fl.length + ").");
+        var big = fl.filter(function (f) { return f.data.length * 3 / 4 > N8N_MAX_MB * 1048576; })[0];
+        if (big) throw uErr("Файлът „" + (big.name || "запис") + "“ е " + (big.data.length * 3 / 4 / 1048576).toFixed(1) + " MB – агентът в n8n приема файлове до " + N8N_MAX_MB + " MB.");
+        return Promise.all(fl.map(function (f) { return upFile(tok, f); })).then(function (a) {
+          att = a;
+          if (!text) text = att.every(function (x) { return x.kind === "audio"; }) ? "(гласово съобщение)" : "Анализирай прикачените файлове.";
+          if (att.length) text += "\n\n" + attHint(att) + "\n[ATTACHMENTS]\n" + JSON.stringify(att) + "\n[/ATTACHMENTS]";
+          return [tok, text, att];
+        });
       });
     }).then(function (x) {
-      var att = x[2]; timer = setTimeout(function () { ctrl.abort(); }, att.length ? 120000 : 60000);
-      return fetch(N8N_URL || N8N_DEFAULT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: x[1], sessionId: N8N_SID, accessToken: x[0] || null, toolsUrl: location.origin + "/api/tools", model: prefs.n8nModel || undefined, attachments: att.length ? att : undefined }), signal: ctrl.signal });
-    }).then(function (r) { if (!r.ok) throw new Error("агентът върна HTTP " + r.status); return r.json(); })
-      .then(function (d) { if (Array.isArray(d)) d = d[0]; var out = d && (d.output || d.text || d.answer); if (typeof out === "string") out = out.replace(ATT_RE, "\n").trim(); if (typeof out !== "string" || !out) throw new Error("невалиден отговор от агента"); return { ok: true, text: out, actions: [], model: "n8n", model_name: "n8n Agent", transcript: d && typeof d.transcript === "string" && d.transcript.trim() ? d.transcript.trim() : undefined }; })
+      if (x && x.done) return x;
+      var att = x[2]; timer = setTimeout(function () { ctrl.abort(); }, att.length ? 180000 : 150000);
+      return fetch(N8N_URL || N8N_DEFAULT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: x[1], sessionId: N8N_SID, accessToken: x[0] || null, toolsUrl: location.origin + "/api/tools", model: prefs.n8nModel || undefined, mode: extra.mode || undefined, case_id: extra.case_id || undefined, page: document.title, attachments: att.length ? att : undefined }), signal: ctrl.signal });
+    }).then(function (r) { if (r && r.done) return r; if (!r.ok) throw new Error("агентът върна HTTP " + r.status); return r.json(); })
+      .then(function (d) {
+        if (d && d.done) return d.done;
+        if (Array.isArray(d)) d = d[0]; var out = d && (d.output || d.text || d.answer); if (typeof out === "string") out = out.replace(ATT_RE, "\n").trim(); if (typeof out !== "string" || !out) throw new Error("невалиден отговор от агента");
+        /* имейл карта, панели, видео, действия и ролята идват от n8n в същия вид като от Тед на сайта */
+        return { ok: true, text: out, actions: Array.isArray(d.actions) ? d.actions : [], model: "n8n", model_name: d.model_name || "n8n Agent", mode: d.mode || undefined,
+          email: d.email && typeof d.email === "object" ? d.email : undefined, ui: d.ui && typeof d.ui === "object" ? d.ui : undefined, video: d.video || undefined,
+          transcript: heard || (d && typeof d.transcript === "string" && d.transcript.trim() ? d.transcript.trim() : undefined) };
+      })
       .catch(function (e) { return { ok: false, error: e && e.user ? e.message : e && e.name === "AbortError" ? "Агентът в n8n не отговори навреме." : "Агент n8n: " + ((e && e.message) || e) }; })
       .then(function (j) { clearTimeout(timer); return j; });
   }
   function ask(history, extra) {
-    if (modelId === "n8n" || (skill && skill.id === "n8n")) return askN8n(history);
+    if (modelId === "n8n" || (skill && skill.id === "n8n")) return askN8n(history, extra);
     extra = extra || {};
     return token().then(function (tok) {
       var h = { "Content-Type": "application/json" }; if (tok) h.Authorization = "Bearer " + tok;
@@ -673,7 +710,7 @@
   var embedded = [];
   function openPanel(s) {
     if (!s) return;
-    if (skill !== chatSkill) setSkill(chatSkill);
+    if (skill !== chatSkill && skill !== n8nSkill) setSkill(chatSkill); /* в n8n чата панелите се отварят на място */
     if (s.open) try { s.open(api); } catch (e) {}
     s.intro(api);
     if (s.footer) { var f = document.createElement("div"); f.className = "nda-emb"; f.innerHTML = s.footer(); list.appendChild(f); if (s.bind) s.bind(api, f); }
@@ -707,7 +744,7 @@
   function guessProv(e) { var d = String(e || "").split("@")[1] || ""; return /imotinadezhda\.bg$/i.test(d) ? "domain" : /abv\.bg$/i.test(d) ? "abv" : /gmail|googlemail/i.test(d) ? "gmail" : /(^|\.)mail\.bg$/i.test(d) ? "mailbg" : /outlook|hotmail|live\.|msn\./i.test(d) ? "outlook" : /yahoo/i.test(d) ? "yahoo" : /icloud|me\.com|mac\.com/i.test(d) ? "icloud" : ""; }
   function mailApi(body) { return token().then(function (t) { return fetch("/api/email", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + t }, body: JSON.stringify(body) }); }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); }).catch(function (e) { return { ok: false, error: "Няма връзка" }; }); }
   function mailPanel() {
-    if (skill !== chatSkill) setSkill(chatSkill);
+    if (skill !== chatSkill && skill !== n8nSkill) setSkill(chatSkill);
     var d = document.createElement("div"); d.className = "nda-pnl";
     d.innerHTML = '<h5>✉️ Моята поща за изпращане</h5><div class="st">Проверка…</div>' +
       '<label>Имейл адрес</label><input type="email" data-k="email" placeholder="ime@abv.bg" autocomplete="email">' +

@@ -26631,6 +26631,15 @@ async function handler(req, res) {
   if (req.method === "OPTIONS") return send({}, 204);
   /* кратък линк към документ: /f/<id>.<ext>?k=… (виж _filelink.js) */
   if (req.method === "GET" && /[?&]file=/.test(req.url || "")) return require("./_filelink.js")(req, res);
+  /* ролите на Тед (Юрист, Секретар, Старши брокер…) – за агента в n8n: ?mode=<id> или ?mode=auto&q=<въпрос> (разпознаване като в чата на сайта) */
+  if (req.method === "GET" && /[?&]mode=/.test(req.url || "")) {
+    try {
+      const M = require("./_ted-modes.js"), u = new URL(req.url, "https://imotinadezhda.bg");
+      let id = String(u.searchParams.get("mode") || "").slice(0, 32); if (!id || id === "auto") id = M.detect(String(u.searchParams.get("q") || "").slice(0, 2000)) || "";
+      const m = id && M.MODES[id];
+      return send({ ok: true, mode: m ? id : "", name: m ? m.name : "", all: M.ALL, prompt: m ? M.prompt(id) : "" });
+    } catch (e) { return send({ ok: false, error: String(e && e.message || e) }, 500); }
+  }
   if (req.method === "GET") return send({ tools: manifest() });
   if (req.method !== "POST") return send({ ok: false, error: "Method not allowed" }, 405);
   const auth = String(req.headers["authorization"] || "");

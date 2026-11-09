@@ -727,6 +727,18 @@ const tools = {
     input: schema({ limit: S("number", { min: 1, max: 100, default: 20 }) }),
     run: async (ctx, i) => { const { data, error } = await ctx.sb.from("nd_audit").select("at,user_email,tool,ok,ms,summary").order("at", { ascending: false }).limit(i.limit); if (error) throw new ToolError(error.message); return { events: data }; }
   },
+  /* разговорите с агента в n8n отиват в паметта на Тед (и в историята на казуса), както разговорите в чата на сайта */
+  "cases.log_turn": {
+    description: "Записва един ход от разговора (въпрос + отговор) в паметта на Тед; с case_id – в историята на казуса. Ползва се автоматично от n8n, не от AI.",
+    input: schema({ case_id: S("string", { max: 64 }), user_text: S("string", { max: 8000 }), assistant_text: S("string", { max: 12000 }), source: S("string", { max: 40 }) }),
+    run: async (ctx, i) => {
+      if (!ctx.token) throw new ToolError("Влезте в CRM.", 401);
+      if (!i.user_text && !i.assistant_text) return { saved: false };
+      const MEM = require("./_ted-memory.js");
+      await MEM.save(ctx.token, ctx.userId, i.case_id || null, i.user_text || "", i.assistant_text || "", { meta: { source: i.source || "n8n" } });
+      return { saved: true, case_id: i.case_id || null };
+    }
+  },
   /* „Събиране на имоти и клиенти“ – същото като find_owner_listings / collect_page в чата на сайта, достъпно и за агента в n8n през /api/tools */
   "listings.find_owners": {
     description: "Намира в интернет обяви на имоти ОТ СОБСТВЕНИЦИ (без агенции) за село, град или област в България: заглавие, цена, площ, телефон (ако е в обявата), линк, източник. Записва ги в „Събрани“. Нужно е place или region.",
