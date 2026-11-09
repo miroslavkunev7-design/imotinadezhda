@@ -26562,10 +26562,12 @@ var tools = {
     description: "Signed download link (10 minutes) for a document id.",
     input: external_exports.object({ id: external_exports.string().min(1) }),
     run: async (ctx, { id }) => {
-      const d = (await one(ctx, "documents", id)).data;
-      const { data, error } = await ctx.sb.storage.from("nd-files").createSignedUrl(d.path, 600);
-      if (error) throw new ToolError(error.message);
-      return { name: d.name, download_url: data.signedUrl, expires_in_seconds: 600 };
+      const row = await one(ctx, "documents", id);
+      const d = row.data;
+      let url = null;
+      try { const TEDL = require("./_ted-skills.js"); if (TEDL.linkFor) url = TEDL.linkFor({ id, name: d.name, path: d.path }); } catch (e) {}
+      if (!url) throw new ToolError("Линкът за сваляне не се получи");
+      return { name: d.name, document_id: id, bucket: "nd-files", path: d.path, download_url: url, expires_in_days: 7 };
     }
   },
   "calc.mortgage": {
@@ -26668,6 +26670,7 @@ async function handler(req, res) {
   } catch (e) {
     const status = e instanceof ToolError || (e && typeof e.status === "number") ? e.status : 500;
     if (TED) TED.audit(sb, u.user, toolName, false, Date.now() - t0, (e && e.message) || String(e));
+    try { require("./_monitor.js").report({ event: "tool_error", errorCode: "tool_" + toolName, endpoint: "/api/tools", requestId: String(req.headers["x-vercel-id"] || "") }); } catch (e2) {}
     return send({ ok: false, error: e instanceof Error ? e.message : String(e) }, status);
   }
 }

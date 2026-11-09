@@ -253,7 +253,7 @@
   function kindOf(m) { return /^image\//.test(m) ? "image" : m === "application/pdf" ? "pdf" : /^audio\//.test(m) ? "audio" : "file"; }
   function uErr(msg) { var e = new Error(msg); e.user = true; return e; }
   function b64Blob(data, mime) { var bin = atob(data), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new Blob([u], { type: mime }); }
-  function upFile(tok, f) {
+  function upFile(tok, f, refreshed) {
     var mime = f.mime || "application/octet-stream", d = new Date(), kind = kindOf(mime);
     var ext = EXT[mime] || ((/\.([a-z0-9]{1,6})$/i.exec(f.name || "") || [])[1] || "bin").toLowerCase();
     var rnd = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
@@ -261,22 +261,26 @@
     var name = f.name || (kind === "audio" ? "гласово-съобщение." + ext : "файл." + ext), H = { apikey: SB_KEY, Authorization: "Bearer " + tok };
     return fetch(SB_URL + "/storage/v1/object/nd-files/" + path, { method: "POST", headers: Object.assign({ "Content-Type": mime, "x-upsert": "true" }, H), body: b64Blob(f.data, mime) })
       .then(function (r) {
+        if ((r.status === 401 || r.status === 403) && !refreshed) {
+          return r.text().then(function (t) {
+            if (!/InvalidJWT|jwt/i.test(t) && r.status !== 401) throw uErr("Файлът „" + name + "“ не се качи (HTTP " + r.status + "). Опитайте отново.");
+            return token().then(function (tok2) {
+              if (!tok2 || tok2 === tok) throw uErr("Файлът „" + name + "“ не се качи – сесията е невалидна. Влезте отново в CRM и опитайте.");
+              return upFile(tok2, f, true);
+            });
+          });
+        }
         if (!r.ok) throw uErr("Файлът „" + name + "“ не се качи" + (r.status === 401 || r.status === 403 ? " – нямате права за качване (влезте отново в CRM)." : " (HTTP " + r.status + "). Опитайте отново."));
-        return fetch(SB_URL + "/storage/v1/object/sign/nd-files/" + path, { method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, H), body: JSON.stringify({ expiresIn: 604800 }) });
-      })
-      .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (j) {
-        var su = j && (j.signedURL || j.signedUrl); if (!su) throw uErr("Файлът „" + name + "“ е качен, но не се получи линк за агента. Опитайте отново.");
-        return { kind: kind, name: name, mime: mime, url: /^https?:/.test(su) ? su : SB_URL + "/storage/v1" + su };
+        return { kind: kind, name: name, mime: mime, bucket: "nd-files", path: path };
       });
   }
   function attHint(att) {
     var k = {}, h = []; att.forEach(function (a) { k[a.kind] = 1; });
-    if (k.image) h.push("снимки → analyze_image");
-    if (k.pdf) h.push("PDF → analyze_document");
-    if (k.audio) h.push("гласово съобщение/аудио → първо transcribe_audio, после отговори на казаното");
-    if (k.file) h.push("други файлове → parse_document или pdf_convert");
-    return "(Прикачени файлове – линковете са в блока ATTACHMENTS, валидни 7 дни: " + h.join("; ") + ".)";
+    if (k.image) h.push("всяка снимка → analyze_image с нейния path (поотделно; един отказ не спира другите)");
+    if (k.pdf) h.push("PDF → analyze_document с path");
+    if (k.file) h.push("друг файл → files.attach, ако служителят поиска да се запише при клиент или имот");
+    h.push("запис при клиент/имот → files.attach {path, name, mime, client_id или client_name, property_id или property_code}");
+    return "(Прикачени файлове – в ATTACHMENTS са bucket и path, не временен линк. Инструментите са еднакви за всеки избран модел през /api/tools: " + h.join("; ") + ".)";
   }
   /* „Да“ след подготвен имейл → изпраща се веднага (както в Тед на сайта): без AI, точно показаното – email.send {confirm:true} */
   var N8N_AFFIRM = /^\s*(да|да,?\s*(изпрати|прати|изпращай|го изпрати|го прати)(\s+го)?|изпрати(\s+го)?|прати(\s+го)?|ок|окей|потвърждавам|давай|yes)\s*[.!]*\s*$/i;
@@ -295,10 +299,22 @@
         return { ok: true, text: out, actions: ["email.send" + (x && x.sent ? "" : " ✗")], model: "n8n", model_name: "n8n Agent", ui: x && x.need_setup ? { panel: "mail" } : undefined };
       });
   }
-  /* глас → текст с Gemini (/api/transcribe, безплатно), както в Тед на сайта; при грешка записът отива към агента както досега */
-  function hear(tok, f) {
-    return fetch("/api/transcribe", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ mime: f.mime, data: f.data }) })
-      .then(function (r) { return r.json(); }).then(function (j) { return j && j.ok && j.text ? String(j.text).trim() : ""; }).catch(function () { return ""; });
+  /* глас → български текст (/api/transcribe) с краен срок; празен резултат не оставя чата да чака */
+  function hear(tok, f, signal) {
+    var ctrl = new AbortController(), timer = setTimeout(function () { ctrl.abort(); }, 26000);
+    if (signal) signal.addEventListener("abort", function () { ctrl.abort(); });
+    return fetch("/api/transcribe", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ mime: f.mime, data: f.data }), signal: ctrl.signal })
+      .then(function (r) { return r.json(); }).then(function (j) { return j && j.ok && j.text ? String(j.text).trim() : ""; })
+      .catch(function (e) { if (e && e.name === "AbortError") throw e; return ""; })
+      .then(function (text) { clearTimeout(timer); return text; });
+  }
+  function readUploads(tok, att) {
+    var files = att.filter(function (a) { return a && a.path && (a.kind === "image" || a.kind === "pdf"); }).map(function (a) { return { path: a.path, name: a.name, mime: a.mime }; });
+    if (!files.length) return Promise.resolve([]);
+    return fetch("/api/tools", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ tool: "analyze_image", input: { files: files } }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { return j && j.ok && j.result && Array.isArray(j.result.results) ? j.result.results : [{ ok: false, name: "файлове", error: (j && j.error) || "Разпознаването не върна резултат" }]; })
+      .catch(function (e) { return [{ ok: false, name: "файлове", error: String((e && e.message) || e) }]; });
   }
   function askN8n(history, extra) {
     extra = extra || {};
@@ -314,22 +330,28 @@
       if (!fl.length && N8N_AFFIRM.test(text) && /изпратя ли/i.test(lastAssistantText(history))) return sendDraft(tok).then(function (r) { return { done: r }; });
       if (!text && !fl.length) throw uErr("Напишете съобщение или прикачете файл.");
       var aud = fl.filter(function (f) { return /^audio\//.test(String(f.mime)); });
-      return Promise.all(aud.map(function (f) { return hear(tok, f); })).then(function (tx) {
+      return Promise.all(aud.map(function (f) { return hear(tok, f, extra.signal); })).then(function (tx) {
         var got = tx.filter(Boolean).join("\n");
+        if (aud.length && !got) throw uErr("Не разпознах гласа. Натиснете микрофона и опитайте отново, по-близо до него.");
         if (got) { heard = got; fl = fl.filter(function (f) { return aud.indexOf(f) < 0; }); text = !text || AUTO_TXT.test(text) ? got : got + "\n" + text; }
         if (fl.length > N8N_MAX_FILES) throw uErr("Към агента в n8n могат да се прикачат най-много " + N8N_MAX_FILES + " файла наведнъж (сега са " + fl.length + ").");
         var big = fl.filter(function (f) { return f.data.length * 3 / 4 > N8N_MAX_MB * 1048576; })[0];
         if (big) throw uErr("Файлът „" + (big.name || "запис") + "“ е " + (big.data.length * 3 / 4 / 1048576).toFixed(1) + " MB – агентът в n8n приема файлове до " + N8N_MAX_MB + " MB.");
         return Promise.all(fl.map(function (f) { return upFile(tok, f); })).then(function (a) {
           att = a;
-          if (!text) text = att.every(function (x) { return x.kind === "audio"; }) ? "(гласово съобщение)" : "Анализирай прикачените файлове.";
-          if (att.length) text += "\n\n" + attHint(att) + "\n[ATTACHMENTS]\n" + JSON.stringify(att) + "\n[/ATTACHMENTS]";
-          return [tok, text, att];
+          return readUploads(tok, att).then(function (reads) {
+            if (!text) text = "Анализирай прикачените файлове.";
+            if (reads.length) text += "\n\nРазпознаване по файл (един неуспех не отменя другите):\n" + reads.map(function (r) { return (r.name || "файл") + ": " + (r.ok ? r.text : "неуспех – " + (r.error || "грешка")); }).join("\n");
+            if (att.length) text += "\n\n" + attHint(att) + "\n[ATTACHMENTS]\n" + JSON.stringify(att.map(function (x) { return { kind: x.kind, name: x.name, mime: x.mime, bucket: x.bucket, path: x.path }; })) + "\n[/ATTACHMENTS]";
+            return [tok, text, att];
+          });
         });
       });
     }).then(function (x) {
       if (x && x.done) return x;
-      var att = x[2]; timer = setTimeout(function () { ctrl.abort(); }, att.length ? 180000 : 150000);
+      var att = x[2];
+      if (extra.signal) extra.signal.addEventListener("abort", function () { ctrl.abort(); });
+      timer = setTimeout(function () { ctrl.abort(); }, att.length ? 80000 : 40000);
       return fetch(N8N_URL || N8N_DEFAULT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: x[1], sessionId: N8N_SID, accessToken: x[0] || null, toolsUrl: location.origin + "/api/tools", model: n8nModelId(), mode: extra.mode || undefined, case_id: extra.case_id || undefined, page: document.title, attachments: att.length ? att : undefined }), signal: ctrl.signal });
     }).then(function (r) { if (r && r.done) return r; if (!r.ok) throw new Error("агентът върна HTTP " + r.status); return r.json(); })
       .then(function (d) {
@@ -340,7 +362,7 @@
           email: d.email && typeof d.email === "object" ? d.email : undefined, ui: d.ui && typeof d.ui === "object" ? d.ui : undefined, video: d.video || undefined,
           transcript: heard || (d && typeof d.transcript === "string" && d.transcript.trim() ? d.transcript.trim() : undefined) };
       })
-      .catch(function (e) { return { ok: false, error: e && e.user ? e.message : e && e.name === "AbortError" ? "Агентът в n8n не отговори навреме." : "Агент n8n: " + ((e && e.message) || e) }; })
+      .catch(function (e) { return { ok: false, transcript: heard || undefined, error: e && e.user ? e.message : e && e.name === "AbortError" ? "Отговорът се забави твърде дълго и спря. Натиснете за нов опит." : "Агент n8n: " + ((e && e.message) || e) }; })
       .then(function (j) { clearTimeout(timer); return j; });
   }
   function ask(history, extra) {
@@ -348,9 +370,9 @@
     extra = extra || {};
     return token().then(function (tok) {
       var h = { "Content-Type": "application/json" }; if (tok) h.Authorization = "Bearer " + tok;
-      return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title, model: modelId || undefined, mode: extra.mode || undefined, case_id: extra.case_id || undefined }) });
+      return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title, model: modelId || undefined, mode: extra.mode || undefined, case_id: extra.case_id || undefined }), signal: extra.signal });
     }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); })
-      .catch(function (e) { return { ok: false, error: "Няма връзка (" + ((e && e.message) || e) + ")" }; });
+      .catch(function (e) { return { ok: false, error: e && e.name === "AbortError" ? "Отговорът се забави твърде дълго и спря. Опитайте отново." : "Няма връзка (" + ((e && e.message) || e) + ")" }; });
   }
 
   /* ---- казуси (проекти с безкрайна памет): активният казус се пази за брокера; историята му идва от сървъра ---- */
@@ -389,7 +411,11 @@
       var vi = e.target.closest("[data-vi]"); if (vi) { show(+vi.getAttribute("data-vi")); return; }
       var f = items[idx];
       if (e.target.closest("[data-vnew]")) { window.open(f.url, "_blank", "noopener"); return; }
-      if (e.target.closest("[data-vdl]")) { var a = document.createElement("a"); a.href = f.url; a.download = f.name || "file"; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); }
+      if (e.target.closest("[data-vdl]")) {
+        var href = f.url;
+        if (/\/f\//.test(href)) href += (href.indexOf("?") >= 0 ? "&" : "?") + "dl=1";
+        var a = document.createElement("a"); a.href = href; a.download = f.name || "file"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
+      }
     };
     show(idx || 0);
   }
@@ -614,20 +640,35 @@
       renderCaseBar(); el.querySelector(".nda-case-btn").onclick = function (e) { e.stopPropagation(); openCases(api); };
       var rb = el.querySelector(".nda-case-btn.role"); rb.hidden = !staffCtx; renderRoleBtn(); rb.onclick = function (e) { e.stopPropagation(); openSkills(api); };
       if (me.placeholder) ta.placeholder = me.placeholder;
+      var lastTry = null;
       function showFiles() { fl.innerHTML = files.map(function (f) { return "<span>" + esc(f.name) + "</span>"; }).join(""); }
+      function finishWait(w, html) { w.classList.remove("wait"); busy = false; w.innerHTML = html; }
+      function retryHtml() { return '<div><button type="button" data-retry>Опитай отново</button></div>'; }
       function go(voice) {
         var text = ta.value.trim(); if ((!text && !files.length && !voice) || busy) return;
+        lastTry = voice ? { voice: voice, files: [], text: "" } : { voice: null, files: files.slice(), text: text };
         busy = true; ta.value = ""; ta.style.height = ""; var fs = files; files = []; showFiles();
         var ub = api.add("u", voice ? "🎤 Гласово съобщение (" + voice.dur + ")" : fmt(text || "Прикачени файлове") + (fs.length ? "\n📎 " + fs.map(function (f) { return esc(f.name); }).join(", ") : ""));
         var w = api.add("a", voice ? "Слушам" : "Мисля", "wait");
         var anyF = isN8n();
+        var ctrl = new AbortController(), settled = false;
+        var killer = setTimeout(function () { ctrl.abort(); fail("Заявката спря по време. Опитайте отново."); }, voice ? 50000 : 90000);
+        function fail(msg, transcript) {
+          if (settled) return; settled = true; clearTimeout(killer);
+          if (transcript) ub.innerHTML = "🎤 „" + esc(transcript) + "“";
+          finishWait(w, esc((transcript ? "Чух: „" + transcript + "“. " : "") + (msg || "Грешка")) + retryHtml());
+          var b = w.querySelector("[data-retry]"); if (b) b.onclick = function () { if (!lastTry || busy) return; if (lastTry.voice) go(lastTry.voice); else { ta.value = lastTry.text; files = lastTry.files.slice(); showFiles(); go(); } };
+        }
         Promise.all(fs.map(function (f) { return fileData(f, anyF); })).then(function (fd) {
           var cur = { role: "user", text: voice ? "(гласово съобщение)" : (text || "Анализирай прикачените файлове."), files: fd.filter(Boolean).concat(voice ? [{ mime: voice.mime, data: voice.data }] : []) };
           /* в казус историята идва от паметта на сървъра – пращаме само текущото съобщение */
           var send = (curCase ? [] : hist.slice(-14).map(function (m) { return { role: m.role, text: m.text }; })).concat([cur]);
-          return ask(send, { mode: curMode || me.mode || "", case_id: curCase ? curCase.id : "" }).then(function (j) {
+          return ask(send, { mode: curMode || me.mode || "", case_id: curCase ? curCase.id : "", signal: ctrl.signal }).then(function (j) {
+            if (settled) return;
+            clearTimeout(killer);
+            if (!j || !j.ok) { fail((j && j.error) || "Грешка", j && j.transcript); return; }
+            settled = true;
             w.classList.remove("wait"); busy = false;
-            if (!j.ok) { w.innerHTML = esc(j.error || "Грешка"); return; }
             var rl = !curMode && j.mode && MODE_BY[j.mode] ? MODE_BY[j.mode][4] + " " + MODE_BY[j.mode][1].split(" – ")[0] : "";
             w.innerHTML = fmt(j.text) + (prefs.showActions && ((j.actions && j.actions.length) || rl) ? '<span class="acts">' + (rl ? esc(rl) + (j.actions && j.actions.length ? " · " : "") : "") + (j.actions && j.actions.length ? "✔ " + esc(j.actions.join(" · ")) : "") + "</span>" : "") + (j.fallback ? '<div class="nda-fb">' + esc(j.fallback) + "</div>" : ""); speaker(w);
             if (voice && j.transcript) { ub.innerHTML = "🎤 „" + esc(j.transcript) + "“"; cur.text = j.transcript; }
@@ -638,30 +679,43 @@
             if (j.email) { emailCard(w, j.email, function () { ta.value = "Да"; go(); }, function () { ta.value = "Промени имейла: "; ta.focus(); }); list.scrollTop = list.scrollHeight; }
             if (j.ui && j.ui.panel && !j.video) openUi(j.ui.panel); /* вградените умения се отварят тук, в чата */
           });
-        });
+        }).catch(function (e) { fail(e && e.name === "AbortError" ? "Заявката спря по време. Опитайте отново." : ((e && e.message) || "Грешка")); });
       }
       el.querySelector(".snd").onclick = function () { if (prefs.autoSpeak === "always") unlockAudio(); go(); };
       /* ---- voice message: tap the microphone, speak, tap again to send ---- */
       var mic = el.querySelector(".mic"), rec = null, chunks = [], t0 = 0, tick = null, stream = null;
-      function mm() { var c = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg;codecs=opus"]; for (var i = 0; i < c.length; i++) if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(c[i])) return c[i]; return ""; }
+      function mm() {
+        var apple = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        var safari = /Safari/i.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS|Edg|OPR/i.test(navigator.userAgent);
+        var c = (apple || safari) ? ["audio/mp4", "audio/aac", "audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"] : ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg;codecs=opus"];
+        for (var i = 0; i < c.length; i++) if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(c[i])) return c[i];
+        return "";
+      }
       function dur() { var s = Math.round((Date.now() - t0) / 1000); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
       function endRec() { clearInterval(tick); mic.classList.remove("rec"); mic.innerHTML = I.mic; ta.classList.remove("rec"); ta.readOnly = false; ta.value = ""; if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
       mic.onclick = function () {
         if (busy) return;
-        if (rec && rec.state === "recording") { if (prefs.autoSpeak !== "never") unlockAudio(); rec.stop(); return; }
+        if (rec && rec.state === "recording") { if (prefs.autoSpeak !== "never") unlockAudio(); try { rec.requestData(); } catch (e) {} rec.stop(); return; }
         if (!navigator.mediaDevices || !window.MediaRecorder) { api.add("a", "Този браузър не поддържа запис на глас. Отворете сайта в Safari или Chrome."); return; }
         navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(function (st) {
           stream = st; chunks = []; var type = mm();
-          rec = type ? new MediaRecorder(st, { mimeType: type }) : new MediaRecorder(st);
+          try { rec = type ? new MediaRecorder(st, { mimeType: type }) : new MediaRecorder(st); }
+          catch (e) { rec = new MediaRecorder(st); type = ""; }
           rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+          rec.onerror = function () { endRec(); api.add("a", "Записът спря поради грешка в браузъра. Натиснете микрофона и опитайте отново."); };
           rec.onstop = function () {
-            var d = dur(), mime = (rec.mimeType || type || "audio/webm").split(";")[0]; endRec();
-            if (Date.now() - t0 < 700 || !chunks.length) return;
-            var blob = new Blob(chunks, { type: mime }), r = new FileReader();
-            r.onload = function () { go({ mime: mime, data: String(r.result).split(",")[1], dur: d }); };
-            r.readAsDataURL(blob);
+            var d = dur(), mime = (rec.mimeType || type || "audio/mp4").split(";")[0];
+            setTimeout(function () {
+              endRec();
+              if (Date.now() - t0 < 700 || !chunks.length) { api.add("a", "Записът е твърде кратък или празен. Натиснете микрофона и говорете поне една секунда."); return; }
+              var blob = new Blob(chunks, { type: mime }), r = new FileReader();
+              r.onerror = function () { api.add("a", "Записът не се прочете. Натиснете микрофона и опитайте отново."); };
+              r.onload = function () { go({ mime: mime, data: String(r.result).split(",")[1], dur: d }); };
+              r.readAsDataURL(blob);
+            }, 80);
           };
-          rec.start(); t0 = Date.now(); stopAll();
+          try { rec.start(250); } catch (e) { rec.start(); }
+          t0 = Date.now(); stopAll();
           mic.classList.add("rec"); mic.innerHTML = I.stop; ta.classList.add("rec"); ta.readOnly = true; ta.value = "● Записвам 0:00";
           tick = setInterval(function () { ta.value = "● Записвам " + dur(); if (Date.now() - t0 > 120000) rec.stop(); }, 500);
         }).catch(function () { api.add("a", "Няма достъп до микрофона. Разрешете микрофона за този сайт в настройките на браузъра."); });

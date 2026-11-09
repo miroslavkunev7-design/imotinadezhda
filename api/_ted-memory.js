@@ -54,11 +54,17 @@ function contextText(m, user) {
 /* историята на казуса се подава като съобщения преди текущите (за да е естествен разговорът) */
 function historyMsgs(m) { return (m.recent || []).map((x) => ({ role: x.role === "assistant" ? "assistant" : "user", text: String(x.content || "").slice(0, 4000) })); }
 
+function scrub(s) {
+  return String(s || "")
+    .replace(/https?:\/\/\S+\/storage\/v1\/object\/sign\/\S+/gi, "[файл]")
+    .replace(/([?&])token=eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+/g, "$1token=removed")
+    .replace(/\n*\[ATTACHMENTS\][\s\S]*?\[\/ATTACHMENTS\]\n*/g, "\n");
+}
 async function save(token, userId, caseId, userText, answer, opts) {
   try {
     const rows = [];
-    if (userText) rows.push({ user_id: userId, case_id: caseId || null, kind: "message", role: "user", content: String(userText).slice(0, 8000), meta: opts && opts.meta || null });
-    if (answer) rows.push({ user_id: userId, case_id: caseId || null, kind: "message", role: "assistant", content: String(answer).slice(0, 12000), meta: opts && opts.meta || null });
+    if (userText) rows.push({ user_id: userId, case_id: caseId || null, kind: "message", role: "user", content: scrub(userText).slice(0, 8000), meta: opts && opts.meta || null });
+    if (answer) rows.push({ user_id: userId, case_id: caseId || null, kind: "message", role: "assistant", content: scrub(answer).slice(0, 12000), meta: opts && opts.meta || null });
     if (rows.length) await q(token, "nd_ted_memory", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(rows) });
     if (caseId) {
       await q(token, "nd_ted_cases?id=eq." + enc(caseId), { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ updated_at: new Date().toISOString(), last_message: String(userText || "").slice(0, 200) }) });

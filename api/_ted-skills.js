@@ -14,6 +14,7 @@ let MAIL = null; try { MAIL = require("./email.js"); } catch (e) { MAIL = { conf
 const mailbox = (ctx) => MAIL.configFor(ctx.userId || (ctx.user && ctx.user.id)).catch(() => null);
 
 const BUCKET = "nd-files", SIGN_SECS = 7 * 86400, MAX_PDF_MB = 40, MAX_DOCS = 40;
+const STORE = require("./_storage-access.js");
 const GEMINI = () => process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
 const FONT = { reg: path.join(__dirname, "_vendor", "DejaVuSans.ttf"), bold: path.join(__dirname, "_vendor", "DejaVuSans-Bold.ttf") };
 
@@ -283,6 +284,162 @@ async function gemini(parts, opts) {
 }
 const docPart = (info) => ({ inline_data: { mime_type: info.kind === "pdf" ? "application/pdf" : info.mime, data: info.buf.toString("base64") } });
 function parseJson(t) { try { return JSON.parse(t); } catch (e) { const m = String(t).match(/\{[\s\S]*\}|\[[\s\S]*\]/); if (m) { try { return JSON.parse(m[0]); } catch (e2) {} } throw new ToolError("AI върна невалиден JSON"); } }
+const SB_URL = "https://hyvwfsmjbaynozceookv.supabase.co";
+function encPath(p) { return String(p).split("/").map(encodeURIComponent).join("/"); }
+async function signService(p, secs) {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new ToolError("Няма сървърен достъп до хранилището", 500);
+  const r = await fetch(SB_URL + "/storage/v1/object/sign/nd-files/" + encPath(p), {
+    method: "POST",
+    headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json" },
+    body: JSON.stringify({ expiresIn: secs || 180 }),
+    signal: AbortSignal.timeout(15000)
+  });
+  const j = await r.json().catch(() => ({}));
+  const su = j.signedURL || j.signedUrl;
+  if (!r.ok || !su) {
+    const e = new ToolError(j.message || j.error || "Подписът на файла не се получи", r.status || 502);
+    e.raw = JSON.stringify(j).slice(0, 180);
+    throw e;
+  }
+  return /^https?:/.test(su) ? su : SB_URL + "/storage/v1" + (su.startsWith("/") ? "" : "/") + su;
+}
+/* Чете файла през сесията на служителя. При InvalidJWT подписва наново и опитва още веднъж. */
+async function readBytes(ctx, p) {
+  const path = STORE.safeStoragePath(p);
+  if (!path) throw new ToolError("Невалиден път в хранилището");
+  try { return await download(ctx, path); }
+  catch (e) {
+    if (!STORE.isJwtFailure(e.status || 401, e.message || "")) throw e;
+  }
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  let url = await signService(path, 180);
+  let r = await fetch(url, { headers: key ? { apikey: key } : {}, signal: AbortSignal.timeout(20000) });
+  if (!r.ok) {
+    const t = await r.text().catch(() => "");
+    if (!STORE.isJwtFailure(r.status, t)) throw new ToolError("Файлът не се отвори", r.status || 502);
+    url = await signService(path, 180);
+    r = await fetch(url, { headers: key ? { apikey: key } : {}, signal: AbortSignal.timeout(20000) });
+    if (!r.ok) throw new ToolError("Файлът остана недостъпен след едно обновяване на подписа", 502);
+  }
+  const buf = Buffer.from(await r.arrayBuffer());
+  if (!buf.length) throw new ToolError("Файлът е празен", 404);
+  if (buf.length > MAX_PDF_MB * 1048576) throw new ToolError("Файлът е над " + MAX_PDF_MB + " MB");
+  return buf;
+}
+async function uploadBytes(ctx, p, buf, mime) {
+  try { await upload(ctx, p, buf, mime); return; }
+  catch (e) {
+    if (!STORE.isJwtFailure(e.status || 401, e.message || "")) throw e;
+  }
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new ToolError("Качването не успя", 500);
+  const r = await fetch(SB_URL + "/storage/v1/object/nd-files/" + encPath(p), {
+    method: "POST",
+    headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": mime || "application/octet-stream", "x-upsert": "true" },
+    body: buf,
+    signal: AbortSignal.timeout(20000)
+  });
+  if (!r.ok) throw new ToolError("Качването не успя след обновяване на достъпа", 500);
+}
+function readableMime(name, mime) {
+  const m = String(mime || "").split(";")[0].toLowerCase();
+  if (/^image\/(jpeg|png|webp|gif)$/.test(m) || m === "application/pdf") return m;
+  const guessed = STORE.mimeFromName(name, "");
+  if (/^image\/(jpeg|png|webp|gif)$/.test(guessed) || guessed === "application/pdf") return guessed;
+  return m || guessed || "application/octet-stream";
+}
+async function analyzeOne(ctx, item, question) {
+  const name = item.name || "";
+  let label = name;
+  try {
+    let path = item.path ? STORE.safeStoragePath(item.path) : null;
+    let mime = item.mime || "";
+    if (!path && item.url) path = STORE.pathFromReference(item.url);
+    if (!path && item.document_id) {
+      const d = await row(ctx, "documents", item.document_id);
+      path = STORE.safeStoragePath(d.path);
+      mime = mime || d.mime || "";
+      label = label || d.name || "";
+    }
+    if (!path) return { ok: false, name: label || item.document_id || "файл", error: item.error || "Няма устойчив път в хранилището. Качете файла отново от чата." };
+    const buf = await readBytes(ctx, path);
+    const useMime = readableMime(label || path, mime);
+    if (!/^image\/(jpeg|png|webp|gif)$/.test(useMime) && useMime !== "application/pdf") {
+      return { ok: false, name: label || path, path, bucket: "nd-files", error: "Този формат не се чете директно (" + useMime + "). За PDF/снимка качете jpg, png, webp или pdf." };
+    }
+    const text = await gemini([
+      { inline_data: { mime_type: useMime, data: buf.toString("base64") } },
+      { text: question || "Опиши файла на български за брокер на недвижими имоти. Какво се вижда, какъв текст има (дословно важните имена, числа, дати), и какво е полезно за сделка. Не измисляй липсващи данни." }
+    ]);
+    return { ok: true, name: label || path.split("/").pop(), path, bucket: "nd-files", mime: useMime, text };
+  } catch (e) {
+    return { ok: false, name: label || name || "файл", error: String(e.message || e) };
+  }
+}
+function analyzeItems(i) {
+  const items = [];
+  const add = (x) => { if (x) items.push(x); };
+  if (i.path || i.url || i.document_id) add({ path: i.path, url: i.url, document_id: i.document_id, name: i.name, mime: i.mime });
+  (Array.isArray(i.paths) ? i.paths : []).forEach((p) => add(typeof p === "string" ? { path: p } : p));
+  (Array.isArray(i.files) ? i.files : []).forEach((f) => add(f && typeof f === "object" ? f : null));
+  (Array.isArray(i.document_ids) ? i.document_ids : []).forEach((id) => add({ document_id: String(id || "") }));
+  return items.slice(0, 8);
+}
+async function runAnalyze(ctx, i) {
+  const items = analyzeItems(i);
+  if (!items.length) throw new ToolError("Подай path, files или document_id. Не използвай временен подписан адрес.");
+  const results = await Promise.all(items.map((item) => analyzeOne(ctx, item, i.question)));
+  return {
+    count: results.length,
+    ok_count: results.filter((r) => r.ok).length,
+    failed: results.filter((r) => !r.ok).length,
+    results,
+    text: results.map((r) => (r.ok ? (r.name || "файл") + ": " + r.text : (r.name || "файл") + ": неуспех – " + r.error)).join("\n\n")
+  };
+}
+async function attachChatFile(ctx, i) {
+  const src = STORE.safeStoragePath(i.path) || STORE.pathFromReference(i.url);
+  if (!src) throw new ToolError("Няма устойчив път на файла от чата. Качете го отново.");
+  const client = (i.client_id || i.client_name) ? await clientOf(ctx, i.client_id, i.client_name) : null;
+  const prop = i.property_id ? await row(ctx, "properties", i.property_id) : (i.property_code ? await propByCode(ctx, i.property_code) : null);
+  if (!client && !prop) throw new ToolError("Посочете клиент (client_id или client_name) или имот (property_id или property_code).");
+  const name = safeName(i.name || src.split("/").pop());
+  const mime = i.mime || STORE.mimeFromName(name);
+  let buf = null;
+  const needBytes = async () => { if (!buf) buf = await readBytes(ctx, src); return buf; };
+  const out = { attached: true, bucket: "nd-files", source_path: src };
+  if (client) {
+    const docs = await rows(ctx, "documents", (q) => q.eq("client_id", client.id));
+    const hit = docs.find((d) => d.source_path === src);
+    if (hit) out.client = { id: client.id, name: client.name, document_id: hit.id, file: hit.name, already: true, download_url: shortLink(hit) };
+    else {
+      const bytes = await needBytes();
+      const dest = "clients/" + client.id + "/chat/" + Date.now() + "-" + asciiName(name);
+      await uploadBytes(ctx, dest, bytes, mime);
+      const doc = await put(ctx, "documents", { client_id: client.id, client: client.name || "", name, folder: i.folder || "Чат", path: dest, source_path: src, mime, size: bytes.length, at: new Date().toISOString(), by: "ted" });
+      if (!doc || !doc.id) throw new ToolError("Файлът се качи, но връзката с клиента не се записа");
+      await put(ctx, "activities", { client_id: client.id, client: client.name || "", icon: "file-text", text: "Тед прикачи файл от чата: " + name, at: new Date().toISOString() }).catch(() => null);
+      out.client = { id: client.id, name: client.name, document_id: doc.id, file: name, already: false, download_url: shortLink({ id: doc.id, name, path: dest }) };
+    }
+  }
+  if (prop) {
+    const docs = Array.isArray(prop.docs) ? prop.docs.slice() : [];
+    const hit = docs.find((d) => d && d.source_path === src);
+    if (hit) out.property = { id: prop.id, code: prop.code || null, title: prop.title || "", path: hit.path, file: hit.name || name, already: true };
+    else {
+      const bytes = await needBytes();
+      const dest = "properties/" + String(prop.code || prop.id).replace(/[^\w\-]/g, "_") + "/docs/" + Date.now() + "-" + asciiName(name);
+      await uploadBytes(ctx, dest, bytes, mime);
+      docs.push({ name, path: dest, source_path: src, size: bytes.length, mime, at: new Date().toISOString(), by: "ted" });
+      const upd = Object.assign({}, prop, { docs });
+      delete upd.id; delete upd.updated_at; delete upd.created_at;
+      await put(ctx, "properties", upd, prop.id);
+      out.property = { id: prop.id, code: prop.code || null, title: prop.title || "", path: dest, file: name, already: false };
+    }
+  }
+  return out;
+}
 async function classifyDoc(info, name) {
   const t = await gemini([docPart(info), { text: "Това е документ от досие на клиент на агенция за недвижими имоти. Име на файла: " + name + ". Върни САМО JSON: {\"type\": един от [\"банково извлечение\",\"фиш за заплата\",\"трудов договор\",\"лична карта\",\"нотариален акт\",\"скица\",\"данъчна оценка\",\"удостоверение\",\"декларация\",\"фактура\",\"договор\",\"превод\",\"друго\"], \"language\": ISO 639-1 код на основния език, \"is_translation\": true/false (дали е превод на български), \"period_from\": \"YYYY-MM\" или null, \"period_to\": \"YYYY-MM\" или null, \"issuer\": кратко име на институцията или null, \"person\": име на лицето или null, \"pages\": брой страници, \"confidence\": 0..1}. Без обяснения." }], { json: true });
   return parseJson(t);
@@ -299,7 +456,7 @@ const tools = {
       const q = (i.query || "").toLocaleLowerCase("bg"), f = (i.folder || "").toLocaleLowerCase("bg");
       list = list.filter((d) => (!q || [d.name, d.folder, d.client].join(" ").toLocaleLowerCase("bg").includes(q)) && (!f || String(d.folder || "").toLocaleLowerCase("bg").includes(f))).slice(0, i.limit);
       const out = [];
-      for (const d of list) out.push({ id: d.id, name: d.name, folder: d.folder, client: d.client, client_id: d.client_id, mime: d.mime, size_bytes: d.size, at: d.at, by_ted: d.by === "ted" || undefined, download_url: shortLink(d) || await signed(ctx, d.path, 3600).catch(() => null) });
+      for (const d of list) out.push({ id: d.id, name: d.name, folder: d.folder, client: d.client, client_id: d.client_id, mime: d.mime, size_bytes: d.size, at: d.at, by_ted: d.by === "ted" || undefined, bucket: "nd-files", path: d.path, download_url: shortLink(d) });
       return { client: c ? { id: c.id, name: c.name } : null, count: out.length, documents: out };
     }
   },
@@ -524,6 +681,26 @@ const tools = {
       const target = Object.assign({}, i, { property_code: i.save_to_property && (prop || i.property_code) ? (prop ? prop.code || prop.id : i.property_code) : undefined });
       return Object.assign({ model: used, edited: !!src, note: "AI визуализация – при публикуване я обозначете като такава." }, await saveImages(ctx, [img], target, src ? "AI редакция" : "AI снимка"));
     }
+  },
+  "analyze_image": {
+    description: "Чете всяка прикачена снимка или PDF от чата по устойчив път в bucket nd-files (path / files[{path,name,mime}] / document_id). Не приема временен подписан URL като памет. Обработва файловете поотделно: един отказ не спира другите. Връща текст на български.",
+    input: schema({ path: S("string", { max: 400 }), paths: S("array", { max: 8 }), files: S("array", { max: 8 }), document_id: S("string", { max: 80 }), document_ids: S("array", { max: 8 }), url: S("string", { max: 2000 }), name: S("string", { max: 180 }), mime: S("string", { max: 120 }), question: S("string", { max: 2000 }) }),
+    run: runAnalyze
+  },
+  "analyze_document": {
+    description: "Същото като analyze_image за PDF и снимка на документ. Подай path или document_id, не подписан адрес.",
+    input: schema({ path: S("string", { max: 400 }), paths: S("array", { max: 8 }), files: S("array", { max: 8 }), document_id: S("string", { max: 80 }), document_ids: S("array", { max: 8 }), url: S("string", { max: 2000 }), name: S("string", { max: 180 }), mime: S("string", { max: 120 }), question: S("string", { max: 2000 }) }),
+    run: runAnalyze
+  },
+  "files.attach": {
+    description: "Прикачва нов файл от чата към избран клиент и/или имот в CRM. Задължителни са path (bucket nd-files, напр. ted-chat/гггг-мм/файл) и поне едно от client_id, client_name, property_id, property_code. Успехът е само след записан файл и CRM връзка. Повторен опит със същия path не създава дубликат.",
+    input: schema({ path: S("string", { max: 400 }), url: S("string", { max: 2000 }), name: S("string", { max: 180 }), mime: S("string", { max: 120 }), client_id: S("string", { max: 80 }), client_name: S("string", { max: 120 }), property_id: S("string", { max: 80 }), property_code: S("string", { max: 40 }), folder: S("string", { max: 80 }) }),
+    run: attachChatFile
+  },
+  "documents.attach": {
+    description: "Същото като files.attach: качва/прикачва файл от чата към клиент или имот. path + client_id/client_name или property_id/property_code.",
+    input: schema({ path: S("string", { max: 400 }), url: S("string", { max: 2000 }), name: S("string", { max: 180 }), mime: S("string", { max: 120 }), client_id: S("string", { max: 80 }), client_name: S("string", { max: 120 }), property_id: S("string", { max: 80 }), property_code: S("string", { max: 40 }), folder: S("string", { max: 80 }) }),
+    run: attachChatFile
   },
   "contacts.resolve": {
     description: "Намира получател по описание („Калина от Инвестбанк“, „управителят на ДСК“, име на клиент): търси в Компании (служители) и в Клиенти. Връща кандидати с имейл; при повече от един – избор, не изпращай.",
@@ -777,4 +954,4 @@ async function audit(sb, user, tool, ok, ms, summary) {
   try { await sb.from("nd_audit").insert({ user_id: user.id, user_email: user.email || "", tool, ok, ms, summary: String(summary || "").slice(0, 300) }); } catch (e) {}
 }
 const SPEC = Object.entries(tools).map(([n, t]) => "- " + n + ": " + t.description).join("\n");
-module.exports = { tools, names: Object.keys(tools), SPEC, audit, ToolError, textPdf };
+module.exports = { tools, names: Object.keys(tools), SPEC, audit, ToolError, textPdf, linkFor: (d) => shortLink(d) };
