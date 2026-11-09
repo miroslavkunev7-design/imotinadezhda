@@ -760,7 +760,7 @@ html.desk .mcv.tab .m-act{display:block}
   function fitDesk(){
     var vw=(root.clientWidth-(window.NDRAIL||0)),vh=innerHeight,BW=2072,BH=1190;
     var k=Math.min(vw/BW,vh/BH),Wc=vw/k,Hc=vh/k,exH=Hc-BH,exW=Wc-BW;
-    var Hh=395+Math.min(exH*.5,160),G=24+Math.min(exW*.15,80),xL=(Wc-2000-G)/2;
+    var Hh=345+Math.min(exH*.5,160),G=24+Math.min(exW*.15,80),xL=(Wc-2000-G)/2; /* шапката е малко по-ниска (395→345), блокът с клиентите е по-висок (09.11) */
     canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height=Hc+'px';canvas.style.paddingTop=Hh+'px';
     ctop.style.height=Hh+'px';
     ctexts.forEach(function(o){o.el.style.top=(o.top+(Hh-395)*.75)+'px'});
