@@ -398,3 +398,27 @@ html.desk #mwin .v3-spec>div>span{font-size:calc(13.5*var(--u))}
 
 html.desk #mwin .v3-specs{grid-area:sp;margin-bottom:calc(14*var(--u))}
 html:not(.desk) #mwin .v3-specs{order:2}
+
+/* ===== текст върху прелятата снимка: не червен, а тъмен с бял ореол – винаги се чете (09.11) ===== */
+#mwin :is(.m-data,.m-prefs,.m-act,.m-notes,.v3-quick,.v3-prof) :is(.dl,.ditem .dl,.dvv,.dvv.emp,.at,.tm,.v3-meta span,.v3-k){
+  text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff,0 0 1px #fff!important}
+#mwin :is(.m-data,.m-prefs) .ditem .dl{color:#3d1d18!important}
+#mwin :is(.m-data,.m-prefs) .ditem .dl svg.i{color:#7b1020!important;filter:drop-shadow(0 0 2px #fff)}
+#mwin :is(.m-data,.m-prefs) .ditem .dvv{color:#14070a!important}
+#mwin :is(.m-data,.m-prefs) .ditem .dvv.emp{color:#5a4038!important;font-style:italic}
+#mwin .arow .tm{color:#3d1d18!important}
+
+/* ===== „графите“ като в одобрения преглед (09.11, 04:39): червени удебелени етикети с удебелени червени иконки,
+   тъмни едри стойности; текстът стои върху кремавата част, снимката е ясна и по-силна вдясно ===== */
+#mwin :is(.m-data,.m-prefs) .ditem .dl{color:#7b1020!important;font-weight:700!important;font-size:calc(16*var(--u))!important;padding-left:calc(27*var(--u))!important}
+#mwin :is(.m-data,.m-prefs) .ditem .dl svg.i{font-size:calc(18*var(--u))!important;stroke-width:2.7!important;color:#7b1020!important}
+#mwin :is(.m-data,.m-prefs) .dgrid .ditem.view .dvv{font-weight:800!important;font-size:calc(17*var(--u))!important;color:#14070a!important}
+#mwin :is(.m-data,.m-prefs) .dgrid .ditem.view .dvv.emp{font-weight:700!important;color:#5a4038!important}
+#mwin .arow .at{font-weight:700!important;font-size:calc(16*var(--u))!important;color:#14070a!important}
+#mwin .arow .tm{font-weight:800!important;font-size:calc(14.5*var(--u))!important;color:#7b1020!important}
+/* текстът не влиза в ясната част на снимката */
+#mwin .m-data #m-fields{max-width:62%}
+html:not(.desk) #mwin .m-data #m-fields{max-width:none}
+html.desk #mwin .m-data::after{width:46%!important}
+html.desk #mwin .m-act .alist,html.desk #mwin .m-act #m-acts{max-width:60%}
+html.desk #mwin .m-act::after{width:46%!important}

@@ -393,3 +393,32 @@ html.desk .ish b{font-size:42px!important}
 html.desk .ish span{font-size:32px!important}
 html.desk .isa{font-size:29px!important}
 html.desk .plist.grp .irw .pc{zoom:.54!important}
+
+/* ===== текст върху прелятата снимка: тъмен с бял ореол, не червен (09.11) ===== */
+html.desk .pm-cell span{color:#3d1d18!important}
+html.desk .pm-cell span,html.desk .pm-cell b,html.desk .acc .body .row>span,html.desk .acc .body .row .r,html.desk .pm-desc,html.desk .acc .note{text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff,0 0 1px #fff!important}
+html.desk .acc .body .row .r{color:#14070a!important}
+html.desk .acc .body .row>span:not(.r){color:#3d1d18!important}
+.acc .body .row .r{color:#14070a!important;text-shadow:0 0 6px #fff,0 0 2px #fff}
+
+/* ===== „графите“ като в одобрения преглед (09.11, 04:39): червени удебелени етикети + удебелени червени иконки, едри тъмни стойности ===== */
+html.desk .pm-cell span{color:#7b1020!important;font-weight:700!important;font-size:31px!important}
+html.desk .pm-cell svg.i{stroke-width:2.7!important;color:#7b1020!important;font-size:34px!important}
+html.desk .pm-cell b{font-weight:800!important;font-size:34px!important;color:#14070a!important}
+html.desk .acc .body .row>span:not(.r){color:#7b1020!important;font-weight:700!important}
+html.desk .acc .body .row>svg.i{stroke-width:2.7!important;color:#7b1020!important}
+html.desk .acc .body .row .r{font-weight:800!important;color:#14070a!important}
+html:not(.desk) .acc .body .row svg.i{stroke-width:2.6!important}
+html:not(.desk) .acc .body .row .r{font-weight:800!important;color:#14070a!important}
+html:not(.desk) .pm-cell span{color:#7b1020!important;font-weight:700!important}
+html:not(.desk) .pm-cell svg.i{stroke-width:2.5!important}
+html:not(.desk) .pm-cell b{font-weight:800!important}
+/* текстът остава върху кремавата част – снимката вдясно е 44%, колоните с данни до 60% */
+html.desk .pm-right .pm-sec::after,html.desk .pwin .acc::after{width:44%!important}
+html.desk .pm-grid{max-width:60%!important}
+html.desk .acc .body{max-width:60%}
+html.desk .pm-desc{max-width:60%!important}
+html.desk .pm-grid{max-width:66%!important;gap:0 22px!important}
+html.desk .pm-cell b{white-space:normal!important;overflow:visible!important}
+html.desk .pm-right .pm-sec.sec-data::after{width:38%!important}
+html.desk .pm-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)!important;max-width:70%!important;column-gap:30px!important}
