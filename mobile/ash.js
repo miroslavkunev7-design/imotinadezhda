@@ -105,13 +105,15 @@
         return n.access_token;
       }).catch(function () { return ""; });
   }
-  function fileData(f) {
+  /* any=true (агентът в n8n): и други файлове (Word, Excel, аудио…) минават както са, вместо да се изпуснат */
+  function fileData(f, any) {
     return new Promise(function (ok) {
       var r = new FileReader();
       r.onload = function () {
-        if (f.type === "application/pdf") return ok({ mime: f.type, data: String(r.result).split(",")[1] });
-        var im = new Image(); im.onload = function () { var k = Math.min(1, 1400 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = im.width * k; c.height = im.height * k; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); ok({ mime: "image/jpeg", data: c.toDataURL("image/jpeg", .85).split(",")[1] }); };
-        im.onerror = function () { ok(null); }; im.src = r.result;
+        var raw = { name: f.name, mime: f.type || "application/octet-stream", data: String(r.result).split(",")[1] };
+        if (f.type === "application/pdf" || (any && !/^image\//.test(f.type))) return ok(raw);
+        var im = new Image(); im.onload = function () { var k = Math.min(1, 1400 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = im.width * k; c.height = im.height * k; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); ok({ name: f.name, mime: "image/jpeg", data: c.toDataURL("image/jpeg", .85).split(",")[1] }); };
+        im.onerror = function () { ok(any ? raw : null); }; im.src = r.result;
       };
       r.onerror = function () { ok(null); }; r.readAsDataURL(f);
     });
@@ -133,7 +135,7 @@
     { id: "male2", name: "Мъжки – енергичен", note: "по-бодър и бърз", g: "Puck" }
   ];
   var STYLES = [["calm", "Спокоен и топъл"], ["brief", "Кратък и делови"], ["slow", "Бавен и ясен (за диктовка на клиент)"]];
-  var N8N_OPT = { id: "n8n", name: "Агент n8n", note: "вашият агент от n8n (моделите са вързани вътре в n8n)", provider: "n8n", vision: false, pdf: false, sub: [["", "По подразбиране (както е в n8n)"], ["gpt", "ChatGPT"], ["claude", "Claude"], ["ollama", "Ollama (локален)"], ["gemini", "Gemini"]] };
+  var N8N_OPT = { id: "n8n", name: "Агент n8n", note: "вашият агент от n8n (моделите са вързани вътре в n8n)", provider: "n8n", vision: true, pdf: true, sub: [["", "По подразбиране (както е в n8n)"], ["gpt", "ChatGPT"], ["claude", "Claude"], ["ollama", "Ollama (локален)"], ["gemini", "Gemini"]] };
   var models = null;
   function loadModels() {
     if (models) return Promise.resolve(models);
@@ -201,15 +203,66 @@
   /* агентът в n8n се показва само когато във Vercel има N8N_AGENT_URL (т.е. когато потокът работи) */
   var N8N_DEFAULT = "https://imotinadezhda.app.n8n.cloud/webhook/488c6f8e-791b-4f42-8869-3e12c62ccca5";
   var N8N_URL = "", N8N_SID = (function () { try { var k = "nd-ted-n8n-sid", v = localStorage.getItem(k); if (!v) { v = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); localStorage.setItem(k, v); } return v; } catch (e) { return "s" + Date.now(); } })();
+  /* прикачени файлове и глас към агента (само за влезли служители): качват се в nd-files/ted-chat/<гггг-мм>/ (както bank.html),
+     получават линк за 7 дни и отиват към n8n в блок [ATTACHMENTS] в текста + поле "attachments" */
+  var N8N_MAX_FILES = 6, N8N_MAX_MB = 20, ATT_RE = /\n*\[ATTACHMENTS\][\s\S]*?\[\/ATTACHMENTS\]\n*/g;
+  var AUTO_TXT = /^(\(гласово съобщение\)|Анализирай прикачените файлове\.)$/;
+  var EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "application/pdf": "pdf", "audio/webm": "webm", "audio/mp4": "m4a", "audio/aac": "aac", "audio/ogg": "ogg", "audio/mpeg": "mp3", "audio/wav": "wav" };
+  function isN8n() { return modelId === "n8n" || !!(skill && skill.id === "n8n"); }
+  function kindOf(m) { return /^image\//.test(m) ? "image" : m === "application/pdf" ? "pdf" : /^audio\//.test(m) ? "audio" : "file"; }
+  function uErr(msg) { var e = new Error(msg); e.user = true; return e; }
+  function b64Blob(data, mime) { var bin = atob(data), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new Blob([u], { type: mime }); }
+  function upFile(tok, f) {
+    var mime = f.mime || "application/octet-stream", d = new Date(), kind = kindOf(mime);
+    var ext = EXT[mime] || ((/\.([a-z0-9]{1,6})$/i.exec(f.name || "") || [])[1] || "bin").toLowerCase();
+    var rnd = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    var path = "ted-chat/" + d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + rnd + "." + ext;
+    var name = f.name || (kind === "audio" ? "гласово-съобщение." + ext : "файл." + ext), H = { apikey: SB_KEY, Authorization: "Bearer " + tok };
+    return fetch(SB_URL + "/storage/v1/object/nd-files/" + path, { method: "POST", headers: Object.assign({ "Content-Type": mime, "x-upsert": "true" }, H), body: b64Blob(f.data, mime) })
+      .then(function (r) {
+        if (!r.ok) throw uErr("Файлът „" + name + "“ не се качи" + (r.status === 401 || r.status === 403 ? " – нямате права за качване (влезте отново в CRM)." : " (HTTP " + r.status + "). Опитайте отново."));
+        return fetch(SB_URL + "/storage/v1/object/sign/nd-files/" + path, { method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, H), body: JSON.stringify({ expiresIn: 604800 }) });
+      })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (j) {
+        var su = j && (j.signedURL || j.signedUrl); if (!su) throw uErr("Файлът „" + name + "“ е качен, но не се получи линк за агента. Опитайте отново.");
+        return { kind: kind, name: name, mime: mime, url: /^https?:/.test(su) ? su : SB_URL + "/storage/v1" + su };
+      });
+  }
+  function attHint(att) {
+    var k = {}, h = []; att.forEach(function (a) { k[a.kind] = 1; });
+    if (k.image) h.push("снимки → analyze_image");
+    if (k.pdf) h.push("PDF → analyze_document");
+    if (k.audio) h.push("гласово съобщение/аудио → първо transcribe_audio, после отговори на казаното");
+    if (k.file) h.push("други файлове → parse_document или pdf_convert");
+    return "(Прикачени файлове – линковете са в блока ATTACHMENTS, валидни 7 дни: " + h.join("; ") + ".)";
+  }
   function askN8n(history) {
-    var last = history[history.length - 1] || {}, text = String(last.text || "").trim();
-    if (!text) return Promise.resolve({ ok: false, error: "Агентът в n8n приема текст – за снимки, файлове и глас изберете Gemini или друг модел." });
-    var ctrl = new AbortController(), timer = setTimeout(function () { ctrl.abort(); }, 60000);
+    var last = history[history.length - 1] || {}, text = String(last.text || "").trim(), fl = (last.files || []).filter(function (f) { return f && f.data; });
+    var ctrl = new AbortController(), timer = null;
     return token().then(function (tok) {
-      return fetch(N8N_URL || N8N_DEFAULT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text + ((last.files || []).length ? "\n(прикачени файлове: " + last.files.map(function (f) { return f.name; }).join(", ") + ")" : ""), sessionId: N8N_SID, accessToken: tok || null, toolsUrl: location.origin + "/api/tools", model: prefs.n8nModel || undefined }), signal: ctrl.signal });
+      var att = [];
+      if (!tok) { /* посетител без вход: както досега – само текст */
+        if (!text || (fl.length && AUTO_TXT.test(text))) throw uErr("Агентът в n8n приема текст – за снимки, файлове и глас изберете Gemini или друг модел.");
+        text += fl.length ? "\n(прикачени файлове: " + fl.map(function (f) { return f.name || f.mime; }).join(", ") + ")" : "";
+        return [tok, text, att];
+      }
+      if (!text && !fl.length) throw uErr("Напишете съобщение или прикачете файл.");
+      if (fl.length > N8N_MAX_FILES) throw uErr("Към агента в n8n могат да се прикачат най-много " + N8N_MAX_FILES + " файла наведнъж (сега са " + fl.length + ").");
+      var big = fl.filter(function (f) { return f.data.length * 3 / 4 > N8N_MAX_MB * 1048576; })[0];
+      if (big) throw uErr("Файлът „" + (big.name || "запис") + "“ е " + (big.data.length * 3 / 4 / 1048576).toFixed(1) + " MB – агентът в n8n приема файлове до " + N8N_MAX_MB + " MB.");
+      return Promise.all(fl.map(function (f) { return upFile(tok, f); })).then(function (a) {
+        att = a;
+        if (!text) text = att.every(function (x) { return x.kind === "audio"; }) ? "(гласово съобщение)" : "Анализирай прикачените файлове.";
+        if (att.length) text += "\n\n" + attHint(att) + "\n[ATTACHMENTS]\n" + JSON.stringify(att) + "\n[/ATTACHMENTS]";
+        return [tok, text, att];
+      });
+    }).then(function (x) {
+      var att = x[2]; timer = setTimeout(function () { ctrl.abort(); }, att.length ? 120000 : 60000);
+      return fetch(N8N_URL || N8N_DEFAULT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: x[1], sessionId: N8N_SID, accessToken: x[0] || null, toolsUrl: location.origin + "/api/tools", model: prefs.n8nModel || undefined, attachments: att.length ? att : undefined }), signal: ctrl.signal });
     }).then(function (r) { if (!r.ok) throw new Error("агентът върна HTTP " + r.status); return r.json(); })
-      .then(function (d) { if (Array.isArray(d)) d = d[0]; var out = d && (d.output || d.text || d.answer); if (typeof out !== "string" || !out.trim()) throw new Error("невалиден отговор от агента"); return { ok: true, text: out, actions: [], model: "n8n", model_name: "n8n Agent" }; })
-      .catch(function (e) { return { ok: false, error: e && e.name === "AbortError" ? "Агентът в n8n не отговори навреме." : "Агент n8n: " + ((e && e.message) || e) }; })
+      .then(function (d) { if (Array.isArray(d)) d = d[0]; var out = d && (d.output || d.text || d.answer); if (typeof out === "string") out = out.replace(ATT_RE, "\n").trim(); if (typeof out !== "string" || !out) throw new Error("невалиден отговор от агента"); return { ok: true, text: out, actions: [], model: "n8n", model_name: "n8n Agent", transcript: d && typeof d.transcript === "string" && d.transcript.trim() ? d.transcript.trim() : undefined }; })
+      .catch(function (e) { return { ok: false, error: e && e.user ? e.message : e && e.name === "AbortError" ? "Агентът в n8n не отговори навреме." : "Агент n8n: " + ((e && e.message) || e) }; })
       .then(function (j) { clearTimeout(timer); return j; });
   }
   function ask(history, extra) {
@@ -385,7 +438,8 @@
         busy = true; ta.value = ""; ta.style.height = ""; var fs = files; files = []; showFiles();
         var ub = api.add("u", voice ? "🎤 Гласово съобщение (" + voice.dur + ")" : fmt(text || "Прикачени файлове") + (fs.length ? "\n📎 " + fs.map(function (f) { return esc(f.name); }).join(", ") : ""));
         var w = api.add("a", voice ? "Слушам" : "Мисля", "wait");
-        Promise.all(fs.map(fileData)).then(function (fd) {
+        var anyF = isN8n();
+        Promise.all(fs.map(function (f) { return fileData(f, anyF); })).then(function (fd) {
           var cur = { role: "user", text: voice ? "(гласово съобщение)" : (text || "Анализирай прикачените файлове."), files: fd.filter(Boolean).concat(voice ? [{ mime: voice.mime, data: voice.data }] : []) };
           /* в казус историята идва от паметта на сървъра – пращаме само текущото съобщение */
           var send = (curCase ? [] : hist.slice(-14).map(function (m) { return { role: m.role, text: m.text }; })).concat([cur]);
@@ -433,8 +487,9 @@
       ta.onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey && prefs.enterSend) { e.preventDefault(); go(); } };
       ta.oninput = function () { ta.style.height = "auto"; ta.style.height = Math.min(120, ta.scrollHeight) + "px"; };
       function pickChat() {
-        var i = document.createElement("input"); i.type = "file"; i.multiple = true; i.accept = "image/*,application/pdf"; i.style.cssText = "position:fixed;left:-999px;opacity:0"; document.body.appendChild(i);
-        i.onchange = function () { files = files.concat([].slice.call(i.files || [])).slice(0, 3); i.remove(); showFiles(); }; i.click();
+        var n8 = isN8n(); /* агентът в n8n: до 6 файла, и Word/Excel/аудио */
+        var i = document.createElement("input"); i.type = "file"; i.multiple = true; i.accept = n8 ? "image/*,application/pdf,audio/*,.doc,.docx,.xls,.xlsx,.csv,.txt,.odt,.ods,.rtf" : "image/*,application/pdf"; i.style.cssText = "position:fixed;left:-999px;opacity:0"; document.body.appendChild(i);
+        i.onchange = function () { files = files.concat([].slice.call(i.files || [])).slice(0, n8 ? N8N_MAX_FILES : 3); i.remove(); showFiles(); }; i.click();
       }
       el.querySelector(".att").onclick = function (e) {
         var up = embedded.filter(function (x) { return x.id === "upload"; })[0];
@@ -459,7 +514,7 @@
   n8nSkill.id = "n8n"; n8nSkill.name = "Чат с n8n Agent"; n8nSkill.sub = "Самият агент от n8n – реалните данни в CRM"; n8nSkill.placeholder = "Пишете на n8n Agent…"; n8nSkill.crmOnly = true; /* само в CRM (за служители), не и в публичния сайт */
   n8nSkill.intro0 = function (api) {
     if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
-    else api.add("a", "Здравейте! Аз съм <b>n8n Agent</b> – агентът на Имоти Надежда в n8n.\nРаботя с реалните данни в CRM: клиенти, имоти, огледи, публикуване във Facebook, запис на клиент от Чат.\nПриемам текст – за снимки, файлове и глас превключете на „Чат с Тед Асистент“.");
+    else api.add("a", "Здравейте! Аз съм <b>n8n Agent</b> – агентът на Имоти Надежда в n8n.\nРаботя с реалните данни в CRM: клиенти, имоти, огледи, публикуване във Facebook, запис на клиент от Чат.\nПриемам текст, снимки, PDF и други файлове (📎) и гласови съобщения (🎤).");
   };
   skills.push(n8nSkill);
   /* експертните роли са вградени в „Чат с Тед“ (бутон „Роля“ до казуса); без избор Тед разпознава ролята от въпроса (api/_ted-modes.js) */
