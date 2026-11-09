@@ -71,8 +71,9 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .city .vc{display:block;margin-top:4px;color:#ae760f;font-weight:700;font-size:25px;letter-spacing:.3px}
 .city .ar{width:60px;height:60px;border-radius:50%;border:2px solid #ba8318;background:#fffdfa;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 0 10px rgba(255,210,120,.5)}
 .city .ar img{width:28px;height:28px;filter:brightness(0) saturate(100%) invert(47%) sepia(70%) saturate(622%) hue-rotate(356deg)}
-.c1{left:28px;top:931px;width:399px;height:262px}.c2{left:437px;top:931px;width:402px;height:262px}
-.c3{left:28px;top:1202px;width:399px;height:262px}.c4{left:437px;top:1202px;width:402px;height:262px}
+/* Шумен – one wide card on top; Варна (left) + Бургас (right) – two smaller cards below; 16 px gaps, aligned with the search box (29…836) */
+.c1{left:29px;top:942px;width:807px;height:274px}
+.c2{left:29px;top:1232px;width:395px;height:236px}.c3{left:440px;top:1232px;width:396px;height:236px}
 .city:active{transform:scale(.985)}
 /* results sheet (real published listings) */
 .sheet{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;background:rgba(30,4,10,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
@@ -111,20 +112,26 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 
 
 
-/* Бургас: one wide card on the second row – it covers the baked Бургас + Нов пазар cards of the artwork */
-.city.c3{left:25px;top:1192px;width:817px;height:286px;background:#fff7ed;border:2px solid #e2a33b;box-shadow:0 8px 17px rgba(32,13,8,.4),0 0 14px rgba(255,214,150,.35)}
-.city.c3>*{opacity:1}
-.city.c3 .ph{height:80%;object-position:center 55%}
-.city.c3 .fade{height:52%}
-.city.c3 .nm{font:700 35px/1 Bitter,Georgia,serif}.city.c3 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
-/* drone videos in the city cards: Шумен and Варна are drawn live like Бургас (over the baked artwork cards) */
-.city.c1,.city.c2{background:#fff7ed;border:2px solid #e2a33b;box-shadow:0 8px 17px rgba(32,13,8,.4),0 0 14px rgba(255,214,150,.35)}
-.city.c1>*,.city.c2>*{opacity:1}
-.city.c1 .nm,.city.c2 .nm{font:700 33px/1 Bitter,Georgia,serif}.city.c1 .vc,.city.c2 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
+/* city cards are drawn live over the artwork (its baked cards stay hidden under one wine glass panel,
+   larger than the baked cards on every side – so the gaps between the live cards show glass, never the baked cards) */
+.cglass{left:13px;top:926px;width:839px;height:558px;z-index:1;border-radius:46px;pointer-events:none;
+  background:linear-gradient(160deg,rgba(128,16,46,.95) 0%,rgba(94,6,30,.96) 42%,rgba(58,3,18,.97) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,232,180,.4),inset 0 0 26px rgba(255,190,110,.14),0 0 18px rgba(255,196,110,.32),0 10px 24px rgba(28,6,8,.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}
+.cglass:before{content:'';position:absolute;inset:0;border-radius:inherit;padding:2px;background:linear-gradient(135deg,#ffe9a8 0%,#d99b2d 28%,rgba(160,96,22,.55) 52%,#f0bf5c 78%,#ffe9a8 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.cglass:after{content:'';position:absolute;inset:2px;border-radius:44px;background:linear-gradient(115deg,rgba(255,255,255,.11) 0%,rgba(255,255,255,0) 30%),radial-gradient(70% 45% at 100% 0%,rgba(255,196,110,.16),rgba(255,196,110,0) 70%)}
+.city.c1,.city.c2,.city.c3{background:#fff7ed;border:2px solid #e2a33b;box-shadow:0 8px 17px rgba(32,13,8,.4),0 0 14px rgba(255,214,150,.35)}
+.city.c1>*,.city.c2>*,.city.c3>*{opacity:1}
+.city.c1 .nm{font:700 35px/1 Bitter,Georgia,serif}.city.c1 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
+.city.c2 .nm,.city.c3 .nm{font:700 33px/1 Bitter,Georgia,serif}.city.c2 .vc,.city.c3 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
+.city.c1 .fade{height:52%}
+/* drone videos */
 .city video.ph{display:block;background:#efe3d3;pointer-events:none}
-/* Шумен/Варна: the whole frame in its own proportions (full width, natural height) – nothing squeezed, stretched or cut at the sides */
-.city.c1 video.ph{height:auto;aspect-ratio:1280/730}.city.c2 video.ph{height:auto;aspect-ratio:1280/724}
-.city.c3 video.ph{object-position:center 62%}
+/* Шумен (wide card): the video fills the card under the cream fade, cropped (cover, never stretched) with the monument in view – no seam at its lower edge */
+.city.c1 video.ph{height:100%;object-fit:cover;object-position:center 46%}
+/* Варна/Бургас (small cards): the whole frame in its own proportions (full width, natural height) – nothing squeezed, stretched or cut at the sides */
+.city.c2 video.ph{height:auto;aspect-ratio:1280/724}.city.c3 video.ph{height:auto;aspect-ratio:1280/736}
 </style>
 </head>
 <body>
@@ -158,6 +165,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
     </div>
   </form>
 
+  <div class="abs cglass" aria-hidden="true"></div>
   <button class="abs city c1" data-city="shumen"><video class="ph" src="/mobile/home-assets/city-shumen.mp4" poster="/mobile/home-assets/city-shumen-poster.webp" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
   <button class="abs city c2" data-city="varna"><video class="ph" src="/mobile/home-assets/city-varna.mp4" poster="/mobile/home-assets/city-varna-poster.webp" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
   <button class="abs city c3" data-city="burgas"><video class="ph" src="/mobile/home-assets/city-burgas.mp4" poster="/mobile/home-assets/city-burgas-poster.webp" autoplay muted loop playsinline disablepictureinpicture disableremoteplayback preload="auto" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
