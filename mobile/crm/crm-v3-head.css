@@ -1,0 +1,10 @@
+/* Вариант 3 – хедът и стъклото се преливат заедно (всички страници)
+   • зад хеда: предишното топло преливане (праскова), като преди – отдолу плавно минава във вечерния фон зад стъклото
+   • стъкленият прозорец се застъпва леко върху долната част на хеда (JS: crm-v3-head.js) */
+#canvas{isolation:isolate}
+#canvas::before{content:'';position:absolute;left:0;right:0;top:0;height:calc(var(--hh,520px) + 180px);z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(120% 70% at 50% 60%,rgba(246,211,182,.95) 0%,rgba(239,193,156,0) 70%),
+    linear-gradient(180deg,#efc19c 0,#efc19c calc(100% - 300px),rgba(233,180,142,.92) calc(100% - 200px),rgba(226,168,130,.55) calc(100% - 110px),rgba(226,168,130,0) 100%)}
+/* застъпеният горен край на стъклото – мек светъл ръб, който се слива с хеда */
+#canvas > .v3-lift{position:relative;z-index:1}
