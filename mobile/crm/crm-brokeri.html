@@ -1123,6 +1123,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
       count+=matches.length;html+='<li class="role-group" role="presentation">'+esc(title)+'</li>'+matches.map(function(r){var on=r===draft.role;return '<li role="option" tabindex="'+(on?'0':'-1')+'" aria-selected="'+on+'" class="'+(on?'on':'')+'" data-role="'+esc(r)+'" title="'+esc(r)+'"><span>'+esc(r)+'</span>'+ic('check')+'</li>'}).join('')}
     groups.forEach(function(g){group(g[0],g[1])});group('Собствени позиции',ROLES.filter(function(r){return !known[r]}));
     $('bm-roles').innerHTML=html||'<li class="role-empty" role="presentation">Няма намерена позиция.</li>';
+    if(!$('bm-roles').querySelector('[data-role][tabindex="0"]')){var first=$('bm-roles').querySelector('[data-role]');if(first)first.tabIndex=0}
     $('bm-role-summary').textContent='Избрана: '+(draft.role||'—')+' · '+count+' от '+ROLES.length+' позиции';
     $('bm-role-add').hidden=query.length<2||ROLES.some(function(r){return r.toLocaleLowerCase('bg')===q});
   }
@@ -1245,7 +1246,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     var U=window.NDUI;
     U.open({title:'Нов брокер',icon:'user-plus',photo:'nd/ph06.jpg',required:['nb-name'],
       html:U.group('Основна информация','user','nd/ph15.jpg',U.fld({id:'nb-name',label:'Име и фамилия',icon:'user-round',required:true,wide:true})+U.fld({id:'nb-title',label:'Длъжност / титла',icon:'id-card',ph:'напр. Брокер – продажби'})+
-        U.fld({id:'nb-role',label:'Роля',icon:'shield',type:'select',value:ROLES[0],options:ROLES})+U.fld({id:'nb-phone',label:'Телефон',icon:'phone',type:'tel'})+
+        U.fld({id:'nb-role',label:'Роля',icon:'shield',type:'select',value:'Брокер',options:ROLES})+U.fld({id:'nb-phone',label:'Телефон',icon:'phone',type:'tel'})+
         U.fld({id:'nb-mail',label:'Имейл',icon:'mail',type:'email'})+U.fld({id:'nb-office',label:'Офис',icon:'pin',type:'select',value:'Шумен',options:['Шумен','Варна','Бургас']})+
         U.fld({id:'nb-cat',label:'Направление',icon:'tag',type:'select',value:'both',options:[['both','Продажби и наеми'],['sales','Продажби'],['rent','Наеми']]}),{lw:130}),
       validate:function(g){var m=g('nb-mail');if(m&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))return 'Проверете имейла.'},
