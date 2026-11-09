@@ -21,6 +21,31 @@ function send(res, status, body) {
   res.setHeader("Cache-Control", "no-store");
   res.end(JSON.stringify(body));
 }
+const PUB = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";
+function sameSecret(given, expected) {
+  if (typeof given !== "string" || typeof expected !== "string" || !expected || !given) return false;
+  const a = crypto.createHash("sha256").update(given, "utf8").digest();
+  const b = crypto.createHash("sha256").update(expected, "utf8").digest();
+  return crypto.timingSafeEqual(a, b);
+}
+function headerValue(req, name) {
+  const h = req && req.headers ? req.headers : {};
+  const v = h[name] || h[String(name).toLowerCase()];
+  if (Array.isArray(v)) return String(v[0] || "");
+  return typeof v === "string" ? v : "";
+}
+async function authorizeMonitor(req) {
+  if (sameSecret(headerValue(req, "x-ted-probe"), process.env.TED_PROBE_KEY || "")) return { ok: true };
+  const auth = headerValue(req, "authorization");
+  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  if (!token) return { ok: false, status: 401 };
+  const u = await fetch(SB + "/auth/v1/user", { headers: { apikey: PUB, Authorization: "Bearer " + token }, signal: AbortSignal.timeout(8000) }).catch(() => null);
+  if (!u || !u.ok) return { ok: false, status: 401 };
+  const r = await fetch(SB + "/rest/v1/rpc/nd_is_admin", { method: "POST", headers: { apikey: PUB, Authorization: "Bearer " + token, "Content-Type": "application/json" }, body: "{}", signal: AbortSignal.timeout(8000) }).catch(() => null);
+  const j = r && r.ok ? await r.json().catch(() => false) : false;
+  if (j !== true) return { ok: false, status: 403 };
+  return { ok: true };
+}
 function headers(extra) {
   return Object.assign({ apikey: key(), Authorization: "Bearer " + key(), "Content-Type": "application/json" }, extra || {});
 }
@@ -139,7 +164,8 @@ async function gate(origin) {
   return { tools: tools.status, voice: voice.status };
 }
 
-async function run(res, body, requestId) {
+async function run(res, body, requestId, gate) {
+  if (!gate || gate.authorized !== true) return send(res, 401, { ok: false, error: "Няма достъп." });
   const mon = MON.status();
   const signal = body && body.signal === false ? { sent: false, skipped: true } : await MON.report({ event: "automation_connectivity_test", errorCode: "WEBHOOK_OK", endpoint: "/api/assistant", requestId: requestId || "" }).catch(() => ({ sent: false }));
   const out = { ok: true, monitor: { enabled: mon.enabled, missing: mon.missing, sent: !!signal.sent, dedup: !!signal.dedup } };
@@ -232,4 +258,4 @@ async function run(res, body, requestId) {
   }
   return send(res, 200, out);
 }
-module.exports = { run, annuity, scrub };
+module.exports = { run, authorizeMonitor, sameSecret, annuity, scrub };

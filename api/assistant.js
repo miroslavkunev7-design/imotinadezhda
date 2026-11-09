@@ -140,7 +140,11 @@ module.exports = async (req, res) => {
   if (!process.env.VERCEL_OIDC_TOKEN && req.headers["x-vercel-oidc-token"]) process.env.VERCEL_OIDC_TOKEN = String(req.headers["x-vercel-oidc-token"]);
   if (req.method !== "POST") return send(res, 405, { ok: false, error: "POST only" });
   let b; try { b = await readBody(req); } catch (e) { return send(res, 400, { ok: false, error: "Невалидни данни" }); }
-  if (b.action === "monitor") return require("./_selfcheck.js").run(res, b, String(req.headers["x-vercel-id"] || ""));
+  if (b.action === "monitor") {
+    const gate = await require("./_selfcheck.js").authorizeMonitor(req);
+    if (!gate.ok) return send(res, gate.status || 401, { ok: false, error: "Няма достъп." });
+    return require("./_selfcheck.js").run(res, b, String(req.headers["x-vercel-id"] || ""), { authorized: true });
+  }
   const auth = String(req.headers["authorization"] || ""); const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   const user = await staffOf(token).catch(() => null);
   if (!user) return send(res, 401, { ok: false, error: "Тед Асистент работи само в CRM – влезте в профила си." });
