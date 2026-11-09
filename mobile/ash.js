@@ -21,6 +21,9 @@
     ".nda-fab{position:fixed;right:14px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:2147483000;width:60px;height:60px;border-radius:50%;border:0;padding:0;cursor:pointer;display:grid;place-items:center;" +
     "background:radial-gradient(circle at 35% 28%,#b0213f,#7a0f22 55%,#4a0613);box-shadow:0 0 0 2px #edc47a,0 0 18px rgba(255,190,120,.75),0 8px 18px rgba(40,4,12,.45);-webkit-tap-highlight-color:transparent}" +
     ".nda-fab img{width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(40,0,10,.45))}.nda-fab:active{transform:scale(.95)}.nda-fab[hidden]{display:none}" +
+    /* брояч на непрочетените известия от задачите – същата точка като при балончетата на CRM Чат (crm-chatheads.js, .nch-h .n) */
+    "#ndside .sb-ted{position:relative}#ndside .sb-ted .n{right:auto!important;left:calc(50% + 8px);top:0!important}" +
+    ".nda-fab .n,#ndside .sb-ted .n{position:absolute;right:-6px;top:-6px;min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:12px;display:grid;place-items:center;font:700 13px/1 'Roboto Condensed',Arial,sans-serif;color:#fff;text-shadow:none;background:radial-gradient(circle at 35% 30%,#e0405f,#a3132f 60%,#6a0a1d);border:1.5px solid #f6d993;box-shadow:0 0 10px rgba(255,120,140,.9);pointer-events:none}" +
     ".nda-win{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));top:max(60px,env(safe-area-inset-top,0px));z-index:2147483001;display:flex;flex-direction:column;max-width:560px;margin:0 auto;border-radius:26px;overflow:hidden;" +
     "background:linear-gradient(165deg,rgba(255,251,247,.97),rgba(251,236,224,.95));border:1.5px solid #e3b25e;box-shadow:0 0 0 1px rgba(255,236,190,.6) inset,0 0 26px rgba(227,178,94,.55),0 24px 60px rgba(30,0,8,.55);font-family:'Roboto Condensed',Arial,system-ui,sans-serif;-webkit-text-size-adjust:100%;text-align:left}" +
     "@media(min-width:900px){.nda-win{left:auto;right:24px;width:440px;top:auto;height:min(680px,calc(100vh - 48px));bottom:24px}}" +
@@ -289,6 +292,71 @@
   try { hist = JSON.parse(sessionStorage.getItem(STORE) || "[]") || []; } catch (e) { hist = []; }
   function save() { try { sessionStorage.setItem(STORE, JSON.stringify(hist.slice(-30).map(function (m) { return { role: m.role, text: m.text }; }))); } catch (e) {} }
   function add(role, html, cls) { var m = document.createElement("div"); m.className = "nda-m " + role + (cls ? " " + cls : ""); m.innerHTML = html; list.appendChild(m); if (role === "a" && cls !== "wait") speaker(m); list.scrollTop = list.scrollHeight; return m; }
+
+  /* ---- резултатите от планираните задачи на Тед (напомняния, повтарящи се задачи, промени по сайтове) идват тук, в чата, вместо в Telegram.
+     Само за влезли служители: на всеки 60 s (докато страницата е видима) и при отваряне на прозореца питаме n8n (ted-inbox) за непрочетените;
+     всяко идва като съобщение от Тед в историята, а докато прозорецът е затворен – брояч върху бутона. Грешките са тихи (най-много едно предупреждение). ---- */
+  var INBOX_URL = "https://imotinadezhda.app.n8n.cloud/webhook/ted-inbox", INBOX_SEEN = "nd-ted-inbox-seen", INBOX_UNREAD = "nd-ted-inbox-unread";
+  var inboxBusy = false, inboxOff = false, inboxWarned = false, inboxTimer = null, inboxLast = 0;
+  function inboxToken() {
+    /* CRM: сесията от Supabase клиента (след проверката за служител); иначе само валиден запазен токен – без собствено опресняване */
+    if (window.ND && window.ND.token) return window.ND.user ? window.ND.token().then(function (t) { return t || ""; }, function () { return ""; }) : Promise.resolve("");
+    var s = null; try { s = JSON.parse(localStorage.getItem(SB_KEY_STORE) || "null"); } catch (e) {}
+    return Promise.resolve(s && s.access_token && (!s.expires_at || s.expires_at * 1000 > Date.now() + 30000) ? s.access_token : "");
+  }
+  function inboxUnread() { try { return +sessionStorage.getItem(INBOX_UNREAD) || 0; } catch (e) { return 0; } }
+  function inboxBadge(n) {
+    try { if (n) sessionStorage.setItem(INBOX_UNREAD, String(n)); else sessionStorage.removeItem(INBOX_UNREAD); } catch (e) {}
+    /* бутонът на Тед: кръглият долу вдясно, а на компютър – „Тед“ в лявата лента на CRM */
+    [fab, document.querySelector("#ndside .sb-ted")].forEach(function (el) {
+      if (!el) return;
+      var b = el.querySelector(".n");
+      if (!n) { if (b) b.remove(); el.setAttribute("aria-label", "Тед Асистент"); return; }
+      if (!b) { b = document.createElement("span"); b.className = "n"; b.setAttribute("aria-hidden", "true"); el.appendChild(b); }
+      b.textContent = n > 99 ? "99+" : String(n);
+      el.setAttribute("aria-label", "Тед Асистент – " + n + (n === 1 ? " ново известие" : " нови известия"));
+    });
+  }
+  function inboxShow(items) {
+    var seen = []; try { seen = JSON.parse(localStorage.getItem(INBOX_SEEN) || "[]") || []; } catch (e) {}
+    var key = function (it) { return String(it.id) + "|" + String(it.created_at || ""); };
+    var fresh = items.filter(function (it) { return it && it.id != null && seen.indexOf(key(it)) < 0 && (it.title || it.text); });
+    if (!fresh.length) return;
+    var live = !!(list && (skill === chatSkill || skill === n8nSkill));
+    fresh.forEach(function (it) {
+      var text = String(it.title || "").trim() + (it.title && it.text ? "\n" : "") + String(it.text || "").trim();
+      seen.push(key(it)); hist.push({ role: "assistant", text: text });
+      if (live) add("a", fmt(text));
+    });
+    save();
+    try { localStorage.setItem(INBOX_SEEN, JSON.stringify(seen.slice(-200))); } catch (e) {}
+    if (!win || win.hidden) inboxBadge(inboxUnread() + fresh.length);
+  }
+  function inboxPoll(force) {
+    if (inboxOff || inboxBusy || window.NDAshNoWidget) return;
+    if (!force && (document.visibilityState === "hidden" || Date.now() - inboxLast < 20000)) return;
+    inboxBusy = true;
+    inboxToken().then(function (tk) {
+      if (!tk) return;
+      inboxLast = Date.now();
+      return fetch(INBOX_URL, { method: "GET", headers: { Authorization: "Bearer " + tk }, cache: "no-store" }).then(function (r) {
+        if (r.status === 401 || r.status === 403 || r.status === 404) { inboxOff = true; throw new Error("HTTP " + r.status); }
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      }).then(function (j) { if (j && j.ok && Array.isArray(j.items) && j.items.length) inboxShow(j.items); });
+    }).catch(function (e) {
+      if (!inboxWarned) { inboxWarned = true; try { console.warn("Тед: известията от задачите не се заредиха –", (e && e.message) || e); } catch (x) {} }
+    }).then(function () { inboxBusy = false; });
+  }
+  function inboxOpened() { inboxBadge(0); inboxPoll(true); }
+  function inboxStart() {
+    if (inboxTimer || window.NDAshNoWidget) return;
+    inboxBadge(inboxUnread());
+    setTimeout(function () { inboxBadge(inboxUnread()); inboxPoll(true); }, 2500);
+    setTimeout(function () { if (!inboxLast) inboxPoll(true); }, 10000);
+    inboxTimer = setInterval(function () { inboxBadge(inboxUnread()); inboxPoll(false); }, 60000);
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") inboxPoll(false); });
+  }
 
   /* ---- listen to an answer (Gemini TTS, falls back to the phone's own Bulgarian voice) ---- */
   var player = null, playingBtn = null;
@@ -633,13 +701,14 @@
     });
     gear.onclick = function (e) { e.stopPropagation(); if (!setBox.hidden) { setBox.hidden = true; gear.classList.remove("on"); return; } loadModels().then(function () { renderSettings(); setBox.hidden = false; gear.classList.add("on"); }); };
     applyPrefs();
-    fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(skills[0]); if (skill.open) skill.open(api); };
+    fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(skills[0]); if (skill.open) skill.open(api); inboxOpened(); };
     win.querySelector(".nda-x").onclick = function () { win.hidden = true; fab.hidden = false; };
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !win.hidden) { win.hidden = true; fab.hidden = false; } });
     if (/\/mobile\/crm\//.test(location.pathname)) { fab.style.bottom = "calc(96px + env(safe-area-inset-bottom,0px))"; fab.style.zIndex = "45";
       var sync = function () { fab.style.visibility = document.documentElement.classList.contains("locked") ? "hidden" : ""; };
       new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] }); sync(); }
     hideOnCrmRoute(); addEventListener("hashchange", hideOnCrmRoute);
+    inboxStart();
   }
   /* the old desktop CRM (#/crm…) has its own assistant panel connected to the same API */
   function hideOnCrmRoute() { var crm = /^#\/crm/.test(location.hash || "") && !/\/mobile\/crm\//.test(location.pathname); fab.style.display = crm ? "none" : ""; if (crm) win.hidden = true; }
@@ -648,10 +717,10 @@
     ask: ask, token: token, esc: esc, fmt: fmt,
     addSkill: function (s, first) { if (s && s.embed) { embedded.push(s); embedded.sort(function (a, b) { return (a.order || 9) - (b.order || 9); }); return; } if (typeof first === "number") skills.splice(Math.min(first, skills.length), 0, s); else if (first) skills.unshift(s); else skills.push(s); if (booted && !skill) setSkill(skills[0]); },
     open: function () { boot(); fab.click(); },
-    use: function (id) { boot(); var s = skills.filter(function (x) { return x.id === id; })[0]; var em = !s && (embedded.filter(function (x) { return x.id === id; })[0] || id === "mail"); if (!s && !em) return false; win.hidden = false; fab.hidden = true; if (s) setSkill(s); else { if (!skill) setSkill(chatSkill); openUi(id); } return true; },
+    use: function (id) { boot(); var s = skills.filter(function (x) { return x.id === id; })[0]; var em = !s && (embedded.filter(function (x) { return x.id === id; })[0] || id === "mail"); if (!s && !em) return false; win.hidden = false; fab.hidden = true; if (s) setSkill(s); else { if (!skill) setSkill(chatSkill); openUi(id); } inboxOpened(); return true; },
     panel: function (id) { return this.use(id); },
     hide: function () { if (win && !win.hidden) { win.hidden = true; fab.hidden = false; } },
-    show: function () { if (win) { win.hidden = false; fab.hidden = true; list.scrollTop = list.scrollHeight; } },
+    show: function () { if (win) { win.hidden = false; fab.hidden = true; list.scrollTop = list.scrollHeight; inboxOpened(); } },
     boot: boot
   };
   if (!window.NDAshNoWidget) { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot(); }
