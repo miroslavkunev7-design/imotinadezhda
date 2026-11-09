@@ -210,19 +210,7 @@ button:active{filter:brightness(.96);transform:translateY(1px)}
 .f-type .val,.f-sort .val{font-size:22.5px}
 
 .cgrid{display:grid;grid-template-columns:484px 484px;gap:18px 14px;padding:15px 20px 0 20px}
-.ccard{position:relative;height:var(--h,196px);border-radius:24px;overflow:hidden;text-align:left;color:#2b1414;
-  background:linear-gradient(180deg,#fffaf6 0%,#fbece0 100%);border:1.5px solid rgba(255,255,255,.95);
-  box-shadow:0 0 0 1px rgba(226,176,120,.5),0 0 14px rgba(255,226,190,.95),0 8px 16px rgba(120,50,20,.22)}
-.ccard .ph{position:absolute;right:8px;top:7px;bottom:7px;width:237px;border-radius:0 18px 18px 0;background-size:100% 100%;background-repeat:no-repeat;
-  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.6) 20%,#000 42%);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.6) 20%,#000 42%)}
-.ccard .nm{position:absolute;left:27px;top:10px;right:12px;font:700 31px/1.1 var(--serif);color:#5e0a1a;white-space:nowrap;text-shadow:0 1px 0 #fff}
-.ccard .ph-n{position:absolute;left:25px;top:50px;display:flex;align-items:center;gap:13px;font:700 27.5px/1 var(--sans);color:#6b0a1c;letter-spacing:.2px}
-.ccard .ph-n svg.i{font-size:29px;stroke-width:2}
-.ccard .row{position:absolute;left:27px;display:flex;align-items:center;gap:20px;font:400 22.5px/1 var(--sans);color:#1f1111;white-space:nowrap}
-.ccard .row svg.i{font-size:24px;color:#7b1020;stroke-width:2}
-.ccard .go{position:absolute;right:16px;bottom:var(--gob,12px);width:60px;height:60px;border-radius:50%;display:grid;place-items:center;color:#4a0a10;font-size:32px;
-  background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%);box-shadow:0 3px 7px rgba(0,0,0,.4),0 0 0 1px #fff2c4 inset,0 0 10px rgba(255,220,150,.6)}
-.ccard .go svg.i{stroke-width:2.6}
+/* картата на клиент (.ccard) – виж блока „КАРТА НА КЛИЕНТ = КАРТА НА ИМОТ“ след crm-v3-klienti.css */
 .cgrid .empty{grid-column:1/-1;padding:28px;border-radius:22px;text-align:center;font:400 23px/1.4 var(--sans);color:#5a0a12;
   background:rgba(255,248,242,.85);box-shadow:0 0 0 1px rgba(231,196,160,.6)}
 .cgrid .empty button{margin-top:12px;padding:10px 22px;border-radius:20px;font:700 21px/1 var(--sans);color:#fff;background:linear-gradient(180deg,#a3213a,#6a0a1d);box-shadow:0 0 0 1px #e6b866}
@@ -323,14 +311,6 @@ html.desk .ctop{width:100%}
 html.desk .flow{display:grid;grid-auto-flow:column;grid-template-rows:auto auto;grid-template-columns:1000px 1000px;column-gap:var(--G,24px);padding:16px 0 0 var(--xL,24px)}
 html.desk .cpanel{margin:0!important;width:1000px}
 html.desk .cgrid{padding:15px 8px 4px;height:var(--gh,420px);overflow-y:auto;align-content:start;scrollbar-width:thin;scrollbar-color:#c99a5a transparent}
-/* компютър: картите на клиентите са малко по-големи (~15%) – по-високи, по-едър текст, снимката расте пропорционално; телефонът не се променя */
-html.desk .ccard{height:300px!important;--gob:21px!important}
-html.desk .ccard .ph{width:272px}
-html.desk .ccard .nm{top:20px!important;left:30px;font-size:35px}
-html.desk .ccard .ph-n{top:78px!important;left:28px;font-size:31px;gap:14px}html.desk .ccard .ph-n svg.i{font-size:33px}
-html.desk .ccard .row{left:30px;font-size:25.5px;gap:22px}html.desk .ccard .row svg.i{font-size:27px}
-html.desk .ccard .row:nth-child(4){top:142px!important}html.desk .ccard .row:nth-child(5){top:190px!important}html.desk .ccard .row:nth-child(6){top:238px!important}
-html.desk .ccard .go{width:66px;height:66px;font-size:35px}
 html:not(.desk) .mbtn{width:32px;height:32px;font-size:17px}
 html.desk .mscroll{overflow:hidden}
 html.desk .mwin,html.desk .mwin.full{right:auto;bottom:auto;border-radius:26px;border-width:2px}
@@ -414,6 +394,76 @@ html.desk .mcv.tab .m-act{display:block}
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/><link rel="stylesheet" href="crm-premium.css"/>
 <link rel="stylesheet" href="crm-v3-klienti.css"/><link rel="stylesheet" href="crm-v3-head.css"/>
+<style id="kc-pc">
+/* ===== КАРТА НА КЛИЕНТ = КАРТА НА ИМОТ (09.11) =====
+   Същата карта като article.pc на страница Имоти: платно 973×878, снимка през цялата карта, преливаща в бяло под текста,
+   бяла стъклена рамка с топъл глоу, същите шрифтове и размери; умалява се със zoom като на Имоти. */
+#canvas .cgrid .ccard{position:relative;display:block;flex-shrink:0;width:973px;height:878px;padding:0;border-radius:46px;overflow:visible;text-align:left;cursor:pointer;font-family:var(--sans);color:#1b2a4e;
+  background:linear-gradient(160deg,rgba(255,255,255,.97) 0%,rgba(255,249,243,.8) 40%,rgba(255,246,238,.84) 66%,rgba(255,255,255,.97) 100%);
+  border:1.5px solid rgba(255,255,255,.98);
+  box-shadow:0 0 0 1px rgba(214,168,124,.34),0 18px 36px -6px rgba(105,38,20,.26),0 4px 12px rgba(105,38,20,.1),0 0 26px rgba(255,236,214,.85),inset 0 0 18px rgba(255,255,255,.95),inset 0 2px 1px #fff}
+#canvas .cgrid .ccard::after{display:none}
+#canvas .cgrid .ccard:focus-visible{outline:4px solid #d9a95a;outline-offset:5px}
+#canvas .ccard .pp{position:absolute;inset:9px;border-radius:37px;overflow:hidden;isolation:isolate;background:#e8dbcf;box-shadow:0 0 0 1px rgba(190,150,115,.22)}
+#canvas .ccard .pp img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;opacity:1;filter:saturate(1.06) contrast(1.03);transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+@media (hover:hover){#canvas .ccard:hover .pp img{transform:scale(1.06)}}
+#canvas .ccard .pp:after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,0) 33%,rgba(255,255,255,.17) 41%,rgba(255,255,255,.3) 46%,rgba(255,255,255,.44) 52%,rgba(255,255,255,.59) 57%,rgba(255,255,255,.68) 62%,rgba(255,255,255,.79) 68%,rgba(255,255,255,.88) 73%,rgba(255,255,255,.93) 77%,rgba(255,255,255,.95) 86%,rgba(255,255,255,.975) 100%);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 0 26px rgba(255,255,255,.42)}
+/* К# – бяло матово стъкло, винен текст (като „ID: P-1001“) */
+#canvas .ccard .pid{position:absolute;left:40px;top:32px;z-index:2;max-width:52%;height:82px;padding:0 27px;border-radius:23px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font:700 33px/79px var(--sans);color:#7b1020;letter-spacing:.2px;
+  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(244,241,243,.86));-webkit-backdrop-filter:blur(12px) saturate(1.3);backdrop-filter:blur(12px) saturate(1.3);
+  border:1.5px solid rgba(255,255,255,.95);box-shadow:0 6px 16px rgba(30,10,20,.22),0 1px 3px rgba(30,10,20,.16),inset 0 1px 0 #fff,inset 0 -3px 7px rgba(200,190,196,.35)}
+/* статус на клиента: Активен = зелено стъкло; Потенциален = злато; В процес = вино; Неактивен = сиво (същите стилове като статусите на имотите) */
+#canvas .ccard .st{position:absolute;right:54px;top:32px;z-index:2;max-width:44%;height:78px;padding:0 26px;border-radius:22px;display:flex;align-items:center;gap:12px;white-space:nowrap;overflow:hidden;
+  font:700 30px/1 var(--sans);color:#fff;text-shadow:0 1px 2px rgba(60,0,15,.45);
+  background:linear-gradient(160deg,#55cc74 0%,#279a4b 50%,#14662f 100%);border:2.5px solid rgba(214,255,224,.85);
+  box-shadow:0 6px 16px rgba(10,70,30,.32),0 0 14px rgba(60,190,100,.32),inset 0 2px 2px rgba(220,255,230,.5),inset 0 -3px 7px rgba(0,40,15,.3)}
+#canvas .ccard .st i{display:block;width:18px;height:18px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.75);background:radial-gradient(circle at 35% 30%,#fff 0,#d9ffe2 45%,#7fe39a 100%)}
+#canvas .ccard .st.sold{background:linear-gradient(160deg,#ee4762 0%,#c81f3e 50%,#930f29 100%);border-color:rgba(255,216,222,.88);
+  box-shadow:0 6px 16px rgba(150,10,35,.4),0 0 20px rgba(235,55,85,.5),inset 0 2px 2px rgba(255,210,220,.55),inset 0 -3px 7px rgba(80,0,15,.3)}
+#canvas .ccard .st.sold i{background:radial-gradient(circle at 35% 30%,#fff 0,#ffd0d8 45%,#ff8fa2 100%)}
+#canvas .ccard .st.res{color:#4a3000;text-shadow:0 1px 0 rgba(255,255,255,.6);background:linear-gradient(180deg,rgba(255,245,216,.96),rgba(247,214,140,.94));border-color:rgba(255,255,255,.95);
+  box-shadow:0 6px 16px rgba(120,80,10,.26),0 0 14px rgba(255,200,100,.45),inset 0 2px 1px #fff,inset 0 -3px 7px rgba(200,140,40,.3)}
+#canvas .ccard .st.res i{background:radial-gradient(circle at 35% 30%,#ffd36a,#b8780e 70%)}
+#canvas .ccard .st.drf{color:#4a3a3a;text-shadow:0 1px 0 rgba(255,255,255,.6);background:linear-gradient(180deg,rgba(251,247,245,.95),rgba(229,219,213,.9));border-color:rgba(255,255,255,.95);
+  box-shadow:0 6px 16px rgba(40,20,20,.2),inset 0 2px 1px #fff,inset 0 -3px 7px rgba(150,120,110,.25)}
+#canvas .ccard .st.drf i{background:radial-gradient(circle at 35% 30%,#c9bcb5,#7d6e68 70%)}
+/* име, място, вид имот / стаи / бюджет, телефон – същите шрифтове и отстояния като заглавие / място / площ / цена на имота */
+#canvas .ccard .bd{position:absolute;left:40px;right:40px;bottom:46px;z-index:2;display:flex;flex-direction:column;align-items:flex-start}
+#canvas .ccard .tt{max-width:calc(100% + 20px);margin:0 -10px;padding:4px 10px;font:700 64px/1.05 var(--sans);color:#1b2a4e;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;
+  text-shadow:0 0 3px rgba(255,255,255,.85),0 0 16px rgba(255,255,255,.85),0 0 34px rgba(255,255,255,.55)}
+#canvas .ccard .lc{margin-top:28px;max-width:100%;display:flex;align-items:center;gap:14px;font:700 39px/44px var(--sans);color:#1b2a4e;text-shadow:0 0 12px rgba(255,255,255,.85)}
+#canvas .ccard .lc span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#canvas .ccard .lc svg.i{font-size:44px;color:#7b1020;stroke-width:1.9;margin-left:-3px}
+#canvas .ccard .sp{margin-top:30px;max-width:100%;display:flex;align-items:center;gap:34px;overflow:hidden;font:700 36px/44px var(--sans);color:#1b2a4e;text-shadow:0 0 12px rgba(255,255,255,.85)}
+#canvas .ccard .sp>span{display:flex;align-items:center;gap:15px;min-width:0;white-space:nowrap}
+#canvas .ccard .sp .v{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#canvas .ccard .sp svg.i{font-size:44px;color:#7b1020;stroke-width:1.9;margin-left:-3px}
+#canvas .ccard .ft{margin-top:58px;min-height:56px;max-width:calc(100% - 280px);display:flex;align-items:center}
+#canvas .ccard .pr{min-width:0;display:flex;align-items:center;gap:14px;font:700 56px/1 var(--sans);color:#7b1020;white-space:nowrap;text-shadow:0 0 14px rgba(255,255,255,.9)}
+#canvas .ccard .pr span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#canvas .ccard .pr svg.i{font-size:46px;stroke-width:2.2}
+/* долу вдясно: Купува / Наема + кръгла стрелка (на мястото на „Продажба“ / снимки / ⋮) */
+#canvas .ccard .ex{position:absolute;right:40px;bottom:44px;z-index:3;display:flex;align-items:center;gap:12px}
+#canvas .ccard .tg,#canvas .ccard .mn{background:linear-gradient(180deg,rgba(255,255,255,.93),rgba(246,240,242,.82));
+  border:1.5px solid rgba(255,255,255,.95);box-shadow:0 5px 14px rgba(40,12,22,.18),0 0 0 1px rgba(214,168,124,.22),inset 0 1px 0 #fff,inset 0 -2px 5px rgba(200,190,196,.3)}
+#canvas .ccard .tg{height:60px;padding:0 21px 0 17px;border-radius:30px;display:flex;align-items:center;gap:10px;white-space:nowrap;font:700 25px/1 var(--sans);color:#4a1420}
+#canvas .ccard .tg svg.i{font-size:29px;color:#7b1020;stroke-width:2}
+#canvas .ccard .mn{position:relative;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;font-size:32px;color:#7b1020}
+#canvas .ccard .mn svg.i{stroke-width:2.6}
+/* телефон: картите една под друга, умалени като на Имоти (zoom .97) */
+html:not(.desk) #canvas .cgrid{grid-template-columns:minmax(0,1fr);justify-items:center;gap:30px;padding:16px 0 0}
+html:not(.desk) #canvas .cgrid .ccard{zoom:.97}
+/* компютър: във всяко пано (1000 px) – две карти на ред с 30 px разстояние; място за глоу отстрани */
+html.desk #canvas .cgrid{grid-template-columns:repeat(2,minmax(0,1fr));justify-items:start;gap:30px;margin:0 -12px;padding:15px 18px 18px}
+html.desk #canvas .cgrid .ccard{zoom:.492}
+html.desk #canvas .ccard .tg{height:66px;font-size:28px;border-radius:33px}
+html.desk #canvas .ccard .mn{width:66px;height:66px}
+#canvas .cgrid .empty{justify-self:stretch}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -466,6 +516,8 @@ html.desk .mcv.tab .m-act{display:block}
     <symbol id="list-filter" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></symbol>
     <symbol id="user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
     <symbol id="arrow-r" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+    <symbol id="bed-double" viewBox="0 0 24 24"> <path d="M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8"/> <path d="M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/> <path d="M12 4v6"/> <path d="M2 18h20"/></symbol>
+    <symbol id="key-round" viewBox="0 0 24 24"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
 <symbol id="star" viewBox="0 0 24 24"> <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol>
 <symbol id="shield" viewBox="0 0 24 24"> <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
 <symbol id="lock" viewBox="0 0 24 24"> <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/> <path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
@@ -830,6 +882,27 @@ html.desk .mcv.tab .m-act{display:block}
   /* Вариант 3: всяка карта на клиент – различна HD снимка, която прелива отдясно (стабилна за клиента по К#) */
   var CPICS=['ph18','ph09','ph17','ph13','ph07','ph12','ph11','ph01','ph15','ph06','ph16','ph08','ph03','ph04','ph20','ph10'];
   function cardPic(c){var n=parseInt(c.num,10);if(isNaN(n))n=c.order||0;return img('nd/'+CPICS[Math.abs(n)%CPICS.length]+'.jpg')}
+  /* картата на клиент в списъка – същата като картата на имот (Имоти): снимка на цялата карта, преливаща в бяло под текста,
+     К# горе вляво, статус горе вдясно, име, място, вид имот / стаи / бюджет, телефонът на мястото на цената, Купува/Наема долу вдясно (09.11) */
+  var CST={'Активен':'','Потенциален':'res','В процес':'sold','Неактивен':'drf'};
+  function cardHtml(c){
+    var rent=c.cat==='rent',has=function(v){return v!=null&&String(v).trim()!==''&&v!=='—'&&v!=='-'},
+        loc=[c.city,c.hood].filter(has).join(', '),stt=has(c.status)?c.status:(rent?'Наем':'Продажба'),
+        cid=has(c.num)?'К#'+c.num:String(c.id||'').slice(0,8),rooms=parseInt(c.rooms,10);
+    var spec=function(icon,v){return '<span>'+ic(icon)+'<span class="v">'+esc(v)+'</span></span>'};
+    var specs=(has(c.type)?spec('house',c.type):'')+(rooms>0?spec('bed-double',rooms+(rooms===1?' стая':' стаи')):'')+
+              (c.budget!=null&&!isNaN(c.budget)?spec('coins',budget(c)):'');
+    return '<button class="ccard" data-id="'+esc(c.id)+'" aria-label="Отвори картата на '+esc(c.name)+'">'+
+      '<span class="pp"><img src="'+esc(c.photo||cardPic(c))+'" alt="" loading="lazy" decoding="async"></span>'+
+      '<span class="pid">'+esc(cid)+'</span>'+
+      '<span class="st '+(CST[stt]||'')+'"><i></i>'+esc(stt)+'</span>'+
+      '<span class="bd">'+
+        '<span class="tt">'+esc(c.name||'Без име')+'</span>'+
+        '<span class="lc">'+ic('pin')+'<span>'+esc(loc||'—')+'</span></span>'+
+        (specs?'<span class="sp">'+specs+'</span>':'')+
+        '<span class="ft"><span class="pr">'+ic('phone')+'<span>'+esc(has(c.phone)?c.phone:'—')+'</span></span></span></span>'+
+      '<span class="ex"><span class="tg">'+ic(rent?'key-round':'tag')+(rent?'Наема':'Купува')+'</span>'+
+        '<span class="mn" aria-hidden="true">'+ic('arrow-r')+'</span></span></button>'}
   var sorts=[['new','Най-нови'],['name','Име (А–Я)'],['asc','Бюджет: възходящо'],['desc','Бюджет: низходящо']];
   function fillSelect(sel,opts,val){sel.innerHTML=opts.map(function(o){var v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;return '<option value="'+esc(v)+'"'+(v===val?' selected':'')+'>'+esc(t)+'</option>'}).join('')}
   function showVal(sel){var l=sel.closest('.fld');l.querySelector('.val').textContent=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:''}
@@ -861,17 +934,8 @@ html.desk .mcv.tab .m-act{display:block}
         else if(s&&c.name.toLocaleLowerCase('bg').indexOf(s)<0&&!(digits&&c.phone.replace(/\D/g,'').indexOf(digits)>=0)&&!(digits&&String(c.num)===digits&&digits.length<4))return false;
         return true});
       list.sort(function(a,b){return sort.value==='name'?a.name.localeCompare(b.name,'bg'):sort.value==='asc'?a.budget-b.budget:sort.value==='desc'?b.budget-a.budget:a.days-b.days||a.order-b.order});
-      var g=geo[cat];
       var cn=document.getElementById('cnt-'+cat);if(cn)cn.textContent=window.__ndClientsLoaded?'('+list.length+')':'';
-      grid.innerHTML=list.length?list.map(function(c){
-        return '<button class="ccard" data-id="'+c.id+'" style="--h:'+g.h+'px;--gob:'+g.gob+'px" aria-label="Отвори картата на '+esc(c.name)+'">'+
-          '<span class="ph" style="background-image:url('+(c.photo||cardPic(c))+')"></span>'+
-          '<span class="nm" style="top:'+g.name+'px">'+(c.num?'<span class="knum">К#'+esc(c.num)+'</span>':'')+esc(c.name)+'</span>'+
-          '<span class="ph-n" style="top:'+g.phone+'px">'+ic('phone')+esc(c.phone)+'</span>'+
-          '<span class="row" style="top:'+g.rows[0]+'px">'+ic('house')+esc(c.type)+'</span>'+
-          '<span class="row" style="top:'+g.rows[1]+'px">'+ic('pin')+esc([c.city,c.hood].filter(function(x){return x&&String(x).trim()}).join(', '))+'</span>'+
-          '<span class="row" style="top:'+g.rows[2]+'px">'+ic('coins')+esc(budget(c))+'</span>'+
-          '<span class="go">'+ic('arrow-r')+'</span></button>'}).join('')
+      grid.innerHTML=list.length?list.map(cardHtml).join('')
         :(window.__ndClientsLoaded?'<div class="empty">Няма клиенти по избраните критерии.<br><button type="button" data-reset>Изчисти филтрите</button></div>':'<div class="empty">Зареждане на клиентите…</div>');
       var r=grid.querySelector('[data-reset]');
       if(r)r.addEventListener('click',function(){q.value='';city.value=ALLC;hoods();type.value=ALLT;sort.value='new';[city,type,sort].forEach(showVal);render()});

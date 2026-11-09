@@ -56,7 +56,7 @@
     ".nda-x{flex:none;width:38px;height:38px;border-radius:50%;border:1.5px solid #edc47a;background:radial-gradient(circle at 35% 28%,#fffbe6,#f6d68c 55%,#e3b25e);color:#6b0a1c;display:grid;place-items:center;cursor:pointer;padding:0;box-shadow:inset 0 -2px 4px rgba(150,85,10,.25),inset 0 1px 2px #fff,0 0 12px rgba(255,214,150,.6);transition:transform .25s,box-shadow .25s}.nda-x svg{width:18px;height:18px}" +
     ".nda-x:hover{transform:rotate(90deg);box-shadow:inset 0 -2px 4px rgba(150,85,10,.25),inset 0 1px 2px #fff,0 0 18px rgba(255,214,150,.9)}.nda-gear:hover{box-shadow:inset 0 1px 1px rgba(255,255,255,.3),0 0 18px rgba(243,207,134,.8)}" +
     ".nda-menu{position:absolute;left:72px;top:80px;z-index:3;min-width:260px;max-width:calc(100% - 84px);padding:8px;border-radius:20px;border:1.5px solid transparent;background:linear-gradient(180deg,rgba(255,252,247,.97),rgba(251,238,224,.96)) padding-box,linear-gradient(140deg,#ffe9a3,#e3b25e 40%,#a12139) border-box;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 0 22px rgba(227,178,94,.5),0 18px 36px -10px rgba(40,4,12,.45);animation:ndaPop .22s ease-out}" +
-    ".nda-menu[hidden]{display:none}.nda-menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:12px;background:transparent;color:#4e0912;font:700 16px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;cursor:pointer}" +
+    ".nda-menu[hidden]{display:none}.nda-menu .g{font:700 12px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#8a6a3a;padding:8px 12px 4px;text-transform:uppercase;letter-spacing:.04em}.nda-menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:12px;background:transparent;color:#4e0912;font:700 16px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;cursor:pointer}" +
     ".nda-menu button small{display:block;font-weight:400;font-size:12.5px;color:#6b4a40;margin-top:2px}.nda-menu button:hover,.nda-case-i:hover{background:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(227,178,94,.45)}.nda-menu button.on{background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1px rgba(227,178,94,.7),0 0 10px rgba(255,214,150,.6)}" +
     ".nda-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 18px;display:flex;flex-direction:column;gap:12px;background:radial-gradient(80% 45% at 0% 0%,rgba(243,207,134,.16),rgba(243,207,134,0) 70%),radial-gradient(70% 40% at 100% 100%,rgba(161,33,57,.07),rgba(161,33,57,0) 70%);scrollbar-width:thin;scrollbar-color:rgba(201,138,34,.55) transparent}" +
     ".nda-list::-webkit-scrollbar,.nda-sb::-webkit-scrollbar,.nda-case-pop::-webkit-scrollbar{width:8px}.nda-list::-webkit-scrollbar-thumb,.nda-sb::-webkit-scrollbar-thumb,.nda-case-pop::-webkit-scrollbar-thumb{border-radius:8px;border:2px solid transparent;background:linear-gradient(180deg,#f3cf86,#c98a22) padding-box}.nda-sb,.nda-case-pop{scrollbar-width:thin;scrollbar-color:rgba(201,138,34,.55) transparent}" +
@@ -168,7 +168,12 @@
     { id: "male2", name: "Мъжки – енергичен", note: "по-бодър и бърз", g: "Puck" }
   ];
   var STYLES = [["calm", "Спокоен и топъл"], ["brief", "Кратък и делови"], ["slow", "Бавен и ясен (за диктовка на клиент)"]];
-  var N8N_OPT = { id: "n8n", name: "Агент n8n", note: "вашият агент от n8n (моделите са вързани вътре в n8n)", provider: "n8n", vision: true, pdf: true, sub: [["", "По подразбиране (както е в n8n)"], ["gpt", "ChatGPT"], ["claude", "Claude"], ["ollama", "Ollama (локален)"], ["gemini", "Gemini"]] };
+  /* моделите на агента в n8n – всички с едни и същи инструменти (crm_tools); Groq е постоянният по подразбиране.
+     id "groq-llama" остава за съвместимост: Groq спря Llama 4 на 17.07.2026, в n8n на негово място е qwen/qwen3.8-27b */
+  var N8N_MODELS = [["groq-llama", "Groq Qwen 3.8", "безплатен · по подразбиране"], ["groq", "Groq GPT-OSS 120B", "безплатен"], ["gemini", "Gemini", "безплатен"], ["gpt", "ChatGPT", "GPT от n8n"], ["claude", "Claude", "Anthropic"]];
+  function n8nModelId() { var v = prefs.n8nModel; return N8N_MODELS.some(function (m) { return m[0] === v; }) ? v : "groq-llama"; }
+  function n8nModelName() { var id = n8nModelId(); return N8N_MODELS.filter(function (m) { return m[0] === id; })[0][1]; }
+  var N8N_OPT = { id: "n8n", name: "Агент n8n", note: "вашият агент от n8n – еднакви инструменти за всички модели", provider: "n8n", vision: true, pdf: true, sub: N8N_MODELS.map(function (m) { return [m[0], m[1] + " (" + m[2] + ")"]; }) };
   var models = null;
   function loadModels() {
     if (models) return Promise.resolve(models);
@@ -192,13 +197,16 @@
         VOICES.map(function (v) { return '<button type="button" class="nda-opt' + (prefs.voice === v.id ? " on" : "") + '" data-voice="' + v.id + '"><i></i><span class="d">' + esc(v.name) + "<small>" + esc(v.note) + '</small></span><span class="pl" data-play="' + v.id + '" title="Чуй">' + I.spk + "</span></button>"; }).join("") + "</div>" +
         '<div class="nda-sec"><h4>Стил на говорене</h4>' + STYLES.map(function (x) { return '<button type="button" class="nda-opt' + (prefs.style === x[0] ? " on" : "") + '" data-style="' + x[0] + '"><i></i><span class="d">' + x[1] + "</span></button>"; }).join("") + "</div>" +
         '<div class="nda-sec"><h4>Кога да говори</h4>' + [["voice", "Само след гласов въпрос"], ["always", "Чете всеки отговор на глас"], ["never", "Никога – само бутона ▶"]].map(function (x) { return '<button type="button" class="nda-opt' + (prefs.autoSpeak === x[0] ? " on" : "") + '" data-auto="' + x[0] + '"><i></i><span class="d">' + x[1] + "</span></button>"; }).join("") + "</div>";
+    } else if (setTab === "model" && inCrmPath()) {
+      html += '<div class="nda-sec"><h4>Модел на Тед</h4><p>Активен: <b>' + esc(n8nModelName()) + "</b>. Всички модели работят с едни и същи инструменти – клиенти, имоти, огледи, имейли с документи, преводи, Facebook. Сменя се и от менюто горе в чата.</p>" +
+        N8N_MODELS.map(function (m) { return '<button type="button" class="nda-opt' + (n8nModelId() === m[0] ? " on" : "") + '" data-n8nm="' + m[0] + '"><i></i><span class="d">' + esc(m[1]) + "<small>" + esc(m[2]) + "</small></span><em>" + (/^groq/.test(m[0]) ? "Groq" : m[0] === "gemini" ? "Google" : m[0] === "gpt" ? "OpenAI" : "Anthropic") + "</em></button>"; }).join("") + "</div>";
     } else if (setTab === "model") {
       var cur = curModel();
       html += '<div class="nda-sec"><h4>Модел на изкуствения интелект</h4><p>Активен: <b>' + esc(cur ? cur.name : "—") + "</b>. По подразбиране е личният безплатен агент – за клиенти, имоти, календар и качване. За тежки задачи изберете по-силен модел тук; изборът се помни.</p>" +
         (models || []).map(function (m) {
           var on = cur && cur.id === m.id;
           return '<button type="button" class="nda-opt' + (on ? " on" : "") + '" data-m="' + esc(m.id) + '"><i></i><span class="d">' + esc(m.name) + "<small>" + esc(m.note || "") + (m.pdf ? "" : " · без PDF") + (m.vision ? "" : " · без снимки") + "</small></span><em>" + (PROV[m.provider] || m.provider) + "</em></button>" +
-            (m.sub && on ? '<div class="nda-sub">' + m.sub.map(function (x) { return '<button type="button" class="nda-opt' + (prefs.n8nModel === x[0] ? " on" : "") + '" data-n8nm="' + esc(x[0]) + '"><i></i><span class="d">' + esc(x[1]) + "</span></button>"; }).join("") + "</div>" : "");
+            (m.sub && on ? '<div class="nda-sub">' + m.sub.map(function (x) { return '<button type="button" class="nda-opt' + (n8nModelId() === x[0] ? " on" : "") + '" data-n8nm="' + esc(x[0]) + '"><i></i><span class="d">' + esc(x[1]) + "</span></button>"; }).join("") + "</div>" : "");
         }).join("") + "</div>";
     } else if (setTab === "chat") {
       html += '<div class="nda-sec"><h4>Чат</h4>' + sw("big", "По-едри букви", "по-четливо на телефон") + sw("enterSend", "Enter изпраща", "Shift+Enter – нов ред") + sw("showActions", "Показвай какво е направил", "списък с изпълнените действия под отговора") + sw("keepHist", "Помни разговора между страниците", "историята се пази за сесията") + "</div>" +
@@ -217,7 +225,7 @@
       if ((t = e.target.closest("[data-voice]"))) { prefs.voice = t.getAttribute("data-voice"); savePrefs(); renderSettings(); return; }
       if ((t = e.target.closest("[data-style]"))) { prefs.style = t.getAttribute("data-style"); savePrefs(); renderSettings(); return; }
       if ((t = e.target.closest("[data-auto]"))) { prefs.autoSpeak = t.getAttribute("data-auto"); savePrefs(); renderSettings(); return; }
-      if ((t = e.target.closest("[data-n8nm]"))) { prefs.n8nModel = t.getAttribute("data-n8nm"); savePrefs(); renderSettings(); return; }
+      if ((t = e.target.closest("[data-n8nm]"))) { pickN8nModel(t.getAttribute("data-n8nm")); renderSettings(); return; }
       if ((t = e.target.closest("[data-m]"))) { setModel(t.getAttribute("data-m"), true); renderSettings(); return; }
       if ((t = e.target.closest("[data-sw]"))) { var k = t.getAttribute("data-sw"); prefs[k] = !prefs[k]; savePrefs(); applyPrefs(); renderSettings(); return; }
       if (e.target.closest("[data-clear]")) { hist = []; save(); try { N8N_SID = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2); localStorage.setItem("nd-ted-n8n-sid", N8N_SID); } catch (x) {} list.innerHTML = ""; sb.hidden = true; win.querySelector(".nda-gear").classList.remove("on"); add("bot", "Разговорът е изчистен."); return; }
@@ -322,7 +330,7 @@
     }).then(function (x) {
       if (x && x.done) return x;
       var att = x[2]; timer = setTimeout(function () { ctrl.abort(); }, att.length ? 180000 : 150000);
-      return fetch(N8N_URL || N8N_DEFAULT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: x[1], sessionId: N8N_SID, accessToken: x[0] || null, toolsUrl: location.origin + "/api/tools", model: prefs.n8nModel || undefined, mode: extra.mode || undefined, case_id: extra.case_id || undefined, page: document.title, attachments: att.length ? att : undefined }), signal: ctrl.signal });
+      return fetch(N8N_URL || N8N_DEFAULT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: x[1], sessionId: N8N_SID, accessToken: x[0] || null, toolsUrl: location.origin + "/api/tools", model: n8nModelId(), mode: extra.mode || undefined, case_id: extra.case_id || undefined, page: document.title, attachments: att.length ? att : undefined }), signal: ctrl.signal });
     }).then(function (r) { if (r && r.done) return r; if (!r.ok) throw new Error("агентът върна HTTP " + r.status); return r.json(); })
       .then(function (d) {
         if (d && d.done) return d.done;
@@ -685,10 +693,10 @@
   skills.push(chatSkill);
   /* „n8n Agent“: самият агент от n8n (същият разговорен прозорец; отговаря агентът в n8n). Иначе името остава „Тед“. */
   var n8nSkill = Object.create(chatSkill);
-  n8nSkill.id = "n8n"; n8nSkill.name = "Чат с n8n Agent"; n8nSkill.sub = "Самият агент от n8n – реалните данни в CRM"; n8nSkill.placeholder = "Пишете на n8n Agent…"; n8nSkill.crmOnly = true; /* само в CRM (за служители), не и в публичния сайт */
+  n8nSkill.id = "n8n"; n8nSkill.name = "Чат с n8n Agent"; n8nSkill.sub = "Самият агент от n8n – реалните данни в CRM"; n8nSkill.placeholder = "Пишете на Тед…"; n8nSkill.crmOnly = true; /* само в CRM (за служители), не и в публичния сайт */
   n8nSkill.intro0 = function (api) {
     if (hist.length) hist.forEach(function (m) { api.add(m.role === "user" ? "u" : "a", fmt(m.text)); });
-    else api.add("a", "Здравейте! Аз съм <b>n8n Agent</b> – агентът на Имоти Надежда в n8n.\nРаботя с реалните данни в CRM: клиенти, имоти, огледи, публикуване във Facebook, запис на клиент от Чат.\nПриемам текст, снимки, PDF и други файлове (📎) и гласови съобщения (🎤).");
+    else api.add("a", "Здравейте! Аз съм <b>Тед</b> – асистентът на Имоти Надежда.\nМодел: <b>" + esc(n8nModelName()) + "</b> (сменя се от менюто горе). Всички модели могат едно и също: клиенти, имоти, огледи, имейли с документи, преводи, публикуване във Facebook, запис на клиент от Чат.\nПриемам текст, снимки, PDF и други файлове (📎) и гласови съобщения (🎤).");
   };
   skills.push(n8nSkill);
   /* експертните роли са вградени в „Чат с Тед“ (бутон „Роля“ до казуса); без избор Тед разпознава ролята от въпроса (api/_ted-modes.js) */
@@ -710,7 +718,7 @@
   var embedded = [];
   function openPanel(s) {
     if (!s) return;
-    if (skill !== chatSkill && skill !== n8nSkill) setSkill(chatSkill); /* в n8n чата панелите се отварят на място */
+    if (skill !== chatSkill && skill !== n8nSkill) setSkill(homeSkill()); /* в n8n чата панелите се отварят на място */
     if (s.open) try { s.open(api); } catch (e) {}
     s.intro(api);
     if (s.footer) { var f = document.createElement("div"); f.className = "nda-emb"; f.innerHTML = s.footer(); list.appendChild(f); if (s.bind) s.bind(api, f); }
@@ -744,7 +752,7 @@
   function guessProv(e) { var d = String(e || "").split("@")[1] || ""; return /imotinadezhda\.bg$/i.test(d) ? "domain" : /abv\.bg$/i.test(d) ? "abv" : /gmail|googlemail/i.test(d) ? "gmail" : /(^|\.)mail\.bg$/i.test(d) ? "mailbg" : /outlook|hotmail|live\.|msn\./i.test(d) ? "outlook" : /yahoo/i.test(d) ? "yahoo" : /icloud|me\.com|mac\.com/i.test(d) ? "icloud" : ""; }
   function mailApi(body) { return token().then(function (t) { return fetch("/api/email", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + t }, body: JSON.stringify(body) }); }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); }).catch(function (e) { return { ok: false, error: "Няма връзка" }; }); }
   function mailPanel() {
-    if (skill !== chatSkill && skill !== n8nSkill) setSkill(chatSkill);
+    if (skill !== chatSkill && skill !== n8nSkill) setSkill(homeSkill());
     var d = document.createElement("div"); d.className = "nda-pnl";
     d.innerHTML = '<h5>✉️ Моята поща за изпращане</h5><div class="st">Проверка…</div>' +
       '<label>Имейл адрес</label><input type="email" data-k="email" placeholder="ime@abv.bg" autocomplete="email">' +
@@ -781,12 +789,29 @@
     };
   }
   var api = { add: function (r, h, c) { return add(r, h, c); }, esc: esc, list: function () { return list; } };
+  function inCrmPath() { return /\/mobile\/crm\//.test(location.pathname); }
+  function homeSkill() { return inCrmPath() ? n8nSkill : chatSkill; } /* в CRM чатът е агентът в n8n с избрания модел (Groq Llama 4 по подразбиране) */
+  function skillLabel(s) { return s === n8nSkill && inCrmPath() ? n8nModelName() : s.name; }
+  function pickN8nModel(id) {
+    prefs.n8nModel = id; savePrefs();
+    if (!win) return;
+    if (skill !== n8nSkill) { setSkill(n8nSkill); return; }
+    win.querySelector(".nda-skill span").textContent = skillLabel(skill);
+    add("a", "Модел: <b>" + esc(n8nModelName()) + "</b> – същите инструменти и възможности.");
+  }
   function setSkill(s) {
-    skill = s; win.querySelector(".nda-skill span").textContent = s.name; list.innerHTML = "";
-    var tb = win.querySelector(".nda-t b"); if (tb) tb.textContent = s.id === "n8n" ? "n8n Agent" : "Тед Асистент";
+    skill = s; win.querySelector(".nda-skill span").textContent = skillLabel(s); list.innerHTML = "";
+    var tb = win.querySelector(".nda-t b"); if (tb) tb.textContent = "Тед Асистент";
     foot.innerHTML = s.footer ? s.footer() : ""; s.intro(api); if (s.bind) s.bind(api, foot);
   }
-  function renderMenu() { var inCrm = /\/mobile\/crm\//.test(location.pathname); menu.innerHTML = skills.map(function (s, i) { if (s.crmOnly && !inCrm) return ""; return '<button type="button" role="option" data-i="' + i + '" class="' + (s === skill ? "on" : "") + '">' + esc(s.name) + "<small>" + esc(s.sub || "") + "</small></button>"; }).join(""); }
+  function renderMenu() {
+    var inCrm = inCrmPath();
+    var item = function (s, i) { if (s.crmOnly && !inCrm) return ""; if (inCrm && (s === chatSkill || s === n8nSkill)) return ""; return '<button type="button" role="option" data-i="' + i + '" class="' + (s === skill ? "on" : "") + '">' + esc(s.name) + "<small>" + esc(s.sub || "") + "</small></button>"; };
+    if (!inCrm) { menu.innerHTML = skills.map(item).join(""); return; }
+    /* в CRM: горе петте модела (еднакви инструменти), отдолу останалите умения (AI Видео на имот…) */
+    var rest = skills.map(item).join("");
+    menu.innerHTML = '<div class="g">Модел</div>' + N8N_MODELS.map(function (m) { return '<button type="button" role="option" data-nm="' + m[0] + '" class="' + (skill === n8nSkill && n8nModelId() === m[0] ? "on" : "") + '">' + esc(m[1]) + "<small>" + esc(m[2]) + "</small></button>"; }).join("") + (rest ? '<div class="g">Умения</div>' + rest : "");
+  }
   function boot() {
     if (booted) return; booted = true;
     var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -802,14 +827,14 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) { var vw = win.querySelector(".nda-view"); if (vw) vw.remove(); } });
     var sk = win.querySelector(".nda-skill"), gear = win.querySelector(".nda-gear"), setBox = win.querySelector(".nda-set");
     sk.onclick = function (e) { e.stopPropagation(); renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
-    menu.onclick = function (e) { var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
+    menu.onclick = function (e) { var nm = e.target.closest("[data-nm]"); if (nm) { menu.hidden = true; pickN8nModel(nm.getAttribute("data-nm")); return; } var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
     win.addEventListener("click", function (e) {
       if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target)) menu.hidden = true;
       var pop = foot.querySelector(".nda-case-pop"); if (pop && !pop.hidden && !pop.contains(e.target) && !e.target.closest(".nda-case-btn,.att")) pop.hidden = true;
     });
     gear.onclick = function (e) { e.stopPropagation(); if (!setBox.hidden) { setBox.hidden = true; gear.classList.remove("on"); return; } loadModels().then(function () { renderSettings(); setBox.hidden = false; gear.classList.add("on"); }); };
     applyPrefs();
-    fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(skills[0]); if (skill.open) skill.open(api); inboxOpened(); };
+    fab.onclick = function () { win.hidden = false; fab.hidden = true; if (!skill) setSkill(homeSkill()); if (skill.open) skill.open(api); inboxOpened(); };
     win.querySelector(".nda-x").onclick = function () { win.hidden = true; fab.hidden = false; };
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !win.hidden) { win.hidden = true; fab.hidden = false; } });
     if (/\/mobile\/crm\//.test(location.pathname)) { fab.style.bottom = "calc(96px + env(safe-area-inset-bottom,0px))"; fab.style.zIndex = "45";
@@ -823,9 +848,9 @@
 
   window.NDAsh = {
     ask: ask, token: token, esc: esc, fmt: fmt,
-    addSkill: function (s, first) { if (s && s.embed) { embedded.push(s); embedded.sort(function (a, b) { return (a.order || 9) - (b.order || 9); }); return; } if (typeof first === "number") skills.splice(Math.min(first, skills.length), 0, s); else if (first) skills.unshift(s); else skills.push(s); if (booted && !skill) setSkill(skills[0]); },
+    addSkill: function (s, first) { if (s && s.embed) { embedded.push(s); embedded.sort(function (a, b) { return (a.order || 9) - (b.order || 9); }); return; } if (typeof first === "number") skills.splice(Math.min(first, skills.length), 0, s); else if (first) skills.unshift(s); else skills.push(s); if (booted && !skill) setSkill(homeSkill()); },
     open: function () { boot(); fab.click(); },
-    use: function (id) { boot(); var s = skills.filter(function (x) { return x.id === id; })[0]; var em = !s && (embedded.filter(function (x) { return x.id === id; })[0] || id === "mail"); if (!s && !em) return false; win.hidden = false; fab.hidden = true; if (s) setSkill(s); else { if (!skill) setSkill(chatSkill); openUi(id); } inboxOpened(); return true; },
+    use: function (id) { boot(); var s = skills.filter(function (x) { return x.id === id; })[0]; var em = !s && (embedded.filter(function (x) { return x.id === id; })[0] || id === "mail"); if (!s && !em) return false; win.hidden = false; fab.hidden = true; if (s) setSkill(s); else { if (!skill) setSkill(homeSkill()); openUi(id); } inboxOpened(); return true; },
     panel: function (id) { return this.use(id); },
     hide: function () { if (win && !win.hidden) { win.hidden = true; fab.hidden = false; } },
     show: function () { if (win) { win.hidden = false; fab.hidden = true; list.scrollTop = list.scrollHeight; inboxOpened(); } },
