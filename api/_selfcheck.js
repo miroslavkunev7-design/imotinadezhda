@@ -158,14 +158,14 @@ async function tinySpeech(phrase) {
   h.writeUInt32LE(rate, 24); h.writeUInt32LE(rate * 2, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write("data", 36); h.writeUInt32LE(pcm.length, 40);
   return { mime: "audio/wav", data: Buffer.concat([h, pcm]).toString("base64") };
 }
-async function gate(origin) {
+async function checkPublicGates(origin) {
   const tools = await fetch(origin + "/api/tools", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tool: "files.attach", input: { path: "ted-chat/selfcheck/x.png", client_id: "none" } }), signal: AbortSignal.timeout(15000) });
   const voice = await fetch(origin + "/api/transcribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mime: "audio/wav", data: "AA==" }), signal: AbortSignal.timeout(15000) });
   return { tools: tools.status, voice: voice.status };
 }
 
-async function run(res, body, requestId, gate) {
-  if (!gate || gate.authorized !== true) return send(res, 401, { ok: false, error: "Няма достъп." });
+async function run(res, body, requestId, authorizationGate) {
+  if (!authorizationGate || authorizationGate.authorized !== true) return send(res, 401, { ok: false, error: "Няма достъп." });
   const mon = MON.status();
   const signal = body && body.signal === false ? { sent: false, skipped: true } : await MON.report({ event: "automation_connectivity_test", errorCode: "WEBHOOK_OK", endpoint: "/api/assistant", requestId: requestId || "" }).catch(() => ({ sent: false }));
   const out = { ok: true, monitor: { enabled: mon.enabled, missing: mon.missing, sent: !!signal.sent, dedup: !!signal.dedup } };
@@ -191,21 +191,31 @@ async function run(res, body, requestId, gate) {
   const paths = [];
   try {
     const origin = "https://" + (process.env.VERCEL_PROJECT_PRODUCTION_URL || "imotinadezhda.bg");
-    out.gate = await gate(origin.indexOf("imotinadezhda.bg") >= 0 ? "https://imotinadezhda.bg" : origin);
+    out.gate = await checkPublicGates(origin.indexOf("imotinadezhda.bg") >= 0 ? "https://imotinadezhda.bg" : origin);
     await putObj(base + "/a.png", PNG, "image/png");
     await putObj(base + "/b.png", PNG, "image/png");
     paths.push(base + "/a.png", base + "/b.png");
     const voiceP = (async () => {
       const phrase = "Изчисли вноска сто хиляди евро за двайсет години при три процента";
       const speech = await tinySpeech(phrase).catch((e) => ({ error: scrub(e.message) }));
-      if (!speech || speech.error || !speech.data) return { finished: true, heard: false, command_ran: false, error: speech && speech.error ? speech.error : "няма аудио" };
+      if (!speech || speech.error || !speech.data) return { finished: true, heard: false, channel: "server_transcription", chat_agent: false, mortgage_tool: { called: false }, error: speech && speech.error ? speech.error : "няма аудио" };
       try {
         const text = await GEM.transcribe(speech, "Транскрибирай дословно на български. Върни само текста.", { budgetMs: 20000 });
         const heard = String(text || "").trim();
         const useful = /изчисл|вноск|евро|процент|хиляд|годин/i.test(heard);
-        const monthly = useful ? annuity(100000, 3, 20) : null;
-        return { finished: true, heard: !!heard, command_ran: !!(useful && monthly > 400 && monthly < 800), monthly: useful ? monthly : null };
-      } catch (e) { return { finished: true, heard: false, command_ran: false, error: scrub(e.message) }; }
+        let mortgage = null;
+        let mortgageError = null;
+        if (useful) {
+          try {
+            const toolsApi = require("./tools.js");
+            const tool = toolsApi.tools && toolsApi.tools["calc.mortgage"];
+            const parsed = tool && tool.input.safeParse({ principal: 100000, years: 20, annual_rate_pct: 3 });
+            if (!tool || !parsed || !parsed.success) mortgageError = "инструментът не се зареди";
+            else mortgage = await tool.run(null, parsed.data);
+          } catch (err) { mortgageError = scrub(err.message); }
+        }
+        return { finished: true, heard: !!heard, channel: "server_transcription", chat_agent: false, mortgage_tool: mortgage ? { called: true, monthly_payment: mortgage.monthly_payment, months: mortgage.months } : { called: false, error: mortgageError } };
+      } catch (e) { return { finished: true, heard: false, channel: "server_transcription", chat_agent: false, mortgage_tool: { called: false }, error: scrub(e.message) }; }
     })();
     const ctx = { sb: sb(), userId: null, user: { id: "selfcheck" }, token: key() };
     const seen = await TED.tools["analyze_image"].run(ctx, {
@@ -258,4 +268,4 @@ async function run(res, body, requestId, gate) {
   }
   return send(res, 200, out);
 }
-module.exports = { run, authorizeMonitor, sameSecret, annuity, scrub };
+module.exports = { run, authorizeMonitor, checkPublicGates, sameSecret, annuity, scrub };

@@ -26679,4 +26679,6 @@ async function handler(req, res) {
   manifest,
   tools
 });
-module.exports=module.exports.default;
+const __tedHandler = module.exports.default;
+__tedHandler.tools = module.exports.tools;
+module.exports = __tedHandler;

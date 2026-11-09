@@ -51,10 +51,26 @@ function resCapture() {
   await S.run(resClean, { action: "monitor", run: "cleanup" }, "anon", undefined);
   assert.strictEqual(resClean.out.statusCode, 401);
   assert.strictEqual(reports, reportsBefore);
+  assert.strictEqual(typeof S.checkPublicGates, "function");
+  const prevRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-only-not-a-secret";
+  global.fetch = async (url) => {
+    const u = String(url);
+    const status = /\/api\/(tools|transcribe)/.test(u) ? 401 : 200;
+    return { ok: status === 200, status, headers: { get: () => "" }, json: async () => [], text: async () => "", arrayBuffer: async () => new ArrayBuffer(0) };
+  };
+  const okRes = resCapture();
+  await S.run(okRes, { action: "monitor", run: "selfcheck", signal: false }, "probe", { authorized: true });
+  const okBody = JSON.parse(okRes.out.body);
+  assert.strictEqual(okRes.out.statusCode, 200, okRes.out.body);
+  assert.strictEqual(okBody.gate.tools, 401);
+  assert.strictEqual(okBody.gate.voice, 401);
+  assert.ok(!okBody.error || !/is not a function/.test(String(okBody.error)));
+  if (prevRole === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY = prevRole;
   if (prev === undefined) delete process.env.TED_PROBE_KEY; else process.env.TED_PROBE_KEY = prev;
   global.fetch = origFetch;
   MON.report = origReport;
-  console.log("auth gate: anon 401, wrong probe 401, wrong bearer 401, no report");
+  console.log("auth gate: anon 401, wrong probe 401, wrong bearer 401, protected selfcheck calls checkPublicGates");
 })().catch((e) => {
   global.fetch = origFetch;
   MON.report = origReport;
