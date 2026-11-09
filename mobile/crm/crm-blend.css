@@ -83,7 +83,7 @@ html.rail .mwin,html.rail #nd-fwin{margin-left:var(--rail,112px)}
 #ndside .nv.on::after{display:none}
 #ndside .sb-foot{width:100%;padding:8px 10px 0;border-top:1px solid rgba(237,196,122,.35)}
 #ndside .sb-ted{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border:0;border-radius:18px;background:none;color:#fff;font:400 14px/1 var(--sans,Arial);cursor:pointer;transition:background .25s}
-#ndside .sb-ted img{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,#a3213a,#55071a);box-shadow:0 0 0 2px #edc47a,0 0 12px rgba(255,190,120,.6)}
+#ndside .sb-ted img{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 36% 30%,#fffbea 0%,#fff3c4 16%,#f6cf6c 50%,#e0a63a 78%,#c98a22 100%);box-shadow:inset 0 2px 4px rgba(255,255,255,.8),inset 0 -5px 10px rgba(150,85,10,.38),0 0 0 2px #edc47a,0 0 12px rgba(255,190,120,.6)}
 #ndside .sb-ted:hover{background:rgba(255,255,255,.08)}
 @media (max-height:840px){#ndside .nv{min-height:56px;font-size:13px}#ndside .nv svg.i{width:24px;height:24px}#ndside .sb-logo{height:58px}}
 @media (max-height:700px){#ndside .nv{min-height:50px;font-size:12px;gap:4px}#ndside .nv svg.i{width:22px;height:22px}#ndside .sb-logo{height:52px;margin-bottom:4px}#ndside .sb-ted img{width:38px;height:38px}}
