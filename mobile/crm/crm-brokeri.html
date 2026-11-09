@@ -918,6 +918,9 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
           <div class="bsh"><svg class="i"><use href="#shield"/></svg>Роли и достъп</div>
           <div class="bimg tall" style="background-image:url(assets/b-roles.jpg)"></div>
           <div class="broles"><span class="lb"><svg class="i"><use href="#shield"/></svg>Роля:</span><div class="rsel" id="bm-rolesel"><span id="bm-role-t">Старши брокер</span><svg class="i"><use href="#chev-d"/></svg></div>
+            <input class="in role-search" type="search" id="bm-role-search" placeholder="Търси позиция или въведи своя…" aria-label="Търси позиция в имотния сектор" maxlength="80">
+            <button type="button" class="role-add" id="bm-role-add" hidden>Добави собствена позиция</button>
+            <p class="role-summary" id="bm-role-summary" aria-live="polite"></p>
             <ul class="rlist" id="bm-roles" role="listbox" aria-label="Роля"></ul></div>
         </section>
       </div>
@@ -1004,6 +1007,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
 <script src="crm-assistant.js"></script>
 <script src="crm-collect.js"></script>
 <script src="crm-video.js"></script>
+<script src="crm-positions.js?v=1"></script>
 <script>
 (function(){
   'use strict';
@@ -1017,7 +1021,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   function say(s){t.textContent=s;t.classList.add('show');clearTimeout(timer);timer=setTimeout(function(){t.classList.remove('show')},2200)}
 
   /* ---------- sample team from the approved design (connect to the CRM later) ---------- */
-  var ROLES=['Брокер','Старши брокер','Координатор','Офис мениджър','Администратор офис','Управител'];
+  var ROLES=window.NDPositions?NDPositions.names.slice():['Брокер','Старши брокер','Координатор','Офис мениджър','Администратор офис','Управител'];
   var PERMS=['Огледи','Клиенти','Публикации','Документи','Отчети'];
   var RESTR=[['own-clients','Само мои клиенти'],['no-finance','Без достъп до финансов модул'],['own-props','Само мои имоти'],['no-delete','Без изтриване на записи'],['lim-reports','Ограничен достъп до отчети'],['no-roles','Без промяна на роли']];
   var CLIENTS=[];
@@ -1111,6 +1115,18 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   fill($('bi-pos'),ROLES);fill($('bi-office'),['Шумен','Варна','Бургас']);
   function fill(sel,list){sel.innerHTML=list.map(function(o){return '<option>'+esc(o)+'</option>'}).join('')}
   function ck(name,val,label,on){return '<label class="ck"><input type="checkbox" name="'+name+'" value="'+esc(val)+'"'+(on?' checked':'')+'><b>'+ic('check')+'</b>'+esc(label)+'</label>'}
+  function roleChoices(d){[d.role,d.pos].forEach(function(r){if(r&&ROLES.indexOf(r)<0)ROLES.push(r)});fill($('bi-pos'),ROLES)}
+  function renderRoles(){
+    var query=$('bm-role-search').value.trim(),q=query.toLocaleLowerCase('bg'),known={};
+    var groups=window.NDPositions?NDPositions.groups:[['Позиции',ROLES]],html='',count=0;
+    function group(title,roles){var matches=roles.filter(function(r){known[r]=true;return !q||(r+' '+title).toLocaleLowerCase('bg').indexOf(q)>=0});if(!matches.length)return;
+      count+=matches.length;html+='<li class="role-group" role="presentation">'+esc(title)+'</li>'+matches.map(function(r){var on=r===draft.role;return '<li role="option" tabindex="'+(on?'0':'-1')+'" aria-selected="'+on+'" class="'+(on?'on':'')+'" data-role="'+esc(r)+'" title="'+esc(r)+'"><span>'+esc(r)+'</span>'+ic('check')+'</li>'}).join('')}
+    groups.forEach(function(g){group(g[0],g[1])});group('Собствени позиции',ROLES.filter(function(r){return !known[r]}));
+    $('bm-roles').innerHTML=html||'<li class="role-empty" role="presentation">Няма намерена позиция.</li>';
+    $('bm-role-summary').textContent='Избрана: '+(draft.role||'—')+' · '+count+' от '+ROLES.length+' позиции';
+    $('bm-role-add').hidden=query.length<2||ROLES.some(function(r){return r.toLocaleLowerCase('bg')===q});
+  }
+  function chooseRole(role){draft.role=role;$('bm-role-t').textContent=role;renderRoles()}
   function paint(){
     var d=draft;
     $('bm-name').textContent=d.name;$('bm-title').textContent=d.title||d.pos||d.role||'Брокер';
@@ -1119,9 +1135,9 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     var tel=$('bm-tel');tel.href='tel:'+d.phone.replace(/\s/g,'');tel.querySelector('span').textContent=d.phone;
     var m=$('bm-mail');m.href='mailto:'+d.email;m.querySelector('span').textContent=d.email;$('bm-office-t').textContent='Офис '+d.office;
     $('bm-status').value=d.active?'Активен':'Неактивен';$('bm-stat-t').textContent=$('bm-status').value;$('bm-statw').classList.toggle('off',!d.active);
-    $('bi-name').value=d.name;$('bi-pos').value=d.pos;$('bi-office').value=d.office;$('bi-phone').value=d.phone;$('bi-mail').value=d.email;
+    roleChoices(d);$('bi-name').value=d.name;$('bi-pos').value=d.pos;$('bi-office').value=d.office;$('bi-phone').value=d.phone;$('bi-mail').value=d.email;
     $('bm-role-t').textContent=d.role;
-    $('bm-roles').innerHTML=ROLES.map(function(r){return '<li role="option" tabindex="0" aria-selected="'+(r===d.role)+'" class="'+(r===d.role?'on':'')+'" data-role="'+esc(r)+'"><span>'+esc(r)+'</span>'+ic('check')+'</li>'}).join('');
+    $('bm-role-search').value='';renderRoles();
     fill($('bm-assign'),['Назначи задача…','Оглед с клиент','Обаждане до клиент','Актуализирай обявите','Подготви документи']);
     $('bm-perm').innerHTML=PERMS.map(function(p){return ck('perm',p,p,d.perms.indexOf(p)>=0)}).join('');
     $('bm-restr').innerHTML=RESTR.map(function(r){return ck('restr',r[0],r[1],d.restr.indexOf(r[0])>=0)}).join('');
@@ -1177,9 +1193,10 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
   $('bi-office').addEventListener('change',function(){draft.office=this.value;$('bm-office-t').textContent='Офис '+this.value});
   $('bi-pos').addEventListener('change',function(){draft.pos=this.value});
   $('bm-status').addEventListener('change',function(){draft.active=this.value==='Активен';$('bm-stat-t').textContent=this.value;$('bm-statw').classList.toggle('off',!draft.active)});
-  $('bm-roles').addEventListener('click',function(e){var li=e.target.closest('li');if(!li)return;draft.role=li.getAttribute('data-role');$('bm-role-t').textContent=draft.role;
-    [].forEach.call(this.children,function(x){var on=x===li;x.classList.toggle('on',on);x.setAttribute('aria-selected',on)})});
-  $('bm-roles').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.click()}});
+  $('bm-role-search').addEventListener('input',renderRoles);
+  $('bm-role-add').addEventListener('click',function(){var role=$('bm-role-search').value.trim();if(role.length<2||role.length>80)return;if(!ROLES.some(function(r){return r.toLocaleLowerCase('bg')===role.toLocaleLowerCase('bg')}))ROLES.push(role);fill($('bi-pos'),ROLES);$('bi-pos').value=draft.pos;chooseRole(role)});
+  $('bm-roles').addEventListener('click',function(e){var li=e.target.closest('[data-role]');if(li)chooseRole(li.getAttribute('data-role'))});
+  $('bm-roles').addEventListener('keydown',function(e){var li=e.target.closest('[data-role]');if(!li)return;var roles=[].slice.call(this.querySelectorAll('[data-role]')),i=roles.indexOf(li);if(e.key==='Enter'||e.key===' '){e.preventDefault();var role=li.getAttribute('data-role');chooseRole(role);var selected=[].find.call(this.querySelectorAll('[data-role]'),function(el){return el.getAttribute('data-role')===role});if(selected)selected.focus()}else if(['ArrowDown','ArrowUp','Home','End'].indexOf(e.key)>=0){e.preventDefault();roles[e.key==='Home'?0:e.key==='End'?roles.length-1:(i+(e.key==='ArrowDown'?1:-1)+roles.length)%roles.length].focus()}});
   $('bm-perm').addEventListener('change',function(){draft.perms=[].map.call(this.querySelectorAll('input:checked'),function(i){return i.value})});
   $('bm-restr').addEventListener('change',function(){draft.restr=[].map.call(this.querySelectorAll('input:checked'),function(i){return i.value})});
   $('bm-assign').addEventListener('change',function(){if(this.selectedIndex>0){say('Задача „'+this.value+'“ – назначена на '+draft.name+' при запис');draft.task=this.value}});
