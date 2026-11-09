@@ -1,0 +1,196 @@
+/* CRM · Поща – Вариант 3 (по одобрения стил на Имоти и Клиенти).
+   Шапката горе НЕ се променя. Под нея: голям прозрачен стъклен прозорец върху вечерна снимка.
+   Писмата са кремави стъклени редове със златен кант и ясна HD снимка, която прелива отдясно; текстът стои в кремавата лява част.
+   Отвореното писмо (на цялата карта) запазва едрия четлив текст – снимка има само в горната лента със заглавието.
+   Функциите (ново писмо, отговор, препращане, прикачени файлове, „‹“ назад, папки, търсене) не се променят. */
+
+/* ============================================================
+   1) СТРАНИЦАТА: тъмна вечерна снимка зад голямото стъкло
+   ============================================================ */
+html,body,#stage{background:#2a050d!important}
+#stage::before{background:none!important}
+#canvas.ocv{background:
+  linear-gradient(180deg,rgba(42,5,13,.12) 0,rgba(42,5,13,.12) 300px,rgba(42,5,13,.42) 900px,rgba(42,5,13,.86) 1450px,#2a050d 1800px),
+  radial-gradient(60% 900px at 88% 1400px,rgba(168,46,66,.34),transparent 70%),
+  url(assets/nd/ph14.jpg) 50% 298px/100% auto no-repeat,#2a050d}
+html.desk #canvas.ocv{background:
+  linear-gradient(180deg,rgba(42,5,13,.18) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.72) 100%),
+  url(assets/nd/ph14.jpg) 50% 70%/cover no-repeat,#2a050d}
+
+/* --- голямото стъкло --- */
+.oflow{margin:18px 16px 34px;padding:26px 22px 30px;border-radius:50px;min-height:1400px;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.7),inset 0 0 60px rgba(255,214,160,.12),
+    0 0 44px rgba(246,212,142,.3),0 40px 80px -30px rgba(0,0,0,.65)}
+html.desk .oflow{margin:18px calc(var(--xL,24px) - 26px) 0;padding:26px 26px 26px!important;border-radius:44px;min-height:calc(var(--lh,700px) + 150px)}
+
+/* лентата: „Ново писмо“ (винено) · търсачка (прозрачно стъкло) · папка (кремава плочка) */
+.otools{padding:0!important;gap:14px!important}
+.otools .o-q{min-width:0}
+.o-new{height:80px!important;flex-basis:250px!important;border-radius:26px!important;font:700 30px/1 var(--cond)!important;color:#fff3dc!important;
+  background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%)!important;border:0!important;
+  box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 5px rgba(255,170,180,.4),0 0 26px rgba(230,191,91,.45),0 12px 24px -12px rgba(80,10,20,.7)!important}
+.o-new svg.i{font-size:36px!important;color:#f8d777}
+.otools .o-q{height:80px!important;border-radius:24px!important;padding:0 26px!important;gap:18px!important;
+  background:linear-gradient(160deg,rgba(255,248,238,.34),rgba(255,236,214,.14))!important;
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.35),0 10px 22px -14px rgba(0,0,0,.5)!important}
+.otools .o-q svg.i{color:#fff0d6!important;font-size:34px!important}
+.otools .o-q input{color:#fff8ec!important;font:400 28px/1 var(--cond)!important;font-style:normal!important}
+.otools .o-q input::placeholder{color:rgba(255,240,220,.88)!important;font-style:normal!important}
+.otools .o-q:focus-within{box-shadow:inset 0 0 0 2px #f6d48e,0 0 20px rgba(246,212,142,.6)!important}
+.o-filt{height:80px!important;flex-basis:210px!important;border-radius:24px!important;font:700 29px/1 var(--cond)!important;color:#5a0a12!important;
+  background:linear-gradient(180deg,rgba(255,253,249,.97) 0%,rgba(252,241,231,.93) 100%)!important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4px rgba(214,163,92,.26),0 0 22px rgba(255,228,196,.35),0 16px 26px -16px rgba(0,0,0,.65),inset 0 2px 0 #fff!important}
+.o-filt svg.i{color:#7b1020!important;stroke-width:2.6!important}
+.o-filt[aria-expanded="true"]{box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5px rgba(255,240,205,.45),0 0 22px rgba(246,212,142,.7)!important}
+.o-pop{top:96px!important;border-radius:26px!important;box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4px rgba(214,163,92,.3),0 0 26px rgba(255,228,196,.6),0 18px 34px -12px rgba(30,0,8,.6)!important}
+.o-pop li{height:62px!important;font:700 27px/1 var(--cond)!important;color:#14070a!important}
+.o-pop li svg.i{color:#7b1020!important;stroke-width:2.6!important}
+.o-pop li.on{color:#fff3dc!important;background:linear-gradient(135deg,#a3213a,#5e0716)!important;box-shadow:inset 0 0 0 2px #e6bf5b}
+.o-pop li.on svg.i{color:#f8d777!important}
+#m-note .m-note{margin:20px 0 0!important;padding:18px 26px!important;border-radius:22px!important;font:700 26px/1.4 var(--cond)!important;color:#14070a!important;
+  background:linear-gradient(180deg,rgba(255,253,249,.96),rgba(252,241,231,.92))!important;box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3.5px rgba(214,163,92,.28),0 0 18px rgba(255,228,196,.4)!important}
+#m-note .m-note b{color:#7b1020!important}
+
+/* бързи филтри – кремави стъклени пилюли; активният – винен със златен пръстен; броят – в малко златно кръгче */
+.m-chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:20px 0 0}
+.mchip{display:flex;align-items:center;justify-content:center;gap:12px;height:72px;padding:0 18px;border-radius:22px;white-space:nowrap;min-width:0;
+  font:700 27px/1 var(--cond);color:#5a0a12;background:linear-gradient(180deg,rgba(255,253,249,.97),rgba(252,241,231,.93));
+  box-shadow:0 0 0 2px rgba(255,255,255,.95),0 0 0 4px rgba(214,163,92,.26),0 0 18px rgba(255,228,196,.3),0 12px 22px -14px rgba(0,0,0,.6),inset 0 2px 0 #fff;transition:transform .18s cubic-bezier(.2,.8,.3,1.25),box-shadow .2s}
+.mchip svg.i{flex:none;font-size:30px;color:#7b1020;stroke-width:2.6}
+.mchip span{overflow:hidden;text-overflow:ellipsis}
+.mchip b{flex:none;min-width:38px;height:38px;padding:0 10px;border-radius:19px;display:grid;place-items:center;font:800 22px/1 var(--cond);color:#3a1d00;
+  background:linear-gradient(180deg,#f8dc98,#d9a254);box-shadow:inset 0 0 0 1px rgba(255,248,220,.85)}
+.mchip b:empty{display:none}
+.mchip.on{color:#fff3dc;background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);box-shadow:inset 0 0 0 2px #e6bf5b,0 0 0 4px rgba(255,240,205,.3),0 0 24px rgba(230,191,91,.5),0 12px 22px -12px rgba(80,10,20,.7)}
+.mchip.on svg.i{color:#f8d777}
+.mchip:active{transform:scale(.96)}
+html.desk .m-chips{grid-template-columns:repeat(4,max-content);gap:16px}
+html.desk .mchip{height:70px;padding:0 26px;font-size:28px}
+/* отворено писмо: празният блок „Прикачени файлове – Няма“ не се показва */
+#odet .od-d:has(.m-files>p:only-child){display:none!important}
+
+/* ============================================================
+   2) СПИСЪКЪТ: кремави стъклени редове + ясна снимка отдясно
+   ============================================================ */
+#olist{gap:20px!important;padding:24px 0 6px!important}
+#olist .oc{display:grid!important;grid-template-columns:120px minmax(0,46%) minmax(0,1fr) 84px;grid-template-rows:auto auto auto;align-content:center;row-gap:8px;
+  height:auto!important;min-height:158px;padding:20px 0!important;border:0!important;border-radius:30px!important;overflow:hidden;isolation:isolate;
+  background:linear-gradient(180deg,rgba(255,252,247,.96) 0%,rgba(253,242,231,.93) 100%)!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 32px rgba(255,228,196,.45),0 22px 40px -20px rgba(30,0,8,.7),inset 0 1.5px 0 #fff!important}
+#olist .oc>*:not(.op){position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;margin:0!important;z-index:1}
+#olist .oc .op{left:auto!important;right:0!important;top:0!important;bottom:0!important;width:48%!important;z-index:0;
+  background-size:cover!important;background-position:center!important;opacity:1!important;filter:saturate(1.1) contrast(1.04)!important;
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important;mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important}
+#olist .oc:nth-child(4n+1) .op{background-image:url(assets/nd/ph12.jpg)!important;background-position:50% 62%!important}
+#olist .oc:nth-child(4n+2) .op{background-image:url(assets/nd/ph18.jpg)!important;background-position:50% 55%!important}
+#olist .oc:nth-child(4n+3) .op{background-image:url(assets/nd/ph09.jpg)!important;background-position:50% 60%!important}
+#olist .oc:nth-child(4n+4) .op{background-image:url(assets/nd/ph07.jpg)!important;background-position:50% 50%!important}
+/* иконката – винен медальон със златен кант */
+#olist .oc .oi{grid-column:1;grid-row:1/-1;align-self:center;justify-self:center;display:grid;place-items:center;width:78px;height:78px;border-radius:50%;font-size:36px!important;color:#ffe9b8!important;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.55)}
+#olist .oc .oi svg.i{stroke-width:2.1!important}
+/* подател · тема · час – в кремавата колона */
+#olist .oc .on2{grid-column:2;grid-row:1;min-width:0;font:700 34px/1.12 var(--serif)!important;color:#3b0a0e!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff}
+#olist .oc.un .on2{color:#7b1020!important}
+#olist .oc .oca{grid-column:2;grid-row:2;min-width:0;font:800 28px/1.2 var(--cond)!important;color:#14070a!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff,0 0 1px #fff}
+#olist .oc .om{grid-column:2;grid-row:3;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px!important;font:700 25px/1.1 var(--cond)!important;color:#3d1d18!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff}
+#olist .oc .om span{gap:10px!important;font:inherit!important;color:inherit!important;white-space:nowrap}
+#olist .oc .om svg.i{font-size:27px!important;color:#7b1020!important;stroke-width:2.6!important}
+#olist .oc .om i{width:1.5px!important;height:26px!important;background:rgba(214,163,92,.7)!important}
+#olist .oc .om .att{color:#7b1020!important}
+/* непрочетено: златна точка */
+#olist .oc.un::before{left:16px!important;width:18px!important;height:18px!important;margin-top:-9px!important;z-index:3!important}
+/* стрелката – златен кръг върху снимката */
+#olist .oc .ar{grid-column:4;grid-row:1/-1;align-self:center;justify-self:center;display:grid;place-items:center;width:62px;height:62px;border-radius:50%;font-size:30px!important;color:#5a0a12!important;
+  background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%);box-shadow:0 0 0 1.5px #fff2c4 inset,0 4px 10px rgba(0,0,0,.4),0 0 14px rgba(255,220,150,.6)}
+#olist .oc .ar svg.i{stroke-width:2.8!important}
+#olist .oc:focus-visible{outline:3px solid #f6d48e;outline-offset:4px}
+#olist .empty{padding:34px!important;border-radius:28px!important;font:700 28px/1.4 var(--cond)!important;color:#14070a!important;
+  background:linear-gradient(180deg,rgba(255,252,247,.96),rgba(253,242,231,.93))!important;box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3)!important}
+
+/* ============================================================
+   3) ОТВОРЕНОТО ПИСМО – на цялата карта, едър текст; снимка само в лентата със заглавието
+   ============================================================ */
+#ocols #odet{margin:24px 0 0!important;border:0!important;border-radius:32px!important;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,252,247,.97) 0%,rgba(253,242,231,.95) 100%)!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 34px rgba(255,228,196,.5),0 24px 44px -20px rgba(30,0,8,.7),inset 0 1.5px 0 #fff!important}
+/* лентата със заглавието: крем + ясна снимка отдясно */
+#odet .od-h{position:relative;isolation:isolate;height:auto!important;min-height:132px;padding:22px 26px 22px 22px!important;gap:20px!important;color:#3b0a0e!important;
+  background:none!important;border:0!important;border-bottom:1.5px solid rgba(214,163,92,.45)!important;box-shadow:none!important}
+#odet .od-h::before{content:"";position:absolute;right:0;top:0;bottom:0;width:50%;z-index:-1;pointer-events:none;
+  background:url(assets/nd/ph13.jpg) 50% 60%/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+#odet .od-h>svg.i{width:66px;height:66px;padding:15px;border-radius:50%;font-size:66px!important;color:#ffe9b8!important;stroke-width:2!important;flex:none;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.55)}
+#odet .od-h h2{flex:1;min-width:0;max-width:56%;white-space:normal!important;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
+  font:700 40px/1.15 var(--serif)!important;color:#3b0a0e!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff}
+#odet .od-h button{flex:none;width:66px!important;height:66px!important;border-radius:50%!important;color:#7b1020!important;
+  background:linear-gradient(180deg,#fffdf9,#fcf1e7)!important;box-shadow:0 0 0 1.5px rgba(226,180,120,.8),0 0 16px rgba(255,214,160,.6),0 8px 16px -8px rgba(60,10,10,.55)!important}
+#odet .od-h button svg.i{color:#7b1020!important;font-size:32px!important;stroke-width:2.4!important}
+#odet .od-h button[data-del]{margin-left:auto}
+#odet .od-h button[data-del] svg.i{color:#a30d26!important}
+#odet .od-h .back{background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%)!important;box-shadow:0 0 0 1.5px #fff2c4 inset,0 4px 10px rgba(0,0,0,.35),0 0 14px rgba(255,220,150,.6)!important}
+#odet .od-h .back svg.i{color:#5a0a12!important;stroke-width:2.8!important}
+/* подател · до · час – редове „иконка · стойност“ с тънки златни линии (без снимка) */
+#odet .od-info{display:block!important;margin:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;min-height:0}
+#odet .od-ph{display:none!important}
+#odet .od-c{border-right:0!important;padding:16px 30px 6px!important;gap:0!important}
+#odet .od-c a,#odet .od-c span{min-height:62px;padding:10px 0;gap:16px!important;border-bottom:1.5px solid rgba(214,163,92,.32);font:700 29px/1.25 var(--cond)!important;color:#14070a!important;overflow-wrap:anywhere}
+#odet .od-c a{color:#14070a!important}
+#odet .od-c a:hover{color:#7b1020!important}
+#odet .od-c svg.i{font-size:32px!important;color:#7b1020!important;stroke-width:2.6!important}
+#odet .od-d{padding:16px 30px 22px!important;grid-template-columns:46px 1fr!important;gap:10px 14px!important}
+#odet .od-d>svg.i{font-size:32px!important;color:#7b1020!important;stroke-width:2.6!important}
+#odet .od-d b{align-self:center;font:700 28px/1.2 var(--cond)!important;color:#7b1020!important}
+#odet .od-d p{font:italic 700 26px/1.3 var(--cond)!important;color:#5a4038!important}
+#odet .m-files{grid-column:1/-1;gap:12px!important}
+#odet .m-files span{padding:10px 12px 10px 18px!important;gap:12px!important;border-radius:20px!important;font:700 25px/1.25 var(--cond)!important;color:#14070a!important;
+  background:linear-gradient(180deg,#fffdf9,#fcf1e7)!important;box-shadow:0 0 0 1.5px rgba(226,180,120,.75),0 0 12px rgba(255,214,160,.45)!important}
+#odet .m-files span svg.i{color:#7b1020;stroke-width:2.6}
+#odet .m-files button{height:44px;padding:0 18px;border-radius:14px;font:700 23px/1 var(--cond)!important;color:#3a1d00!important;
+  background:linear-gradient(180deg,#f8dc98,#d9a254)!important;box-shadow:inset 0 0 0 1px rgba(255,248,220,.85),0 0 12px rgba(246,212,142,.55)!important}
+/* „Писмо“ – медальон + серифно заглавие */
+#odet .od-eh{height:auto!important;margin:0!important;padding:18px 30px 10px!important;gap:18px!important;border-radius:0!important;color:#3b0a0e!important;
+  background:none!important;box-shadow:none!important;border-top:1.5px solid rgba(214,163,92,.32)}
+#odet .od-eh svg.i{width:58px;height:58px;padding:13px;border-radius:50%;font-size:58px!important;color:#ffe9b8!important;stroke-width:2!important;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 3px #f1c37f,0 0 14px rgba(240,196,110,.5)}
+#odet .od-eh h3{font:700 36px/1.1 var(--serif)!important;color:#3b0a0e!important}
+/* текстът на писмото – чисто кремаво поле, едър шрифт, без снимка */
+#odet .od-mail{margin:6px 24px 20px!important;padding:26px 32px!important;border-radius:24px!important;
+  background:linear-gradient(180deg,#fffefb,#fdf6ee)!important;box-shadow:inset 0 0 0 1.5px rgba(226,180,120,.6),0 0 14px rgba(255,228,196,.5)!important}
+#odet .od-mail .mtx{color:#14070a!important}
+#odet .od-mail iframe{box-shadow:0 0 0 1.5px rgba(226,180,120,.6)!important}
+/* „Отговори“ – винено; „Препрати“ – златно */
+#odet .od-acts{margin:0 24px 26px!important;gap:16px!important}
+#odet .od-acts button{height:80px!important;border:0!important;border-radius:26px!important;font:700 30px/1 var(--cond)!important;color:#3a1d00!important;
+  background:linear-gradient(180deg,#f8dc98,#d9a254)!important;box-shadow:inset 0 0 0 1.5px rgba(255,248,220,.85),0 0 0 2px rgba(255,240,205,.45),0 0 20px rgba(246,212,142,.6),0 10px 20px -12px rgba(80,40,0,.6)!important}
+#odet .od-acts button svg.i{color:#7b1020!important;font-size:34px!important}
+#odet .od-acts button.hot{color:#fff3dc!important;background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%)!important;
+  box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 5px rgba(255,170,180,.4),0 0 26px rgba(230,191,91,.45),0 12px 24px -12px rgba(80,10,20,.7)!important}
+#odet .od-acts button.hot svg.i{color:#f8d777!important}
+
+/* ============================================================
+   4) КОМПЮТЪР: по-едър текст, списъкът в стъклото
+   ============================================================ */
+html.desk #olist{max-height:calc(var(--lh,700px) - 120px)!important;padding:24px 10px 10px 4px!important}
+html.desk #olist .oc{min-height:176px;grid-template-columns:150px minmax(0,46%) minmax(0,1fr) 110px}
+html.desk #olist .oc .oi{width:92px;height:92px;font-size:42px!important}
+html.desk #olist .oc .on2{font-size:40px!important}
+html.desk #olist .oc .oca{font-size:31px!important}
+html.desk #olist .oc .om{font-size:27px!important}
+html.desk #olist .oc .ar{width:72px;height:72px;font-size:34px!important}
+html.desk #odet .od-h{min-height:150px;padding:24px 34px 24px 26px!important}
+html.desk #odet .od-h h2{font-size:46px!important}
+html.desk #odet .od-c{padding:18px 40px 8px!important}
+html.desk #odet .od-c a,html.desk #odet .od-c span{font-size:31px!important}
+html.desk #odet .od-d{padding:18px 40px 24px!important}
+html.desk #odet .od-d b{font-size:30px!important}
+html.desk #odet .m-files span{font-size:27px!important}
+html.desk #odet .od-eh{padding:20px 40px 12px!important}
+html.desk #odet .od-eh h3{font-size:40px!important}
+html.desk #odet .od-mail{margin:6px 34px 22px!important;padding:30px 40px!important}
+html.desk #odet .od-mail .mtx{font-size:33px!important;line-height:1.55!important}
+html.desk #odet .od-acts{margin:0 34px 30px!important}
+html.desk #odet .od-acts button{flex:0 1 380px!important}

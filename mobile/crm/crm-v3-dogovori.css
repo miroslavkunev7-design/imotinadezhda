@@ -1,0 +1,151 @@
+/* CRM · Договори – Вариант 3 (по одобрения стил на Имоти и Клиенти).
+   Шапката горе НЕ се променя. Под нея: голям прозрачен стъклен прозорец върху вечерна снимка;
+   разделите на договора са кремави „квадратни“ карти със златен кант и ясна HD снимка, която прелива отдясно.
+   Редовете: иконка · етикет (винено) и под него стойността (тъмно, плътно). Всичко над снимката – тъмен текст с бял ореол.
+   Функциите (генериране, преглед, печат, запис) не се променят. Мерките са в пикселите на платното (телефон 1024, компютър 2072). */
+
+/* ============================================================
+   1) СТРАНИЦАТА: тъмна вечерна снимка зад голямото стъкло
+   ============================================================ */
+html,body,#stage{background:#2a050d!important}
+#stage::before{background:none!important}
+#canvas.ocv{background:
+  linear-gradient(180deg,rgba(42,5,13,.12) 0,rgba(42,5,13,.12) 300px,rgba(42,5,13,.42) 900px,rgba(42,5,13,.86) 1500px,#2a050d 1900px),
+  radial-gradient(60% 900px at 88% 1500px,rgba(168,46,66,.34),transparent 70%),
+  radial-gradient(55% 900px at 6% 2600px,rgba(196,120,64,.2),transparent 70%),
+  url(assets/card-properties.jpg) 50% 298px/100% auto no-repeat,#2a050d}
+html.desk #canvas.ocv{background:
+  linear-gradient(180deg,rgba(42,5,13,.18) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.72) 100%),
+  url(assets/card-properties.jpg) 50% 70%/cover no-repeat,#2a050d}
+
+/* --- голямото стъкло --- */
+.oflow{margin:18px 16px 34px;padding:26px 22px 30px;border-radius:50px;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.7),inset 0 0 60px rgba(255,214,160,.12),
+    0 0 44px rgba(246,212,142,.3),0 40px 80px -30px rgba(0,0,0,.65)}
+html.desk .oflow{margin:18px calc(var(--xL,24px) - 26px) 30px;padding:26px 26px 30px!important;border-radius:44px}
+
+/* лентата: „Нов договор“ (винено) + търсачка (прозрачно стъкло) */
+.otools{padding:0!important;gap:18px!important}
+.o-new{height:80px!important;flex-basis:290px!important;border-radius:26px!important;font:700 30px/1 var(--cond)!important;color:#fff3dc!important;
+  background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%)!important;border:0!important;
+  box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 5px rgba(255,170,180,.4),0 0 26px rgba(230,191,91,.45),0 12px 24px -12px rgba(80,10,20,.7)!important}
+.o-new svg.i{font-size:36px!important;color:#f8d777}
+.otools .o-q{height:80px!important;border-radius:24px!important;padding:0 26px!important;gap:18px!important;
+  background:linear-gradient(160deg,rgba(255,248,238,.34),rgba(255,236,214,.14))!important;
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.35),0 10px 22px -14px rgba(0,0,0,.5)!important}
+.otools .o-q svg.i{color:#fff0d6!important;font-size:34px!important}
+.otools .o-q input{color:#fff8ec!important;font:400 28px/1 var(--cond)!important;font-style:normal!important}
+.otools .o-q input::placeholder{color:rgba(255,240,220,.88)!important;font-style:normal!important}
+.otools .o-q:focus-within{box-shadow:inset 0 0 0 2px #f6d48e,0 0 20px rgba(246,212,142,.6)!important}
+
+/* ============================================================
+   2) ФОРМАТА НА ДОГОВОРА – вътре в стъклото
+   ============================================================ */
+.dhost{padding:22px 0 0!important}
+#dhost #nd-fwin.inline{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible}
+#dhost #nd-fwin .mscroll{background:transparent!important}
+#dhost #nd-fwin .fcv{max-width:none!important;padding-bottom:20px!important}
+html:not(.desk) #dhost #nd-fwin.inline .fcv{padding-bottom:30px!important}
+
+/* заглавието „Договори“ на формата повтаря заглавието в шапката – скрито (без двойни заглавия) */
+#dhost #nd-fwin .f-bar{display:none!important}
+/* заглавие „Договори“ – винен медальон + светло серифно заглавие върху стъклото */
+#dhost #nd-fwin .f-bar{position:relative!important;height:auto!important;padding:4px 4px 20px!important;gap:20px!important;background:none!important;border:0!important;box-shadow:none!important}
+#dhost #nd-fwin .f-bar svg.i{width:66px;height:66px;padding:15px;border-radius:50%;font-size:66px!important;color:#ffe9b8!important;stroke-width:2!important;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 3px #f1c37f,0 0 18px rgba(240,196,110,.6)}
+#dhost #nd-fwin .f-bar h2{font:700 46px/1.1 var(--serif)!important;color:#fff6e6!important;text-shadow:0 2px 8px rgba(40,0,8,.6)!important}
+#dhost #nd-fwin .f-body{padding:0!important;gap:0 26px!important}
+
+/* --- разделите: кремаво стъкло, бял ръб + златен пръстен, ясна снимка отдясно --- */
+#dhost #nd-fwin .ndg{position:relative;overflow:hidden;isolation:isolate;margin:0 0 26px!important;padding:96px 0 26px!important;min-height:0;border:0!important;border-radius:30px!important;
+  background:linear-gradient(180deg,rgba(255,252,247,.96) 0%,rgba(253,242,231,.93) 100%)!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 32px rgba(255,228,196,.5),0 22px 40px -20px rgba(60,10,10,.6),inset 0 1.5px 0 #fff!important}
+#dhost #nd-fwin .ndg-img{left:auto!important;right:0!important;top:0!important;bottom:0!important;width:48%!important;z-index:0;
+  background-size:cover!important;background-position:center!important;opacity:1!important;filter:saturate(1.1) contrast(1.04)!important;
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important;mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)!important}
+/* различна HD снимка за всеки раздел – задава се от скрипта на страницата (Договор, Страни, Имот, Суми, Срокове, Особени условия) */
+
+/* заглавие на раздела – телефон: винена лента (swoosh) */
+#dhost #nd-fwin .ndg-h{z-index:2;height:72px!important;padding:0 96px 0 34px!important;gap:22px!important;font:700 38px/1 var(--serif)!important;color:#fff3dc!important;
+  background:linear-gradient(100deg,#55071a 0%,#8d1530 45%,#b42446 70%,#7a1022 100%)!important;border-radius:30px 0 90px 0!important;
+  clip-path:polygon(0 0,100% 0,86% 100%,0 100%)!important;box-shadow:inset 0 2px 3px rgba(255,170,180,.45),0 3px 0 #e6b866,0 6px 12px rgba(60,5,15,.25)!important}
+#dhost #nd-fwin .ndg-h svg.i{font-size:40px!important;color:#ffe9b8!important;stroke-width:1.9!important}
+
+/* редовете: колоната с текст стои в кремавата лява част */
+#dhost #nd-fwin .ndg-f{position:relative;z-index:1;margin:0 0 0 34px!important;padding:0!important;max-width:62%;
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:0!important}
+#dhost #nd-fwin .ndg .ef{display:block!important;margin:0!important;padding:14px 0 10px!important;border-bottom:1.5px solid rgba(214,163,92,.34)}
+#dhost #nd-fwin .ndg .ef:last-child{border-bottom:0}
+/* етикет: винено, плътно, с винена иконка (дебела линия) */
+#dhost #nd-fwin .ndg .el{display:flex!important;align-items:center;gap:12px!important;width:auto!important;margin:0 0 6px!important;padding:0!important;background:none!important;box-shadow:none!important;border-radius:0!important;
+  font:700 27px/1.15 var(--cond)!important;color:#7b1020!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff!important}
+#dhost #nd-fwin .ndg .el::after{content:":";margin-left:-10px}
+#dhost #nd-fwin .ndg .el svg.i{display:inline-block!important;font-size:30px!important;color:#7b1020!important;stroke-width:2.7!important}
+/* стойност: тъмно, много плътно, по-едро; над снимката – бял ореол */
+#dhost #nd-fwin .ndg .in:not(.ta){height:54px!important;padding:0 6px!important;background:transparent!important;border:0!important;border-radius:12px!important;box-shadow:none!important;
+  font:800 31px/1.15 var(--cond)!important;color:#14070a!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff,0 0 1px #fff!important}
+#dhost #nd-fwin .ndg .in:not(.ta):hover{background:rgba(255,253,250,.6)!important;box-shadow:0 0 0 1.5px rgba(237,196,122,.85)!important}
+#dhost #nd-fwin .ndg .in:not(.ta):focus{background:rgba(255,253,250,.96)!important;box-shadow:0 0 0 2px #d9a95a,0 0 12px rgba(217,169,90,.55)!important;text-shadow:none!important}
+#dhost #nd-fwin .ndg .in::placeholder{color:#5a4038!important;opacity:1!important;font-weight:700!important;font-style:italic!important}
+#dhost #nd-fwin .ndg select.in{padding-right:48px!important}
+#dhost #nd-fwin .ndg .selw svg.i{right:8px!important;font-size:28px!important;color:#7b1020!important;stroke-width:2.7!important}
+#dhost #nd-fwin .ndg .nd-dw>.nd-dv{padding:0 8px 0 6px!important;font:800 31px/1.15 var(--cond)!important;color:#14070a!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff,0 0 1px #fff}
+#dhost #nd-fwin .ndg .nd-dw>.nd-dv b{font-weight:800}
+#dhost #nd-fwin .ndg .nd-dw>.nd-dv em{color:#5a4038!important;opacity:1!important;font-weight:700}
+#dhost #nd-fwin .ndg .nd-dw>.nd-dv svg{color:#7b1020!important;stroke-width:2.6}
+#dhost #nd-fwin .ndg .in.ta{height:150px!important;border-radius:20px!important;padding:14px 18px!important;font:700 28px/1.35 var(--cond)!important;color:#14070a!important;
+  background:rgba(255,253,250,.9)!important;border:0!important;box-shadow:inset 0 0 0 1.5px rgba(226,180,120,.7),inset 0 6px 12px -10px rgba(140,70,40,.35)!important}
+#dhost #nd-fwin .ndg .in.ta:focus{box-shadow:inset 0 0 0 2px #d9a95a,0 0 12px rgba(217,169,90,.55)!important}
+#dhost #nd-fwin .ndg .in.ta::placeholder{color:#5a4038!important}
+/* широките полета („Вид договор“, „Допълнителни условия“) – по-дълги стойности, затова колоната е по-широка (над снимката – тъмен текст с ореол) */
+#dhost #nd-fwin .ndg .ef.wide{grid-column:1/-1;margin-right:-36%!important}
+
+/* --- бутоните: „Генерирай“ – винено; „Печат“ и „Запази“ – златни --- */
+#dhost #nd-fwin .ct-acts{gap:16px!important;margin:4px 0 26px!important}
+#dhost #nd-fwin .ct-btn{height:78px!important;padding:0 30px!important;gap:14px!important;border:0!important;border-radius:24px!important;font:700 29px/1 var(--cond)!important;color:#fff3dc!important;
+  background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%)!important;
+  box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 5px rgba(255,170,180,.4),0 0 26px rgba(230,191,91,.45),0 12px 24px -12px rgba(80,10,20,.7)!important}
+#dhost #nd-fwin .ct-btn svg.i{font-size:32px!important;color:#f8d777!important;stroke-width:2.2}
+#dhost #nd-fwin .ct-btn.alt{color:#3a1d00!important;background:linear-gradient(180deg,#f8dc98,#d9a254)!important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,248,220,.85),0 0 0 2px rgba(255,240,205,.45),0 0 20px rgba(246,212,142,.65),0 10px 20px -12px rgba(80,40,0,.6)!important}
+#dhost #nd-fwin .ct-btn.alt svg.i{color:#7b1020!important}
+#dhost #nd-fwin .ct-btn[disabled]{opacity:.72}
+
+/* --- преглед на договора: кремава карта със златен кант; докато е празна – ясна снимка отдясно --- */
+#dhost #nd-fwin .ct-prev{position:relative;isolation:isolate;margin:0 0 6px!important;border-radius:30px!important;background:linear-gradient(180deg,rgba(255,252,247,.96),rgba(253,242,231,.93))!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 32px rgba(255,228,196,.5),0 22px 40px -20px rgba(60,10,10,.6)!important}
+#dhost #nd-fwin .ct-prev::before{content:"";position:absolute;right:0;top:0;bottom:0;width:48%;z-index:0;pointer-events:none;
+  background:url(assets/nd/ph13.jpg) center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+#dhost #nd-fwin .ct-prev:has(iframe)::before{display:none}
+#dhost #nd-fwin .ct-prev iframe{position:relative;z-index:1;border-radius:22px}
+#dhost #nd-fwin .ct-prev:has(iframe){padding:14px;background:linear-gradient(180deg,rgba(255,252,247,.97),rgba(253,242,231,.95))!important}
+#dhost #nd-fwin .ct-prev .ndempty{position:relative;z-index:1;max-width:58%;min-height:200px;margin:0!important;padding:34px 34px 34px 112px!important;background:none!important;box-shadow:none!important;border-radius:0!important;
+  font:700 29px/1.4 var(--cond)!important;color:#14070a!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff}
+#dhost #nd-fwin .ct-prev .ndempty::before{content:"";position:absolute;left:30px;top:32px;width:62px;height:62px;border-radius:50%;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffe9b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z'/%3E%3Cpath d='M14 2v4a2 2 0 0 0 2 2h4'/%3E%3Cpath d='M16 13H8'/%3E%3Cpath d='M16 17H8'/%3E%3C/svg%3E") center/32px no-repeat,
+    radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.55)}
+#dhost #nd-fwin .ev-acts:not(:has(.ea:not([hidden]):not(#nd-f-cancel))){display:none}
+#dhost #nd-fwin .ev-err:empty{display:none}
+
+/* ============================================================
+   3) КОМПЮТЪР: двата раздела един до друг, по-едър текст
+   ============================================================ */
+html.desk #dhost{padding-top:24px!important}
+html.desk #dhost #nd-fwin .f-body{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:0 28px!important;align-items:stretch}
+html.desk #dhost #nd-fwin .f-body>.ndg{grid-column:auto!important}
+html.desk #dhost #nd-fwin .f-body>.wide{grid-column:1/-1!important}
+/* заглавие на раздела – компютър: винен медальон със златен кант + тъмно серифно заглавие */
+html.desk #dhost #nd-fwin .ndg{padding:30px 0 28px!important}
+html.desk #dhost #nd-fwin .ndg-h{position:relative!important;left:auto!important;top:auto!important;height:auto!important;margin:0 0 14px 34px!important;padding:0!important;gap:18px!important;
+  background:none!important;clip-path:none!important;border-radius:0!important;box-shadow:none!important;color:#3b0a0e!important;font:700 40px/1.15 var(--serif)!important;text-shadow:0 0 8px #fff8f0!important}
+html.desk #dhost #nd-fwin .ndg-h svg.i{width:62px;height:62px;padding:14px;border-radius:50%;font-size:62px!important;color:#ffe9b8!important;stroke-width:2!important;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.55)}
+html.desk #dhost #nd-fwin .ndg-f{max-width:60%}
+html.desk #dhost #nd-fwin .ndg .el{font-size:27px!important}
+html.desk #dhost #nd-fwin .ndg .in:not(.ta){font-size:31px!important;height:56px!important}
+html.desk #dhost #nd-fwin .ct-acts{margin-top:0!important}
+html.desk #dhost #nd-fwin .ct-prev .ndempty{font-size:31px!important}
+html.desk #dhost #nd-fwin .f-bar h2{font-size:48px!important}

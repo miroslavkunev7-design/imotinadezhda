@@ -901,6 +901,7 @@ html.desk .ocols.reading .odet{max-height:none!important;overflow:visible!import
 html.desk .ocols.reading .od-ph{display:none}
 </style>
 <link rel="stylesheet" href="crm-info.css"/>
+<link rel="stylesheet" href="crm-v3-poshta.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1033,6 +1034,12 @@ html.desk .ocols.reading .od-ph{display:none}
       <button class="o-filt" id="o-filt" aria-expanded="false"><svg class="i"><use href="#funnel"/></svg><span id="o-filt-t">Входящи</span><svg class="i chev"><use href="#chev-d"/></svg></button>
       <ul class="o-pop" id="o-pop" role="listbox" aria-label="Папка" hidden></ul>
     </div>
+    <div class="m-chips" id="m-chips" role="group" aria-label="Филтър на писмата">
+      <button type="button" class="mchip on" data-f="in" aria-pressed="true"><svg class="i"><use href="#mail"/></svg><span>Входящи</span><b></b></button>
+      <button type="button" class="mchip" data-f="unread" aria-pressed="false"><svg class="i"><use href="#sparkles"/></svg><span>Непрочетени</span><b></b></button>
+      <button type="button" class="mchip" data-f="att" aria-pressed="false"><svg class="i"><use href="#file-text"/></svg><span>С прикачени файлове</span><b></b></button>
+      <button type="button" class="mchip" data-f="sent" aria-pressed="false"><svg class="i"><use href="#arrow-r"/></svg><span>Изпратени</span><b></b></button>
+    </div>
     <div id="m-note"></div>
     <div class="ocols" id="ocols">
       <div class="olist" id="olist"></div>
@@ -1127,7 +1134,8 @@ html.desk .ocols.reading .od-ph{display:none}
 
   /* ---------- папки ---------- */
   var FOLD=[{id:'in',label:'Входящи',icon:'mail'},{id:'sent',label:'Изпратени',icon:'arrow-r'},{id:'all',label:'Всички',icon:'list'}];
-  var mails=[],folder='in',sel=null,MAILBOX='office@imotinadezhda.bg';
+  var mails=[],folder='in',sel=null,MAILBOX='office@imotinadezhda.bg',flag='';   /* flag: '' | 'unread' | 'att' (бързите филтри) */
+  var hasAtt=function(m){return (m.attachments||[]).some(function(a){return !a.inline})};
   var when=function(s){if(!s)return '';var d=new Date(s),n=new Date(),p=function(x){return (x<10?'0':'')+x};
     return d.toDateString()===n.toDateString()?p(d.getHours())+':'+p(d.getMinutes()):p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes())};
   var kb=function(n){n=+n||0;return n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB'};
@@ -1174,13 +1182,20 @@ html.desk .ocols.reading .od-ph{display:none}
   document.addEventListener('click',function(e){if(!e.target.closest('#o-pop')&&!e.target.closest('#o-filt')){$('o-pop').hidden=true;$('o-filt').setAttribute('aria-expanded','false')}});
   $('o-pop').addEventListener('click',function(e){var li=e.target.closest('li');if(!li)return;this.hidden=true;$('o-filt').setAttribute('aria-expanded','false');
     if(li.dataset.c==='__sync'){sync(true);return}
-    folder=li.dataset.c;[].forEach.call(this.children,function(x){x.classList.toggle('on',x===li)});$('o-filt-t').textContent=FOLD.filter(function(f){return f.id===folder})[0].label;sel=null;renderList();renderDet()});
+    folder=li.dataset.c;flag='';[].forEach.call(this.children,function(x){x.classList.toggle('on',x===li)});$('o-filt-t').textContent=FOLD.filter(function(f){return f.id===folder})[0].label;sel=null;renderList();renderDet()});
   $('o-q').addEventListener('input',renderList);
+  /* бързи филтри: Входящи · Непрочетени · С прикачени файлове · Изпратени (папката в падащото меню следва избора) */
+  var CHIP={'in':['in',''],unread:['in','unread'],att:['all','att'],sent:['sent','']};
+  function syncChips(){var cur=flag||folder,live=mails.filter(function(m){return m.folder!=='trash'}),n={'in':live.filter(function(m){return m.folder==='in'}).length,unread:live.filter(function(m){return m.folder==='in'&&!m.read}).length,att:live.filter(hasAtt).length,sent:live.filter(function(m){return m.folder==='sent'}).length};
+    [].forEach.call($('m-chips').children,function(b){var on=b.dataset.f===cur;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);b.querySelector('b').textContent=n[b.dataset.f]||''})}
+  $('m-chips').addEventListener('click',function(e){var b=e.target.closest('.mchip');if(!b)return;var c=CHIP[b.dataset.f];folder=c[0];flag=c[1];
+    [].forEach.call($('o-pop').children,function(x){x.classList.toggle('on',x.dataset.c===folder)});$('o-filt-t').textContent=FOLD.filter(function(f){return f.id===folder})[0].label;sel=null;renderList();renderDet()});
   function sizeCards(){if(!desk){root.style.removeProperty('--och');root.style.removeProperty('--ocd');return}var n=Math.max(1,$('olist').querySelectorAll('.oc').length),lh=parseFloat(getComputedStyle(root).getPropertyValue('--lh'))||700;
     var h=Math.max(118,Math.min(240,(lh-22-16*(n-1))/n));root.style.setProperty('--och',h+'px');root.style.setProperty('--ocd',((h-118)/2)+'px')}
   function visible(){
     var q=$('o-q').value.trim().toLocaleLowerCase('bg');
-    return mails.filter(function(m){if(m.folder==='trash')return false;if(folder!=='all'&&m.folder!==folder)return false;if(!q)return true;
+    return mails.filter(function(m){if(m.folder==='trash')return false;if(folder!=='all'&&m.folder!==folder)return false;
+      if(flag==='unread'&&!(m.folder==='in'&&!m.read))return false;if(flag==='att'&&!hasAtt(m))return false;if(!q)return true;
       return [m.from,m.from_name,(m.to||[]).join(' '),m.subject,m.text].join(' ').toLocaleLowerCase('bg').indexOf(q)>=0});
   }
   function renderList(){
@@ -1192,8 +1207,8 @@ html.desk .ocols.reading .od-ph{display:none}
         '<h3 class="on2">'+esc(who(m))+'</h3><p class="oca">'+esc(m.subject||'(без тема)')+'</p>'+
         '<p class="om"><span>'+ic('clock')+esc(when(m.at||m._created))+'</span>'+(na?'<i></i><span class="att">'+ic('file-text')+na+(na===1?' файл':' файла')+'</span>':'')+(m.answered?'<i></i><span>'+ic('check')+'Отговорено</span>':'')+'</p>'+
         '<span class="ar">'+ic('chev-r')+'</span></article>'}).join('')
-      :'<div class="empty">'+(folder==='sent'?'Още няма изпратени писма от пощата.':'Няма писма. Писмата до '+esc(MAILBOX)+' идват тук автоматично.')+'</div>';
-    sizeCards();
+      :'<div class="empty">'+(flag==='unread'?'Няма непрочетени писма.':flag==='att'?'Няма писма с прикачени файлове.':folder==='sent'?'Още няма изпратени писма от пощата.':'Няма писма. Писмата до '+esc(MAILBOX)+' идват тук автоматично.')+'</div>';
+    sizeCards();syncChips();
   }
   function renderDet(){
     var m=mails.filter(function(x){return x.id===sel})[0],box=$('odet');

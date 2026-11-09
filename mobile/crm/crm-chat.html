@@ -967,6 +967,7 @@ html.mini .c-comp{position:static;margin:10px}
 html.mini .cb{max-width:84%}
 </style>
 <link rel="stylesheet" href="crm-info.css"/>
+<link rel="stylesheet" href="crm-v3-chat.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1095,6 +1096,10 @@ html.mini .cb{max-width:84%}
   <div class="oflow">
     <div class="otools">
       <label class="fld o-q"><svg class="i"><use href="#search"/></svg><input id="o-q" type="search" placeholder="Търси разговор – име, телефон, текст…" autocomplete="off" aria-label="Търси разговор"></label>
+      <div class="c-filt" id="c-filt" role="group" aria-label="Филтър на разговорите">
+        <button type="button" class="on" data-u="0" aria-pressed="true">Всички</button>
+        <button type="button" data-u="1" aria-pressed="false">Непрочетени<b></b></button>
+      </div>
     </div>
     <header class="od-h mini-bar" id="mini-bar" hidden></header>
     <div class="ocols" id="ocols">
@@ -1236,9 +1241,13 @@ html.mini .cb{max-width:84%}
 
   /* ---------- списък с разговори ---------- */
   function byId(id){return chats.filter(function(c){return c.id===id})[0]}
+  /* филтър „Всички / Непрочетени“ (заедно с превключвателя на платформите) */
+  var onlyUn=false;
+  $('c-filt').addEventListener('click',function(e){var b=e.target.closest('[data-u]');if(!b)return;onlyUn=b.dataset.u==='1';
+    [].forEach.call(this.children,function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on)});renderAll()});
   function visible(){
     var q=$('o-q').value.trim().toLocaleLowerCase('bg');
-    return chats.filter(function(c){if(plat!=='all'&&c.platform!==plat)return false;if(!q)return true;var d=c.data||{};
+    return chats.filter(function(c){if(plat!=='all'&&c.platform!==plat)return false;if(onlyUn&&!(+(c.data||{}).unread>0))return false;if(!q)return true;var d=c.data||{};
       return [d.name,d.client,d.phone,d.last_text,c.ext_id].join(' ').toLocaleLowerCase('bg').indexOf(q)>=0});
   }
   function miniBar(){if(!MINI)return;var b=$('mini-bar');b.hidden=!!sel;if(sel)return;var p=plat==='all'?'messenger':plat;
@@ -1246,14 +1255,14 @@ html.mini .cb{max-width:84%}
       '<button type="button" data-full aria-label="Отвори в Чат" title="Отвори в Чат">'+ic('maximize-2')+'</button><button type="button" data-close aria-label="Затвори" title="Затвори">'+ic('x')+'</button>'}
   function renderList(){
     miniBar();
-    var list=visible();
+    var list=visible(),cu=$('c-filt').querySelector('b');if(cu)cu.textContent=chats.filter(function(c){return (plat==='all'||c.platform===plat)&&+(c.data||{}).unread>0}).length||'';
     $('olist').innerHTML=list.length?list.map(function(c){var d=c.data||{},n=+d.unread||0;
       return '<article class="oc'+(c.id===sel?' on':'')+(n?' un':'')+'" tabindex="0" data-id="'+esc(c.id)+'" aria-label="'+esc(cname(c))+'">'+
         '<span class="ava">'+esc(initials(cname(c)))+'<i>'+LOGO[c.platform==='whatsapp'||c.platform==='instagram'?c.platform:'messenger']+'</i></span>'+
         '<h3 class="on2">'+esc(cname(c))+'</h3><p class="oca">'+(d.last_dir==='out'?'Вие: ':'')+esc(d.last_text||'📎 Файл')+'</p>'+
         '<p class="om"><span>'+ic('clock')+esc(when(c.last_at||d.last_at))+'</span><i></i><span>'+esc(plabel(c.platform))+'</span>'+(d.client_id?'<i></i><span class="crm">'+ic('badge-check')+'В CRM</span>':'')+'</p>'+
         (n?'<b class="cnt">'+(n>99?'99+':n)+'</b>':'')+'<span class="ar">'+ic('chev-r')+'</span></article>'}).join('')
-      :'<div class="empty">'+(chats.length?'Няма разговори за избраното.':'Още няма съобщения. Когато клиент пише във WhatsApp, Messenger или Instagram, разговорът идва тук автоматично.')+'</div>';
+      :'<div class="empty">'+(chats.length?(onlyUn?'Няма непрочетени разговори.':'Няма разговори за избраното.'):'Още няма съобщения. Когато клиент пише във WhatsApp, Messenger или Instagram, разговорът идва тук автоматично.')+'</div>';
   }
 
   /* ---------- разговор ---------- */

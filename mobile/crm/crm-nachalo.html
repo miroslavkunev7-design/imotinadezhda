@@ -197,6 +197,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/><link rel="stylesheet" href="crm-premium.css"/>
+<link rel="stylesheet" href="crm-v3-nachalo.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -285,6 +286,9 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     <p class="abs hero-sub" data-hero>Управление на имоти,<br>клиенти и сделки</p>
     <div class="abs hero-line" data-hero></div>
   </section>
+
+  <!-- Вариант 3: голямото стъклено пано под шапката (само фон; размерът се задава от скрипта в края) -->
+  <div class="abs v3-glass" aria-hidden="true"></div>
 
   <!-- ============ FEATURE TILES ============ -->
   <button class="abs tile" data-row="1" style="left:18px;top:378px" data-href="crm-klienti.html">
@@ -547,6 +551,44 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       if(!a){if(i===0){b.querySelector('.tx b').textContent='Още няма дейности';b.querySelector('.tx span').textContent='Добавете клиент или имот';b.querySelector('.tm').textContent='';link(b,'crm-klienti.html#new')}else b.style.visibility='hidden';return}
       b.querySelector('.tx b').textContent=a.b;b.querySelector('.tx span').textContent=a.s;b.querySelector('.tm').textContent=ago(a.t);b.removeAttribute('data-href');link(b,a.go)});
   }).catch(function(e){ND.say('Грешка при зареждане: '+(e&&e.message||e))});
+})();
+</script>
+<script>
+/* Вариант 3: стъкленото пано обгръща плочките и панелите; на компютър панелите текат свободно (по-едър текст),
+   затова тук се подреждат по височина в мястото под шапката. Изпълнява се след основното оразмеряване. */
+(function(){
+  var root=document.documentElement,canvas=document.getElementById('canvas'),top=document.getElementById('top'),glass=document.querySelector('.v3-glass');
+  if(!glass||!top)return;
+  var tiles=[].slice.call(document.querySelectorAll('.tile[data-row]')),panels=[].slice.call(document.querySelectorAll('.panel[data-row]'));
+  function place(){
+    var right=panels.slice(1);
+    right.forEach(function(p){p.style.minHeight=''});
+    if(root.classList.contains('desk')){
+      var Hh=top.offsetHeight,Hc=canvas.offsetHeight,bot=Hc-(window.NDRAIL?18:150),P=30,g=24;
+      var xL=panels[0].offsetLeft,xR=panels[1].offsetLeft,gT=Hh+8,Y0=gT+P,S=bot-P-Y0;
+      var sum=function(){return right.reduce(function(a,p){return a+p.offsetHeight},0)};
+      canvas.classList.remove('v3-tight');
+      if(sum()+2*g>S)canvas.classList.add('v3-tight');
+      var hs=sum(),free=S-hs,gg=Math.max(12,Math.min(g,free/2)),extra=Math.max(0,free-2*gg),y=Y0;
+      right.forEach(function(p){var h=p.offsetHeight+extra/right.length;if(extra>0)p.style.minHeight=h+'px';p.style.top=y+'px';y+=p.offsetHeight+gg});
+      var qa=panels[0],hq=qa.offsetHeight,th=Math.max(150,Math.floor((S-hq-2*g)/2));
+      tiles.forEach(function(t){var r=+t.getAttribute('data-row');t.style.setProperty('--th',th+'px');t.style.top=(Y0+(r-1)*(th+g))+'px'});
+      qa.style.top=(Y0+2*th+2*g)+'px';
+      glass.style.left=(xL-P)+'px';glass.style.top=gT+'px';glass.style.width=(xR+1000+2*P-xL)+'px';glass.style.height=(bot-gT)+'px';
+    }else{
+      canvas.classList.remove('v3-tight');
+      var t0=tiles[0].offsetTop,last=panels[panels.length-1],b=last.offsetTop+last.offsetHeight;
+      glass.style.left='8px';glass.style.width='1008px';glass.style.top=(t0-26)+'px';glass.style.height=(b-t0+52)+'px';
+    }
+  }
+  /* празни блокове не се показват: показател със стойност „—“ (напр. Успеваемост без приключени сделки) */
+  function empties(){[].forEach.call(document.querySelectorAll('.metric'),function(m){var b=m.querySelector('b');m.classList.toggle('v3-empty',!!b&&/^[—–-]$/.test(b.textContent.trim()))})}
+  var raf=0;function again(){cancelAnimationFrame(raf);raf=requestAnimationFrame(function(){empties();place()})}
+  if(window.MutationObserver)new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var t=ms[i].target;t=t.nodeType===1?t:t.parentNode;if(t&&t.closest&&t.closest('.ev,.act,.metric')){again();return}}})
+    .observe(canvas,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['style']});
+  empties();place();addEventListener('resize',place);addEventListener('orientationchange',function(){setTimeout(place,60)});addEventListener('load',place);
+  setTimeout(place,400);setTimeout(place,1500);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(place);
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>

@@ -1,0 +1,188 @@
+/* CRM · Чат – Вариант 3 (по одобрения стил на Имоти и Клиенти).
+   Шапката горе НЕ се променя. Под нея: голям прозрачен стъклен прозорец върху вечерна снимка.
+   Разговорите са кремави стъклени редове със златен кант и ясна HD снимка отдясно; превключвателят на платформите – кръгли стъклени бутони.
+   В отворения разговор снимка има само в лентата със заглавието и в лентата с информацията – зад съобщенията НЯМА снимка.
+   Функциите (ръчно изпращане [data-manual]/[data-real], чернови, realtime, малкият прозорец ?mini=1) не се променят. */
+
+/* ============================================================
+   1) СТРАНИЦАТА: тъмна вечерна снимка зад голямото стъкло
+   ============================================================ */
+html,body,#stage{background:#2a050d!important}
+#stage::before{background:none!important}
+#canvas.ocv{background:
+  linear-gradient(180deg,rgba(42,5,13,.12) 0,rgba(42,5,13,.12) 300px,rgba(42,5,13,.42) 900px,rgba(42,5,13,.86) 1450px,#2a050d 1800px),
+  radial-gradient(60% 900px at 88% 1400px,rgba(168,46,66,.34),transparent 70%),
+  url(assets/hero-villa.jpg) 50% 298px/100% auto no-repeat,#2a050d}
+html.desk #canvas.ocv{background:
+  linear-gradient(180deg,rgba(42,5,13,.18) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.72) 100%),
+  url(assets/hero-villa.jpg) 50% 70%/cover no-repeat,#2a050d}
+
+/* --- голямото стъкло --- */
+.oflow{margin:18px 16px 34px;padding:26px 22px 30px;border-radius:50px;min-height:1400px;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.7),inset 0 0 60px rgba(255,214,160,.12),
+    0 0 44px rgba(246,212,142,.3),0 40px 80px -30px rgba(0,0,0,.65)}
+html.desk .oflow{margin:18px calc(var(--xL,24px) - 26px) 0;padding:26px 26px 26px!important;border-radius:44px;min-height:0}
+
+/* търсачката – прозрачно стъкло със светъл текст */
+.otools{padding:0!important}
+.otools .o-q{height:80px!important;border-radius:24px!important;padding:0 26px!important;gap:18px!important;min-width:0;
+  background:linear-gradient(160deg,rgba(255,248,238,.34),rgba(255,236,214,.14))!important;
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.35),0 10px 22px -14px rgba(0,0,0,.5)!important}
+.otools .o-q svg.i{color:#fff0d6!important;font-size:34px!important}
+.otools .o-q input{color:#fff8ec!important;font:400 28px/1 var(--cond)!important;font-style:normal!important}
+.otools .o-q input::placeholder{color:rgba(255,240,220,.88)!important;font-style:normal!important}
+.otools .o-q:focus-within{box-shadow:inset 0 0 0 2px #f6d48e,0 0 20px rgba(246,212,142,.6)!important}
+
+/* филтър „Всички / Непрочетени“ – сегментиран превключвател; активното – винено със златен пръстен */
+.otools{gap:14px!important}
+.c-filt{flex:none;display:flex;gap:8px;height:80px;padding:6px;border-radius:24px;background:linear-gradient(160deg,rgba(255,248,238,.34),rgba(255,236,214,.14));
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),0 10px 22px -14px rgba(0,0,0,.5)}
+.c-filt button{display:flex;align-items:center;gap:10px;height:100%;padding:0 22px;border-radius:19px;font:700 27px/1 var(--cond);color:#5a0a12;white-space:nowrap;
+  background:linear-gradient(180deg,rgba(255,253,249,.97),rgba(252,241,231,.93));box-shadow:0 0 0 1.5px rgba(226,180,120,.6),inset 0 2px 0 #fff;transition:transform .18s cubic-bezier(.2,.8,.3,1.25)}
+.c-filt button.on{color:#fff3dc;background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%);box-shadow:inset 0 0 0 2px #e6bf5b,0 0 18px rgba(230,191,91,.5)}
+.c-filt button b{min-width:34px;height:34px;padding:0 9px;border-radius:17px;display:grid;place-items:center;font:800 21px/1 var(--cond);color:#3a1d00;background:linear-gradient(180deg,#f8dc98,#d9a254)}
+.c-filt button b:empty{display:none}
+.c-filt button:active{transform:scale(.96)}
+/* разговор: етикетът с платформата повтаря логото и „Отвори в …“ – скрит (без двойна информация) */
+#odet .c-info>span{display:none!important}
+
+/* ============================================================
+   2) ПЛАТФОРМИТЕ: кръгли стъклени бутони (активният – винен със златен пръстен)
+   ============================================================ */
+#crail{gap:52px!important;padding:26px 0 0 4px!important}
+#crail .cpl{width:100px;height:100px;border:0!important;
+  background:radial-gradient(120% 90% at 30% 18%,#fff,rgba(255,250,244,.96) 55%,rgba(248,232,212,.95))!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.38),0 0 24px rgba(255,228,196,.5),0 12px 22px -10px rgba(0,0,0,.6)!important}
+#crail .cpl.on{background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%)!important;
+  box-shadow:0 0 0 3px #e6bf5b,0 0 0 6px rgba(255,240,205,.35),0 0 28px rgba(246,212,142,.75),0 12px 22px -10px rgba(0,0,0,.6)!important}
+#crail .cpl.on .all{color:#f8d777!important}
+#crail .cpl .all{stroke-width:2.2!important}
+#crail .cpl small{bottom:-32px!important;font:700 21px/1 var(--cond)!important;color:#fff3dc!important;text-shadow:0 1px 3px rgba(30,0,8,.85),0 0 10px rgba(30,0,8,.6)}
+#crail .cpl .dot{border-color:#f6d993!important}
+
+/* ============================================================
+   3) СПИСЪКЪТ: кремави стъклени редове + ясна снимка отдясно
+   ============================================================ */
+.ocols .olist#olist{padding-top:24px!important;gap:20px!important}
+#olist .oc{display:grid!important;grid-template-columns:124px minmax(0,46%) minmax(0,1fr) 84px;grid-template-rows:auto auto auto;align-content:center;row-gap:8px;
+  height:auto!important;min-height:158px;margin:0!important;padding:20px 0!important;border:0!important;border-radius:30px!important;overflow:hidden;isolation:isolate;
+  background:linear-gradient(180deg,rgba(255,252,247,.96) 0%,rgba(253,242,231,.93) 100%)!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 32px rgba(255,228,196,.45),0 22px 40px -20px rgba(30,0,8,.7),inset 0 1.5px 0 #fff!important}
+#olist .oc::before{content:"";position:absolute;right:0;top:0;bottom:0;width:48%;z-index:0;pointer-events:none;
+  background:url(assets/nd/ph01.jpg) 50% 55%/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+#olist .oc:nth-child(4n+2)::before{background-image:url(assets/nd/ph08.jpg);background-position:50% 60%}
+#olist .oc:nth-child(4n+3)::before{background-image:url(assets/nd/ph16.jpg);background-position:50% 55%}
+#olist .oc:nth-child(4n+4)::before{background-image:url(assets/nd/ph05.jpg);background-position:50% 55%}
+#olist .oc>*{position:relative!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;margin:0!important;z-index:1}
+#olist .oc.on{box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5.5px rgba(255,240,205,.45),0 0 30px rgba(246,212,142,.7),0 22px 40px -20px rgba(30,0,8,.7)!important}
+/* аватар – винен медальон със златен кант и логото на платформата */
+#olist .oc .ava{grid-column:1;grid-row:1/-1;align-self:center;justify-self:center;width:86px!important;height:86px!important;border:0!important;
+  box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.55),inset 0 2px 3px rgba(255,170,180,.45)!important}
+#olist .oc .ava i{position:absolute!important;right:-8px;bottom:-8px}
+/* име · последно съобщение · час – в кремавата колона */
+#olist .oc .on2{grid-column:2;grid-row:1;min-width:0;font:700 34px/1.12 var(--serif)!important;color:#3b0a0e!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff}
+#olist .oc.un .on2{color:#7b1020!important}
+#olist .oc .oca{grid-column:2;grid-row:2;min-width:0;font:800 28px/1.2 var(--cond)!important;color:#14070a!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff,0 0 1px #fff}
+#olist .oc .om{grid-column:2;grid-row:3;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px!important;font:700 25px/1.1 var(--cond)!important;color:#3d1d18!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff}
+#olist .oc .om span{gap:10px!important;font:inherit!important;color:inherit!important;white-space:nowrap}
+#olist .oc .om svg.i{font-size:27px!important;color:#7b1020!important;stroke-width:2.6!important}
+#olist .oc .om i{width:1.5px!important;height:26px!important;background:rgba(214,163,92,.7)!important}
+#olist .oc .om .crm{color:#1e5c14!important}
+#olist .oc .cnt{grid-column:3;grid-row:1/-1;align-self:center;justify-self:end;margin-right:12px!important}
+/* стрелката – златен кръг върху снимката */
+#olist .oc .ar{grid-column:4;grid-row:1/-1;align-self:center;justify-self:center;display:grid;place-items:center;width:62px;height:62px;border-radius:50%;font-size:30px!important;color:#5a0a12!important;
+  background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%);box-shadow:0 0 0 1.5px #fff2c4 inset,0 4px 10px rgba(0,0,0,.4),0 0 14px rgba(255,220,150,.6)}
+#olist .oc .ar svg.i{stroke-width:2.8!important}
+#olist .oc:focus-visible{outline:3px solid #f6d48e;outline-offset:4px}
+#olist .empty{padding:34px!important;border-radius:28px!important;font:700 28px/1.4 var(--cond)!important;color:#14070a!important;
+  background:linear-gradient(180deg,rgba(255,252,247,.96),rgba(253,242,231,.93))!important;box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3)!important}
+
+/* ============================================================
+   4) РАЗГОВОРЪТ: кремава карта; снимка само в горната лента и в лентата с информацията
+   ============================================================ */
+#ocols #odet{border:0!important;border-radius:32px!important;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,252,247,.97) 0%,rgba(253,242,231,.95) 100%)!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 34px rgba(255,228,196,.5),0 24px 44px -20px rgba(30,0,8,.7),inset 0 1.5px 0 #fff!important}
+html.desk #ocols #odet{margin:24px 0 0!important}
+html.desk #ocols #odet:empty{display:grid;place-items:center}
+html.desk #ocols #odet:empty::before{font:700 30px/1.4 var(--cond)!important;color:#3d1d18!important}
+/* горната лента: крем + ясна снимка отдясно */
+#odet .od-h{position:relative;isolation:isolate;flex:none;height:auto!important;min-height:120px;padding:20px 24px 20px 26px!important;gap:18px!important;color:#3b0a0e!important;
+  background:none!important;border:0!important;border-bottom:1.5px solid rgba(214,163,92,.45)!important;box-shadow:none!important}
+#odet .od-h::before{content:"";position:absolute;right:0;top:0;bottom:0;width:50%;z-index:-1;pointer-events:none;
+  background:url(assets/nd/ph13.jpg) 50% 62%/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+#odet .od-h>span{flex:none;width:70px!important;height:70px!important;border-radius:50%;background:radial-gradient(120% 90% at 30% 18%,#fff,rgba(255,250,244,.96) 55%,rgba(248,232,212,.95));
+  box-shadow:0 0 0 3px #f1c37f,0 0 16px rgba(240,196,110,.5)}
+#odet .od-h>span svg{width:40px;height:40px}
+#odet .od-h h2{flex:1;min-width:0;max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:700 40px/1.15 var(--serif)!important;color:#3b0a0e!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff}
+#odet .od-h button{flex:none;width:64px!important;height:64px!important;border-radius:50%!important;color:#7b1020!important;
+  background:linear-gradient(180deg,#fffdf9,#fcf1e7)!important;box-shadow:0 0 0 1.5px rgba(226,180,120,.8),0 0 16px rgba(255,214,160,.6),0 8px 16px -8px rgba(60,10,10,.55)!important}
+#odet .od-h button svg.i{color:#7b1020!important;font-size:30px!important;stroke-width:2.4!important}
+#odet .od-h .real{margin-left:auto}
+#odet .od-h .back{background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 35%,#d9a650 75%,#b98235 100%)!important;box-shadow:0 0 0 1.5px #fff2c4 inset,0 4px 10px rgba(0,0,0,.35),0 0 14px rgba(255,220,150,.6)!important}
+#odet .od-h .back svg.i{color:#5a0a12!important;stroke-width:2.8!important}
+/* лентата с информацията: пилюли + ясна снимка отдясно */
+#odet .c-info{position:relative;isolation:isolate;flex:none;margin:0!important;padding:16px 24px 16px!important;gap:12px!important;border-bottom:1.5px solid rgba(214,163,92,.32)}
+#odet .c-info::before{content:"";position:absolute;right:0;top:0;bottom:0;width:46%;z-index:-1;pointer-events:none;
+  background:url(assets/nd/ph20.jpg) 50% 50%/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+#odet .c-info a,#odet .c-info span{height:54px!important;padding:0 22px!important;border-radius:18px!important;font:700 25px/1 var(--cond)!important;color:#14070a!important;
+  background:linear-gradient(180deg,#fffdf9,#fcf1e7)!important;box-shadow:0 0 0 1.5px rgba(226,180,120,.75),0 0 14px rgba(255,214,160,.45),0 8px 14px -10px rgba(80,30,10,.45)!important}
+#odet .c-info svg.i{color:#7b1020!important;stroke-width:2.6!important}
+/* „Отвори в …“ – вторично действие, златно */
+#odet .c-info a.realpill{color:#3a1d00!important;background:linear-gradient(180deg,#f8dc98,#d9a254)!important;box-shadow:inset 0 0 0 1px rgba(255,248,220,.85),0 0 16px rgba(246,212,142,.6),0 8px 14px -10px rgba(80,40,0,.6)!important}
+#odet .c-info a[data-client]{color:#fff3dc!important;background:linear-gradient(135deg,#a3213a,#5e0716)!important;box-shadow:inset 0 0 0 1.5px #e6bf5b,0 0 16px rgba(230,191,91,.45)!important}
+#odet .c-info a[data-client] svg.i{color:#f8d777!important}
+#odet .c-hint{flex:none;margin:16px 22px 0!important;padding:16px 24px!important;border-radius:20px!important;font:700 24px/1.4 var(--cond)!important;color:#14070a!important;
+  background:linear-gradient(180deg,#fffdf9,#fcf3ea)!important;box-shadow:0 0 0 1.5px rgba(226,180,120,.6),0 0 12px rgba(255,214,160,.35)!important}
+#odet .c-hint b{color:#7b1020!important}
+/* съобщенията – чисто кремаво поле, БЕЗ снимка; балончетата остават четливи */
+#odet .c-msgs{margin:16px 22px 0!important;border-radius:24px!important;background:linear-gradient(180deg,#fffefb,#fdf6ee)!important;box-shadow:inset 0 0 0 1.5px rgba(226,180,120,.55),inset 0 8px 16px -14px rgba(140,70,40,.35)!important}
+#odet .c-msgs .cb{font-size:27px!important}
+#odet .c-msgs .cb.in{color:#14070a!important}
+#odet .c-day{font:700 20px/1 var(--cond)!important;color:#3d1d18!important;background:linear-gradient(180deg,#fffdf9,#fcf1e7)!important;box-shadow:0 0 0 1px rgba(226,180,120,.7)!important}
+#odet .c-empty{font:italic 700 26px/1.4 var(--cond)!important;color:#5a4038!important}
+/* полето за отговор */
+#odet .c-comp{margin:16px 22px 20px!important;border-radius:28px!important;background:linear-gradient(180deg,#fffefb,#fdf3e9)!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4px rgba(214,163,92,.38),0 0 22px rgba(255,214,160,.55),0 10px 20px -12px rgba(60,10,10,.45)!important}
+#odet .c-comp textarea{font:700 27px/1.35 var(--cond)!important;color:#14070a!important}
+#odet .c-comp textarea::placeholder{color:#5a4038!important;font-style:italic;font-weight:700}
+#odet .c-send{height:68px!important;border:0!important;border-radius:22px!important;font:700 28px/1 var(--cond)!important;color:#fff3dc!important;
+  background:linear-gradient(135deg,#a3213a 0%,#7a0f22 50%,#540516 100%)!important;
+  box-shadow:inset 0 0 0 2px #e6bf5b,inset 0 3px 5px rgba(255,170,180,.4),0 0 22px rgba(230,191,91,.45),0 10px 20px -10px rgba(80,10,20,.7)!important}
+#odet .c-send svg.i{color:#f8d777}
+
+/* ============================================================
+   5) КОМПЮТЪР
+   ============================================================ */
+html.desk #ocols{grid-template-columns:150px minmax(0,900px) 1fr!important}
+html.desk .ocols .olist#olist{max-height:calc(var(--lh,700px) - 30px)!important;padding:24px 10px 10px 4px!important}
+html.desk #ocols #odet{height:calc(var(--lh,700px) - 30px)!important;max-height:calc(var(--lh,700px) - 30px)!important}
+html.desk #olist .oc{min-height:170px}
+html.desk #olist .oc .on2{font-size:38px!important}
+html.desk #olist .oc .oca{font-size:30px!important}
+html.desk #olist .oc .om{font-size:27px!important}
+html.desk #odet .od-h h2{font-size:44px!important}
+html.desk #odet .c-hint{font-size:26px!important}
+html.desk #odet .c-msgs .cb{font-size:29px!important}
+html.desk #odet .c-comp textarea{font-size:29px!important}
+html.desk #crail .cpl small{font-size:22px!important}
+
+/* ============================================================
+   6) МАЛКИЯТ ПРОЗОРЕЦ (?mini=1): без голямото стъкло – само разговорът на цялата площ
+   ============================================================ */
+html.mini #canvas.ocv{background:#2a050d!important}
+html.mini .oflow{margin:0!important;padding:0!important;border-radius:0!important;min-height:0!important;background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+html.mini #ocols #odet{margin:0!important;border-radius:0!important;box-shadow:none!important}
+html.mini .ocols .olist#olist{padding:16px 14px 20px!important}
+html.mini #odet .od-h{min-height:104px;padding:14px 16px!important}
+html.mini #odet .od-h h2{max-width:none;font-size:36px!important}
+html.mini #odet .od-h::before{width:44%}
+html.mini #odet .c-info{padding:12px 14px!important}
+html.mini #odet .c-hint{margin:12px 12px 0!important}
+html.mini #odet .c-msgs{margin:12px 12px 0!important}
+html.mini #odet .c-comp{margin:12px!important}

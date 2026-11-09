@@ -1,0 +1,188 @@
+/* CRM · Начало – Вариант 3 (по одобрения стил на Имоти и Клиенти). Върху етап 1 (crm-premium.css), който не се променя.
+   Шапката горе НЕ се променя. Под нея: голям прозрачен стъклен прозорец (.v3-glass) върху вечерна снимка.
+   Четирите плочки и панелите са кремави „квадратни“ карти – бял ръб, златен пръстен, ясна HD снимка, която прелива отдясно.
+   „Обзор днес“ – златни плочки с кръгли златни икони. На компютър текстът е по-едър и панелите текат свободно
+   (разположението по височина се изчислява в малкия скрипт в края на страницата). Функциите и връзките не се променят.
+   Мерките са в пикселите на платното (телефон 1024 широко; компютър ~2072 широко), което страницата мащабира. */
+
+/* шрифтът за редовете (както на останалите страници); Начало досега зареждаше само серифния */
+@font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+20AC,U+2013-2014,U+2018-201E,U+2026}
+@font-face{font-family:'Roboto Condensed Local';font-weight:700;font-display:swap;src:url(assets/fonts/roboto-condensed-cyrillic-700-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Roboto Condensed Local';font-weight:700;font-display:swap;src:url(assets/fonts/roboto-condensed-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+20AC,U+2013-2014,U+2018-201E,U+2026}
+:root{--cond:'Roboto Condensed','Roboto Condensed Local','Arial Narrow',Arial,sans-serif}
+
+/* ============================================================
+   1) СТРАНИЦАТА: вечерна снимка + голямото стъкло
+   ============================================================ */
+html,body,#stage{background:#2a050d!important}
+#stage::before{background:none!important}
+#canvas{background:
+  linear-gradient(180deg,rgba(42,5,13,.1) 0,rgba(42,5,13,.1) 560px,rgba(42,5,13,.45) 1100px,rgba(42,5,13,.86) 1650px,#2a050d 2000px),
+  radial-gradient(60% 700px at 88% 1500px,rgba(168,46,66,.34),transparent 70%),
+  url(assets/nd/ph14.jpg) 50% 420px/100% auto no-repeat,#2a050d}
+html.desk #canvas{background:
+  linear-gradient(180deg,rgba(42,5,13,.2) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.72) 100%),
+  url(assets/nd/ph14.jpg) 50% 72%/cover no-repeat,#2a050d}
+#canvas>.v3-glass{position:absolute;left:8px;top:560px;width:1008px;height:900px;border-radius:50px;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.7),inset 0 0 60px rgba(255,214,160,.12),
+    0 0 44px rgba(246,212,142,.3),0 40px 80px -30px rgba(0,0,0,.65)}
+html.desk #canvas>.v3-glass{border-radius:44px}
+
+/* ============================================================
+   2) ЧЕТИРИТЕ ПЛОЧКИ – кремави карти, ясна снимка отдясно
+   ============================================================ */
+#canvas .tile{overflow:hidden;isolation:isolate;border:0!important;border-radius:26px;color:#3b0a0e;
+  background:linear-gradient(180deg,rgba(255,252,247,.96) 0%,rgba(253,242,231,.93) 100%)!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 30px rgba(255,228,196,.45),0 22px 40px -20px rgba(30,0,8,.7),inset 0 1.5px 0 #fff!important}
+#canvas .tile .veil{display:none!important}
+#canvas .tile .gloss{background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 26%)!important}
+#canvas .tile img.ph{left:auto!important;right:0!important;top:0!important;width:52%!important;height:100%!important;max-width:none;object-fit:cover;object-position:var(--op,50% 50%);
+  opacity:1!important;filter:saturate(1.1) contrast(1.04)!important;
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+#canvas .tile[data-href="crm-klienti.html"]{--op:52% 50%}
+#canvas .tile[data-href="crm-imoti.html"]{--op:72% 55%}
+#canvas .tile[data-msg="Сделки"]{--op:70% 50%}
+#canvas .tile[data-href="crm-kalendar.html"]{--op:42% 50%}
+/* иконка – винен медальон със златен кант; заглавие и подзаглавие – тъмни, с бял ореол */
+#canvas .tile .ic{left:28px;top:calc(var(--th) - 126px);width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:26px;color:#ffe9b8;filter:none;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 2.5px #f1c37f,0 0 12px rgba(240,196,110,.55)}
+#canvas .tile .ic svg.i{stroke-width:2.1}
+#canvas .tile h3{left:30px;color:#3b0a0e!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff!important}
+#canvas .tile p{left:31px;font-weight:700!important;font-family:var(--cond)!important;color:#3d1d18!important;text-shadow:0 0 8px #fff,0 0 4px #fff,0 0 2px #fff!important}
+
+/* ============================================================
+   3) ПАНЕЛИТЕ – кремаво стъкло, бял ръб + златен пръстен
+   ============================================================ */
+#canvas .panel{overflow:hidden!important;border:0!important;border-radius:28px!important;
+  background:linear-gradient(180deg,rgba(255,252,247,.96) 0%,rgba(253,242,231,.93) 100%)!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 4.5px rgba(214,163,92,.3),0 0 30px rgba(255,228,196,.45),0 22px 40px -20px rgba(30,0,8,.7),inset 0 1.5px 0 #fff!important}
+/* ясна HD снимка – на телефона само в лентата на заглавието (вдясно), на компютъра – отдясно на целия панел */
+#canvas .panel::before{content:"";display:block!important;position:absolute;left:auto;right:0;top:0;bottom:auto;width:50%;height:56px;border-radius:0;z-index:0;pointer-events:none;
+  background:var(--v3ph) center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
+#canvas .panel[data-row="3"]{--v3ph:url(assets/nd/ph06.jpg)}
+#canvas .panel[data-row="4"]{--v3ph:url(assets/nd/ph15.jpg)}
+#canvas .panel[data-row="5"]{--v3ph:url(assets/nd/ph13.jpg)}
+#canvas .panel[data-row="6"]{--v3ph:url(assets/nd/ph11.jpg)}
+/* вторичните бутони („Виж календара“, „Виж всички“) – златни, тъмен текст, винена иконка */
+#canvas .pillbtn,#canvas .linkbtn{z-index:2;color:#3a1d00!important;background:linear-gradient(180deg,#f8dc98,#d9a254)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,248,220,.85),0 0 14px rgba(246,212,142,.6),0 6px 12px -8px rgba(80,40,0,.6)!important}
+#canvas .pillbtn svg.i,#canvas .linkbtn svg.i{color:#7b1020!important}
+#canvas .linkbtn{top:9px;height:36px;padding:0 16px 0 20px;border-radius:18px}
+#canvas .datepill{z-index:2;background:linear-gradient(180deg,#fffdf9,#fcf1e7)!important;box-shadow:0 0 0 1.5px rgba(226,180,120,.8),0 0 14px rgba(255,214,160,.5)!important;color:#14070a}
+#canvas .datepill svg.i{color:#7b1020!important}
+/* бързи действия */
+#canvas .qa{z-index:1;color:#14070a!important;background:linear-gradient(180deg,rgba(255,253,249,.97),rgba(252,241,231,.93))!important;border:0!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3.5px rgba(214,163,92,.3),0 0 16px rgba(255,228,196,.4),0 10px 18px -12px rgba(60,10,10,.5)!important}
+/* обзор днес – златни плочки (кремава група, кръгли златни икони, златни разделители) */
+#canvas .metrics{z-index:1;border-radius:22px;background:linear-gradient(180deg,rgba(255,252,247,.96),rgba(253,242,231,.92))!important;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.95),0 0 0 3.5px rgba(214,163,92,.32),0 0 18px rgba(255,228,196,.55),0 10px 20px -12px rgba(60,10,10,.5)!important}
+#canvas .metric+.metric:before{background:rgba(214,163,92,.5)!important;top:16px;bottom:16px}
+#canvas .metric svg.i{width:46px!important;height:46px!important;padding:11px;border-radius:50%;font-size:46px!important;color:#7b1020!important;stroke-width:2.4!important;filter:none!important;
+  background:radial-gradient(circle at 35% 28%,#fffbe8 0%,#f7dfa0 45%,#d9a650 100%);box-shadow:0 0 0 1.5px #fff2c4,0 0 0 3.5px rgba(214,163,92,.55),0 0 12px rgba(246,212,142,.75)}
+#canvas .metric b{font:800 40px/1 var(--cond)!important;letter-spacing:0!important;color:#14070a!important;-webkit-text-fill-color:#14070a;filter:none!important;
+  background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important}
+#canvas .metric span{font-family:var(--cond)!important;font-weight:700!important;color:#3d1d18!important}
+/* празни блокове: показател „—“ и незаети редове (без данни) не заемат място */
+#canvas .metric.v3-empty{display:none!important}
+#canvas .metrics{grid-template-columns:none!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+#canvas .ev[style*="visibility: hidden"],#canvas .act[style*="visibility: hidden"]{display:none!important}
+/* календар */
+#canvas .ev{z-index:1;color:#14070a;background:linear-gradient(180deg,#fffdf9,#fcf1e7)!important;box-shadow:0 0 0 1.5px rgba(226,180,120,.7),0 0 12px rgba(255,214,160,.35),0 4px 10px -6px rgba(80,30,10,.4)!important}
+#canvas .ev .t{box-shadow:inset 0 0 0 1.5px #e6bf5b,0 0 8px rgba(230,191,91,.35)!important}
+#canvas .ev .n{font-family:var(--cond);font-weight:700;color:#14070a}
+#canvas .ev .c{font-family:var(--cond);font-weight:700;color:#3d1d18}
+#canvas .ev .c svg.i,#canvas .ev .ch{color:#7b1020}
+#canvas .daycard{z-index:1;background:linear-gradient(180deg,#fffdf9,#fcf1e7)!important}
+#canvas .daycard .d1,#canvas .daycard .d3{font-family:var(--cond);color:#3d1d18}
+#canvas .tl{z-index:1}
+/* последни дейности */
+#canvas .act{z-index:1;background:linear-gradient(180deg,#fffdf9,#fcf1e7)!important;box-shadow:0 0 0 1.5px rgba(226,180,120,.7),0 0 12px rgba(255,214,160,.35),0 4px 10px -6px rgba(80,30,10,.4)!important}
+#canvas .act .tx{min-width:0}
+#canvas .act .tx b{font-family:var(--cond)!important;font-weight:800!important;color:#14070a!important}
+#canvas .act .tx span{font-family:var(--cond)!important;font-weight:700!important;color:#3d1d18!important}
+#canvas .act .tx b,#canvas .act .tx span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#canvas .act .tm{font-family:var(--cond)!important;font-weight:700!important;color:#3d1d18!important;box-shadow:0 0 0 1.5px rgba(226,180,120,.7)!important}
+#canvas .act .ch{color:#7b1020}
+
+/* --- телефон: подредбата е същата; картите са малко по-тесни, за да има стъклен ръб около тях --- */
+html:not(.desk) #canvas .tile{width:476px!important}
+html:not(.desk) #canvas .tile[data-href="crm-klienti.html"],html:not(.desk) #canvas .tile[data-msg="Сделки"]{left:22px!important}
+html:not(.desk) #canvas .tile[data-href="crm-imoti.html"],html:not(.desk) #canvas .tile[data-href="crm-kalendar.html"]{left:526px!important}
+html:not(.desk) #canvas .panel{left:22px!important;width:980px!important}
+html:not(.desk) #canvas .qa-row{left:22px}
+html:not(.desk) #canvas .qa{width:146px!important}
+html:not(.desk) #canvas .metrics{width:940px}
+html:not(.desk) #canvas .ev{width:755px}
+html:not(.desk) #canvas .act{width:944px}
+
+/* ============================================================
+   4) КОМПЮТЪР: панелите текат свободно; снимка отдясно; по-едър текст
+   ============================================================ */
+html.desk #canvas .tile .ic{top:auto!important;bottom:84px;left:30px;width:68px;height:68px;font-size:34px}
+html.desk #canvas .tile h3{top:auto!important;bottom:92px;left:114px;font-size:52px!important}
+html.desk #canvas .tile p{top:auto!important;bottom:42px;left:34px;font-size:28px!important;max-width:62%;white-space:nowrap}
+html.desk #canvas .tile .go{top:auto!important;bottom:26px;right:26px;width:66px;height:66px;font-size:34px}
+
+html.desk #canvas .panel{height:auto!important;padding:96px 30px 24px!important;display:flex;flex-direction:column;align-items:stretch;gap:12px;isolation:isolate}
+html.desk #canvas .panel::before{top:0;bottom:0;height:auto;width:31%}
+html.desk #canvas .panel[data-row="3"]::before{bottom:auto;height:96px;width:50%}
+html.desk #canvas .panel svg.ribbon{display:none!important}
+/* заглавия: винен медальон със златен кант + тъмно серифно заглавие */
+html.desk #canvas .panel .ptitle,html.desk #canvas .panel .rtitle{position:absolute!important;left:30px!important;top:20px!important;height:auto!important;padding:0!important;gap:18px!important;
+  background:none!important;border-radius:0!important;box-shadow:none!important;color:#3b0a0e!important;font:700 40px/1.15 var(--serif)!important;text-shadow:0 0 8px #fff8f0!important;z-index:2}
+html.desk #canvas .panel .ptitle svg.i,html.desk #canvas .panel .rtitle svg.i{width:60px;height:60px;padding:14px;border-radius:50%;font-size:60px!important;color:#ffe9b8!important;stroke-width:2!important;filter:none!important;
+  background:radial-gradient(circle at 35% 28%,#b42446 0%,#7d0f22 58%,#55071a 100%);box-shadow:0 0 0 3px #f1c37f,0 0 14px rgba(240,196,110,.55)}
+html.desk #canvas .pillbtn,html.desk #canvas .linkbtn,html.desk #canvas .datepill{top:24px!important;right:26px!important;height:54px!important;padding:0 22px!important;gap:12px!important;border-radius:18px!important;font:700 26px/1 var(--cond)!important;width:auto!important}
+html.desk #canvas .pillbtn svg.i,html.desk #canvas .linkbtn svg.i,html.desk #canvas .datepill svg.i{font-size:28px!important}
+html.desk #canvas .datepill span{font-size:25px!important}
+/* бързи действия – шест плочки в един ред */
+html.desk #canvas .qa-row{position:relative;left:auto;top:auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
+html.desk #canvas .qa{width:auto!important;height:118px;border-radius:22px;font:700 25px/1 var(--cond)!important;gap:10px!important}
+html.desk #canvas .qa svg.i{width:54px!important;height:54px!important;padding:12px}
+/* обзор днес – четири златни плочки */
+html.desk #canvas .metrics{position:relative;left:auto;top:auto;width:auto;max-width:690px;height:auto;padding:16px 4px}
+html.desk #canvas .metric{row-gap:8px!important;column-gap:14px!important}
+html.desk #canvas .metric svg.i{width:56px!important;height:56px!important;padding:14px}
+html.desk #canvas .metric b{font-size:50px!important}
+html.desk #canvas .metric span{font-size:25px!important}
+/* календар – ден | линия | събития (до ~64% от ширината) */
+html.desk #canvas .panel:has(.daycard){display:grid;grid-template-columns:150px 22px minmax(0,1fr);grid-auto-rows:auto;align-content:start;column-gap:12px;row-gap:12px;padding-right:310px!important}
+html.desk #canvas .daycard{position:relative;left:auto;top:auto;grid-column:1;grid-row:1/span 2;width:auto;height:auto;min-height:126px}
+html.desk #canvas .daycard .d1,html.desk #canvas .daycard .d3{font-size:25px!important}
+html.desk #canvas .daycard .d2{font-size:52px!important;margin:4px 0}
+html.desk #canvas .tl{position:relative;left:auto;top:auto;grid-column:2;grid-row:1/span 2;justify-self:center;height:auto;margin:22px 0}
+html.desk #canvas .ev{position:relative;left:auto!important;top:auto!important;grid-column:3;justify-self:stretch;width:100%!important;min-width:0;height:58px;border-radius:29px}
+html.desk #canvas .ev .t{width:112px;height:44px;border-radius:22px;font:700 25px/1 var(--cond)!important}
+html.desk #canvas .ev .n{font-size:28px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+html.desk #canvas .ev .c{display:none}
+html.desk #canvas .ev .ch{font-size:28px}
+/* последни дейности (до ~64% от ширината) */
+html.desk #canvas .panel:has(.act){padding-right:310px!important}
+html.desk #canvas .act{position:relative;left:auto!important;top:auto!important;width:100%!important;min-width:0;height:62px;border-radius:18px}
+html.desk #canvas .act .ib{width:48px!important;height:48px!important;font-size:26px!important}
+html.desk #canvas .act .tx b{font-size:27px!important}
+html.desk #canvas .act .tx span{font-size:23px!important;margin-top:3px}
+html.desk #canvas .act .tm{font-size:21px!important}
+html.desk #canvas .act .ch{font-size:26px}
+/* по-нисък екран: малко по-плътно, за да се събере всичко над края на прозореца */
+html.desk #canvas.v3-tight .panel{padding-top:84px!important;padding-bottom:18px!important;gap:8px}
+html.desk #canvas.v3-tight .panel .ptitle,html.desk #canvas.v3-tight .panel .rtitle{top:16px!important;font-size:36px!important}
+html.desk #canvas.v3-tight .panel .ptitle svg.i,html.desk #canvas.v3-tight .panel .rtitle svg.i{width:54px;height:54px;padding:13px}
+html.desk #canvas.v3-tight .pillbtn,html.desk #canvas.v3-tight .linkbtn,html.desk #canvas.v3-tight .datepill{top:18px!important;height:48px!important}
+html.desk #canvas.v3-tight .panel[data-row="3"]::before{height:84px}
+html.desk #canvas.v3-tight .qa{height:104px}
+html.desk #canvas.v3-tight .metrics{padding:10px 4px}
+html.desk #canvas.v3-tight .metric svg.i{width:50px!important;height:50px!important;padding:12px}
+html.desk #canvas.v3-tight .metric b{font-size:44px!important}
+html.desk #canvas.v3-tight .daycard{min-height:108px}
+html.desk #canvas.v3-tight .daycard .d2{font-size:44px!important}
+html.desk #canvas.v3-tight .ev{height:50px}
+html.desk #canvas.v3-tight .ev .t{height:38px}
+html.desk #canvas.v3-tight .ev .n{font-size:26px!important}
+html.desk #canvas.v3-tight .act{height:54px}
+html.desk #canvas.v3-tight .act .tx b{font-size:25px!important}
+html.desk #canvas.v3-tight .act .tx span{font-size:21px!important;margin-top:1px}

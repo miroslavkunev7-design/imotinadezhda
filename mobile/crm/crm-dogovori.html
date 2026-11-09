@@ -854,6 +854,7 @@ html.desk .fwin .mscroll{overflow:hidden}
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" href="assets/app-icon3-180.png">
 <link rel="stylesheet" href="crm-info.css"/>
+<link rel="stylesheet" href="crm-v3-dogovori.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1103,6 +1104,28 @@ html.desk #nd-fwin.inline #g-deals{grid-column:1/-1}
 #nd-fwin.inline .ct-prev iframe{height:1000px}
 </style>
 
+<script>/* Вариант 3: подредба на договора (само как изглежда – стойностите, id-тата и функциите са същите)
+   1) видовете договори в падащото меню са групирани по предназначение;
+   2) полетата са в раздели: Договор → Страни → Имот → Суми → Срокове → Особени условия (празни раздели не се показват);
+   3) празните полета показват „+ добави“. */
+(function(){var h=document.getElementById('dhost');if(!h||!window.MutationObserver)return;
+  var KG=[['Продажба',['pre','deposit']],['Наем',['rent']],['Посредничество',['broker-seller','broker-buyer']],['Пълномощни',['power']],['Огледи',['viewing']]];
+  var SEC=[['Договор','file-pen','nd/ph17.jpg',['kind','date','place']],['Страни','users','nd/ph18.jpg',['client','seller','attorney','attorneyEgn']],['Имот','house','nd/ph09.jpg',['prop']],
+    ['Суми','coins','nd/ph06.jpg',['price','deposit','commission','minComm','payment','costs','iban']],['Срокове','calendar','nd/ph03.jpg',['deadline','handover','term','payday','notice','notary']],
+    ['Особени условия','file-text','nd/ph15.jpg',['special','exclusive','furnished','copies','extra']]];
+  function kinds(){var k=document.getElementById('ct-kind');if(!k||k.querySelector('optgroup'))return;var v=k.value;
+    KG.forEach(function(g){var og=document.createElement('optgroup');og.label=g[0];g[1].forEach(function(id){var o=k.querySelector('option[value="'+id+'"]');if(o)og.appendChild(o)});if(og.children.length)k.appendChild(og)});
+    [].slice.call(k.children).forEach(function(o){if(o.tagName==='OPTION')k.appendChild(o)});k.value=v}
+  function sections(){var b=h.querySelector('#nd-f-body');if(!b||b.querySelector('.ndg[data-v3]'))return;var old=[].slice.call(b.querySelectorAll(':scope>.ndg'));if(!old.length)return;
+    var efs=[].slice.call(b.querySelectorAll('.ndg .ef')),key=function(ef){var c=ef.querySelector('[id^="ct-"]');return c?c.id.slice(3):''},used=[];
+    var built=SEC.map(function(sc,i){var g=document.createElement('div');g.className='ndg';g.setAttribute('data-v3',i);g.style.setProperty('--lw','170px');
+      g.innerHTML='<div class="ndg-h"><svg class="i"><use href="#'+sc[1]+'"/></svg>'+sc[0]+'</div><div class="ndg-img" style="background-image:url(assets/'+sc[2]+')"></div><div class="ndg-f"></div>';
+      var f=g.querySelector('.ndg-f');sc[3].forEach(function(k){efs.forEach(function(ef){if(used.indexOf(ef)<0&&key(ef)===k){f.appendChild(ef);used.push(ef)}})});return g});
+    efs.forEach(function(ef){if(used.indexOf(ef)<0)built[built.length-1].querySelector('.ndg-f').appendChild(ef)});
+    built.forEach(function(g){if(g.querySelector('.ef'))b.insertBefore(g,old[0])});old.forEach(function(g){g.remove()})}
+  function ph(){[].forEach.call(h.querySelectorAll('.ndg input.in:not([type=date]):not([type=file]):not([type=hidden]),.ndg textarea.in'),function(el){if(!el.getAttribute('placeholder'))el.setAttribute('placeholder','+ добави')})}
+  var busy=false;function run(){if(busy)return;busy=true;try{kinds();sections();ph()}catch(e){}busy=false}
+  new MutationObserver(run).observe(h,{childList:true,subtree:true});run()})();</script>
 <script>setTimeout(function(){document.documentElement.classList.add("ready")},1500)</script>
 <div id="page-ready" hidden></div>
 </body>
