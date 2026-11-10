@@ -38,6 +38,69 @@
     });
     layer.appendChild(b); return b;
   }
+  function bindInteract(el) {
+    if (el.__ndhsIx) return; el.__ndhsIx = 1;
+    el.addEventListener("wheel", function (e) {
+      if (e.ctrlKey) return;
+      if (el.scrollWidth <= el.clientWidth + 4) return;
+      var dx = e.deltaX, dy = e.deltaY;
+      if (Math.abs(dx) >= Math.abs(dy) && dx !== 0) return;
+      var d = Math.abs(dx) >= Math.abs(dy) ? dx : dy;
+      if (e.deltaMode === 1) d *= 40;
+      if (e.deltaMode === 2) d *= el.clientWidth;
+      var max = el.scrollWidth - el.clientWidth;
+      if ((d < 0 && el.scrollLeft <= 0) || (d > 0 && el.scrollLeft >= max - 1)) return;
+      e.preventDefault();
+      el.scrollLeft += d;
+    }, { passive: false });
+    var pid = null, x0 = 0, sl0 = 0, moved = false;
+    el.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (e.target.closest && e.target.closest("input,textarea,select,a[href]")) return;
+      pid = e.pointerId; x0 = e.clientX; sl0 = el.scrollLeft; moved = false;
+      try { el.setPointerCapture(pid); } catch (err) {}
+    });
+    el.addEventListener("pointermove", function (e) {
+      if (pid == null || e.pointerId !== pid) return;
+      var dx = e.clientX - x0;
+      if (!moved && Math.abs(dx) < 10) return;
+      moved = true; el.__ndhsMoved = 1;
+      el.scrollLeft = sl0 - dx;
+    });
+    function end(e) {
+      if (pid == null || (e && e.pointerId !== pid)) return;
+      pid = null;
+      if (moved) setTimeout(function () { el.__ndhsMoved = 0; }, 80);
+    }
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+    el.addEventListener("click", function (e) {
+      if (el.__ndhsMoved) { e.preventDefault(); e.stopPropagation(); el.__ndhsMoved = 0; }
+    }, true);
+    el.addEventListener("pointerenter", function () { layer.__act = el; });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.defaultPrevented) return;
+    var t = e.target, tag = t && t.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return;
+    if (t && t.closest && t.closest(".ndmenu,.pm-smenu,.o-pop,.mwin,[role=dialog],[role=listbox],[role=menu],#nd-fwin,#nd-cal")) return;
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && e.key !== "Home" && e.key !== "End") return;
+    var el = (layer && layer.__act) || null;
+    if (!el || !document.contains(el) || el.scrollWidth <= el.clientWidth + 4) {
+      el = null;
+      for (var i = 0; i < items.length; i++) {
+        var x = items[i].el, s = getComputedStyle(x);
+        if (s.display === "none" || x.hidden) continue;
+        if (x.scrollWidth > x.clientWidth + 4) { el = x; break; }
+      }
+    }
+    if (!el) return;
+    e.preventDefault();
+    var step = Math.max(160, el.clientWidth * 0.8);
+    if (e.key === "Home") el.scrollTo({ left: 0, behavior: "smooth" });
+    else if (e.key === "End") el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+    else el.scrollBy({ left: e.key === "ArrowRight" ? step : -step, behavior: "smooth" });
+  });
   function clipRect(el) {
     var r = el.getBoundingClientRect();
     var L = Math.max(r.left, 0), T = Math.max(r.top, 0), R = Math.min(r.right, innerWidth), B = Math.min(r.bottom, innerHeight);
@@ -58,6 +121,7 @@
       var it = { el: el }; el.__ndhs = it;
       it.l = mk('l', it); it.r = mk('r', it);
       el.addEventListener('scroll', kick, { passive: true });
+      bindInteract(el);
       items.push(it);
     }
     items = items.filter(function (it) {

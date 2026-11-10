@@ -394,6 +394,15 @@ html.desk .mcv.tab .m-act{display:block}
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
 <link rel="stylesheet" href="crm-info.css"/><link rel="stylesheet" href="crm-premium.css"/>
 <link rel="stylesheet" href="crm-v3-klienti.css"/><link rel="stylesheet" href="crm-v3-head.css"/>
+<style>
+html:not(.desk) #canvas .cpanel[data-cat=rent]{margin-top:0!important}
+html:not(.desk) #canvas .cpanel[data-cat=rent]::before{display:none!important}
+html.desk #canvas .flow{display:flex;flex-direction:column;overflow:hidden}
+html.desk #canvas .cgrid{flex:0 0 auto;height:var(--rowH)!important;min-height:0;display:flex}
+#canvas .cgrid .ccard{transition:zoom .36s cubic-bezier(.2,.7,.2,1)}
+@media (prefers-reduced-motion:reduce){#canvas .cgrid .ccard,.cpanel{transition:none}}
+.cpanel{transition:height .36s cubic-bezier(.2,.7,.2,1)}
+</style>
 <style id="kc-pc">
 /* ===== КАРТА НА КЛИЕНТ = КАРТА НА ИМОТ (09.11) =====
    Същата карта като article.pc на страница Имоти: платно 973×878, снимка през цялата карта, преливаща в бяло под текста,
@@ -454,12 +463,13 @@ html.desk .mcv.tab .m-act{display:block}
 #canvas .ccard .tg svg.i{font-size:29px;color:#7b1020;stroke-width:2}
 #canvas .ccard .mn{position:relative;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;font-size:32px;color:#7b1020}
 #canvas .ccard .mn svg.i{stroke-width:2.6}
-/* телефон: картите една под друга, умалени като на Имоти (zoom .97) */
-html:not(.desk) #canvas .cgrid{grid-template-columns:minmax(0,1fr);justify-items:center;gap:30px;padding:16px 0 0}
-html:not(.desk) #canvas .cgrid .ccard{zoom:.97}
-/* компютър: във всяко пано (1000 px) – две карти на ред с 30 px разстояние; място за глоу отстрани */
-html.desk #canvas .cgrid{grid-template-columns:repeat(2,minmax(0,1fr));justify-items:start;gap:30px;margin:0 -12px;padding:15px 18px 18px}
-html.desk #canvas .cgrid .ccard{zoom:.492}
+/* телефон и компютър: една хоризонтална лента с огромни карти (умалението --cz идва от fit()) */
+#canvas .cgrid,#canvas .cgrid.off{display:flex;flex-wrap:nowrap;align-items:center;gap:30px;overflow-x:auto;overflow-y:hidden;
+  overscroll-behavior-x:contain;scroll-padding:0 20px;scrollbar-width:none;outline:0;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+#canvas .cgrid::-webkit-scrollbar{display:none}
+#canvas .cgrid .ccard{zoom:var(--cz,.97);flex:none}
+html:not(.desk) #canvas .cgrid{min-height:var(--rowH,520px);padding:12px 8px 8px}
+html.desk #canvas .cgrid{margin:0;padding:0 12px}
 html.desk #canvas .ccard .tg{height:66px;font-size:28px;border-radius:33px}
 html.desk #canvas .ccard .mn{width:66px;height:66px}
 #canvas .cgrid .empty{justify-self:stretch}
@@ -475,25 +485,27 @@ html.desk #canvas .ccard .mn{width:66px;height:66px}
 html.desk #canvas .ccard .tg{font-size:32px}
 </style>
 <style id="kc-rows">
-/* ===== КОМПЮТЪР: ДВА РЕДА (10.11) – „Продажби“ отгоре, „Наеми“ отдолу =====
-   Всеки ред: вляво заглавието, филтрите и „Нов клиент“, вдясно лента с картите на клиентите.
-   Лентата се превърта с колелцето на мишката, със стрелките ← → на клавиатурата и с кръглите бутони ‹ › (nd-hscroll.js).
-   Височината на реда (--rowH) и умалението на картата (--cz) идват от fitDesk(). */
-html.desk #canvas .flow{position:relative;grid-auto-flow:row;grid-template-columns:560px minmax(0,1fr);grid-template-rows:var(--rowH,394px) var(--rowH,394px);column-gap:26px;row-gap:0;
-  margin-left:var(--fm,30px);width:calc(var(--Wc,2072px) - 2*var(--fm,30px));padding:8px 26px 8px!important}
-html.desk #canvas .flow::before{content:"";position:absolute;left:26px;right:26px;top:50%;height:calc(1*var(--q));pointer-events:none;background:linear-gradient(90deg,rgba(255,236,200,.06),rgba(255,236,200,.6) 50%,rgba(255,236,200,.06))}
-html.desk #canvas .cpanel{width:560px;height:326px;align-self:center}
-html.desk #canvas .cpanel .nd-new{left:0!important;right:0!important;top:268px!important;width:100%;justify-content:center}
+/* ===== ЕДИН ТАБ (Продажба / Наем) + една лента огромни карти =====
+   Табовете са като „Продажби / Наеми“ в Имоти. Лентата се превърта със стрелки ‹ ›, плъзгане, колелце и ← →.
+   --rowH / --cz идват от fitDesk() и растат, когато филтрите са сгънати. */
+#canvas .cpanel[hidden],#canvas .cgrid[hidden]{display:none!important}
+html:not(.desk) #canvas .cpanel[data-cat=rent][hidden]{margin-top:0!important}
+html.desk #canvas .flow{position:relative;display:flex;flex-direction:column;height:calc(100% - 8px);min-height:0;
+  margin-left:var(--fm,30px);width:calc(var(--Wc,2072px) - 2*var(--fm,30px));padding:12px 26px 12px!important}
+html.desk #canvas .flow::before{display:none}
+html.desk #canvas .cpanel{width:auto;height:210px;flex:none;transition:height .36s cubic-bezier(.2,.7,.2,1)}
+html.desk.nd-ffold #canvas .cpanel{height:82px}
+html.desk #canvas .cpanel .nd-new{left:auto!important;right:0!important;top:10px!important;width:auto;justify-content:center}
 html.desk #canvas .f-q{grid-column:span 17}html.desk #canvas .f-more{grid-column:span 7}
 html.desk #canvas .f-city,html.desk #canvas .f-hood,html.desk #canvas .f-type,html.desk #canvas .f-sort{grid-column:span 12}
 html.desk #canvas .f-q{order:1}html.desk #canvas .f-more{order:2}html.desk #canvas .f-city{order:3}html.desk #canvas .f-hood{order:4}html.desk #canvas .f-type{order:5}html.desk #canvas .f-sort{order:6}
-html.desk #canvas .cgrid{display:flex;flex-wrap:nowrap;align-items:center;gap:30px;height:var(--rowH,394px);margin:0;padding:0 20px;overflow-x:auto;overflow-y:hidden;
-  overscroll-behavior-x:contain;scroll-padding:0 20px;scrollbar-width:none;outline:0;
+html.desk #canvas .cgrid{flex:1 1 auto;min-height:0;height:var(--rowH,640px);
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%)}
-html.desk #canvas .cgrid::-webkit-scrollbar{display:none}
-html.desk #canvas .cgrid .ccard{zoom:var(--cz,.417);flex:none}
+html.desk #canvas .cgrid .ccard{zoom:var(--cz,.62)}
 html.desk #canvas .cgrid .empty{flex:1 1 auto;align-self:center}
 html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ffe1a0,0 0 calc(18*var(--q)) rgba(255,214,130,.95)}
+html:not(.desk) #canvas .cpanel{height:197px;transition:height .36s cubic-bezier(.2,.7,.2,1)}
+html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
 </style>
 </head>
 <body>
@@ -596,6 +608,10 @@ html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ff
   </section>
 
   <div class="flow">
+    <div class="kdeal deal" role="tablist" aria-label="Вид клиенти">
+      <button type="button" class="dl on" data-kcat="sales" role="tab" aria-selected="true" aria-pressed="true"><svg class="i"><use href="#house"/></svg>Клиенти продажба</button>
+      <button type="button" class="dl" data-kcat="rent" role="tab" aria-selected="false" aria-pressed="false"><svg class="i"><use href="#key-round"/></svg>Клиенти наем</button>
+    </div>
     <!-- ============ SALES ============ -->
     <section class="cpanel" data-cat="sales" aria-labelledby="t-sales">
       <svg class="cribbon" viewBox="0 0 720 68" preserveAspectRatio="none" aria-hidden="true">
@@ -614,10 +630,10 @@ html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ff
         <button type="button" class="fld f-more" id="more-sales" aria-label="Още филтри – продажби"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h11M18 6h3M3 12h5M12 12h9M3 18h13M20 18h1"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Още</button>
       </div>
     </section>
-    <div class="cgrid" id="grid-sales" data-h="196"></div>
+    <div class="cgrid" id="grid-sales" data-cat="sales" data-nd-hs data-h="196"></div>
 
     <!-- ============ RENT ============ -->
-    <section class="cpanel" data-cat="rent" aria-labelledby="t-rent" style="margin-top:32px">
+    <section class="cpanel" data-cat="rent" aria-labelledby="t-rent" hidden>
       <svg class="cribbon" viewBox="0 0 720 68" preserveAspectRatio="none" aria-hidden="true">
         <path d="M0 0 H 720 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0 Z" fill="url(#ribbonFill)"/>
         <path d="M0 0 H 720 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0 Z" fill="url(#satin)" opacity=".45"/>
@@ -634,7 +650,7 @@ html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ff
         <button type="button" class="fld f-more" id="more-rent" aria-label="Още филтри – наеми"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h11M18 6h3M3 12h5M12 12h9M3 18h13M20 18h1"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Още</button>
       </div>
     </section>
-    <div class="cgrid" id="grid-rent" data-h="170"></div>
+    <div class="cgrid" id="grid-rent" data-cat="rent" data-nd-hs data-h="170" hidden></div>
   </div>
 </div>
 </div>
@@ -850,9 +866,10 @@ html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ff
     var ph=Hh*1.55,pw=ph*1.777;cphoto.style.width=pw+'px';cphoto.style.left=(Wc-pw+20)+'px';cphoto.style.top=(30-.16*ph)+'px';
     cctrls.forEach(function(el){if(el.dataset.l==null)el.dataset.l=parseFloat(getComputedStyle(el).left);el.style.left=(Wc-1024+(+el.dataset.l))+'px'});
     root.style.setProperty('--G',G+'px');root.style.setProperty('--xL',xL+'px');
-    root.style.setProperty('--gh',(Hc-Hh-16-197-(window.NDRAIL?24:162))+'px');
-    /* два реда (продажби / наеми): височина на реда и умаление на картата (878 px платно) според свободната височина */
-    var rowH=Math.max(300,(Hc-Hh-16-(window.NDRAIL?24:162))/2),cz=Math.max(.3,Math.min(.62,(rowH-34)/878));
+    /* един таб: лентата с картите пълни остатъка; сгънатите филтри освобождават височина и картите растат */
+    var fold=root.classList.contains('nd-ffold'),tabsH=86,panelH=fold?82:210,dockGap=(window.NDRAIL?8:20);
+    var rowH=Math.max(360,Hc-Hh-28-tabsH-panelH-dockGap),cz=Math.max(.42,Math.min(.98,(rowH-16)/878));
+    root.style.setProperty('--gh',rowH+'px');
     root.style.setProperty('--rowH',rowH+'px');root.style.setProperty('--cz',cz.toFixed(4));root.style.setProperty('--Wc',Wc+'px');root.style.setProperty('--fm',Math.max(14,Math.min(40,(Wc-2072)/2+24))+'px');
     dockC.style.transform='scale('+k+')';dockC.style.left=((vw-1024*k)/2)+'px';
     dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(window.NDRAIL?0:118*k)+'px');
@@ -873,8 +890,13 @@ html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ff
     dock.style.height=(DOCK*k)+'px';
     stage.style.paddingBottom=(DOCK*k)+'px';
     root.style.setProperty('--dockH',(window.NDRAIL?0:118*k)+'px');
+    var fold=root.classList.contains('nd-ffold');
+    var rowH=Math.max(420,Math.round(innerHeight/k-180-(fold?70:210)));
+    root.style.setProperty('--rowH',rowH+'px');
+    root.style.setProperty('--cz',Math.max(.55,Math.min(1,(rowH-12)/878)).toFixed(4));
     fitModal();
   }
+  addEventListener('nd-ffold',fit);
   var ctlBox=document.querySelector('.mctl');var ctlBase=0;
   mscroll.addEventListener('scroll',function(){if(!desk)ctlBox.style.top=Math.max(8,ctlBase-mscroll.scrollTop)+'px'},{passive:true});
   function fitModal(){
@@ -1178,7 +1200,27 @@ html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ff
     say(b.getAttribute('data-nav')+' – страницата предстои')})});
 
   try{var dw=document.querySelector('.status .time');if(dw&&!matchMedia('(pointer:coarse)').matches){}}catch(e){}
-  setup('sales');setup('rent');fit();
+  setup('sales');setup('rent');
+  (function ktabs(){
+    var tabs=[].slice.call(document.querySelectorAll('.kdeal [data-kcat]'));
+    function show(cat){
+      document.querySelectorAll('.cpanel,.cgrid').forEach(function(el){
+        var on=(el.getAttribute('data-cat')||(el.id||'').replace('grid-',''))===cat;
+        el.hidden=!on;
+      });
+      tabs.forEach(function(b){
+        var on=b.getAttribute('data-kcat')===cat;
+        b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false');b.setAttribute('aria-pressed',on?'true':'false');
+      });
+      try{localStorage.setItem('nd-kcat',cat)}catch(e){}
+      fit();
+    }
+    tabs.forEach(function(b){b.addEventListener('click',function(){show(b.getAttribute('data-kcat'))})});
+    var saved='sales';try{saved=localStorage.getItem('nd-kcat')||'sales'}catch(e){}
+    if(saved!=='sales'&&saved!=='rent')saved='sales';
+    show(saved);
+  })();
+  fit();
   function loadAll(){
     return Promise.all([ND.load('clients'),ND.load('activities')]).then(function(r){
       clients.length=0;[].push.apply(clients,r[0]);ACTS={};window.__ndClientsLoaded=true;
@@ -1188,53 +1230,40 @@ html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ff
   }
   window.NDKTabs.init({say:say,list:function(){return clients},refresh:loadAll,reopen:function(id){if(!win.hidden&&win.dataset.id===id)open(id,lastFocus);},closeCard:function(){if(!win.hidden)close()}});
   document.querySelectorAll('[data-new]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();var cat=b.getAttribute('data-new');window.NDScan.menu(b,'client',{manual:function(){window.NDKTabs.edit(null,cat)},scanned:function(f,file){window.NDKTabs.edit(null,(f&&(f.cat==='rent'||f.cat==='sales'))?f.cat:cat,f,file)}})})});
+  var MOCK=[
+    {id:'demo-s1',cat:'sales',name:'Иван Петров',phone:'0899 765 432',type:'Апартамент',city:'Шумен',hood:'Център',budget:185000,status:'Активен',num:'1042',rooms:3},
+    {id:'demo-s2',cat:'sales',name:'Мария Димитрова',phone:'0888 112 233',type:'Къща',city:'Варна',hood:'Левски',budget:320000,status:'Потенциален',num:'1048',rooms:5},
+    {id:'demo-s3',cat:'sales',name:'Георги Стоянов',phone:'0877 441 900',type:'Мезонет',city:'Бургас',hood:'Лазур',budget:240000,status:'В процес',num:'1101',rooms:4},
+    {id:'demo-s4',cat:'sales',name:'Елена Колева',phone:'0896 330 118',type:'Апартамент',city:'Шумен',hood:'Тракия',budget:99000,status:'Активен',num:'1114',rooms:2},
+    {id:'demo-s5',cat:'sales',name:'Николай Ангелов',phone:'0885 220 441',type:'Вила',city:'Несебър',hood:'Черно море',budget:510000,status:'Активен',num:'1202',rooms:6},
+    {id:'demo-r1',cat:'rent',name:'Петя Иванова',phone:'0893 555 010',type:'Апартамент',city:'Шумен',hood:'Център',budget:650,status:'Активен',num:'2040',rooms:2},
+    {id:'demo-r2',cat:'rent',name:'Калин Тодоров',phone:'0882 909 717',type:'Офис',city:'Варна',hood:'Чайка',budget:1200,status:'Потенциален',num:'2055',rooms:3},
+    {id:'demo-r3',cat:'rent',name:'Десислава Николова',phone:'0879 414 262',type:'Апартамент',city:'Бургас',hood:'Сарафово',budget:800,status:'Активен',num:'2071',rooms:3},
+    {id:'demo-r4',cat:'rent',name:'Христо Василев',phone:'0897 101 333',type:'Гараж',city:'Шумен',hood:'Боян Българанов',budget:120,status:'Неактивен',num:'2088',rooms:1}
+  ];
+  function seedMock(reason){
+    clients.length=0;[].push.apply(clients,MOCK);window.__ndClientsLoaded=true;prep();
+    if(REF.sales)REF.sales();if(REF.rent)REF.rent();
+    window.__ndClientNames=clients.map(function(c){return c.name}).filter(Boolean);
+    say(reason||'Демо данни – за реалните записи е нужен вход в CRM');
+  }
   ND.busy(1);
-  ND.ready().then(loadAll).then(function(){
+  function afterList(){
     ND.busy(0);
-    /* deep link: crm-klienti.html#<id> opens that client's card */
+    if(!clients.length)seedMock('Няма записи – показани са примерни карти за преглед на изгледа');
     var h=(location.hash||'').slice(1);if(h==='new'){try{history.replaceState(null,'',location.pathname)}catch(x){}setTimeout(function(){var nb=document.querySelector('[data-new="sales"]');if(nb){nb.scrollIntoView({block:'center'});setTimeout(function(){nb.click()},250)}},150)}else if(h&&clients.some(function(c){return c.id===h}))open(h);
-  }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
+  }
+  ND.ready().then(loadAll).then(afterList).catch(function(e){ND.busy(0);seedMock('CRM изисква вход. Показани са демо карти (същият изглед, без запис в базата). '+((e&&e.message)||''));});
+  setTimeout(function(){if(!window.__ndClientsLoaded){ND.busy(0);seedMock('CRM изисква вход. Показани са демо карти (същият изглед, без запис в базата).');}},2200);
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>
 <div id="page-ready" hidden></div>
 <script src="crm-v3-head.js"></script>
 <script src="/mobile/nd-hscroll.js" defer></script>
-<script>/* Клиенти (компютър): лентите с карти се превъртат с колелцето на мишката, със стрелките на клавиатурата (← → в реда, ↑ ↓ между редовете, Home/End) и с бутоните ‹ › */
+<script>/* Клиенти: лентата с карти се превърта със стрелките ‹ › (nd-hscroll.js), плъзгане, колелце и ← → – и на телефон, и на компютър. */
 (function(){
-  var root=document.documentElement,grids=[document.getElementById('grid-sales'),document.getElementById('grid-rent')].filter(Boolean),act=grids[0];
-  if(!grids.length)return;
-  function desk(){return root.classList.contains('desk')}
-  function can(g){return g.scrollWidth>g.clientWidth+4}
-  function mark(g,show){act=g;grids.forEach(function(x){var p=x.previousElementSibling;if(p)p.classList.toggle('kb',!!show&&x===g)})}
-  function step(g){var c=g.querySelector('.ccard');return c?c.getBoundingClientRect().width/(g.getBoundingClientRect().width/g.clientWidth||1)+30:g.clientWidth*.5}
-  grids.forEach(function(g){
-    g.setAttribute('data-nd-hs','');
-    g.addEventListener('wheel',function(e){
-      if(!desk()||e.ctrlKey||!can(g))return;
-      var dx=e.deltaX,dy=e.deltaY;if(Math.abs(dx)>=Math.abs(dy))return;            /* хоризонталният жест на тъчпада си работи сам */
-      var d=dy*(e.deltaMode===1?40:e.deltaMode===2?g.clientWidth:1),max=g.scrollWidth-g.clientWidth;
-      if((d<0&&g.scrollLeft<=0)||(d>0&&g.scrollLeft>=max-1))return;
-      e.preventDefault();g.scrollLeft+=d;
-    },{passive:false});
-    g.addEventListener('pointerenter',function(){mark(g,false)});
-    g.addEventListener('focusin',function(){mark(g,false)});
-  });
-  document.addEventListener('keydown',function(e){
-    if(!desk()||e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey)return;
-    var t=e.target,tag=t&&t.tagName;if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||(t&&t.isContentEditable))return;
-    if(t&&t.closest&&t.closest('.mwin,.nda-win,[role=dialog],[role=menu],[role=listbox]'))return;
-    var mw=document.getElementById('mwin');if(mw&&!mw.hidden)return;
-    if([].some.call(document.querySelectorAll('.nda-win,.nd-modal,.ndm,.sheet'),function(x){return !x.hidden&&x.offsetParent!==null&&x.getBoundingClientRect().width>0&&getComputedStyle(x).visibility!=='hidden'&&/nda-win/.test(x.className)}))return;
-    var k=e.key,g=act||grids[0];
-    if(k==='ArrowDown'||k==='ArrowUp'){var i=grids.indexOf(g)+(k==='ArrowDown'?1:-1);if(i<0||i>=grids.length)return;e.preventDefault();mark(grids[i],true);return}
-    if(k!=='ArrowRight'&&k!=='ArrowLeft'&&k!=='Home'&&k!=='End'&&k!=='PageDown'&&k!=='PageUp')return;
-    if(!can(g)){mark(g,true);return}
-    e.preventDefault();mark(g,true);
-    if(k==='Home')g.scrollTo({left:0,behavior:'smooth'});
-    else if(k==='End')g.scrollTo({left:g.scrollWidth,behavior:'smooth'});
-    else{var n=(k==='PageDown'||k==='PageUp')?Math.max(1,Math.floor(g.clientWidth/step(g))):1;g.scrollBy({left:(k==='ArrowRight'||k==='PageDown'?1:-1)*n*step(g),behavior:'smooth'})}
-  });
+  document.querySelectorAll('.cgrid').forEach(function(g){g.setAttribute('data-nd-hs','')});
 })();</script>
 </body>
 </html>
