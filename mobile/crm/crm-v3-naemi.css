@@ -492,7 +492,7 @@ html.desk .r-filt .r-sel{grid-column:auto!important}
   display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:4px;text-align:right;min-width:0;overflow:visible
 }
 #olist .oc .r-fee{
-  position:absolute;right:18px;bottom:52px;z-index:3;padding:0
+  position:absolute;right:28px;bottom:56px;z-index:3;padding:0;max-width:42%
 }
 #olist .oc .r-lab{
   display:flex!important;align-items:center;gap:10px;font:700 22px/1.15 var(--cond);color:#7b1020;text-shadow:none
@@ -516,7 +516,7 @@ html.desk .r-filt .r-sel{grid-column:auto!important}
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
 }
 #olist .oc .r-amt,.od-card .r-amt{
-  display:block;font:700 108px/.82 var(--serif);letter-spacing:-.04em;color:#6b0a1c;white-space:nowrap;overflow:visible;
+  display:block;font:700 86px/.82 var(--serif);letter-spacing:-.04em;color:#6b0a1c;white-space:nowrap;overflow:visible;
   text-shadow:0 1px 0 rgba(255,236,232,.55),0 10px 14px rgba(70,10,18,.18)
 }
 html.desk #olist .oc .r-amt,html.desk .od-card .r-amt{font-size:118px}
@@ -569,7 +569,7 @@ html.desk #olist .oc .oca{font-size:27px!important}
   box-shadow:inset 0 1.4px 0 rgba(255,255,255,.88),inset 0 0 22px rgba(255,255,255,.14),0 1px 2px rgba(80,20,24,.12),0 10px 18px -8px rgba(70,16,24,.26),0 28px 48px -16px rgba(55,10,18,.38)
 }
 .od-card>.op{
-  position:absolute;right:0;top:0;bottom:0;width:46%;z-index:0;pointer-events:none;
+  position:absolute;right:0;top:0;bottom:0;width:34%;z-index:0;pointer-events:none;
   background-size:cover;background-position:center
 }
 .od-card .od-h{
@@ -577,12 +577,13 @@ html.desk #olist .oc .oca{font-size:27px!important}
   background:none;border:0;box-shadow:none;color:#3b0a0e
 }
 .od-card .od-h h2{
-  color:#3b0a0e;text-shadow:none;white-space:normal;overflow:visible;text-overflow:unset;flex:1 1 220px
+  color:#3b0a0e;text-shadow:none;white-space:normal;overflow:visible;text-overflow:unset;flex:1 1 240px;font-size:34px
 }
 .od-card .od-h>svg.i:first-child{box-shadow:inset 0 1.6px 0 rgba(255,232,234,.5),inset 0 -8px 12px rgba(40,0,10,.32),0 4px 12px rgba(60,10,20,.32)}
-.od-card .od-secs{position:relative;z-index:2;max-width:58%;padding:0 8px 90px 4px}
+.od-card .od-secs{position:relative;z-index:2;max-width:72%;padding:0 8px 110px 4px}
 .od-card .v3-specs{
-  margin:4px 0 0;padding:10px 0 16px;border-radius:0;background:none;box-shadow:none
+  margin:4px 0 0;padding:10px 0 16px;border-radius:0;background:none;box-shadow:none;
+  grid-template-columns:repeat(2,minmax(0,1fr))
 }
 .od-card .v3-spec{padding:0 10px}
 .od-card .v3-spec+.v3-spec{
