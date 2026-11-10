@@ -58,18 +58,18 @@ body{font-family:var(--cond);color:var(--ink)}
 .go svg{width:36px;height:36px}
 .go:hover{transform:translateY(-2px);box-shadow:0 0 0 2px #fff6cc,0 0 26px rgba(255,210,110,.95),inset 0 2px 2px rgba(255,255,255,.7)}
 /* city cards */
-.card{top:626px;height:230px;border-radius:24px;overflow:hidden;display:block;text-decoration:none;background:#fff7ec;
+.card{top:626px;height:286px;border-radius:24px;overflow:hidden;display:block;text-decoration:none;background:#fff7ec;
   box-shadow:0 0 0 2px #e5b453,0 0 0 4px rgba(255,240,200,.6),0 10px 18px rgba(30,0,8,.45);transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s}
 .card:hover{transform:translateY(-5px);box-shadow:0 0 0 2px #f6cf6c,0 0 22px rgba(255,214,130,.9),0 14px 22px rgba(30,0,8,.5)}
-.card .ph{position:absolute;left:0;top:0;width:100%;height:160px;background-size:cover;background-position:center;transition:transform .8s}
-.card:hover .ph{transform:scale(1.06)}
-/* drone video: same 160px photo slot as .card .ph, cover, cream .fd fade */
-.card video.ph{display:block;width:100%;height:160px;object-fit:cover;object-position:center;background:transparent;pointer-events:none}
-.card .fd{position:absolute;left:0;right:0;top:96px;bottom:0;background:linear-gradient(180deg,rgba(255,247,236,0) 0%,rgba(255,248,239,.86) 30%,#fff7ec 52%,#fff7ec 100%)}
-.card .pin{position:absolute;left:28px;top:150px;width:38px;height:38px;color:var(--gold)}
-.card h3{position:absolute;left:72px;top:150px;margin:0;font:700 30px/1.1 var(--serif);color:#6a001b}
-.card span{position:absolute;left:72px;top:190px;font:700 21px/1 var(--serif);letter-spacing:.5px;color:#b5770f}
-.card .ar{position:absolute;right:28px;top:162px;width:50px;height:50px;filter:drop-shadow(0 2px 3px rgba(120,60,0,.3))}
+.card .ph{position:absolute;left:0;top:0;width:100%;height:100%;background-size:cover;background-position:center}
+.card:hover video.ph{transform:none}
+/* drone video: box = clip ratio (full frame); cream fade only on the bottom ~20% */
+.card video.ph{display:block;width:100%;height:100%;object-fit:fill;object-position:center;background:transparent;pointer-events:none}
+.card .fd{position:absolute;left:0;right:0;top:auto;height:22%;bottom:0;background:linear-gradient(180deg,rgba(255,247,236,0) 0%,rgba(255,248,239,.7) 40%,#fff7ec 100%)}
+.card .pin{position:absolute;left:28px;top:auto;bottom:44px;width:38px;height:38px;color:var(--gold)}
+.card h3{position:absolute;left:72px;top:auto;bottom:40px;margin:0;font:700 30px/1.1 var(--serif);color:#6a001b}
+.card span{position:absolute;left:72px;top:auto;bottom:12px;font:700 21px/1 var(--serif);letter-spacing:.5px;color:#b5770f}
+.card .ar{position:absolute;right:28px;top:auto;bottom:32px;width:50px;height:50px;filter:drop-shadow(0 2px 3px rgba(120,60,0,.3))}
 /* about */
 .ab{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(40,5,12,.5);backdrop-filter:blur(6px)}
 .ab.on{display:flex}
@@ -120,9 +120,9 @@ body{font-family:var(--cond);color:var(--ink)}
     <button type="submit" class="go"><svg><use href="#search"/></svg>Търси</button>
   </form>
 
-  <a class="abs card" style="left:70px;width:501px" href="/mobile/ilj.html#/city/shumen"><video class="ph" data-src="/mobile/home-assets/city-shumen.mp4" poster="/mobile/home-assets/city-shumen-poster.webp" style="object-position:center 42%" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Шумен</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
-  <a class="abs card" style="left:585px;width:501px" href="/mobile/ilj.html#/city/varna"><video class="ph" data-src="/mobile/home-assets/city-varna.mp4" poster="/mobile/home-assets/city-varna-poster.webp" style="object-position:center 50%" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Варна</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
-  <a class="abs card" style="left:1100px;width:501px" href="/mobile/ilj.html#/city/burgas"><video class="ph" data-src="/mobile/home-assets/city-burgas.mp4" poster="/mobile/home-assets/city-burgas-poster.webp" style="object-position:center 62%" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Бургас</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:70px;width:501px" href="/mobile/ilj.html#/city/shumen"><video class="ph" data-src="/mobile/home-assets/city-shumen.mp4" poster="/mobile/home-assets/city-shumen-poster.webp" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Шумен</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:585px;width:501px" href="/mobile/ilj.html#/city/varna"><video class="ph" data-src="/mobile/home-assets/city-varna.mp4" poster="/mobile/home-assets/city-varna-poster.webp" width="1280" height="724" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Варна</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
+  <a class="abs card" style="left:1100px;width:501px" href="/mobile/ilj.html#/city/burgas"><video class="ph" data-src="/mobile/home-assets/city-burgas.mp4" poster="/mobile/home-assets/city-burgas-poster.webp" width="1280" height="736" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><i class="fd"></i><svg class="pin"><use href="#pin"/></svg><h3>Бургас</h3><span>ВИЖ ГРАДА</span><svg class="ar"><use href="#arrow"/></svg></a>
 </div></div>
 
 <div class="ab" id="about" role="dialog" aria-modal="true" aria-labelledby="ab-t"><div>
@@ -166,27 +166,30 @@ body{font-family:var(--cond);color:var(--ink)}
   addEventListener('keydown',function(e){if(e.key==='Escape')$('about').classList.remove('on')});
 })();
 </script>
-<script>/* TASK-005: posters first; video only on hover/focus/touch. Desktop may autoload the first card. */
+<script>/* TASK-005: poster until in view; IntersectionObserver sets src and plays. */
 (function(){
   var vs=[].slice.call(document.querySelectorAll("video.ph"));
   if(!vs.length)return;
   function load(v){
     if(!v||v.dataset.loaded)return;
     var s=v.getAttribute("data-src"); if(!s)return;
-    v.dataset.loaded="1"; v.src=s; v.preload="metadata"; v.load(); v.muted=true;
+    v.dataset.loaded="1"; v.src=s; v.preload="metadata"; v.load();
+    v.muted=true; v.defaultMuted=true; v.setAttribute("muted",""); v.playsInline=true;
     var p=v.play(); if(p&&p.catch)p.catch(function(){});
   }
-  var desk=window.matchMedia&&window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)").matches;
   var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(desk&&!reduce){
-    if("requestIdleCallback" in window) requestIdleCallback(function(){load(vs[0]);},{timeout:800});
-    else setTimeout(function(){load(vs[0]);},200);
-  }
   vs.forEach(function(v){
     var host=v.parentElement||v;
     ["pointerenter","focusin","touchstart"].forEach(function(e){
       host.addEventListener(e,function(){load(v);},{passive:true,once:true});
     });
+    if(reduce)return;
+    if("IntersectionObserver" in window){
+      var io=new IntersectionObserver(function(entries){
+        entries.forEach(function(en){ if(en.isIntersecting){ load(v); io.unobserve(v); } });
+      },{rootMargin:"80px 0px",threshold:0.15});
+      io.observe(v);
+    }
   });
   document.addEventListener("visibilitychange",function(){
     if(document.hidden)return;

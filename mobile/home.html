@@ -21,8 +21,8 @@ body{font-family:Georgia,'PT Serif','Times New Roman',serif;color:var(--wine)}
 button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:none;border:0}a{color:inherit;text-decoration:none}
 :focus-visible{outline:3px solid #ffcc49;outline-offset:3px}
 /* the page is drawn on an 865 px canvas (the approved reference) and scaled to the screen */
-#stage{position:relative;width:100%;overflow:hidden;height:calc(1536 * 100vw / 865)}
-#cv{position:absolute;left:0;top:0;width:865px;min-height:1536px;transform:scale(calc(100vw / 865));transform-origin:0 0;overflow:hidden;contain:layout}
+#stage{position:relative;width:100%;overflow:hidden;height:calc(1720 * 100vw / 865)}
+#cv{position:absolute;left:0;top:0;width:865px;min-height:1720px;transform:scale(calc(100vw / 865));transform-origin:0 0;overflow:hidden;contain:layout}
 .bg{position:absolute;left:0;top:0;width:865px;height:1536px;object-fit:cover}
 /* под 1536 px (високи телефони): продължение на каменната основа към тъмно бордо, вместо зелен блок */
 #cv{background:#54454c linear-gradient(180deg,#56464d 0,#3b262c 220px,#2e0d16 100%) no-repeat 0 1536px/100% calc(100% - 1536px)}
@@ -68,8 +68,8 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .advp select{width:100%;height:46px;border-radius:12px;border:1.5px solid #e2a33b;background:#fff;padding:0 12px;font-size:19px;color:#4e0912}
 /* city cards */
 .city{z-index:2;border:2px solid #e2a33b;background:#fff7ed;border-radius:30px;box-shadow:0 8px 17px rgba(32,13,8,.4),0 0 14px rgba(255,214,150,.35);overflow:hidden;text-align:left;color:#6c001b}
-.city .ph{position:absolute;left:0;right:0;top:0;height:78%;width:100%;object-fit:cover;object-position:center}
-.city .fade{position:absolute;left:0;right:0;bottom:0;height:58%;background:linear-gradient(to bottom,rgba(255,248,238,0) 0%,rgba(255,248,238,.8) 38%,#fff8ed 68%,#fff8ed 100%)}
+.city .ph{position:absolute;left:0;right:0;top:0;height:100%;width:100%;object-fit:fill;object-position:center}
+.city .fade{position:absolute;left:0;right:0;bottom:0;height:32%;background:linear-gradient(to bottom,rgba(255,248,238,0) 0%,rgba(255,248,238,.55) 40%,#fff8ed 100%)}
 .city .ct{position:absolute;left:30px;right:22px;bottom:24px;display:flex;align-items:flex-end;justify-content:space-between}
 .city .nm{display:flex;align-items:center;gap:10px;font-size:33px;font-weight:700;white-space:nowrap}
 .city .nm img{width:30px;height:30px;filter:brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(598%) hue-rotate(352deg)}
@@ -77,8 +77,8 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .city .ar{width:60px;height:60px;border-radius:50%;border:2px solid #ba8318;background:#fffdfa;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 0 10px rgba(255,210,120,.5)}
 .city .ar img{width:28px;height:28px;filter:brightness(0) saturate(100%) invert(47%) sepia(70%) saturate(622%) hue-rotate(356deg)}
 /* Шумен – one wide card on top; Варна (left) + Бургас (right) – two smaller cards below; 16 px gaps, aligned with the search box (29…836) */
-.c1{left:29px;top:942px;width:807px;height:274px}
-.c2{left:29px;top:1232px;width:395px;height:236px}.c3{left:440px;top:1232px;width:396px;height:236px}
+.c1{left:29px;top:942px;width:807px;height:460px}
+.c2{left:29px;top:1418px;width:395px;height:224px}.c3{left:440px;top:1418px;width:396px;height:228px}
 .city:active{transform:scale(.985)}
 /* results sheet (real published listings) */
 .sheet{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;background:rgba(30,4,10,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
@@ -119,14 +119,14 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 
 /* city cards are drawn live over the artwork; its baked cards are hidden under the same scene without cards (trees, stairs, lamps –
    cut from shumen-reconstructed-background) so the gaps between the live cards show the landscape, not a box (09.11) */
-.cglass{left:0;top:905px;width:865px;height:631px;z-index:1;pointer-events:none;contain:strict;background:url(/mobile/home-assets/home-cards-scene.webp) 0 0/865px auto no-repeat;
+.cglass{left:0;top:905px;width:865px;height:815px;z-index:1;pointer-events:none;contain:strict;background:url(/mobile/home-assets/home-cards-scene.webp) 0 0/865px auto no-repeat;
   -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 20px);mask-image:linear-gradient(to bottom,transparent 0,#000 20px)}
 .city.c1,.city.c2,.city.c3{background:#fff7ed;border:2px solid #e2a33b;box-shadow:0 8px 17px rgba(32,13,8,.4),0 0 14px rgba(255,214,150,.35)}
 .city.c1>*,.city.c2>*,.city.c3>*{opacity:1}
 .city.c1 .nm{font:700 35px/1 Bitter,Georgia,serif}.city.c1 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
 .city.c2 .nm,.city.c3 .nm{font:700 33px/1 Bitter,Georgia,serif}.city.c2 .vc,.city.c3 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
-.city.c1 .fade{height:52%}
-/* drone videos: same slot as the old still (.city .ph) — cover the image area; cream .fade blends into the card */
+.city.c1 .fade{height:20%}
+/* drone videos: box = clip ratio (full frame, no crop, no bands); cream fade only on the bottom ~20% */
 .city video.ph{display:block;background:transparent;pointer-events:none}
 </style>
 </head>
@@ -163,8 +163,8 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 
   <div class="abs cglass" aria-hidden="true"></div>
   <button class="abs city c1" data-city="shumen"><video class="ph" data-src="/mobile/home-assets/city-shumen.mp4" poster="/mobile/home-assets/city-shumen-poster.webp" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c2" data-city="varna"><video class="ph" data-src="/mobile/home-assets/city-varna.mp4" poster="/mobile/home-assets/city-varna-poster.webp" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c3" data-city="burgas"><video class="ph" data-src="/mobile/home-assets/city-burgas.mp4" poster="/mobile/home-assets/city-burgas-poster.webp" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c2" data-city="varna"><video class="ph" data-src="/mobile/home-assets/city-varna.mp4" poster="/mobile/home-assets/city-varna-poster.webp" width="1280" height="724" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c3" data-city="burgas"><video class="ph" data-src="/mobile/home-assets/city-burgas.mp4" poster="/mobile/home-assets/city-burgas-poster.webp" width="1280" height="736" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
 </div></div>
 
 
@@ -178,7 +178,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 (function () {
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
-  var cv = $("cv"), st = $("stage"), W = 865, H = 1536;
+  var cv = $("cv"), st = $("stage"), W = 865, H = 1720;
   function fit() {
     var k = document.documentElement.clientWidth / W;
     cv.style.zoom = "";
@@ -260,27 +260,30 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   var m0 = /^#\/city\/([\w-]+)/.exec(location.hash); if (m0) openCity(m0[1]);
 })();
 </script>
-<script>/* TASK-005: posters first; video only on hover/focus/touch. Desktop may autoload the first card. */
+<script>/* TASK-005: poster until in view; IntersectionObserver sets src and plays (also on mobile). */
 (function(){
   var vs=[].slice.call(document.querySelectorAll("video.ph"));
   if(!vs.length)return;
   function load(v){
     if(!v||v.dataset.loaded)return;
     var s=v.getAttribute("data-src"); if(!s)return;
-    v.dataset.loaded="1"; v.src=s; v.preload="metadata"; v.load(); v.muted=true;
+    v.dataset.loaded="1"; v.src=s; v.preload="metadata"; v.load();
+    v.muted=true; v.defaultMuted=true; v.setAttribute("muted",""); v.playsInline=true;
     var p=v.play(); if(p&&p.catch)p.catch(function(){});
   }
-  var desk=window.matchMedia&&window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)").matches;
   var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(desk&&!reduce){
-    if("requestIdleCallback" in window) requestIdleCallback(function(){load(vs[0]);},{timeout:800});
-    else setTimeout(function(){load(vs[0]);},200);
-  }
   vs.forEach(function(v){
     var host=v.parentElement||v;
     ["pointerenter","focusin","touchstart"].forEach(function(e){
       host.addEventListener(e,function(){load(v);},{passive:true,once:true});
     });
+    if(reduce)return;
+    if("IntersectionObserver" in window){
+      var io=new IntersectionObserver(function(entries){
+        entries.forEach(function(en){ if(en.isIntersecting){ load(v); io.unobserve(v); } });
+      },{rootMargin:"80px 0px",threshold:0.15});
+      io.observe(v);
+    }
   });
   document.addEventListener("visibilitychange",function(){
     if(document.hidden)return;
