@@ -380,7 +380,7 @@ html.desk .r-filt .r-sel .val{font-size:27px!important}
 }
 #olist .oc .r-amt span{
   display:inline!important;
-  background-image:linear-gradient(180deg,#a33248 0%,#7a1022 46%,#4a0612 100%);
+  background-image:linear-gradient(180deg,#c44347 0%,#a82c38 14%,#9b2430 32%,#811522 52%,#710e1b 78%,#5c0812 100%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
 }
 #olist .oc .r-fee-l{position:relative;display:block!important;margin:0;font:700 26px/1 var(--cond);color:#6b0a1c;text-shadow:none}
@@ -518,13 +518,13 @@ html:not(.desk) #olist .oc .r-amt{font-size:64px}
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
 }
 #olist .oc .r-amt,.od-card .r-amt{
-  display:block;font:700 86px/.82 var(--serif);letter-spacing:-.04em;color:#6b0a1c;white-space:nowrap;overflow:visible;
-  text-shadow:0 1px 0 rgba(255,236,232,.55),0 10px 14px rgba(70,10,18,.18)
+  display:block;font:700 86px/.82 var(--serif);letter-spacing:-.04em;color:#811522;white-space:nowrap;overflow:visible;
+  text-shadow:0 -1px 0 rgba(196,67,71,.55),0 1px 0 rgba(88,6,19,.4),0 2px 3px rgba(92,12,22,.25),0 5px 8px rgba(92,12,22,.14)
 }
 html.desk #olist .oc .r-amt,html.desk .od-card .r-amt{font-size:118px}
 #olist .oc .r-amt span,.od-card .r-amt span{
   display:inline!important;
-  background-image:linear-gradient(180deg,#8a2034 0%,#5c0c18 46%,#2e050c 100%);
+  background-image:linear-gradient(180deg,#c44347 0%,#a82c38 14%,#9b2430 32%,#811522 52%,#710e1b 78%,#5c0812 100%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
 }
 #olist .oc .r-fee-l,.od-card .r-fee-l{position:relative;display:block!important;margin:0;font:700 26px/1 var(--cond);color:#6b0a1c;text-shadow:none}
