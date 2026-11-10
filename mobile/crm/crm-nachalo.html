@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#4a0f18">
 <title>CRM Начало · Имоти Надежда</title>
-<script>(function(){var w=document.documentElement.clientWidth,h=window.innerHeight||1;var desk=w>=1024&&w/h>=1.2;var k=desk?Math.min(w/2072,h/1173):w/1024;if(k>0)document.documentElement.style.setProperty('--ndk',String(k));if(desk)document.documentElement.classList.add('desk');document.documentElement.classList.add('ready','nd-placed')})();</script>
+<script>(function(){var w=document.documentElement.clientWidth,h=window.innerHeight||1;var desk=w>=1024&&w/h>=1.2;var k=desk?Math.min(w/2072,h/1173):w/1024;if(k>0)document.documentElement.style.setProperty('--ndk',String(k));if(desk)document.documentElement.classList.add('desk');document.documentElement.classList.add('ready');setTimeout(function(){document.documentElement.classList.add('nd-placed')},2500)})();</script>
+<noscript><style>html:not(.nd-placed) body{visibility:visible!important}</style></noscript>
 <link rel="preload" as="image" href="assets/hero-villa.webp">
 <link rel="preload" as="image" href="assets/logo.png">
 <style>#dock{z-index:60}</style>
@@ -32,6 +33,7 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-l
 #stage{position:relative;width:100%;overflow:hidden;min-height:100dvh;height:calc(1536px * var(--ndk, 1));
   background:radial-gradient(120% 60% at 50% 55%,#f6d3b6 0%,#efc19c 55%,#e2a882 100%)}
 #canvas{position:absolute;left:0;top:0;width:1024px;height:1536px;transform-origin:0 0;zoom:var(--ndk,1);contain:layout}
+html:not(.nd-placed) body{visibility:hidden}
 .abs{position:absolute}
 
 /* ---------- header / hero ---------- */
