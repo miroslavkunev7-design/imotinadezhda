@@ -117,7 +117,7 @@ async function create(opts) {
       const m = /^\/repos\/([^/]+\/[^/]+)\/actions\/workflows\/([^/]+)\/dispatches$/.exec(u.pathname);
       const body = JSON.parse(o.body || "{}"), auth = (o.headers || {}).Authorization || "";
       B.dispatches.push({ repo: m && m[1], workflow: m && decodeURIComponent(m[2]), ref: body.ref, inputs: body.inputs, auth_ok: /^Bearer TEST-GH-TOKEN/.test(auth) });
-      if (B.ghStatus === 204 && B.onDispatch) setImmediate(() => B.onDispatch(body.inputs && body.inputs.job_id));
+      if (B.ghStatus === 204 && B.onDispatch) B.onDispatch(body.inputs && body.inputs.job_id);
       return resp(B.ghStatus, B.ghStatus === 204 ? null : { message: "TEST" });
     }
     if (u.origin !== SB) throw new Error("неочаквана мрежа: " + u.origin);
