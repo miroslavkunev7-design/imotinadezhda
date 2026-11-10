@@ -288,6 +288,7 @@ function validate(tool, input) {
 }
 
 // SQLSTATE от базата → HTTP статус на /api/tools (ToolError(message, status))
-const SQLSTATE_HTTP = { "42501": 403, "P0002": 404, "40001": 409, "23505": 409, "23001": 409, "22023": 400, "23514": 400, "23503": 409, "22P02": 400 };
+// Конфликт на версии е NC409, НЕ 40001: PostgREST сам повтаря транзакции с 40001 (serialization_failure) и заявката увисва.
+const SQLSTATE_HTTP = { "42501": 403, "P0002": 404, "NC409": 409, "40001": 409, "23505": 409, "23001": 409, "22023": 400, "23514": 400, "23503": 409, "22P02": 400 };
 
 module.exports = { CONTRACTS, validate, schema, S, STATUSES, STATUS_BG, SQLSTATE_HTTP, pathInProject, patterns: { UUID, ID, SLUG, UNIT_CODE, PRIVATE_PATH, IMPORT_PATH, PUBLIC_PATH, TOUR_PATH } };

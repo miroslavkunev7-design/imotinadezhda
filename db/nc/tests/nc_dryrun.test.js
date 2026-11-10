@@ -168,7 +168,7 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
 
   await t("T7 грешки: чужд event_id → 23505; стара версия → 40001; същият статус / непознат / 'deposited' → 22023", async () => {
     await fails("23505", async () => setStatus("authenticated", BROKER, U2.id, "sold", await ver(U2.id), "11111111-1111-4111-8111-111111111111"), "event reuse");
-    await fails("40001", () => setStatus("authenticated", BROKER, U2.id, "reserved", 99, "22222222-2222-4222-8222-222222222222"), "version");
+    await fails("NC409", () => setStatus("authenticated", BROKER, U2.id, "reserved", 99, "22222222-2222-4222-8222-222222222222"), "version");
     await fails("22023", () => setStatus("authenticated", BROKER, U1.id, "reserved", V1 + 1, "33333333-3333-4333-8333-333333333333"), "same status");
     await fails("22023", () => setStatus("authenticated", BROKER, U1.id, "bogus", V1 + 1, "33333333-3333-4333-8333-333333333334"), "bad status");
     await fails("22023", () => setStatus("authenticated", BROKER, U1.id, "deposited", V1 + 1, "33333333-3333-4333-8333-333333333335"), "deposited не е одобрен");
@@ -190,7 +190,7 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
   await t("T9 едновременни промени: втората със стара версия → 40001; S3 обект с история не се трие (23503)", async () => {
     const v = (await as("authenticated", BROKER, () => q("select version from nd_units where id=$1", [U2.id])))[0].version;
     await setStatus("authenticated", BROKER, U2.id, "reserved", v, "77777777-7777-4777-8777-777777777771");
-    await fails("40001", () => setStatus("authenticated", BROKER2, U2.id, "reserved", v, "77777777-7777-4777-8777-777777777772"), "stale");
+    await fails("NC409", () => setStatus("authenticated", BROKER2, U2.id, "reserved", v, "77777777-7777-4777-8777-777777777772"), "stale");
     await fails("23503", () => as("authenticated", ADMIN, () => q("delete from nd_units where id=$1", [U1.id])), "delete unit with history");
     await fails("23503", () => as("authenticated", ADMIN, () => q("delete from nd_projects where id=$1", [P.id])), "delete project with history");
     const del = await as("authenticated", BROKER, () => q("delete from nd_units where id=$1 returning id", [U1.id]));
@@ -221,7 +221,7 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
     assert.ok(p.content_rev > p.reviewed_rev, "content_rev е нараснал");
     r = await as("authenticated", ADMIN, async () => (await q("select nd_project_set_status($1,'published',$2,'test-proekt') as r", [P.id, p.version]))[0].r);
     assert.strictEqual(r.ok, false);
-    await fails("40001", () => as("authenticated", ADMIN, () => q("select nd_project_mark_reviewed($1,$2)", [P.id, p.reviewed_rev])), "stale review");
+    await fails("NC409", () => as("authenticated", ADMIN, () => q("select nd_project_mark_reviewed($1,$2)", [P.id, p.reviewed_rev])), "stale review");
     await as("authenticated", ADMIN, () => q("select nd_project_mark_reviewed($1,$2)", [P.id, p.content_rev]));
     await fails("22023", () => as("authenticated", ADMIN, () => q("select nd_project_set_status($1,'published',$2,'Bad Slug!')", [P.id, p.version])), "bad slug");
     r = await as("authenticated", ADMIN, async () => (await q("select nd_project_set_status($1,'published',$2,'test-proekt') as r", [P.id, p.version]))[0].r);
@@ -245,12 +245,12 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
     await fails("23514", () => svc("insert into nd_plan_files(project_id, unit_id, kind, sig, path, mime, stamped) values ($1,$2,'unit_stamp',$3,$4,'image/jpeg',true)", [P.id, U1.id, sig, planPath(P.id, "A3-02")]), "original path");
     await fails("23514", () => svc("insert into nd_plan_files(project_id, unit_id, kind, sig, path, mime, stamped) values ($1,$2,'unit_stamp',$3,$4,'application/pdf',true)", [P.id, U1.id, sig, `projects/${P.id}/private/derived/u1.pdf`]), "pdf");
     assert.strictEqual((await svc("select nd_plan_resolve('unit',$1) r", [U1.id]))[0].r, null, "без производна → нищо");
-    await fails("40001", () => svc("insert into nd_plan_files(project_id, unit_id, kind, sig, path, mime, stamped) values ($1,$2,'unit_stamp','1:reserved',$3,'image/jpeg',true)", [P.id, U1.id, `projects/${P.id}/private/derived/u1-stamp-1-reserved.jpg`]), "C06 производна за НЕсегашен статус");
-    await fails("40001", () => svc("insert into nd_plan_files(project_id, unit_id, kind, sig, path, mime, stamped) values ($1,$2,'unit_wm',$3,$4,'image/jpeg',true)", [P.id, U1.id, sig, `projects/${P.id}/private/derived/u1-wm-as-sold.jpg`]), "C06 вид „воден знак“ за продаден обект");
+    await fails("NC409", () => svc("insert into nd_plan_files(project_id, unit_id, kind, sig, path, mime, stamped) values ($1,$2,'unit_stamp','1:reserved',$3,'image/jpeg',true)", [P.id, U1.id, `projects/${P.id}/private/derived/u1-stamp-1-reserved.jpg`]), "C06 производна за НЕсегашен статус");
+    await fails("NC409", () => svc("insert into nd_plan_files(project_id, unit_id, kind, sig, path, mime, stamped) values ($1,$2,'unit_wm',$3,$4,'image/jpeg',true)", [P.id, U1.id, sig, `projects/${P.id}/private/derived/u1-wm-as-sold.jpg`]), "C06 вид „воден знак“ за продаден обект");
     await svc("insert into nd_plan_files(project_id, unit_id, kind, sig, path, mime, stamped) values ($1,$2,'unit_stamp',$3,$4,'image/jpeg',true)", [P.id, U1.id, sig, `projects/${P.id}/private/derived/u1-stamp-1-sold.jpg`]);
     const r = (await svc("select nd_plan_resolve('unit',$1) r", [U1.id]))[0].r;
     assert.ok(r && r.path.endsWith("u1-stamp-1-sold.jpg") && r.kind === "unit_stamp");
-    await fails("40001", () => svc("insert into nd_plan_files(project_id, unit_id, kind, sig, path, mime, stamped) values ($1,$2,'unit_wm','1:free',$3,'image/jpeg',true)", [P.id, U3.id, `projects/${P.id}/private/derived/u3-wm-1-free.jpg`]), "U3 е reserved → производна за free не се приема");
+    await fails("NC409", () => svc("insert into nd_plan_files(project_id, unit_id, kind, sig, path, mime, stamped) values ($1,$2,'unit_wm','1:free',$3,'image/jpeg',true)", [P.id, U3.id, `projects/${P.id}/private/derived/u3-wm-1-free.jpg`]), "U3 е reserved → производна за free не се приема");
     // нов оригинал → plan_rev +1 → старата производна отпада
     await as("authenticated", ADMIN, () => q("update nd_units set data = jsonb_set(data,'{plan,private}',to_jsonb($2::text)) where id=$1", [U1.id, planPath(P.id, "A3-02-v2")]));
     assert.strictEqual((await svc("select nd_plan_resolve('unit',$1) r", [U1.id]))[0].r, null, "нов план → нова производна е нужна");
@@ -332,7 +332,7 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
 
   await t("A19 изведеният event_id е личен: чужд повтор не е „ok“; F02 варианти на забранения ключ се отказват; G07 брокер не отменя системна задача", async () => {
     const v = await ver(U3.id);   // U3 е reserved (от BROKER, без event_id)
-    await fails("40001", () => setStatus("authenticated", BROKER2, U3.id, "reserved", v - 1), "чужд повтор със стара версия");
+    await fails("NC409", () => setStatus("authenticated", BROKER2, U3.id, "reserved", v - 1), "чужд повтор със стара версия");
     for (const k of ["investor_name", "investorName", " investor", "ИНВЕСТИТОР", "Строителя", "builder-company"]) {
       await fails("23514", () => as("authenticated", BROKER, () => q("update nd_buildings set data = jsonb_build_object($2::text, 'x') where id=$1", [B2.id, k])), "ключ " + k);
     }

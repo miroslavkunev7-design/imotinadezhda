@@ -758,7 +758,9 @@ create policy "nc media admin delete" on public.nd_project_media for delete to a
 --   брокер: free→reserved
 --   админ:  горното + →sold + всяко връщане назад (задължителна причина)
 -- p_event_id е по избор: ако липсва, се извежда от (обект, нов статус, очаквана версия) → повторът е безопасен.
--- Грешки (SQLSTATE → HTTP в /api/tools): 42501→403, P0002→404, 40001→409, 23505→409, 22023→400
+-- Грешки (SQLSTATE → HTTP в /api/tools): 42501→403, P0002→404, NC409→409, 23505→409, 22023→400
+-- ВНИМАНИЕ: за конфликт на версии НЕ се ползва 40001 – PostgREST повтаря такива транзакции автоматично и заявката увисва
+-- (установено при живата проверка на 10.11.2026). Затова кодът е NC409.
 create function public.nd_unit_set_status(
   p_unit_id text,
   p_to text,
@@ -813,7 +815,7 @@ begin
     raise exception 'Обектът не е намерен' using errcode = 'P0002';
   end if;
   if u.version <> p_expected_version then
-    raise exception 'Променен е от друг – презаредете' using errcode = '40001', detail = u.version::text;
+    raise exception 'Променен е от друг – презаредете' using errcode = 'NC409', detail = u.version::text;
   end if;
   if u.status = p_to then
     raise exception 'Статусът вече е такъв' using errcode = '22023';
@@ -866,7 +868,7 @@ begin
     raise exception 'Проектът не е намерен' using errcode = 'P0002';
   end if;
   if p_expected_content_rev is null or p.content_rev <> p_expected_content_rev then
-    raise exception 'Съдържанието е променено след прегледа – презаредете' using errcode = '40001', detail = p.content_rev::text;
+    raise exception 'Съдържанието е променено след прегледа – презаредете' using errcode = 'NC409', detail = p.content_rev::text;
   end if;
   update public.nd_projects
      set reviewed_rev = content_rev, reviewed_by = auth.uid(), reviewed_at = now()
@@ -904,7 +906,7 @@ begin
     raise exception 'Проектът не е намерен' using errcode = 'P0002';
   end if;
   if p_expected_version is null or p.version <> p_expected_version then
-    raise exception 'Променен е от друг – презаредете' using errcode = '40001', detail = p.version::text;
+    raise exception 'Променен е от друг – презаредете' using errcode = 'NC409', detail = p.version::text;
   end if;
 
   new_slug := p.slug;

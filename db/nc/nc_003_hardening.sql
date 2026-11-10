@@ -48,10 +48,10 @@ begin
                     where u.id = new.unit_id
                       and new.sig = u.plan_rev::text || ':' || u.status
                       and new.kind = case when u.status = 'free' then 'unit_wm' else 'unit_stamp' end) then
-      raise exception 'Производната не е за сегашния план и статус' using errcode = '40001';
+      raise exception 'Производната не е за сегашния план и статус' using errcode = 'NC409';
     end if;
   elsif new.sig is distinct from public.nd_floor_plan_sig(new.floor_id) then
-    raise exception 'Етажната производна не е за сегашните статуси' using errcode = '40001';
+    raise exception 'Етажната производна не е за сегашните статуси' using errcode = 'NC409';
   end if;
   return new;
 end
@@ -331,7 +331,7 @@ begin
     raise exception 'Обектът не е намерен' using errcode = 'P0002';
   end if;
   if u.version <> p_expected_version then
-    raise exception 'Променен е от друг – презаредете' using errcode = '40001', detail = u.version::text;
+    raise exception 'Променен е от друг – презаредете' using errcode = 'NC409', detail = u.version::text;
   end if;
   if u.status = p_to then
     raise exception 'Статусът вече е такъв' using errcode = '22023';

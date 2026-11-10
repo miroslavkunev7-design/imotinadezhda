@@ -27,7 +27,7 @@ t("живият handler вика tool.input.safeParse – правилата в�
 
 t("грешки от базата → HTTP статус и ясен текст; вътрешни подробности не излизат", () => {
   const f = N._fail;
-  assert.strictEqual(f({ code: "40001", message: "Променен е от друг – презаредете" }).status, 409);
+  assert.strictEqual(f({ code: "NC409", message: "Променен е от друг – презаредете" }).status, 409);
   assert.strictEqual(f({ code: "42501", message: "Само администратор може да направи тази промяна" }).status, 403);
   assert.strictEqual(f({ code: "42501", message: "permission denied for table nd_units" }).message, "Нямате право за това действие");
   assert.strictEqual(f({ code: "P0002", message: "Обектът не е намерен" }).status, 404);
