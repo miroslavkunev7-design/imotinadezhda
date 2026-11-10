@@ -1193,6 +1193,8 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
   var MON=['януари','февруари','март','април','май','юни','юли','август','септември','октомври','ноември','декември'];
   var monName=function(k){var p=String(k).split('-');return MON[(+p[1]||1)-1]+' '+p[0]};
   function status(r){
+    if(r.listed==='free')return 'free';
+    if(r.listed==='rented')return 'rented';
     if(r.end&&r.end<today())return 'end';
     if(!r.tenant)return 'free';
     var paid=(r.payments||[]).some(function(p){return p.month===ym()});
@@ -1226,8 +1228,14 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
 
   var rents=[],props=[],pics={};
   var DEMO_ID='preview-hayat';
+  var DEMO_LS='nd-naemi-preview-hayat';
   function isDemo(r){return !!(r&&(r.id===DEMO_ID||r._preview===true))}
+  function persistDemo(){
+    var d=rents.filter(isDemo)[0];
+    try{if(d)localStorage.setItem(DEMO_LS,JSON.stringify({payments:d.payments||[],listed:d.listed||'',receipts:d.receipts||[]}))}catch(e){}
+  }
   function persist(){
+    persistDemo();
     if(!window.ND)return Promise.resolve();
     var real=rents.filter(function(r){return !isDemo(r)});
     if(!real.length&&rents.length&&rents.every(isDemo))return Promise.resolve();
@@ -1248,6 +1256,46 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
   function daysToPay(r){var due=nextDueDate(r),now=new Date(),t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());return Math.max(0,Math.round((due-t0)/864e5))}
   function dueLabel(r){var due=nextDueDate(r);return String(due.getDate()).padStart(2,'0')+'.'+String(due.getMonth()+1).padStart(2,'0')+'.'+due.getFullYear()}
   function paidInfo(r){var ps=r.payments||[];return {n:ps.length,sum:ps.reduce(function(a,p){return a+num(p.amount||r.rent)},0)}}
+  function remainInfo(r){
+    var rent=num(r.rent),months=12;
+    if(r.start&&r.end){
+      var a=String(r.start).split('-'),b=String(r.end).split('-');
+      months=Math.max(1,(+b[0]-+a[0])*12+(+b[1]-+a[1])+1);
+    }
+    var total=rent*months,got=paidInfo(r).sum;
+    return {total:total,remain:Math.max(0,total-got),months:months};
+  }
+  function nextUnpaidMonth(r){
+    var have={};(r.payments||[]).forEach(function(p){have[p.month]=1});
+    var d,end;
+    if(r.start){var p=String(r.start).split('-');d=new Date(+p[0],(+p[1]||1)-1,1)}
+    else d=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+    if(r.end){var e=String(r.end).split('-');end=new Date(+e[0],(+e[1]||1)-1,1)}
+    else end=new Date(d.getFullYear()+2,d.getMonth(),1);
+    for(var i=0;i<48;i++){
+      if(d>end)return null;
+      var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      if(!have[k])return k;
+      d.setMonth(d.getMonth()+1);
+    }
+    return null;
+  }
+  function markReceived(r){
+    if(!r)return;
+    if(!num(r.rent)){say('Въведете месечен наем');return}
+    var month=nextUnpaidMonth(r);
+    if(!month){say('Всички наеми по договора са получени');return}
+    r.payments=r.payments||[];
+    r.payments.push({month:month,amount:num(r.rent),at:new Date().toISOString()});
+    persist();renderList();renderDet();
+    say('Получено '+eurCard(r.rent)+' за '+monName(month)+' · общо '+eurCard(paidInfo(r).sum));
+  }
+  function toggleListed(r){
+    if(!r)return;
+    r.listed=(status(r)==='free')?'rented':'free';
+    persist();renderList();renderDet();
+    say(status(r)==='free'?'Маркиран като свободен':'Маркиран като отдаден');
+  }
   function perLabel(r){return (r.start||r.end)?(bgd(r.start)||'…')+' – '+(bgd(r.end)||'безсрочен'):''}
   function titleHtml(r){
     var t=String(r.title||'Наем'),m=t.match(/^(.*?Hayat),?\s*(бл\..*)$/i);
@@ -1257,11 +1305,16 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     return esc(t);
   }
   function hayatPreview(){
-    return {id:DEMO_ID,_preview:true,title:'Студио – ЖК VIP Residence Hayat, бл. 1, ет. 7, ап. 41',type:'Студио',city:'Шумен',hood:'',address:'бл. 1, ет. 7, ап. 41',rooms:1,area:'',rent:300,deposit:0,payDay:20,start:'2026-06-01',end:'2027-05-31',tenant:'Георги Георгиев',tenantPhone:'',owner:'',notes:'',files:[],receipts:[],
-      payments:[{month:'2026-05',amount:300},{month:'2026-06',amount:300},{month:'2026-07',amount:300},{month:'2026-08',amount:300},{month:'2026-09',amount:300},{month:'2026-10',amount:300}]}
+    var r={id:DEMO_ID,_preview:true,title:'Студио – ЖК VIP Residence Hayat, бл. 1, ет. 7, ап. 41',type:'Студио',city:'Шумен',hood:'',address:'бл. 1, ет. 7, ап. 41',rooms:1,area:'',rent:300,deposit:0,payDay:20,start:'2026-06-01',end:'2027-05-31',tenant:'Георги Георгиев',tenantPhone:'',owner:'',notes:'',files:[],receipts:[],listed:'',
+      payments:[{month:'2026-06',amount:300}]};
+    try{
+      var s=JSON.parse(localStorage.getItem(DEMO_LS)||'null');
+      if(s){if(Array.isArray(s.payments))r.payments=s.payments;if(s.listed!=null)r.listed=s.listed;if(Array.isArray(s.receipts))r.receipts=s.receipts}
+    }catch(e){}
+    return r;
   }
   function seedPreview(){
-    if(rents.some(function(r){return /VIP Residence Hayat/i.test(String(r.title||''))}))return;
+    if(rents.some(function(r){return /VIP Residence Hayat/i.test(String(r.title||''))&&!isDemo(r)}))return;
     if(rents.some(isDemo))return;
     rents.unshift(hayatPreview());
     pics[DEMO_ID]=img('g-facade.jpg');
@@ -1346,16 +1399,16 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     var list=base.filter(function(r){if(st&&!stMatch(r,st))return false;if(!q)return true;
       return [r.title,r.city,r.hood,r.address,r.type,r.owner,r.tenant,r.ownerPhone,r.tenantPhone].join(' ').toLocaleLowerCase('bg').indexOf(q)>=0});
     renderStats(base);
-    $('olist').innerHTML=list.length?list.map(function(r){var s=status(r),days=daysToPay(r),paid=paidInfo(r),per=perLabel(r),amt=eurCard(r.rent),got=eurCard(paid.sum);
+    $('olist').innerHTML=list.length?list.map(function(r){var s=status(r),days=daysToPay(r),paid=paidInfo(r),rem=remainInfo(r),per=perLabel(r),amt=eurCard(r.rent),got=eurCard(paid.sum);
       return '<article class="oc'+(r.id===sel?' on':'')+'" tabindex="0" data-id="'+r.id+'" aria-expanded="'+(r.id===sel)+'" aria-label="'+esc(r.title)+'">'+
         '<span class="op" style="background-image:url('+photoOf(r)+')"></span><span class="oi">'+ic('key-round')+'</span>'+
-        '<h3 class="on2">'+titleHtml(r)+'</h3><span class="rpill '+s+'">'+ST_TXT[s]+'</span>'+
+        '<h3 class="on2">'+titleHtml(r)+'</h3><button type="button" class="rpill '+s+'" data-toggle-status>'+ST_TXT[s]+'</button>'+
         '<p class="oca">'+esc(r.city||'')+'</p>'+
         '<div class="om">'+
           '<div class="r-due"><b class="r-days" data-t="'+days+'">'+days+'</b><span class="r-due-copy"><span class="r-lab">'+ic('clock')+'дни до плащане</span><small>Следващ падеж: '+esc(dueLabel(r))+'</small></span></div>'+
           '<div class="r-ten"><span class="r-lab">'+ic('user')+'Наемател</span><b>'+esc(r.tenant||'—')+'</b></div>'+
           '<div class="r-per"><span class="r-lab">'+ic('calendar')+'Период на договора</span><b>'+esc(per||'—')+'</b></div>'+
-          '<div class="r-got"><span class="r-lab">'+ic('mail')+'Получено до момента</span><b class="r-got-n" data-t="'+esc(got)+'">'+esc(got)+'</b><small>'+paid.n+' платени наема</small></div>'+
+          '<div class="r-got" data-act="paid" role="button" tabindex="0"><span class="r-lab">'+ic('mail')+'Получено до момента</span><b class="r-got-n" data-t="'+esc(got)+'">'+esc(got)+'</b><small>'+paid.n+' платени наема · остатък '+esc(eurCard(rem.remain))+'</small></div>'+
           '<div class="r-fee"><b class="r-amt" data-t="'+esc(amt)+'"><span>'+esc(amt)+'</span></b><span class="r-fee-l">Месечен наем</span></div>'+
         '</div>'+
         '<span class="ar">Отвори пълната карта'+ic('arrow-r')+'</span></article>'}).join('')
@@ -1370,6 +1423,9 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     rows.push('<div class="rr">'+ic('coins')+'Месечен наем<b>'+eur(rent)+'</b></div>');
     if(calc.c50)rows.push('<div class="rr">'+ic('handshake')+'Комисионна 50% (еднократно)<b>'+eur(c)+'</b></div>');
     if(calc.m10)rows.push('<div class="rr">'+ic('briefcase-business')+'Управление 10% / месец<b>'+eur(m)+'</b></div>','<div class="rr">'+ic('calendar-days')+'Управление за 12 месеца<b>'+eur(m*12)+'</b></div>','<div class="rr">'+ic('user-round')+'За собственика / месец<b>'+eur(rent-m)+'</b></div>');
+    var rem=remainInfo(r);
+    rows.push('<div class="rr">'+ic('mail')+'Получено до момента<b>'+eur(paidInfo(r).sum)+'</b></div>');
+    rows.push('<div class="rr">'+ic('clock')+'Остатък / доплащане<b>'+eur(rem.remain)+'</b></div>');
     if(calc.c50||calc.m10)rows.push('<div class="rr tot">'+ic('calculator')+'Общо за агенцията'+(calc.m10?' (1-ви месец)':'')+'<b>'+eur((calc.c50?c:0)+(calc.m10?m:0))+'</b></div>');
     else rows.push('<p class="hint">Натиснете бутон – сумата се изчислява само върху месечния наем.</p>');
     return '<div class="r-calc"><button type="button" class="r-cb'+(calc.c50?' on':'')+'" data-calc="c50" aria-pressed="'+calc.c50+'">'+ic('handshake')+'50% Комисионна</button>'+
@@ -1379,50 +1435,70 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
   function renderDet(){
     var r=rents.filter(function(x){return x.id===sel})[0],box=$('odet');
     if(!r){box.innerHTML='';return}
-    var tp=typeOf(r.type),s=status(r),paid=(r.payments||[]).some(function(p){return p.month===ym()});
+    var tp=typeOf(r.type),s=status(r),thisPaid=(r.payments||[]).some(function(p){return p.month===ym()});
+    var paid=paidInfo(r),rem=remainInfo(r),amt=eurCard(r.rent),got=eurCard(paid.sum);
     var row=function(icn,v,href){return v?(href?'<a href="'+href+'">'+ic(icn)+esc(v)+'</a>':'<span>'+ic(icn)+esc(v)+'</span>'):'<span>'+ic(icn)+'<em>няма данни</em></span>'};
     var tel=function(p){return p?'tel:'+String(p).split(/[,;]/)[0].replace(/[^\d+]/g,''):''};
     var files=r.files||[];
     var per=(r.start||r.end)?(bgd(r.start)||'…')+' – '+(bgd(r.end)||'безсрочен'):'';
     var kv=function(icn,lab,v,href){return '<div class="v3-kv">'+ic(icn)+'<span class="k">'+esc(lab)+'</span>'+
       (v?(href?'<a class="v" href="'+href+'">'+esc(v)+'</a>':'<span class="v">'+esc(v)+'</span>'):'<span class="v emp" data-edit role="button" tabindex="0">+ добави</span>')+'</div>'};
-    box.innerHTML='<header class="od-h">'+ic('key-round')+'<h2>'+esc(r.title||'Наем')+'</h2><span class="rpill '+s+'">'+ST_TXT[s]+'</span>'+
+    var nextM=nextUnpaidMonth(r);
+    box.innerHTML='<div class="od-card">'+
+      '<span class="op" style="background-image:url('+photoOf(r)+')"></span>'+
+      '<header class="od-h">'+ic('key-round')+'<h2>'+esc(r.title||'Наем')+'</h2>'+
+        '<button type="button" class="rpill '+s+'" data-toggle-status>'+ST_TXT[s]+'</button>'+
         '<button type="button" class="v3-edit" data-edit aria-label="Редактирай наема" title="Редактирай">'+ic('pencil')+'<span>Редактирай</span></button>'+
         '<button type="button" data-collapse aria-label="Свий" title="Свий">'+ic('chevron-up')+'</button></header>'+
+      '<div class="od-secs">'+
       '<div class="v3-specs r-specs">'+vt('coins',eur(r.rent),'Наем / месец')+vt('shield',num(r.deposit)?eur(r.deposit):'','Депозит')+vt('calendar',per,'Период')+vt('user-round',r.tenant||'','Наемател')+'</div>'+
-      '<section class="v3-rs v3-info" style="--ph:url('+photoOf(r)+')"><h3 class="v3-st">'+ic(tp.icon)+'Данни за наема</h3><div class="v3-rows">'+
+      '<section class="od-sec v3-info"><h3 class="v3-st">'+ic(tp.icon)+'Данни за наема</h3><div class="v3-rows">'+
         kv('pin','Адрес',[r.city,r.hood,r.address].filter(Boolean).join(', '))+kv(tp.icon,'Имот',[r.type,r.rooms?r.rooms+' стаи':'',r.area?r.area+' м²':''].filter(Boolean).join(' • '))+
         kv('user','Наемодател',r.owner)+kv('phone','Тел. наемодател',r.ownerPhone,tel(r.ownerPhone))+
         kv('user-round','Наемател',r.tenant)+kv('phone','Тел. наемател',r.tenantPhone,tel(r.tenantPhone))+
         kv('calendar-check','Падеж',num(r.payDay)?num(r.payDay)+'-о число':'')+
-        (r.tenant?'<div class="v3-kv">'+ic('badge-check')+'<span class="k">Плащане</span><span class="v"><span class="r-pay'+(paid?'':' no')+'">'+ic(paid?'circle-check':'clock')+(paid?'Платен за ':'Неплатен за ')+monName(ym())+'</span></span></div>':'')+'</div></section>'+
-      '<section class="v3-rs" style="--ph:url('+img('nd/ph11.jpg')+')"><h3 class="v3-st">'+ic('calculator')+'Калкулатор</h3><div class="r-box" id="r-calc">'+calcHtml(r)+'</div></section>'+
-      '<section class="v3-rs" style="--ph:url('+img('nd/ph20.jpg')+')"><h3 class="v3-st">'+ic('file-text')+'Документи ('+files.length+')</h3><div class="r-box">'+
+        (r.tenant?'<div class="v3-kv">'+ic('badge-check')+'<span class="k">Плащане</span><span class="v"><span class="r-pay'+(thisPaid?'':' no')+'">'+ic(thisPaid?'circle-check':'clock')+(thisPaid?'Платен за ':'Неплатен за ')+monName(ym())+'</span></span></div>':'')+'</div></section>'+
+      '<section class="od-sec"><h3 class="v3-st">'+ic('calculator')+'Калкулатор</h3><div class="r-box" id="r-calc">'+calcHtml(r)+'</div></section>'+
+      '<section class="od-sec"><h3 class="v3-st">'+ic('file-text')+'Документи ('+files.length+')</h3><div class="r-box">'+
         '<div class="r-slots">'+['contract','rent','other'].map(function(k){return '<label class="r-slot">'+ic(FK[k].icon)+FK[k].label+'<small>Прикачи файл</small><input type="file" data-up="'+k+'" multiple></label>'}).join('')+'</div>'+
         '<div class="r-files">'+(files.length?files.map(function(f,i){var k=FK[f.kind]||FK.other;
           return '<div class="r-file">'+ic(k.icon)+'<span class="fn"><b>'+esc(f.name)+'</b><span>'+k.label+' • '+bgd(f.at)+'</span></span>'+
             '<button type="button" data-open="'+i+'" aria-label="Отвори" title="Отвори">'+ic('link')+'</button><button type="button" data-rm="'+i+'" aria-label="Премахни" title="Премахни">'+ic('trash-2')+'</button></div>'}).join('')
           :'<p class="r-none">Няма прикачени документи.</p>')+'</div></div></section>'+
-      '<section class="v3-rs" style="--ph:url('+img('card-deals.jpg')+')"><h3 class="v3-st">'+ic('coins')+'Плащания и разписки</h3><div class="r-box">'+
-        '<div class="r-acts"><button type="button" class="ba hot" data-act="paid">'+ic('circle-check')+'Платен наем – '+MON[new Date().getMonth()]+'</button>'+
+      '<section class="od-sec"><h3 class="v3-st">'+ic('coins')+'Плащания и разписки</h3><div class="r-box">'+
+        '<div class="r-acts"><button type="button" class="ba hot" data-act="paid">'+ic('circle-check')+'Получено'+(nextM?' – '+monName(nextM):'')+'</button>'+
         '<button type="button" class="ba" data-act="rentrec">'+ic('file-text')+'Разписка за наем</button>'+
         '<button type="button" class="ba" data-act="deprec">'+ic('shield')+'Разписка за депозит</button>'+
         '<button type="button" class="ba" data-act="deprel">'+ic('coins')+'Връщане на депозит</button>'+
         '<button type="button" class="ba wide" data-act="handover">'+ic('key-round')+'Приемо-предавателен протокол</button></div>'+
         '<div class="r-pays">'+((r.payments||[]).slice().sort(function(a,b){return a.month<b.month?1:-1}).slice(0,12).map(function(p){
-          return '<span>'+ic('circle-check')+monName(p.month)+' • '+eur(p.amount)+'<button type="button" data-unpay="'+p.month+'" aria-label="Премахни плащането">✕</button></span>'}).join('')||'<p class="r-none">Още няма отбелязани плащания.</p>')+'</div></div></section>';
+          return '<span>'+ic('circle-check')+monName(p.month)+' • '+eur(p.amount)+'<button type="button" data-unpay="'+p.month+'" aria-label="Премахни плащането">✕</button></span>'}).join('')||'<p class="r-none">Още няма отбелязани плащания.</p>')+'</div></div></section>'+
+      '</div>'+
+      '<div class="r-fee od-fee"><b class="r-amt" data-t="'+esc(amt)+'"><span>'+esc(amt)+'</span></b><span class="r-fee-l">Месечен наем</span><small class="r-rent-l">получено '+esc(got)+' · остатък '+esc(eurCard(rem.remain))+'</small></div>'+
+      '</div>';
   }
   function select(id,scroll){
     sel=(sel===id&&!desk)?null:id;renderList();renderDet();
     if(sel&&scroll&&!desk)setTimeout(function(){$('odet').scrollIntoView({behavior:'smooth',block:'start'})},40);
   }
   var cur=function(){return rents.filter(function(x){return x.id===sel})[0]};
-  $('olist').addEventListener('click',function(e){var c=e.target.closest('.oc');if(c)select(c.dataset.id,true)});
-  $('olist').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.classList.contains('oc'))e.target.click()});
+  $('olist').addEventListener('click',function(e){
+    var card=e.target.closest('.oc');if(!card)return;
+    var rent=rents.filter(function(x){return x.id===card.dataset.id})[0];
+    if(e.target.closest('[data-toggle-status]')){e.stopPropagation();toggleListed(rent);return}
+    if(e.target.closest('[data-act="paid"]')){e.stopPropagation();markReceived(rent);return}
+    select(card.dataset.id,true)
+  });
+  $('olist').addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    if(e.target.matches('[data-toggle-status],[data-act="paid"]')){e.preventDefault();e.target.click();return}
+    if(e.target.classList.contains('oc'))e.target.click()
+  });
   $('odet').addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches('.v3-kv [data-edit]')){e.preventDefault();e.target.click()}});
   $('odet').addEventListener('click',function(e){
     var r=cur();if(!r)return;
     if(e.target.closest('[data-collapse]')){sel=null;renderList();renderDet();return}
+    if(e.target.closest('[data-toggle-status]')){toggleListed(r);return}
     if(e.target.closest('[data-edit]')){openF(sel);return}
     var cb=e.target.closest('[data-calc]');if(cb){calc[cb.dataset.calc]=!calc[cb.dataset.calc];$('r-calc').innerHTML=calcHtml(r);return}
     var o=e.target.closest('[data-open]');if(o){var f=r.files[+o.dataset.open];var w=window.open('','_blank');ND.fileUrl(f.path).then(function(u){if(u){if(w)w.location=u;else location.href=u}else{if(w)w.close();say('Файлът не е намерен')}});return}
@@ -1431,9 +1507,7 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     var up=e.target.closest('[data-unpay]');if(up){r.payments=(r.payments||[]).filter(function(p){return p.month!==up.dataset.unpay});persist();renderList();renderDet();return}
     var a=e.target.closest('[data-act]');if(!a)return;
     var act=a.dataset.act;
-    if(act==='paid'){r.payments=r.payments||[];if(r.payments.some(function(p){return p.month===ym()})){say('Наемът за '+monName(ym())+' вече е отбелязан');return}
-      if(!num(r.rent)){say('Въведете месечен наем');return}
-      r.payments.push({month:ym(),amount:num(r.rent),at:new Date().toISOString()});persist();renderList();renderDet();say('Отбелязан платен наем за '+monName(ym()));return}
+    if(act==='paid'){markReceived(r);return}
     if(act==='deprec'&&!num(r.deposit)){say('Въведете депозит в данните на наема');return}
     if((act==='rentrec'||act==='deprec'||act==='deprel')&&!r.tenant){say('Въведете наемател в данните на наема');return}
     receipt(r,act);
