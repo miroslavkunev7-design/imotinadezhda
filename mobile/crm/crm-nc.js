@@ -19,7 +19,9 @@
   function $$(sel, el) { return [].slice.call((el || document).querySelectorAll(sel)); }
   function say(m) { if (window.ND && ND.say) ND.say(m); else { var t = document.getElementById("toast"); if (!t) return; t.textContent = m; t.classList.add("show"); clearTimeout(say._t); say._t = setTimeout(function () { t.classList.remove("show"); }, 3200); } }
   function uuid() { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); var h = "0123456789abcdef", s = ""; for (var i = 0; i < 32; i++) s += h[(Math.random() * 16) | 0]; return s.slice(0, 8) + "-" + s.slice(8, 12) + "-4" + s.slice(13, 16) + "-a" + s.slice(17, 20) + "-" + s.slice(20, 32); }
-  NC.util = { esc: esc, ic: ic, eur: eur, eur2: eur2, m2: m2, fdate: fdate, say: say, uuid: uuid, nfmt: nfmt };
+  /* днешната дата по МЕСТНОТО време (toISOString е в UTC и след полунощ дава вчера) */
+  function today() { var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  NC.util = { esc: esc, ic: ic, eur: eur, eur2: eur2, m2: m2, fdate: fdate, say: say, uuid: uuid, nfmt: nfmt, today: today };
 
   /* ---------------- речник ---------------- */
   var TABS = [["overview", "Общ преглед", "house"], ["units", "Апартаменти", "layout-grid"], ["plans", "Разпределения", "layers"], ["b3d", "3D Сграда", "box"], ["tour", "360° Разходка", "r360"],
@@ -35,6 +37,16 @@
   var PRICES = [["0-80000", "до 80 000 €"], ["80000-120000", "80 000 – 120 000 €"], ["120000-160000", "120 000 – 160 000 €"], ["160000-250000", "160 000 – 250 000 €"], ["250000-1000000000", "над 250 000 €"]];
   var SORTS = [["code", "По код"], ["pasc", "Цена: възходящо"], ["pdesc", "Цена: низходящо"], ["area", "Най-голяма площ"], ["floor", "По етаж"]];
   NC.dict = { TABS: TABS, ST: ST, STP: STP, STAGES: STAGES, PST: PST };
+  /* декоративни снимки (TASK-003, само илюстрации; само в информационни блокове и прозорци – никога върху плана, 3D, 360 или корицата) */
+  var PH = { info: "nd/ph44.webp", stage: "nd/ph22.webp", adv: "nd/ph21.webp", plans: "nd/ph24.webp", planUp: "nd/ph42.webp", floors3d: "nd/ph44.webp", rooms: "nd/ph23.webp",
+    build: "nd/ph41.webp", gallery: "nd/ph39.webp", galleryEmpty: "nd/ph36.webp", docs: "nd/ph27.webp", agency: "nd/ph26.webp", inquiry: "nd/ph29.webp", viewing: "nd/ph33.webp",
+    loc: "nd/ph45.webp", locSea: "nd/ph53.webp", compare: "nd/ph25.webp", price: "nd/ph34.webp", offer: "nd/ph47.webp", status: "nd/ph31.webp", report: "nd/ph35.webp",
+    media: "nd/ph36.webp", empty3d: "nd/ph28.webp", empty360: "nd/ph38.webp", list: "nd/ph43.webp" };
+  NC.PH = PH;
+  /* морски проект (по града/квартала/адреса) → морска илюстрация за „Местоположение“; иначе – градска/планинска */
+  var SEA = /(варна|бургас|созопол|несеб[ъa]р|поморие|приморско|царево|китен|лозенец|ахтопол|обзор|балчик|каварна|кранево|албена|златни пясъци|слънчев бряг|св(\.|ети)\s*влас|равда|черноморец|шкорпиловци|шабла|св(\.|ети)\s*константин|морск|плаж)/i;
+  function seaside(p) { return SEA.test([p.city, p.hood, p.address].filter(Boolean).join(" ")); }
+  NC.seaside = seaside;
 
   /* ---------------- състояние (споделено между табовете и в адреса) ---------------- */
   var S = { view: "list", key: null, tab: "overview", b: null, f: null, u: null, pmode: "floor", flt: {}, cmp: [], lf: "all", lq: "", hi: 0, gk: "all" };
@@ -108,7 +120,7 @@
     return '<button type="button" class="nc-btn' + (o.cls ? " " + o.cls : "") + '" data-act="' + esc(act) + '"' + (o.data ? " " + o.data : "") + dis + (o.title ? ' title="' + esc(o.title) + '"' : "") + (o.label ? ' aria-label="' + esc(o.label) + '"' : "") + ">" + ic(icon) + "<span>" + esc(text) + "</span>" + (o.why ? '<span class="nc-why">' + esc(o.why) + "</span>" : "") + "</button>";
   }
   /* карта с лента-заглавие: същият механизъм като NDUI.group (класове .ndg/.ndg-h/.ndg-img/.ndg-f, маската от crm-ui.js);
-     декоративната снимка е само от наличните assets/nd/phNN.jpg и само в информационни блокове */
+     декоративната снимка е само от наличните assets/nd/phNN (PH по-горе) и само в информационни блокове */
   function card(title, icon, photo, inner, extraCls, head) {
     var h;
     if (window.NDUI && NDUI.group) h = NDUI.group(title, icon, photo || null, inner, { noPhoto: !photo, one: true });
@@ -134,7 +146,7 @@
     var q = S.lq.toLocaleLowerCase("bg");
     var list = LIST.filter(function (p) { return (S.lf === "all" || p.status === S.lf) && (!q || [p.title, p.city, p.hood, p.slug].some(function (v) { return String(v || "").toLocaleLowerCase("bg").indexOf(q) >= 0; })); });
     var body;
-    if (!LIST.length) body = empty("building-2", staff ? "Още няма проекти" : "Няма публикувани проекти", staff ? "Създайте чернова на проект или използвайте импорта, когато е наличен." : "В момента няма публикувани проекти ново строителство.", A.emptyListActs ? A.emptyListActs() : "");
+    if (!LIST.length) body = card(staff ? "Още няма проекти" : "Няма публикувани проекти", "building-2", PH.list, '<div class="nc-gempty" role="status"><p class="nc-note" style="max-width:56%">' + esc(staff ? "Създайте чернова на проект или внесете проектен пакет с „Импорт на проект“." : "В момента няма публикувани проекти ново строителство.") + "</p>" + (A.emptyListActs ? '<div class="nc-acts" style="margin-top:16px">' + A.emptyListActs() + "</div>" : "") + '</div>', "nc-illu nc-lempty");
     else if (!list.length) body = empty("search", "Няма проекти по избраните критерии", "Променете търсенето или филтъра.", btn("lclear", "x", "Изчисти"));
     else body = '<div class="nc-grid">' + list.map(projCard).join("") + "</div>";
     root.innerHTML = head + body;
@@ -264,12 +276,12 @@
         (ms.length > 1 ? '<button type="button" class="nc-round l" data-act="heroprev" aria-label="Предишна снимка">' + ic("chevron-left") + '</button><button type="button" class="nc-round r" data-act="heronext" aria-label="Следваща снимка">' + ic("chev-r") + "</button>" : "") +
         "</div>" + (ms.length > 1 ? '<div class="nc-thumbs" role="group" aria-label="Миниатюри">' + ms.map(function (m, i) { return '<button type="button" data-act="hero" data-i="' + i + '" aria-label="' + esc("Снимка " + (i + 1) + ": " + (m.title || "")) + '" aria-current="' + (i === S.hi) + '" style="background-image:url(&quot;' + esc(m.url) + '&quot;)"></button>'; }).join("") + "</div>" : "") + "</div>";
     }
-    var info = card("Основна информация", "building-2", "nd/ph21.jpg", '<div class="nc-rows">' +
+    var info = card("Основна информация", "building-2", PH.info, '<div class="nc-rows">' +
       row("layout-grid", "Общо апартаменти:", esc(M.units.length)) + row("layers", "Етажи:", esc(M.floors.length)) + row("building-2", "Сгради:", esc(M.buildings.length)) +
       row("circle-check", "Свободни:", dot("free") + esc(c.free)) + row("lock", "Капарирани:", dot("reserved") + esc(c.reserved)) + row("tag", "Продадени:", dot("sold") + esc(c.sold)) +
       (p.expected_completion ? row("calendar", "Завършване:", esc(p.expected_completion)) : "") + "</div>", "a-info");
-    var stage = card("Етап на завършване", "hard-hat", "nd/ph22.jpg", stepsHtml(p) + '<div class="nc-stage-ft">' + ic("calendar") + (p.expected_completion ? "<span>Очаквано завършване: <b>" + esc(p.expected_completion) + "</b></span>" : "<span>Очакваното завършване не е въведено.</span>") + "</div>", "a-stage");
-    var adv = card("Предимства", "gem", "nd/ph25.jpg", (p.advantages && p.advantages.length ? '<ul class="nc-adv">' + p.advantages.map(function (a) { return "<li>" + ic("circle-check") + esc(a) + "</li>"; }).join("") + "</ul>" : '<p class="nc-note">Няма въведени предимства.</p>'), "a-adv");
+    var stage = card("Етап на завършване", "hard-hat", PH.stage, stepsHtml(p) + '<div class="nc-stage-ft">' + ic("calendar") + (p.expected_completion ? "<span>Очаквано завършване: <b>" + esc(p.expected_completion) + "</b></span>" : "<span>Очакваното завършване не е въведено.</span>") + "</div>", "a-stage");
+    var adv = card("Предимства", "gem", PH.adv, (p.advantages && p.advantages.length ? '<ul class="nc-adv">' + p.advantages.map(function (a) { return "<li>" + ic("circle-check") + esc(a) + "</li>"; }).join("") + "</ul>" : '<p class="nc-note">Няма въведени предимства.</p>'), "a-adv");
     return '<div class="nc-ov">' + hero + '<div class="a-info">' + info + '</div><div class="a-unit">' + ucSlot("overview") + '</div><div class="a-stage">' + stage + '</div><div class="a-adv">' + adv + "</div>" + '<div class="a-acts">' + actsHtml() + "</div></div>";
   }
   function stepsHtml(p) {
@@ -281,18 +293,31 @@
   }
   /* динамичните действия: всяко е реално или честно недостъпно (с причина) */
   function actsHtml() {
-    var a = [], u = unit(S.u), loc = M.project.location, br = brochure();
+    var a = [], u = unit(S.u), br = brochure();
     function act(act, icon, text, o) { o = o || {}; a.push('<button type="button" class="nc-act' + (o.cls ? " " + o.cls : "") + '" data-act="' + act + '"' + (o.dis ? ' aria-disabled="true" title="' + esc(o.dis) + '"' : "") + ">" + ic(icon) + "<span>" + esc(text) + "</span>" + (o.dis ? "<small>" + esc(o.short || "недостъпно") + "</small>" : "") + "</button>"); }
     act("tab-tour", "r360", "Виртуална разходка (360°)");
     act("compare", "columns-2", "Сравни апартаменти" + (S.cmp.length ? " (" + S.cmp.length + ")" : ""), S.cmp.length < 2 ? { dis: "Изберете поне 2 апартамента („Добави за сравнение“)", short: "изберете 2+" } : null);
     act("mortgage", "calculator", "Калкулатор ипотека", A.canMortgage && A.canMortgage() ? (u && u.price_total ? null : { dis: "Избраният апартамент няма цена", short: "няма цена" }) : { dis: "Калкулаторът е наличен само в CRM", short: "само в CRM" });
-    act("location", "map-pin-house", "Локация и среда", loc && loc.lat != null ? null : { dis: "Не са въведени координати на проекта", short: "няма координати" });
+    act("location", "map-pin-house", "Локация и среда", hasLoc(M.project) ? null : { dis: "Не е въведено местоположение на проекта", short: "няма адрес" });
     act("brochure", "download", "Изтегли брошура", br ? null : { dis: "Няма качена брошура (публичен файл с име „Брошура…“)", short: "няма брошура" });
     act("viewing", "calendar-check", "Запази оглед", { cls: "gold" });
     if (A.mode === "public") act("inquiry", "mail", "Изпрати запитване");
     act("share", "share-2", "Сподели", A.shareUrl && A.shareUrl(M, u) ? null : { dis: "Проектът не е публикуван – няма публичен адрес", short: "не е публикуван" });
     act("fav", "heart", "Добави в любими", { dis: "Любими за апартаменти от проект още няма в системата", short: "още няма" });
     return '<div class="nc-acts" role="group" aria-label="Действия">' + a.join("") + "</div>";
+  }
+  /* местоположение: само въведеното в проекта (координати или адрес); картата е OpenStreetMap в нов прозорец – без вградени външни скриптове */
+  function hasLoc(p) { return !!((p.location && p.location.lat != null) || p.address || p.city); }
+  function mapUrl(p) {
+    var l = p.location;
+    if (l && l.lat != null && l.lng != null) return "https://www.openstreetmap.org/?mlat=" + encodeURIComponent(l.lat) + "&mlon=" + encodeURIComponent(l.lng) + "#map=16/" + encodeURIComponent(l.lat) + "/" + encodeURIComponent(l.lng);
+    var q = [p.address, p.hood, p.city].filter(Boolean).join(", ");
+    return q ? "https://www.openstreetmap.org/search?query=" + encodeURIComponent(q) : null;
+  }
+  NC.mapUrl = mapUrl;
+  function goForm(id) {
+    if (S.tab !== "contacts") switchTab("contacts", true);
+    setTimeout(function () { var f = document.getElementById(id); if (!f) return; if (f.scrollIntoView) f.scrollIntoView({ block: "start" }); var i = f.querySelector("input,select,textarea,button"); if (i) try { i.focus({ preventScroll: true }); } catch (x) { i.focus(); } }, 30);
   }
   function brochure() { return (M.files || []).filter(function (f) { return f.access === "public" && /брошур/i.test(f.title || "") && f.path; })[0] || null; }
   function heroBind() { /* миниатюрите и стрелките са през data-act */ }
@@ -399,7 +424,7 @@
       '<button type="button" data-act="pmode" data-v="unit" aria-pressed="' + (S.pmode === "unit") + '"' + (u ? "" : " disabled") + ">" + ic("house") + " План на " + esc(u ? u.code : "апартамента") + "</button></div>";
     var codes = us.length ? '<div class="nc-ucodes" role="group" aria-label="Апартаменти на етажа">' + us.map(function (x) { return '<button type="button" data-act="pick" data-unit="' + esc(x.id) + '" aria-pressed="' + (x.id === S.u) + '">' + dot(x.status) + esc(x.code) + "</button>"; }).join("") + "</div>" : '<p class="nc-note" style="margin-top:12px">На този етаж няма въведени апартаменти.</p>';
     var inner = '<div class="nc-pl">' + floorsNav() + "<div>" + modes + '<div class="nc-vw" id="nc-vw" tabindex="0" role="application" aria-roledescription="преглед на план" aria-label="' + esc(title) + '. Плюс и минус – мащаб, стрелки – местене, 0 – начален изглед."></div>' + codes + (A.planActs ? A.planActs(f, u) : "") + "</div></div>";
-    var pinfo = card("За разпределенията", "file-text", "nd/ph24.jpg", '<p class="nc-note">Свободен апартамент: публичният план е копие с воден знак, направено от сървъра. Капариран или продаден: публиката не получава план – показва се само печат със статуса.' + (A.mode === "staff" ? " Екипът вижда оригинала с кратък подписан линк (до 1 час)." : "") + "</p>", "nc-pinfo");
+    var pinfo = card("За разпределенията", "file-text", PH.plans, '<p class="nc-note">Свободен апартамент: публичният план е копие с воден знак, направено от сървъра. Капариран или продаден: публиката не получава план – показва се само печат със статуса.' + (A.mode === "staff" ? " Екипът вижда оригинала с кратък подписан линк (до 1 час)." : "") + "</p>", "nc-pinfo");
     return '<div class="nc-two"><div style="display:flex;flex-direction:column;gap:20px">' + card(title, "layers", null, inner, "nc-plc") + pinfo + '</div><div class="side">' + ucSlot("plans") + "</div></div>";
   }
   function destroyViewer() { if (VIEWER) { VIEWER.destroy(); VIEWER = null; } destroy3(); }
@@ -520,8 +545,34 @@
   NC.current3d = function () { return V3 || VP; };
 
   /* ---------------- 4. 3D Сграда (визуализатор по договора на TASK-009) ---------------- */
-  var V3 = null, VP = null, NC3D = null;
+  var V3 = null, VP = null, NC3D = null, ENG = {};
   function lib3d() { if (!NC3D) NC3D = import((NC.libBase || "/mobile/crm/") + "crm-nc-3d.js"); return NC3D; }
+  /* КУКА за визуализаторите на TASK-009 (3D модел) и TASK-010 (360° / разходка) – един договор с вградения crm-nc-3d.js:
+     model: building(el, {url, units, floors, sel, floor, label, onPick, onReady(v), onError}) → {select, setFloor, onlyFloor, reset, view, rotate, zoom, fullscreen, selected, screenOf, info, destroy}
+     tour:  panorama(el, {items:[{url,title}], index, onLoading, onShow(i), onError, onAuto}) → {show, look, zoom, reset, fullscreen, auto, index, destroy}
+     Откъде: 1) window.NCModel / window.NCTour (обект със същите функции + по избор webglOk(), name), регистриран от /mobile/nc-model.js или /mobile/nc-tour.js;
+     2) NC.ENGINE_URL = {model:"/mobile/nc-model.js", tour:"/mobile/nc-tour.js"} – ES модул със същите експорти;
+     3) иначе – вграденият crm-nc-3d.js. Ако външният модул не се зареди, честно се минава на вградения (без фалшив 3D/360). */
+  NC.ENGINE_URL = NC.ENGINE_URL || {};
+  function engine(kind) {
+    var fn = kind === "model" ? "building" : "panorama", g = kind === "model" ? window.NCModel : window.NCTour;
+    function ok(L) { return L && typeof L[fn] === "function"; }
+    function wrap(L, name) { return { name: L.name || name, webglOk: typeof L.webglOk === "function" ? function () { return L.webglOk(); } : function () { return true; }, building: L.building, panorama: L.panorama }; }
+    if (ok(g)) return Promise.resolve(wrap(g, kind === "model" ? "TASK-009" : "TASK-010"));
+    if (ENG[kind]) return ENG[kind];
+    function builtin() { return lib3d().then(function (L) { return wrap(L, "nc-3d"); }); }
+    var u = NC.ENGINE_URL[kind];
+    ENG[kind] = u ? import(u).then(function (L) { return ok(L) ? wrap(L, kind === "model" ? "TASK-009" : "TASK-010") : builtin(); }, function () { ENG[kind] = null; return builtin(); }) : builtin();
+    return ENG[kind];
+  }
+  NC.engine = engine;
+  /* цял екран: Escape и повторно натискане излизат и от истинския Fullscreen API, и от резервния клас .fs; надписът на бутона следва състоянието */
+  function fsSync(el, attr) {
+    function upd() { if (!document.contains(el)) { document.removeEventListener("fullscreenchange", upd); return; } var on = document.fullscreenElement === el || el.classList.contains("fs"), b = el.querySelector("[" + attr + '="fs"]'); if (b) { b.setAttribute("aria-label", on ? "Изход от цял екран" : "На цял екран"); b.title = b.getAttribute("aria-label"); b.setAttribute("aria-pressed", on); } }
+    document.addEventListener("fullscreenchange", upd);
+    el.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.fullscreenElement === el) { e.preventDefault(); document.exitFullscreen(); } });
+    return upd;
+  }
   function destroy3() { if (V3) { try { V3.destroy(); } catch (e) {} V3 = null; } if (VP) { try { VP.destroy(); } catch (e) {} VP = null; } }
   function floorList() {
     var b = bldg(S.b), fl = b ? floorsOf(b.id) : [];
@@ -534,13 +585,13 @@
     return '<label class="nc-sel">' + ic("building-2") + '<span class="val">' + esc(bName(bldg(S.b))) + '</span><svg class="i" aria-hidden="true"><use href="#chev-d"/></svg><select data-act="bsel" aria-label="Сграда">' + M.buildings.map(function (b) { return '<option value="' + esc(b.id) + '"' + (b.id === S.b ? " selected" : "") + ">" + esc(bName(b)) + "</option>"; }).join("") + "</select></label>";
   }
   /* честно „още не е подготвено“; ph28 е само декорация (обобщена сграда), изрично отбелязана – не е този проект */
-  function naHtml(icon, tag, title, text, list, tech) {
-    return '<div class="nc-na deco" role="status"><div class="nc-na-img" style="background-image:url(' + esc(NC.img("nd/ph28.jpg")) + ')" aria-hidden="true"></div><span class="nc-na-cap">Илюстрация – не е този проект</span>' +
+  function naHtml(icon, tag, title, text, list, tech, photo) {
+    return '<div class="nc-na deco" role="status"><div class="nc-na-img" style="background-image:url(' + esc(NC.img(photo || PH.empty3d)) + ')" aria-hidden="true"></div><span class="nc-na-cap">Илюстрация – не е този проект</span>' +
       '<div class="nc-na-t"><span class="tag">' + ic(icon) + esc(tag) + "</span><h3>" + esc(title) + "</h3><p>" + text + "</p>" + (list ? "<ul>" + list.map(function (x) { return "<li>" + ic("circle-check") + esc(x) + "</li>"; }).join("") + "</ul>" : "") + (tech && A.mode === "staff" ? '<p class="tech">' + esc(tech) + "</p>" : "") + "</div></div>";
   }
   function t3d() {
     var b = bldg(S.b), has = b && (M.models || {})[b.id];
-    var side = card("Избери етаж", "box", null, bldgSel() + floorList() + unitChips("pick3"), "nc-fsel");
+    var side = card("Избери етаж", "box", PH.floors3d, bldgSel() + floorList() + unitChips("pick3"), "nc-fsel nc-illu");
     var main;
     if (!b) main = empty("building-2", "Няма въведена сграда", "3D моделът се показва за сграда от проекта.");
     else if (!has) main = naHtml("box", "Интерактивен 3D модел", "3D моделът на " + (bName(b) || "сградата") + " още не е подготвен",
@@ -560,8 +611,10 @@
     var el = $("#nc-3d", root); if (!el) return;
     var b = bldg(S.b), stEl = $("#nc-3d-st", root);
     function fail(msg, icon) { if (!document.contains(el)) return; stEl.innerHTML = '<span class="none3">' + ic(icon || "triangle-alert") + "<b>" + esc(msg) + "</b></span>"; stEl.classList.add("err"); }
-    lib3d().then(function (L) {
+    var fsUpd = fsSync(el, "data-v3");
+    engine("model").then(function (L) {
       if (!document.contains(el)) return;
+      el.setAttribute("data-engine", L.name);
       if (!L.webglOk()) { fail("Този браузър или устройство не поддържа WebGL – 3D моделът не може да се покаже. Етажите и апартаментите вдясно работят.", "box"); return; }
       return A.modelUrl(b).then(function (url) {
         if (!document.contains(el)) return;
@@ -576,7 +629,7 @@
       });
     }).catch(function (e) { fail("3D модулът не се зареди: " + ((e && e.message) || "грешка")); });
     el.addEventListener("click", function (e) { var x = e.target.closest("[data-v3]"); if (!x || !V3) return; var v = x.getAttribute("data-v3");
-      if (v === "rl") V3.rotate(-20); else if (v === "rr") V3.rotate(20); else if (v === "zi") V3.zoom(0.8); else if (v === "zo") V3.zoom(1.25); else if (v === "home") V3.reset(); else if (v === "fs") V3.fullscreen(); });
+      if (v === "rl") V3.rotate(-20); else if (v === "rr") V3.rotate(20); else if (v === "zi") V3.zoom(0.8); else if (v === "zo") V3.zoom(1.25); else if (v === "home") V3.reset(); else if (v === "fs") { V3.fullscreen(); setTimeout(fsUpd, 80); } });
     el.addEventListener("keydown", function (e) { if (!V3 || e.target !== el) return; var k = e.key;
       if (k === "ArrowLeft") V3.rotate(-15); else if (k === "ArrowRight") V3.rotate(15); else if (k === "+" || k === "=") V3.zoom(0.8); else if (k === "-" || k === "_") V3.zoom(1.25); else if (k === "0") V3.reset(); else return; e.preventDefault(); });
     var vw = el.parentNode.querySelector(".views3"); if (vw) vw.addEventListener("click", function (e) { var x = e.target.closest("[data-v3]"); if (x && V3) V3.view(x.getAttribute("data-v3").slice(2)); });
@@ -595,13 +648,13 @@
     var u = unit(S.u), n = u ? (M.tours || {})[u.id] || 0 : 0;
     var pick = M.units.length ? '<label class="nc-sel">' + ic("house") + '<span class="val">' + esc(u ? "Апартамент " + u.code : "Изберете апартамент") + '</span><svg class="i" aria-hidden="true"><use href="#chev-d"/></svg><select data-act="usel" aria-label="Апартамент">' +
       orderUnits(M.units).map(function (x) { return '<option value="' + esc(x.id) + '"' + (u && x.id === u.id ? " selected" : "") + ">" + esc(x.code + " – " + (ST[x.status] || "")) + "</option>"; }).join("") + "</select></label>" : "";
-    var det = u ? card("Апартамент " + u.code, "house", "nd/ph23.jpg", '<div class="nc-rows">' + row("ruler", "Обща площ", esc(m2(u.area_total) || "—")) + row("layout-grid", "Чиста площ", esc(m2(u.area_net) || "—")) + row("umbrella", "Тераса", esc(m2(u.terrace_area) || "—")) + row("sun", "Изложение", esc(u.exposure || "—")) + "</div>" + '<div id="nc-rooms"></div>', "nc-rinfo") : "";
+    var det = u ? card("Апартамент " + u.code, "house", PH.rooms, '<div class="nc-rows">' + row("ruler", "Обща площ", esc(m2(u.area_total) || "—")) + row("layout-grid", "Чиста площ", esc(m2(u.area_net) || "—")) + row("umbrella", "Тераса", esc(m2(u.terrace_area) || "—")) + row("sun", "Изложение", esc(u.exposure || "—")) + "</div>" + '<div id="nc-rooms"></div>', "nc-rinfo") : "";
     var main, locked = u && u.status !== "free";
     if (!u) main = empty("house", "Изберете апартамент", "360° панорамите са по апартаменти.");
     else if (locked && !(A.mode === "staff" && S.showPano === u.id)) main = '<div class="nc-pano lockedp">' + lockedHtml(u).replace("Разпределението на апартамент", "Панорамите и разпределението на апартамент").replace('data-act="orig"', 'data-act="origpano"').replace("Покажи оригинала (само за екипа)", "Покажи панорамите (само за екипа)") + "</div>";
     else if (!n) main = naHtml("r360", "360° панорама", "360° панорамите за " + u.code + " още не са подготвени",
       "Тук се разглеждат 360° панорамите на апартамента: поглед във всички посоки с плъзгане или пръст, мащаб, избор на помещение и миниатюри, цял екран. За този апартамент панорами още няма – не показваме плоска снимка вместо панорама. Свободна 3D разходка (движение из апартамента) е отделен режим и се показва само ако за апартамента има реална 3D сцена.",
-      ["Поглед 360°", "Мащаб", "Избор на помещение", "Миниатюри", "Цял екран", "Клавиатура"], "Панорамите (медия вид „tour“, private/tours) се подготвят по TASK-010; визуализаторът е готов и ги зарежда през /pano/<обект>/<n>.");
+      ["Поглед 360°", "Мащаб", "Избор на помещение", "Миниатюри", "Цял екран", "Клавиатура"], "Панорамите (медия вид „tour“, private/tours) се подготвят по TASK-010; визуализаторът е готов и ги зарежда през /pano/<обект>/<n>.", PH.empty360);
     else main = '<div class="nc-pano" id="nc-pano" tabindex="0" role="application" aria-roledescription="360° панорама" aria-label="360° панорама. Стрелки – поглед, плюс и минус – мащаб, 0 – начален поглед.">' +
       '<span class="tag3">' + ic("r360") + '360° панорама</span><span class="plab" id="nc-plab">' + esc("Апартамент " + u.code) + "</span>" +
       '<div class="ctl3 h" role="group" aria-label="Управление на панорамата">' + [["l", "chevron-left", "Погледни наляво"], ["r", "chev-r", "Погледни надясно"], ["zi", "zoom-in", "Приближи"], ["zo", "zoom-out", "Отдалечи"], ["home", "rotate-ccw", "Начален поглед"], ["fs", "maximize-2", "На цял екран"]].map(function (x) { return '<button type="button" data-vp="' + x[0] + '" aria-label="' + x[2] + '" title="' + x[2] + '">' + ic(x[1]) + "</button>"; }).join("") + "</div>" +
@@ -613,9 +666,11 @@
     var el = $("#nc-pano", root); if (!el) return;
     var u = unit(S.u), stEl = $("#nc-pano-st", root);
     function fail(msg) { if (document.contains(el)) { stEl.hidden = false; stEl.classList.add("err"); stEl.innerHTML = '<span class="none3">' + ic("triangle-alert") + "<b>" + esc(msg) + "</b></span>"; } }
-    Promise.all([lib3d(), A.tourItems(u)]).then(function (r) {
+    var fsUpd = fsSync(el, "data-vp");
+    Promise.all([engine("tour"), A.tourItems(u)]).then(function (r) {
       var L = r[0], items = (r[1] || []).filter(function (x) { return x && x.url; });
       if (!document.contains(el)) return;
+      el.setAttribute("data-engine", L.name);
       if (!items.length) { fail("Панорамите не са достъпни в момента."); return; }
       if (!L.webglOk()) { fail("Този браузър или устройство не поддържа WebGL – 360° панорамата не може да се покаже."); return; }
       var th = $("#nc-pth", root), lab = $("#nc-plab", root), info = $("#nc-pano-info", root), rooms = $("#nc-rooms", root);
@@ -632,7 +687,7 @@
       var ab = $("#nc-auto", root); if (ab) ab.addEventListener("click", function () { if (VP) VP.auto(ab.getAttribute("aria-pressed") !== "true"); });
     }).catch(function (e) { fail("360° модулът не се зареди: " + ((e && e.message) || "грешка")); });
     el.addEventListener("click", function (e) { var x = e.target.closest("[data-vp]"); if (!x || !VP) return; var v = x.getAttribute("data-vp");
-      if (v === "l") VP.look(-20); else if (v === "r") VP.look(20); else if (v === "zi") VP.zoom(-8); else if (v === "zo") VP.zoom(8); else if (v === "home") VP.reset(); else if (v === "fs") VP.fullscreen(); });
+      if (v === "l") VP.look(-20); else if (v === "r") VP.look(20); else if (v === "zi") VP.zoom(-8); else if (v === "zo") VP.zoom(8); else if (v === "home") VP.reset(); else if (v === "fs") { VP.fullscreen(); setTimeout(fsUpd, 80); } });
     el.addEventListener("keydown", function (e) { if (!VP || e.target !== el) return; var k = e.key, m = { ArrowLeft: [-10, 0], ArrowRight: [10, 0], ArrowUp: [0, 8], ArrowDown: [0, -8] }[k];
       if (m) VP.look(m[0], m[1]); else if (k === "+" || k === "=") VP.zoom(-8); else if (k === "-" || k === "_") VP.zoom(8); else if (k === "0") VP.reset(); else return; e.preventDefault(); });
   }
@@ -640,10 +695,10 @@
   /* ---------------- 6. Строителство ---------------- */
   function tBuild() {
     var p = M.project;
-    var cur = card("Текущ етап", "hard-hat", "nd/ph22.jpg", stepsHtml(p) + '<div class="nc-stage-ft">' + (p.stage && STAGE_BG[p.stage] ? "<span>Етап (въведен от екипа): <b>" + esc(STAGE_BG[p.stage]) + "</b></span>" : "") +
+    var cur = card("Текущ етап", "hard-hat", PH.stage, stepsHtml(p) + '<div class="nc-stage-ft">' + (p.stage && STAGE_BG[p.stage] ? "<span>Етап (въведен от екипа): <b>" + esc(STAGE_BG[p.stage]) + "</b></span>" : "") +
       (p.expected_completion ? "<span>" + ic("calendar") + "Очаквано завършване: <b>" + esc(p.expected_completion) + "</b></span>" : "<span>Очакваното завършване не е въведено.</span>") + "</div>" +
       (A.mode === "staff" && p.stage_percent != null ? '<p class="nc-note" style="margin-top:14px">Процент, въведен от екипа: <b>' + esc(p.stage_percent) + " %</b>. Не се показва публично, докато няма одобрена методика за измерване на напредъка.</p>" : ""), "");
-    var acts = card("Актове 14 / 15 / 16", "file-text", null, '<p class="nc-note">Актовете се показват само при документално потвърждение. В системата още няма прикачени документи към етапите' + (p.stage && /^act/.test(p.stage) ? " – етапът по-горе е въведен от екипа, без прикачен акт." : ".") + "</p>", "");
+    var acts = card("Актове 14 / 15 / 16", "file-text", PH.build, '<p class="nc-note">Актовете се показват само при документално потвърждение. В системата още няма прикачени документи към етапите' + (p.stage && /^act/.test(p.stage) ? " – етапът по-горе е въведен от екипа, без прикачен акт." : ".") + "</p>", "");
     var photos = card("Снимки от строежа", "camera", null, '<p class="nc-note">Няма отбелязани снимки от строежа. Снимките в „Галерия“ не са разделени на визуализации и реални снимки от обекта, затова не се показват тук като снимки от строежа.</p>', "");
     var hist = card("История на обновяванията", "history", null, '<div class="nc-rows">' + (p.updated_at ? row("clock", "Последна промяна на данните:", esc(fdate(p.updated_at))) : "") + (p.status_changed_at ? row("megaphone", "Последна смяна на статуса на проекта:", esc(fdate(p.status_changed_at))) : "") + (p.reviewed_at && A.mode === "staff" ? row("badge-check", "Проверен от администратор:", esc(fdate(p.reviewed_at))) : "") + "</div>" + '<p class="nc-note" style="margin-top:10px">Подробна история на етапите на строежа още не се пази в системата.</p>', "");
     return '<div class="nc-two"><div style="display:flex;flex-direction:column;gap:20px">' + cur + photos + '</div><div class="side">' + acts + hist + "</div></div>";
@@ -656,10 +711,10 @@
     var nv = items.filter(function (i) { return i.type === "video"; }).length;
     var seg = '<div class="nc-seg" role="group" aria-label="Вид медия" style="margin-bottom:16px">' + [["all", "Всички (" + items.length + ")"], ["image", "Изображения (" + (items.length - nv) + ")"], ["video", "Видео (" + nv + ")"]].map(function (x) { return '<button type="button" data-act="gk" data-v="' + x[0] + '" aria-pressed="' + (S.gk === x[0]) + '">' + esc(x[1]) + "</button>"; }).join("") + "</div>";
     var shown = items.filter(function (i) { return S.gk === "all" || i.type === S.gk; });
-    var grid = !items.length ? empty("image", "Няма качени снимки или видео", A.mode === "staff" ? "Публичната медия се добавя от администратор." : "За този проект още няма публикувана медия.", A.galleryActs ? A.galleryActs() : "")
+    var grid = !items.length ? card("Галерия на проекта", "image", PH.galleryEmpty, '<div class="nc-gempty" role="status"><h3>Няма качени снимки или видео</h3><p class="nc-note">' + esc(A.mode === "staff" ? "Публичната медия (реални визуализации, снимки и видео на проекта) се добавя от администратор." : "За този проект още няма публикувана медия.") + "</p>" + (A.galleryActs ? '<div class="nc-acts" style="margin-top:14px">' + A.galleryActs() + "</div>" : "") + "</div>", "nc-illu")
       : !shown.length ? empty("image", "Няма медия от този вид", "") :
       '<div class="nc-gal">' + shown.map(function (g) { var i = items.indexOf(g); return '<button type="button" class="nc-gi" data-act="lb" data-i="' + i + '" aria-label="' + esc("Отвори: " + (g.title || "медия")) + '">' + (g.type === "video" ? '<span style="display:grid;place-items:center;width:100%;height:100%;color:#f6d48e;font-size:80px">' + ic("play") + "</span>" : '<img src="' + esc(g.url) + '" alt="" loading="lazy" decoding="async">') + '<span class="k">' + ic(g.type === "video" ? "video" : "image") + (g.cover ? "Корица" : g.type === "video" ? "Видео" : "Изображение") + '</span><span class="t">' + esc(g.title || "") + "</span></button>"; }).join("") + "</div>";
-    var note = '<p class="nc-note" style="margin-top:14px;color:#fff3e2;text-shadow:0 1px 4px rgba(40,0,8,.6)">Видът на всяко изображение (визуализация или реална снимка от строежа) още не се отбелязва в системата – затова не ги разделяме.</p>';
+    var note = '<div style="margin-top:18px">' + card("За медията", "info", PH.gallery, '<p class="nc-note" style="max-width:60%">Видът на всяко изображение (визуализация или реална снимка от строежа) още не се отбелязва в системата – затова не ги разделяме и не ги показваме като снимки от строежа.</p>', "nc-illu") + "</div>";
     NC._gal = items;
     return seg + grid + (items.length ? note : "") + (A.galleryActs && items.length ? '<div style="margin-top:16px">' + A.galleryActs() + "</div>" : "");
   }
@@ -685,7 +740,7 @@
   function ftype(p) { var m = /\.([a-z0-9]{2,5})$/i.exec(String(p || "")); return m ? m[1].toUpperCase() : "Файл"; }
   function tDocs() {
     var files = M.files || [];
-    var info = card("Документи на проекта", "file-text", "nd/ph27.jpg", '<p class="nc-note" style="max-width:62%">Публичните документи се виждат от всеки посетител. ' + (A.mode === "staff" ? "Документите „Само за екипа“ (оригинални планове) никога не стават публични и се отварят с кратък подписан линк." : "") + " Версия на документите още не се води в системата.</p>", "");
+    var info = card("Документи на проекта", "file-text", PH.docs, '<p class="nc-note" style="max-width:62%">Публичните документи се виждат от всеки посетител. ' + (A.mode === "staff" ? "Документите „Само за екипа“ (оригинални планове) никога не стават публични и се отварят с кратък подписан линк." : "") + " Версия на документите още не се води в системата.</p>", "");
     var rows = files.length ? '<div class="nc-docs" role="list">' + files.map(function (f, i) {
       return '<div class="nc-doc" role="listitem">' + ic(f.access === "public" ? "file-text" : "lock") + '<div class="tx"><b>' + esc(f.title || "Документ") + "</b><span><span>Вид: " + esc(f.kindLabel || ftype(f.path || f.name)) + "</span><span>Версия: —</span><span>Дата: " + esc(f.date ? fdate(f.date) : "—") + '</span><span class="nc-acc ' + (f.access === "public" ? "pub" : "priv") + '">' + (f.access === "public" ? "Публичен" : "Само за екипа") + "</span></span></div>" +
         '<div class="bt">' + btn("docview", "eye", "Преглед", { cls: "sm", data: 'data-i="' + i + '"' }) + btn("docdl", "download", "Изтегли", { cls: "sm", data: 'data-i="' + i + '"' }) + "</div></div>";
@@ -696,16 +751,26 @@
   /* ---------------- 9. Контакти ---------------- */
   function tContacts() {
     var u = unit(S.u);
-    var ag = card("Отговорна агенция", "building-2", "nd/ph26.jpg", '<div class="nc-agency nc-rows">' + row("building-2", "Агенция:", "Недвижими имоти Надежда") +
+    var ag = card("Отговорна агенция", "building-2", PH.agency, '<div class="nc-agency nc-rows">' + row("building-2", "Агенция:", "Недвижими имоти Надежда") +
       row("phone", "Телефон:", '<a href="tel:+359898977370">+359 898 977 370</a>') + row("mail", "Имейл:", '<a href="mailto:office@imotinadezhda.bg">office@imotinadezhda.bg</a>') +
       row("user", "Отговорен брокер:", "не е зададен за проекта", true) + "</div>", "");
     var forms = A.contactForms ? A.contactForms(M, u) : "";
-    return '<div class="nc-two"><div style="display:flex;flex-direction:column;gap:20px">' + forms + '</div><div class="side">' + ag + ucSlot("contacts") + "</div></div>";
+    return '<div class="nc-two"><div style="display:flex;flex-direction:column;gap:20px">' + forms + locCard(M.project) + '</div><div class="side">' + ag + ucSlot("contacts") + "</div></div>";
+  }
+  /* „Местоположение“: само въведените град / квартал / адрес / координати; снимката е обща илюстрация (морска – само за проекти на морето), никога реалният адрес */
+  function locCard(p) {
+    var l = p.location, has = hasLoc(p), sea = seaside(p);
+    var inner = has ? '<div class="nc-rows">' + (p.city ? row("pin", "Град:", esc(p.city)) : "") + (p.hood ? row("map", "Квартал:", esc(p.hood)) : "") + (p.address ? row("map-pin-house", "Адрес:", esc(p.address)) : "") +
+      (l && l.lat != null ? row("globe", "Координати:", esc(Number(l.lat).toFixed(5) + ", " + Number(l.lng).toFixed(5))) : "") + "</div>" +
+      '<div class="nc-acts" style="margin-top:16px">' + btn("map", "map", l && l.lat != null ? "Отвори картата" : "Търси адреса в картата", { cls: "hot", title: "OpenStreetMap – нов прозорец" }) + "</div>" +
+      (l && l.lat != null ? "" : '<p class="nc-note" style="margin-top:12px">Точните координати още не са въведени – картата търси по адреса.</p>')
+      : '<p class="nc-note">Местоположението на проекта още не е въведено.</p>';
+    return '<div id="nc-loc" tabindex="-1">' + card("Местоположение", "map-pin-house", sea ? PH.locSea : PH.loc, inner, "nc-locc nc-illu") + "</div>";
   }
 
   /* ---------------- публичните форми (запитване / оглед) – общи за двата режима ---------------- */
-  NC.formHtml = function (id, title, icon, fields, submit, note) {
-    return card(title, icon, null, '<form class="nc-form" id="' + esc(id) + '" novalidate>' + fields + '<p class="nc-ferr wide" role="alert" aria-live="assertive"></p><div class="wide">' + '<button type="submit" class="nc-btn hot">' + ic(icon) + "<span>" + esc(submit) + "</span></button>" + "</div>" + (note ? '<p class="nc-note wide">' + note + "</p>" : "") + "</form>", "");
+  NC.formHtml = function (id, title, icon, fields, submit, note, photo) {
+    return card(title, icon, photo || null, '<form class="nc-form" id="' + esc(id) + '" novalidate>' + fields + '<p class="nc-ferr wide" role="alert" aria-live="assertive"></p><div class="wide">' + '<button type="submit" class="nc-btn hot">' + ic(icon) + "<span>" + esc(submit) + "</span></button>" + "</div>" + (note ? '<p class="nc-note wide">' + note + "</p>" : "") + "</form>", "");
   };
   NC.input = function (id, label, type, o) {
     o = o || {}; var a = ' id="' + esc(id) + '" name="' + esc(id) + '"' + (o.req ? ' required aria-required="true"' : "") + (o.ac ? ' autocomplete="' + o.ac + '"' : "") + (o.min ? ' min="' + esc(o.min) + '"' : "") + (o.max ? ' maxlength="' + o.max + '"' : "") + (o.ph ? ' placeholder="' + esc(o.ph) + '"' : "");
@@ -739,7 +804,7 @@
       ["Обща цена", function (u) { return eur(u.price_total) || (u.status === "sold" && A.mode === "public" ? "не се показва" : "—"); }]];
     var html = '<div class="nc-cmp"><table><thead><tr><th scope="col">Показател</th>' + us.map(function (u) { return '<th scope="col">' + esc(u.code) + "</th>"; }).join("") + "</tr></thead><tbody>" +
       R.map(function (r) { return '<tr><th scope="row">' + esc(r[0]) + "</th>" + us.map(function (u) { return "<td>" + esc(r[1](u)) + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
-    NC.dialog({ title: "Сравнение на апартаменти", icon: "columns-2", photo: "nd/ph25.jpg", html: html, noSave: true });
+    NC.dialog({ title: "Сравнение на апартаменти", icon: "columns-2", photo: PH.compare, html: html, noSave: true });
   }
   /* прозорец: същият като в останалите CRM карти (NDUI.open) */
   NC.dialog = function (o) {
@@ -785,12 +850,13 @@
       case "herofull": NC._gal = media(); lightbox(S.hi); return;
       case "lb": lightbox(+a.getAttribute("data-i")); return;
       case "gk": S.gk = a.getAttribute("data-v"); refreshPanelFull(); return;
-      case "location": var l = M.project.location; if (l && l.lat != null) window.open("https://www.openstreetmap.org/?mlat=" + encodeURIComponent(l.lat) + "&mlon=" + encodeURIComponent(l.lng) + "#map=16/" + encodeURIComponent(l.lat) + "/" + encodeURIComponent(l.lng), "_blank", "noopener"); return;
+      case "location": e.preventDefault(); goForm("nc-loc"); return;
+      case "map": var mu = mapUrl(M.project); if (mu) window.open(mu, "_blank", "noopener"); return;
       case "brochure": var br = brochure(); if (br) openFile(br, true); return;
       case "docview": openFile((M.files || [])[+a.getAttribute("data-i")], false); return;
       case "docdl": openFile((M.files || [])[+a.getAttribute("data-i")], true); return;
       case "share": share(); return;
-      case "viewing": case "inquiry": e.preventDefault(); if (S.tab !== "contacts") switchTab("contacts", true); setTimeout(function () { var f = document.getElementById(act === "viewing" ? "nc-viewing" : "nc-inquiry"); if (f) { if (f.scrollIntoView) f.scrollIntoView({ block: "start" }); var i = f.querySelector("input,select,textarea"); if (i) i.focus(); } }, 30); return;
+      case "viewing": case "inquiry": e.preventDefault(); goForm(act === "viewing" ? "nc-viewing" : "nc-inquiry"); return;
     }
   }
   function toggleMenu(btn, force) {
@@ -899,7 +965,9 @@
         texts.forEach(function (o, i) { o.el.style.top = ((i ? 292 : 218) + (Hh - 380) * 0.5) + "px"; });
         var ph = Hh * 1.55, pw = ph * 1.777; if (photo) { photo.style.width = pw + "px"; photo.style.left = (Wc - pw + 20) + "px"; photo.style.top = (30 - 0.16 * ph) + "px"; }
         ctrls.forEach(function (el) { if (el.dataset.l == null) el.dataset.l = parseFloat(getComputedStyle(el).left); el.style.left = (Wc - 1024 + (+el.dataset.l)) + "px"; });
-        rt.style.setProperty("--G", G + "px"); rt.style.setProperty("--xL", xL + "px"); rt.style.setProperty("--lh", (Hc - Hh - 84 - (window.NDRAIL || !dock ? 24 : 162)) + "px");
+        var lh = Hc - Hh - 84 - (window.NDRAIL || !dock ? 24 : 162);
+        rt.style.setProperty("--G", G + "px"); rt.style.setProperty("--xL", xL + "px"); rt.style.setProperty("--lh", lh + "px");
+        rt.style.setProperty("--vis", (lh + 20) + "px"); /* видимото място в стъкления прозорец (височина − вътрешни отстъпи) */
         if (dockC) { dockC.style.transform = "scale(" + k + ")"; dockC.style.left = ((vw - 1024 * k) / 2) + "px"; dock.style.height = (DOCK * k) + "px"; }
         stage.style.paddingBottom = "0px"; rt.style.setProperty("--dockH", (window.NDRAIL || !dock ? 0 : 118 * k) + "px");
         return;
@@ -908,6 +976,7 @@
       texts.forEach(function (o) { o.el.style.top = o.top + "px"; }); if (photo) photo.style.width = photo.style.left = photo.style.top = ""; ctrls.forEach(function (el) { el.style.left = ""; });
       var vw2 = rt.clientWidth - (window.NDRAIL || 0), k2 = vw2 / W;
       canvas.style.zoom = k2; canvas.style.marginLeft = "0px";
+      rt.style.setProperty("--vis", Math.round(innerHeight / k2 - (dockC ? DOCK : 0)) + "px"); /* видимата височина на телефона в пикселите на платното (без долното меню) */
       if (dockC) { dockC.style.transform = "scale(" + k2 + ")"; dockC.style.left = "0px"; dock.style.height = (DOCK * k2) + "px"; stage.style.paddingBottom = (DOCK * k2) + "px"; rt.style.setProperty("--dockH", (118 * k2) + "px"); }
       else { stage.style.paddingBottom = "0px"; rt.style.setProperty("--dockH", "0px"); }
     }

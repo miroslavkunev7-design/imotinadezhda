@@ -69,14 +69,14 @@
   };
   /* формите: запитване и оглед → nd_public_inquiry (сървърът валидира телефон/имейл, свързва клиента и пази от наводняване) */
   A.contactForms = function (M, u) {
-    var today = new Date().toISOString().slice(0, 10), opts = [["", "— целият проект —"]].concat(M.units.map(function (x) { return [x.id, x.code + " – " + NC.dict.ST[x.status]]; }));
+    var today = U.today(), opts = [["", "— целият проект —"]].concat(M.units.map(function (x) { return [x.id, x.code + " – " + NC.dict.ST[x.status]]; }));
     var priv = 'С изпращането приемате <a href="/privacy.html" target="_blank" rel="noopener">Политиката за поверителност</a>. Нужен е телефон или имейл.';
     return NC.formHtml("nc-inquiry", "Изпрати запитване", "mail",
       NC.input("q-name", "Име и фамилия", "text", { req: true, ac: "name", max: 200 }) + NC.input("q-phone", "Телефон", "tel", { ac: "tel", max: 40, ph: "+359" }) + NC.input("q-email", "Имейл", "email", { ac: "email", max: 200 }) +
-      NC.input("q-unit", "Апартамент", "select", { value: u ? u.id : "", options: opts }) + NC.input("q-msg", "Съобщение", "ta", { wide: true, max: 1500 }), "Изпрати запитването", priv) +
+      NC.input("q-unit", "Апартамент", "select", { value: u ? u.id : "", options: opts }) + NC.input("q-msg", "Съобщение", "ta", { wide: true, max: 1500 }), "Изпрати запитването", priv, NC.PH.inquiry) +
       NC.formHtml("nc-viewing", "Запази оглед", "calendar-check",
       NC.input("w-name", "Име и фамилия", "text", { req: true, ac: "name", max: 200 }) + NC.input("w-phone", "Телефон", "tel", { ac: "tel", max: 40, ph: "+359" }) + NC.input("w-email", "Имейл", "email", { ac: "email", max: 200 }) +
-      NC.input("w-date", "Желана дата", "date", { req: true, min: today }) + NC.input("w-unit", "Апартамент", "select", { value: u ? u.id : "", options: opts, wide: true }), "Запази час за оглед", priv + " Консултант ще потвърди часа.");
+      NC.input("w-date", "Желана дата", "date", { req: true, min: today }) + NC.input("w-unit", "Апартамент", "select", { value: u ? u.id : "", options: opts, wide: true }), "Запази час за оглед", priv + " Консултант ще потвърди часа.", NC.PH.viewing);
   };
   function check(f, p) {
     var n = f.querySelector("#" + p + "-name"), ph = f.querySelector("#" + p + "-phone"), em = f.querySelector("#" + p + "-email");
@@ -84,7 +84,7 @@
     if (em.value.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em.value.trim())) return { msg: "Имейлът не е валиден.", el: em };
     if (ph.value.trim() && ph.value.replace(/\D/g, "").length < 6) return { msg: "Телефонът е твърде кратък.", el: ph };
     if (!NC.validPhoneOrMail(ph.value, em.value)) return { msg: "Въведете телефон или имейл, за да се свържем с вас.", el: ph };
-    if (p === "w") { var d = f.querySelector("#w-date"); if (!d.value) return { msg: "Изберете дата за огледа.", el: d }; if (d.value < new Date().toISOString().slice(0, 10)) return { msg: "Датата не може да е в миналото.", el: d }; }
+    if (p === "w") { var d = f.querySelector("#w-date"); if (!d.value) return { msg: "Изберете дата за огледа.", el: d }; if (d.value < U.today()) return { msg: "Датата не може да е в миналото.", el: d }; }
   }
   function send(f, p, kind) {
     var m = NC.model(), u = F.unit(f.querySelector("#" + p + "-unit").value), prop = (m.project.title || "Ново строителство") + (u ? " · " + u.code : "");

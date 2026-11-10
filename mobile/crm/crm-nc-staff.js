@@ -23,7 +23,7 @@
   }
   function msg(st, j) {
     var m = (j && j.error) || "";
-    if (st === 409) return "Променено е от друг – данните са презаредени, прегледайте и опитайте отново." + (m && !/презаредете/.test(m) ? " (" + m + ")" : "");
+    if (st === 409) return "Някой друг промени записа междувременно – данните са презаредени. Прегледайте ги и опитайте отново.";
     if (st === 403) return m && !/no CRM access/i.test(m) ? m : "Нямате право за това действие.";
     if (st === 401) return "Сесията изтече – влезте отново в CRM.";
     if (st === 404) return m || "Записът не е намерен.";
@@ -109,12 +109,27 @@
 
   /* ---------- бутони на екипа ---------- */
   function b(act, icon, text, o) { return NC.ui.btn(act, icon, text, Object.assign({ cls: "sm" }, o || {})); }
-  function importBtn() { return window.NCImport && typeof NCImport.open === "function" ? b("import", "upload", "Импорт на проект") : ""; }
+  /* КУКА към TASK-006: „Импорт“ зарежда crm-nc-import.js (window.NCImport = {open({projectId, onDone})}) едва при натискане –
+     без заявка при всяко отваряне на страницата; ако файлът още не е качен на сайта, казваме го честно. */
+  var IMP = null;
+  function loadImport() {
+    if (window.NCImport && typeof NCImport.open === "function") return Promise.resolve(window.NCImport);
+    if (IMP) return IMP;
+    IMP = new Promise(function (ok, no) {
+      var sc = document.createElement("script"); sc.src = "crm-nc-import.js"; sc.async = true;
+      sc.onload = function () { if (window.NCImport && typeof NCImport.open === "function") ok(window.NCImport); else { IMP = null; no(new Error("Импортът не се зареди.")); } };
+      sc.onerror = function () { IMP = null; sc.remove(); no(new Error("Импортът на проекти (TASK-006) още не е качен на сайта.")); };
+      document.head.appendChild(sc);
+    });
+    return IMP;
+  }
+  NC.loadImport = loadImport;
+  function importBtn() { return b("import", "upload", "Импорт на проект"); }
   A.listActs = function () { return '<div class="nc-seg">' + b("newproj", "plus", "Нов проект", { cls: "sm hot" }) + importBtn() + "</div>"; };
   A.emptyListActs = function () { return b("newproj", "plus", "Нов проект", { cls: "hot" }) + importBtn(); };
   A.staffBar = function (M) {
     var p = M.project, it = function (act, icon, text, o) { return '<button type="button" role="menuitem" data-act="' + act + '"' + (o || "") + ">" + ic(icon) + "<span>" + esc(text) + "</span></button>"; };
-    var h = it("editproj", "square-pen", "Редактирай проекта") + it("addbld", "building-2", "Добави сграда") + (window.NCImport && typeof NCImport.open === "function" ? it("import", "upload", "Импорт на проект") : "") + it("refresh", "refresh-cw", "Обнови данните");
+    var h = it("editproj", "square-pen", "Редактирай проекта") + it("addbld", "building-2", "Добави сграда") + it("import", "upload", "Импорт на проект") + it("refresh", "refresh-cw", "Обнови данните");
     if (admin) {
       if (!p.reviewed && p.status !== "archived") h += it("review", "badge-check", "Отбележи като проверен");
       if (p.status !== "published") h += it("publish", "megaphone", "Публикувай");
@@ -153,13 +168,13 @@
   };
   /* оглед в CRM: съществуващият инструмент calendar.create (същата бизнес логика като Календар и Тед) */
   A.contactForms = function (M, u) {
-    var today = new Date().toISOString().slice(0, 10);
+    var today = U.today();
     var f = NC.formHtml("nc-viewing", "Запази оглед (Календар)", "calendar-check",
       NC.input("v-date", "Дата", "date", { req: true, min: today, value: today }) + NC.input("v-from", "От", "time", { req: true, value: "10:00" }) + NC.input("v-to", "До", "time", { req: true, value: "11:00" }) +
       '<label class="nc-fl" for="v-client">Клиент (по избор)<select id="v-client"><option value="">— без клиент —</option></select></label>' +
       NC.input("v-unit", "Апартамент", "select", { value: u ? u.id : "", options: [["", "— целият проект —"]].concat(M.units.map(function (x) { return [x.id, x.code + " – " + D.ST[x.status]]; })) }) +
       NC.input("v-note", "Бележка", "ta", { wide: true, max: 2000 }), "Запази огледа",
-      "Записва се в „Календар“ (и в картата на клиента, ако е избран) – същият инструмент като в Календара и при Тед.");
+      "Записва се в „Календар“ (и в картата на клиента, ако е избран) – същият инструмент като в Календара и при Тед.", NC.PH.viewing);
     var info = NC.ui.card("Запитвания от сайта", "mail", null, '<p class="nc-note">Запитванията и заявките за оглед от публичната страница на проекта влизат автоматично в CRM като клиент + активност (същата логика като обявите на сайта) и се виждат в „Клиенти“. Формата за запитване е само на публичната страница.</p>', "");
     return f + info;
   };
@@ -170,7 +185,7 @@
     NC.bindForm(form, function (fm) {
       var d = fm.querySelector("#v-date"), fr = fm.querySelector("#v-from"), to = fm.querySelector("#v-to");
       if (!/^\d{4}-\d\d-\d\d$/.test(d.value)) return { msg: "Изберете дата.", el: d };
-      if (d.value < new Date().toISOString().slice(0, 10)) return { msg: "Датата не може да е в миналото.", el: d };
+      if (d.value < U.today()) return { msg: "Датата не може да е в миналото.", el: d };
       if (!/^\d\d:\d\d$/.test(fr.value)) return { msg: "Въведете начален час.", el: fr };
       if (!/^\d\d:\d\d$/.test(to.value) || to.value <= fr.value) return { msg: "Крайният час трябва да е след началния.", el: to };
     }, function (fm) {
@@ -189,10 +204,14 @@
   var STAGE_OPTS = [["", "— не е въведен —"]].concat(D.STAGES);
 
   A.acts.refresh = function () { NC.reload().then(function () { U.say("Данните са обновени."); }); };
-  A.acts.import = function () {
-    if (!(window.NCImport && typeof NCImport.open === "function")) { U.say("Импортът още не е наличен."); return; }
-    var m = NC.model(); NCImport.open({ projectId: m && NC.state.view === "project" ? m.project.id : null, onDone: function (pid) { if (pid && ID.test(pid)) { if (m && pid === m.project.id) NC.reload(); else NC.open(pid); } else NC.reloadList(); } });
+  A.acts.import = function (a) {
+    if (a && a.getAttribute("aria-busy") === "true") return;
+    if (a) a.setAttribute("aria-busy", "true");
+    loadImport().then(function () { if (a) a.removeAttribute("aria-busy"); openImport(); }, function (e) { if (a) a.removeAttribute("aria-busy"); U.say(e.message); });
   };
+  function openImport() {
+    var m = NC.model(); NCImport.open({ projectId: m && NC.state.view === "project" ? m.project.id : null, onDone: function (pid) { if (pid && ID.test(pid)) { if (m && pid === m.project.id) NC.reload(); else NC.open(pid); } else NC.reloadList(); } });
+  }
   A.acts.newproj = function () { projForm(null); };
   A.acts.editproj = function () { projForm(NC.model().project); };
   function projForm(p) {
@@ -257,7 +276,7 @@
       fld({ id: "u-baths", label: "Бани", type: "number", value: u && u.baths != null ? u.baths : "" }) + fld({ id: "u-exp", label: "Изложение", value: u ? u.exposure || "" : "", ph: "напр. Юг/Изток" }), { lw: 150 }) +
       grp("Площи", "ruler", null, fld({ id: "u-at", label: "Обща площ (м²)", type: "number", step: "0.01", value: u && u.area_total != null ? u.area_total : "" }) + fld({ id: "u-an", label: "Чиста площ (м²)", type: "number", step: "0.01", value: u && u.area_net != null ? u.area_net : "" }) +
         fld({ id: "u-tr", label: "Тераса (м²)", type: "number", step: "0.01", value: u && u.terrace_area != null ? u.terrace_area : "" }), { lw: 190 }) +
-      grp("Цена", "coins", null, '<div class="nc-sw" role="group" aria-label="Начин на цената"><button type="button" data-pm="m2" aria-pressed="' + !ov + '">на кв.м</button><button type="button" data-pm="man" aria-pressed="' + ov + '">ръчна цена</button></div>' +
+      grp("Цена", "coins", NC.PH.offer, '<div class="nc-sw" role="group" aria-label="Начин на цената"><button type="button" data-pm="m2" aria-pressed="' + !ov + '">на кв.м</button><button type="button" data-pm="man" aria-pressed="' + ov + '">ръчна цена</button></div>' +
         fld({ id: "u-ppm", label: "Цена на м² (€)", type: "number", step: "0.01", value: u && u.price_per_m2 != null ? u.price_per_m2 : "" }) +
         '<div class="ef" id="u-manw"' + (ov ? "" : " hidden") + ">" + fld({ id: "u-tot", label: "Обща цена (€)", type: "number", step: "1", value: u && u.price_override && u.price_total != null ? u.price_total : "" }) + fld({ id: "u-why", label: "Причина", value: u && u.price_override_reason ? u.price_override_reason : "по преценка" }) + "</div>" +
         '<div class="nc-calc" id="u-calc" aria-live="polite"></div>', { lw: 190 }) +
@@ -308,7 +327,7 @@
     };
     var html = grp("Нов статус на " + u.code, "tag", null, '<p class="nc-pre">Сега: <b>' + esc(D.ST[u.status]) + "</b>. Промяната се записва в историята (кой и кога) и важи веднага за CRM, Тед и публичната страница.</p>" + opts +
       '<div class="nc-pre" id="st-ex" aria-live="polite">Изберете нов статус.</div>' + fld({ id: "st-note", label: "Причина / бележка", type: "ta", wide: true, ph: "задължителна при връщане назад" }), { one: true });
-    NDUI.open({ title: "Смяна на статус – " + u.code, icon: "tag", inline: false, view: false, html: html, saveText: "Потвърди смяната",
+    NDUI.open({ title: "Смяна на статус – " + u.code, icon: "tag", inline: false, view: false, html: html, saveText: "Потвърди смяната", photo: NC.PH.status,
       ready: function (x) { ctx = x; x.body.addEventListener("change", function () { var t = x.body.querySelector('[name="st-to"]:checked'); if (!t) return; var back = R.indexOf(t.value) < from; x.q("st-ex").innerHTML = "<b>" + esc(u.code + ": " + D.ST[u.status] + " → " + D.ST[t.value]) + ".</b> " + esc(EXPL[t.value]) + (back ? " <b>Връщането изисква причина.</b>" : ""); }); },
       validate: function (g) { var t = ctx.body.querySelector('[name="st-to"]:checked'); if (!t) return "Изберете нов статус."; if (R.indexOf(t.value) < from && g("st-note").length < 3) return "Връщането на статус изисква причина (поне 3 знака)."; },
       onSave: function (g) {
@@ -318,7 +337,7 @@
   };
   A.acts.history = function (a) {
     var u = F.unit(a.getAttribute("data-unit"));
-    var w = NDUI.open({ title: "История – " + u.code, icon: "history", inline: false, view: false, noSave: true, html: '<div class="ndempty">Зареждане…</div>',
+    var w = NDUI.open({ title: "История – " + u.code, icon: "history", inline: false, view: false, noSave: true, photo: NC.PH.report, html: '<div class="ndempty">Зареждане…</div>',
       ready: function (x) {
         tool("units.get", { id: u.id }).then(function (r) {
           var FN = { area_total: "Обща площ", area_net: "Чиста площ", terrace_area: "Тераса", price_per_m2: "Цена на м²", price_total: "Обща цена", price_override: "Ръчна цена", price_override_reason: "Причина за цена", code: "Код", plan: "План" };
@@ -331,9 +350,9 @@
   };
 
   /* качване на план: оригиналът отива в частната папка на проекта; публичната производна се прави от сървъра */
-  function upDialog(title, note, accept, onFile) {
+  function upDialog(title, note, accept, onFile, photo) {
     var ctx;
-    NDUI.open({ title: title, icon: "upload", inline: false, view: false, saveText: "Качи", html: grp("Файл", "upload", null, NDUI.filebox("nc-file", "Изберете файл", note, { accept: accept, nameId: "nc-fname" }), { one: true }) + pre(note),
+    NDUI.open({ title: title, icon: "upload", inline: false, view: false, saveText: "Качи", photo: photo || NC.PH.media, html: grp("Файл", "upload", null, NDUI.filebox("nc-file", "Изберете файл", note, { accept: accept, nameId: "nc-fname" }), { one: true }) + pre(note),
       ready: function (x) { ctx = x; var fi = x.q("nc-file"); fi.removeAttribute("multiple"); fi.addEventListener("change", function () { x.q("nc-fname").textContent = fi.files[0] ? fi.files[0].name : "Изберете файл"; }); },
       validate: function () { var fi = ctx.q("nc-file"), f = fi.files[0]; if (!f) return "Изберете файл."; if (accept.split(",").indexOf(f.type) < 0) return "Неподдържан вид файл."; if (f.size > 40 * 1048576) return "Файлът е над 40 MB."; },
       onSave: function () { return onFile(ctx.q("nc-file").files[0]); } });
@@ -347,7 +366,7 @@
       var path = "projects/" + m.project.id + "/private/units/" + code + "/plan-" + stamp() + "." + ext(file);
       return ND.upload(path, file).then(function () { return call("units.upsert", { project_id: m.project.id, building_id: u.building_id, floor_id: u.floor_id, id: u.id, expected_version: u.version, plan_path: path }); })
         .then(function () { U.say(/pdf/.test(file.type) ? "PDF планът е качен (само за екипа). За публичен план качете JPG/PNG." : "Планът е качен. Публичното копие се подготвя от сървъра."); return NC.reload(); });
-    });
+    }, NC.PH.planUp);
   };
   A.acts.fplan = function (a) {
     var f = F.floor(a.getAttribute("data-floor")), m = NC.model();
@@ -355,7 +374,7 @@
       var path = "projects/" + m.project.id + "/private/plans/floor-" + f.id + "-" + stamp() + "." + ext(file);
       return Promise.all([ND.upload(path, file), dims(file)]).then(function (r) { var i = { building_id: f.building_id, id: f.id, level: f.level, plan_path: path, expected_updated_at: f.updated_at }; if (r[1]) { i.plan_w = r[1].w; i.plan_h = r[1].h; } return call("floors.upsert", i); })
         .then(function () { U.say("Етажният план е качен."); return NC.reload(); });
-    });
+    }, NC.PH.planUp);
   };
 
   /* очертаване на апартаментите върху етажния план (полигони 0..1) → floors.upsert polygons */
@@ -446,7 +465,7 @@
   };
   A.acts.docadd = function () {
     var m = NC.model(), ctx;
-    NDUI.open({ title: "Публичен документ", icon: "file-text", inline: false, view: false, saveText: "Качи", required: ["d-title"],
+    NDUI.open({ title: "Публичен документ", icon: "file-text", inline: false, view: false, saveText: "Качи", required: ["d-title"], photo: NC.PH.docs,
       html: grp("Документ", "file-text", null, fld({ id: "d-title", label: "Име", wide: true, ph: "напр. Брошура на проекта" }) + NDUI.filebox("nc-dfile", "Изберете файл", "PDF, JPG или PNG – вижда се публично, когато проектът е публикуван", { accept: "application/pdf,image/jpeg,image/png", nameId: "nc-dname" }), { one: true }) + pre("Не качвайте тук лични данни, договори или вътрешни документи – всичко тук е публично. Брошурата се разпознава по име, започващо с „Брошура“."),
       ready: function (x) { ctx = x; var fi = x.q("nc-dfile"); fi.removeAttribute("multiple"); fi.addEventListener("change", function () { x.q("nc-dname").textContent = fi.files[0] ? fi.files[0].name : "Изберете файл"; }); },
       validate: function () { var f = ctx.q("nc-dfile").files[0]; if (!f) return "Изберете файл."; if (f.size > 40 * 1048576) return "Файлът е над 40 MB."; },
@@ -459,7 +478,7 @@
   /* ипотечен калкулатор: съществуващият модул на CRM (NDUI.calcHtml / calcBind), цената идва от апартамента */
   A.acts.mortgage = function () {
     var u = F.unit(NC.state.u); if (!u || !u.price_total) { U.say("Избраният апартамент няма цена."); return; }
-    NDUI.open({ title: "Ипотечен калкулатор – " + u.code, icon: "calculator", inline: false, view: false, noSave: true, photo: "nd/ph25.jpg",
+    NDUI.open({ title: "Ипотечен калкулатор – " + u.code, icon: "calculator", inline: false, view: false, noSave: true, photo: NC.PH.price,
       html: NDUI.group("Цена", "coins", null, NDUI.fld({ id: "k-price", label: "Цена на апартамента (€)", type: "number", value: u.price_total, wide: true }), { noPhoto: true, one: true }) + NDUI.calcHtml(false, true),
       ready: function (x) { NDUI.calcBind(x, "k-price", null); } });
   };
@@ -467,6 +486,4 @@
   /* ---------- старт ---------- */
   function go() { NC.assetBase = "assets/"; NC.boot(A); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go();
-  /* бутонът за импорт се появява щом crm-nc-import.js е наличен (той е на TASK-006; липсата му не чупи страницата) */
-  addEventListener("load", function () { if (window.NCImport && !document.querySelector('[data-act="import"]')) NC.rerender(); });
 })();

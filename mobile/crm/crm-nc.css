@@ -678,3 +678,26 @@ html:not(.desk) .nc-smenu{flex-direction:row;justify-content:space-between;align
 .nc-strip .nc-badge.ok{color:#1e4d12;background:linear-gradient(180deg,#e4f5cb,#cfe9ad);border-color:rgba(214,255,224,.85)}
 .nc-strip .nc-badge.warn{color:#5a3a00;background:linear-gradient(180deg,#fff1cc,#f7dc9a);border-color:#edc47a}
 .nc-strip .nc-badge.arch{background:linear-gradient(160deg,#6a5a55,#3e322e)}
+
+/* ---------------- TASK-008 (изп. 3): илюстрации, местоположение, височини от измереното място ---------------- */
+/* всяка декоративна снимка в карта носи надпис „Илюстрация“ – никога не изглежда като снимка на реалния проект или адрес */
+.ncx .ndg>.ndg-img::after{content:"Илюстрация";position:absolute;right:14px;bottom:12px;padding:5px 12px;border-radius:12px;font:700 17px/1.2 var(--cond);color:#fff3dc;background:rgba(25,8,12,.72);box-shadow:0 0 0 1px rgba(237,196,122,.5)}
+.nc-gempty h3{font:700 34px/1.15 var(--serif);color:#5e0a1a;margin:0 0 10px}
+.nc-gempty .nc-note{max-width:58%}
+html:not(.desk) .nc-gempty .nc-note{max-width:none}
+.nc-locc .nc-rows{max-width:100%}
+#nc-loc{outline:0;scroll-margin-top:10px}
+#nc-viewing,#nc-inquiry{scroll-margin-top:10px}
+/* формите с илюстрация: полетата заемат цялата ширина, снимката е само в горната лента */
+.ncx .ndg:has(>.ndg-f>.nc-form)>.ndg-img{bottom:auto;height:150px;-webkit-mask-image:linear-gradient(270deg,#000 30%,rgba(0,0,0,.55) 70%,transparent 100%),linear-gradient(180deg,#000 40%,transparent 100%);mask-image:linear-gradient(270deg,#000 30%,rgba(0,0,0,.55) 70%,transparent 100%);-webkit-mask-composite:source-in;mask-composite:intersect}
+.ncx .ndg:has(>.ndg-f>.nc-form)>.ndg-f{max-width:none;margin-top:70px}
+/* 3D: списъкът с етажи вляво, илюстрацията вдясно (като одобрената референция 03) */
+html.desk .nc-fsel .nc-flist,html.desk .nc-fsel .nc-ucodes,html.desk .nc-fsel .nc-sel{max-width:100%}
+/* визуализаторите: височина от реално измереното видимо място (--vis = видимата височина на прозореца в пикселите на платното) */
+html.desk .nc-vw{height:clamp(440px,calc(var(--vis,820px) - 64px),1100px)}
+html.desk .nc-3d{height:clamp(460px,calc(var(--vis,820px) - 112px),1100px)}
+html.desk .nc-pano{height:clamp(440px,calc(var(--vis,820px) - 200px),1000px)}
+html:not(.desk) .nc-vw{height:clamp(560px,calc(var(--vis,1400px) - 380px),900px)}
+html:not(.desk) .nc-3d,html:not(.desk) .nc-pano{height:clamp(560px,calc(var(--vis,1400px) - 380px),900px)}
+.nc-vw.fs,.nc-3d.fs,.nc-pano.fs{height:auto!important}
+.nc-vw:fullscreen,.nc-3d:fullscreen,.nc-pano:fullscreen{height:100%!important}
