@@ -134,6 +134,18 @@ const unitFields = {
   interior_style: S("string", { max: 80 })
 };
 
+/* импорт: прегледаната чернова (accept). Пътища от клиента НЕ се приемат – плановете се посочват с file_id от манифеста. */
+const REF = /^[a-z][a-z0-9_-]{0,39}$/i;
+const FILE_ID = /^f\d{1,5}$/;
+const importProjectFields = { title: S("string", { min: 2, max: 200 }), city: S("string", { max: 80 }), hood: S("string", { max: 80 }), address: S("string", { max: 300 }), description: S("string", { max: 10000 }),
+  stage: projectFields.stage, stage_percent: projectFields.stage_percent, expected_completion: S("string", { max: 40 }), advantages: projectFields.advantages };
+const importUnitFields = {
+  ref: S("string", { required: true, pattern: REF, max: 40 }), floor_ref: S("string", { required: true, pattern: REF, max: 40 }), code: S("string", { required: true, pattern: UNIT_CODE, max: 20 }),
+  area_total: area(), area_net: area(), terrace_area: S("number", { min: 0, max: 100000 }), price_per_m2: money(),
+  rooms: S("int", { min: 0, max: 20 }), beds: S("int", { min: 0, max: 20 }), baths: S("int", { min: 0, max: 20 }), exposure: S("string", { max: 40 }),
+  price_override: S("boolean"), price_total: money(), price_override_reason: S("string", { min: 3, max: 300 }), plan_file_id: S("string", { pattern: FILE_ID })
+};
+
 /* ---------- каталог ----------
    role:  staff  = всеки служител (nd_is_staff);  admin = nd_is_admin (проверката е в базата)
    errors: HTTP кодове, които handler-ът връща като {ok:false,error}
@@ -235,32 +247,57 @@ const CONTRACTS = {
     idem: "event_id е по избор (C9): ако липсва, базата го извежда от (unit_id, to, expected_version) → повторът е безопасен и без него; expected_version → 409 при чужда промяна"
   },
   "imports.start": {
-    role: "staff", description: "Стартира импорт на качени файлове към проект. Връща job_id веднага; обработката е отделна задача. Нищо не се публикува.",
+    role: "staff (публикуван проект: само admin)",
+    description: "Стартира импорт (анализ) на вече качени файлове за проект „Ново строителство“. Файловете са в projects/<project_id>/private/imports/<import_id>/… (качени от CRM) или прикачени в чата (ted-chat/…). За нов проект първо projects.create_draft. Връща job_id веднага; обработката върви на парчета – викай jobs.status на няколко секунди, всяко извикване придвижва задачата. Повтор със същите файлове връща същата задача (rerun:true = нов анализ). Нищо не се записва в проекта и нищо не се публикува – резултатът е чернова за преглед (jobs.result), записът е отделно с imports.apply.",
     input: schema({
-      project_id: id(), mode: S("string", { enum: ["new", "update"], default: "new" }),
-      files: S("array", { required: true, min: 1, max: 2000, items: { path: S("string", { required: true, pattern: IMPORT_PATH, noDotDot: true, max: 400 }), name: S("string", { required: true, max: 255 }), mime: S("string", { max: 120 }), size: S("int", { min: 1, max: 41943040 }), sha256: S("string", { pattern: /^[a-f0-9]{64}$/ }) } })
+      project_id: id({ required: true }), mode: S("string", { enum: ["new", "update"], default: "new" }), rerun: S("boolean"), ai: S("boolean", { default: true }),
+      files: S("array", { required: true, min: 1, max: 2000, items: { path: S("string", { required: true, pattern: IMPORT_PATH, noDotDot: true, max: 400 }), name: S("string", { required: true, max: 300, trim: false }), mime: S("string", { max: 120 }), size: S("int", { min: 1, max: 41943040 }), sha256: S("string", { pattern: /^[a-f0-9]{64}$/ }) } })
     }, (d) => {
-      const e = [];
-      if (d.mode === "update" && !d.project_id) e.push("project_id е задължителен при mode=update");
-      for (const f of d.files) if (f.path.startsWith("projects/") && !pathInProject(f.path, d.project_id)) e.push("файлът е от друг проект: " + f.path);
+      const e = [], seen = new Set();
+      let imp = null;
+      for (const f of d.files) {
+        if (seen.has(f.path)) e.push("файлът е подаден два пъти: " + f.path); seen.add(f.path);
+        if (/[\u0000-\u001f\u007f]/.test(f.name) || f.name.split(/[\\/]/).includes("..")) e.push("невалидно име на файл: " + f.name.slice(0, 60));
+        if (f.path.startsWith("projects/")) {
+          const g = f.path.split("/");
+          if (!pathInProject(f.path, d.project_id)) e.push("файлът е от друг проект: " + f.path);
+          else if (!/^[a-z0-9]{8,64}$/.test(g[4] || "") || g.length < 6 || g.slice(5).some((x) => !x)) e.push("пътят трябва да е projects/<проект>/private/imports/<import_id>/<файл>: " + f.path);
+          else if (imp && imp !== g[4]) e.push("файловете са от различни импорти (" + imp + " / " + g[4] + ")");
+          else imp = g[4];
+        }
+      }
       return e;
     }),
-    output: "{ job_id, status:'queued', idempotent }", errors: [400, 404, 413],
-    idem: "idempotency_key = 'import:' + (project_id|actor) + ':' + sha256(сортиран списък path+sha256|size) → повтор връща същия job_id"
+    output: "{ ok, job_id, import_id, state:'queued'|…, idempotent, created, correlation_id }", errors: [400, 403, 404, 409, 503],
+    idem: "idempotency_key = 'import:' + project_id + ':' + actor + ':' + sha256(сортиран списък име|размер|sha256) [+ ':r<n>' при rerun или след failed/cancelled] → повтор връща същия job_id; ключът се пази в nd_jobs.idempotency_key"
   },
   "imports.apply": {
-    role: "staff", description: "Записва прегледаната от човек чернова от импорта (сгради/етажи/апартаменти) в проекта. Остава чернова.",
-    input: schema({ job_id: S("uuid", { required: true }), confirm, accept: S("object", { required: true, fields: {
-      project: S("object", { fields: projectFields }),
-      buildings: S("array", { max: 50, items: { ref: S("string", { required: true, max: 40 }), name: S("string", { required: true, max: 120 }), sort: S("int", { min: 0, max: 999 }) } }),
-      floors: S("array", { max: 400, items: { ref: S("string", { required: true, max: 40 }), building_ref: S("string", { required: true, max: 40 }), level: S("int", { required: true, min: -5, max: 200 }), label: S("string", { max: 60 }) } }),
-      units: S("array", { max: 3000, items: Object.assign({ floor_ref: S("string", { required: true, max: 40 }) }, unitFields, { code: S("string", { required: true, pattern: UNIT_CODE, max: 20 }) }) })
-    } }) }),
-    output: "{ project_id, created:{ buildings, floors, units }, skipped:[...] }", errors: [400, 404, 409], idem: "job.status review → done; повтор върху done връща същия резултат"
+    role: "staff – само авторът на импорта или admin (публикуван проект: само admin; заявки към TASK-009: само admin)",
+    description: "Записва ПРЕГЛЕДАНАТА от човек чернова от импорта (сгради, етажи, обекти, връзки към планове, полета на проекта) в проекта – в една транзакция, под правата на служителя. Изисква изрично потвърждение (confirm:true). use_proposed:true = приема предложенията без промяна (отказва при нерешени конфликти или липсващи задължителни данни); иначе accept = прегледаната чернова от CRM. Статусът НЕ се внася (новите обекти са Свободни), обща цена не се приема освен като ръчна (price_override + причина), нищо не се публикува. Повтор върху вече записан импорт връща същия резултат.",
+    input: schema({ job_id: S("uuid", { required: true }), confirm, use_proposed: S("boolean"), accept: S("object", { fields: {
+      project: S("object", { fields: importProjectFields }),
+      buildings: S("array", { max: 50, items: { ref: S("string", { required: true, pattern: REF, max: 40 }), name: S("string", { required: true, min: 1, max: 120 }), sort: S("int", { min: 0, max: 999 }) } }),
+      floors: S("array", { max: 400, items: { ref: S("string", { required: true, pattern: REF, max: 40 }), building_ref: S("string", { required: true, pattern: REF, max: 40 }), level: S("int", { required: true, min: -5, max: 200 }), label: S("string", { max: 60 }), plan_file_id: S("string", { pattern: FILE_ID }) } }),
+      units: S("array", { max: 3000, items: importUnitFields }),
+      resolved: S("array", { max: 5000, items: S("string", { pattern: /^c\d{1,6}$/ }) }),
+      downstream: S("array", { max: 200, items: S("string", { pattern: FILE_ID }) })
+    } }) }, (d) => {
+      const e = [];
+      if (!d.use_proposed && !d.accept) e.push("подай accept (прегледаната чернова) или use_proposed:true");
+      if (d.use_proposed && d.accept && (d.accept.units || d.accept.buildings || d.accept.floors || d.accept.project)) e.push("use_proposed и accept с данни не се подават заедно");
+      for (const u of (d.accept && d.accept.units) || []) {
+        if (u.price_override && (u.price_total == null || !u.price_override_reason)) e.push(u.ref + ": ръчна цена изисква price_total и причина");
+        if (!u.price_override && u.price_total != null) e.push(u.ref + ": обща цена се смята от системата; ръчна цена – само с price_override:true и причина");
+        if (u.area_net != null && u.area_total != null && u.area_net > u.area_total) e.push(u.ref + ": чистата площ не може да е по-голяма от общата");
+      }
+      return e;
+    }),
+    output: "{ ok, project_id, state:'succeeded', created:{ buildings, floors, units }, updated:{ units, floors, project }, downstream[], replayed, published:false, correlation_id }", errors: [400, 403, 404, 409, 503],
+    idem: "задачата преминава review → done в СЪЩАТА транзакция (nd_import_apply); повтор върху done връща същата разписка; версия на проекта (content_rev) и на всеки обновяван обект → NC409 при чужда промяна"
   },
-  "jobs.status": { role: "staff", description: "Състояние и напредък на задача. Вход: {id*}. Отговаря веднага; за лека задача може да пусне следващото парче във фонов режим (waitUntil) – безопасно при повтор (C6).", input: schema({ id: S("uuid", { required: true }) }), output: "{ id, kind, status, progress:{ step, total, message }, attempts, error }", errors: [400, 404], idem: "безопасен повтор (не е чисто четене – може да придвижи лека задача с едно парче)" },
-  "jobs.result": { role: "staff", description: "Резултат от приключила задача (за импорт: чернова + източник и увереност по поле + липси).", input: schema({ id: S("uuid", { required: true }) }), output: "{ id, status, result }", errors: [400, 404, 409], idem: "само четене" },
-  "jobs.cancel": { role: "staff (автор или admin)", description: "Отменя задача.", input: schema({ id: S("uuid", { required: true }) }), output: "{ id, status, cancel_requested }", errors: [400, 403, 404], idem: "повтор върху приключила задача не променя нищо" },
+  "jobs.status": { role: "staff", description: "Състояние и реален напредък на задача (фаза, файлове n/N, байтове). Вход: {id*}. Отговаря веднага; за импорт придвижва обработката с едно парче (във фонов режим, ако средата позволява) – безопасно при повтор. Тежките задачи (TASK-009/010) показват „чака изпълнител“, докато няма такъв.", input: schema({ id: S("uuid", { required: true }) }), output: "{ id, kind, status, state, progress:{ phase, phase_bg, files_done, files_total, bytes_done, bytes_total }, attempts, error_code, error, retryable, retry_at, waiting_for_worker, requires_review, correlation_id }", errors: [400, 404], idem: "безопасен повтор (може да придвижи лека задача с едно парче)" },
+  "jobs.result": { role: "staff", description: "Резултат от задача. За импорт: черновата за преглед – предложени сгради/етажи/обекти с източник (файл · лист · клетка) по поле, конфликти, липси, предупреждения, изведени стойности, файлове с вид/предназначение/увереност/възможности. view=summary (по подразбиране, кратко – за агента) или full (с offset/limit по обекти – за CRM). Без пътища към оригиналните файлове.", input: schema({ id: S("uuid", { required: true }), view: S("string", { enum: ["summary", "full"], default: "summary" }), offset: S("int", { min: 0, max: 100000 }), limit: S("int", { min: 1, max: 1000 }) }), output: "{ id, kind, status, state, result }", errors: [400, 404, 409, 503], idem: "само четене" },
+  "jobs.cancel": { role: "staff (автор или admin; системна задача – само admin)", description: "Отменя задача: чакаща или чакаща преглед – веднага; работеща – спира след текущото парче. Нищо не се записва в проекта. Вход: {id*}.", input: schema({ id: S("uuid", { required: true }) }), output: "{ id, status, state, changed, cancel_requested }", errors: [400, 403, 404], idem: "повтор върху приключила задача не променя нищо" },
   "cad.inspect": {
     role: "admin", description: "Проверява CAD/BIM/PDF файл: формат, единици, слоеве, етажи – без конверсия. Тежка задача (външен изпълнител), бюджетът е по вид в nd_job_kinds. Вход: {project_id*, path*}. Връща job_id. (TASK-009)",
     input: schema({ project_id: id({ required: true }), path: S("string", { required: true, pattern: PRIVATE_PATH, noDotDot: true, max: 400 }) }, (d) => (pathInProject(d.path, d.project_id) ? [] : ["файлът е от друг проект"])), output: "{ job_id }", errors: [400, 403, 404], idem: "idempotency_key = 'cad_inspect:' + path + ':' + sha256"
@@ -291,4 +328,4 @@ function validate(tool, input) {
 // Конфликт на версии е NC409, НЕ 40001: PostgREST сам повтаря транзакции с 40001 (serialization_failure) и заявката увисва.
 const SQLSTATE_HTTP = { "42501": 403, "P0002": 404, "NC409": 409, "40001": 409, "23505": 409, "23001": 409, "22023": 400, "23514": 400, "23503": 409, "22P02": 400 };
 
-module.exports = { CONTRACTS, validate, schema, S, STATUSES, STATUS_BG, SQLSTATE_HTTP, pathInProject, patterns: { UUID, ID, SLUG, UNIT_CODE, PRIVATE_PATH, IMPORT_PATH, PUBLIC_PATH, TOUR_PATH } };
+module.exports = { CONTRACTS, validate, schema, S, STATUSES, STATUS_BG, SQLSTATE_HTTP, pathInProject, FORBIDDEN_KEYS, patterns: { UUID, ID, SLUG, UNIT_CODE, PRIVATE_PATH, IMPORT_PATH, PUBLIC_PATH, TOUR_PATH, REF, FILE_ID } };

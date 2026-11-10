@@ -1,6 +1,6 @@
 -- =====================================================================
--- ИМОТИ НАДЕЖДА · Ново строителство · ОБРАТЕН скрипт към nc_001 + nc_002 + nc_003
--- ЧЕРНОВА. Премахва САМО обектите, добавени от nc_001_new_construction.sql, nc_002_jobs_rpc.sql и nc_003_hardening.sql.
+-- ИМОТИ НАДЕЖДА · Ново строителство · ОБРАТЕН скрипт към nc_001 + nc_002 + nc_003 + nc_004
+-- ЧЕРНОВА. Премахва САМО обектите, добавени от nc_001_new_construction.sql, nc_002_jobs_rpc.sql, nc_003_hardening.sql и nc_004_import.sql.
 -- ВНИМАНИЕ: изтрива данните в новите таблици. Преди изпълнение – export.
 -- Файловете в storage (projects/…) не се трият от този скрипт.
 -- Без CASCADE: ако нещо друго зависи от тези обекти, скриптът спира цял и не променя нищо.
@@ -8,6 +8,12 @@
 begin;
 
 drop policy if exists "nd public project files" on storage.objects;
+
+-- обектите от nc_004 (импорт, TASK-006) – ако ги няма, „if exists“ ги прескача
+drop function if exists public.nd_import_apply(uuid, text, integer, jsonb);
+drop function if exists public.nd_import_job_done(uuid, jsonb);
+drop function if exists public.nd_import_job_begin(uuid, text);
+drop function if exists public.nd_job_claim_id(uuid, text[], text);
 
 -- обектите от nc_003 (втвърдяване)
 drop policy if exists "nd nc no staff write insert" on storage.objects;
