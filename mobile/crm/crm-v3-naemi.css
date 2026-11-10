@@ -491,9 +491,11 @@ html.desk .r-filt .r-sel{grid-column:auto!important}
 #olist .oc .r-fee,#olist .oc .od-fee,.od-card .od-fee{
   display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:4px;text-align:right;min-width:0;overflow:visible
 }
+#olist .oc .om{position:static!important}
 #olist .oc .r-fee{
-  position:absolute;right:28px;bottom:56px;z-index:3;padding:0;max-width:42%
+  position:absolute!important;right:36px;bottom:58px;left:auto!important;top:auto!important;z-index:3;padding:0;max-width:none
 }
+html:not(.desk) #olist .oc .r-amt{font-size:64px}
 #olist .oc .r-lab{
   display:flex!important;align-items:center;gap:10px;font:700 22px/1.15 var(--cond);color:#7b1020;text-shadow:none
 }
@@ -522,7 +524,7 @@ html.desk .r-filt .r-sel{grid-column:auto!important}
 html.desk #olist .oc .r-amt,html.desk .od-card .r-amt{font-size:118px}
 #olist .oc .r-amt span,.od-card .r-amt span{
   display:inline!important;
-  background-image:linear-gradient(180deg,#c24a5e 0%,#8a1428 42%,#4a0612 100%);
+  background-image:linear-gradient(180deg,#8a2034 0%,#5c0c18 46%,#2e050c 100%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
 }
 #olist .oc .r-fee-l,.od-card .r-fee-l{position:relative;display:block!important;margin:0;font:700 26px/1 var(--cond);color:#6b0a1c;text-shadow:none}
