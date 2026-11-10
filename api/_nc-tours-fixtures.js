@@ -91,4 +91,29 @@ function testB2() {
 /* липсващи височини → BLOCKED (не се „досещаме“) */
 function testNoHeights() { const g = testA1(); delete g.default_height_m; return g; }
 
-module.exports = { testA1, testB2, testNoHeights };
+/* служебна равноправоъгълна TEST панорама: градиент по посоката + решетка на 22.5° + надпис TEST и посоки N/E/S/W
+   (u = 0.5 е посоката yaw_offset; N е на u = 0.5 при yaw_offset = 0). Генерира се програмно – не е снимка. */
+const FONT = { T: ["11111", "00100", "00100", "00100", "00100", "00100", "00100"], E: ["11111", "10000", "11110", "10000", "10000", "10000", "11111"], S: ["01111", "10000", "01110", "00001", "00001", "10001", "01110"],
+  N: ["10001", "11001", "10101", "10011", "10001", "10001", "10001"], W: ["10001", "10001", "10101", "10101", "10101", "11011", "10001"] };
+function testPano(w, h, o) {
+  const opt = o || {}, d = new Uint8Array(w * h * 4), hue = opt.hue || 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const u = x / w, v = y / h, k = (y * w + x) * 4;
+    const a = (u * 6 + hue) % 6, f = a - Math.floor(a), c = [[1, f, 0], [1 - f, 1, 0], [0, 1, f], [0, 1 - f, 1], [f, 0, 1], [1, 0, 1 - f]][Math.floor(a)];
+    const shade = 0.55 + 0.4 * Math.sin(v * Math.PI);
+    const grid = (x % Math.round(w / 16) < Math.max(1, w / 1024)) || (y % Math.round(h / 8) < Math.max(1, h / 512));
+    d[k] = grid ? 30 : 60 + c[0] * 150 * shade; d[k + 1] = grid ? 30 : 60 + c[1] * 150 * shade; d[k + 2] = grid ? 30 : 60 + c[2] * 150 * shade; d[k + 3] = 255;
+  }
+  const stamp = (text, cx, cy, s) => {
+    const tw = text.length * 6 * s;
+    for (let n = 0; n < text.length; n++) { const g = FONT[text[n]]; if (!g) continue; for (let r = 0; r < 7; r++) for (let q = 0; q < 5; q++) if (g[r][q] === "1") for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) { const X = Math.round(cx - tw / 2 + (n * 6 + q) * s + xx), Y = Math.round(cy - 3.5 * s + r * s + yy); if (X >= 0 && Y >= 0 && X < w && Y < h) { const k = (Y * w + X) * 4; d[k] = d[k + 1] = d[k + 2] = 255; } } }
+  };
+  const s = Math.max(2, Math.round(h / 64));
+  stamp("TEST", w / 2, h * 0.3, s * 2);
+  [["N", 0.5], ["E", 0.75], ["S", 0.0], ["S", 1.0], ["W", 0.25]].forEach(([t, u]) => stamp(t, u * w, h * 0.5, s));
+  const J = require("./_vendor/jpeg-js");
+  if (opt.png) { const { PNG } = require("./_vendor/pngjs/lib/png.js"); const p = new PNG({ width: w, height: h }); p.data = Buffer.from(d); return PNG.sync.write(p); }
+  return Buffer.from(J.encode({ data: d, width: w, height: h }, opt.q || 80).data);
+}
+
+module.exports = { testA1, testB2, testNoHeights, testPano };

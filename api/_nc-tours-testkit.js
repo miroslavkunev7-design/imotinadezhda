@@ -66,7 +66,7 @@ async function makeDb(opts) {
   async function rpc(role, uid, fn, args) {
     const T = await argTypes(fn), keys = Object.keys(args || {});
     for (const k of keys) if (!T[k]) { const e = new Error("Could not find the function public." + fn + " with argument " + k); e.code = "PGRST202"; throw e; }
-    const vals = keys.map((k) => { const v = args[k]; return v === undefined || v === null ? null : typeof v === "object" ? JSON.stringify(v) : v; });
+    const vals = keys.map((k) => { const v = args[k]; return v === undefined || v === null ? null : Array.isArray(v) && /\[\]$/.test(T[k]) ? v : typeof v === "object" ? JSON.stringify(v) : v; });
     const call = "public." + fn + "(" + keys.map((k, i) => k + " => $" + (i + 1) + "::" + T[k]).join(", ") + ")";
     const sql = T.__ret === "void" ? "select " + call + " is null as r" : "select to_jsonb(" + call + ") as r";
     const rows = await as(role, uid, () => q(sql, vals));

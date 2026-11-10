@@ -396,6 +396,8 @@ async function publicFile(req, res) {
 /* ---------- TASK-006 · импорт на проектен пакет (същият регистър, същият токен; един импорт за CRM и Тед) ---------- */
 let IMP = null;
 try { IMP = require("./_nc-import.js"); Object.keys(IMP.RUN).forEach((k) => { if (C.CONTRACTS[k] && !RUN[k]) RUN[k] = IMP.RUN[k]; }); } catch (e) { console.error("nc import not loaded", e && e.message); }
+/* ---------- TASK-010 · интериори, 3D разходка и 360° панорами (договорите се добавят в C.CONTRACTS от самия модул) ---------- */
+try { const TOUR = require("./_nc-tours.js"); Object.keys(TOUR.RUN).forEach((k) => { if (C.CONTRACTS[k] && !RUN[k]) RUN[k] = TOUR.RUN[k]; }); } catch (e) { console.error("nc tours not loaded", e && e.message); }
 
 /* ---------- регистър (същата форма като в _ted-skills.js) ---------- */
 const tools = {};
