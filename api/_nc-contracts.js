@@ -318,6 +318,9 @@ const CONTRACTS = {
   }
 };
 
+/* TASK-009: договорите за CAD/BIM и 3D модели (cad.inspect, models.request, models.publish + models.unpublish, models.get) са в api/_nc-cad-contracts.js */
+try { Object.assign(CONTRACTS, require("./_nc-cad-contracts.js")({ schema, S, pathInProject, patterns: { UUID, ID, UNIT_CODE, PRIVATE_PATH } })); } catch (e) { console.error("nc cad contracts not loaded", e && e.message); }
+
 function validate(tool, input) {
   const c = CONTRACTS[tool];
   if (!c) return { success: false, error: { issues: [{ path: [], message: "unknown tool" }] } };
