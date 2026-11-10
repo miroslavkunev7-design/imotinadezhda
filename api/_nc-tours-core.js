@@ -12,7 +12,7 @@ const crypto = require("crypto");
 const A = require("./_nc-tours-assets.js");
 
 const G_SCHEMA = "nd.unit_geometry.v1", S_SCHEMA = "nd.scene.v1", B_SCHEMA = "nd.style_brief.v1";
-const BUILDER = "nd-scene-builder@1";
+const GENERATOR = "nd-scene-gen@1";
 const ROOM_TYPES = ["living", "living_kitchen", "kitchen", "dining", "bedroom", "child", "office", "bathroom", "wc", "hall", "corridor", "storage", "laundry", "terrace", "other"];
 const ROOM_BG = { living: "Дневна", living_kitchen: "Дневна с кухня", kitchen: "Кухня", dining: "Трапезария", bedroom: "Спалня", child: "Детска стая", office: "Кабинет", bathroom: "Баня", wc: "Тоалетна", hall: "Входно антре", corridor: "Коридор", storage: "Килер", laundry: "Мокро помещение", terrace: "Тераса", other: "Помещение" };
 const OPENING_TYPES = ["door", "window", "balcony_door", "passage"];
@@ -525,7 +525,7 @@ function buildScene(geometry, brief, inputs) {
     sun: { bearing_plan: r3(((180 - g.north_deg) % 360 + 360) % 360), elevation_deg: 38, intensity: 1.2, color: "#fff1dc" },
     rooms: g.rooms.filter((r) => r.type !== "terrace").map((r) => { const c = centroid(r.polygon); return { room_id: r.id, x: r3(c[0]), y: r3(c[1]), z: r3((roomHeight(g, r) || 2.7) - 0.25), color: lc, intensity: r3(S.light.intensity * (WET.has(r.type) ? 0.9 : 1)) }; }) };
   const scene = {
-    schema: S_SCHEMA, builder: BUILDER,
+    schema: S_SCHEMA, generator: GENERATOR,
     inputs: Object.assign({ geometry_sha256: gv.sha256, style_sha256: bv.sha256, catalog: A.LIBRARY_ID, catalog_version: A.LIBRARY_VERSION, catalog_sha256: A.CATALOG_SHA }, inputs || {}),
     architecture: architectureOf(g),
     materials, furniture, lighting,
@@ -705,7 +705,7 @@ function panoDerivative(buf, quality) {
 }
 
 module.exports = {
-  G_SCHEMA, S_SCHEMA, B_SCHEMA, BUILDER, ROOM_TYPES, ROOM_BG, LABELS, STYLE_SYSTEMS, DEFAULT_STYLE, PREFS, QUALITY, CELL, BODY_R, EYE_H,
+  G_SCHEMA, S_SCHEMA, B_SCHEMA, GENERATOR, ROOM_TYPES, ROOM_BG, LABELS, STYLE_SYSTEMS, DEFAULT_STYLE, PREFS, QUALITY, CELL, BODY_R, EYE_H,
   validateGeometry, validateStyle, materialsFor, buildScene, validateScene, architectureOf, hotspotsFor, validateHotspots,
   imageInfo, checkPano, panoDerivative, resample, canon, sha, shaBuf, deepFreeze,
   _: { area, centroid, pip, segDist, rect, rectsOverlap, rectInPoly, envOf, navGrid, unrle, rle, cellOf, walk, bfs, furnRect, bearing, angDiff, placeFurniture }
