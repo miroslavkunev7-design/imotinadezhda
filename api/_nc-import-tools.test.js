@@ -251,5 +251,59 @@ const noLeak = (o, label) => { const t = JSON.stringify(o); assert.ok(!/\/privat
   noLeak(await run(ADMIN, "jobs.result", { id: t1.downstream[0].job_id }), "jobs.result cad");
   done("никой изглед на задача (импорт или TASK-009) не връща пътища, ключове или токени");
 
+  /* 13. NC409 през инструмента: проектът е променен след анализа → 409 DB_CONFLICT, нищо не е записано; нов анализ → запис */
+  const c13 = upload([{ name: "P/unit-data/c.csv", data: Buffer.from("Обект;Вход;Етаж;Обща площ;Цена на кв.м\nTEST-K1;А;4;55;1900\n") }], PID, "3333333344444444");
+  const s13 = await run(BROKER, "imports.start", { project_id: PID, files: c13 });
+  assert.strictEqual((await pollToEnd(BROKER, s13.job_id)).s.state, "needs_review");
+  B.projects.get(PID).content_rev += 1;                                  // друг служител промени проекта след анализа
+  const u13 = B.units.length, calls13 = B.applyPayloads.length;
+  const e13 = await fails(409, () => run(BROKER, "imports.apply", { job_id: s13.job_id, confirm: true, use_proposed: true }), /DB_CONFLICT/);
+  assert.ok(/променен след анализа/.test(e13.message) && !/40001/.test(e13.message), "ясен текст, код NC409 → DB_CONFLICT, не 40001");
+  assert.strictEqual(B.applyPayloads.length, calls13 + 1); assert.strictEqual(B.units.length, u13, "нищо не е записано");
+  assert.strictEqual(B.jobs.get(s13.job_id).status, "review", "черновата остава за нов анализ");
+  const r13 = await run(BROKER, "imports.start", { project_id: PID, files: c13, rerun: true });
+  assert.ok(r13.created && r13.job_id !== s13.job_id); await pollToEnd(BROKER, r13.job_id);
+  const ok13 = await run(BROKER, "imports.apply", { job_id: r13.job_id, confirm: true, use_proposed: true });
+  assert.ok(ok13.ok && ok13.created.units === 1);
+  done("стара версия на проекта при imports.apply → 409 DB_CONFLICT (NC409), нищо не е записано; нов анализ (rerun) → запис");
+
+  /* 14. враждебен пакет през целия път: повреден ZIP, zip bomb, „../“, файл над 40 MB → отказ с код; нищо за запис */
+  const okZip = F.makeZip([{ name: "a.csv", data: "Обект;Етаж\nTEST-X;1\n" }]);
+  const hostile = [
+    { name: "TEST-повреден.zip", data: okZip.slice(0, Math.floor(okZip.length / 2)) },
+    { name: "TEST-bomb.zip", data: F.makeZip([{ name: "zeros.bin", data: Buffer.alloc(25 * 1048576) }]) },
+    { name: "TEST-traversal.zip", data: F.makeZip([{ name: "ok.txt", data: "x" }, { name: "../../evil.txt", data: "TEST" }]) },
+    { name: "TEST-голям.pdf", data: Buffer.concat([Buffer.from("%PDF-1.4\n"), Buffer.alloc(40 * 1048576 + 16, 32)]) }];
+  const up14 = upload(hostile, PID, "5555555566666666");
+  await fails(400, () => run(BROKER, "imports.start", { project_id: PID, files: up14 }), /max 41943040/);   // обявен размер над 40 MB → отказ още на входа
+  up14[3] = { path: up14[3].path, name: up14[3].name };                    // размерът не е обявен (или е излъган) → сървърът мери сам
+  const s14 = await run(BROKER, "imports.start", { project_id: PID, files: up14 });
+  const e14 = await pollToEnd(BROKER, s14.job_id);
+  assert.strictEqual(e14.s.status, "review"); assert.strictEqual(e14.s.importable, false);
+  const f14 = (await run(BROKER, "jobs.result", { id: s14.job_id, view: "full" })).result;
+  const fz14 = (s) => f14.files.find((f) => f.source_name === s);
+  assert.ok(fz14("TEST-повреден.zip").status === "rejected" && fz14("TEST-повреден.zip").issues.some((i) => i.code === "INVALID_PACKAGE"), "повреден архив");
+  assert.ok(fz14("TEST-bomb.zip").status === "rejected" && fz14("TEST-bomb.zip").issues.some((i) => i.code === "ARCHIVE_UNSAFE"), "zip bomb");
+  assert.ok(fz14("TEST-traversal.zip").status === "rejected" && fz14("TEST-traversal.zip").issues.some((i) => i.code === "ARCHIVE_UNSAFE"), "../");
+  assert.ok(fz14("TEST-голям.pdf").status === "rejected" && fz14("TEST-голям.pdf").issues.some((i) => i.code === "FILE_TOO_LARGE"), "над 40 MB");
+  assert.strictEqual(f14.error_code, "ARCHIVE_UNSAFE");
+  assert.ok(![...B.storage.keys()].some((k) => k.includes("/5555555566666666/_zip/")), "нищо от опасните архиви не е разархивирано");
+  const u14 = B.units.length;
+  await fails(400, () => run(BROKER, "imports.apply", { job_id: s14.job_id, confirm: true, use_proposed: true }), /ARCHIVE_UNSAFE/);
+  assert.strictEqual(B.units.length, u14);
+  noLeak(f14, "jobs.result hostile");
+  done("враждебен пакет: обявен размер над 40 MB → 400 на входа; повреден ZIP (INVALID_PACKAGE), zip bomb и „../“ (ARCHIVE_UNSAFE), над 40 MB (FILE_TOO_LARGE) → отказ; нищо не е разархивирано; imports.apply → 400");
+
+  /* 15. двоен клик / повтор след прекъснат отговор: два едновременни imports.apply → един запис, другият е повтор */
+  const c15 = upload([{ name: "P/unit-data/d.csv", data: Buffer.from("Обект;Вход;Етаж;Обща площ;Цена на кв.м\nTEST-D1;А;5;61;1800\nTEST-D2;А;5;62;1800\n") }], PID, "7777777788888888");
+  const s15 = await run(BROKER, "imports.start", { project_id: PID, files: c15 }); await pollToEnd(BROKER, s15.job_id);
+  const u15 = B.units.length;
+  const both = await Promise.all([1, 2].map(() => run(BROKER, "imports.apply", { job_id: s15.job_id, confirm: true, use_proposed: true })));
+  assert.strictEqual(both.filter((x) => !x.replayed).length, 1); assert.strictEqual(both.filter((x) => x.replayed).length, 1);
+  assert.strictEqual(B.units.length, u15 + 2, "обектите са записани веднъж");
+  const third = await run(BROKER, "imports.apply", { job_id: s15.job_id, confirm: true, use_proposed: true });
+  assert.ok(third.replayed && third.state === "succeeded"); assert.strictEqual(B.units.length, u15 + 2);
+  done("идемпотентност на imports.apply: два едновременни + трети повтор → обектите са записани веднъж, останалите са „replayed“");
+
   console.log("\n" + n + "/" + n + " минали");
 })().catch((e) => { console.error(e); process.exit(1); });
