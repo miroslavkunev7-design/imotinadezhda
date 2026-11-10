@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="bg">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="theme-color" content="#400b12"/><meta name="description" content="Недвижими Имоти Надежда – апартаменти, къщи, парцели и търговски имоти за продажба и под наем в Шумен, Варна и Бургас. Лично отношение от първия оглед до нотариуса. Тел. 0898 977 370."/>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/><meta name="theme-color" content="#400b12"/><meta name="description" content="Недвижими Имоти Надежда – апартаменти, къщи, парцели и търговски имоти за продажба и под наем в Шумен, Варна и Бургас. Лично отношение от първия оглед до нотариуса. Тел. 0898 977 370."/>
 <title>Недвижими Имоти Надежда</title><meta property="og:site_name" content="Недвижими Имоти Надежда"><meta property="og:title" content="Недвижими Имоти Надежда"><meta property="og:description" content="Недвижими Имоти Надежда – апартаменти, къщи, парцели и търговски имоти за продажба и под наем в Шумен, Варна и Бургас. Лично отношение от първия оглед до нотариуса. Тел. 0898 977 370."><meta property="og:type" content="website"><meta property="og:url" content="https://imotinadezhda.bg/"><meta property="og:image" content="https://imotinadezhda.bg/mobile/home-assets/reference-bg.webp"><meta name="application-name" content="Недвижими Имоти Надежда"><meta name="apple-mobile-web-app-title" content="Недвижими Имоти Надежда"><link rel="canonical" href="https://imotinadezhda.bg/"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "RealEstateAgent", "name": "Недвижими Имоти Надежда", "alternateName": ["Имоти Надежда", "недвижими имоти надежда", "Imoti Nadezhda", "Nedvizhimi Imoti Nadezhda", "imotinadezhda", "imotinadezhda.bg"], "url": "https://imotinadezhda.bg/", "logo": "https://imotinadezhda.bg/mobile/crm/assets/app-icon3-round-512.png", "image": "https://imotinadezhda.bg/mobile/home-assets/reference-bg.webp", "telephone": "+359898977370", "areaServed": ["Шумен", "Варна", "Бургас"], "address": {"@type": "PostalAddress", "addressLocality": "Шумен", "addressCountry": "BG"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "Недвижими Имоти Надежда", "alternateName": ["Имоти Надежда", "Imoti Nadezhda"], "url": "https://imotinadezhda.bg/"}</script><link rel="icon" href="/mobile/crm/assets/app-icon3-round-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
@@ -202,23 +202,39 @@
 @media(max-width:768px){.nd-detail-card{padding:22px 18px 24px;border-radius:24px}.nd-detail-sep{margin:22px -18px 20px}.nd-detail-card .property-title-row h1{font-size:25px}.nd-detail-card .property-subtitle{font-size:17px}.nd-detail-card .detail-stat{flex:0 0 50%;min-width:0;padding:0 10px;border-right:0}.nd-detail-card .detail-stat:first-child{flex:0 0 100%}.nd-detail-card .stat-value{font-size:19px}.nd-detail-card .stat-value.price{font-size:27px}.nd-detail .nd-detail-card .description-card p{font-size:16px}.nd-detail .nd-detail-card .description-card h2{font-size:23px}.nd-detail .gallery-main{border-radius:20px}}
 </style>
 <style id="nd-city-video">
-/* Пълен кадър под логото: кутията = съотношението на клипа (без изрязване, без черни ленти). Преливка само в долните ~18%. */
-.home-hero.has-city-video{height:auto;max-height:none;min-height:0}
-.home-hero.has-city-video .home-video-slot{position:relative;z-index:1;width:100%;background:transparent;-webkit-mask-image:linear-gradient(#000 82%,transparent 100%);mask-image:linear-gradient(#000 82%,transparent 100%)}
-.home-hero.has-city-video .home-video{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:fill;object-position:center;border:0;margin:0;padding:0;background:transparent;border-radius:0}
+/* Клипът е под/зад логото и се изрязва по златната крива. Преливка = старата снимка. Login над видеото. Без странично изрязване. */
+.home-hero.has-city-video{--nd-logo-w:450px;--nd-logo-h:283px}
+.home-hero.has-city-video .nav{z-index:8}
+.home-hero.has-city-video .brand-panel{z-index:6}
+.home-hero.has-city-video .home-video-slot{
+  position:absolute;z-index:1;left:0;top:0;overflow:hidden;background:transparent;
+  -webkit-mask-image:linear-gradient(90deg,#000 65%,transparent 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 300' preserveAspectRatio='none'%3E%3Cpath d='M0 0H520C414 4 346 12 316 66C276 139 290 203 204 214C139 224 36 208 0 293Z' fill='white'/%3E%3C/svg%3E");
+  -webkit-mask-size:100% 100%,var(--nd-logo-w) var(--nd-logo-h);
+  -webkit-mask-position:0 0,0 0;
+  -webkit-mask-repeat:no-repeat,no-repeat;
+  -webkit-mask-composite:destination-out;
+  mask-image:linear-gradient(90deg,#000 65%,transparent 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 300' preserveAspectRatio='none'%3E%3Cpath d='M0 0H520C414 4 346 12 316 66C276 139 290 203 204 214C139 224 36 208 0 293Z' fill='white'/%3E%3C/svg%3E");
+  mask-size:100% 100%,var(--nd-logo-w) var(--nd-logo-h);
+  mask-position:0 0,0 0;
+  mask-repeat:no-repeat,no-repeat;
+  mask-composite:subtract;
+}
+.home-hero.has-city-video .home-video{display:block;width:100%;height:100%;object-fit:fill;object-position:center;border:0;margin:0;padding:0;background:transparent;border-radius:0;pointer-events:none}
+@media(max-width:1250px){.home-hero.has-city-video{--nd-logo-w:390px;--nd-logo-h:260px}}
 @media(max-width:768px){
-  .home-hero.has-city-video{display:flex;flex-direction:column;padding:195px 0 0;min-height:0;height:auto}
-  .home-hero.has-city-video .home-video-slot{flex:none;width:100%}
-  .home-hero.has-city-video .home-city{position:relative;left:auto;right:auto;top:auto;margin:-48px 23px 0;z-index:2}
-  .home-hero.has-city-video>.search-bar{position:relative;left:auto;right:auto;bottom:auto;margin:28px 12px 18px}
+  .home-hero.has-city-video{--nd-logo-w:290px;--nd-logo-h:195px;display:flex;flex-direction:column;padding:0;min-height:950px;height:auto;max-height:none}
+  .home-hero.has-city-video .home-video-slot{
+    position:relative;flex:none;width:100%;border-radius:29px 29px 0 0;
+    -webkit-mask-image:linear-gradient(#000 74%,transparent 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 300' preserveAspectRatio='none'%3E%3Cpath d='M0 0H520C414 4 346 12 316 66C276 139 290 203 204 214C139 224 36 208 0 293Z' fill='white'/%3E%3C/svg%3E");
+    mask-image:linear-gradient(#000 74%,transparent 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 300' preserveAspectRatio='none'%3E%3Cpath d='M0 0H520C414 4 346 12 316 66C276 139 290 203 204 214C139 224 36 208 0 293Z' fill='white'/%3E%3C/svg%3E");
+  }
+  .home-hero.has-city-video .home-city{position:relative;left:auto;right:auto;top:auto;margin:-12px 23px 0;z-index:2}
+  .home-hero.has-city-video>.search-bar{position:relative;left:auto;right:auto;bottom:auto;margin:auto 12px 18px 12px}
 }
 @media(min-width:769px){
-  .home-hero.has-city-video{--cv-top:283px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,1fr);grid-template-rows:auto auto;column-gap:28px;padding:var(--cv-top) 4% 36px 34px;align-items:center}
-  .home-hero.has-city-video .home-video-slot{grid-column:1;grid-row:1;width:100%}
-  .home-hero.has-city-video .home-city{grid-column:2;grid-row:1;position:relative;left:auto;right:auto;top:auto;margin:0}
-  .home-hero.has-city-video>.search-bar{grid-column:1/-1;grid-row:2;position:relative;left:auto;right:auto;bottom:auto;margin:22px 0 0}
+  .home-hero.has-city-video .home-video-slot{width:64%;border-radius:44px 0 0 0}
+  .home-hero.has-city-video .nav{z-index:8}
 }
-@media(min-width:769px) and (max-width:1250px){.home-hero.has-city-video{--cv-top:260px;padding-left:30px}}
 </style>
 <script>/* видеото на града: пускане и след докосване (iPhone в режим на ниска батерия спира autoplay) и при връщане към таба */
 (function(){function go(){[].forEach.call(document.querySelectorAll('video.home-video'),function(v){v.muted=true;if(v.paused){var p=v.play();if(p&&p.catch)p.catch(function(){})}})}
@@ -232,5 +248,5 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)go()
 
 <script>window.NDAshNoWidget=true</script><script src="/mobile/ash.js" defer></script>
 <script src="/mobile/nd-hscroll.js" defer></script>
-<script src="/mobile/ilj-app.js?v=task005f" defer></script>
+<script src="/mobile/ilj-app.js?v=task005g" defer></script>
 </body></html>

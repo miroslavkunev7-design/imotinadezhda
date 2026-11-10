@@ -2,7 +2,10 @@
 <html lang="bg">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Недвижими Имоти Надежда – имоти в Шумен, Варна, Бургас</title>
 <meta name="description" content="Недвижими Имоти Надежда – апартаменти, къщи, парцели и офиси за продажба и под наем в Шумен, Варна, Бургас и Нови пазар. Тел. 0898 977 370.">
 <meta property="og:site_name" content="Недвижими Имоти Надежда"><meta property="og:title" content="Недвижими Имоти Надежда">
@@ -19,11 +22,12 @@
 <style>
 :root{--wine:#710019;--wine-d:#510011;--cream:#fff9f2;--gold:#bb7b16;--gold-l:#ffe17a;--ink:#6a001b;--serif:'Bitter',Georgia,serif;--cond:'Roboto Condensed',Arial,sans-serif}
 *{box-sizing:border-box}
-html,body{margin:0;background:#6d5a4d;overflow-x:hidden}
-body{font-family:var(--cond);color:var(--ink)}
-#stage{position:relative;width:100%;overflow:hidden}
+html{height:100%;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;background:#3a2218}
+html,body{margin:0;background:#3a2218;overflow-x:hidden}
+body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-family:var(--cond);color:var(--ink)}
+#stage{position:relative;width:100%;overflow:hidden;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;background:#3a2218 url(desktop-home-assets/shumen-desktop-background.webp) center top / 100% 100% no-repeat}
 #cv{position:absolute;left:0;top:0;width:1672px;height:941px;transform-origin:0 0}
-.bg{position:absolute;inset:0;background:url(desktop-home-assets/shumen-desktop-background.webp) center/cover no-repeat}
+.bg{position:absolute;left:0;top:0;width:1672px;height:941px;background:url(desktop-home-assets/shumen-desktop-background.webp) 0 0/100% 100% no-repeat}
 .abs{position:absolute}
 /* header */
 .hdr{left:0;top:0;width:1672px;height:198px;background:url(desktop-home-assets/header-desktop.svg) 0 0/100% 100% no-repeat;filter:drop-shadow(0 4px 8px rgba(40,0,10,.35))}
@@ -65,11 +69,11 @@ body{font-family:var(--cond);color:var(--ink)}
 .card:hover video.ph{transform:none}
 /* drone video: box = clip ratio (full frame); cream fade only on the bottom ~20% */
 .card video.ph{display:block;width:100%;height:100%;object-fit:fill;object-position:center;background:transparent;pointer-events:none}
-.card .fd{position:absolute;left:0;right:0;top:auto;height:22%;bottom:0;background:linear-gradient(180deg,rgba(255,247,236,0) 0%,rgba(255,248,239,.7) 40%,#fff7ec 100%)}
-.card .pin{position:absolute;left:28px;top:auto;bottom:44px;width:38px;height:38px;color:var(--gold)}
-.card h3{position:absolute;left:72px;top:auto;bottom:40px;margin:0;font:700 30px/1.1 var(--serif);color:#6a001b}
-.card span{position:absolute;left:72px;top:auto;bottom:12px;font:700 21px/1 var(--serif);letter-spacing:.5px;color:#b5770f}
-.card .ar{position:absolute;right:28px;top:auto;bottom:32px;width:50px;height:50px;filter:drop-shadow(0 2px 3px rgba(120,60,0,.3))}
+.card .fd{position:absolute;left:0;right:0;top:42%;bottom:0;background:linear-gradient(180deg,rgba(255,247,236,0) 0%,rgba(255,248,239,.86) 30%,#fff7ec 52%,#fff7ec 100%)}
+.card .pin{position:absolute;left:28px;top:65%;width:38px;height:38px;color:var(--gold)}
+.card h3{position:absolute;left:72px;top:65%;margin:0;font:700 30px/1.1 var(--serif);color:#6a001b}
+.card span{position:absolute;left:72px;top:83%;font:700 21px/1 var(--serif);letter-spacing:.5px;color:#b5770f}
+.card .ar{position:absolute;right:28px;top:70%;width:50px;height:50px;filter:drop-shadow(0 2px 3px rgba(120,60,0,.3))}
 /* about */
 .ab{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(40,5,12,.5);backdrop-filter:blur(6px)}
 .ab.on{display:flex}
@@ -137,8 +141,16 @@ body{font-family:var(--cond);color:var(--ink)}
 <script>
 (function(){
   var W=1672,H=941,cv=document.getElementById('cv'),st=document.getElementById('stage');
-  function fit(){var k=document.documentElement.clientWidth/W;cv.style.transform='scale('+k+')';st.style.height=Math.max(H*k,innerHeight)+'px'}
+  function fit(){
+    var k=document.documentElement.clientWidth/W;
+    var vh=(window.visualViewport&&visualViewport.height)||innerHeight;
+    cv.style.transform='scale('+k+')';
+    var minH=Math.max(H,vh/k);
+    cv.style.height=minH+'px';
+    st.style.height=(minH*k)+'px';
+  }
   fit();addEventListener('resize',fit);
+  if(window.visualViewport)visualViewport.addEventListener('resize',fit);
   var CITY={'Шумен':'shumen','Варна':'varna','Бургас':'burgas','Нови пазар':'shumen'};
   var HOODS={};
   var PR=[['200000-500000','от 200 000 €','до 500 000 €'],['0-100000','до 100 000 €',''],['100000-200000','от 100 000 €','до 200 000 €'],['500000-','над 500 000 €',''],['','Без значение','']];

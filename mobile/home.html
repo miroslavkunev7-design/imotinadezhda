@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#600011">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Недвижими Имоти Надежда</title><meta property="og:site_name" content="Недвижими Имоти Надежда"><meta property="og:title" content="Недвижими Имоти Надежда"><meta property="og:description" content="Недвижими Имоти Надежда – апартаменти, къщи, парцели и търговски имоти за продажба и под наем в Шумен, Варна и Бургас. Лично отношение от първия оглед до нотариуса. Тел. 0898 977 370."><meta property="og:type" content="website"><meta property="og:url" content="https://imotinadezhda.bg/"><meta property="og:image" content="https://imotinadezhda.bg/mobile/home-assets/reference-bg.webp"><meta name="application-name" content="Недвижими Имоти Надежда"><meta name="apple-mobile-web-app-title" content="Недвижими Имоти Надежда"><link rel="canonical" href="https://imotinadezhda.bg/"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "RealEstateAgent", "name": "Недвижими Имоти Надежда", "alternateName": ["Имоти Надежда", "недвижими имоти надежда", "Imoti Nadezhda", "Nedvizhimi Imoti Nadezhda", "imotinadezhda", "imotinadezhda.bg"], "url": "https://imotinadezhda.bg/", "logo": "https://imotinadezhda.bg/mobile/crm/assets/app-icon3-round-512.png", "image": "https://imotinadezhda.bg/mobile/home-assets/reference-bg.webp", "telephone": "+359898977370", "areaServed": ["Шумен", "Варна", "Бургас", "Нови пазар"], "address": {"@type": "PostalAddress", "addressLocality": "Шумен", "addressCountry": "BG"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "Недвижими Имоти Надежда", "alternateName": ["Имоти Надежда", "Imoti Nadezhda"], "url": "https://imotinadezhda.bg/"}</script>
 <meta name="description" content="Недвижими Имоти Надежда – апартаменти, къщи, парцели и търговски имоти за продажба и под наем в Шумен, Варна и Бургас. Лично отношение от първия оглед до нотариуса. Тел. 0898 977 370."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,12 +19,13 @@
 <style>
 :root{--wine:#680019;--wine2:#78001e;--gold:#c48b24;--cream:#fff8ef}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;background:#2e0d16}
 html,body{background:#2e0d16;-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden}
-body{font-family:Georgia,'PT Serif','Times New Roman',serif;color:var(--wine)}
+body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-family:Georgia,'PT Serif','Times New Roman',serif;color:var(--wine)}
 button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:none;border:0}a{color:inherit;text-decoration:none}
 :focus-visible{outline:3px solid #ffcc49;outline-offset:3px}
 /* the page is drawn on an 865 px canvas (the approved reference) and scaled to the screen */
-#stage{position:relative;width:100%;overflow:hidden;height:calc(1720 * 100vw / 865)}
+#stage{position:relative;width:100%;overflow:hidden;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;height:max(100dvh,calc(1720 * 100vw / 865));background:#2e0d16}
 #cv{position:absolute;left:0;top:0;width:865px;min-height:1720px;transform:scale(calc(100vw / 865));transform-origin:0 0;overflow:hidden;contain:layout}
 .bg{position:absolute;left:0;top:0;width:865px;height:1536px;object-fit:cover}
 /* под 1536 px (високи телефони): продължение на каменната основа към тъмно бордо, вместо зелен блок */
@@ -69,7 +73,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 /* city cards */
 .city{z-index:2;border:2px solid #e2a33b;background:#fff7ed;border-radius:30px;box-shadow:0 8px 17px rgba(32,13,8,.4),0 0 14px rgba(255,214,150,.35);overflow:hidden;text-align:left;color:#6c001b}
 .city .ph{position:absolute;left:0;right:0;top:0;height:100%;width:100%;object-fit:fill;object-position:center}
-.city .fade{position:absolute;left:0;right:0;bottom:0;height:32%;background:linear-gradient(to bottom,rgba(255,248,238,0) 0%,rgba(255,248,238,.55) 40%,#fff8ed 100%)}
+.city .fade{position:absolute;left:0;right:0;bottom:0;height:58%;background:linear-gradient(to bottom,rgba(255,248,238,0) 0%,rgba(255,248,238,.8) 38%,#fff8ed 68%,#fff8ed 100%)}
 .city .ct{position:absolute;left:30px;right:22px;bottom:24px;display:flex;align-items:flex-end;justify-content:space-between}
 .city .nm{display:flex;align-items:center;gap:10px;font-size:33px;font-weight:700;white-space:nowrap}
 .city .nm img{width:30px;height:30px;filter:brightness(0) saturate(100%) invert(48%) sepia(95%) saturate(598%) hue-rotate(352deg)}
@@ -119,14 +123,14 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 
 /* city cards are drawn live over the artwork; its baked cards are hidden under the same scene without cards (trees, stairs, lamps –
    cut from shumen-reconstructed-background) so the gaps between the live cards show the landscape, not a box (09.11) */
-.cglass{left:0;top:905px;width:865px;height:815px;z-index:1;pointer-events:none;contain:strict;background:url(/mobile/home-assets/home-cards-scene.webp) 0 0/865px auto no-repeat;
+.cglass{left:0;top:905px;width:865px;bottom:0;height:auto;z-index:1;pointer-events:none;contain:strict;background:url(/mobile/home-assets/home-cards-scene.webp) 0 0/865px 100% no-repeat,#2e0d16;
   -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 20px);mask-image:linear-gradient(to bottom,transparent 0,#000 20px)}
 .city.c1,.city.c2,.city.c3{background:#fff7ed;border:2px solid #e2a33b;box-shadow:0 8px 17px rgba(32,13,8,.4),0 0 14px rgba(255,214,150,.35)}
 .city.c1>*,.city.c2>*,.city.c3>*{opacity:1}
 .city.c1 .nm{font:700 35px/1 Bitter,Georgia,serif}.city.c1 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
 .city.c2 .nm,.city.c3 .nm{font:700 33px/1 Bitter,Georgia,serif}.city.c2 .vc,.city.c3 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
-.city.c1 .fade{height:20%}
-/* drone videos: box = clip ratio (full frame, no crop, no bands); cream fade only on the bottom ~20% */
+.city.c1 .fade{height:52%}
+/* drone videos: box = clip ratio (full frame); cream fade = old still (58%/52%) */
 .city video.ph{display:block;background:transparent;pointer-events:none}
 </style>
 </head>
@@ -181,13 +185,16 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   var cv = $("cv"), st = $("stage"), W = 865, H = 1720;
   function fit() {
     var k = document.documentElement.clientWidth / W;
+    var vh = (window.visualViewport && visualViewport.height) || innerHeight;
     cv.style.zoom = "";
     cv.style.transform = "scale(" + k + ")";
-    var minH = Math.max(H, innerHeight / k);
+    var minH = Math.max(H, vh / k);
     cv.style.minHeight = minH + "px";
-    if (st) st.style.height = Math.max(minH * k, innerHeight) + "px";
+    if (st) st.style.height = (minH * k) + "px";
   }
-  addEventListener("resize", fit); fit();
+  addEventListener("resize", fit);
+  if (window.visualViewport) visualViewport.addEventListener("resize", fit);
+  fit();
 
   var CITIES = { "Шумен": "shumen", "Варна": "varna", "Бургас": "burgas" };
   var HOODS = window.NDPlaces ? { "Бургас": NDPlaces.PLACES["Бургас"], "Шумен": NDPlaces.PLACES["Шумен"], "Варна": NDPlaces.PLACES["Варна"] } : {
