@@ -63,8 +63,8 @@ body{font-family:var(--cond);color:var(--ink)}
 .card:hover{transform:translateY(-5px);box-shadow:0 0 0 2px #f6cf6c,0 0 22px rgba(255,214,130,.9),0 14px 22px rgba(30,0,8,.5)}
 .card .ph{position:absolute;left:0;top:0;width:100%;height:160px;background-size:cover;background-position:center;transition:transform .8s}
 .card:hover .ph{transform:scale(1.06)}
-/* drone video instead of the photo: own proportions (cover = no squeezing or stretching), poster until it starts */
-.card video.ph{display:block;object-fit:cover;background:#efe3d3;pointer-events:none}
+/* drone video: same 160px photo slot as .card .ph, cover, cream .fd fade */
+.card video.ph{display:block;width:100%;height:160px;object-fit:cover;object-position:center;background:transparent;pointer-events:none}
 .card .fd{position:absolute;left:0;right:0;top:96px;bottom:0;background:linear-gradient(180deg,rgba(255,247,236,0) 0%,rgba(255,248,239,.86) 30%,#fff7ec 52%,#fff7ec 100%)}
 .card .pin{position:absolute;left:28px;top:150px;width:38px;height:38px;color:var(--gold)}
 .card h3{position:absolute;left:72px;top:150px;margin:0;font:700 30px/1.1 var(--serif);color:#6a001b}

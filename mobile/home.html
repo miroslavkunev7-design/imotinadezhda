@@ -126,12 +126,8 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .city.c1 .nm{font:700 35px/1 Bitter,Georgia,serif}.city.c1 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
 .city.c2 .nm,.city.c3 .nm{font:700 33px/1 Bitter,Georgia,serif}.city.c2 .vc,.city.c3 .vc{font:700 25px/1.2 Bitter,Georgia,serif}
 .city.c1 .fade{height:52%}
-/* drone videos */
-.city video.ph{display:block;background:#efe3d3;pointer-events:none}
-/* Шумен (wide card): the video fills the card under the cream fade, cropped (cover, never stretched) with the monument in view – no seam at its lower edge */
-.city.c1 video.ph{height:100%;object-fit:cover;object-position:center 46%}
-/* Варна/Бургас (small cards): the whole frame in its own proportions (full width, natural height) – nothing squeezed, stretched or cut at the sides */
-.city.c2 video.ph{height:auto;aspect-ratio:1280/724}.city.c3 video.ph{height:auto;aspect-ratio:1280/736}
+/* drone videos: same slot as the old still (.city .ph) — cover the image area; cream .fade blends into the card */
+.city video.ph{display:block;background:transparent;pointer-events:none}
 </style>
 </head>
 <body>
