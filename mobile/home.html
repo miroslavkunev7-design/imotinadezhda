@@ -6,7 +6,8 @@
 <meta name="theme-color" content="#600011">
 <title>Недвижими Имоти Надежда</title><meta property="og:site_name" content="Недвижими Имоти Надежда"><meta property="og:title" content="Недвижими Имоти Надежда"><meta property="og:description" content="Недвижими Имоти Надежда – апартаменти, къщи, парцели и търговски имоти за продажба и под наем в Шумен, Варна и Бургас. Лично отношение от първия оглед до нотариуса. Тел. 0898 977 370."><meta property="og:type" content="website"><meta property="og:url" content="https://imotinadezhda.bg/"><meta property="og:image" content="https://imotinadezhda.bg/mobile/home-assets/reference-bg.webp"><meta name="application-name" content="Недвижими Имоти Надежда"><meta name="apple-mobile-web-app-title" content="Недвижими Имоти Надежда"><link rel="canonical" href="https://imotinadezhda.bg/"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "RealEstateAgent", "name": "Недвижими Имоти Надежда", "alternateName": ["Имоти Надежда", "недвижими имоти надежда", "Imoti Nadezhda", "Nedvizhimi Imoti Nadezhda", "imotinadezhda", "imotinadezhda.bg"], "url": "https://imotinadezhda.bg/", "logo": "https://imotinadezhda.bg/mobile/crm/assets/app-icon3-round-512.png", "image": "https://imotinadezhda.bg/mobile/home-assets/reference-bg.webp", "telephone": "+359898977370", "areaServed": ["Шумен", "Варна", "Бургас", "Нови пазар"], "address": {"@type": "PostalAddress", "addressLocality": "Шумен", "addressCountry": "BG"}}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "Недвижими Имоти Надежда", "alternateName": ["Имоти Надежда", "Imoti Nadezhda"], "url": "https://imotinadezhda.bg/"}</script>
 <meta name="description" content="Недвижими Имоти Надежда – апартаменти, къщи, парцели и търговски имоти за продажба и под наем в Шумен, Варна и Бургас. Лично отношение от първия оглед до нотариуса. Тел. 0898 977 370."/>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bitter:wght@700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Bitter:wght@700&display=swap" rel="stylesheet"></noscript>
 <link rel="icon" href="/mobile/crm/assets/app-icon3-round-192.png">
 <link rel="preload" as="image" href="/mobile/home-assets/reference-bg.webp">
 <script>(function(){var k=document.documentElement.clientWidth/865;if(k>0)document.documentElement.style.setProperty('--ndk',String(k));})();</script>
@@ -18,7 +19,8 @@ body{font-family:Georgia,'PT Serif','Times New Roman',serif;color:var(--wine)}
 button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:none;border:0}a{color:inherit;text-decoration:none}
 :focus-visible{outline:3px solid #ffcc49;outline-offset:3px}
 /* the page is drawn on an 865 px canvas (the approved reference) and scaled to the screen */
-#cv{position:relative;width:865px;min-height:1536px;transform-origin:0 0;overflow:hidden;zoom:var(--ndk,1);contain:layout}
+#stage{position:relative;width:100%;overflow:hidden;height:calc(1536 * 100vw / 865)}
+#cv{position:absolute;left:0;top:0;width:865px;min-height:1536px;transform:scale(calc(100vw / 865));transform-origin:0 0;overflow:hidden;contain:layout}
 .bg{position:absolute;left:0;top:0;width:865px;height:1536px;object-fit:cover}
 /* под 1536 px (високи телефони): продължение на каменната основа към тъмно бордо, вместо зелен блок */
 #cv{background:#54454c linear-gradient(180deg,#56464d 0,#3b262c 220px,#2e0d16 100%) no-repeat 0 1536px/100% calc(100% - 1536px)}
@@ -131,8 +133,8 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 </style>
 </head>
 <body>
-<div id="cv">
-  <img class="bg" src="/mobile/home-assets/reference-bg.webp" alt="Шумен – паметникът „Създатели на българската държава“ и панорама на града">
+<div id="stage"><div id="cv">
+  <img class="bg" src="/mobile/home-assets/reference-bg.webp" alt="Шумен – паметникът „Създатели на българската държава“ и панорама на града" width="865" height="1536" fetchpriority="high" decoding="async">
 
   <header class="abs hdr">
     <img src="/mobile/home-assets/header-shape.svg" alt="">
@@ -165,7 +167,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   <button class="abs city c1" data-city="shumen"><video class="ph" data-src="/mobile/home-assets/city-shumen.mp4" poster="/mobile/home-assets/city-shumen-poster.webp" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
   <button class="abs city c2" data-city="varna"><video class="ph" data-src="/mobile/home-assets/city-varna.mp4" poster="/mobile/home-assets/city-varna-poster.webp" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
   <button class="abs city c3" data-city="burgas"><video class="ph" data-src="/mobile/home-assets/city-burgas.mp4" poster="/mobile/home-assets/city-burgas-poster.webp" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
-</div>
+</div></div>
 
 
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sh-t">
@@ -178,11 +180,14 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 (function () {
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
-  var cv = $("cv"), W = 865, H = 1536;
+  var cv = $("cv"), st = $("stage"), W = 865, H = 1536;
   function fit() {
     var k = document.documentElement.clientWidth / W;
-    cv.style.zoom = k;
-    cv.style.minHeight = Math.max(H, innerHeight / k) + "px";
+    cv.style.zoom = "";
+    cv.style.transform = "scale(" + k + ")";
+    var minH = Math.max(H, innerHeight / k);
+    cv.style.minHeight = minH + "px";
+    if (st) st.style.height = Math.max(minH * k, innerHeight) + "px";
   }
   addEventListener("resize", fit); fit();
 
