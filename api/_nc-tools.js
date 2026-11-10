@@ -62,7 +62,7 @@ const RUN = {
   "nc.help": async (ctx, i) => {
     const list = Object.keys(RUN).filter((k) => !i.tool || k === i.tool).map((k) => ({ name: k, role: C.CONTRACTS[k].role, description: C.CONTRACTS[k].description, input: describeFields(C.CONTRACTS[k].input.fields), output: C.CONTRACTS[k].output }));
     if (i.tool && !list.length) throw new ToolError("Няма такъв инструмент в модула", 404);
-    return { module: "Ново строителство", statuses: BG, rules: ["Статус се сменя само с units.set_status и изрично потвърждение (confirm:true).", "Оригинални планове не се изпращат и не се дават като линк.", "В модула няма инвеститор, строител, строителна фирма и изпълнител.", "Цената на обект = площ × цена на кв.м и се смята от системата."], tools: list };
+    return { module: "Ново строителство", statuses: BG, rules: ["Статус се сменя само с units.set_status и изрично потвърждение (confirm:true).", "Оригинални планове не се изпращат и не се дават като линк.", "В модула няма инвеститор, строител, строителна фирма и изпълнител.", "Цената на обект = площ × цена на кв.м и се смята от системата.", "Импорт на проектен пакет: projects.create_draft (ако проектът е нов) → imports.start → jobs.status (повтаряй, докато state не е needs_review/needs_input) → jobs.result (view=summary) → imports.apply само след изрично „Да“ от човек. Импортът не внася статуси и не публикува."], tools: list };
   },
 
   "projects.list": async (ctx, i) => {
@@ -393,6 +393,10 @@ async function publicFile(req, res) {
   res.statusCode = 302; res.setHeader("Location", abs); res.setHeader("Cache-Control", "no-store, max-age=0"); res.setHeader("X-Robots-Tag", "noindex"); res.setHeader("Referrer-Policy", "no-referrer"); res.end();
 }
 
+/* ---------- TASK-006 · импорт на проектен пакет (същият регистър, същият токен; един импорт за CRM и Тед) ---------- */
+let IMP = null;
+try { IMP = require("./_nc-import.js"); Object.keys(IMP.RUN).forEach((k) => { if (C.CONTRACTS[k] && !RUN[k]) RUN[k] = IMP.RUN[k]; }); } catch (e) { console.error("nc import not loaded", e && e.message); }
+
 /* ---------- регистър (същата форма като в _ted-skills.js) ---------- */
 const tools = {};
 Object.keys(RUN).forEach((name) => {
@@ -402,4 +406,4 @@ Object.keys(RUN).forEach((name) => {
 const names = Object.keys(tools);
 const SPEC = names.map((n) => "- " + n + ": " + tools[n].description).join("\n");
 
-module.exports = { tools, names, SPEC, publicFile, ToolError, makeDerivative, fillPolygon, kick, runPlanJob, _fail: fail };
+module.exports = { tools, names, SPEC, publicFile, ToolError, makeDerivative, fillPolygon, kick, runPlanJob, _fail: fail, importTick: (ms) => (IMP ? IMP.tick(ms) : Promise.resolve(0)) };

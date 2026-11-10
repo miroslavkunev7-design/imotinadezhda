@@ -69,6 +69,33 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
   await t("M1 nc_001 (v2) се прилага без грешка", async () => { await db.exec(SQL("nc_001_new_construction.sql")); });
   await t("M2 nc_002 (v2) се прилага без грешка", async () => { await db.exec(SQL("nc_002_jobs_rpc.sql")); });
   await t("M3 nc_003 (втвърдяване след втората проверка) се прилага без грешка", async () => { await db.exec(SQL("nc_003_hardening.sql")); });
+  /* снимка на схемата ПРЕДИ nc_004: функции (с подпис, вид, search_path, права), таблици/колони, политики, тригери, ограничения → за проверката на nc_004_import_down.sql */
+  const catalog = async () => (await q(`
+    select 'fn ' || p.oid::regprocedure::text || ' secdef=' || p.prosecdef || ' cfg=' || coalesce(array_to_string(p.proconfig, ','), '') || ' acl=' || coalesce(array_to_string(p.proacl, ','), '') as x
+      from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public'
+    union all select 'col ' || c.table_name || '.' || c.column_name || ' ' || c.data_type || ' ' || c.is_nullable || ' ' || coalesce(c.column_default, '') from information_schema.columns c where c.table_schema = 'public'
+    union all select 'pol ' || schemaname || '.' || tablename || '.' || policyname || ' ' || cmd || ' ' || coalesce(qual, '') || ' ' || coalesce(with_check, '') from pg_policies
+    union all select 'trg ' || tgrelid::regclass::text || '.' || tgname from pg_trigger where not tgisinternal
+    union all select 'con ' || conrelid::regclass::text || '.' || conname || ' ' || pg_get_constraintdef(oid) from pg_constraint where connamespace = 'public'::regnamespace
+    union all select 'acl ' || c.oid::regclass::text || ' ' || coalesce(array_to_string(c.relacl, ','), '') from pg_class c where c.relnamespace = 'public'::regnamespace and c.relkind in ('r','v','S')
+    order by 1`)).map((r) => r.x);
+  const before004 = await catalog();
+  let added004 = [];
+  await t("M4 nc_004 (импорт, TASK-006) се прилага без грешка", async () => { await db.exec(SQL("nc_004_import.sql")); });
+  await t("M5 nc_004 добавя САМО 4 функции (нищо друго в схемата не се променя); SECURITY DEFINER – само със search_path=''", async () => {
+    const after = await catalog(), added = after.filter((x) => !before004.includes(x)), removed = before004.filter((x) => !after.includes(x));
+    added004 = added;
+    assert.deepStrictEqual(removed, [], "nc_004 не маха и не променя нищо съществуващо");
+    assert.deepStrictEqual(added.map((x) => x.split(" ")[1].replace(/\(.*$/, "")).sort(), ["nd_import_apply", "nd_import_job_begin", "nd_import_job_done", "nd_job_claim_id"]);
+    added.forEach((x) => {
+      const acl = x.replace(/^.* acl=/, "");
+      assert.ok(/ cfg=search_path=""/.test(x), "search_path='' : " + x);
+      assert.ok(acl && !/(^|,)=X\//.test(acl), "без PUBLIC execute: " + x);
+      assert.ok(!/(^|,)anon=X/.test(acl), "без anon: " + x);
+    });
+    assert.ok(added.find((x) => /nd_job_claim_id/.test(x) && /secdef=true/.test(x) && !/authenticated=X/.test(x)), "claim_id: само service_role");
+    assert.ok(added.find((x) => /nd_import_apply/.test(x) && /secdef=false/.test(x)), "nd_import_apply е SECURITY INVOKER (записът е под правата на служителя)");
+  });
 
   let P, P2, B, B2, F, F2, U1, U2, U3, V1;
   const planPath = (pid, code) => `projects/${pid}/private/units/${code}/plan.pdf`;
@@ -451,12 +478,143 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
     assert.strictEqual(last.version, before.version + 1); assert.strictEqual(last.content_rev, before.content_rev + 3);
   });
 
+  /* ---------- TASK-006 · nc_004: импорт ---------- */
+  let PI, JI;
+  const reviewJob = async (uid, pid, key) => {
+    const r = await as("authenticated", uid, () => q("select nd_job_create('import',$1,$2,'{}'::jsonb) as r", [key, pid]));
+    const id = r[0].r.id;
+    const c = await svc("select id from nd_job_claim_id($1, array['import'], 'w-test')", [id]);
+    assert.strictEqual(c[0].id, id, "claim_id взима точно тази задача");
+    await svc("select id from nd_job_finish($1, 'w-test', 'review', '{\"state\":\"needs_review\"}'::jsonb, null, 0)", [id]);
+    return id;
+  };
+  const rev = async (pid) => (await svc("select content_rev from nd_projects where id=$1", [pid]))[0].content_rev;
+  const applyAs = (role, uid, job, pid, r, payload) => as(role, uid, async () => (await q("select nd_import_apply($1,$2,$3,$4) as r", [job, pid, r, JSON.stringify(payload)]))[0].r);
+  const imp = (pid) => `projects/${pid}/private/imports/aaaaaaaa11112222/0001-plan.png`;
+  const payload1 = (pid) => ({ buildings: [{ ref: "b1", name: "TEST-Вход А", data: { import: { job: "j", src: { name: "f1:Обекти!B4" } } } }],
+    floors: [{ ref: "f1", building_ref: "b1", level: 1, label: null, data: { import: { src: { level: "f1:Обекти!C4" } } } }],
+    units: [{ ref: "u1", floor_ref: "f1", code: "TEST-I1", area_total: 102.70, area_net: 88.10, price_per_m2: 2100, price_override: false, status: "sold", data: { rooms: 3, plan: { private: imp(pid) }, import: { src: { area_total: "f1:Обекти!D4" } } } },
+            { ref: "u2", floor_ref: "f1", code: "TEST-I2", area_total: 60, price_override: true, price_total: 120000, price_override_reason: "по импорт – обща цена от файла", data: { import: { manual: { price_total: { by: "x" } } } } }] });
+
+  await t("I1 nc_004: изпълнителят взима ТОЧНО своята задача (claim_id); повторно – нищо; служител не може да вика claim_id (42501)", async () => {
+    await as("authenticated", BROKER, async () => { PI = (await q("insert into nd_projects(name, data) values ('TEST-Импорт', '{\"title\":\"TEST-Импорт\"}') returning *"))[0]; });
+    const r = await as("authenticated", BROKER, () => q("select nd_job_create('import','import:test:claim:0001',$1,'{}'::jsonb) as r", [PI.id]));
+    const id = r[0].r.id;
+    const c1 = await svc("select id, status, locked_by from nd_job_claim_id($1, array['import'], 'w-1')", [id]);
+    assert.strictEqual(c1[0].id, id); assert.strictEqual(c1[0].status, "running");
+    const c2 = await svc("select id from nd_job_claim_id($1, array['import'], 'w-2')", [id]);
+    assert.strictEqual(c2[0].id, null, "заета задача не се взима втори път");
+    await fails("42501", () => as("authenticated", BROKER, () => q("select nd_job_claim_id($1, array['import'], 'x')", [id])), "служител");
+    // спрял изпълнител → връща се в опашката с изчакване (не веднага), опитът не се брои
+    await svc("update nd_jobs set heartbeat_at = now() - interval '10 minutes' where id=$1", [id]);
+    const c3 = await svc("select id from nd_job_claim_id($1, array['import'], 'w-3')", [id]);
+    assert.strictEqual(c3[0].id, null);
+    const st = (await svc("select status, crash_count, next_attempt_at > now() as later from nd_jobs where id=$1", [id]))[0];
+    assert.deepStrictEqual([st.status, st.crash_count, st.later], ["queued", 1, true]);
+  });
+
+  await t("I2 nc_004: прекият опит да се маркира импорт като записан без nd_import_apply → 42501; чужд служител не записва (42501)", async () => {
+    JI = await reviewJob(BROKER, PI.id, "import:test:apply:0001");
+    await fails("42501", () => as("authenticated", BROKER, () => q("select nd_import_job_done($1, '{}'::jsonb)", [JI])), "direct done");
+    await fails("42501", async () => applyAs("authenticated", BROKER2, JI, PI.id, await rev(PI.id), payload1(PI.id)), "чужд брокер");
+    await fails("42501", () => applyAs("anon", null, JI, PI.id, 1, payload1(PI.id)), "анонимен");
+    assert.strictEqual((await svc("select status from nd_jobs where id=$1", [JI]))[0].status, "review");
+  });
+
+  await t("I3 nc_004: брокер записва черновата в ЕДНА транзакция под своите права; статусът винаги free; цената смята базата; ръчна цена с причина; произход в data.import; задача → done", async () => {
+    const r = await applyAs("authenticated", BROKER, JI, PI.id, await rev(PI.id), payload1(PI.id));
+    assert.deepStrictEqual(r.created, { buildings: 1, floors: 1, units: 2 }); assert.strictEqual(r.replayed, false);
+    const u = await svc("select code, status, price_total, price_override, data from nd_units where project_id=$1 order by code", [PI.id]);
+    assert.strictEqual(u.length, 2); assert.ok(u.every((x) => x.status === "free"), "статусът не идва от импорта");
+    assert.strictEqual(Number(u[0].price_total), 215670, "102,70 × 2100 = 215 670 (смята базата)");
+    assert.strictEqual(Number(u[1].price_total), 120000); assert.strictEqual(u[1].price_override, true);
+    assert.strictEqual(u[0].data.import.ref, "u1"); assert.strictEqual(u[0].data.import.src.area_total, "f1:Обекти!D4");
+    const j = (await svc("select status, result from nd_jobs where id=$1", [JI]))[0];
+    assert.strictEqual(j.status, "done"); assert.deepStrictEqual(j.result.applied.created, { buildings: 1, floors: 1, units: 2 });
+    const pd = await svc("select count(*)::int n from nd_jobs where kind='plan_derivative' and project_id=$1", [PI.id]);
+    assert.ok(pd[0].n >= 1, "планът поражда заявка за производна (TASK-007 механизъм)");
+  });
+
+  await t("I4 nc_004: повтор на същия запис → същата разписка, без дубликати (идемпотентно)", async () => {
+    const r = await applyAs("authenticated", BROKER, JI, PI.id, 1, payload1(PI.id));
+    assert.strictEqual(r.replayed, true); assert.deepStrictEqual(r.created, { buildings: 1, floors: 1, units: 2 });
+    assert.strictEqual((await svc("select count(*)::int n from nd_units where project_id=$1", [PI.id]))[0].n, 2);
+    assert.strictEqual((await svc("select count(*)::int n from nd_buildings where project_id=$1", [PI.id]))[0].n, 1);
+  });
+
+  await t("I5 nc_004: стара версия на проекта → NC409 и НИЩО не е записано; грешка в средата на записа → връщане на всичко (без частичен запис)", async () => {
+    const J2 = await reviewJob(BROKER, PI.id, "import:test:apply:0002");
+    const p2 = { buildings: [{ ref: "b9", name: "TEST-Вход Б" }], floors: [{ ref: "f9", building_ref: "b9", level: 2 }], units: [{ ref: "u9", floor_ref: "f9", code: "TEST-I9", area_total: 50 }] };
+    await fails("NC409", async () => applyAs("authenticated", BROKER, J2, PI.id, (await rev(PI.id)) - 1, p2), "content_rev");
+    const bad = JSON.parse(JSON.stringify(p2)); bad.units.push({ ref: "u10", floor_ref: "f9", code: "TEST-I10", area_total: 50, area_net: 60 });
+    await fails("23514", async () => applyAs("authenticated", BROKER, J2, PI.id, await rev(PI.id), bad), "net>total в средата");
+    const forb = JSON.parse(JSON.stringify(p2)); forb.units[0].data = { investor: "TEST" };
+    await fails("23514", async () => applyAs("authenticated", BROKER, J2, PI.id, await rev(PI.id), forb), "забранено поле");
+    assert.strictEqual((await svc("select count(*)::int n from nd_buildings where project_id=$1", [PI.id]))[0].n, 1, "няма частично записана сграда");
+    assert.strictEqual((await svc("select count(*)::int n from nd_units where project_id=$1", [PI.id]))[0].n, 2);
+    assert.strictEqual((await svc("select status from nd_jobs where id=$1", [J2]))[0].status, "review", "задачата чака преглед");
+    // обновяване на съществуващ обект: само при същата версия
+    const u1 = (await svc("select id, version from nd_units where project_id=$1 and code='TEST-I1'", [PI.id]))[0];
+    const upd = { units_update: [{ id: u1.id, expected_version: u1.version + 5, set: { area_total: 103.1 }, data_patch: {} }] };
+    await fails("NC409", async () => applyAs("authenticated", BROKER, J2, PI.id, await rev(PI.id), upd), "стара версия на обект");
+    const ok = await applyAs("authenticated", BROKER, J2, PI.id, await rev(PI.id), { units_update: [{ id: u1.id, expected_version: u1.version, set: { area_total: 103.1 }, data_patch: { import: { job: "J2" } } }] });
+    assert.strictEqual(ok.updated.units, 1);
+    const after = (await svc("select area_total, price_total, status from nd_units where id=$1", [u1.id]))[0];
+    assert.strictEqual(Number(after.area_total), 103.1); assert.strictEqual(Number(after.price_total), 216510); assert.strictEqual(after.status, "free");
+  });
+
+  await t("I6 nc_004: отменен импорт не се записва (NC409); в ПУБЛИКУВАН проект брокер не добавя обекти (42501, всичко се връща), администратор – да", async () => {
+    const J3 = await reviewJob(BROKER, PI.id, "import:test:apply:0003");
+    await as("authenticated", BROKER, () => q("select nd_job_cancel($1)", [J3]));
+    await fails("NC409", async () => applyAs("authenticated", BROKER, J3, PI.id, await rev(PI.id), { units: [] }), "отменен");
+    await svc("update nd_projects set status='published', slug='test-import-pub' where id=$1", [PI.id]);
+    const J4 = await reviewJob(BROKER, PI.id, "import:test:apply:0004");
+    const fl = (await svc("select id from nd_floors where project_id=$1 limit 1", [PI.id]))[0];
+    const p4 = { units: [{ ref: "u4", floor_id: fl.id, code: "TEST-I4", area_total: 70 }] };
+    await fails("42501", async () => applyAs("authenticated", BROKER, J4, PI.id, await rev(PI.id), p4), "брокер в публикуван");
+    assert.strictEqual((await svc("select count(*)::int n from nd_units where project_id=$1", [PI.id]))[0].n, 2);
+    const J5 = await reviewJob(ADMIN, PI.id, "import:test:apply:0005");
+    const r5 = await applyAs("authenticated", ADMIN, J5, PI.id, await rev(PI.id), p4);
+    assert.strictEqual(r5.created.units, 1);
+    await svc("update nd_projects set status='draft', slug=null where id=$1", [PI.id]);
+  });
+
+  await t("I7 nc_004: 3000 обекта в една транзакция (време се записва; лимитът на живата база е 8 s за authenticated)", async () => {
+    const J6 = await reviewJob(BROKER, PI.id, "import:test:apply:0006");
+    const units = []; for (let k = 0; k < 3000; k++) units.push({ ref: "u" + k, floor_ref: "fb" + (k % 30), code: "TEST-B" + k, area_total: 50 + (k % 40), area_net: 40, price_per_m2: 1800 + k % 300, data: { rooms: 2, import: { src: { area_total: "f1:Лист!D" + (k + 2) } } } });
+    const floors = []; for (let k = 0; k < 30; k++) floors.push({ ref: "fb" + k, building_ref: "bb", level: k });
+    const t0 = Date.now();
+    const r = await applyAs("authenticated", BROKER, J6, PI.id, await rev(PI.id), { buildings: [{ ref: "bb", name: "TEST-Блок Б" }], floors, units });
+    const ms = Date.now() - t0;
+    assert.strictEqual(r.created.units, 3000);
+    results.push(["INFO", "I7 време за 3000 обекта в PGlite: " + ms + " ms (PGlite е по-бавен от истинския Postgres)"]);
+  });
+
+  await t("I8 nc_004_import_down.sql: схемата се връща ТОЧНО както преди nc_004; данните (проекти, обекти, задачи) остават; импортът спира с 42883 (→ 503); повторно nc_004 → работи", async () => {
+    const cnt = async () => (await svc("select (select count(*) from nd_projects)::int p, (select count(*) from nd_units)::int u, (select count(*) from nd_jobs)::int j, (select count(*) from nd_buildings)::int b"))[0];
+    const c0 = await cnt(), pre = await catalog();               // (между M4 и тук други тестове добавят свои обекти – сравнява се спрямо момента преди връщането)
+    await db.exec(SQL("nc_004_import_down.sql"));
+    const now = await catalog();
+    assert.deepStrictEqual(now.filter((x) => !pre.includes(x)), [], "връщането не добавя нищо");
+    assert.deepStrictEqual(pre.filter((x) => !now.includes(x)), added004, "маха ТОЧНО 4-те обекта на nc_004 и нищо друго");
+    assert.deepStrictEqual(before004.filter((x) => !now.includes(x)), [], "всичко отпреди nc_004 е на мястото си");
+    assert.deepStrictEqual(await cnt(), c0, "данните са непокътнати");
+    const J7 = await (async () => { const r = await as("authenticated", BROKER, () => q("select nd_job_create('import','import:test:down:0007',$1,'{}'::jsonb) as r", [PI.id])); return r[0].r.id; })();
+    await fails("42883", () => applyAs("authenticated", BROKER, J7, PI.id, 1, { units: [] }), "без nc_004 записът не съществува");
+    await db.exec(SQL("nc_004_import_down.sql"));                       // повторното връщане е безопасно (if exists)
+    await db.exec(SQL("nc_004_import.sql"));
+    assert.deepStrictEqual((await catalog()).filter((x) => !now.includes(x)), added004, "nc_004 се прилага отново – същите 4 функции със същите права");
+    const c = await svc("select id from nd_job_claim_id($1, array['import'], 'w-down')", [J7]);
+    assert.strictEqual(c[0].id, J7, "след повторното прилагане изпълнителят работи");
+  });
+
   await t("H18/S13 съществуващите таблици са непипнати; повторно прилагане върху заварена схема спира шумно (42723/42P07)", async () => {
     assert.deepStrictEqual(await q("select * from nd_properties"), [{ id: "p1", data: { status: "Публикуван" } }]);
+    const nProj = (await q("select count(*)::int n from nd_projects"))[0].n;
     let code = null; try { await db.exec(SQL("nc_001_new_construction.sql")); } catch (e) { code = e.code; }
     await db.exec("rollback").catch(() => {});
     assert.ok(code === "42723" || code === "42P07", "повторното прилагане трябва да спре, получено: " + code);
-    assert.strictEqual((await q("select count(*)::int n from nd_projects"))[0].n, 2, "данните са непокътнати");
+    assert.strictEqual((await q("select count(*)::int n from nd_projects"))[0].n, nProj, "данните са непокътнати");
     await db.exec("rollback").catch(() => {});
   });
 
@@ -474,9 +632,9 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
   });
 
   const pg = (await q("select version() v"))[0].v.split(" on ")[0];
-  const pass = results.filter((r) => r[0] === "PASS").length;
+  const pass = results.filter((r) => r[0] === "PASS").length, total = results.filter((r) => r[0] !== "INFO").length;
   console.log("Среда: " + pg + " (PGlite, изолирано, без мрежа)\n");
   results.forEach((r) => console.log(r[0] + "  " + r[1] + (r[2] ? "\n      → " + r[2] : "")));
-  console.log("\nРЕЗУЛТАТ: " + pass + "/" + results.length);
-  process.exit(pass === results.length ? 0 : 1);
+  console.log("\nРЕЗУЛТАТ: " + pass + "/" + total);
+  process.exit(pass === total ? 0 : 1);
 })().catch((e) => { console.error("FATAL", e); process.exit(2); });
