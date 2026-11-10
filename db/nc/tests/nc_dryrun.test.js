@@ -69,7 +69,33 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
   await t("M1 nc_001 (v2) се прилага без грешка", async () => { await db.exec(SQL("nc_001_new_construction.sql")); });
   await t("M2 nc_002 (v2) се прилага без грешка", async () => { await db.exec(SQL("nc_002_jobs_rpc.sql")); });
   await t("M3 nc_003 (втвърдяване след втората проверка) се прилага без грешка", async () => { await db.exec(SQL("nc_003_hardening.sql")); });
+  /* снимка на схемата ПРЕДИ nc_004: функции (с подпис, вид, search_path, права), таблици/колони, политики, тригери, ограничения → за проверката на nc_004_import_down.sql */
+  const catalog = async () => (await q(`
+    select 'fn ' || p.oid::regprocedure::text || ' secdef=' || p.prosecdef || ' cfg=' || coalesce(array_to_string(p.proconfig, ','), '') || ' acl=' || coalesce(array_to_string(p.proacl, ','), '') as x
+      from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public'
+    union all select 'col ' || c.table_name || '.' || c.column_name || ' ' || c.data_type || ' ' || c.is_nullable || ' ' || coalesce(c.column_default, '') from information_schema.columns c where c.table_schema = 'public'
+    union all select 'pol ' || schemaname || '.' || tablename || '.' || policyname || ' ' || cmd || ' ' || coalesce(qual, '') || ' ' || coalesce(with_check, '') from pg_policies
+    union all select 'trg ' || tgrelid::regclass::text || '.' || tgname from pg_trigger where not tgisinternal
+    union all select 'con ' || conrelid::regclass::text || '.' || conname || ' ' || pg_get_constraintdef(oid) from pg_constraint where connamespace = 'public'::regnamespace
+    union all select 'acl ' || c.oid::regclass::text || ' ' || coalesce(array_to_string(c.relacl, ','), '') from pg_class c where c.relnamespace = 'public'::regnamespace and c.relkind in ('r','v','S')
+    order by 1`)).map((r) => r.x);
+  const before004 = await catalog();
+  let added004 = [];
   await t("M4 nc_004 (импорт, TASK-006) се прилага без грешка", async () => { await db.exec(SQL("nc_004_import.sql")); });
+  await t("M5 nc_004 добавя САМО 4 функции (нищо друго в схемата не се променя); SECURITY DEFINER – само със search_path=''", async () => {
+    const after = await catalog(), added = after.filter((x) => !before004.includes(x)), removed = before004.filter((x) => !after.includes(x));
+    added004 = added;
+    assert.deepStrictEqual(removed, [], "nc_004 не маха и не променя нищо съществуващо");
+    assert.deepStrictEqual(added.map((x) => x.split(" ")[1].replace(/\(.*$/, "")).sort(), ["nd_import_apply", "nd_import_job_begin", "nd_import_job_done", "nd_job_claim_id"]);
+    added.forEach((x) => {
+      const acl = x.replace(/^.* acl=/, "");
+      assert.ok(/ cfg=search_path=""/.test(x), "search_path='' : " + x);
+      assert.ok(acl && !/(^|,)=X\//.test(acl), "без PUBLIC execute: " + x);
+      assert.ok(!/(^|,)anon=X/.test(acl), "без anon: " + x);
+    });
+    assert.ok(added.find((x) => /nd_job_claim_id/.test(x) && /secdef=true/.test(x) && !/authenticated=X/.test(x)), "claim_id: само service_role");
+    assert.ok(added.find((x) => /nd_import_apply/.test(x) && /secdef=false/.test(x)), "nd_import_apply е SECURITY INVOKER (записът е под правата на служителя)");
+  });
 
   let P, P2, B, B2, F, F2, U1, U2, U3, V1;
   const planPath = (pid, code) => `projects/${pid}/private/units/${code}/plan.pdf`;
@@ -562,6 +588,24 @@ const setStatus = (role, uid, unit, to, ver, ev, note) =>
     const ms = Date.now() - t0;
     assert.strictEqual(r.created.units, 3000);
     results.push(["INFO", "I7 време за 3000 обекта в PGlite: " + ms + " ms (PGlite е по-бавен от истинския Postgres)"]);
+  });
+
+  await t("I8 nc_004_import_down.sql: схемата се връща ТОЧНО както преди nc_004; данните (проекти, обекти, задачи) остават; импортът спира с 42883 (→ 503); повторно nc_004 → работи", async () => {
+    const cnt = async () => (await svc("select (select count(*) from nd_projects)::int p, (select count(*) from nd_units)::int u, (select count(*) from nd_jobs)::int j, (select count(*) from nd_buildings)::int b"))[0];
+    const c0 = await cnt(), pre = await catalog();               // (между M4 и тук други тестове добавят свои обекти – сравнява се спрямо момента преди връщането)
+    await db.exec(SQL("nc_004_import_down.sql"));
+    const now = await catalog();
+    assert.deepStrictEqual(now.filter((x) => !pre.includes(x)), [], "връщането не добавя нищо");
+    assert.deepStrictEqual(pre.filter((x) => !now.includes(x)), added004, "маха ТОЧНО 4-те обекта на nc_004 и нищо друго");
+    assert.deepStrictEqual(before004.filter((x) => !now.includes(x)), [], "всичко отпреди nc_004 е на мястото си");
+    assert.deepStrictEqual(await cnt(), c0, "данните са непокътнати");
+    const J7 = await (async () => { const r = await as("authenticated", BROKER, () => q("select nd_job_create('import','import:test:down:0007',$1,'{}'::jsonb) as r", [PI.id])); return r[0].r.id; })();
+    await fails("42883", () => applyAs("authenticated", BROKER, J7, PI.id, 1, { units: [] }), "без nc_004 записът не съществува");
+    await db.exec(SQL("nc_004_import_down.sql"));                       // повторното връщане е безопасно (if exists)
+    await db.exec(SQL("nc_004_import.sql"));
+    assert.deepStrictEqual((await catalog()).filter((x) => !now.includes(x)), added004, "nc_004 се прилага отново – същите 4 функции със същите права");
+    const c = await svc("select id from nd_job_claim_id($1, array['import'], 'w-down')", [J7]);
+    assert.strictEqual(c[0].id, J7, "след повторното прилагане изпълнителят работи");
   });
 
   await t("H18/S13 съществуващите таблици са непипнати; повторно прилагане върху заварена схема спира шумно (42723/42P07)", async () => {
