@@ -1,0 +1,9 @@
+/* ИМОТИ НАДЕЖДА · публична страница „Ново строителство“ (TASK-008).
+   Същите компоненти като в CRM (/mobile/crm/crm-nc.css); тук е само разликата за публичния изглед: без меню на CRM,
+   връзка „Към сайта“ в шапката. */
+body.nc-public{background:#2a050d}
+.nc-home{left:828px;top:66px;z-index:3;display:inline-flex;align-items:center;height:58px;padding:0 26px;border-radius:29px;text-decoration:none;
+  font:700 26px/1 var(--cond);color:#5a0a12;background:linear-gradient(180deg,#fffdf6 0%,#f7e3b3 55%,#e9c77d 100%);box-shadow:0 3px 8px rgba(0,0,0,.45),0 0 0 1px #fff2c4 inset,0 0 12px rgba(255,214,140,.6)}
+.nc-home:focus-visible{outline:3px solid #f6d48e;outline-offset:3px}
+@media (hover:hover){.nc-home:hover{filter:brightness(1.06)}}
+body.nc-public .nc-flow{margin-bottom:28px}
