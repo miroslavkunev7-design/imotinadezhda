@@ -1,0 +1,22 @@
+/* Shared mobile gold ribbon — same paint as /mobile/home-assets/header-shape.svg
+   (stroke 17 on the 865px home header ≈ 8 CSS px, metallic gradient, shine, shadow).
+   Does not move header curve, logo, menu, or layout: only the gold stroke paint. */
+.nd-gold-ribbon .nd-gold-stroke{
+  fill:none;
+  stroke:url(#nd-gold);
+  stroke-width:8px;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 3px 2px rgba(35,10,8,.45));
+}
+.nd-gold-ribbon .nd-gold-shine{
+  fill:none;
+  stroke:#fff0ae;
+  stroke-opacity:.7;
+  stroke-width:2px;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}

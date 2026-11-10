@@ -1,3 +1,4 @@
+@import url(/mobile/nd-gold-ribbon.css);
 /* Телефон: сцената винаги покрива целия екран, за да няма видим ръб между прасковения градиент и фона на страницата при къс списък. */
 html:not(.desk) #stage{box-sizing:border-box;min-height:100vh;min-height:100dvh}
 /* Phones only: the header photo fades softly into the page and the next section overlaps its edge. */

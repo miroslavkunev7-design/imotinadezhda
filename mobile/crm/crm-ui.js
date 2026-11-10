@@ -794,3 +794,9 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
   window.NDDate = { open: open, scan: scan };
 })();
+(function () {
+  var s = document.createElement("script");
+  s.src = "/mobile/nd-gold-ribbon.js";
+  s.defer = true;
+  document.head.appendChild(s);
+})();
