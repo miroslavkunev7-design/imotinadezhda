@@ -4,6 +4,10 @@
 // Не е отделна Vercel функция (името започва с „_“). Изпълнението е в api/_nc-cad.js.
 "use strict";
 
+// същата нормализация на кода като codeKey() в api/_nc-import-norm.js (главни букви, без интервали/тирета, кирилски двойници) и в изпълнителя
+const LOOK = { "А": "A", "В": "B", "Е": "E", "К": "K", "М": "M", "Н": "H", "О": "O", "Р": "P", "С": "C", "Т": "T", "Х": "X", "У": "Y" };
+const codeKey = (s) => String(s || "").toLocaleUpperCase("bg").replace(/[\s._\-–—‑]+/g, "").replace(/[АВЕКМНОРСТХУ]/g, (c) => LOOK[c] || c);
+
 module.exports = function cadContracts(h) {
   const { schema, S, pathInProject, patterns } = h;
   const id = (o) => S("string", Object.assign({ pattern: patterns.ID, max: 64 }, o));
@@ -31,7 +35,7 @@ module.exports = function cadContracts(h) {
       description: "Стартира конверсия на ПРОВЕРЕН (cad.inspect → готово, „може 3D“) файл към 3D модел за браузър (GLB) за сграда: IFC, 3D DXF или GLB. DWG – само ако изпълнителят има разрешен конвертор, иначе искай DXF/IFC. Геометрия не се измисля: от PDF, снимка или 2D чертеж модел не се прави. mapping (по избор) = изрично съответствие етаж/обект: storeys[{ref,level}], units[{code,refs[]}], control[{label,axis(length|width|height),meters}] – контролни размери от чертежите, с които се сверява моделът. Връща job_id; резултатът е нова версия в състояние „чака преглед“ – публикува се отделно с models.publish.",
       input: schema({ project_id: id({ required: true }), building_id: id({ required: true }), path, mapping, rerun: S("boolean") }, (d) => {
         const e = sameProject(d), seen = new Set();
-        for (const u of (d.mapping && d.mapping.units) || []) { const k = u.code.toLocaleUpperCase("bg"); if (seen.has(k)) e.push("кодът " + u.code + " е подаден два пъти в mapping.units"); seen.add(k); }
+        for (const u of (d.mapping && d.mapping.units) || []) { const k = codeKey(u.code); if (seen.has(k)) e.push("кодът " + u.code + " е подаден два пъти в mapping.units"); seen.add(k); }
         const lv = new Set(); for (const s of (d.mapping && d.mapping.storeys) || []) { if (lv.has(s.ref)) e.push("етажът " + s.ref + " е подаден два пъти в mapping.storeys"); lv.add(s.ref); }
         return e;
       }),
