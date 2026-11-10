@@ -557,7 +557,7 @@
   function engine(kind) {
     var fn = kind === "model" ? "building" : "panorama", g = kind === "model" ? window.NCModel : window.NCTour;
     function ok(L) { return L && typeof L[fn] === "function"; }
-    function wrap(L, name) { return { name: L.name || name, webglOk: typeof L.webglOk === "function" ? function () { return L.webglOk(); } : function () { return true; }, building: L.building, panorama: L.panorama }; }
+    function wrap(L, name) { return { name: L.name || name, webglOk: typeof L.webglOk === "function" ? function () { return L.webglOk(); } : function () { return true; }, building: typeof L.building === "function" ? L.building.bind(L) : null, panorama: typeof L.panorama === "function" ? L.panorama.bind(L) : null }; }
     if (ok(g)) return Promise.resolve(wrap(g, kind === "model" ? "TASK-009" : "TASK-010"));
     if (ENG[kind]) return ENG[kind];
     function builtin() { return lib3d().then(function (L) { return wrap(L, "nc-3d"); }); }
