@@ -20,12 +20,16 @@
 <link rel="preload" as="image" href="/desktop-home-assets/shumen-desktop-background.webp">
 <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet"></noscript>
 <style>
-:root{--wine:#710019;--wine-d:#510011;--cream:#fff9f2;--gold:#bb7b16;--gold-l:#ffe17a;--ink:#6a001b;--serif:'Bitter',Georgia,serif;--cond:'Roboto Condensed',Arial,sans-serif}
+:root{--wine:#710019;--wine-d:#510011;--cream:#fff9f2;--gold:#bb7b16;--gold-l:#ffe17a;--ink:#6a001b;--serif:'Bitter',Georgia,serif;--cond:'Roboto Condensed',Arial,sans-serif;--nd-sat:env(safe-area-inset-top,0px);--nd-sab:env(safe-area-inset-bottom,0px);--nd-sal:env(safe-area-inset-left,0px);--nd-sar:env(safe-area-inset-right,0px)}
 *{box-sizing:border-box}
-html{height:100%;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;background:#3a2218}
+html{height:auto;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;background:#3a2218}
 html,body{margin:0;background:#3a2218;overflow-x:hidden}
 body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-family:var(--cond);color:var(--ink)}
-#stage{position:relative;width:100%;overflow:hidden;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;background:#3a2218 url(desktop-home-assets/shumen-desktop-background.webp) center top / 100% 100% no-repeat}
+#stage{position:relative;width:100%;min-width:100%;overflow:hidden;min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;background:#3a2218 url(desktop-home-assets/shumen-desktop-background.webp) center top / 100% 100% no-repeat}
+@media (display-mode:standalone),(display-mode:fullscreen),(display-mode:minimal-ui){
+  html,body,#stage{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;min-height:100lvh;background:#3a2218}
+  #stage{background:#3a2218 url(desktop-home-assets/shumen-desktop-background.webp) center top / 100% 100% no-repeat}
+}
 #cv{position:absolute;left:0;top:0;width:1672px;height:941px;transform-origin:0 0}
 .bg{position:absolute;left:0;top:0;width:1672px;height:941px;background:url(desktop-home-assets/shumen-desktop-background.webp) 0 0/100% 100% no-repeat}
 .abs{position:absolute}
@@ -143,14 +147,18 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
   var W=1672,H=941,cv=document.getElementById('cv'),st=document.getElementById('stage');
   function fit(){
     var k=document.documentElement.clientWidth/W;
-    var vh=(window.visualViewport&&visualViewport.height)||innerHeight;
+    var vv=window.visualViewport;
+    var vh=Math.max(innerHeight||0,document.documentElement.clientHeight||0,vv?(vv.height+(vv.offsetTop||0)):0);
     cv.style.transform='scale('+k+')';
     var minH=Math.max(H,vh/k);
     cv.style.height=minH+'px';
-    st.style.height=(minH*k)+'px';
+    st.style.height=vh+'px';
+    st.style.minHeight=vh+'px';
+    document.body.style.minHeight=vh+'px';
   }
   fit();addEventListener('resize',fit);
   if(window.visualViewport)visualViewport.addEventListener('resize',fit);
+  if(window.matchMedia){['(display-mode: standalone)','(display-mode: fullscreen)','(display-mode: minimal-ui)'].forEach(function(q){var m=matchMedia(q);if(m.addEventListener)m.addEventListener('change',fit);else if(m.addListener)m.addListener(fit);});}
   var CITY={'Шумен':'shumen','Варна':'varna','Бургас':'burgas','Нови пазар':'shumen'};
   var HOODS={};
   var PR=[['200000-500000','от 200 000 €','до 500 000 €'],['0-100000','до 100 000 €',''],['100000-200000','от 100 000 €','до 200 000 €'],['500000-','над 500 000 €',''],['','Без значение','']];
