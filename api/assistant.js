@@ -13,6 +13,9 @@ const TOOLSPEC = "- clients.search: Search CRM clients by name/phone/email/city.
 const TED = (() => { try { return require("./_ted-skills.js"); } catch (e) { return { names: [], SPEC: "" }; } })();
 const STAFF_TOOLS = ["clients.search", "clients.get", "clients.create", "clients.update", "clients.delete", "clients.add_note", "properties.search", "properties.create", "properties.update", "properties.set_status", "properties.match", "calendar.list", "calendar.create", "calendar.update", "calendar.delete", "deals.list", "deals.create", "deals.update", "companies.search", "brokers.list", "documents.list", "documents.download_link", "calc.mortgage", "calc.commission", "calc.yield", "rates.live", "reports.summary"];
 STAFF_TOOLS.push(...TED.names.filter((n) => !STAFF_TOOLS.includes(n)));
+/* TASK-007 · Ново строителство: същите инструменти и за Тед в чата на сайта */
+const NC = (() => { try { return require("./_nc-tools.js"); } catch (e) { return { names: [], SPEC: "" }; } })();
+STAFF_TOOLS.push(...NC.names.filter((n) => !STAFF_TOOLS.includes(n)));
 
 function send(res, status, body) { res.statusCode = status; res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store"); res.end(JSON.stringify(body)); }
 async function readBody(req) {
@@ -43,7 +46,7 @@ function systemPrompt(staff, user, page) {
     "преди send_inquiry поискай име и телефон и потвърждение. Телефон за контакт с агенцията: 0898977370. Не разкривай вътрешна информация. " +
     "За общи въпроси (квартали, цени на пазара, процедури, такси) можеш да използваш web_search и да посочиш източника.";
   return base + " Говориш със служител на агенцията (" + (user.email || "") + "), страница: " + (page || "CRM") + ". Имаш пълен достъп до CRM чрез функцията crm(tool, input_json). " +
-    "Инструменти:\n" + TOOLSPEC + "\n" + TED.SPEC + "\n\nПравила: 1) За да намериш id, първо търси (clients.search / properties.search). 2) Изтриване и смяна на статус (confirm=true) – само след изрично „да“ от служителя в чата; преди това кажи точно какво ще направиш и попитай. " +
+    "Инструменти:\n" + TOOLSPEC + "\n" + TED.SPEC + (NC.SPEC ? "\nНОВО СТРОИТЕЛСТВО (проект → сграда → етаж → обект): статус на обект (Свободен/Капариран/Продаден) се сменя само с units.set_status и само след изрично „да“; оригинални планове не се изпращат и не се дават като линк; в модула няма инвеститор, строител и изпълнител; площи и цени не се измислят.\n" + NC.SPEC : "") + "\n\nПравила: 1) За да намериш id, първо търси (clients.search / properties.search). 2) Изтриване и смяна на статус (confirm=true) – само след изрично „да“ от служителя в чата; преди това кажи точно какво ще направиш и попитай. " +
     "3) След всяко записване кажи кратко какво е направено (име/код, полета). 4) Датите са YYYY-MM-DD; „утре“, „в петък“ изчислявай от днешната дата. 5) Суми в евро. " +
     "6) АИ КАЧВАНЕ НА ИМОТ е вградено в този чат: при „качи имот“, „нов имот от папка/снимки/опис“ или когато брокерът иска да прикачи папка – извикай open_panel {panel:\"upload\"} и кажи с едно изречение какво ще стане (цена от името на папката, опис → лично описание, ново публично описание, до 100 снимки с лого, записва се като Чернова). " +
     "7) За всичко актуално извън CRM (пазарни цени, лихви, закони, такси, новини, фирми) използвай web_search, а за конкретен линк – read_page; посочвай източника. " +

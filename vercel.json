@@ -50,6 +50,32 @@
           "value": "public, max-age=86400, stale-while-revalidate=604800"
         }
       ]
+    },
+    {
+      "source": "/plan/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/pano/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -60,6 +86,14 @@
     {
       "source": "/f/:file",
       "destination": "/api/tools?file=:file"
+    },
+    {
+      "source": "/plan/:scope/:id",
+      "destination": "/api/tools?plan=:scope/:id"
+    },
+    {
+      "source": "/pano/:unit/:n",
+      "destination": "/api/tools?pano=:unit/:n"
     },
     {
       "source": "/api/tts",

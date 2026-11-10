@@ -26611,6 +26611,10 @@ var tools = {
    same bearer token, same RLS. Every call is audited in nd_audit. */
 var TED = null;
 try { TED = require("./_ted-skills.js"); Object.keys(TED.tools).forEach((k) => { if (!tools[k]) tools[k] = TED.tools[k]; }); } catch (e) { console.error("ted skills not loaded", e && e.message); }
+/* TASK-007 · Ново строителство (проект → сграда → етаж → обект): същият регистър, същият токен, същият одит.
+   Ако модулът не се зареди, всичко останало работи както досега. */
+var NC = null;
+try { NC = require("./_nc-tools.js"); Object.keys(NC.tools).forEach((k) => { if (!tools[k]) tools[k] = NC.tools[k]; }); } catch (e) { console.error("nc tools not loaded", e && e.message); }
 function manifest() {
   return Object.entries(tools).map(([name, t]) => ({ name, description: t.description }));
 }
@@ -26631,6 +26635,11 @@ async function handler(req, res) {
     res.end(JSON.stringify(body2));
   };
   if (req.method === "OPTIONS") return send({}, 204);
+  /* TASK-007: защитени планове и панорами – /plan/unit/<id>, /plan/floor/<id>, /pano/<unit>/<n>; статусът се проверява при всяко отваряне */
+  if (req.method === "GET" && /[?&](plan|pano)=/.test(req.url || "")) {
+    if (NC) return NC.publicFile(req, res);
+    res.statusCode = 404; res.setHeader("Cache-Control", "no-store"); return res.end("");
+  }
   /* кратък линк към документ: /f/<id>.<ext>?k=… (виж _filelink.js) */
   if (req.method === "GET" && /[?&]file=/.test(req.url || "")) return require("./_filelink.js")(req, res);
   /* ролите на Тед (Юрист, Секретар, Старши брокер…) – за агента в n8n: ?mode=<id> или ?mode=auto&q=<въпрос> (разпознаване като в чата на сайта) */
