@@ -983,6 +983,9 @@
     addEventListener("resize", fit); addEventListener("orientationchange", fit); fit();
     NC.fit = fit;
   }
+  /* вътрешни функции за автоматичните тестове (api/_nc-page.test.js); не променят състоянието сами */
+  NC._test = { fromUrl: fromUrl, toUrl: toUrl, match: match, filtered: filtered, validate: validate, counts: counts, unitCard: unitCard, lockedHtml: lockedHtml, actsHtml: actsHtml,
+    panel: panelHtml, hasLoc: hasLoc, brochure: brochure, use: function (a, m) { A = a; M = m; }, implicit: function () { return implicitU; } };
   NC.boot = function (adapter) {
     A = adapter; NC.A = adapter; root = document.getElementById("nc-main"); fitSetup();
     root.classList.add("ncx");

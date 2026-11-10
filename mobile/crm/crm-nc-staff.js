@@ -223,7 +223,7 @@
         grp("Предимства и цена", "gem", null, fld({ id: "p-adv", label: "Предимства (по едно на ред, до 20)", type: "ta", value: (d.advantages || []).join("\n"), wide: true }) +
           fld({ id: "p-basis", label: "Основа за цената", type: "select", value: d.price_basis || "total", options: [["total", "Обща площ × цена/м²"], ["net", "Чиста площ × цена/м²"]], wide: true }) +
           fld({ id: "p-lat", label: "Ширина (lat)", type: "number", step: "0.000001", value: loc.lat == null ? "" : loc.lat }) + fld({ id: "p-lng", label: "Дължина (lng)", type: "number", step: "0.000001", value: loc.lng == null ? "" : loc.lng }), { lw: 190 }) +
-        pre("Процентът се пази за екипа и <b>не се показва публично</b>, докато няма одобрена методика. В проекта няма полета за инвеститор, строител или изпълнител.") : pre("Създава се <b>чернова</b>. Публикуване – само администратор, след преглед."));
+        pre("Процентът се пази за екипа и <b>не се показва публично</b>, докато няма одобрена методика.") : pre("Създава се <b>чернова</b>. Публикуване – само администратор, след преглед."));
     var ctx;
     NDUI.open({ title: p ? "Редакция на проекта" : "Нов проект – чернова", icon: "building-2", inline: false, view: false, html: html, saveText: p ? "Запази" : "Създай черновата", required: ["p-title"],
       ready: function (x) { ctx = x; },
