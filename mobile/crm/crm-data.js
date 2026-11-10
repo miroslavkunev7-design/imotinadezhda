@@ -52,7 +52,7 @@
     ".nd-auth[hidden]{display:none}" +
     /* картата за вход с фоново изображение: вилата горе, плавно преливане към стъклен крем под полетата */
     ".nd-card{position:relative;overflow:hidden;isolation:isolate}" +
-    ".nd-card:before{content:'';position:absolute;inset:0;z-index:-2;background:url(/mobile/crm/assets/hero-villa.jpg) center 28%/cover no-repeat}" +
+    ".nd-card:before{content:'';position:absolute;inset:0;z-index:-2;background:url(/mobile/crm/assets/hero-villa.webp) center 28%/cover no-repeat}" +
     ".nd-card:after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(46,6,16,.18) 0,rgba(46,6,16,.38) 150px,rgba(255,248,242,.9) 236px,rgba(255,247,240,.95) 320px,rgba(252,238,226,.97) 100%)}" +
     ".nd-card>img{box-sizing:content-box;padding:8px 16px;border-radius:18px;background:linear-gradient(180deg,#fffaf5,#fbe9d9);border:1.5px solid #e3b25e;box-shadow:0 0 18px rgba(246,217,147,.75),0 6px 16px rgba(30,0,8,.45)}" +
     ".nd-card h2{color:#fff1c9!important;text-shadow:0 2px 4px rgba(30,0,8,.85),0 0 16px rgba(30,0,8,.6)}" +
@@ -94,7 +94,7 @@
       box = document.createElement("div");
       box.className = "nd-auth"; box.setAttribute("role", "dialog"); box.setAttribute("aria-modal", "true"); box.setAttribute("aria-label", "Вход в CRM");
       box.innerHTML =
-        '<form class="nd-card" novalidate><img src="assets/logo.png" alt="Недвижими имоти Надежда"><h2>Вход в CRM</h2><p class="s">Влезте с телефона (или имейла) и паролата си</p>' +
+        '<form class="nd-card" novalidate><img src="assets/logo.png" width="560" height="296" alt="Недвижими имоти Надежда"><h2>Вход в CRM</h2><p class="s">Влезте с телефона (или имейла) и паролата си</p>' +
         '<label for="nd-em">Телефон или имейл</label><input id="nd-em" type="text" inputmode="email" autocomplete="username" placeholder="0888 123 456" required>' +
         '<label for="nd-pw">Парола</label><input id="nd-pw" type="password" autocomplete="current-password" required>' +
         '<div class="nd-apps"><span>Изтегли приложението</span><div class="row">' +
