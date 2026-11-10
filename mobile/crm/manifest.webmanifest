@@ -12,19 +12,19 @@
   "lang": "bg",
   "icons": [
     {
-      "src": "assets/app-icon3-round-192.png",
+      "src": "assets/app-icon3-round-192.png?v=012",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/app-icon3-round-512.png",
+      "src": "assets/app-icon3-round-512.png?v=012",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/app-icon3-maskable-512.png",
+      "src": "assets/app-icon3-maskable-512.png?v=012",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
