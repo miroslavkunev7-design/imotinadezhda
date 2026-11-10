@@ -31,3 +31,24 @@
 .nda-win.nd-lux{--ted-safe-top:env(safe-area-inset-top,0px);--ted-safe-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:none;text-size-adjust:none}
 @media(max-width:899px){.nda-win.nd-lux{top:var(--ted-viewport-top,max(60px,env(safe-area-inset-top,0px)));height:var(--ted-viewport-height,auto);bottom:10px}.nd-lux .nda-c{padding-bottom:14px}}
 @media(max-height:500px) and (max-width:899px){.nd-lux .nda-h{min-height:86px;padding-top:8px;padding-bottom:10px}.nd-lux .nda-av{width:48px;height:48px}.nd-lux .nda-av img{width:58px;height:58px}.nd-lux .ted-action-rail{padding-block:7px}.nd-lux .ted-action-rail>button{min-height:40px;padding-block:8px}.nd-lux .ted-panel{top:84px}}
+
+/* ===== 10.11: целият ефект от макета =====
+   1) балончето на Тед – по-прозрачно матово стъкло със светещ ръб; 2) балончето на потребителя – наситено синьо;
+   3) долу: бързите бутони са върху снимката, а „Общ разговор“ и „Умения и роли“ са в кремавото пано със златна вълна, над полето за писане;
+   4) тънка златна линия между заглавието и бутоните горе. */
+.nd-lux .nda-m.a{background:linear-gradient(135deg,rgba(253,250,245,.84),rgba(253,245,238,.66));border:1.5px solid rgba(255,255,255,.8);-webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);box-shadow:inset 0 1px 1px #fff,inset 0 0 26px rgba(255,255,255,.34),0 0 0 1px rgba(216,180,106,.38),0 10px 26px rgba(36,4,11,.36),0 0 22px rgba(255,226,180,.42)}
+.nd-lux .nda-m.u{background:linear-gradient(135deg,#2e63e4 0%,#1a43b8 46%,#0c2a86 100%);border:1.5px solid rgba(176,205,255,.92);border-radius:24px 24px 8px 24px;box-shadow:inset 0 1px 2px rgba(214,232,255,.75),inset 0 -7px 14px rgba(4,16,70,.4),0 0 16px rgba(64,124,255,.6),0 6px 16px rgba(8,18,70,.55);text-shadow:0 1px 1px rgba(2,10,50,.5)}
+.nd-lux .nda-t{padding-right:10px;border-right:1px solid rgba(216,180,106,.5)}
+.nd-lux .ted-action-rail>button:first-child{margin-left:auto}.nd-lux .ted-action-rail>button:last-child{margin-right:auto}
+.nd-lux .nda-case.ted-action-rail{padding-bottom:6px}
+.nd-lux .ted-case-row{display:flex;align-items:center;gap:10px;padding:26px 14px 0;overflow-x:auto;scrollbar-width:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -3 100 23.5' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='0'%3E%3Cstop offset='0' stop-color='%23D8B46A' stop-opacity='.6'/%3E%3Cstop offset='.25' stop-color='%23f3cf86'/%3E%3Cstop offset='.6' stop-color='%23fff1c4'/%3E%3Cstop offset='1' stop-color='%23D8B46A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0,16 C25,-4 60,14 100,3 V20.5 H0 Z' fill='%23fdfaf5' fill-opacity='.98'/%3E%3Cpath d='M0,16 C25,-4 60,14 100,3' fill='none' stroke='%23ffd896' stroke-opacity='.45' stroke-width='5' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M0,16 C25,-4 60,14 100,3' fill='none' stroke='url(%23g)' stroke-width='1.8' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0/100% 23.5px no-repeat,linear-gradient(180deg,#fdfaf5fa,#f9efe3fa) left bottom/100% calc(100% - 22px) no-repeat;margin-bottom:-1px;position:relative}
+.nd-lux .ted-case-row::-webkit-scrollbar{display:none}
+.nd-lux .ted-case-row .nda-case-btn{flex:0 1 auto;min-width:0;min-height:42px;max-width:62%;display:inline-flex;align-items:center;gap:8px;padding:8px 15px;border:1px solid var(--ted-gold);border-radius:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#580d22;background:linear-gradient(180deg,#fffdf9,#f6e6d1);font:400 16.5px/1.1 TedText,Arial;cursor:pointer;box-shadow:inset 0 1px 1px #fff,0 2px 7px rgba(156,109,51,.22),0 0 9px rgba(245,208,139,.4);transform:none}
+.nd-lux .ted-case-row .nda-case-btn svg{width:23px;height:23px;flex:none;color:#850F2D}.nd-lux .ted-case-row .nda-case-btn.role svg{color:#e0a630;filter:drop-shadow(0 0 3px rgba(255,214,130,.8))}
+.nd-lux .ted-case-row .nda-case-btn b{overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.nd-lux .ted-case-row .nda-case-btn.on{border-color:#850F2D;background:linear-gradient(180deg,#fff7e6,#f3d79f);box-shadow:inset 0 1px 1px #fff,0 0 0 1px rgba(133,15,45,.35),0 0 12px rgba(216,180,106,.6)}
+.nd-lux .ted-case-row .nda-case-btn:active{transform:scale(.97)}
+.nd-lux .ted-case-row~.nda-files{background:#f9efe3fa}
+.nd-lux .ted-case-row~.nda-c{border-top:0;border-radius:0 0 28px 28px;box-shadow:none;padding-top:10px;background:linear-gradient(180deg,#f9efe3fa,#f4e0cbf7)}
+@media(max-width:380px){.nd-lux .ted-case-row{gap:7px;padding-left:10px;padding-right:10px}.nd-lux .ted-case-row .nda-case-btn{font-size:15px;padding:7px 11px}}
+@media(max-height:500px) and (max-width:899px){.nd-lux .ted-case-row{padding-top:22px}.nd-lux .ted-case-row .nda-case-btn{min-height:36px;padding-block:5px}}

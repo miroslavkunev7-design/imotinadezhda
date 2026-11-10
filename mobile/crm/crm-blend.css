@@ -177,3 +177,18 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* Keep Safari's text inflation from changing the geometry of a scaled CRM canvas.
    Browser pinch zoom and accessibility page zoom remain available. */
 #canvas,#canvas *,#dockCanvas,#dockCanvas *,.mwin,.mwin *{-webkit-text-size-adjust:none;text-size-adjust:none}
+
+/* ===== 10.11: шрифт и четливост на картите като в „Карта на брокер“ =====
+   Заглавието – серифно (Georgia / PT Serif), всичко останало – Roboto Condensed, получер и малко по-едър. */
+.pc{--sans:var(--cond)}
+.pc .tt{font-family:var(--serif)}
+.pc .pid,.pc .st,.pc .st2,button.st{font-family:var(--cond)}
+:is(.plist,.fcards):not(.list) .pc .pid{font-size:37px}
+:is(.plist,.fcards):not(.list) .pc .st{font-size:33px}
+:is(.plist,.fcards):not(.list) .pc .st2{font-size:27px}
+:is(.plist,.fcards):not(.list) .pc .tt{font-size:60px;line-height:1.08;color:#1f1320}
+:is(.plist,.fcards):not(.list) .pc .lc{font-size:44px}
+:is(.plist,.fcards):not(.list) .pc .sp{font-size:41px}
+:is(.plist,.fcards):not(.list) .pc .pr{font-size:63px}
+:is(.plist,.fcards):not(.list) .pc :is(.tg,.cam){font-size:29px}
+html.desk :is(.plist,.fcards):not(.list) .pc :is(.tg,.cam){font-size:32px}

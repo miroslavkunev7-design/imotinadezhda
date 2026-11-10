@@ -194,6 +194,27 @@
 @media(min-width:769px) and (max-width:1500px){.nd-detail-card .stat-value.price{font-size:27px}.nd-detail-card .detail-stat{padding:0 13px}.nd-detail-card .stat-value{font-size:21px}}
 @media(max-width:768px){.nd-detail-card{padding:22px 18px 24px;border-radius:24px}.nd-detail-sep{margin:22px -18px 20px}.nd-detail-card .property-title-row h1{font-size:25px}.nd-detail-card .property-subtitle{font-size:17px}.nd-detail-card .detail-stat{flex:0 0 50%;min-width:0;padding:0 10px;border-right:0}.nd-detail-card .detail-stat:first-child{flex:0 0 100%}.nd-detail-card .stat-value{font-size:19px}.nd-detail-card .stat-value.price{font-size:27px}.nd-detail .nd-detail-card .description-card p{font-size:16px}.nd-detail .nd-detail-card .description-card h2{font-size:23px}.nd-detail .gallery-main{border-radius:20px}}
 </style>
+<style id="nd-city-video">
+/* Карта на града (#/city/<slug>): видеото от дрон вместо снимката. Кадърът е винаги цял – в собствените си пропорции
+   (aspect-ratio = размера на клипа, без изрязване и без разтягане) и стои ПОД логото/хедъра, а не зад него. */
+.home-hero.has-city-video .home-video{display:block;position:relative;z-index:1;height:auto;max-width:100%;margin:0;padding:0;border:0;border-radius:0;object-fit:contain;background:#1a0306;mask-image:none;-webkit-mask-image:none}
+@media(max-width:768px){
+  .home-hero.has-city-video{height:auto;min-height:0;padding:195px 0 0;display:flex;flex-direction:column;background-image:radial-gradient(120% 70% at 88% 0%,#f3c97a26,transparent 60%),linear-gradient(#170004ba,#170004c7),var(--redmarble)}
+  .home-hero.has-city-video .home-video{width:100%;box-shadow:0 -1.5px 0 #ead69bcc,0 1.5px 0 #ead69bcc,0 0 24px #f3c97a3d,0 14px 28px -10px #000d}
+  .home-hero.has-city-video .home-city{position:relative;left:auto;right:auto;top:auto;margin:22px 23px 0}
+  .home-hero.has-city-video>.search-bar{position:relative;left:auto;right:auto;bottom:auto;margin:34px 12px -14px}
+}
+@media(min-width:769px){
+  .home-hero.has-city-video{--cv-top:283px;--cv-pb:100px;height:auto;min-height:600px;max-height:none;padding:var(--cv-top) 0 var(--cv-pb)}
+  .home-hero.has-city-video .home-video{margin-left:34px;width:min(calc(56.5% - 34px - 44px),calc((100vh - var(--cv-top) - var(--cv-pb) - 64px) * 1.75));box-shadow:0 0 0 1.5px #ead69b,0 0 0 5px #ead69b1f,0 0 26px #f3c97a47,0 18px 40px -14px #000e}
+  .home-hero.has-city-video .home-city{bottom:var(--cv-pb);display:flex;flex-direction:column;justify-content:center}
+}
+@media(min-width:769px) and (max-width:1250px){.home-hero.has-city-video{--cv-top:260px;min-height:580px}.home-hero.has-city-video .home-video{width:min(calc(55.5% - 30px - 36px),calc((100vh - var(--cv-top) - var(--cv-pb) - 64px) * 1.75));margin-left:30px}}
+</style>
+<script>/* видеото на града: пускане и след докосване (iPhone в режим на ниска батерия спира autoplay) и при връщане към таба */
+(function(){function go(){[].forEach.call(document.querySelectorAll('video.home-video'),function(v){v.muted=true;if(v.paused){var p=v.play();if(p&&p.catch)p.catch(function(){})}})}
+document.addEventListener('visibilitychange',function(){if(!document.hidden)go()});window.addEventListener('pageshow',go);
+['touchstart','pointerdown'].forEach(function(e){window.addEventListener(e,go,{passive:true})});window.addEventListener('scroll',go,{passive:true,once:true});})();</script>
 </head>
 <body><div id="root"></div>
 <script src="/mobile/places.js"></script>
@@ -202,5 +223,5 @@
 
 <script>window.NDAshNoWidget=true</script><script src="/mobile/ash.js" defer></script>
 <script src="/mobile/nd-hscroll.js" defer></script>
-<script src="/mobile/ilj-app.js?v=a58f552210" defer></script>
+<script src="/mobile/ilj-app.js?v=ff710fc1a2" defer></script>
 </body></html>

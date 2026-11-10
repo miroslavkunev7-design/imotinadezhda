@@ -463,6 +463,37 @@ html.desk #canvas .cgrid .ccard{zoom:.492}
 html.desk #canvas .ccard .tg{height:66px;font-size:28px;border-radius:33px}
 html.desk #canvas .ccard .mn{width:66px;height:66px}
 #canvas .cgrid .empty{justify-self:stretch}
+/* ===== 10.11: шрифт и четливост като в „Карта на брокер“ – името серифно, останалото Roboto Condensed, получер и по-едър ===== */
+#canvas .cgrid .ccard{--sans:var(--cond)}
+#canvas .ccard .tt{font-family:var(--serif);font-size:60px;line-height:1.08;color:#1f1320}
+#canvas .ccard .pid{font-size:37px}
+#canvas .ccard .st{font-size:33px}
+#canvas .ccard .lc{font-size:44px}
+#canvas .ccard .sp{font-size:41px}
+#canvas .ccard .pr{font-size:63px}
+#canvas .ccard .tg{font-size:29px}
+html.desk #canvas .ccard .tg{font-size:32px}
+</style>
+<style id="kc-rows">
+/* ===== КОМПЮТЪР: ДВА РЕДА (10.11) – „Продажби“ отгоре, „Наеми“ отдолу =====
+   Всеки ред: вляво заглавието, филтрите и „Нов клиент“, вдясно лента с картите на клиентите.
+   Лентата се превърта с колелцето на мишката, със стрелките ← → на клавиатурата и с кръглите бутони ‹ › (nd-hscroll.js).
+   Височината на реда (--rowH) и умалението на картата (--cz) идват от fitDesk(). */
+html.desk #canvas .flow{position:relative;grid-auto-flow:row;grid-template-columns:560px minmax(0,1fr);grid-template-rows:var(--rowH,394px) var(--rowH,394px);column-gap:26px;row-gap:0;
+  margin-left:var(--fm,30px);width:calc(var(--Wc,2072px) - 2*var(--fm,30px));padding:8px 26px 8px!important}
+html.desk #canvas .flow::before{content:"";position:absolute;left:26px;right:26px;top:50%;height:calc(1*var(--q));pointer-events:none;background:linear-gradient(90deg,rgba(255,236,200,.06),rgba(255,236,200,.6) 50%,rgba(255,236,200,.06))}
+html.desk #canvas .cpanel{width:560px;height:326px;align-self:center}
+html.desk #canvas .cpanel .nd-new{left:0!important;right:0!important;top:268px!important;width:100%;justify-content:center}
+html.desk #canvas .f-q{grid-column:span 17}html.desk #canvas .f-more{grid-column:span 7}
+html.desk #canvas .f-city,html.desk #canvas .f-hood,html.desk #canvas .f-type,html.desk #canvas .f-sort{grid-column:span 12}
+html.desk #canvas .f-q{order:1}html.desk #canvas .f-more{order:2}html.desk #canvas .f-city{order:3}html.desk #canvas .f-hood{order:4}html.desk #canvas .f-type{order:5}html.desk #canvas .f-sort{order:6}
+html.desk #canvas .cgrid{display:flex;flex-wrap:nowrap;align-items:center;gap:30px;height:var(--rowH,394px);margin:0;padding:0 20px;overflow-x:auto;overflow-y:hidden;
+  overscroll-behavior-x:contain;scroll-padding:0 20px;scrollbar-width:none;outline:0;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%)}
+html.desk #canvas .cgrid::-webkit-scrollbar{display:none}
+html.desk #canvas .cgrid .ccard{zoom:var(--cz,.417);flex:none}
+html.desk #canvas .cgrid .empty{flex:1 1 auto;align-self:center}
+html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ffe1a0,0 0 calc(18*var(--q)) rgba(255,214,130,.95)}
 </style>
 </head>
 <body>
@@ -820,6 +851,9 @@ html.desk #canvas .ccard .mn{width:66px;height:66px}
     cctrls.forEach(function(el){if(el.dataset.l==null)el.dataset.l=parseFloat(getComputedStyle(el).left);el.style.left=(Wc-1024+(+el.dataset.l))+'px'});
     root.style.setProperty('--G',G+'px');root.style.setProperty('--xL',xL+'px');
     root.style.setProperty('--gh',(Hc-Hh-16-197-(window.NDRAIL?24:162))+'px');
+    /* два реда (продажби / наеми): височина на реда и умаление на картата (878 px платно) според свободната височина */
+    var rowH=Math.max(300,(Hc-Hh-16-(window.NDRAIL?24:162))/2),cz=Math.max(.3,Math.min(.62,(rowH-34)/878));
+    root.style.setProperty('--rowH',rowH+'px');root.style.setProperty('--cz',cz.toFixed(4));root.style.setProperty('--Wc',Wc+'px');root.style.setProperty('--fm',Math.max(14,Math.min(40,(Wc-2072)/2+24))+'px');
     dockC.style.transform='scale('+k+')';dockC.style.left=((vw-1024*k)/2)+'px';
     dock.style.height=(DOCK*k)+'px';root.style.setProperty('--dockH',(window.NDRAIL?0:118*k)+'px');
     fitModal();
@@ -1165,5 +1199,42 @@ html.desk #canvas .ccard .mn{width:66px;height:66px}
 <script>document.documentElement.classList.add("ready")</script>
 <div id="page-ready" hidden></div>
 <script src="crm-v3-head.js"></script>
+<script src="/mobile/nd-hscroll.js" defer></script>
+<script>/* Клиенти (компютър): лентите с карти се превъртат с колелцето на мишката, със стрелките на клавиатурата (← → в реда, ↑ ↓ между редовете, Home/End) и с бутоните ‹ › */
+(function(){
+  var root=document.documentElement,grids=[document.getElementById('grid-sales'),document.getElementById('grid-rent')].filter(Boolean),act=grids[0];
+  if(!grids.length)return;
+  function desk(){return root.classList.contains('desk')}
+  function can(g){return g.scrollWidth>g.clientWidth+4}
+  function mark(g,show){act=g;grids.forEach(function(x){var p=x.previousElementSibling;if(p)p.classList.toggle('kb',!!show&&x===g)})}
+  function step(g){var c=g.querySelector('.ccard');return c?c.getBoundingClientRect().width/(g.getBoundingClientRect().width/g.clientWidth||1)+30:g.clientWidth*.5}
+  grids.forEach(function(g){
+    g.setAttribute('data-nd-hs','');
+    g.addEventListener('wheel',function(e){
+      if(!desk()||e.ctrlKey||!can(g))return;
+      var dx=e.deltaX,dy=e.deltaY;if(Math.abs(dx)>=Math.abs(dy))return;            /* хоризонталният жест на тъчпада си работи сам */
+      var d=dy*(e.deltaMode===1?40:e.deltaMode===2?g.clientWidth:1),max=g.scrollWidth-g.clientWidth;
+      if((d<0&&g.scrollLeft<=0)||(d>0&&g.scrollLeft>=max-1))return;
+      e.preventDefault();g.scrollLeft+=d;
+    },{passive:false});
+    g.addEventListener('pointerenter',function(){mark(g,false)});
+    g.addEventListener('focusin',function(){mark(g,false)});
+  });
+  document.addEventListener('keydown',function(e){
+    if(!desk()||e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey)return;
+    var t=e.target,tag=t&&t.tagName;if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||(t&&t.isContentEditable))return;
+    if(t&&t.closest&&t.closest('.mwin,.nda-win,[role=dialog],[role=menu],[role=listbox]'))return;
+    var mw=document.getElementById('mwin');if(mw&&!mw.hidden)return;
+    if([].some.call(document.querySelectorAll('.nda-win,.nd-modal,.ndm,.sheet'),function(x){return !x.hidden&&x.offsetParent!==null&&x.getBoundingClientRect().width>0&&getComputedStyle(x).visibility!=='hidden'&&/nda-win/.test(x.className)}))return;
+    var k=e.key,g=act||grids[0];
+    if(k==='ArrowDown'||k==='ArrowUp'){var i=grids.indexOf(g)+(k==='ArrowDown'?1:-1);if(i<0||i>=grids.length)return;e.preventDefault();mark(grids[i],true);return}
+    if(k!=='ArrowRight'&&k!=='ArrowLeft'&&k!=='Home'&&k!=='End'&&k!=='PageDown'&&k!=='PageUp')return;
+    if(!can(g)){mark(g,true);return}
+    e.preventDefault();mark(g,true);
+    if(k==='Home')g.scrollTo({left:0,behavior:'smooth'});
+    else if(k==='End')g.scrollTo({left:g.scrollWidth,behavior:'smooth'});
+    else{var n=(k==='PageDown'||k==='PageUp')?Math.max(1,Math.floor(g.clientWidth/step(g))):1;g.scrollBy({left:(k==='ArrowRight'||k==='PageDown'?1:-1)*n*step(g),behavior:'smooth'})}
+  });
+})();</script>
 </body>
 </html>
