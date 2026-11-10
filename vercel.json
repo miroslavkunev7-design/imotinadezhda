@@ -43,7 +43,7 @@
       ]
     },
     {
-      "source": "/(.*)\\.(webp|jpg|jpeg|png|svg|woff2)",
+      "source": "/(.*)\\.(webp|jpg|jpeg|png|svg|woff2|mp4|webm)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -53,6 +53,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/favicon.ico",
+      "destination": "/mobile/crm/assets/app-icon3-round-192.png"
+    },
     {
       "source": "/f/:file",
       "destination": "/api/tools?file=:file"

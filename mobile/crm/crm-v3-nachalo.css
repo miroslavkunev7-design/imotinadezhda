@@ -20,10 +20,10 @@ html,body,#stage{background:#2a050d!important}
 #canvas{background:
   linear-gradient(180deg,rgba(42,5,13,.1) 0,rgba(42,5,13,.1) 560px,rgba(42,5,13,.45) 1100px,rgba(42,5,13,.86) 1650px,#2a050d 2000px),
   radial-gradient(60% 700px at 88% 1500px,rgba(168,46,66,.34),transparent 70%),
-  url(assets/nd/ph14.jpg) 50% 420px/100% auto no-repeat,#2a050d}
+  url(assets/nd/ph14.webp) 50% 420px/100% auto no-repeat,#2a050d}
 html.desk #canvas{background:
   linear-gradient(180deg,rgba(42,5,13,.2) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.72) 100%),
-  url(assets/nd/ph14.jpg) 50% 72%/cover no-repeat,#2a050d}
+  url(assets/nd/ph14.webp) 50% 72%/cover no-repeat,#2a050d}
 #canvas>.v3-glass{position:absolute;left:8px;top:560px;width:1008px;height:900px;border-radius:50px;pointer-events:none;
   background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
   -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
@@ -63,10 +63,10 @@ html.desk #canvas>.v3-glass{border-radius:44px}
 #canvas .panel::before{content:"";display:block!important;position:absolute;left:auto;right:0;top:0;bottom:auto;width:50%;height:56px;border-radius:0;z-index:0;pointer-events:none;
   background:var(--v3ph) center/cover no-repeat;opacity:1;filter:saturate(1.1) contrast(1.04);
   -webkit-mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 48%,rgba(0,0,0,.72) 74%,transparent 100%)}
-#canvas .panel[data-row="3"]{--v3ph:url(assets/nd/ph06.jpg)}
-#canvas .panel[data-row="4"]{--v3ph:url(assets/nd/ph15.jpg)}
-#canvas .panel[data-row="5"]{--v3ph:url(assets/nd/ph13.jpg)}
-#canvas .panel[data-row="6"]{--v3ph:url(assets/nd/ph11.jpg)}
+#canvas .panel[data-row="3"]{--v3ph:url(assets/nd/ph06.webp)}
+#canvas .panel[data-row="4"]{--v3ph:url(assets/nd/ph15.webp)}
+#canvas .panel[data-row="5"]{--v3ph:url(assets/nd/ph13.webp)}
+#canvas .panel[data-row="6"]{--v3ph:url(assets/nd/ph11.webp)}
 /* вторичните бутони („Виж календара“, „Виж всички“) – златни, тъмен текст, винена иконка */
 #canvas .pillbtn,#canvas .linkbtn{z-index:2;color:#3a1d00!important;background:linear-gradient(180deg,#f8dc98,#d9a254)!important;
   box-shadow:inset 0 0 0 1px rgba(255,248,220,.85),0 0 14px rgba(246,212,142,.6),0 6px 12px -8px rgba(80,40,0,.6)!important}

@@ -4,11 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#4a0f18">
-<link rel="expect" href="#page-ready" blocking="render">
-<style>html:not(.ready) #stage,html:not(.ready) #dock{opacity:0}html.ready #stage,html.ready #dock{transition:opacity .18s ease}#dock{z-index:60}
-</style>
 <title>CRM Начало · Имоти Надежда</title>
-<link rel="prefetch" href="crm-nachalo.html"><link rel="prefetch" href="crm-klienti.html"><link rel="prefetch" href="crm-imoti.html"><link rel="prefetch" href="crm-brokeri.html"><link rel="prefetch" href="crm-kalendar.html"><link rel="prefetch" href="crm-kompanii.html"><link rel="prefetch" href="crm-sdelki.html"><link rel="prefetch" href="crm-dogovori.html">
+<script>(function(){var w=document.documentElement.clientWidth,h=window.innerHeight||1;var desk=w>=1024&&w/h>=1.2;var k=desk?Math.min(w/2072,h/1173):w/1024;if(k>0)document.documentElement.style.setProperty('--ndk',String(k));if(desk)document.documentElement.classList.add('desk');document.documentElement.classList.add('ready')})();</script>
+<style>#dock{z-index:60}</style>
 <style>
 @font-face{font-family:'PT Serif Local';font-weight:700;font-display:swap;src:url(assets/fonts/pt-serif-cyrillic-700-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
 @font-face{font-family:'PT Serif Local';font-weight:700;font-display:swap;src:url(assets/fonts/pt-serif-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-2014,U+2018-201E}
@@ -31,7 +29,7 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-l
 /* ---------- scaling stage: the design is drawn on a 1024 px canvas and scaled to the phone width ---------- */
 #stage{position:relative;width:100%;overflow:hidden;
   background:radial-gradient(120% 60% at 50% 55%,#f6d3b6 0%,#efc19c 55%,#e2a882 100%)}
-#canvas{position:absolute;left:0;top:0;width:1024px;height:1536px;transform-origin:0 0}
+#canvas{position:absolute;left:0;top:0;width:1024px;height:1536px;transform-origin:0 0;zoom:var(--ndk,1);contain:layout}
 .abs{position:absolute}
 
 /* ---------- header / hero ---------- */
@@ -261,7 +259,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 
   <!-- ============ HEADER + HERO ============ -->
   <section class="abs top" id="top" aria-label="CRM Начало">
-    <img class="abs photo" src="assets/hero-villa.jpg" alt="">
+    <img class="abs photo" src="assets/hero-villa.webp" width="1400" height="788" fetchpriority="high" decoding="async" alt="">
     <div class="abs shade"></div>
     <svg class="abs swoosh" viewBox="0 0 1024 380" aria-hidden="true">
       <!-- red satin sweep -->
@@ -272,7 +270,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
       <path d="M438 44 C 392 52 352 84 330 126 C 306 170 270 182 226 189 C 150 200 60 205 0 236" fill="none" stroke="url(#gold)" stroke-width="4"/>
       <path d="M0 236 C 60 205 150 200 226 189" fill="none" stroke="#fff6d6" stroke-width="1.2" opacity=".8"/>
     </svg>
-    <img class="abs logo" src="assets/logo.png" alt="Недвижими имоти Надежда">
+    <img class="abs logo" src="assets/logo.png" width="560" height="296" alt="Недвижими имоти Надежда">
 
     <div class="abs status" aria-hidden="true"><span class="time">08:57</span>
       <span class="right"><span class="bars"><i></i><i></i><i></i><i></i></span><span>5G</span><span class="battery"><b>100</b><i></i></span></span></div>
@@ -280,7 +278,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     <button class="abs ctrl bell" aria-label="Известия" data-msg="Известия"><svg class="i"><use href="#bell"/></svg></button>
     <button class="abs ctrl search" aria-label="Търсене" data-msg="Търсене"><svg class="i"><use href="#search"/></svg></button>
     <button class="abs ctrl gear" aria-label="Настройки" data-msg="Настройки"><svg class="i"><use href="#settings"/></svg></button>
-    <button class="abs avatar" aria-label="Моят профил" data-msg="Моят профил"><img src="assets/avatar.jpg" alt=""></button>
+    <button class="abs avatar" aria-label="Моят профил" data-msg="Моят профил"><img src="assets/avatar.webp" width="152" height="152" alt=""></button>
 
     <h1 class="abs hero-title" data-hero>CRM Начало</h1>
     <p class="abs hero-sub" data-hero>Управление на имоти,<br>клиенти и сделки</p>
@@ -292,25 +290,25 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
 
   <!-- ============ FEATURE TILES ============ -->
   <button class="abs tile" data-row="1" style="left:18px;top:378px" data-href="crm-klienti.html">
-    <img class="ph" src="assets/card-clients.jpg" alt="" style="left:150px;top:-52px;width:470px">
+    <img class="ph" src="assets/card-clients.webp" alt="" width="470" height="236" loading="lazy" decoding="async" style="left:150px;top:-52px;width:470px">
     <span class="veil"></span><span class="gloss"></span>
     <span class="ic"><svg class="i"><use href="#users"/></svg></span><h3>Клиенти</h3><p>Досие и комуникация</p>
     <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
   </button>
   <button class="abs tile" data-row="1" style="left:522px;top:378px" data-href="crm-imoti.html">
-    <img class="ph" src="assets/card-properties.jpg" alt="" style="left:104px;top:-14px;width:400px">
+    <img class="ph" src="assets/card-properties.webp" alt="" width="400" height="236" loading="lazy" decoding="async" style="left:104px;top:-14px;width:400px">
     <span class="veil"></span><span class="gloss"></span>
     <span class="ic"><svg class="i"><use href="#house"/></svg></span><h3>Имоти</h3><p>Добавяне и управление</p>
     <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
   </button>
   <button class="abs tile" data-row="2" style="left:18px;top:629px" data-msg="Сделки">
-    <img class="ph" src="assets/card-deals.jpg" alt="" style="left:190px;top:-16px;width:300px">
+    <img class="ph" src="assets/card-deals.webp" alt="" width="300" height="236" loading="lazy" decoding="async" style="left:190px;top:-16px;width:300px">
     <span class="veil"></span><span class="gloss"></span>
     <span class="ic"><svg class="i"><use href="#handshake"/></svg></span><h3>Сделки</h3><p>Проследяване и статус</p>
     <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
   </button>
   <button class="abs tile" data-row="2" style="left:522px;top:629px" data-href="crm-kalendar.html">
-    <img class="ph" src="assets/card-viewings.jpg" alt="" style="left:160px;top:-22px;width:330px">
+    <img class="ph" src="assets/card-viewings.webp" alt="" width="330" height="236" loading="lazy" decoding="async" style="left:160px;top:-22px;width:330px">
     <span class="veil"></span><span class="gloss"></span>
     <span class="ic"><svg class="i"><use href="#calendar"/></svg></span><h3>Огледи</h3><p>График и срещи</p>
     <span class="go"><svg class="i"><use href="#chev-r"/></svg></span>
