@@ -1225,7 +1225,47 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     return String(s||'file').toLowerCase().replace(/[а-я]/g,function(c){return m[c]||''}).replace(/[^\w.\-]+/g,'_').replace(/_+/g,'_').slice(-80)};
 
   var rents=[],props=[],pics={};
-  function persist(){if(window.ND)return ND.sync('rentals',rents).catch(function(){});return Promise.resolve()}
+  var DEMO_ID='preview-hayat';
+  function isDemo(r){return !!(r&&(r.id===DEMO_ID||r._preview===true))}
+  function persist(){
+    if(!window.ND)return Promise.resolve();
+    var real=rents.filter(function(r){return !isDemo(r)});
+    if(!real.length&&rents.length&&rents.every(isDemo))return Promise.resolve();
+    return ND.sync('rentals',real).catch(function(){});
+  }
+  function eurCard(n){
+    var x=Math.round(num(n)),s=String(Math.abs(x)),out='';
+    while(s.length>3){out='\u00A0'+s.slice(-3)+out;s=s.slice(0,-3)}
+    return (x<0?'-':'')+s+out+' €';
+  }
+  function nextDueDate(r){
+    var day=Math.min(31,Math.max(1,num(r.payDay)||1)),now=new Date(),y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+    var due=new Date(y,m,day);if(due.getDate()!==day)due=new Date(y,m+1,0);
+    var t0=new Date(y,m,d);
+    if(due<t0){due=new Date(y,m+1,day);if(due.getDate()!==day)due=new Date(y,m+2,0)}
+    return due;
+  }
+  function daysToPay(r){var due=nextDueDate(r),now=new Date(),t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());return Math.max(0,Math.round((due-t0)/864e5))}
+  function dueLabel(r){var due=nextDueDate(r);return String(due.getDate()).padStart(2,'0')+'.'+String(due.getMonth()+1).padStart(2,'0')+'.'+due.getFullYear()}
+  function paidInfo(r){var ps=r.payments||[];return {n:ps.length,sum:ps.reduce(function(a,p){return a+num(p.amount||r.rent)},0)}}
+  function perLabel(r){return (r.start||r.end)?(bgd(r.start)||'…')+' – '+(bgd(r.end)||'безсрочен'):''}
+  function titleHtml(r){
+    var t=String(r.title||'Наем'),m=t.match(/^(.*?Hayat),?\s*(бл\..*)$/i);
+    if(m)return esc(m[1].replace(/,\s*$/,''))+'<br>'+esc(m[2]);
+    var addr=String(r.address||'');
+    if(addr&&t.indexOf(addr)<0)return esc(t)+'<br>'+esc(addr);
+    return esc(t);
+  }
+  function hayatPreview(){
+    return {id:DEMO_ID,_preview:true,title:'Студио – ЖК VIP Residence Hayat, бл. 1, ет. 7, ап. 41',type:'Студио',city:'Шумен',hood:'',address:'бл. 1, ет. 7, ап. 41',rooms:1,area:'',rent:300,deposit:0,payDay:20,start:'2026-06-01',end:'2027-05-31',tenant:'Георги Георгиев',tenantPhone:'',owner:'',notes:'',files:[],receipts:[],
+      payments:[{month:'2026-05',amount:300},{month:'2026-06',amount:300},{month:'2026-07',amount:300},{month:'2026-08',amount:300},{month:'2026-09',amount:300},{month:'2026-10',amount:300}]}
+  }
+  function seedPreview(){
+    if(rents.some(function(r){return /VIP Residence Hayat/i.test(String(r.title||''))}))return;
+    if(rents.some(isDemo))return;
+    rents.unshift(hayatPreview());
+    pics[DEMO_ID]=img('g-facade.jpg');
+  }
 
   /* ---------- scaling ---------- */
   var top=document.querySelector('.otop'),photo=top.querySelector('.photo'),ctrls=[].slice.call(top.querySelectorAll('.ctrl,.avatar')),
@@ -1289,7 +1329,7 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
 
   function sizeCards(){if(!desk){root.style.removeProperty('--och');root.style.removeProperty('--ocd');return}var n=Math.max(1,$('olist').querySelectorAll('.oc').length),lh=parseFloat(getComputedStyle(root).getPropertyValue('--lh'))||700;
     var h=Math.max(118,Math.min(200,(lh-22-16*(n-1))/n));root.style.setProperty('--och',h+'px');root.style.setProperty('--ocd',((h-118)/2)+'px')}
-  function photoOf(r){return pics[r.id]||img(typeOf(r.type).photo)}
+  function photoOf(r){if(isDemo(r))return pics[r.id]||img('g-facade.jpg');return pics[r.id]||img(typeOf(r.type).photo)}
   function renderStats(list){
     var act=list.filter(function(r){var s=status(r);return s==='rented'||s==='due'}),sum=act.reduce(function(a,r){return a+num(r.rent)},0),
         due=list.filter(function(r){return status(r)==='due'}).length;
@@ -1306,14 +1346,19 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     var list=base.filter(function(r){if(st&&!stMatch(r,st))return false;if(!q)return true;
       return [r.title,r.city,r.hood,r.address,r.type,r.owner,r.tenant,r.ownerPhone,r.tenantPhone].join(' ').toLocaleLowerCase('bg').indexOf(q)>=0});
     renderStats(base);
-    $('olist').innerHTML=list.length?list.map(function(r){var tp=typeOf(r.type),s=status(r);
+    $('olist').innerHTML=list.length?list.map(function(r){var s=status(r),days=daysToPay(r),paid=paidInfo(r),per=perLabel(r),amt=eurCard(r.rent),got=eurCard(paid.sum);
       return '<article class="oc'+(r.id===sel?' on':'')+'" tabindex="0" data-id="'+r.id+'" aria-expanded="'+(r.id===sel)+'" aria-label="'+esc(r.title)+'">'+
-        '<span class="op" style="background-image:url('+photoOf(r)+')"></span><span class="oi">'+ic(tp.icon)+'</span>'+
-        '<h3 class="on2">'+esc(r.title||'Наем')+'</h3><span class="rpill '+s+'">'+ST_TXT[s]+'</span>'+
-        '<p class="oca">'+esc([r.type,[r.city,r.hood].filter(Boolean).join(', ')].filter(Boolean).join(' • '))+'</p>'+
-        '<div class="v3-specs r-tiles">'+vt('coins',eur(r.rent),'Наем / мес.')+vt('shield',num(r.deposit)?eur(r.deposit):'','Депозит')+
-          vt('calendar',r.end?'до '+bgd(r.end):r.start?'от '+bgd(r.start):'','Период')+vt('user-round',r.tenant||'','Наемател')+'</div>'+
-        '<span class="ar">'+ic('chev-r')+'</span></article>'}).join('')
+        '<span class="op" style="background-image:url('+photoOf(r)+')"></span><span class="oi">'+ic('key-round')+'</span>'+
+        '<h3 class="on2">'+titleHtml(r)+'</h3><span class="rpill '+s+'">'+ST_TXT[s]+'</span>'+
+        '<p class="oca">'+esc(r.city||'')+'</p>'+
+        '<div class="om">'+
+          '<div class="r-due"><b class="r-days" data-t="'+days+'">'+days+'</b><span class="r-due-copy"><span class="r-lab">'+ic('clock')+'дни до плащане</span><small>Следващ падеж: '+esc(dueLabel(r))+'</small></span></div>'+
+          '<div class="r-ten"><span class="r-lab">'+ic('user')+'Наемател</span><b>'+esc(r.tenant||'—')+'</b></div>'+
+          '<div class="r-per"><span class="r-lab">'+ic('calendar')+'Период на договора</span><b>'+esc(per||'—')+'</b></div>'+
+          '<div class="r-got"><span class="r-lab">'+ic('mail')+'Получено до момента</span><b class="r-got-n" data-t="'+esc(got)+'">'+esc(got)+'</b><small>'+paid.n+' платени наема</small></div>'+
+          '<div class="r-fee"><b class="r-amt" data-t="'+esc(amt)+'"><span>'+esc(amt)+'</span></b><span class="r-fee-l">Месечен наем</span></div>'+
+        '</div>'+
+        '<span class="ar">Отвори пълната карта'+ic('arrow-r')+'</span></article>'}).join('')
       :'<div class="empty">'+(rents.length?'Няма наеми по избраните критерии.':'Все още няма добавени наеми. Натиснете „Нов наем“.')+'</div>';
     sizeCards();
   }
@@ -1546,14 +1591,20 @@ html.desk .odet:empty:before{content:'Изберете наем, за да ви�
     ND.fileUrls(need.map(function(n){return n.path})).then(function(m){need.forEach(function(n){if(m[n.path])pics[n.id]=m[n.path]});renderList();renderDet()}).catch(function(){});
   }
 
-  fillFilters();renderList();renderDet();fit();
+  seedPreview();fillFilters();renderList();renderDet();fit();
   ND.busy(1);
+  var loaded=false;
   ND.ready().then(function(){return Promise.all([ND.load('rentals'),ND.load('properties').catch(function(){return []})])}).then(function(res){
-    ND.busy(0);rents=res[0].reverse();props=res[1];
+    loaded=true;ND.busy(0);rents=res[0].reverse();props=res[1];
     rents.forEach(function(r){['files','payments','receipts'].forEach(function(k){if(!Array.isArray(r[k]))r[k]=[]})});
+    seedPreview();
     var h=(location.hash||'').slice(1);sel=rents.some(function(r){return r.id===h})?h:(rents[0]&&isDesk()?rents[0].id:null);
     fillFilters();renderList();renderDet();loadPics();fit();
-  }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
+  }).catch(function(e){loaded=true;ND.busy(0);seedPreview();fillFilters();renderList();renderDet();fit();say('Грешка при зареждане: '+(e&&e.message||e))});
+  setTimeout(function(){
+    if(loaded)return;
+    seedPreview();ND.busy(0);fillFilters();renderList();renderDet();fit();
+  },2200);
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>

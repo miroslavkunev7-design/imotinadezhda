@@ -290,6 +290,116 @@ html.desk .od-h h2{font-size:44px}
 html.desk .r-filt .r-sel .val{font-size:27px!important}
 
 /* ============================================================
+   TASK-012: материал и светлина само върху картата в списъка (#olist .oc).
+   Подредбата на страницата, филтрите и детайлният панел не се пипат.
+   ============================================================ */
+#olist .oc{
+  --rsatin:radial-gradient(118% 86% at 32% 16%,rgba(255,214,220,.26) 0%,rgba(255,196,204,.07) 28%,transparent 54%),linear-gradient(168deg,#561016 0%,#7a1022 36%,#8a1a2e 52%,#6b0c1c 70%,#3f0812 100%);
+  --rlinen:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22160%22%20height%3D%22160%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.85%20.7%22%20numOctaves%3D%224%22%20stitchTiles%3D%22stitch%22%2F%3E%3CfeColorMatrix%20values%3D%220%200%200%200%20.93%20%200%200%200%200%20.88%20%200%200%200%200%20.80%20%200%200%200%20.05%200%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url%28%23n%29%22%2F%3E%3C%2Fsvg%3E");
+  --rwaves:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201000%20320%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M-50%20200%20C%20120%2088%2C%20280%20252%2C%20460%20152%20C%20640%2052%2C%20800%20220%2C%201050%20120%20L%201050%20320%20L%20-50%20320%20Z%22%20fill%3D%22rgba%28255%2C255%2C255%2C.28%29%22%2F%3E%3Cpath%20d%3D%22M-50%20228%20C%20160%20120%2C%20320%20268%2C%20500%20180%20C%20680%2092%2C%20840%20240%2C%201050%20158%20L%201050%20320%20L%20-50%20320%20Z%22%20fill%3D%22rgba%28255%2C246%2C238%2C.2%29%22%2F%3E%3Cpath%20d%3D%22M-50%20252%20C%20190%20170%2C%20360%20280%2C%20540%20210%20C%20720%20140%2C%20880%20260%2C%201050%20190%20L%201050%20320%20L%20-50%20320%20Z%22%20fill%3D%22rgba%28220%2C170%2C160%2C.08%29%22%2F%3E%3Cpath%20d%3D%22M-50%20200%20C%20120%2088%2C%20280%20252%2C%20460%20152%20C%20640%2052%2C%20800%20220%2C%201050%20120%22%20fill%3D%22none%22%20stroke%3D%22rgba%28255%2C255%2C255%2C.55%29%22%20stroke-width%3D%221.6%22%2F%3E%3Cpath%20d%3D%22M20%20192%20C%20190%20100%2C%20340%20230%2C%20520%20140%22%20fill%3D%22none%22%20stroke%3D%22rgba%28255%2C255%2C255%2C.35%29%22%20stroke-width%3D%221%22%2F%3E%3C%2Fsvg%3E");
+  --rgrain:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Cfilter%20id%3D%22g%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%221.1%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22%2F%3E%3CfeColorMatrix%20values%3D%220%200%200%200%20.55%20%200%200%200%200%20.12%20%200%200%200%200%20.16%20%200%200%200%20.18%200%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url%28%23g%29%22%2F%3E%3C%2Fsvg%3E");
+  min-height:448px;padding:28px 28px 22px;align-items:start;
+  grid-template-columns:76px minmax(0,1.15fr) minmax(0,.9fr) auto;
+  grid-template-areas:"oi t t pill" "oi a a a" "om om om om" "ar ar ar ar";
+  column-gap:16px;row-gap:4px;
+  background:var(--rlinen),radial-gradient(120% 88% at 38% 36%,rgba(255,252,247,0) 28%,rgba(70,16,24,.055) 100%),linear-gradient(180deg,#fffdf8 0%,#f6e6d4 100%);
+  box-shadow:inset 0 1.2px 0 rgba(255,255,255,.78),inset 0 0 18px rgba(255,255,255,.1),0 1px 2px rgba(80,20,24,.1),0 8px 16px -8px rgba(70,16,24,.22),0 22px 40px -16px rgba(55,10,18,.32)
+}
+#olist .oc::before,#olist .oc::after{content:"";position:absolute;pointer-events:none;z-index:1}
+#olist .oc::before{
+  inset:0;border-radius:inherit;
+  background:radial-gradient(120% 90% at 42% 40%,transparent 38%,rgba(60,10,18,.07) 100%);
+  -webkit-mask-image:linear-gradient(90deg,#000 50%,transparent 78%);mask-image:linear-gradient(90deg,#000 50%,transparent 78%)
+}
+#olist .oc::after{
+  left:0;right:38%;bottom:0;height:36%;border-radius:inherit;
+  background:var(--rwaves) 0 100%/100% 100% no-repeat;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 22%,#000 82%,transparent 100%),linear-gradient(90deg,#000 0%,#000 70%,transparent 100%);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(180deg,transparent 0%,#000 22%,#000 82%,transparent 100%),linear-gradient(90deg,#000 0%,#000 70%,transparent 100%);mask-composite:intersect
+}
+#olist .oc>*{z-index:2}
+#olist .oc .op{
+  z-index:0!important;opacity:1;filter:saturate(1.08) contrast(1.03);
+  -webkit-mask-image:linear-gradient(270deg,#000 0%,#000 34%,rgba(0,0,0,.78) 52%,rgba(0,0,0,.38) 70%,rgba(0,0,0,.1) 86%,transparent 100%);
+  mask-image:linear-gradient(270deg,#000 0%,#000 34%,rgba(0,0,0,.78) 52%,rgba(0,0,0,.38) 70%,rgba(0,0,0,.1) 86%,transparent 100%)
+}
+#olist .oc .oi{
+  position:relative;background:var(--rsatin);
+  box-shadow:inset 0 1.5px 0 rgba(255,232,234,.42),inset 0 -8px 12px rgba(40,0,10,.28),0 4px 10px rgba(60,10,20,.28)
+}
+#olist .oc .oi::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.07;background:var(--rgrain)
+}
+#olist .oc .on2{max-width:58%;color:#3b0a0e;text-shadow:none;-webkit-line-clamp:3}
+#olist .oc .oca{max-width:58%;color:#3d1d18;text-shadow:none;font-weight:700}
+#olist .oc .rpill{
+  position:absolute!important;right:22px!important;top:22px!important;left:auto!important;z-index:4
+}
+#olist .oc .rpill.rented{
+  background:var(--rsatin);
+  box-shadow:inset 0 1px 0 rgba(255,236,236,.35),inset 0 -6px 10px rgba(30,0,8,.25),0 4px 10px rgba(60,10,20,.28)
+}
+#olist .oc .rpill.rented::before{background:#f4ddd8;box-shadow:0 0 6px rgba(255,220,220,.3)}
+#olist .oc .rpill.rented::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.08;background:var(--rgrain)
+}
+#olist .oc .om{
+  grid-area:om;position:relative!important;left:auto!important;top:auto!important;right:auto!important;
+  display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr) minmax(260px,1fr);
+  grid-template-areas:"due ten fee" "per got fee";
+  gap:22px 24px;align-items:start;margin:18px 0 8px;padding:0 4% 0 0;width:100%;font:inherit;color:inherit
+}
+#olist .oc .om span{display:block}
+#olist .oc .om i{display:none}
+#olist .oc .r-due{grid-area:due;display:flex;align-items:flex-start;gap:14px;min-width:0;overflow:hidden}
+#olist .oc .r-ten{grid-area:ten;min-width:0;padding-top:10px;overflow:hidden}
+#olist .oc .r-per{grid-area:per;min-width:0}
+#olist .oc .r-got{grid-area:got;min-width:0}
+#olist .oc .r-fee{grid-area:fee;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:8px;text-align:right;padding:4px 6% 12px 0;min-width:0}
+#olist .oc .r-lab{
+  display:flex!important;align-items:center;gap:10px;font:700 22px/1.15 var(--cond);color:#7b1020;text-shadow:none
+}
+#olist .oc .om svg.i{font-size:26px;color:#7b1020;stroke-width:1.9}
+#olist .oc .r-due-copy{display:flex;flex-direction:column;gap:8px;padding-top:18px}
+#olist .oc .om small{display:block;font:700 20px/1.25 var(--cond);color:#3d1d18;text-shadow:none}
+#olist .oc .r-ten b,#olist .oc .r-per b{
+  display:block;margin-top:8px;font:700 30px/1.15 var(--cond);color:#3b0a0e;text-shadow:none
+}
+#olist .oc .r-days{
+  flex:none;font:700 92px/.9 var(--serif);letter-spacing:-.03em;color:#6b0a1c;white-space:nowrap;
+  background-image:linear-gradient(180deg,#8a283c 0%,#6b0a1c 58%,#4e0714 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
+}
+#olist .oc .r-got-n{
+  display:block;margin-top:6px;font:700 42px/1 var(--serif);letter-spacing:-.02em;color:#6b0a1c;white-space:nowrap;
+  background-image:linear-gradient(180deg,#8a283c 0%,#6b0a1c 58%,#4e0714 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
+}
+#olist .oc .r-amt{
+  display:block;font:700 68px/.95 var(--serif);letter-spacing:-.02em;color:#6b0a1c;white-space:nowrap
+}
+#olist .oc .r-amt span{
+  display:inline!important;
+  background-image:linear-gradient(180deg,#a33248 0%,#7a1022 46%,#4a0612 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
+}
+#olist .oc .r-fee-l{position:relative;display:block!important;margin:0;font:700 26px/1 var(--cond);color:#6b0a1c;text-shadow:none}
+#olist .oc .ar{
+  grid-area:ar;display:inline-flex;align-items:center;gap:16px;width:max-content;margin-top:8px;
+  font:700 26px/1 var(--cond);color:#5a0a12;background:none;box-shadow:none
+}
+#olist .oc .ar svg.i{
+  width:44px;height:44px;padding:10px;border-radius:50%;color:#fff3dc;stroke-width:2.2;
+  background:var(--rsatin);
+  box-shadow:inset 0 1.5px 0 rgba(255,232,234,.4),inset 0 -6px 10px rgba(40,0,10,.28),0 4px 10px rgba(60,10,20,.28)
+}
+#olist .oc .r-tiles{display:none}
+#olist .oc.on{box-shadow:inset 0 1.2px 0 rgba(255,255,255,.78),0 0 0 2px rgba(122,16,34,.45),0 8px 16px -8px rgba(70,16,24,.22),0 22px 40px -16px rgba(55,10,18,.32)}
+#olist .oc:hover{transform:none}
+html.desk #olist .oc .on2{font-size:38px}
+html.desk #olist .oc .oca{font-size:27px!important}
+
+/* ============================================================
    5) ПОДРЕДБА (09.11): чипове за статус вместо падащия „Статус“, филтри наемател / имот
    ============================================================ */
 .o-filt,.o-pop{display:none!important}
