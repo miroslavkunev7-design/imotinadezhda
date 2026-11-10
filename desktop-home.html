@@ -44,7 +44,7 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
 .nav .acc{padding:8px 0 8px 40px;color:#f2c14e}
 .nav .acc svg{width:54px;height:54px;display:block}
 /* search */
-.search{left:282px;top:432px;width:1104px;height:170px;background:url(desktop-home-assets/search-desktop.svg) 0 0/100% 100% no-repeat;filter:drop-shadow(0 8px 16px rgba(30,0,8,.45))}
+.search{left:282px;top:calc(432px - var(--nd-up,0px));width:1104px;height:170px;background:url(desktop-home-assets/search-desktop.svg) 0 0/100% 100% no-repeat;filter:drop-shadow(0 8px 16px rgba(30,0,8,.45))}
 .f{position:absolute;display:flex;align-items:center;gap:22px;cursor:pointer}
 .f svg.i{width:44px;height:44px;color:var(--gold);flex:none}
 .f .t{display:flex;flex-direction:column;gap:4px}
@@ -66,7 +66,7 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
 .go svg{width:36px;height:36px}
 .go:hover{transform:translateY(-2px);box-shadow:0 0 0 2px #fff6cc,0 0 26px rgba(255,210,110,.95),inset 0 2px 2px rgba(255,255,255,.7)}
 /* city cards */
-.card{top:626px;height:286px;border-radius:24px;overflow:hidden;display:block;text-decoration:none;background:#fff7ec;
+.card{top:calc(626px - var(--nd-up,0px));height:286px;border-radius:24px;overflow:hidden;display:block;text-decoration:none;background:#fff7ec;
   box-shadow:0 0 0 2px #e5b453,0 0 0 4px rgba(255,240,200,.6),0 10px 18px rgba(30,0,8,.45);transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s}
 .card:hover{transform:translateY(-5px);box-shadow:0 0 0 2px #f6cf6c,0 0 22px rgba(255,214,130,.9),0 14px 22px rgba(30,0,8,.5)}
 .card .ph{position:absolute;left:0;top:0;width:100%;height:100%;background-size:cover;background-position:center}
@@ -144,15 +144,20 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
 <script src="/mobile/nd-menu.js"></script>
 <script>
 (function(){
-  var W=1672,H=941,cv=document.getElementById('cv'),st=document.getElementById('stage');
+  var W=1672,H=941,UP=226,cv=document.getElementById('cv'),st=document.getElementById('stage'),bg=cv.querySelector('.bg');
   function fit(){
     var k=document.documentElement.clientWidth/W;
     var vv=window.visualViewport;
     var vh=Math.max(innerHeight||0,document.documentElement.clientHeight||0,vv?(vv.height+(vv.offsetTop||0)):0);
     cv.style.transform='scale('+k+')';
-    var minH=Math.max(H,vh/k);
+    /* нисък екран (лаптоп): търсачката и картите се качват нагоре, за да се вижда цялата страница */
+    var up=Math.max(0,Math.min(UP,H-vh/k));
+    cv.style.setProperty('--nd-up',up+'px');
+    if(bg)bg.style.height=(H-up)+'px';
+    var minH=Math.max(H-up,vh/k);
     cv.style.height=minH+'px';
-    st.style.height=vh+'px';
+    var sh=(H-up)*k>vh+1?Math.ceil((H-up)*k):vh;
+    st.style.height=sh+'px';
     st.style.minHeight=vh+'px';
     document.body.style.minHeight=vh+'px';
   }

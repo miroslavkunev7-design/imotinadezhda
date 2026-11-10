@@ -493,7 +493,7 @@ html:not(.desk) #canvas .cpanel[data-cat=rent][hidden]{margin-top:0!important}
 html.desk #canvas .flow{position:relative;display:flex;flex-direction:column;height:calc(100% - 8px);min-height:0;
   margin-left:var(--fm,30px);width:calc(var(--Wc,2072px) - 2*var(--fm,30px));padding:12px 26px 12px!important}
 html.desk #canvas .flow::before{display:none}
-html.desk #canvas .cpanel{width:auto;height:210px;flex:none;transition:height .36s cubic-bezier(.2,.7,.2,1)}
+html.desk #canvas .cpanel{width:auto;height:262px;flex:none;transition:height .36s cubic-bezier(.2,.7,.2,1)}
 html.desk.nd-ffold #canvas .cpanel{height:82px}
 html.desk #canvas .cpanel .nd-new{left:auto!important;right:0!important;top:10px!important;width:auto;justify-content:center}
 html.desk #canvas .f-q{grid-column:span 17}html.desk #canvas .f-more{grid-column:span 7}
@@ -867,8 +867,16 @@ html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
     cctrls.forEach(function(el){if(el.dataset.l==null)el.dataset.l=parseFloat(getComputedStyle(el).left);el.style.left=(Wc-1024+(+el.dataset.l))+'px'});
     root.style.setProperty('--G',G+'px');root.style.setProperty('--xL',xL+'px');
     /* един таб: лентата с картите пълни остатъка; сгънатите филтри освобождават височина и картите растат */
-    var fold=root.classList.contains('nd-ffold'),tabsH=86,panelH=fold?82:210,dockGap=(window.NDRAIL?8:20);
-    var rowH=Math.max(360,Hc-Hh-28-tabsH-panelH-dockGap),cz=Math.max(.42,Math.min(.98,(rowH-16)/878));
+    /* 11.11: височината на лентата се взима от реалното свободно място (преди сметката беше с ~36 по-висока и картата се режеше
+       отгоре и отдолу); с лявото меню няма долна лента, затова блокът слиза почти до долния ръб и картата е по-голяма;
+       отворените филтри са три реда (262), за да не остава третият ред под картите */
+    var fold=root.classList.contains('nd-ffold'),tabsH=86,panelH=fold?82:262,padB=(window.NDRAIL?14:40);
+    canvas.style.paddingBottom=padB+'px';
+    var flowEl=canvas.querySelector('.flow'),kdEl=flowEl&&flowEl.querySelector('.kdeal'),inner=0;
+    try{var fcs=getComputedStyle(flowEl),kcs=getComputedStyle(kdEl);
+      inner=flowEl.clientHeight-(parseFloat(fcs.paddingTop)||0)-(parseFloat(fcs.paddingBottom)||0)-kdEl.offsetHeight-(parseFloat(kcs.marginBottom)||0)}catch(e){inner=0}
+    if(!(inner>200))inner=Hc-Hh-padB-8-24-tabsH;
+    var rowH=Math.max(240,Math.floor(inner-panelH)),cz=Math.max(.26,Math.min(.98,(rowH-28)/878));
     root.style.setProperty('--gh',rowH+'px');
     root.style.setProperty('--rowH',rowH+'px');root.style.setProperty('--cz',cz.toFixed(4));root.style.setProperty('--Wc',Wc+'px');root.style.setProperty('--fm',Math.max(14,Math.min(40,(Wc-2072)/2+24))+'px');
     dockC.style.transform='scale('+k+')';dockC.style.left=((vw-1024*k)/2)+'px';
@@ -876,7 +884,7 @@ html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
     fitModal();
   }
   function clearDesk(){
-    canvas.style.width=canvas.style.height=canvas.style.paddingTop='';ctop.style.height='';
+    canvas.style.width=canvas.style.height=canvas.style.paddingTop=canvas.style.paddingBottom='';ctop.style.height='';
     ctexts.forEach(function(o){o.el.style.top=o.top+'px'});
     cphoto.style.width=cphoto.style.left=cphoto.style.top='';cctrls.forEach(function(el){el.style.left=''});
   }
