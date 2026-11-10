@@ -10,6 +10,7 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Emoji:wght@700&display=swap" rel="stylesheet"/></noscript><style>.client-detail .gold-emoji{font-family:'Noto Emoji',sans-serif!important;font-size:1.25em;font-weight:700;color:#c79632;display:inline-block;vertical-align:-.08em;-webkit-text-stroke:.45px #c79632;text-shadow:0 1px 1px #f8dfa1}.client-detail .cc-panel dt{font-weight:800!important}.client-detail .icon{color:#c79632;stroke-width:2.2;width:28px;height:28px}.client-detail .cc-panel dl,.client-detail .cc-timeline,.client-detail .cc-pref-grid{font-weight:700!important}.neighborhood-meta>span:first-child{overflow:hidden;text-overflow:ellipsis;min-width:0}</style>
 
 <script>(function(){function g(){var h=(location.hash||'').slice(1);if((h===''||h==='/'||h==='/home')&&!/[?&](desktop=1|inframe=1)/.test(location.search)&&window.top===window)location.replace('/')}g();addEventListener('hashchange',g)})();</script>
+<script>(function(){var m=/#\/city\/(shumen|varna|burgas)/.exec(location.hash||'');if(!m)return;var l=document.createElement('link');l.rel='preload';l.as='image';l.href='/mobile/home-assets/city-'+m[1]+'-poster.webp';document.head.appendChild(l)})();</script>
 <script>/* снимка от външен сървър не се зарежда -> наша снимка на града */document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='IMG'||t.dataset.ndfb||!/screenshottocode\.com/.test(t.currentSrc||t.src))return;t.dataset.ndfb='1';var m=/\/(?:city|neighborhood|property\/[^/]+)\/(burgas|varna|shumen|novi-pazar)/.exec(location.hash),c=m?m[1]:'burgas';t.src='/desktop-home-assets/city-'+c+'.webp'},true)</script>
 <script src="/mobile/vendor/react-18.0.0.production.min.js" defer></script>
 <script src="/mobile/vendor/react-dom-18.0.0.production.min.js" defer></script>
@@ -227,5 +228,5 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)go()
 
 <script>window.NDAshNoWidget=true</script><script src="/mobile/ash.js" defer></script>
 <script src="/mobile/nd-hscroll.js" defer></script>
-<script src="/mobile/ilj-app.js?v=72f5da94be" defer></script>
+<script src="/mobile/ilj-app.js?v=task005c" defer></script>
 </body></html>

@@ -165,7 +165,7 @@ body{font-family:var(--cond);color:var(--ink)}
   addEventListener('keydown',function(e){if(e.key==='Escape')$('about').classList.remove('on')});
 })();
 </script>
-<script>/* TASK-005: only the first city video autoloads; others wait for hover/focus, never scroll */
+<script>/* TASK-005: posters first; video only on hover/focus/touch. Desktop may autoload the first card. */
 (function(){
   var vs=[].slice.call(document.querySelectorAll("video.ph"));
   if(!vs.length)return;
@@ -175,14 +175,13 @@ body{font-family:var(--cond);color:var(--ink)}
     v.dataset.loaded="1"; v.src=s; v.preload="metadata"; v.load(); v.muted=true;
     var p=v.play(); if(p&&p.catch)p.catch(function(){});
   }
-  function idleFirst(){
-    if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-    load(vs[0]);
+  var desk=window.matchMedia&&window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)").matches;
+  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(desk&&!reduce){
+    if("requestIdleCallback" in window) requestIdleCallback(function(){load(vs[0]);},{timeout:800});
+    else setTimeout(function(){load(vs[0]);},200);
   }
-  if("requestIdleCallback" in window) requestIdleCallback(idleFirst,{timeout:1800});
-  else setTimeout(idleFirst,500);
-  vs.forEach(function(v,i){
-    if(i===0)return;
+  vs.forEach(function(v){
     var host=v.parentElement||v;
     ["pointerenter","focusin","touchstart"].forEach(function(e){
       host.addEventListener(e,function(){load(v);},{passive:true,once:true});
