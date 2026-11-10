@@ -1314,12 +1314,13 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
       '<button type="button" class="y'+(cs==='Капариран'?' on':'')+'" data-st="Капариран"><i></i>Капариран <small style="font-weight:400;opacity:.8">· сваля се, в архива</small></button>'+
       '<button type="button" class="r'+(cs==='Продаден'?' on':'')+'" data-st="Продаден"><i></i>Продаден <small style="font-weight:400;opacity:.8">· сваля се, в архива</small></button>'+
       (cs?'<button type="button" class="g" data-st=""><i></i>Изчисти статуса</button>':'');
-    document.body.appendChild(m);
+    document.body.appendChild(m); m.tabIndex=-1;
     var r=btn.getBoundingClientRect(),w=Math.max(300,Math.min(r.width,420)),left=Math.min(Math.max(8,r.left+(r.width-w)/2),innerWidth-w-8),top=r.top-m.offsetHeight-10;if(top<8)top=Math.min(r.bottom+10,innerHeight-m.offsetHeight-8);
-    m.style.left=left+'px';m.style.top=Math.max(8,top)+'px';m.style.width=w+'px';
-    function close(){m.remove();document.removeEventListener('pointerdown',onDoc,true)}
-    function onDoc(ev){if(!m.contains(ev.target))close()}
-    setTimeout(function(){document.addEventListener('pointerdown',onDoc,true)},0);
+    m.style.left=left+'px';m.style.top=Math.max(8,top)+'px';m.style.width=w+'px';m.style.maxHeight=Math.min(520,innerHeight-16)+'px';m.style.overflow='auto';
+    function close(){m.remove();document.removeEventListener('pointerdown',onDoc,true);window.removeEventListener('scroll',onMove,true)}
+    function onDoc(ev){if(!m.contains(ev.target)&&ev.target!==btn)close()}
+    function onMove(ev){if(ev&&ev.target&&m.contains(ev.target))return}
+    setTimeout(function(){document.addEventListener('pointerdown',onDoc,true);window.addEventListener('scroll',onMove,true);try{m.focus({preventScroll:true})}catch(e){}},0);
     m.addEventListener('click',function(ev){var b=ev.target.closest('[data-st]');if(!b)return;var v=b.getAttribute('data-st');close();
       if(v==='site'){window.open(window.NDPublish.siteUrl(P0),'_blank');return}
       window.NDProps.setStage(P0,v,prop?{noOpen:true}:null)});
@@ -1327,7 +1328,7 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
   $('pm-acc').addEventListener('click',function(e){var r=e.target.closest('[data-doc]');if(!r||!cur)return;var d=cur.docs[+r.getAttribute('data-doc')];if(!d)return;if(window.NDDocs&&window.NDDocs.view){window.NDDocs.view(pwin,cur.docs.slice(),+r.getAttribute('data-doc'));return}var w=window.open('','_blank');ND.fileUrl(d.path).then(function(u){if(w)w.location=u;else location.href=u})});
   document.addEventListener('keydown',function(e){
     if(pwin.hidden)return;
-    if(e.key==='Escape'){e.preventDefault();closeProp();return}
+    if(e.key==='Escape'){if(document.querySelector('.pm-smenu,.ndmenu'))return;e.preventDefault();closeProp();return}
     if(e.key==='ArrowRight'&&e.target.tagName!=='INPUT'){$('pm-next').click()}
     if(e.key==='ArrowLeft'&&e.target.tagName!=='INPUT'){$('pm-prev').click()}
     if(e.key==='Tab'){var f=[].slice.call(pwin.querySelectorAll('button,a[href]')).filter(function(x){return x.offsetParent!==null&&!x.hidden});if(!f.length)return;

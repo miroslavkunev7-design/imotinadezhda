@@ -100,7 +100,7 @@ html.rail .nda-fab{display:none}
 .fld input{font:italic 400 22px/1 var(--cond)!important}
 
 /* ===== Premium drop-down menus (replaces the browser list on desktop) ===== */
-.ndmenu{position:fixed;z-index:9000;min-width:220px;max-width:min(420px,92vw);max-height:min(60vh,520px);overflow:auto;padding:8px;border-radius:22px;
+.ndmenu{position:fixed;z-index:9000;min-width:220px;max-width:min(420px,92vw);max-height:min(60vh,520px);overflow:auto;padding:8px;border-radius:22px;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;
   background:linear-gradient(180deg,rgba(255,252,248,.98),rgba(251,238,227,.97));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   box-shadow:0 0 0 1.5px rgba(227,178,94,.75),0 0 22px rgba(255,226,190,.95),0 14px 34px rgba(60,10,10,.3);font-family:var(--cond,'Roboto Condensed',Arial,sans-serif);
   transform-origin:top center;animation:ndmIn .18s cubic-bezier(.2,.7,.2,1)}
@@ -193,3 +193,50 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :is(.plist,.fcards):not(.list) .pc .pr{font-size:63px}
 :is(.plist,.fcards):not(.list) .pc :is(.tg,.cam){font-size:29px}
 html.desk :is(.plist,.fcards):not(.list) .pc :is(.tg,.cam){font-size:32px}
+
+/* ===== Филтри: сгъване/разгъване (памет по страница). Сгънатото място отива към картите. ===== */
+.nd-ffold-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;height:50px;padding:0 18px;border:0;border-radius:25px;cursor:pointer;flex:none;
+  font:700 22px/1 var(--cond,'Roboto Condensed',Arial,sans-serif);color:#6b0a1c;white-space:nowrap;
+  background:linear-gradient(180deg,#fffcf9 0%,#fbefe5 100%);box-shadow:0 3px 7px rgba(140,70,40,.25),0 0 0 1px rgba(231,196,160,.6),inset 0 1px 0 #fff}
+.nd-ffold-btn svg.i{width:22px;height:22px;font-size:22px;color:#7b1020;stroke-width:2;flex:none}
+.nd-ffold-btn .nd-ff-chev{transition:transform .28s cubic-bezier(.2,.7,.2,1)}
+.nd-ffold-btn[aria-expanded="false"]{color:#fff3dc;background:linear-gradient(180deg,#a3213a 0%,#7a0f22 42%,#55071a 100%);border:2px solid #edc47a;
+  box-shadow:0 0 0 1px rgba(255,236,190,.5),0 0 12px rgba(255,200,120,.5),inset 0 2px 3px rgba(255,170,180,.5)}
+.nd-ffold-btn[aria-expanded="false"] svg.i{color:#f5d58f}
+.nd-ffold-btn[aria-expanded="false"] .nd-ff-chev{transform:rotate(180deg)}
+.nd-ff-pair{display:flex;align-items:stretch;gap:10px}
+.ipanel .nd-ff-pair{grid-column:3;height:86px}
+.ipanel .nd-ff-pair .i-more{grid-column:auto;width:auto;flex:1 1 0;position:relative;left:auto;top:auto}
+.ipanel .nd-ff-pair .nd-ffold-btn{height:86px;border-radius:24px;flex:1 1 0;font-size:24px}
+html.desk .nd-ff-pair{grid-column:5;grid-row:1;height:86px}
+html.desk .nd-ff-pair .i-more,html.desk .nd-ff-pair .nd-ffold-btn{position:relative;flex:1 1 0;height:86px;font-size:26px;border-radius:22px}
+:is(.cpanel .filters,.ipanel .chips,.ipanel .deal,.ipanel .i-go,.ipanel .i-clear,.v3-filt,.v3-kfilt,.bchips,#r-chips,#r-filt,.m-chips,.o-city){
+  transition:max-height .36s cubic-bezier(.2,.7,.2,1),opacity .28s ease,margin .36s ease,padding .36s ease,transform .36s ease}
+html.nd-ffold .cpanel{height:78px!important;transition:height .36s cubic-bezier(.2,.7,.2,1)}
+html.nd-ffold .cpanel .filters{opacity:0;visibility:hidden;pointer-events:none;max-height:0}
+html.nd-ffold .cpanel .nd-new{top:14px!important}
+html.nd-ffold .ipanel .chips,html.nd-ffold .ipanel .deal,html.nd-ffold .ipanel .i-go,html.nd-ffold .ipanel .i-clear{
+  max-height:0!important;opacity:0;margin:0!important;padding:0!important;overflow:hidden;pointer-events:none;border:0!important;transform:translateY(-8px)}
+html.desk.nd-ffold .iflow{grid-template-rows:auto minmax(0,1fr)!important}
+html.desk.nd-ffold .ipanel .chips,html.desk.nd-ffold .ipanel .deal,html.desk.nd-ffold .ipanel .i-go,html.desk.nd-ffold .ipanel .i-clear{display:none}
+html.desk.nd-ffold .rbar{grid-row:1;grid-column:4/5}
+html.desk.nd-ffold .plist{grid-row:2}
+html.desk.nd-ffold .plist.grp .irw .pc{zoom:.72!important}
+html.desk.nd-ffold .plist.grp .isec.all .irw .pc{zoom:.78!important}
+html.nd-ffold .v3-filt,html.nd-ffold .v3-kfilt,html.nd-ffold .bchips,html.nd-ffold #r-chips,html.nd-ffold #r-filt,html.nd-ffold .m-chips,html.nd-ffold .o-city,html.nd-ffold .otools .o-filt{
+  max-height:0!important;opacity:0;margin:0!important;padding:0!important;overflow:hidden;pointer-events:none;border-width:0!important}
+html.nd-ffold .b-pop{display:none!important}
+.pm-smenu,.o-pop,.cm-menu,.b-pop{overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;max-height:min(60vh,520px);overflow:auto}
+.kdeal{position:relative;display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:center;margin:8px 12px 14px;z-index:2}
+.kdeal .dl{height:64px;border-radius:32px;display:flex;align-items:center;justify-content:center;gap:16px;border:0;cursor:pointer;
+  font:700 28px/1 var(--cond,'Roboto Condensed',Arial,sans-serif);color:#6b0a1c;
+  background:linear-gradient(180deg,#fffcf9 0%,#fbefe5 100%);box-shadow:0 3px 7px rgba(140,70,40,.25),0 0 0 1px rgba(231,196,160,.6),inset 0 1px 0 #fff}
+.kdeal .dl svg.i{width:32px;height:32px;font-size:32px;color:#7b1020;stroke-width:1.8}
+.kdeal .dl.on{color:#fff;background:linear-gradient(180deg,#a3213a 0%,#7a0f22 42%,#55071a 100%);border:2.5px solid #edc47a;
+  box-shadow:0 0 0 1px rgba(255,236,190,.55),0 0 14px rgba(255,200,120,.55),inset 0 2px 3px rgba(255,170,180,.5)}
+.kdeal .dl.on svg.i{color:#f3c56a}
+.kdeal .nd-ffold-btn{height:64px;border-radius:32px;padding:0 22px;font-size:24px}
+html.desk .kdeal{margin:0 0 16px;grid-column:1/-1;width:100%}
+html.desk .kdeal .dl{height:70px;font-size:32px;gap:22px}
+html.desk .kdeal .dl svg.i{width:40px;height:40px;font-size:40px}
+html.desk .kdeal .nd-ffold-btn{height:70px;font-size:28px;padding:0 26px}

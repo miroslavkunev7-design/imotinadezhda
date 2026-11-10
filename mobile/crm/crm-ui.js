@@ -1,6 +1,12 @@
 /* Imoti Nadezhda CRM — shared form window (same look as the Компании form: wine title bar,
    photo strip, two-column cream glass fields, gold-glow buttons). Used for every card tab. */
 (function () {
+  try {
+    var k = "nd-crm-ffold:" + (location.pathname.split("/").pop() || "page");
+    if (localStorage.getItem(k) === "1") document.documentElement.classList.add("nd-ffold");
+  } catch (e) {}
+})();
+(function () {
   "use strict";
   var SYM = "<symbol id=\"plus\" viewBox=\"0 0 24 24\"> <path d=\"M5 12h14\"/> <path d=\"M12 5v14\"/></symbol><symbol id=\"pencil\" viewBox=\"0 0 24 24\"> <path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\"/> <path d=\"m15 5 4 4\"/></symbol><symbol id=\"camera\" viewBox=\"0 0 24 24\"> <path d=\"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z\"/> <circle cx=\"12\" cy=\"13\" r=\"3\"/></symbol><symbol id=\"image\" viewBox=\"0 0 24 24\"> <rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\"/> <circle cx=\"9\" cy=\"9\" r=\"2\"/> <path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/></symbol><symbol id=\"eye\" viewBox=\"0 0 24 24\"> <path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/> <circle cx=\"12\" cy=\"12\" r=\"3\"/></symbol><symbol id=\"archive\" viewBox=\"0 0 24 24\"> <rect width=\"20\" height=\"5\" x=\"2\" y=\"3\" rx=\"1\"/> <path d=\"M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8\"/> <path d=\"M10 12h4\"/></symbol><symbol id=\"circle-check\" viewBox=\"0 0 24 24\"> <circle cx=\"12\" cy=\"12\" r=\"10\"/> <path d=\"m9 12 2 2 4-4\"/></symbol><symbol id=\"ruler\" viewBox=\"0 0 24 24\"> <path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z\"/> <path d=\"m14.5 12.5 2-2\"/> <path d=\"m11.5 9.5 2-2\"/> <path d=\"m8.5 6.5 2-2\"/> <path d=\"m17.5 15.5 2-2\"/></symbol><symbol id=\"bed-double\" viewBox=\"0 0 24 24\"> <path d=\"M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8\"/> <path d=\"M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4\"/> <path d=\"M12 4v6\"/> <path d=\"M2 18h20\"/></symbol><symbol id=\"bath\" viewBox=\"0 0 24 24\"> <path d=\"M10 4 8 6\"/> <path d=\"M17 19v2\"/> <path d=\"M2 12h20\"/> <path d=\"M7 19v2\"/> <path d=\"M9 5 7.621 3.621A2.121 2.121 0 0 0 4 5v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5\"/></symbol><symbol id=\"m2\" viewBox=\"0 0 24 24\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"2\"/><path d=\"M8 3v4M16 3v4\"/><text x=\"12\" y=\"17.2\" font-size=\"8.5\" text-anchor=\"middle\" fill=\"currentColor\" stroke=\"none\" font-family=\"Arial,sans-serif\" font-weight=\"700\">m\u00b2</text></symbol><symbol id=\"share-2\" viewBox=\"0 0 24 24\"> <circle cx=\"18\" cy=\"5\" r=\"3\"/> <circle cx=\"6\" cy=\"12\" r=\"3\"/> <circle cx=\"18\" cy=\"19\" r=\"3\"/> <line x1=\"8.59\" x2=\"15.42\" y1=\"13.51\" y2=\"17.49\"/> <line x1=\"15.41\" x2=\"8.59\" y1=\"6.51\" y2=\"10.49\"/></symbol><symbol id=\"map-pin-house\" viewBox=\"0 0 24 24\"> <path d=\"M15 22a1 1 0 0 1-1-1v-4a1 1 0 0 1 .445-.832l3-2a1 1 0 0 1 1.11 0l3 2A1 1 0 0 1 22 17v4a1 1 0 0 1-1 1z\"/> <path d=\"M18 10a8 8 0 0 0-16 0c0 4.993 5.539 10.193 7.399 11.799a1 1 0 0 0 .601.2\"/> <path d=\"M18 22v-3\"/> <circle cx=\"10\" cy=\"10\" r=\"3\"/></symbol><symbol id=\"upload\" viewBox=\"0 0 24 24\"><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"M17 8l-5-5-5 5\"/><path d=\"M12 3v12\"/></symbol>";
   var CSS = [
@@ -616,60 +622,137 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", sideRail); else sideRail();
 
-  /* ---------- premium drop-down menus: every <select> opens our own glass list on desktop (phones keep the native sheet) ---------- */
+  /* ---------- premium drop-down menus: glass list for every <select>; scroll inside does not close it ---------- */
   (function () {
-    var box = null, sel = null, items = [], hl = -1;
-    function fine() { return matchMedia("(pointer:fine)").matches && !matchMedia("(max-width:768px)").matches; }
-    function closeMenu() { if (box) { box.remove(); box = null; } if (sel) { sel.classList.remove("ndm-open"); } sel = null; items = []; hl = -1; document.removeEventListener("pointerdown", onDoc, true); window.removeEventListener("resize", closeMenu); window.removeEventListener("scroll", onScroll, true); }
-    function onDoc(e) { if (box && !box.contains(e.target) && e.target !== sel) closeMenu(); }
-    /* превъртането вътре в самото меню (дълги списъци) не го затваря */
-    function onScroll(e) { if (box && e.target && e.target.nodeType === 1 && box.contains(e.target)) return; closeMenu(); }
-    function place(anchor) {
-      var r = anchor.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, w = Math.max(220, Math.min(r.width, 420)), h = box.offsetHeight;
+    if (window.NDMenuClose) return;
+    var box = null, sel = null, items = [], hl = -1, anchor = null;
+    function skipNative(s) { return s.multiple || s.size > 1 || s.disabled || s.dataset.native != null; }
+    function inside(root, t) {
+      if (!root || !t) return false;
+      if (t === root) return true;
+      if (t.nodeType === 3) t = t.parentElement;
+      return t && t.nodeType === 1 && root.contains(t);
+    }
+    function unbind() {
+      document.removeEventListener("pointerdown", onDoc, true);
+      window.removeEventListener("keydown", keys, true);
+      window.removeEventListener("resize", onMove);
+      window.removeEventListener("scroll", onMove, true);
+      if (window.visualViewport) {
+        visualViewport.removeEventListener("resize", onMove);
+        visualViewport.removeEventListener("scroll", onMove);
+      }
+    }
+    function closeMenu() {
+      unbind();
+      if (box) { box.remove(); box = null; }
+      if (sel) { sel.classList.remove("ndm-open"); }
+      sel = null; items = []; hl = -1; anchor = null;
+    }
+    function onDoc(e) { if (box && !inside(box, e.target) && e.target !== sel && !(sel && sel.contains(e.target))) closeMenu(); }
+    function onMove(e) {
+      if (!box) return;
+      if (e && e.target && inside(box, e.target)) return;
+      if (anchor) place(anchor);
+    }
+    function place(a) {
+      var r = a.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, w = Math.max(220, Math.min(r.width, 420)), h = box.offsetHeight;
       var left = Math.min(Math.max(8, r.left), vw - w - 8), below = vh - r.bottom - 10, top;
-      if (h <= below || below >= r.top - 10) { top = r.bottom + 6; box.style.maxHeight = Math.min(520, below) + "px"; box.classList.remove("up"); }
-      else { top = Math.max(8, r.top - 6 - Math.min(h, r.top - 16)); box.style.maxHeight = Math.min(520, r.top - 16) + "px"; box.classList.add("up"); }
+      if (h <= below || below >= r.top - 10) { top = r.bottom + 6; box.style.maxHeight = Math.min(520, Math.max(120, below)) + "px"; box.classList.remove("up"); }
+      else { top = Math.max(8, r.top - 6 - Math.min(h, r.top - 16)); box.style.maxHeight = Math.min(520, Math.max(120, r.top - 16)) + "px"; box.classList.add("up"); }
       box.style.left = left + "px"; box.style.top = top + "px"; box.style.width = w + "px";
     }
-    function pick(i) { var o = items[i], s0 = sel; if (!o || o.disabled || !s0) return; var v = o.value, changed = s0.value !== v; s0.value = v; closeMenu(); if (changed) { s0.dispatchEvent(new Event("input", { bubbles: true })); s0.dispatchEvent(new Event("change", { bubbles: true })); } }
+    function pick(i) {
+      var o = items[i], s0 = sel;
+      if (!o || o.disabled || !s0) return;
+      var v = o.value, changed = s0.value !== v;
+      s0.value = v; closeMenu();
+      if (changed) { s0.dispatchEvent(new Event("input", { bubbles: true })); s0.dispatchEvent(new Event("change", { bubbles: true })); }
+    }
     function render(q) {
       var list = box.querySelector(".ndm-l"); list.innerHTML = ""; items = []; hl = -1;
       var ql = (q || "").toLowerCase(), groups = sel.querySelectorAll("optgroup"), any = false;
-      function add(o) { if (o.hidden) return; var t = o.textContent.trim(); if (ql && t.toLowerCase().indexOf(ql) < 0) return; var b = document.createElement("button"); b.type = "button"; b.textContent = t || "—"; if (o.disabled) b.disabled = true; if (o.selected) { b.classList.add("on"); } b.setAttribute("data-i", items.length); items.push(o); list.appendChild(b); any = true; }
+      function add(o) {
+        if (o.hidden) return;
+        var t = o.textContent.trim();
+        if (ql && t.toLowerCase().indexOf(ql) < 0) return;
+        var b = document.createElement("button"); b.type = "button"; b.textContent = t || "—";
+        if (o.disabled) b.disabled = true;
+        if (o.selected) b.classList.add("on");
+        b.setAttribute("data-i", items.length); b.setAttribute("role", "option");
+        items.push(o); list.appendChild(b); any = true;
+      }
       if (groups.length) { [].forEach.call(sel.children, function (c) { if (c.tagName === "OPTGROUP") { var g = document.createElement("div"); g.className = "ndm-g"; g.textContent = c.label; list.appendChild(g); [].forEach.call(c.children, add); } else add(c); }); }
       else [].forEach.call(sel.options, add);
       if (!any) { var e = document.createElement("div"); e.className = "ndm-g"; e.textContent = "Няма съвпадения"; list.appendChild(e); }
       var on = list.querySelector("button.on"); if (on) hl = +on.getAttribute("data-i");
     }
-    function openMenu(s, anchor) {
-      closeMenu(); sel = s; sel.classList.add("ndm-open");
-      box = document.createElement("div"); box.className = "ndmenu"; box.setAttribute("role", "listbox");
+    function mark(n) {
+      var bs = box.querySelectorAll("button[data-i]"); if (!bs.length) return;
+      n = Math.max(0, Math.min(bs.length - 1, n));
+      [].forEach.call(bs, function (b) { b.classList.remove("hl"); });
+      bs[n].classList.add("hl"); hl = n;
+      bs[n].scrollIntoView({ block: "nearest" });
+      var typing = document.activeElement && document.activeElement.closest && document.activeElement.closest(".ndm-q");
+      if (!typing) try { bs[n].focus({ preventScroll: true }); } catch (e) {}
+    }
+    function keys(e) {
+      if (!box) return;
+      var k = e.key;
+      var typing = e.target && e.target.closest && e.target.closest(".ndm-q");
+      if (typing && k !== "ArrowDown" && k !== "ArrowUp" && k !== "Enter" && k !== "Escape" && k !== "Home" && k !== "End") return;
+      if (k !== "ArrowDown" && k !== "ArrowUp" && k !== "Enter" && k !== "Escape" && k !== "Home" && k !== "End") return;
+      var bs = box.querySelectorAll("button[data-i]"); if (!bs.length && k !== "Escape") return;
+      e.preventDefault(); e.stopPropagation();
+      if (k === "Escape") { e.stopImmediatePropagation(); var s0 = sel; closeMenu(); if (s0) s0.focus(); return; }
+      var cur = hl; if (cur < 0) cur = [].findIndex.call(bs, function (b) { return b.classList.contains("on"); }); if (cur < 0) cur = 0;
+      if (k === "ArrowDown") mark(cur + 1);
+      else if (k === "ArrowUp") mark(cur - 1);
+      else if (k === "Home") mark(0);
+      else if (k === "End") mark(bs.length - 1);
+      else if (k === "Enter") pick(+bs[Math.max(0, cur)].getAttribute("data-i"));
+    }
+    function openMenu(s, a) {
+      closeMenu(); sel = s; sel.classList.add("ndm-open"); anchor = a;
+      box = document.createElement("div"); box.className = "ndmenu"; box.setAttribute("role", "listbox"); box.tabIndex = -1;
       var many = sel.options.length > 8;
       box.innerHTML = (many ? '<div class="ndm-q"><input type="text" placeholder="Търси…" aria-label="Търси в списъка"></div>' : "") + '<div class="ndm-l"></div>';
       document.body.appendChild(box); render("");
       box.addEventListener("click", function (e) { var b = e.target.closest("button[data-i]"); if (b) pick(+b.getAttribute("data-i")); });
-      box.addEventListener("keydown", keys);
-      var qi = box.querySelector(".ndm-q input"); if (qi) { qi.addEventListener("input", function () { render(qi.value); }); }
-      place(anchor); var on = box.querySelector("button.on"); if (on) on.scrollIntoView({ block: "center" });
-      setTimeout(function () { (qi || box.querySelector("button")) && (qi || box.querySelector("button")).focus({ preventScroll: true }); }, 0);
-      document.addEventListener("pointerdown", onDoc, true); window.addEventListener("resize", closeMenu); window.addEventListener("scroll", onScroll, true);
+      box.addEventListener("wheel", function (e) { e.stopPropagation(); }, { passive: true });
+      box.addEventListener("touchmove", function (e) { e.stopPropagation(); }, { passive: true });
+      var qi = box.querySelector(".ndm-q input"); if (qi) { qi.addEventListener("input", function () { render(qi.value); mark(hl >= 0 ? hl : 0); }); }
+      place(anchor);
+      var on = box.querySelector("button.on"); if (on) { hl = +on.getAttribute("data-i"); on.classList.add("hl"); on.scrollIntoView({ block: "center" }); }
+      setTimeout(function () {
+        var focusEl = qi || box.querySelector("button.hl, button.on, button");
+        if (focusEl) try { focusEl.focus({ preventScroll: true }); } catch (err) { try { box.focus(); } catch (e2) {} }
+        else try { box.focus({ preventScroll: true }); } catch (e3) {}
+      }, 0);
+      document.addEventListener("pointerdown", onDoc, true);
+      window.addEventListener("keydown", keys, true);
+      window.addEventListener("resize", onMove);
+      window.addEventListener("scroll", onMove, true);
+      if (window.visualViewport) {
+        visualViewport.addEventListener("resize", onMove);
+        visualViewport.addEventListener("scroll", onMove);
+      }
     }
-    function keys(e) {
-      var bs = box.querySelectorAll("button[data-i]"); if (!bs.length) return;
-      var cur = [].findIndex.call(bs, function (b) { return b.classList.contains("hl"); }); if (cur < 0) cur = [].findIndex.call(bs, function (b) { return b.classList.contains("on"); });
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); var n = e.key === "ArrowDown" ? Math.min(bs.length - 1, cur + 1) : Math.max(0, cur - 1); bs.forEach(function (b) { b.classList.remove("hl"); }); bs[n].classList.add("hl"); bs[n].scrollIntoView({ block: "nearest" }); }
-      else if (e.key === "Enter") { e.preventDefault(); if (cur >= 0) pick(+bs[cur].getAttribute("data-i")); }
-      else if (e.key === "Escape") { e.preventDefault(); var s0 = sel; closeMenu(); s0 && s0.focus(); }
-    }
-    document.addEventListener("mousedown", function (e) {
-      if (!fine()) return;
-      var s = e.target.closest && e.target.closest("select"); if (!s || s.multiple || s.size > 1 || s.disabled || s.dataset.native != null) return;
+    var ANCH = ".fld, .selw, .dsw, .w, .ef, .ndl-sel > div, .input-wrap, .city-select, .chip, .v3-sel, .r-sel, .o-city, .fs, .f, .search-field, .has-display, .sort-control, .landing-search";
+    document.addEventListener("pointerdown", function (e) {
+      var s = e.target.closest && e.target.closest("select"); if (!s || skipNative(s)) return;
       e.preventDefault();
-      var anchor = s.closest(".fld, .selw, .dsw, .w, .ef, .ndl-sel > div, .input-wrap, .city-select") || s;
+      var a = s.closest(ANCH) || s;
       if (box && sel === s) { closeMenu(); return; }
-      openMenu(s, anchor);
+      openMenu(s, a);
     }, true);
-    document.addEventListener("keydown", function (e) { if (!fine()) return; var s = document.activeElement; if (s && s.tagName === "SELECT" && (e.key === "Enter" || e.key === " " || e.altKey && e.key === "ArrowDown")) { e.preventDefault(); openMenu(s, s.closest(".fld, .selw, .dsw, .w, .ef, .ndl-sel > div, .input-wrap, .city-select") || s); } });
+    document.addEventListener("keydown", function (e) {
+      var s = document.activeElement;
+      if (s && s.tagName === "SELECT" && !skipNative(s) && (e.key === "Enter" || e.key === " " || (e.altKey && e.key === "ArrowDown") || e.key === "ArrowDown")) {
+        e.preventDefault();
+        openMenu(s, s.closest(ANCH) || s);
+      }
+    });
     window.NDMenuClose = closeMenu;
   })();
   function brokerPassword(card) {
@@ -799,4 +882,130 @@
   s.src = "/mobile/nd-gold-ribbon.js";
   s.defer = true;
   document.head.appendChild(s);
+})();
+
+/* ---------- Филтри: сгъни/разгъни, памет по страница ---------- */
+(function () {
+  "use strict";
+  if (window.NDFFold) return;
+  var PAGE = (location.pathname.split("/").pop() || "page").split("#")[0];
+  var KEY = "nd-crm-ffold:" + PAGE;
+  var root = document.documentElement;
+  function folded() { return root.classList.contains("nd-ffold"); }
+  function save(on) {
+    root.classList.toggle("nd-ffold", !!on);
+    try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (e) {}
+    dispatchEvent(new Event("nd-ffold"));
+    dispatchEvent(new Event("resize"));
+  }
+  var ICO = '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
+  var CHEV = '<svg class="nd-ff-chev i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  function hasFilters() {
+    return !!(document.querySelector(".ipanel .chips") || document.querySelector(".cpanel .filters") ||
+      document.querySelector(".v3-filt") || document.querySelector(".v3-kfilt") || document.querySelector(".bchips") ||
+      document.querySelector("#r-chips") || document.querySelector("#r-filt") || document.querySelector(".m-chips") ||
+      document.querySelector(".o-city"));
+  }
+  function host() {
+    return document.querySelector(".kdeal") || document.querySelector(".ipanel") ||
+      (document.querySelector(".v3-filt") && document.querySelector(".v3-filt").parentNode) ||
+      (document.querySelector(".v3-kfilt") && document.querySelector(".v3-kfilt").parentNode) ||
+      document.querySelector(".btools") || document.querySelector(".otools");
+  }
+  function sync(b) {
+    var open = !folded();
+    b.setAttribute("aria-expanded", open ? "true" : "false");
+    b.setAttribute("aria-label", open ? "Сгъни филтрите" : "Разгъни филтрите");
+    b.classList.toggle("off", !open);
+  }
+  function mount() {
+    if (!hasFilters() || document.querySelector(".nd-ffold-btn")) return;
+    var h = host(); if (!h) return;
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "nd-ffold-btn";
+    b.innerHTML = ICO + "<span>Филтри</span>" + CHEV;
+    b.addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (window.NDMenuClose) try { window.NDMenuClose(); } catch (err) {}
+      save(!folded()); sync(b);
+    });
+    sync(b);
+    if (h.classList.contains("ipanel")) {
+      var more = h.querySelector(".i-more");
+      if (more) {
+        var wrap = document.createElement("div"); wrap.className = "nd-ff-pair";
+        more.parentNode.insertBefore(wrap, more); wrap.appendChild(b); wrap.appendChild(more);
+      } else h.appendChild(b);
+    } else if (h.classList.contains("kdeal") || h.classList.contains("otools") || h.classList.contains("btools")) {
+      h.appendChild(b);
+    } else {
+      var filt = h.querySelector(".v3-filt, .v3-kfilt");
+      if (filt) h.insertBefore(b, filt); else h.insertBefore(b, h.firstChild);
+    }
+  }
+  function boot() { mount(); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+  window.NDFFold = { save: save, folded: folded };
+})();
+
+/* ---------- Клавиатура и скрол за статус / .o-pop / VAT менюта ---------- */
+(function () {
+  "use strict";
+  function items(b) {
+    if (b.classList.contains("o-pop")) return b.querySelectorAll("li[role=option], li[data-c]");
+    return b.querySelectorAll("button:not([disabled])");
+  }
+  function current() {
+    return document.querySelector(".pm-smenu, .o-pop:not([hidden]), .cm-menu:not([hidden])");
+  }
+  function go(b, n) {
+    var bs = items(b); if (!bs.length) return;
+    n = Math.max(0, Math.min(bs.length - 1, n));
+    [].forEach.call(bs, function (x) { x.classList.remove("hl"); });
+    bs[n].classList.add("hl");
+    if (bs[n].scrollIntoView) bs[n].scrollIntoView({ block: "nearest" });
+    try { bs[n].focus({ preventScroll: true }); } catch (e) {}
+  }
+  document.addEventListener("keydown", function (e) {
+    if (document.querySelector(".ndmenu")) return;
+    var b = current(); if (!b) return;
+    var k = e.key;
+    if (k !== "ArrowDown" && k !== "ArrowUp" && k !== "Enter" && k !== "Escape" && k !== "Home" && k !== "End" && k !== " ") return;
+    if (k === " " && e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    e.preventDefault(); e.stopPropagation();
+    var bs = items(b);
+    if (k === "Escape") {
+      if (b.classList.contains("pm-smenu")) b.remove();
+      else {
+        b.hidden = true;
+        var t = document.querySelector("[aria-expanded='true']");
+        if (t) t.setAttribute("aria-expanded", "false");
+      }
+      return;
+    }
+    var cur = [].findIndex.call(bs, function (x) { return x.classList.contains("hl") || x.classList.contains("on"); });
+    if (cur < 0) cur = 0;
+    if (k === "ArrowDown") go(b, cur + 1);
+    else if (k === "ArrowUp") go(b, cur - 1);
+    else if (k === "Home") go(b, 0);
+    else if (k === "End") go(b, bs.length - 1);
+    else if (k === "Enter" || k === " ") { var it = bs[Math.max(0, cur)]; if (it) it.click(); }
+  }, true);
+  function wire(b) {
+    if (!b || b.__ndPop) return; b.__ndPop = 1;
+    b.style.overscrollBehavior = "contain";
+    b.addEventListener("wheel", function (e) { e.stopPropagation(); }, { passive: true });
+    b.addEventListener("touchmove", function (e) { e.stopPropagation(); }, { passive: true });
+    setTimeout(function () {
+      var bs = items(b), on = b.querySelector(".on, .hl") || bs[0];
+      if (on) go(b, [].indexOf.call(bs, on));
+      else { b.tabIndex = -1; try { b.focus({ preventScroll: true }); } catch (e) {} }
+    }, 0);
+  }
+  function scan() {
+    var b = current(); if (b) wire(b);
+  }
+  var mo = new MutationObserver(scan);
+  function start() { scan(); mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] }); }
+  if (document.body) start(); else document.addEventListener("DOMContentLoaded", start);
 })();
