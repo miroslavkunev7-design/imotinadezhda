@@ -1134,6 +1134,12 @@ html.desk .fwin .mscroll{overflow:hidden}
     D.del=function(k,id){var r=X.apply(this,arguments);if(k==='deals')r.then(function(){delete v3map[id];v3go()}).catch(function(){});return r};
     v3obs=new MutationObserver(v3go);v3obs.observe($('dhost'),{childList:true,subtree:true});
     /* моливът на карта отваря формата (crm-global попълва полетата) */
+    /* 11.11: щракване където и да е върху картата на сделка я отваря (преди реагираше само моливчето) */
+    $('dhost').addEventListener('click',function(e){
+      if(e.target.closest('button,a,input,select,textarea,label,[data-ed],[data-rm]'))return;
+      var row=e.target.closest('#g-deals .ndrow');if(!row)return;
+      var pen=row.querySelector('button[data-ed]');if(pen)pen.click();
+    });
     $('dhost').addEventListener('click',function(e){var ed=e.target.closest('[data-ed]');if(ed&&ed.closest('#g-deals'))setTimeout(function(){v3open();var b=document.getElementById('nd-f-body');if(b)b.scrollIntoView({behavior:'smooth',block:'start'})},0)},true);
     $('dhost').addEventListener('click',function(e){if(e.target.closest('#nd-f-cancel,.v3-fx')){e.preventDefault();e.stopPropagation();v3close(true)}},true);
     v3filters();
