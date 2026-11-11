@@ -381,7 +381,7 @@ function walkViewer(stage, scene, ctx) {
   return {
     req, go,
     key(k, on) { if (on) st.keys.add(k); else st.keys.delete(k); if (on) { st.path = null; st.last = 0; } req(); },
-    room(id) { const n = nav.nodes.find((x) => x.room_id === id); if (!n) return false; return go(n.x, n.y, n.start_yaw); },
+    room(id, instant) { const n = nav.nodes.find((x) => x.room_id === id); if (!n) return false; return go(n.x, n.y, n.start_yaw, instant); },
     reset() { st.pitch = -4; st.fov = 70; go(start.x, start.y, start.start_yaw || 0, true); },
     look(dy, dp) { st.yaw = wrap360(st.yaw + dy); st.pitch = clamp(st.pitch + (dp || 0), -60, 45); req(); },
     step(s) { const f = [Math.sin(rad(st.yaw)), Math.cos(rad(st.yaw))]; tryMove(f[0] * s, f[1] * s); st.last = 0; req(); },
@@ -453,9 +453,12 @@ export function mount(el, opts) {
     const svg = host.querySelector(".ntr-mm-svg"); if (!svg) return;
     svg.style.maxHeight = "";
     if (el.classList.contains("ntr-narrow") || el.classList.contains("ntr-fs") || document.fullscreenElement === el) return;
-    const z = zoomOf(host) || 1, fs = parseFloat(el.style.getPropertyValue("--ntr-fs")) || 15;
-    const over = S.side ? (host.getBoundingClientRect().bottom - el.getBoundingClientRect().bottom) / z : host.scrollHeight - host.clientHeight;
-    if (over > 1) svg.style.maxHeight = Math.round(Math.max(8 * fs, svg.getBoundingClientRect().height / z - over - 2)) + "px";
+    const z = zoomOf(host) || 1, fs = parseFloat(el.style.getPropertyValue("--ntr-fs")) || 15, card = host.querySelector(".ntr-card");
+    if (card) card.classList.remove("ntr-tight");
+    const over = () => (S.side ? (host.getBoundingClientRect().bottom - el.getBoundingClientRect().bottom) / z : host.scrollHeight - host.clientHeight);
+    const shrink = (minEm) => { const o = over(); if (o > 1) svg.style.maxHeight = Math.round(Math.max(minEm * fs, svg.getBoundingClientRect().height / z - o - 2)) + "px"; };
+    /* 1) мини-картата до 8em; 2) бележката се скрива (същият надпис е върху прегледа); 3) мини-картата до 5em */
+    shrink(8); if (over() > 1 && card) { card.classList.add("ntr-tight"); shrink(5); }
   }
   const onResize = () => fit();
   window.addEventListener("resize", onResize);
@@ -574,15 +577,16 @@ export function mount(el, opts) {
   }
 
   /* събития */
-  function goRoom(id) {
+  /* keep = true (гореща точка): посоката на погледа се запазва – непрекъсната ориентация; избор от списък/карта: началният поглед на стаята */
+  function goRoom(id, keep) {
     if (S.mode === "walk") { if (S.walk && !S.walk.room(id)) status("До това помещение няма проходим път в 3D", "err"); return; }
-    if (S.pano) { S.pano.stopAuto(); showRoom(id, true).then(prefetch); }
+    if (S.pano) { S.pano.stopAuto(); showRoom(id, !!keep).then(prefetch); }
   }
   function nextRoom() { const list = S.model.rooms, i = list.findIndex((r) => r.room_id === S.room); return showRoom(list[(i + 1) % list.length].room_id, false); }
   function bindMain() {
     el.onclick = (e) => {
       const b = e.target.closest("[data-act],[data-hs]"); if (!b || !el.contains(b)) return;
-      if (b.hasAttribute("data-hs")) { if (b.getAttribute("aria-disabled") === "true") return; goRoom(b.getAttribute("data-hs")); return; }
+      if (b.hasAttribute("data-hs")) { if (b.getAttribute("aria-disabled") === "true") return; goRoom(b.getAttribute("data-hs"), true); return; }
       const a = b.dataset.act;
       if (a === "room") goRoom(b.dataset.room);
       else if (a === "mode") setMode(b.dataset.mode);

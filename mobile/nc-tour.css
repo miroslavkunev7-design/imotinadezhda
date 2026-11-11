@@ -125,6 +125,7 @@
 .ntr-btn[aria-pressed="true"]{color:var(--w8);background:linear-gradient(180deg,#fff1c9,#e9c27a)}
 .ntr-note{font-size:.85em;color:#6b4a3a}
 .ntr-note:empty{display:none}
+.ntr-card.ntr-tight .ntr-note{display:none}.ntr-card.ntr-tight{gap:.5em}.ntr-card.ntr-tight .ntr-row{padding:.26em 0}
 
 /* ---------- празни и заключени състояния ---------- */
 .ntr-empty{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7em;min-height:min(var(--ntr-h,420px),32em);padding:1.6em;border-radius:1.4em;text-align:center;
@@ -135,6 +136,7 @@
 .ntr-empty-img{position:absolute;right:0;top:0;bottom:0;width:58%;background-size:cover;background-position:center;
   -webkit-mask-image:linear-gradient(270deg,#000 45%,transparent 100%);mask-image:linear-gradient(270deg,#000 45%,transparent 100%);opacity:.9}
 .ntr-empty-t{position:relative;z-index:1;max-width:52%;display:flex;flex-direction:column;gap:.6em}
+.ntr-empty-t .ntr-tag{align-self:flex-start}
 .ntr.ntr-narrow .ntr-empty-t,.ntr-empty-t{max-width:min(52%,34em)}
 .ntr-ill{position:absolute;right:.8em;bottom:.7em;z-index:1;padding:.25em .7em;border-radius:.7em;font-size:.82em;font-weight:700;color:#fff3dc;background:rgba(25,8,12,.72);box-shadow:0 0 0 1px rgba(237,196,122,.5)}
 .ntr-empty.locked{background:linear-gradient(180deg,#fbf6ef,#f3e4d2)}
