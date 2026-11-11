@@ -217,6 +217,20 @@ test("TASK-010 инструменти – пълен път за 2 апарта�
     assert.strictEqual(pt.tour.version, 1, "публикуваното е непроменено");
   });
 
+  await t.test("010.073 отмяна без следващ отчет: jobs.cancel → tour.get затваря набора веднага и маха файловете му", async () => {
+    const r = await call(A, "tour.render", { unit_id: U1.id, source: "photo", quality: "final", rooms: ["hall", "living"], idempotency_key: "a1-photo-cancel-01", want_uploads: true });
+    const p1 = r.uploads.prefix + "/hall-r1.jpg"; adminPut(p1, F.testPano(4096, 2048));
+    assert.ok((await call(A, "tour.report", { job_id: r.job_id, panorama_set_id: r.panorama_set_id, room_id: "hall", rev: 1, upload_path: p1 })).ok);
+    assert.ok(store.list().some((p) => p.includes("/" + r.panorama_set_id + "/")), "има качен файл в набора");
+    await call(A, "jobs.cancel", { id: r.job_id });
+    const st = await call(BR, "tour.get", { unit_id: U1.id });
+    const set = st.sets.find((x) => x.id === r.panorama_set_id);
+    assert.strictEqual(set.status, "cancelled", "наборът е затворен без да чака tour.report");
+    assert.ok(!store.list().some((p) => p.includes("/" + r.panorama_set_id + "/")), "файловете на отменения набор са махнати");
+    assert.strictEqual((await call(BR, "jobs.status", { id: r.job_id })).status, "cancelled");
+    assert.strictEqual(st.published.version, 1, "публикуваното е непроменено");
+  });
+
   await t.test("010.078 нова заявка отменя по-старата; отговор от старата → отказан и файлът махнат", async () => {
     const r1 = await call(A, "tour.render", { unit_id: U1.id, source: "scene_render", quality: "preview", rooms: ["hall"], idempotency_key: "a1-race-0001", want_uploads: true });
     const r2 = await call(A, "tour.render", { unit_id: U1.id, source: "scene_render", quality: "preview", rooms: ["hall"], idempotency_key: "a1-race-0002", want_uploads: true });

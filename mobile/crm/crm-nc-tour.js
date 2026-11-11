@@ -64,6 +64,9 @@
     o = o || {};
     var S = { st: null, busy: false, admin: o.admin, job: null, abort: null, msg: null };
     el.classList.add("ntr", "ntrs");
+    /* шрифтът следва мащаба на платното (CSS zoom на страницата на TASK-008), както прегледа */
+    function pfit() { var r = el.getBoundingClientRect(), z = el.offsetWidth && r.width ? r.width / el.offsetWidth : 1, vw = window.innerWidth, f = (vw < 600 ? 13 : Math.max(13, Math.min(18, vw / 92))) / (z || 1); el.style.setProperty("--ntr-fs", Math.max(8, Math.min(90, f)).toFixed(2) + "px"); }
+    window.addEventListener("resize", pfit);
     function say(m, bad) { S.msg = m ? { t: m, bad: !!bad } : null; var x = el.querySelector(".ntrs-msg"); if (x) { x.textContent = m || ""; x.className = "ntrs-msg" + (bad ? " bad" : ""); x.hidden = !m; } if (o.say && m) o.say(m); }
     function err(e) { say(e && e.message ? e.message.replace(/ \[[A-Z_]+ · [^\]]+\]$/, "") : String(e), true); S.busy = false; render(); }
     function reload() { return tool("tour.get", { unit_id: unitId, view: "full" }, o).then(function (st) { S.st = st; render(); return st; }).catch(err); }
@@ -78,7 +81,7 @@
     function sec(title, img, body) { return '<section class="ntrs-sec">' + (img ? '<div class="ntrs-img" style="background-image:url(&quot;' + esc((window.NC && NC.img ? NC.img(img) : "/mobile/crm/assets/" + img)) + '&quot;)" aria-hidden="true"><span>Илюстрация</span></div>' : "") + "<h4>" + esc(title) + "</h4>" + body + "</section>"; }
 
     function render() {
-      var st = S.st; if (!st) { el.innerHTML = '<div class="ntrs-wait"><span class="ntr-spin"></span> Зареждане…</div>'; return; }
+      var st = S.st; if (!st) { el.innerHTML = '<div class="ntrs-wait"><span class="ntr-spin"></span> Зареждане…</div>'; pfit(); return; }
       var g = vg(), d = dg(), sc = scenes(), ss = sets(), pub = st.published, h = "";
       h += '<div class="ntrs-head"><h3>Интериор и 360° разходка – за екипа</h3><span>' + chip("Апартамент " + (st.unit && st.unit.code || "")) + chip(st.unit && ({ free: "Свободен", reserved: "Капариран", sold: "Продаден" })[st.unit.status] || "", st.unit && st.unit.status) + (pub ? chip("Публикувана версия " + pub.version, "ok") : chip("Няма публикувана разходка")) + "</span></div>";
       h += '<p class="ntrs-msg' + (S.msg && S.msg.bad ? " bad" : "") + '"' + (S.msg ? "" : " hidden") + ">" + esc(S.msg ? S.msg.t : "") + "</p>";
@@ -120,7 +123,7 @@
       var hist = (st.tours || []).map(function (t) { var setOk = ss.some(function (x) { return x.id === t.pano_set_id; }); return "<li>" + chip("v" + t.version + " – " + ({ published: "публикувана", superseded: "в историята", unpublished: "свалена", stale: "остаряла" })[t.status], t.status === "published" ? "ok" : t.status === "stale" ? "bad" : "") + " " + esc(new Date(t.created_at).toLocaleString("bg-BG")) + " · " + esc(t.created_email || "") +
         (t.status !== "published" && t.pano_set_id && setOk ? " " + btn("rollback", "Върни тази версия", { admin: true, cls: "sm", data: ' data-set="' + esc(t.pano_set_id) + '" data-scene="' + esc(t.scene_version_id || "") + '"' }) : "") + "</li>"; }).join("");
       h += sec("5. Публикуване и история", null, (pub ? btn("unpublish", "Свали от сайта", { admin: true }) : "") + (hist ? '<ul class="ntrs-l">' + hist + "</ul>" : '<p class="ntrs-note">Няма публикувани версии.</p>') + '<p class="ntrs-note">Публиката вижда разходката само докато апартаментът е Свободен и проектът е публикуван. При капариран/продаден – само червен печат.</p>');
-      el.innerHTML = '<div class="ntrs-box">' + h + "</div>";
+      el.innerHTML = '<div class="ntrs-box">' + h + "</div>"; pfit();
     }
     function setEditor(x) {
       var rows = x.rooms.map(function (r, i) { var it = x.items[r] || {}; var hs = (it.hotspots || []).length;
@@ -130,7 +133,7 @@
           '<label class="ntrs-yaw" title="Накъде гледа средата на снимката спрямо плана (север на плана = 0°)">Посока <input type="range" min="0" max="359" step="1" value="' + Math.round(it.yaw_offset || 0) + '" data-yaw="' + esc(r) + '"' + (x.source === "scene_render" ? " disabled" : "") + "><output>" + Math.round(it.yaw_offset || 0) + "°</output></label>" +
           "<span>" + hs + " прехода</span>" + '<span class="ntrs-ord"><button type="button" data-a="up" data-i="' + i + '" aria-label="Нагоре">▲</button><button type="button" data-a="down" data-i="' + i + '" aria-label="Надолу">▼</button></span></li>'; }).join("");
       return '<div class="ntrs-set" data-set="' + esc(x.id) + '" data-ev="' + x.edit_version + '"><p>' + chip("Набор v" + x.version + " – " + (PST[x.status] || x.status), x.status === "review" ? "ok" : "") + " " + esc(SRC[x.source] + " · " + (x.quality === "final" ? "окончателен" : "предварителен")) +
-        (x.job && x.job.progress && x.job.progress.rooms_total ? " · " + (x.job.progress.rooms_done || 0) + "/" + x.job.progress.rooms_total : "") + "</p>" + list(x.issues, "bad") + '<ol class="ntrs-rooms">' + rows + "</ol>" +
+        " · готови " + x.rooms.filter(function (r) { return x.items[r] && x.items[r].status === "ready"; }).length + " от " + x.rooms.length + "</p>" + list(x.issues, "bad") + '<ol class="ntrs-rooms">' + rows + "</ol>" +
         '<div class="ntrs-acts">' + btn("save", "Запази подредбата и посоките", { admin: true }) + btn("tvalidate", "Провери набора", { admin: true }) + (x.status === "review" ? btn("publish", "Публикувай", { admin: true, cls: "gold" }) : "") + (o.onPreview && x.rooms.some(function (r) { return x.items[r] && x.items[r].status === "ready"; }) ? btn("ppano", "Виж панорамите") : "") +
         (x.job_id && x.status === "rendering" ? btn("jcancel", "Отмени набора", { admin: true, data: ' data-job="' + esc(x.job_id) + '"' }) : "") + "</div></div>";
     }
@@ -201,7 +204,7 @@
     }
     bind(); render();
     adminP().then(function () { return reload(); });
-    return { reload: reload, destroy: function () { if (S.abort) S.abort.aborted = true; el.onclick = el.onchange = el.oninput = null; el.innerHTML = ""; el.classList.remove("ntrs"); } };
+    return { reload: reload, destroy: function () { if (S.abort) S.abort.aborted = true; window.removeEventListener("resize", pfit); el.style.removeProperty("--ntr-fs"); el.onclick = el.onchange = el.oninput = null; el.innerHTML = ""; el.classList.remove("ntrs"); } };
   }
 
   window.NCTourStaff = { source: source, panel: panel, lib: lib, version: "crm-nc-tour@1" };

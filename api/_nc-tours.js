@@ -311,7 +311,18 @@ const RUN = {
 
   "tour.get": async (ctx, i) => {
     const c = corr(i.unit_id);
-    return Object.assign(summaryOf(await state(ctx, i.unit_id, c), i.view === "full"), { correlation_id: c });
+    let st = await state(ctx, i.unit_id, c);
+    /* съгласуване: набор „в работа“, чиято задача е отменена (jobs.cancel) или неуспешна, се затваря веднага (не чака следващ tour.report) и файловете му се махат */
+    const dead = (st.sets || []).filter((x) => x.status === "rendering" && x.job_id && x.job && (x.job.cancel_requested || ["cancelled", "failed"].includes(x.job.status)));
+    if (dead.length && BACK.ready()) {
+      for (const x of dead) {
+        const failed = x.job.status === "failed" && !x.job.cancel_requested;
+        try { await svc("nd_job_finish", { p_id: x.job_id, p_worker: WORKER(x.job_id), p_status: "cancelled", p_result: { panorama_set_id: x.id }, p_error: null, p_cost_usd: 0 }, c); } catch (e) { /* вече приключена */ }
+        try { await svc("nd_tour_set_finish", { p_set_id: x.id, p_to: failed ? "failed" : "cancelled", p_issues: [], p_reason: failed ? "Задачата е неуспешна" : "Отменено от екипа" }, c); await cleanup(x.id, true, c); } catch (e) { /* друг го е затворил */ }
+      }
+      st = await state(ctx, i.unit_id, c);
+    }
+    return Object.assign(summaryOf(st, i.view === "full"), { correlation_id: c });
   },
 
   "tour.get_authorized_asset": async (ctx, i) => {

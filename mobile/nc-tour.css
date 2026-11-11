@@ -158,6 +158,7 @@
 .ntrs-sec{position:relative;display:flex;flex-direction:column;gap:.55em;padding:.9em 1em;border-radius:1.1em;background:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(184,132,58,.35);overflow:hidden}
 .ntrs-sec h4{font:700 1.08em/1.2 Georgia,'PT Serif Local',serif;color:var(--w7)}
 .ntrs-sec>*:not(.ntrs-img){position:relative;z-index:1}
+.ntrs-sec>.ntr-btn{align-self:flex-start}
 .ntrs-img{position:absolute;right:0;top:0;bottom:0;width:34%;background-size:cover;background-position:center;-webkit-mask-image:linear-gradient(270deg,rgba(0,0,0,.55) 30%,transparent 100%);mask-image:linear-gradient(270deg,rgba(0,0,0,.55) 30%,transparent 100%);pointer-events:none}
 .ntrs-img span{position:absolute;right:.5em;bottom:.4em;padding:.1em .5em;border-radius:.5em;font-size:.75em;font-weight:700;color:#fff3dc;background:rgba(25,8,12,.7)}
 .ntrs-chip{display:inline-flex;align-items:center;padding:.15em .6em;border-radius:.8em;font-size:.88em;font-weight:700;color:var(--iw);background:#f3e1c8;box-shadow:inset 0 0 0 1px rgba(184,132,58,.5)}
