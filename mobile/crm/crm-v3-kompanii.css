@@ -291,3 +291,8 @@ html:not(.desk) .ev-acts{gap:18px;padding:10px 22px 0}
 html:not(.desk) .ea{height:92px;min-width:0;flex:1;padding:0 20px;border-radius:46px;font-size:34px}
 html:not(.desk) .ea svg.i{font-size:38px}
 html:not(.desk) .ea.hot{min-width:0;flex:1.4}
+/* ===== 11.11 TASK-004: телефон – подзаглавието под заглавието минава върху светлата снимка в хеда;
+   под реда на подзаглавието има мека винена ивица-преливане (същият слой .shade, снимката остава ясна над и под нея) ===== */
+html:not(.desk) #canvas .top .shade{background:linear-gradient(90deg,rgba(64,10,22,.92) 0%,rgba(64,10,22,.5) 24%,rgba(64,10,22,0) 40%),
+  linear-gradient(180deg,rgba(64,10,22,0) 62%,rgba(64,10,22,.62) 70%,rgba(64,10,22,.62) 84%,rgba(64,10,22,0) 93%),
+  linear-gradient(0deg,rgba(242,199,163,.2) 0%,rgba(242,199,163,0) 8%)!important}
