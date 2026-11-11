@@ -150,7 +150,7 @@
       "includeFiles": "api/_vendor/**"
     },
     "api/assistant.js": {
-      "maxDuration": 120
+      "maxDuration": 300
     },
     "api/scan.js": {
       "maxDuration": 60
