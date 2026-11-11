@@ -422,3 +422,6 @@ html:not(.desk) #mwin .m-data #m-fields{max-width:none}
 html.desk #mwin .m-data::after{width:46%!important}
 html.desk #mwin .m-act .alist,html.desk #mwin .m-act #m-acts{max-width:60%}
 html.desk #mwin .m-act::after{width:46%!important}
+/* ===== 11.11 TASK-004: компютър – заглавието „Клиенти“ не стои върху кремавия клин под логото (злато върху крем) ===== */
+html.desk .ctop .hero-title{margin-top:17px}
+html.desk .ctop .hero-sub{margin-top:11px}

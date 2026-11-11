@@ -191,3 +191,6 @@ html.desk #canvas.v3-tight .ev .n{font-size:26px!important}
 html.desk #canvas.v3-tight .act{height:54px}
 html.desk #canvas.v3-tight .act .tx b{font-size:25px!important}
 html.desk #canvas.v3-tight .act .tx span{font-size:21px!important;margin-top:1px}
+/* ===== 11.11 TASK-004: телефон – редовете „Последни дейности“ (заглавие + клиент) се побират в реда, без отрязан горен/долен ръб ===== */
+html:not(.desk) #canvas .act .tx b{line-height:1!important}
+html:not(.desk) #canvas .act .tx span{line-height:1!important;margin-top:1px!important}

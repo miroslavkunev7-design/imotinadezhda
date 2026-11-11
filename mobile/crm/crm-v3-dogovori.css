@@ -149,3 +149,6 @@ html.desk #dhost #nd-fwin .ndg .in:not(.ta){font-size:31px!important;height:56px
 html.desk #dhost #nd-fwin .ct-acts{margin-top:0!important}
 html.desk #dhost #nd-fwin .ct-prev .ndempty{font-size:31px!important}
 html.desk #dhost #nd-fwin .f-bar h2{font-size:48px!important}
+/* ===== 11.11 TASK-004: компютър – заглавието и иконката не стоят върху кремавия клин под логото ===== */
+html.desk #canvas .top .hero-title,html.desk #canvas .top .o-ic{margin-top:16px}
+html.desk #canvas .top .hero-sub{margin-top:16px}

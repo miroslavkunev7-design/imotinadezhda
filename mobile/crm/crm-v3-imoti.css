@@ -424,3 +424,11 @@ html.desk .pm-grid{max-width:66%!important;gap:0 22px!important}
 html.desk .pm-cell b{white-space:normal!important;overflow:visible!important}
 html.desk .pm-right .pm-sec.sec-data::after{width:38%!important}
 html.desk .pm-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)!important;max-width:70%!important;column-gap:30px!important}
+/* ===== 11.11 TASK-004: четливост =====
+   телефон – дългото описание вече не стои върху интериора: снимката остава само в заглавния ред на „Описание“
+   (същото правило като при отворен ред .acc.open), текстът е върху кремавото стъкло */
+html:not(.desk) .pm-sec.sec-desc::after{bottom:auto;height:92px}
+/* компютър – заглавието „Имоти“ слиза под кремавия клин на логото; подзаглавието е на един ред и вече не се реже от долния ръб на хеда */
+html.desk .itop .hero-title{margin-top:18px}
+html.desk .itop .hero-sub{margin-top:14px;white-space:nowrap}
+html.desk .itop .hero-sub br{display:none}
