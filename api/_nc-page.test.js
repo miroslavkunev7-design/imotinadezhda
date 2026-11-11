@@ -280,7 +280,13 @@ test("статични проверки: няма ранно зареждане 
   const used = new Set((all.match(/nd\/ph\d\d\.webp/g) || []).map((x) => x.slice(3)));
   const win = makeWin(""); load(win, ["mobile/crm/crm-nc.js"]); Object.values(win.NC.PH).forEach((p) => used.add(p.slice(3)));
   used.forEach((f) => assert.ok(fs.existsSync(path.join(ROOT, "mobile/crm/assets/nd", f)), "липсва " + f));
-  const extra = fs.readdirSync(path.join(ROOT, "mobile/crm/assets/nd")).filter((f) => /^ph(2[1-9]|[3-5]\d)\./.test(f) && !used.has(f));
+  /* „неизползвана“ е снимка, която не я ползва НИКОЙ модул в дървото: същата папка споделят и TASK-006 (crm-nc-import.js – ph24/ph27, разширението се добавя в кода),
+     TASK-009 (nc-model.js) и TASK-010 (nc-tour.js, crm-nc-tour.js) – след сливането техните снимки не са „чужди“. */
+  const stems = new Set([...used].map((f) => f.slice(0, 4)));
+  (function walk(d) { fs.readdirSync(path.join(ROOT, d), { withFileTypes: true }).forEach((e) => { const r = d + "/" + e.name;
+    if (e.isDirectory()) { if (!/^(vendor|assets|node_modules)$/.test(e.name)) walk(r); }
+    else if (/\.(js|html|css)$/.test(e.name)) (read(r).match(/nd\/ph\d\d/g) || []).forEach((x) => stems.add(x.slice(3))); }); })("mobile");
+  const extra = fs.readdirSync(path.join(ROOT, "mobile/crm/assets/nd")).filter((f) => /^ph(2[1-9]|[3-5]\d)\./.test(f) && !stems.has(f.slice(0, 4)));
   assert.deepStrictEqual(extra, [], "копирани, но неизползвани снимки");
   const map = /\["(\d\d)"(?:,"\d\d")*\]\.forEach/.exec(pub); assert.ok(map, "публичната карта IMG");
   const pubList = pub.match(/\["\d\d"(?:,"\d\d")*\]/)[0].match(/\d\d/g); Object.values(win.NC.PH).forEach((p) => assert.ok(pubList.includes(p.slice(5, 7)), "публичната страница не знае " + p));
