@@ -951,7 +951,7 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
   function prep(list){
     list.forEach(function(p){
       p.code=p.code||p.id;p.title=p.title||'';p.city=p.city||'';p.region=p.region||p.city;p.hood=p.hood||'';p.type=p.type||'Апартамент';
-      p.deal=p.deal==='rent'?'rent':'sale';p.price=Number(p.price)||0;p.area=Number(p.area)||0;p.beds=p.beds==null?'—':p.beds;p.baths=p.baths==null?'—':p.baths;
+      p.deal=p.deal==='rent'?'rent':'sale';p.price=Number(p.price)||0;p.area=Number(p.area)||0;p.beds=(p.beds==null||Number(p.beds)<0)?'—':p.beds;p.baths=(p.baths==null||Number(p.baths)<0)?'—':p.baths;
       p.status=p.status||'Чернова';p.cond=p.cond||'';p.client=p.client||'';p.pics=p.pics||[];p.docs=p.docs||[];p.log=p.log||[];
       p.photos=p.pics.length;p.img=p.pics.length?p.pics[p.cover||0]||p.pics[0]:'card-properties.jpg';p.days=pdays(p._updated||p._created);
       det[p.id]={num:p.code,floor:p.floor||'—',kind:p.type,build:p.build||'—',year:p.year||'—',rooms:p.rooms==null?'—':p.rooms,beds:p.beds,baths:p.baths,

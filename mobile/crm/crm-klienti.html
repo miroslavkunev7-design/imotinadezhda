@@ -866,7 +866,10 @@ html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
     var Hh=345+Math.min(exH*.5,160),G=24+Math.min(exW*.15,80),xL=(Wc-2000-G)/2; /* шапката е малко по-ниска (395→345), блокът с клиентите е по-висок (09.11) */
     canvas.style.zoom=k;canvas.style.marginLeft='0px';canvas.style.width=Wc+'px';canvas.style.height=Hc+'px';canvas.style.paddingTop=Hh+'px';
     ctop.style.height=Hh+'px';
-    ctexts.forEach(function(o){o.el.style.top=(o.top+(Hh-395)*.75)+'px'});
+    /* 11.11: заглавието не се качва върху логото на нисък екран – най-малко 14 под долния ръб на логото */
+    var lg=ctop.querySelector('.logo-link'),lgB=lg?(lg.offsetTop+lg.offsetHeight+14):0,sh=(Hh-395)*.75;
+    if(ctexts.length&&ctexts[0].top+sh<lgB)sh=lgB-ctexts[0].top;
+    ctexts.forEach(function(o){o.el.style.top=(o.top+sh)+'px'});
     var ph=Hh*1.55,pw=ph*1.777;cphoto.style.width=pw+'px';cphoto.style.left=(Wc-pw+20)+'px';cphoto.style.top=(30-.16*ph)+'px';
     cctrls.forEach(function(el){if(el.dataset.l==null)el.dataset.l=parseFloat(getComputedStyle(el).left);el.style.left=(Wc-1024+(+el.dataset.l))+'px'});
     root.style.setProperty('--G',G+'px');root.style.setProperty('--xL',xL+'px');

@@ -58,17 +58,19 @@
       if (e.pointerType === "mouse" && e.button !== 0) return;
       if (e.target.closest && e.target.closest("input,textarea,select,a[href]")) return;
       pid = e.pointerId; x0 = e.clientX; sl0 = el.scrollLeft; moved = false;
-      try { el.setPointerCapture(pid); } catch (err) {}
+      /* 11.11: показалецът се „хваща“ чак когато започне влачене – иначе обикновеното щракване върху карта отиваше към лентата и картата не се отваряше */
     });
     el.addEventListener("pointermove", function (e) {
       if (pid == null || e.pointerId !== pid) return;
       var dx = e.clientX - x0;
       if (!moved && Math.abs(dx) < 10) return;
+      if (!moved) { try { el.setPointerCapture(pid); } catch (err) {} }
       moved = true; el.__ndhsMoved = 1;
       el.scrollLeft = sl0 - dx;
     });
     function end(e) {
       if (pid == null || (e && e.pointerId !== pid)) return;
+      try { if (moved && el.hasPointerCapture && el.hasPointerCapture(pid)) el.releasePointerCapture(pid); } catch (err) {}
       pid = null;
       if (moved) setTimeout(function () { el.__ndhsMoved = 0; }, 80);
     }

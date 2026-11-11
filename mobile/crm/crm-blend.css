@@ -215,6 +215,9 @@ html:not(.desk) .ipanel .nd-ff-pair .i-more svg.i,html:not(.desk) .ipanel .nd-ff
 html:not(.desk) .ipanel .nd-ff-pair .nd-ffold-btn .nd-ff-chev{width:14px;height:14px;font-size:14px}
 html.desk .nd-ff-pair{grid-column:5;grid-row:1;height:86px}
 html.desk .nd-ff-pair .i-more,html.desk .nd-ff-pair .nd-ffold-btn{position:relative;flex:1 1 0;height:86px;font-size:26px;border-radius:22px}
+/* 11.11: колоната на двата бутона е достатъчно широка – вторият вече не излиза извън блока */
+html.desk .iflow:has(.nd-ff-pair){grid-template-columns:800px 290px 190px minmax(0,1fr) 410px}
+html.desk .nd-ff-pair .i-more,html.desk .nd-ff-pair .nd-ffold-btn{min-width:0;white-space:nowrap;padding:0 14px}
 :is(.cpanel .filters,.ipanel .chips,.ipanel .deal,.ipanel .i-go,.ipanel .i-clear,.v3-filt,.v3-kfilt,.bchips,#r-chips,#r-filt,.m-chips,.o-city){
   transition:max-height .36s cubic-bezier(.2,.7,.2,1),opacity .28s ease,margin .36s ease,padding .36s ease,transform .36s ease}
 html.nd-ffold .cpanel{height:78px!important;transition:height .36s cubic-bezier(.2,.7,.2,1)}
