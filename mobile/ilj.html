@@ -244,6 +244,10 @@
   .home-hero.has-city-video .home-video{object-fit:cover;object-position:center}
   .home-hero.has-city-video .nav{z-index:8}
 }
+/* 11.11 TASK-004: страница на имот (компютър) – менюто в горния десен ъгъл е върху виненото мраморно поле; текстът беше винен (невидим, контраст 1.05:1) → кремав като на всички други страници */
+.terrace-hero.detail-hero .nav{color:#f7e7bc}
+/* 11.11 TASK-004: значката „НОВО“ върху снимката на имот – кремав текст върху златно (1.8:1) → тъмният текст на същата значка .badge (#52230d) */
+.property-image .badge{color:#52230d}
 </style>
 <script>/* видеото на града: пускане и след докосване (iPhone в режим на ниска батерия спира autoplay) и при връщане към таба */
 (function(){function go(){[].forEach.call(document.querySelectorAll('video.home-video'),function(v){v.muted=true;if(v.paused){var p=v.play();if(p&&p.catch)p.catch(function(){})}})}
