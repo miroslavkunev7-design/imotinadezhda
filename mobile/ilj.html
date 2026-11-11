@@ -231,6 +231,12 @@
   }
   .home-hero.has-city-video .home-city{position:relative;left:auto;right:auto;top:auto;margin:-12px 23px 0;z-index:2}
   .home-hero.has-city-video>.search-bar{position:relative;left:auto;right:auto;bottom:auto;margin:auto 12px 18px 12px}
+  /* 11.11: секцията с клипа е отново висока като при старата снимка (390px, запълва се без разтягане); без празно място под данните */
+  .home-hero.has-city-video{min-height:0}
+  .home-hero.has-city-video .home-video-slot{height:390px!important;aspect-ratio:auto!important}
+  .home-hero.has-city-video .home-video{object-fit:cover;object-position:center 42%}
+  .home-hero.has-city-video .home-city{margin-top:-34px}
+  .home-hero.has-city-video>.search-bar{margin-top:26px}
 }
 @media(min-width:769px){
   /* клипът запълва цялата височина на блока (до долния ръб), без празна ивица под него */

@@ -136,6 +136,9 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .city.c1 .fade{height:52%}
 /* drone videos: box = clip ratio (full frame); cream fade = old still (58%/52%) */
 .city video.ph{display:block;background:transparent;pointer-events:none}
+/* 11.11: картите на градовете са със снимки (клиповете остават само в страницата на града) */
+.city img.ph{display:block;object-fit:cover;object-position:center 30%;pointer-events:none}
+.city img.ph-shumen{object-position:center 22%}.city img.ph-burgas{object-position:center 30%}.city img.ph-varna{object-position:center 45%}
 </style>
 </head>
 <body>
@@ -170,9 +173,9 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   </form>
 
   <div class="abs cglass" aria-hidden="true"></div>
-  <button class="abs city c1" data-city="shumen"><video class="ph" data-src="/mobile/home-assets/city-shumen.mp4" poster="/mobile/home-assets/city-shumen-poster.webp" width="1280" height="730" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c2" data-city="varna"><video class="ph" data-src="/mobile/home-assets/city-varna.mp4" poster="/mobile/home-assets/city-varna-poster.webp" width="1280" height="724" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
-  <button class="abs city c3" data-city="burgas"><video class="ph" data-src="/mobile/home-assets/city-burgas.mp4" poster="/mobile/home-assets/city-burgas-poster.webp" width="1280" height="736" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" aria-hidden="true" tabindex="-1"></video><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c1" data-city="shumen"><img class="ph ph-shumen" src="/mobile/home-assets/card-shumen.webp" alt="" width="1440" height="960" decoding="async" fetchpriority="high"><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Шумен</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c2" data-city="varna"><img class="ph ph-varna" src="/mobile/home-assets/card-varna.webp" alt="" width="1280" height="959" decoding="async"><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Варна</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
+  <button class="abs city c3" data-city="burgas"><img class="ph ph-burgas" src="/mobile/home-assets/card-burgas.webp" alt="" width="1024" height="682" decoding="async"><span class="fade"></span><span class="ct"><span><span class="nm"><img src="/mobile/home-assets/pin.svg" alt="">Бургас</span><span class="vc">ВИЖ ГРАДА</span></span><span class="ar"><img src="/mobile/home-assets/arrow-right.svg" alt=""></span></span></button>
 </div></div>
 
 
@@ -188,6 +191,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
   var cv = $("cv"), st = $("stage"), W = 865, H = 1720;
+  var lvp = document.createElement("div"); lvp.style.cssText = "position:fixed;left:0;top:0;width:0;height:100vh;height:100lvh;visibility:hidden;pointer-events:none"; document.documentElement.appendChild(lvp);
   function fit() {
     var k = document.documentElement.clientWidth / W;
     var vv = window.visualViewport;
@@ -201,11 +205,18 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
     var minH = Math.max(H, vh / k);
     cv.style.minHeight = minH + "px";
     cv.style.height = minH + "px";
+    /* 11.11: страницата никога не се реже – височината е поне колкото съдържанието (картите долу) и колкото целия екран
+       (и когато браузърът показва страницата под лентите си: 100lvh) */
+    var lv = 0; try { lv = lvp.offsetHeight || 0; } catch (e) {}
+    var full = Math.max(vh, lv, Math.ceil(H * k));
+    minH = Math.max(H, full / k);
+    cv.style.minHeight = minH + "px";
+    cv.style.height = minH + "px";
     if (st) {
-      st.style.height = vh + "px";
-      st.style.minHeight = vh + "px";
+      st.style.height = full + "px";
+      st.style.minHeight = full + "px";
     }
-    document.body.style.minHeight = vh + "px";
+    document.body.style.minHeight = full + "px";
   }
   addEventListener("resize", fit);
   if (window.visualViewport) visualViewport.addEventListener("resize", fit);
