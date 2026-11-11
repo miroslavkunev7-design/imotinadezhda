@@ -543,6 +543,7 @@
   NC.viewer = viewer;
   NC.currentViewer = function () { return VIEWER; };
   NC.current3d = function () { return V3 || VP; };
+  NC.currentTour = function () { return T10; };
 
   /* ---------------- 4. 3D Сграда (визуализатор по договора на TASK-009) ---------------- */
   var V3 = null, VP = null, NC3D = null, ENG = {};
@@ -566,10 +567,12 @@
     return ENG[kind];
   }
   NC.engine = engine;
-  /* КУКА за пълния компонент на TASK-010 (mobile/nc-tour.js: mount(el, {source, unit, staff, side, onRoom}) + publicSource({rpc, unitId, unit});
-     в CRM източникът е window.NCTourStaff.source(unitId) от crm-nc-tour.js). Включва се с window.NC_TOUR_LIB = "/mobile/nc-tour.js" (същото име като в crm-nc-tour.js).
-     Ако компонентът не се зареди – честно се минава на вградената 360° панорама. */
-  var T10 = null;
+  /* КУКА за пълния компонент на TASK-010 (проверено срещу истинските файлове в wt-010):
+       mobile/nc-tour.js (ES модул): mount(el, {source, unit, staff, mode, side, onRoom}) → {destroy, reload, setMode, goRoom, fit, state}; publicSource({rpc, unitId, unit});
+       mobile/crm/crm-nc-tour.js (класически скрипт): window.NCTourStaff = {source(unitId, {setId}), panel(el, unitId, {admin, say, onPreview}), lib()}.
+     Включва се с window.NC_TOUR_LIB = "/mobile/nc-tour.js" (същото име, което чете и crm-nc-tour.js). Източникът идва от адаптера: A.tour10Source(L, unit, {setId});
+     служебният панел (подготовка/публикуване на разходката) – от A.tour10Panel. Ако компонентът не се зареди – честно се минава на вградената 360° панорама. */
+  var T10 = null, T10P = null;
   function cssOnce(href) { if (document.querySelector('link[data-nc-css="' + href + '"]')) return; var l = document.createElement("link"); l.rel = "stylesheet"; l.href = href; l.setAttribute("data-nc-css", href); document.head.appendChild(l); }
   function tour10() {
     var u = window.NC_TOUR_LIB; if (!u || S.t10off) return null;
@@ -584,7 +587,7 @@
     el.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.fullscreenElement === el) { e.preventDefault(); document.exitFullscreen(); } });
     return upd;
   }
-  function destroy3() { if (V3) { try { V3.destroy(); } catch (e) {} V3 = null; } if (VP) { try { VP.destroy(); } catch (e) {} VP = null; } if (T10) { try { T10.destroy(); } catch (e) {} T10 = null; } }
+  function destroy3() { if (V3) { try { V3.destroy(); } catch (e) {} V3 = null; } if (VP) { try { VP.destroy(); } catch (e) {} VP = null; } if (T10) { try { T10.destroy(); } catch (e) {} T10 = null; } if (T10P) { try { T10P.destroy(); } catch (e) {} T10P = null; } }
   function floorList() {
     var b = bldg(S.b), fl = b ? floorsOf(b.id) : [];
     if (!fl.length) return '<p class="nc-note">Няма въведени етажи.</p>';
@@ -629,13 +632,14 @@
       if (!L.webglOk()) { fail("Този браузър или устройство не поддържа WebGL – 3D моделът не може да се покаже. Етажите и апартаментите вдясно работят.", "box"); return; }
       return A.modelUrl(b).then(function (url) {
         if (!document.contains(el)) return;
+        var note = ""; if (url && typeof url === "object") { note = url.note || ""; url = url.url; }   /* TASK-009: {url, note} – напр. „версия 2, чака преглед (само екипът)“ */
         if (!url) { fail("Моделът не е достъпен в момента."); return; }
         var bu = M.units.filter(function (u) { return u.building_id === b.id; }), bf = floorsOf(b.id);
         destroy3();
         V3 = L.building(el, { url: url, units: bu, floors: bf, sel: S.u, floor: S.f, label: "3D модел на " + bName(b),
           onPick: function (id) { pick3(id); },
           onReady: function (v) { if (!document.contains(el)) return; stEl.hidden = true; v.onlyFloor(!!S.only3); var inf = $("#nc-3d-info", root), i = v.info;
-            if (inf) inf.textContent = i.units ? "Свързани с апартаменти от проекта: " + i.units + " от " + bu.length + " апартамента на сградата" + (i.units < bu.length ? " – останалите нямат смислово съответствие в модела и не се осветяват." : ".") : "Моделът няма смислово съответствие с апартаментите (unit_id / unit_code / „unit:<код>“) – изборът на апартамент от модела е изключен, за да не се „познава“ по картинка."; },
+            if (inf) inf.textContent = (note ? note + " · " : "") + (i.units ? "Свързани с апартаменти от проекта: " + i.units + " от " + bu.length + " апартамента на сградата" + (i.units < bu.length ? " – останалите нямат смислово съответствие в модела и не се осветяват." : ".") : "Моделът няма смислово съответствие с апартаментите (unit_id / unit_code / „unit:<код>“) – изборът на апартамент от модела е изключен, за да не се „познава“ по картинка."); },
           onError: function (m) { fail("3D моделът не се зареди: " + (m || "грешка"), "triangle-alert"); } });
       });
     }).catch(function (e) { fail("3D модулът не се зареди: " + ((e && e.message) || "грешка")); });
@@ -661,8 +665,10 @@
       orderUnits(M.units).map(function (x) { return '<option value="' + esc(x.id) + '"' + (u && x.id === u.id ? " selected" : "") + ">" + esc(x.code + " – " + (ST[x.status] || "")) + "</option>"; }).join("") + "</select></label>" : "";
     var det = u ? card("Апартамент " + u.code, "house", PH.rooms, '<div class="nc-rows">' + row("ruler", "Обща площ", esc(m2(u.area_total) || "—")) + row("layout-grid", "Чиста площ", esc(m2(u.area_net) || "—")) + row("umbrella", "Тераса", esc(m2(u.terrace_area) || "—")) + row("sun", "Изложение", esc(u.exposure || "—")) + "</div>" + '<div id="nc-rooms"></div>', "nc-rinfo") : "";
     var main, locked = u && u.status !== "free";
-    var use10 = !!(u && window.NC_TOUR_LIB && !S.t10off && A.tour10Source && (!locked || A.mode === "staff"));
-    if (use10) return '<div class="nc-two"><div><div class="nc-t10" id="nc-t10" data-engine="TASK-010"><div class="nc-load" role="status"><span class="nc-spin" aria-hidden="true"></span>Зареждане на разходката…</div></div></div><div class="side">' + pick + '<div id="nc-t10-side"></div>' + ucSlot("tour") + "</div></div>";
+    /* компонентът на TASK-010: капариран/продаден първо показва печата на страницата; екипът го отваря изрично (както вградения преглед) */
+    var use10 = !!(u && window.NC_TOUR_LIB && !S.t10off && A.tour10Source && (!locked || (A.mode === "staff" && S.showPano === u.id)));
+    if (use10) return '<div class="nc-two"><div><div class="nc-t10" id="nc-t10" data-engine="TASK-010"><div class="nc-load" role="status"><span class="nc-spin" aria-hidden="true"></span>Зареждане на разходката…</div></div>' +
+      (A.tour10Panel ? '<div class="nc-t10s" id="nc-t10-staff" aria-label="Разходка – подготовка (екип)"></div>' : "") + '</div><div class="side">' + pick + '<div id="nc-t10-side"></div>' + ucSlot("tour") + "</div></div>";
     if (!u) main = empty("house", "Изберете апартамент", "360° панорамите са по апартаменти.");
     else if (locked && !(A.mode === "staff" && S.showPano === u.id)) main = '<div class="nc-pano lockedp">' + lockedHtml(u).replace("Разпределението на апартамент", "Панорамите и разпределението на апартамент").replace('data-act="orig"', 'data-act="origpano"').replace("Покажи оригинала (само за екипа)", "Покажи панорамите (само за екипа)") + "</div>";
     else if (!n) main = naHtml("r360", "360° панорама", "360° панорамите за " + u.code + " още не са подготвени",
@@ -691,13 +697,22 @@
     if (c) c.textContent = "Сега: " + (it.title || "Помещение " + (i + 1)) + " (" + (i + 1) + " от " + items.length + ")";
     if (p) { if (xy && isFinite(xy[0]) && isFinite(xy[1]) && xy[0] >= 0 && xy[0] <= 1 && xy[1] >= 0 && xy[1] <= 1) { p.hidden = false; p.style.left = xy[0] * 100 + "%"; p.style.top = xy[1] * 100 + "%"; } else p.hidden = true; }
   }
-  function mountTour10() {
+  /* източникът на TASK-010 се обвива: ако сървърът още няма функцията за разходката (404 – nc_006 не е пусната), честно се минава на вградения преглед
+     на същите панорами (/pano/<обект>/<n>); при друга грешка компонентът сам показва „Опитай отново“. */
+  function t10fallback(el) { return function (e) { if (e && (e.status === 404 || e.fallback) && !S.t10off) { S.t10off = true; setTimeout(function () { if (document.contains(el)) refreshPanelFull(); }, 0); } throw e; }; }
+  function mountTour10(opt) {
     var el = $("#nc-t10", root), u = unit(S.u); if (!el || !u) return;
-    var p = tour10(); if (!p) return;
-    p.then(function (L) { return Promise.resolve(A.tour10Source(L, u)).then(function (src) {
-      if (!document.contains(el) || !src) return; destroy3();
+    var p = tour10(); if (!p) return; opt = opt || {};
+    var info = { id: u.id, code: u.code, status: u.status, area_total: u.area_total, area_net: u.area_net, terrace_area: u.terrace_area, exposure: u.exposure, rooms: u.rooms };
+    p.then(function (L) { return Promise.resolve(A.tour10Source(L, u, { setId: opt.setId })).then(function (src) {
+      if (!document.contains(el)) return;
+      if (!src) throw new Error("Компонентът няма източник за този режим.");
+      if (T10) { try { T10.destroy(); } catch (e) {} T10 = null; }
+      var load = src.load, wrapped = { load: function () { return Promise.resolve().then(function () { return load.call(src); }).catch(t10fallback(el)); }, panoUrl: function (r) { return src.panoUrl(r); } };
       el.innerHTML = "";
-      T10 = L.mount(el, { source: src, unit: u, staff: A.mode === "staff", side: $("#nc-t10-side", root), onRoom: function () {} });
+      T10 = L.mount(el, { source: wrapped, unit: info, staff: A.mode === "staff", mode: opt.mode || "auto", side: $("#nc-t10-side", root), onRoom: function () {} });
+      var sp = $("#nc-t10-staff", root);
+      if (sp && A.tour10Panel && !T10P) Promise.resolve(A.tour10Panel(sp, u, { onPreview: function (o) { mountTour10(o || {}); } })).then(function (h) { if (document.contains(sp)) T10P = h || null; else if (h && h.destroy) h.destroy(); }, function (e) { if (window.console) console.warn("TASK-010 панел:", e && e.message); });
     }); }).catch(function (e) { if (window.console) console.warn("TASK-010 разходка:", e && e.message); S.t10off = true; if (document.contains(el)) refreshPanelFull(); });
   }
   function mountPano() {

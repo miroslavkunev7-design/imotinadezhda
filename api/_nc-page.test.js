@@ -228,7 +228,33 @@ test("публичен адаптер: проект само по валиден
   assert.strictEqual(await A.project("<bad slug>"), null); assert.strictEqual(sent.length, 0, "невалиден slug не стига до сървъра");
   const M = await A.project("test-proekt");
   assert.strictEqual(M.units[0].price_total, null); assert.strictEqual(M.project.location, null);
-  assert.ok(sent.every((s) => /\/rest\/v1\/rpc\/nd_public_project$|\/storage\/v1\/object\/sign\/nd-files$/.test(s.url)));
+  assert.ok(sent.every((s) => /\/rest\/v1\/rpc\/(nd_public_project|nd_public_models)$|\/storage\/v1\/object\/sign\/nd-files$/.test(s.url)));
+});
+
+test("куки към истинските API: TASK-009 (/model/<сграда>, nd_public_models, models.get preview) и TASK-010 (publicSource / NCTourStaff.source / panel)", async () => {
+  // публично: сграда, която nd_public_models изброява → само защитеният път /model/<сграда>; ако функцията я няма (404) → старата медия
+  const mk = (models) => (url, o) => Promise.resolve(/nd_public_models$/.test(url) ? (models ? { ok: true, status: 200, json: () => Promise.resolve(models) } : { ok: false, status: 404, json: () => Promise.resolve({ code: "PGRST202" }) })
+    : { ok: true, status: 200, json: () => Promise.resolve(/nd_public_project$/.test(url) ? { id: P, slug: "test-proekt", title: "TEST", buildings: [{ id: B, name: "TEST Сграда", floors: [], model: ["projects/" + P + "/public/models/old.glb"] }], units: [], files: [], gallery: [] } : []) });
+  let w = withAdapter("", "mobile/nc.js", { fetch: mk({ [B]: { version: 2, fidelity: "exact" } }) });
+  let M = await w.A.project("test-proekt"); assert.strictEqual(M.models[B], 1); assert.strictEqual(await w.A.modelUrl(M.buildings[0]), "/model/" + B);
+  w = withAdapter("", "mobile/nc.js", { fetch: mk(null) }); M = await w.A.project("test-proekt"); assert.notStrictEqual(await w.A.modelUrl(M.buildings[0]), "/model/" + B, "без nc_005 – старата медия");
+  // публично TASK-010: publicSource получава rpc с публичния ключ, unitId и данни за обекта (без цена)
+  let got = null; const L = { publicSource: (o) => { got = o; return { load() {}, panoUrl() {} }; } };
+  const u = model().units[1]; assert.ok(w.A.tour10Source(L, u)); assert.strictEqual(got.unitId, u.id); assert.strictEqual(typeof got.rpc, "function"); assert.strictEqual(got.unit.code, "T1-01"); assert.ok(!("price_total" in got.unit));
+  // CRM: models.get → {url: preview_url, note}; NCTourStaff.source(unitId, {setId}) и panel(el, unitId, {admin, say, onPreview})
+  const calls = [];
+  const fetch = (url, o) => { const b = JSON.parse(o.body); calls.push(b); const r = b.tool === "models.get" ? { building_id: B, published_version: 1, versions: [{ version: 1 }], selected: { version: 1, status: "published", fidelity: "exact", preview_url: b.input.preview ? "https://example.test/signed-60s" : undefined } }
+    : b.tool === "projects.get" ? { project: { id: P, data: { title: "TEST" }, status: "draft" }, buildings: [{ id: B, name: "TEST Сграда", sort: 0 }], floors: [], units: [], media: [] } : {};
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ ok: true, result: r }) }); };
+  const q = () => ({ select: () => q(), eq: () => q(), in: () => q(), order: () => q(), then: (f) => Promise.resolve({ data: [], error: null }).then(f) });
+  const TS = { n: 0, source: (id2, o) => ({ id: id2, setId: o.setId }), panel: (el, id2, o) => { TS.n++; TS.o = o; return { destroy() {} }; } };
+  const ND = { token: () => Promise.resolve("TEST-JWT"), ready: () => Promise.resolve(), sb: () => ({ rpc: () => Promise.resolve({ data: true }), from: () => q() }), fileUrls: () => Promise.resolve({}), fileUrl: () => Promise.resolve(null) };
+  const s = withAdapter("", "mobile/crm/crm-nc-staff.js", { ND, fetch, NDUI: {}, NCTourStaff: TS });
+  const SM = await s.A.project(P); assert.strictEqual(SM.models[B], 1);
+  const mu = await s.A.modelUrl(SM.buildings[0]); assert.strictEqual(mu.url, "https://example.test/signed-60s"); assert.ok(/Модел версия 1 – публикуван/.test(mu.note));
+  assert.ok(calls.some((c) => c.tool === "models.get" && c.input.preview === true) && calls.some((c) => c.tool === "models.get" && !c.input.preview));
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(await s.A.tour10Source({}, { id: id("untx") }, { setId: "set1" }))), { id: id("untx"), setId: "set1" });
+  await s.A.tour10Panel({}, { id: id("untx") }, { onPreview: () => {} }); assert.strictEqual(TS.n, 1); assert.strictEqual(typeof TS.o.say, "function"); assert.strictEqual(typeof TS.o.onPreview, "function");
 });
 
 test("публични форми: валидиране (име, телефон или имейл, бъдеща дата) и запитване през съществуващия nd_public_inquiry", async () => {

@@ -6,7 +6,7 @@
   "use strict";
   var NC = window.NC; if (!NC) return;
   var U = NC.util, esc = U.esc, ic = U.ic, F = NC.find, D = NC.dict;
-  var admin = false, MEDIA = {}, SIG = {};
+  var admin = false, MEDIA = {}, SIG = {}, M9OFF = false;
   var ID = /^[a-z0-9]{8,64}$/;
 
   /* ---------- сървър ---------- */
@@ -63,6 +63,28 @@
     M.floors.forEach(function (f) { if (f.has_plan) M.files.push({ title: "Оригинален етажен план – " + F.bName(R.buildings.filter(function (b) { return b.id === f.building_id; })[0]) + ", " + F.floorName(f), access: "private", ref: { floor: f.id }, kindLabel: "Етажен план (оригинал)" }); });
     return M;
   }
+  /* TASK-009: версиите на 3D модела по сграда (models.get – само четене). Ако инструментът още го няма на сървъра (Unknown tool) – спира да пита до презареждане. */
+  function models009(blds) {
+    if (M9OFF || !blds || !blds.length) return Promise.resolve({});
+    return Promise.all(blds.slice(0, 20).map(function (b) {
+      return tool("models.get", { building_id: b.id }).then(function (r) { var s = r && r.selected; return s && (s.status === "published" || s.status === "review") ? [b.id, { version: s.version, status: s.status, fidelity: s.fidelity }] : null; },
+        function (e) { if (e && e.status === 404 && /Unknown tool/i.test(e.message || "")) M9OFF = true; return null; });
+    })).then(function (a) { var o = {}; a.forEach(function (x) { if (x) o[x[0]] = x[1]; }); return o; });
+  }
+  var FID = { exact: "точен", verified: "проверен", conceptual: "концептуален" };
+  /* TASK-010: служебният скрипт crm-nc-tour.js (window.NCTourStaff) се зарежда едва когато е включен компонентът (window.NC_TOUR_LIB) и се отвори раздел „360° Разходка“ */
+  var TSP = null;
+  function tourStaff() {
+    if (window.NCTourStaff && typeof NCTourStaff.source === "function") return Promise.resolve(window.NCTourStaff);
+    if (TSP) return TSP;
+    TSP = new Promise(function (ok, no) {
+      var sc = document.createElement("script"); sc.src = (NC.libBase || "/mobile/crm/") + "crm-nc-tour.js"; sc.async = true;
+      sc.onload = function () { if (window.NCTourStaff && typeof NCTourStaff.source === "function") ok(window.NCTourStaff); else { TSP = null; no(new Error("Служебната част на разходката не се зареди.")); } };
+      sc.onerror = function () { TSP = null; sc.remove(); var e = new Error("Служебната част на разходката (TASK-010) още не е качена на сайта."); e.fallback = true; no(e); };
+      document.head.appendChild(sc);
+    });
+    return TSP;
+  }
   function privPath(ref) {
     var t = ref.unit ? "nd_units" : "nd_floors", id = ref.unit || ref.floor;
     return sb().from(t).select("id,data").eq("id", id).maybeSingle().then(function (r) { if (r.error) throw new Error("Планът не може да се прочете."); var dd = r.data && r.data.data; return dd && dd.plan && typeof dd.plan.private === "string" ? dd.plan.private : null; });
@@ -89,13 +111,23 @@
       if (!ID.test(String(key))) return Promise.resolve(null);
       return tool("projects.get", { id: key }).then(function (R) {
         var paths = R.media.filter(function (m) { return m.path && (m.kind === "cover" || m.kind === "gallery"); }).map(function (m) { return m.path; });
-        return Promise.all([sign(paths), sb().from("nd_project_media").select("id,created_at").eq("project_id", R.project.id).then(function (r) { return r.error ? [] : r.data; })]).then(function (x) { return build(R, x[1]); });
+        return Promise.all([sign(paths), sb().from("nd_project_media").select("id,created_at").eq("project_id", R.project.id).then(function (r) { return r.error ? [] : r.data; }), models009(R.buildings)])
+          .then(function (x) { var M = build(R, x[1]); MEDIA.m009 = x[2]; Object.keys(x[2]).forEach(function (bid) { M.models[bid] = 1; }); return M; });
       }).catch(function (e) { if (e.status === 404) return null; throw e; });
     },
     unitPlan: function (u) { return planOf({ unit: u.id }); },
     floorPlan: function (f) { return planOf({ floor: f.id }); },
     fileUrl: function (f) { if (f.ref) return privPath(f.ref).then(function (p) { return p ? ND.fileUrl(p) : null; }); return ND.fileUrl(f.path); },
-    modelUrl: function (b) { var p = MEDIA.models[b.id]; return p ? ND.fileUrl(p) : Promise.resolve(null); },
+    modelUrl: function (b) {
+      var m9 = MEDIA.m009 && MEDIA.m009[b.id];
+      if (m9) return tool("models.get", { building_id: b.id, version: m9.version, preview: true }).then(function (r) {
+        var s = (r && r.selected) || {}; if (!s.preview_url) return null;
+        return { url: s.preview_url, note: "Модел версия " + s.version + (s.status === "review" ? " – чака преглед, вижда се само от екипа" : " – публикуван") + (FID[s.fidelity] ? " · " + FID[s.fidelity] : "") };
+      });
+      var p = MEDIA.models[b.id]; return p ? ND.fileUrl(p) : Promise.resolve(null);
+    },
+    tour10Source: function (L, u, o) { return tourStaff().then(function (TS) { return TS.source(u.id, { setId: o && o.setId }); }); },
+    tour10Panel: function (el, u, o) { return tourStaff().then(function (TS) { return typeof TS.panel === "function" ? TS.panel(el, u.id, { admin: admin, say: function (m) { U.say(m); }, onPreview: o && o.onPreview }) : null; }); },
     tourItems: function (u) {
       return sb().from("nd_project_media").select("path,title,sort").eq("kind", "tour").eq("unit_id", u.id).order("sort").then(function (r) {
         var rows = r.error ? [] : r.data || [];

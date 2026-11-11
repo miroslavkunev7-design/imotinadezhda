@@ -13,7 +13,7 @@
   var SLUG = /^[a-z0-9][a-z0-9-]{2,60}$/, SIG = {}, MODELS = {};
   function rpc(name, body) {
     return fetch(URL + "/rest/v1/rpc/" + name, { method: "POST", headers: H, body: JSON.stringify(body || {}) }).then(function (r) {
-      return r.json().catch(function () { return null; }).then(function (j) { if (!r.ok) throw new Error(r.status >= 500 ? "Услугата временно не отговаря – опитайте по-късно." : (j && j.message) || "Грешка " + r.status); return j; });
+      return r.json().catch(function () { return null; }).then(function (j) { if (!r.ok) { var e = new Error(r.status >= 500 ? "Услугата временно не отговаря – опитайте по-късно." : (j && j.message) || "Грешка " + r.status); e.status = r.status; throw e; } return j; });
     }, function () { throw new Error("Няма връзка – проверете интернета."); });
   }
   function sign(paths) {
@@ -24,7 +24,7 @@
   function unwrap(rows, k) { return (rows || []).map(function (r) { return r && r[k] ? r[k] : r; }); }
   function kindOf(p) { return /\.(mp4|webm|mov)$/i.test(p || "") ? "video" : "image"; }
 
-  function build(P) {
+  function build(P, m009) {
     var M = { project: { id: P.id, key: P.slug, slug: P.slug, title: P.title, city: P.city, hood: P.hood, address: P.address, description: P.description, stage: P.stage, expected_completion: P.expected_completion,
         advantages: P.advantages || [], status: "published", updated_at: P.updated_at, location: null },
       buildings: [], floors: [], units: P.units || [], cover: null, gallery: [], files: [], models: {}, tours: {} };
@@ -32,7 +32,10 @@
     (P.buildings || []).forEach(function (b, i) {
       M.buildings.push({ id: b.id, name: b.name, sort: i });
       (b.floors || []).forEach(function (f) { M.floors.push({ id: f.id, building_id: b.id, level: f.level, label: f.label, has_plan: !!f.has_plan, polygons: f.polygons || [] }); });
-      if (b.model && b.model.length) { M.models[b.id] = b.model.length; MODELS[b.id] = b.model[0]; }
+      /* TASK-009: публикуван модел в nd_models → само защитеният път /model/<сграда> (сървърът проверява публикуването и дава 60-секунден адрес);
+         иначе – по-старата медия вид „model“ (подписан публичен файл) */
+      if (m009 && m009[b.id]) { M.models[b.id] = 1; MODELS[b.id] = { route: "/model/" + encodeURIComponent(b.id) }; }
+      else if (b.model && b.model.length) { M.models[b.id] = b.model.length; MODELS[b.id] = b.model[0]; }
     });
     M.units.forEach(function (u) { if (u.tour_count) M.tours[u.id] = u.tour_count; });
     if (P.cover && SIG[P.cover]) M.cover = { path: P.cover, url: SIG[P.cover], title: "Корица на проекта" };
@@ -55,14 +58,18 @@
       return rpc("nd_public_project", { p_slug: key }).then(function (P) {
         if (P && P.nd_public_project !== undefined) P = P.nd_public_project;
         if (!P || !P.id) return null;
-        return sign([P.cover].concat(P.gallery || [])).then(function () { return build(P); });
+        /* nd_public_models (TASK-009, nc_005): ако функцията още я няма (404) – просто няма модели от новия път */
+        var m9 = rpc("nd_public_models", { p_slug: key }).then(function (r) { if (r && r.nd_public_models !== undefined) r = r.nd_public_models; return r && typeof r === "object" && !Array.isArray(r) ? r : {}; }, function () { return {}; });
+        return Promise.all([sign([P.cover].concat(P.gallery || [])), m9]).then(function (x) { return build(P, x[1]); });
       });
     },
     unitPlan: function (u) { return Promise.resolve(u.has_plan && u.status === "free" ? { url: "/plan/unit/" + encodeURIComponent(u.id), label: "План с воден знак" } : { url: null, why: "Планът още не е публикуван." }); },
     floorPlan: function (f) { return Promise.resolve(f.has_plan ? { url: "/plan/floor/" + encodeURIComponent(f.id), label: "Етажен план – заетите апартаменти са закрити" } : { url: null }); },
     fileUrl: function (f) { return sign([f.path]).then(function () { return SIG[f.path] || null; }); },
-    modelUrl: function (b) { var p = MODELS[b.id]; return p ? sign([p]).then(function () { return SIG[p] || null; }) : Promise.resolve(null); },
+    modelUrl: function (b) { var p = MODELS[b.id]; if (p && p.route) return Promise.resolve(p.route); return p ? sign([p]).then(function () { return SIG[p] || null; }) : Promise.resolve(null); },
     tourItems: function (u) { var n = u.status === "free" ? u.tour_count || 0 : 0, a = []; for (var i = 0; i < n && i < 30; i++) a.push({ url: "/pano/" + encodeURIComponent(u.id) + "/" + i, title: "Панорама " + (i + 1) }); return Promise.resolve(a); },
+    /* TASK-010: публичният източник на компонента (nd_public_tour + /pano/<обект>/<n>); rpc е същата функция с публичния ключ */
+    tour10Source: function (L, u) { return typeof L.publicSource === "function" ? L.publicSource({ rpc: rpc, unitId: u.id, unit: { id: u.id, code: u.code, status: u.status, area_total: u.area_total, area_net: u.area_net, terrace_area: u.terrace_area, exposure: u.exposure, rooms: u.rooms } }) : null; },
     shareUrl: function (M, u) { return location.origin + "/mobile/nc.html?p=" + encodeURIComponent(M.project.slug) + (u ? "&u=" + encodeURIComponent(u.id) : ""); },
     canMortgage: function () { return false; },
     acts: {}

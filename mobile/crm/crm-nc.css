@@ -707,3 +707,8 @@ html:not(.desk) .nc-3d,html:not(.desk) .nc-pano{height:clamp(560px,calc(var(--vi
 .nc-mini img{display:block;width:100%;height:auto;max-height:420px;object-fit:contain}
 .nc-mini .pos{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c8,#d9a254 70%);box-shadow:0 0 0 4px rgba(255,255,255,.92),0 0 16px rgba(246,212,142,.95)}
 .nc-mini .cur{margin-top:12px;font:700 23px/1.25 var(--cond);color:#5e0a1a}
+/* TASK-010: компонентът сам мери мястото (--ntr-h), но е монтиран под заглавието и разделите на проекта и излиза нисък; на компютър височината му се взима от
+   измереното видимо място на стъкления прозорец (--vis), за да изпълни прозореца като в одобрената референция 04 и да се вижда цял. Не важи на цял екран. */
+html.desk .nc-t10:not(.ntr-fs):not(.ntr-narrow):not(:fullscreen) .ntr-wrap{height:clamp(500px,calc(var(--vis,820px) - 40px),1150px)}
+.nc-t10s{margin-top:18px}
+.nc-t10s:empty{display:none}
