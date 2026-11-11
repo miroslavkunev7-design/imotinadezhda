@@ -474,3 +474,6 @@ html:not(.desk) .bm-prof h3{max-width:calc(100% - 282px - 30px)}
 /* „(само за този брокер)“ не влиза под бутона „Добави клиент“ */
 html.desk .bsh{max-width:calc(100% - 330px)}
 html.desk .bsh em{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+/* ===== 11.11 TASK-004: компютър – „Прикрепени клиенти (само за този брокер)“: бележката стоеше върху тъмната снимка (2.5:1);
+   снимката на този раздел е по-тясна (както #bs-restr 32 %), бележката е върху кремавото стъкло ===== */
+html.desk #bs-clients .bimg{width:34%}
