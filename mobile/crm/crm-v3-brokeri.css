@@ -459,3 +459,18 @@ html:not(.desk) body #nd-fwin .ev-acts{gap:18px;padding:10px 22px 0}
 html:not(.desk) body #nd-fwin .ea{height:92px;min-width:0;flex:1;padding:0 20px;border-radius:46px;font-size:34px}
 html:not(.desk) body #nd-fwin .ea svg.i{font-size:38px}
 html:not(.desk) body #nd-fwin .ea.hot{flex:1.4}
+
+/* ===== 11.11: поправки по четливост и подредба (без промяна на дизайна) ===== */
+/* името, длъжността и оценката стоят върху мека кремава стъклена подложка – вече не се губят върху снимката на картата */
+.bk::after{content:"";position:absolute;z-index:-1;pointer-events:none;left:calc(var(--ptw,166px) + 22px);top:8px;right:64px;height:54%;border-radius:22px;
+  background:linear-gradient(90deg,rgba(253,244,234,.96) 0%,rgba(253,244,234,.9) 55%,rgba(253,244,234,.55) 82%,rgba(253,244,234,0) 100%)}
+html:not(.desk) .bk::after{left:178px;right:52px;height:56%}
+/* компютър: бутонът „Филтри“ (сгъване) стои в реда с инструментите, а не сам под картите */
+html.desk .bflow:has(.btools>.nd-ffold-btn){grid-template-columns:minmax(0,1fr) auto auto auto auto}
+html.desk .btools>.nd-ffold-btn{grid-column:5;grid-row:1;height:66px;border-radius:33px;padding:0 22px;font-size:24px;margin:0}
+/* карта на брокер: името ползва цялото свободно място до статуса (преди беше ограничено до 420 и се режеше до „…“) */
+html.desk .bm-prof h3{max-width:calc(100% - 240px - 236px)}
+html:not(.desk) .bm-prof h3{max-width:calc(100% - 282px - 30px)}
+/* „(само за този брокер)“ не влиза под бутона „Добави клиент“ */
+html.desk .bsh{max-width:calc(100% - 330px)}
+html.desk .bsh em{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}

@@ -1273,5 +1273,20 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
 <script>document.documentElement.classList.add("ready")</script>
 <div id="page-ready" hidden></div>
 <script src="crm-v3-head.js"></script>
+<script>/* 11.11: дълго име на брокер се смалява, докато се побере (вместо да се реже до „…“ или да влиза под сърцето/статуса) */
+(function(){
+  function fit(el){
+    if(!el||!el.offsetParent)return;
+    el.style.fontSize='';
+    var base=parseFloat(getComputedStyle(el).fontSize)||0,fs=base,n=0;
+    while(el.scrollWidth>el.clientWidth+1&&fs>base*.62&&n++<24){fs-=1;el.style.fontSize=fs+'px'}
+  }
+  function all(){[].forEach.call(document.querySelectorAll('#bgrid .bk .nm'),fit);fit(document.getElementById('bm-name'))}
+  var t=0;function kick(){clearTimeout(t);t=setTimeout(all,60)}
+  var g=document.getElementById('bgrid'),n=document.getElementById('bm-name');
+  try{if(g)new MutationObserver(kick).observe(g,{childList:true});if(n)new MutationObserver(kick).observe(n,{childList:true,characterData:true,subtree:true});
+      var m=document.querySelector('.bm-prof');if(m&&m.parentNode)new MutationObserver(kick).observe(document.body,{attributes:true,attributeFilter:['class','hidden'],subtree:true})}catch(e){}
+  addEventListener('resize',kick);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(kick);kick();
+})();</script>
 </body>
 </html>
