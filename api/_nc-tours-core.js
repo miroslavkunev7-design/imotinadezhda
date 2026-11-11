@@ -529,6 +529,7 @@ function buildScene(geometry, brief, inputs) {
     inputs: Object.assign({ geometry_sha256: gv.sha256, style_sha256: bv.sha256, catalog: A.LIBRARY_ID, catalog_version: A.LIBRARY_VERSION, catalog_sha256: A.CATALOG_SHA }, inputs || {}),
     architecture: architectureOf(g),
     materials, furniture, lighting,
+    assets: Object.fromEntries(Array.from(new Set(furniture.map((f) => f.asset))).sort().map((id) => [id, A.CATALOG.furniture[id].parts])),
     backdrop: { policy: "neutral", label: LABELS.backdrop_neutral, source: null, version: 1, colors: { top: "#dfe7ee", horizon: "#f3efe9", ground: "#cfc6ba" } },
     navigation: nav,
     labels: { furniture: LABELS.furniture, backdrop: LABELS.backdrop_neutral },
@@ -592,6 +593,7 @@ function validateScene(scene, geometry) {
   if (!scene.backdrop || (scene.backdrop.policy === "neutral" && !scene.backdrop.label)) I("BACKDROP_LABEL", "неутралният фон не е отбелязан");
   if (scene.backdrop && scene.backdrop.policy === "verified" && !(scene.backdrop.source && scene.backdrop.source.verified_by && scene.backdrop.source.provenance)) I("BACKDROP_UNVERIFIED", "„реална гледка“ без проверен източник");
   if (!scene.labels || !scene.labels.furniture) I("NOT_LABELED", "липсва надпис „примерно обзавеждане“");
+  for (const f of scene.furniture || []) { const c = A.CATALOG.furniture[f.asset]; if (c && canon((scene.assets || {})[f.asset]) !== canon(c.parts)) { I("ASSET_PARTS", "частите на " + f.asset + " не са от библиотеката"); break; } }
   return { ok: !issues.length, issues, warnings };
 }
 
