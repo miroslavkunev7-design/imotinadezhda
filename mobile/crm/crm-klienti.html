@@ -507,6 +507,11 @@ html.desk #canvas .cgrid{flex:1 1 auto;min-height:0;height:var(--rowH,640px);
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 18px,#000 calc(100% - 18px),transparent 100%)}
 html.desk #canvas .cgrid .ccard{zoom:var(--cz,.62)}
 html.desk #canvas .cgrid .empty{flex:1 1 auto;align-self:center}
+/* 11.11: на компютър картите на клиентите са в мрежа като в „Имоти“ (по 4 на ред, превъртане надолу), без лента настрани */
+html.desk #canvas .cgrid:not(.off):not([hidden]){display:grid!important;grid-template-columns:repeat(auto-fill,527px);justify-content:center;align-content:start;gap:30px 30px;
+  overflow-x:hidden!important;overflow-y:auto!important;scroll-snap-type:none!important;height:auto!important;flex:1 1 0!important;min-height:0!important;-webkit-mask-image:none;mask-image:none;padding:6px 12px 18px;touch-action:pan-y}
+html.desk #canvas .cgrid .ccard{zoom:.5416!important}
+html.desk #canvas .cgrid .empty{grid-column:1/-1}
 html.desk #canvas .cpanel.kb .ctitle svg.i{box-shadow:0 0 0 calc(2*var(--q)) #ffe1a0,0 0 calc(18*var(--q)) rgba(255,214,130,.95)}
 html:not(.desk) #canvas .cpanel{height:197px;transition:height .36s cubic-bezier(.2,.7,.2,1)}
 html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
@@ -1280,7 +1285,7 @@ html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
 <script>/* Клиенти: лентата с карти се превърта със стрелките ‹ › (nd-hscroll.js), плъзгане, колелце и ← → – и на телефон, и на компютър. */
 (function(){
   /* 11.11: стрелките и хоризонталното превъртане са само на компютър; на телефон картите са една под друга */
-  var desk=document.documentElement.clientWidth>=1024&&document.documentElement.clientWidth/innerHeight>=1.2;
+  var desk=false; /* 11.11: мрежа и на компютър – без хоризонтална лента */
   document.querySelectorAll('.cgrid').forEach(function(g){if(desk)g.setAttribute('data-nd-hs','');else g.removeAttribute('data-nd-hs')});
 })();</script>
 </body>
