@@ -135,23 +135,28 @@
       return '<div class="ntrs-set" data-set="' + esc(x.id) + '" data-ev="' + x.edit_version + '"><p>' + chip("Набор v" + x.version + " – " + (PST[x.status] || x.status), x.status === "review" ? "ok" : "") + " " + esc(SRC[x.source] + " · " + (x.quality === "final" ? "окончателен" : "предварителен")) +
         " · готови " + x.rooms.filter(function (r) { return x.items[r] && x.items[r].status === "ready"; }).length + " от " + x.rooms.length + "</p>" + list(x.issues, "bad") + '<ol class="ntrs-rooms">' + rows + "</ol>" +
         '<div class="ntrs-acts">' + btn("save", "Запази подредбата и посоките", { admin: true }) + btn("tvalidate", "Провери набора", { admin: true }) + (x.status === "review" ? btn("publish", "Публикувай", { admin: true, cls: "gold" }) : "") + (o.onPreview && x.rooms.some(function (r) { return x.items[r] && x.items[r].status === "ready"; }) ? btn("ppano", "Виж панорамите") : "") +
+        (x.source === "scene_render" && x.status === "rendering" && !S.job && x.scene_version_id ? btn("rhere", "Рендерирай заявения набор тук", { admin: true, cls: "gold", data: ' data-set="' + esc(x.id) + '"' }) : "") +
         (x.job_id && x.status === "rendering" ? btn("jcancel", "Отмени набора", { admin: true, data: ' data-job="' + esc(x.job_id) + '"' }) : "") + "</div></div>";
     }
     /* рендер от сцената в този браузър + отчитане на всяка стая */
-    function renderFromScene(quality) {
-      var s0 = scenes()[0]; if (!s0) return;
+    /* ex = заявен, още нерендериран набор (напр. от Тед през tours.request) – довършва се със същата задача, без нов набор */
+    function renderFromScene(quality, ex) {
+      var s0 = ex ? { id: ex.scene_version_id } : scenes()[0]; if (!s0 || !s0.id) return;
       S.busy = true; say("Подготовка на рендера…");
       var ctl = { aborted: false }; S.abort = ctl;
-      tool("tour.render", { unit_id: unitId, source: "scene_render", quality: quality, scene_version_id: s0.id, idempotency_key: "crm-" + key(), want_uploads: true }, o).then(function (r) {
+      var start = ex ? Promise.resolve({ ok: true, job_id: ex.job_id, panorama_set_id: ex.id, out_width: ex.quality === "final" ? 4096 : 2048, rooms: ex.rooms.filter(function (r) { return !(ex.items[r] && ex.items[r].status === "ready"); }).map(function (r) { return { room_id: r }; }),
+        uploads: { prefix: "projects/" + S.st.unit.project_id + "/private/tours/" + unitId + "/" + ex.id + "/src" }, rev: function (r) { return ((ex.items[r] && ex.items[r].rev) || 0) + 1; } })
+        : tool("tour.render", { unit_id: unitId, source: "scene_render", quality: quality, scene_version_id: s0.id, idempotency_key: "crm-" + key(), want_uploads: true }, o);
+      start.then(function (r) {
         if (!r.ok) throw new Error((r.blocked || []).join(" ") || "Рендерът не стартира");
         S.job = { id: r.job_id, set: r.panorama_set_id, done: 0, total: r.rooms.length, text: "Рендер 0 от " + r.rooms.length }; render();
         return Promise.all([lib(), tool("interior.get_scene", { scene_version_id: s0.id }, o)]).then(function (x) {
           var L = x[0], scene = x[1].scene;
           return L.renderPanoramas(scene, { width: r.out_width, rooms: r.rooms.map(function (q) { return q.room_id; }), signal: ctl, onRoom: function (item, n, total) {
             if (ctl.aborted) return;
-            var path = r.uploads.prefix + "/" + item.room_id + "-r1.jpg";
+            var rv = r.rev ? r.rev(item.room_id) : 1, path = r.uploads.prefix + "/" + item.room_id + "-r" + rv + ".jpg";
             S.job.text = "Качване " + n + " от " + total; render();
-            return upload(path, item.blob, o).then(function () { return tool("tour.report", { job_id: r.job_id, panorama_set_id: r.panorama_set_id, room_id: item.room_id, rev: 1, upload_path: path }, o); }).then(function (rep) {
+            return upload(path, item.blob, o).then(function () { return tool("tour.report", { job_id: r.job_id, panorama_set_id: r.panorama_set_id, room_id: item.room_id, rev: rv, upload_path: path }, o); }).then(function (rep) {
               if (rep.state === "cancelled") { ctl.aborted = true; throw new Error("Задачата е отменена"); }
               S.job.done = n; S.job.text = "Готови " + n + " от " + total + (rep.state === "needs_review" ? " – наборът чака преглед" : ""); render();
             });
@@ -171,6 +176,7 @@
         else if (a === "svalidate") run(tool("interior.validate", { scene_version_id: b.dataset.id }, o), function (r) { return r.ok ? "Сцената е проверена – чака преглед." : "Проблеми: " + r.issues.length; });
         else if (a === "approve" || a === "reject") { if (!confirm(a === "approve" ? "Одобрявате ли сцената?" : "Отхвърляте ли сцената?")) return; run(tool("interior.approve", { scene_version_id: b.dataset.id, decision: a, confirm: true }, o), a === "approve" ? "Сцената е одобрена." : "Сцената е отхвърлена."); }
         else if (a === "rprev" || a === "rfinal") renderFromScene(a === "rfinal" ? "final" : "preview");
+        else if (a === "rhere") { var ex = (S.st.sets || []).filter(function (x) { return x.id === b.dataset.set; })[0]; if (ex) renderFromScene(ex.quality, ex); }
         else if (a === "photo") { var q = confirm("Окончателно качество (4096×2048)? „Отказ“ = предварително (2048×1024).") ? "final" : "preview", sr = confirm("Реални снимки 360° от апартамента? „Отказ“ = визуализации от дизайнер.") ? "photo" : "designer_render";
           run(tool("tour.render", { unit_id: unitId, source: sr, quality: q, idempotency_key: "crm-" + key(), want_uploads: true }, o).then(function (r) { S.prefix = r.uploads && r.uploads.prefix; return r; }), "Изберете файл за всяко помещение (равноправоъгълна панорама 2:1)."); }
         else if (a === "up" || a === "down") { var box = b.closest(".ntrs-set"), li = [].slice.call(box.querySelectorAll(".ntrs-room")), i = +b.dataset.i, j = a === "up" ? i - 1 : i + 1; if (j < 0 || j >= li.length) return; var ol = box.querySelector(".ntrs-rooms"); if (a === "up") ol.insertBefore(li[i], li[j]); else ol.insertBefore(li[j], li[i]); [].slice.call(ol.children).forEach(function (n, k) { n.querySelectorAll("[data-i]").forEach(function (x) { x.dataset.i = k; }); }); say("Подредбата е сменена – запазете."); }

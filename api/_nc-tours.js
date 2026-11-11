@@ -225,7 +225,7 @@ const RUN = {
     if (claimed && claimed.id) { try { await svc("nd_job_heartbeat", { p_id: job.id, p_worker: WORKER(job.id), p_progress: { phase: "awaiting_files", phase_bg: "чака файлове", rooms_done: 0, rooms_total: rooms.length, panorama_set_id: set.id, correlation_id: jc } }, jc); } catch (e) { /* пулсът не е критичен */ } }
     const out = { ok: true, job_id: job.id, state: set.status === "rendering" ? "running" : set.status, panorama_set_id: set.id, version: set.version, replayed: !!set.replayed, source: i.source, quality: i.quality, out_width: T.QUALITY[i.quality].out,
       rooms: rooms.map((r) => ({ room_id: r, name: nm[r], node: items[r].node })), scene_version_id: sceneId, requires_review: false, cancelled_previous: set.cancelled || [], correlation_id: jc,
-      next: "tour.report за всяка стая" + (i.source === "scene_render" ? " (рендерът се прави в CRM → 360° → „Рендер от 3D сцената“)" : " (качване в CRM → 360° → „Качи реални панорами“)") };
+      next: "tour.report за всяка стая" + (i.source === "scene_render" ? " (рендерът се прави в браузъра на администратор: CRM → 360° Разходка → „Рендерирай заявения набор тук“)" : " (качване в CRM → 360° → „Качи реални панорами“)") };
     if (i.want_uploads) out.uploads = { prefix: prefixOf(st.unit.project_id, i.unit_id, set.id) + "/src", pattern: "<prefix>/<room_id>-r<rev>.<jpg|png>" };
     return out;
   },
