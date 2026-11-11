@@ -33,14 +33,16 @@ const BOOT = `
   create table public.nd_properties (id text primary key, data jsonb not null default '{}'::jsonb);
 `;
 const BASE = ["nc_001_new_construction.sql", "nc_002_jobs_rpc.sql", "nc_003_hardening.sql", "nc_004_import.sql"];
-const optional005 = () => fs.readdirSync(SQLDIR).filter((f) => /^nc_005_.*\.sql$/.test(f) && !/_down\.sql$/.test(f)).sort();
+/* nc_005 (TASK-009): от това дърво, ако е слято; иначе NC005_DIR=<път до db/nc на TASK-009> – само се чете, не се копира */
+const DIR005 = process.env.NC005_DIR || SQLDIR;
+const optional005 = () => (fs.existsSync(DIR005) ? fs.readdirSync(DIR005).filter((f) => /^nc_005_.*\.sql$/.test(f) && !/_down\.sql$/.test(f)).sort() : []);
 
 async function makeDb(opts) {
   const P = loadPg(); if (!P) return null;
   const db = new P.PGlite();
   await db.exec(BOOT);
   const applied = BASE.concat(optional005());
-  for (const f of applied) await db.exec(SQL(f));
+  for (const f of applied) await db.exec(/^nc_005_/.test(f) ? fs.readFileSync(path.join(DIR005, f), "utf8") : SQL(f));
   if (!(opts && opts.skip006)) await db.exec(SQL("nc_006_tours.sql"));
   const types = new Map();
   async function as(role, uid, fn) {
