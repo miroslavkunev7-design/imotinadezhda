@@ -10,8 +10,8 @@ const px = (buf, x, y) => { const j = JPEG.decode(buf, { useTArray: true, format
 t("регистърът е в същата форма като _ted-skills (description, input.safeParse, run) и носи входа в описанието", () => {
   assert.ok(N.names.length >= 15);
   N.names.forEach((k) => { const x = N.tools[k]; assert.ok(typeof x.run === "function" && typeof x.input.safeParse === "function" && /Вход: \{/.test(x.description), k); assert.ok(C.CONTRACTS[k], "без договор: " + k); });
-  assert.ok(!N.names.some((k) => /^(tours)\./.test(k)), "неизпълнени инструменти не се обявяват (TASK-010)");
   ["cad.inspect", "models.request", "models.publish", "models.unpublish", "models.get"].forEach((k) => assert.ok(N.names.includes(k), "TASK-009 инструмент: " + k));
+  ["tours.request", "interior.prepare", "tour.render", "tour.report", "tour.publish", "tour.get"].forEach((k) => assert.ok(N.names.includes(k), "TASK-010 инструмент: " + k));
   ["imports.start", "imports.apply", "jobs.status", "jobs.result", "jobs.cancel"].forEach((k) => assert.ok(N.names.includes(k), "TASK-006 инструмент: " + k));
   assert.ok(/unit_id\*.*to\*\(free\|reserved\|sold\).*confirm\*\(true\)/.test(N.tools["units.set_status"].description));
 });
