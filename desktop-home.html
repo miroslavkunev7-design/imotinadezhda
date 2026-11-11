@@ -42,6 +42,8 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
 .nav a:hover,.nav button:hover{color:var(--gold-l);text-shadow:0 0 14px rgba(255,214,120,.8)}
 .nav i{width:3px;height:46px;border-radius:2px;background:linear-gradient(#ffe17a,#d69a1e)}
 .nav .acc{padding:8px 0 8px 40px;color:#f2c14e}
+/* 11.11: четвърта връзка „Проекти на зелено“ – по-малки отстояния, за да се побере лентата */
+.nav a,.nav button{padding:12px 24px;font-size:27px;white-space:nowrap}.nav .acc{padding:8px 0 8px 24px}
 .nav .acc svg{width:54px;height:54px;display:block}
 /* search */
 .search{left:282px;top:calc(432px - var(--nd-up,0px));width:1104px;height:170px;background:url(desktop-home-assets/search-desktop.svg) 0 0/100% 100% no-repeat;filter:drop-shadow(0 8px 16px rgba(30,0,8,.45))}
@@ -113,6 +115,7 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
       <a href="#" data-deal="sale">За продажба</a><i></i>
       <a href="#" data-deal="rent">Под наем</a><i></i>
       <button type="button" id="aboutBtn">За нас</button><i></i>
+      <a href="/mobile/nc.html" class="nc-link">Проекти на зелено</a><i></i>
       <a class="acc" href="/mobile/crm/crm-nachalo.html" aria-label="Вход за служители"><svg><use href="#user"/></svg></a>
     </nav>
   </header>

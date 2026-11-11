@@ -1147,7 +1147,8 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
     if(v==='new'){window.NDScan.menu(b,'property',{
       manual:function(){window.NDProps.edit(null)},
       scanned:function(f,file,bundle){window.NDProps.edit(null,f,file,bundle)},
-      projectImport:function(){if(window.NCImport&&typeof window.NCImport.open==='function')window.NCImport.open();else say('Импортът на проекти не е наличен')}
+      projectImport:function(){if(window.NCImport&&typeof window.NCImport.open==='function')window.NCImport.open({onDone:function(id){location.href='crm-nc.html'+(id?'?p='+encodeURIComponent(id):'')}});else say('Импортът на проекти не е наличен')},
+      projects:function(){location.href='crm-nc.html'}
     });return}
     setView(v);render(v==='all'?null:{only:v})})});
 

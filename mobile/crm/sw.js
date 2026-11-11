@@ -1,9 +1,9 @@
 /* Service worker for the installable CRM app. Network first (always fresh data);
    the page shell is kept for offline start, data always comes live from the database. */
-var CACHE = "nd-crm-v89";
+var CACHE = "nd-crm-v90";
 var SHELL = ["crm-nachalo.html", "crm-klienti.html", "crm-imoti.html", "crm-brokeri.html", "crm-kalendar.html", "crm-kompanii.html", "crm-naemi.html", "crm-sdelki.html", "crm-dogovori.html", "crm-poshta.html", "crm-chat.html", "bank.html",
   "crm-blend.css", "crm-info.css", "crm-premium.css", "crm-premium.js", "crm-v3-imoti.css", "crm-v3-klienti.css", "crm-v3-head.css", "crm-v3-head.js", "crm-v3-brokeri.css", "crm-v3-kompanii.css", "crm-v3-kalendar.css", "crm-v3-sdelki.css", "crm-v3-naemi.css", "crm-v3-dogovori.css", "crm-v3-poshta.css", "crm-v3-chat.css", "crm-v3-nachalo.css", "crm-realchat.js", "crm-data.js", "crm-ui.js", "crm-global.js", "crm-dictate.js", "crm-doclists.js", "crm-video.js", "crm-inquiries.js", "crm-chatheads.js", "crm-klienti-tabs.js", "crm-imoti-tabs.js", "crm-contracts.js",
-  "crm-assistant.js", "crm-collect.js", "crm-scan.js", "crm-publish.js", "crm-push.js", "../ash.js", "../places.js", "../nd-menu.js",
+  "crm-assistant.js", "crm-collect.js", "crm-scan.js", "crm-publish.js", "crm-push.js", "crm-nc.html", "crm-nc.js", "crm-nc.css", "crm-nc-staff.js", "crm-nc-import.js", "../ash.js", "../places.js", "../nd-menu.js",
   "assets/vendor/supabase.js", "assets/logo.png", "assets/app-icon3-round-192.png", "assets/fonts/pt-serif-cyrillic-400-normal.woff2", "assets/fonts/pt-serif-cyrillic-700-normal.woff2", "assets/fonts/roboto-condensed-cyrillic-400-normal.woff2", "assets/fonts/roboto-condensed-cyrillic-700-normal.woff2"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).catch(function () {}).then(function () { return self.skipWaiting(); }));

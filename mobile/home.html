@@ -136,6 +136,13 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 .city.c1 .fade{height:52%}
 /* drone videos: box = clip ratio (full frame); cream fade = old still (58%/52%) */
 .city video.ph{display:block;background:transparent;pointer-events:none}
+/* 11.11: вход към „Ново строителство“ – стъклен бутон под лентата с опции */
+.nc-pill{right:30px;top:170px;height:58px;padding:0 26px 0 20px;display:flex;align-items:center;gap:12px;border-radius:29px;z-index:5;text-decoration:none;white-space:nowrap;
+  font:700 25px/1 Bitter,Georgia,serif;color:#5c0a1e;background:linear-gradient(180deg,rgba(255,252,246,.86),rgba(253,240,224,.72));border:2px solid #e9bd6b;
+  -webkit-backdrop-filter:blur(10px) saturate(1.3);backdrop-filter:blur(10px) saturate(1.3);
+  box-shadow:0 0 0 1px rgba(255,255,255,.75) inset,0 8px 20px rgba(40,10,14,.32),0 0 22px rgba(255,214,140,.55)}
+.nc-pill svg{width:30px;height:30px;color:#a3213a;flex:none}
+.nc-pill:active{transform:scale(.97)}
 /* 11.11: картите на градовете са със снимки (клиповете остават само в страницата на града) */
 .city img.ph{display:block;object-fit:cover;object-position:center 30%;pointer-events:none}
 .city img.ph-shumen{object-position:center 22%}.city img.ph-burgas{object-position:center 30%}.city img.ph-varna{object-position:center 45%}
@@ -154,6 +161,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
       <a href="#" id="about">За нас</a><i></i>
       <a class="me" href="/mobile/crm/crm-nachalo.html" aria-label="Вход за брокери"><img src="/mobile/home-assets/user.svg" alt=""></a>
     </nav>
+    <a class="abs nc-pill" href="/mobile/nc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V8l6-4v17M10 21V11h10v10M2 21h20M7 9v.01M7 13v.01M7 17v.01M14 14v.01M17 14v.01M14 18v.01M17 18v.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Проекти на зелено</a>
   </header>
 
   <form class="abs sp" id="sp" aria-label="Търсене на имот">
