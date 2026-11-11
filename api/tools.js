@@ -26636,8 +26636,13 @@ async function handler(req, res) {
   };
   if (req.method === "OPTIONS") return send({}, 204);
   /* TASK-007: защитени планове и панорами – /plan/unit/<id>, /plan/floor/<id>, /pano/<unit>/<n>; статусът се проверява при всяко отваряне */
-  if (req.method === "GET" && /[?&](plan|pano)=/.test(req.url || "")) {
+  if (req.method === "GET" && /[?&](plan|pano|model)=/.test(req.url || "")) {
     if (NC) return NC.publicFile(req, res);
+    res.statusCode = 404; res.setHeader("Cache-Control", "no-store"); return res.end("");
+  }
+  /* TASK-009: подписани (HMAC) обратни повиквания на външния изпълнител за CAD/3D – без токен на служител, проверката е в _nc-cad.js */
+  if (req.method === "POST" && /[?&]ncw=/.test(req.url || "")) {
+    if (NC && NC.workerCallback) return NC.workerCallback(req, res);
     res.statusCode = 404; res.setHeader("Cache-Control", "no-store"); return res.end("");
   }
   /* кратък линк към документ: /f/<id>.<ext>?k=… (виж _filelink.js) */

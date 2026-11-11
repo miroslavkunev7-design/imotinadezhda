@@ -380,6 +380,7 @@ async function publicFile(req, res) {
   const deny = (code) => { res.statusCode = code; res.setHeader("Cache-Control", "no-store"); res.setHeader("Content-Type", "text/plain; charset=utf-8"); res.setHeader("X-Robots-Tag", "noindex"); res.end(code === 404 ? "Няма достъпен план" : "Невалидна заявка"); };
   let u; try { u = new URL(req.url, "https://imotinadezhda.bg"); } catch (e) { return deny(400); }
   const plan = String(u.searchParams.get("plan") || ""), pano = String(u.searchParams.get("pano") || "");
+  if (u.searchParams.has("model")) { if (CAD) return CAD.publicModel(req, res); return deny(404); }   // TASK-009: /model/<сграда>
   let r = null;
   if (plan) { const m = /^(unit|floor)[:/]([a-z0-9]{8,64})$/.exec(plan); if (!m) return deny(400); r = await rpc("nd_plan_resolve", { p_scope: m[1], p_id: m[2] }); }
   else if (pano) { const m = /^([a-z0-9]{8,64})[:/]([0-9]{1,2})$/.exec(pano); if (!m) return deny(400); r = await rpc("nd_pano_resolve", { p_unit_id: m[1], p_n: parseInt(m[2], 10) }); }
@@ -397,6 +398,10 @@ async function publicFile(req, res) {
 let IMP = null;
 try { IMP = require("./_nc-import.js"); Object.keys(IMP.RUN).forEach((k) => { if (C.CONTRACTS[k] && !RUN[k]) RUN[k] = IMP.RUN[k]; }); } catch (e) { console.error("nc import not loaded", e && e.message); }
 
+/* ---------- TASK-009 · CAD/BIM проверка и 3D модели (същият регистър; тежката работа върви извън сайта – виж _nc-cad.js) ---------- */
+let CAD = null;
+try { CAD = require("./_nc-cad.js"); Object.keys(CAD.RUN).forEach((k) => { if (C.CONTRACTS[k] && !RUN[k]) RUN[k] = CAD.RUN[k]; }); CAD.wrapJobs(RUN); } catch (e) { console.error("nc cad not loaded", e && e.message); }
+
 /* ---------- регистър (същата форма като в _ted-skills.js) ---------- */
 const tools = {};
 Object.keys(RUN).forEach((name) => {
@@ -406,4 +411,5 @@ Object.keys(RUN).forEach((name) => {
 const names = Object.keys(tools);
 const SPEC = names.map((n) => "- " + n + ": " + tools[n].description).join("\n");
 
-module.exports = { tools, names, SPEC, publicFile, ToolError, makeDerivative, fillPolygon, kick, runPlanJob, _fail: fail, importTick: (ms) => (IMP ? IMP.tick(ms) : Promise.resolve(0)) };
+module.exports = { tools, names, SPEC, publicFile, ToolError, makeDerivative, fillPolygon, kick, runPlanJob, _fail: fail, importTick: (ms) => (IMP ? IMP.tick(ms) : Promise.resolve(0)),
+  workerCallback: (req, res) => { if (CAD) return CAD.workerCallback(req, res); res.statusCode = 404; res.setHeader("Cache-Control", "no-store"); res.end(""); }, cadTick: () => (CAD ? CAD.tick() : Promise.resolve(0)) };

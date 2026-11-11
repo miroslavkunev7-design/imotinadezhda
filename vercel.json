@@ -76,6 +76,19 @@
           "value": "noindex"
         }
       ]
+    },
+    {
+      "source": "/model/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
     }
   ],
   "rewrites": [
@@ -94,6 +107,14 @@
     {
       "source": "/pano/:unit/:n",
       "destination": "/api/tools?pano=:unit/:n"
+    },
+    {
+      "source": "/model/:building/poster",
+      "destination": "/api/tools?model=:building/poster"
+    },
+    {
+      "source": "/model/:building",
+      "destination": "/api/tools?model=:building"
     },
     {
       "source": "/api/tts",
