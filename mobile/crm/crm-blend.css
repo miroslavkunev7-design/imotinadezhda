@@ -208,6 +208,11 @@ html.desk :is(.plist,.fcards):not(.list) .pc :is(.tg,.cam){font-size:32px}
 .ipanel .nd-ff-pair{grid-column:3;height:86px}
 .ipanel .nd-ff-pair .i-more{grid-column:auto;width:auto;flex:1 1 0;position:relative;left:auto;top:auto}
 .ipanel .nd-ff-pair .nd-ffold-btn{height:86px;border-radius:24px;flex:1 1 0;font-size:24px}
+/* 11.11: на телефон двата бутона „Филтри“ се побират в колоната си (преди вторият излизаше извън екрана) */
+html:not(.desk) .ipanel .nd-ff-pair{gap:8px;min-width:0}
+html:not(.desk) .ipanel .nd-ff-pair .i-more,html:not(.desk) .ipanel .nd-ff-pair .nd-ffold-btn{min-width:0;padding:0 6px;gap:5px;font-size:19px;letter-spacing:0;overflow:hidden;white-space:nowrap}
+html:not(.desk) .ipanel .nd-ff-pair .i-more svg.i,html:not(.desk) .ipanel .nd-ff-pair .nd-ffold-btn svg.i{width:20px;height:20px;font-size:20px;flex:none}
+html:not(.desk) .ipanel .nd-ff-pair .nd-ffold-btn .nd-ff-chev{width:14px;height:14px;font-size:14px}
 html.desk .nd-ff-pair{grid-column:5;grid-row:1;height:86px}
 html.desk .nd-ff-pair .i-more,html.desk .nd-ff-pair .nd-ffold-btn{position:relative;flex:1 1 0;height:86px;font-size:26px;border-radius:22px}
 :is(.cpanel .filters,.ipanel .chips,.ipanel .deal,.ipanel .i-go,.ipanel .i-clear,.v3-filt,.v3-kfilt,.bchips,#r-chips,#r-filt,.m-chips,.o-city){
