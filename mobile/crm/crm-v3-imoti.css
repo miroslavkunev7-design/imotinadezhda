@@ -432,3 +432,6 @@ html:not(.desk) .pm-sec.sec-desc::after{bottom:auto;height:92px}
 html.desk .itop .hero-title{margin-top:18px}
 html.desk .itop .hero-sub{margin-top:14px;white-space:nowrap}
 html.desk .itop .hero-sub br{display:none}
+/* 11.11 TASK-004: компютър – етикетите на филтрите („Цена от – до“, „Най-нови“) се побират целите, без „…“ */
+html.desk .ipanel .chip .flab{font-size:20.5px!important;letter-spacing:-.15px}
+html.desk .ipanel .chip .val{letter-spacing:-.1px}
