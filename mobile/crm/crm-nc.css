@@ -701,3 +701,9 @@ html:not(.desk) .nc-vw{height:clamp(560px,calc(var(--vis,1400px) - 380px),900px)
 html:not(.desk) .nc-3d,html:not(.desk) .nc-pano{height:clamp(560px,calc(var(--vis,1400px) - 380px),900px)}
 .nc-vw.fs,.nc-3d.fs,.nc-pano.fs{height:auto!important}
 .nc-vw:fullscreen,.nc-3d:fullscreen,.nc-pano:fullscreen{height:100%!important}
+.nc-btns{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px}
+/* 360°: миниатюрен план с текущото помещение (реф. 04) */
+.nc-mini .pic{position:relative;border-radius:18px;overflow:hidden;background:#fffdf9;box-shadow:inset 0 0 0 1.5px rgba(226,176,120,.6)}
+.nc-mini img{display:block;width:100%;height:auto;max-height:420px;object-fit:contain}
+.nc-mini .pos{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c8,#d9a254 70%);box-shadow:0 0 0 4px rgba(255,255,255,.92),0 0 16px rgba(246,212,142,.95)}
+.nc-mini .cur{margin-top:12px;font:700 23px/1.25 var(--cond);color:#5e0a1a}

@@ -146,7 +146,7 @@
     var q = S.lq.toLocaleLowerCase("bg");
     var list = LIST.filter(function (p) { return (S.lf === "all" || p.status === S.lf) && (!q || [p.title, p.city, p.hood, p.slug].some(function (v) { return String(v || "").toLocaleLowerCase("bg").indexOf(q) >= 0; })); });
     var body;
-    if (!LIST.length) body = card(staff ? "Още няма проекти" : "Няма публикувани проекти", "building-2", PH.list, '<div class="nc-gempty" role="status"><p class="nc-note" style="max-width:56%">' + esc(staff ? "Създайте чернова на проект или внесете проектен пакет с „Импорт на проект“." : "В момента няма публикувани проекти ново строителство.") + "</p>" + (A.emptyListActs ? '<div class="nc-acts" style="margin-top:16px">' + A.emptyListActs() + "</div>" : "") + '</div>', "nc-illu nc-lempty");
+    if (!LIST.length) body = card(staff ? "Още няма проекти" : "Няма публикувани проекти", "building-2", PH.list, '<div class="nc-gempty" role="status"><p class="nc-note" style="max-width:56%">' + esc(staff ? "Създайте чернова на проект или внесете проектен пакет с „Импорт на проект“." : "В момента няма публикувани проекти ново строителство.") + "</p>" + (A.emptyListActs ? '<div class="nc-btns">' + A.emptyListActs() + "</div>" : "") + '</div>', "nc-illu nc-lempty");
     else if (!list.length) body = empty("search", "Няма проекти по избраните критерии", "Променете търсенето или филтъра.", btn("lclear", "x", "Изчисти"));
     else body = '<div class="nc-grid">' + list.map(projCard).join("") + "</div>";
     root.innerHTML = head + body;
@@ -566,6 +566,17 @@
     return ENG[kind];
   }
   NC.engine = engine;
+  /* КУКА за пълния компонент на TASK-010 (mobile/nc-tour.js: mount(el, {source, unit, staff, side, onRoom}) + publicSource({rpc, unitId, unit});
+     в CRM източникът е window.NCTourStaff.source(unitId) от crm-nc-tour.js). Включва се с window.NC_TOUR_LIB = "/mobile/nc-tour.js" (същото име като в crm-nc-tour.js).
+     Ако компонентът не се зареди – честно се минава на вградената 360° панорама. */
+  var T10 = null;
+  function cssOnce(href) { if (document.querySelector('link[data-nc-css="' + href + '"]')) return; var l = document.createElement("link"); l.rel = "stylesheet"; l.href = href; l.setAttribute("data-nc-css", href); document.head.appendChild(l); }
+  function tour10() {
+    var u = window.NC_TOUR_LIB; if (!u || S.t10off) return null;
+    if (!ENG.t10) { ENG.t10 = import(u).then(function (L) { if (!L || typeof L.mount !== "function") throw new Error("Компонентът за разходка няма mount()."); cssOnce(String(u).replace(/\.js(\?.*)?$/, ".css")); return L; }); ENG.t10.catch(function () { ENG.t10 = null; }); }
+    return ENG.t10;
+  }
+  NC.tour10 = tour10;
   /* цял екран: Escape и повторно натискане излизат и от истинския Fullscreen API, и от резервния клас .fs; надписът на бутона следва състоянието */
   function fsSync(el, attr) {
     function upd() { if (!document.contains(el)) { document.removeEventListener("fullscreenchange", upd); return; } var on = document.fullscreenElement === el || el.classList.contains("fs"), b = el.querySelector("[" + attr + '="fs"]'); if (b) { b.setAttribute("aria-label", on ? "Изход от цял екран" : "На цял екран"); b.title = b.getAttribute("aria-label"); b.setAttribute("aria-pressed", on); } }
@@ -573,7 +584,7 @@
     el.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.fullscreenElement === el) { e.preventDefault(); document.exitFullscreen(); } });
     return upd;
   }
-  function destroy3() { if (V3) { try { V3.destroy(); } catch (e) {} V3 = null; } if (VP) { try { VP.destroy(); } catch (e) {} VP = null; } }
+  function destroy3() { if (V3) { try { V3.destroy(); } catch (e) {} V3 = null; } if (VP) { try { VP.destroy(); } catch (e) {} VP = null; } if (T10) { try { T10.destroy(); } catch (e) {} T10 = null; } }
   function floorList() {
     var b = bldg(S.b), fl = b ? floorsOf(b.id) : [];
     if (!fl.length) return '<p class="nc-note">Няма въведени етажи.</p>';
@@ -650,6 +661,8 @@
       orderUnits(M.units).map(function (x) { return '<option value="' + esc(x.id) + '"' + (u && x.id === u.id ? " selected" : "") + ">" + esc(x.code + " – " + (ST[x.status] || "")) + "</option>"; }).join("") + "</select></label>" : "";
     var det = u ? card("Апартамент " + u.code, "house", PH.rooms, '<div class="nc-rows">' + row("ruler", "Обща площ", esc(m2(u.area_total) || "—")) + row("layout-grid", "Чиста площ", esc(m2(u.area_net) || "—")) + row("umbrella", "Тераса", esc(m2(u.terrace_area) || "—")) + row("sun", "Изложение", esc(u.exposure || "—")) + "</div>" + '<div id="nc-rooms"></div>', "nc-rinfo") : "";
     var main, locked = u && u.status !== "free";
+    var use10 = !!(u && window.NC_TOUR_LIB && !S.t10off && A.tour10Source && (!locked || A.mode === "staff"));
+    if (use10) return '<div class="nc-two"><div><div class="nc-t10" id="nc-t10" data-engine="TASK-010"><div class="nc-load" role="status"><span class="nc-spin" aria-hidden="true"></span>Зареждане на разходката…</div></div></div><div class="side">' + pick + '<div id="nc-t10-side"></div>' + ucSlot("tour") + "</div></div>";
     if (!u) main = empty("house", "Изберете апартамент", "360° панорамите са по апартаменти.");
     else if (locked && !(A.mode === "staff" && S.showPano === u.id)) main = '<div class="nc-pano lockedp">' + lockedHtml(u).replace("Разпределението на апартамент", "Панорамите и разпределението на апартамент").replace('data-act="orig"', 'data-act="origpano"').replace("Покажи оригинала (само за екипа)", "Покажи панорамите (само за екипа)") + "</div>";
     else if (!n) main = naHtml("r360", "360° панорама", "360° панорамите за " + u.code + " още не са подготвени",
@@ -660,9 +673,35 @@
       '<div class="ctl3 h" role="group" aria-label="Управление на панорамата">' + [["l", "chevron-left", "Погледни наляво"], ["r", "chev-r", "Погледни надясно"], ["zi", "zoom-in", "Приближи"], ["zo", "zoom-out", "Отдалечи"], ["home", "rotate-ccw", "Начален поглед"], ["fs", "maximize-2", "На цял екран"]].map(function (x) { return '<button type="button" data-vp="' + x[0] + '" aria-label="' + x[2] + '" title="' + x[2] + '">' + ic(x[1]) + "</button>"; }).join("") + "</div>" +
       '<div class="st3" id="nc-pano-st" role="status"><span class="nc-spin" aria-hidden="true"></span><span>Зареждане на панорамата…</span></div></div>' +
       '<div class="nc-thumbs pth" id="nc-pth" role="group" aria-label="Помещения"></div><p class="nc-note n3" id="nc-pano-info" aria-live="polite"></p>';
-    return '<div class="nc-two"><div>' + main + '</div><div class="side">' + pick + det + ucSlot("tour") + "</div></div>";
+    /* миниатюрна карта (одобрена референция 04): само разрешеният план на апартамента; точка за текущото помещение – само ако панорамата носи plan_xy (TASK-010) */
+    var mini = u && n && (!locked || (A.mode === "staff" && S.showPano === u.id)) && u.has_plan ? '<div id="nc-mini-w" hidden>' + card("План и текущо помещение", "map", null, '<div class="nc-mini" id="nc-mini"></div>', "nc-minic") + "</div>" : "";
+    return '<div class="nc-two"><div>' + main + '</div><div class="side">' + pick + mini + det + ucSlot("tour") + "</div></div>";
+  }
+  function miniInit(u, items) {
+    var w = $("#nc-mini-w", root), box = $("#nc-mini", root); if (!w || !box) return;
+    A.unitPlan(u).then(function (r) {
+      if (!r || !r.url || !document.contains(box)) return;
+      box.innerHTML = '<div class="pic"><img src="' + esc(r.url) + '" alt="' + esc("План на апартамент " + u.code) + '" decoding="async"><i class="pos" hidden aria-hidden="true"></i></div><p class="cur" aria-live="polite"></p>';
+      var im = box.querySelector("img"); im.onerror = function () { w.hidden = true; };
+      w.hidden = false; miniShow(items, VP && VP.index ? VP.index() : 0);
+    }, function () {});
+  }
+  function miniShow(items, i) {
+    var box = $("#nc-mini", root); if (!box) return; var c = box.querySelector(".cur"), p = box.querySelector(".pos"), it = items[i] || {}, xy = it.plan_xy;
+    if (c) c.textContent = "Сега: " + (it.title || "Помещение " + (i + 1)) + " (" + (i + 1) + " от " + items.length + ")";
+    if (p) { if (xy && isFinite(xy[0]) && isFinite(xy[1]) && xy[0] >= 0 && xy[0] <= 1 && xy[1] >= 0 && xy[1] <= 1) { p.hidden = false; p.style.left = xy[0] * 100 + "%"; p.style.top = xy[1] * 100 + "%"; } else p.hidden = true; }
+  }
+  function mountTour10() {
+    var el = $("#nc-t10", root), u = unit(S.u); if (!el || !u) return;
+    var p = tour10(); if (!p) return;
+    p.then(function (L) { return Promise.resolve(A.tour10Source(L, u)).then(function (src) {
+      if (!document.contains(el) || !src) return; destroy3();
+      el.innerHTML = "";
+      T10 = L.mount(el, { source: src, unit: u, staff: A.mode === "staff", side: $("#nc-t10-side", root), onRoom: function () {} });
+    }); }).catch(function (e) { if (window.console) console.warn("TASK-010 разходка:", e && e.message); S.t10off = true; if (document.contains(el)) refreshPanelFull(); });
   }
   function mountPano() {
+    if ($("#nc-t10", root)) { mountTour10(); return; }
     var el = $("#nc-pano", root); if (!el) return;
     var u = unit(S.u), stEl = $("#nc-pano-st", root);
     function fail(msg) { if (document.contains(el)) { stEl.hidden = false; stEl.classList.add("err"); stEl.innerHTML = '<span class="none3">' + ic("triangle-alert") + "<b>" + esc(msg) + "</b></span>"; } }
@@ -679,9 +718,10 @@
       destroy3();
       VP = L.panorama(el, { items: items, index: 0,
         onLoading: function () { stEl.hidden = false; stEl.classList.remove("err"); stEl.innerHTML = '<span class="nc-spin" aria-hidden="true"></span><span>Зареждане на панорамата…</span>'; },
-        onShow: function (i) { stEl.hidden = true; lab.textContent = "Апартамент " + u.code + " · " + items[i].title + (u.area_total ? " · " + m2(u.area_total) : ""); $$("button", th).forEach(function (b, k) { b.setAttribute("aria-current", k === i); }); var rs = $("#nc-room", root); if (rs) rs.value = String(i); if (info) info.textContent = "Помещение " + (i + 1) + " от " + items.length + ": " + items[i].title; },
+        onShow: function (i) { stEl.hidden = true; lab.textContent = "Апартамент " + u.code + " · " + items[i].title + (u.area_total ? " · " + m2(u.area_total) : ""); $$("button", th).forEach(function (b, k) { b.setAttribute("aria-current", k === i); }); var rs = $("#nc-room", root); if (rs) rs.value = String(i); if (info) info.textContent = "Помещение " + (i + 1) + " от " + items.length + ": " + items[i].title; miniShow(items, i); },
         onError: function () { fail("Панорамата не се зареди (може статусът на апартамента току-що да се е сменил)."); },
         onAuto: function (on) { var b = $("#nc-auto", root); if (b) { b.setAttribute("aria-pressed", on); b.querySelector("span").textContent = on ? "Спри автоматичната разходка" : "Автоматична разходка"; } } });
+      miniInit(u, items);
       th.addEventListener("click", function (e) { var b = e.target.closest("[data-pi]"); if (b && VP) VP.show(+b.getAttribute("data-pi")); });
       var rs = $("#nc-room", root); if (rs) rs.addEventListener("change", function () { if (VP) VP.show(+rs.value); });
       var ab = $("#nc-auto", root); if (ab) ab.addEventListener("click", function () { if (VP) VP.auto(ab.getAttribute("aria-pressed") !== "true"); });
@@ -711,7 +751,7 @@
     var nv = items.filter(function (i) { return i.type === "video"; }).length;
     var seg = '<div class="nc-seg" role="group" aria-label="Вид медия" style="margin-bottom:16px">' + [["all", "Всички (" + items.length + ")"], ["image", "Изображения (" + (items.length - nv) + ")"], ["video", "Видео (" + nv + ")"]].map(function (x) { return '<button type="button" data-act="gk" data-v="' + x[0] + '" aria-pressed="' + (S.gk === x[0]) + '">' + esc(x[1]) + "</button>"; }).join("") + "</div>";
     var shown = items.filter(function (i) { return S.gk === "all" || i.type === S.gk; });
-    var grid = !items.length ? card("Галерия на проекта", "image", PH.galleryEmpty, '<div class="nc-gempty" role="status"><h3>Няма качени снимки или видео</h3><p class="nc-note">' + esc(A.mode === "staff" ? "Публичната медия (реални визуализации, снимки и видео на проекта) се добавя от администратор." : "За този проект още няма публикувана медия.") + "</p>" + (A.galleryActs ? '<div class="nc-acts" style="margin-top:14px">' + A.galleryActs() + "</div>" : "") + "</div>", "nc-illu")
+    var grid = !items.length ? card("Галерия на проекта", "image", PH.galleryEmpty, '<div class="nc-gempty" role="status"><h3>Няма качени снимки или видео</h3><p class="nc-note">' + esc(A.mode === "staff" ? "Публичната медия (реални визуализации, снимки и видео на проекта) се добавя от администратор." : "За този проект още няма публикувана медия.") + "</p>" + (A.galleryActs ? '<div class="nc-btns">' + A.galleryActs() + "</div>" : "") + "</div>", "nc-illu")
       : !shown.length ? empty("image", "Няма медия от този вид", "") :
       '<div class="nc-gal">' + shown.map(function (g) { var i = items.indexOf(g); return '<button type="button" class="nc-gi" data-act="lb" data-i="' + i + '" aria-label="' + esc("Отвори: " + (g.title || "медия")) + '">' + (g.type === "video" ? '<span style="display:grid;place-items:center;width:100%;height:100%;color:#f6d48e;font-size:80px">' + ic("play") + "</span>" : '<img src="' + esc(g.url) + '" alt="" loading="lazy" decoding="async">') + '<span class="k">' + ic(g.type === "video" ? "video" : "image") + (g.cover ? "Корица" : g.type === "video" ? "Видео" : "Изображение") + '</span><span class="t">' + esc(g.title || "") + "</span></button>"; }).join("") + "</div>";
     var note = '<div style="margin-top:18px">' + card("За медията", "info", PH.gallery, '<p class="nc-note" style="max-width:60%">Видът на всяко изображение (визуализация или реална снимка от строежа) още не се отбелязва в системата – затова не ги разделяме и не ги показваме като снимки от строежа.</p>', "nc-illu") + "</div>";
@@ -762,7 +802,7 @@
     var l = p.location, has = hasLoc(p), sea = seaside(p);
     var inner = has ? '<div class="nc-rows">' + (p.city ? row("pin", "Град:", esc(p.city)) : "") + (p.hood ? row("map", "Квартал:", esc(p.hood)) : "") + (p.address ? row("map-pin-house", "Адрес:", esc(p.address)) : "") +
       (l && l.lat != null ? row("globe", "Координати:", esc(Number(l.lat).toFixed(5) + ", " + Number(l.lng).toFixed(5))) : "") + "</div>" +
-      '<div class="nc-acts" style="margin-top:16px">' + btn("map", "map", l && l.lat != null ? "Отвори картата" : "Търси адреса в картата", { cls: "hot", title: "OpenStreetMap – нов прозорец" }) + "</div>" +
+      '<div class="nc-btns">' + btn("map", "map", l && l.lat != null ? "Отвори картата" : "Търси адреса в картата", { cls: "hot", title: "OpenStreetMap – нов прозорец" }) + "</div>" +
       (l && l.lat != null ? "" : '<p class="nc-note" style="margin-top:12px">Точните координати още не са въведени – картата търси по адреса.</p>')
       : '<p class="nc-note">Местоположението на проекта още не е въведено.</p>';
     return '<div id="nc-loc" tabindex="-1">' + card("Местоположение", "map-pin-house", sea ? PH.locSea : PH.loc, inner, "nc-locc nc-illu") + "</div>";
