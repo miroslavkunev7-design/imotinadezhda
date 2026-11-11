@@ -1,0 +1,714 @@
+/* ИМОТИ НАДЕЖДА · CRM · Ново строителство (TASK-008).
+   Първата част е общата основа на CRM страниците (шрифтове, палитра, шапка, долно меню, прозорци) – същите правила,
+   които всяка CRM страница носи в собствения си <style>; тук са преписани без промяна, за да не се пипат съществуващите файлове.
+   Втората част са компонентите на модула в същия визуален език (стъкло със златно сияние). */
+@font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Roboto Condensed Local';font-weight:400;font-display:swap;src:url(assets/fonts/roboto-condensed-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+20AC,U+2013-2014,U+2018-201E,U+2026}
+@font-face{font-family:'Roboto Condensed Local';font-weight:700;font-display:swap;src:url(assets/fonts/roboto-condensed-cyrillic-700-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'Roboto Condensed Local';font-weight:700;font-display:swap;src:url(assets/fonts/roboto-condensed-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+20AC,U+2013-2014,U+2018-201E,U+2026}
+@font-face{font-family:'PT Serif Local';font-weight:700;font-display:swap;src:url(assets/fonts/pt-serif-cyrillic-700-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'PT Serif Local';font-weight:700;font-display:swap;src:url(assets/fonts/pt-serif-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-2014,U+2018-201E}
+:root{}
+@font-face{font-family:'PT Serif Local';font-weight:400;font-display:swap;src:url(assets/fonts/pt-serif-cyrillic-400-normal.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:'PT Serif Local';font-weight:400;font-display:swap;src:url(assets/fonts/pt-serif-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+2013-2014,U+2018-201E}
+:root{
+  --wine-950:#2e0610;--wine-900:#430c16;--wine-800:#5c0d1c;--wine-700:#7a1023;--ruby:#b8163f;--glint:#f27a98;
+  --gold-600:#b8843a;--gold-500:#d9a95a;--gold-300:#f6d993;--gold-100:#fff1c9;
+  --cream:#fbe9d9;--cream-2:#fdf3ea;--ivory:#fffaf5;--peach:#f2c7a3;
+  --ink:#2b1414;--ink-wine:#5a0a12;--value:#8c0d22;
+  --serif:Georgia,'PT Serif Local','Times New Roman',serif;--cond:'Roboto Condensed','Roboto Condensed Local','Arial Narrow',Arial,sans-serif;--sans:Arial,Helvetica,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#3e0d16;min-height:100%}
+body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* ---------- scaling stage: the design is drawn on a 1024 px canvas and scaled to the phone width ---------- */
+#stage{position:relative;width:100%;overflow:hidden;
+  background:radial-gradient(120% 60% at 50% 55%,#f6d3b6 0%,#efc19c 55%,#e2a882 100%)}
+#canvas{position:absolute;left:0;top:0;width:1024px;height:1536px;transform-origin:0 0}
+.abs{position:absolute}
+
+/* ---------- header / hero ---------- */
+.top{left:0;top:0;width:1024px;height:380px;overflow:hidden;
+  background:linear-gradient(180deg,#5a1424 0%,#4a0f1b 22%,#3f0d17 100%)}
+.top .photo{left:236px;top:76px;width:790px;height:auto;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,rgba(0,0,0,.55) 9%,#000 24%),linear-gradient(180deg,transparent 0,#000 13%);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0,rgba(0,0,0,.55) 9%,#000 24%),linear-gradient(180deg,transparent 0,#000 13%);mask-composite:intersect}
+.top .shade{inset:0;background:
+  linear-gradient(90deg,rgba(64,10,22,.92) 0%,rgba(64,10,22,.55) 30%,rgba(64,10,22,0) 52%),
+  linear-gradient(0deg,rgba(242,199,163,.35) 0%,rgba(242,199,163,0) 10%)}
+.top .swoosh{left:0;top:0;width:1024px;height:380px}
+.top .logo{left:64px;top:62px;width:212px;height:auto;mix-blend-mode:multiply}
+.status{left:0;top:0;width:1024px;height:52px;color:#fff;font:700 26px/1 var(--sans)}
+.status .time{position:absolute;left:62px;top:15px;letter-spacing:.5px}
+.status .right{position:absolute;right:52px;top:13px;display:flex;align-items:center;gap:14px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:26px}
+.bars i{display:block;width:6px;background:#fff;border-radius:2px}
+.bars i:nth-child(1){height:9px}.bars i:nth-child(2){height:14px}.bars i:nth-child(3){height:19px}.bars i:nth-child(4){height:25px}
+.battery{display:flex;align-items:center;gap:3px}
+.battery b{display:grid;place-items:center;width:50px;height:28px;border-radius:9px;background:#fff;color:#2a0a10;font:800 20px/1 var(--sans)}
+.battery i{width:4px;height:10px;border-radius:0 3px 3px 0;background:#fff;opacity:.85}
+.ctrl{top:72px;width:44px;height:44px;display:grid;place-items:center;color:#f4c766;font-size:44px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+.ctrl svg.i{stroke-width:1.75}
+.ctrl.bell{left:675px}.ctrl.search{left:751px}.ctrl.gear{left:831px}
+.ctrl.bell:after{content:'';position:absolute;right:-1px;top:-2px;width:15px;height:15px;border-radius:50%;background:#ee1c25;box-shadow:0 0 0 1px #ffb3b3 inset}
+.avatar{left:904px;top:59px;width:76px;height:76px;border-radius:50%;padding:4px;
+  background:linear-gradient(145deg,#fff3c9,#d49d48 40%,#fbe3a3 65%,#a8702e);box-shadow:0 4px 10px rgba(0,0,0,.45)}
+.avatar img{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover}
+.hero-title{left:47px;top:222px;font:700 57px/1.05 var(--serif);letter-spacing:.2px;
+  background:linear-gradient(180deg,#fff4d4 0%,#f6d99b 38%,#d9a254 62%,#f7dca2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 3px 3px rgba(40,0,8,.75))}
+.hero-sub{left:49px;top:286px;color:#fff;font:400 22.5px/1.27 var(--sans);text-shadow:0 2px 4px rgba(0,0,0,.6)}
+.hero-line{left:48px;top:351px;width:300px;height:3px;border-radius:2px;
+  background:linear-gradient(90deg,#f8dc98 0%,#d6a24f 55%,rgba(214,162,79,0) 100%)}
+
+/* ---------- bottom navigation ---------- */
+#dock{position:fixed;left:0;bottom:0;width:100%;z-index:20;pointer-events:none}
+#dockCanvas{position:absolute;left:0;bottom:0;width:1024px;height:160px;transform-origin:0 100%;pointer-events:auto}
+.dock-bg{position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(180deg,rgba(74,15,26,0) 0%,#4a0f1a 35%,#3d0e17 100%)}
+.nav{position:absolute;left:12px;top:12px;width:1000px;height:110px;border-radius:46px;display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 18px;
+  background:linear-gradient(180deg,#8e1a2c 0%,#6a0f1f 30%,#4b0915 70%,#5d0c1a 100%);
+  border:2.5px solid #e6b866;box-shadow:0 0 0 1px rgba(255,230,170,.5),0 0 16px rgba(255,200,120,.45),0 -6px 18px rgba(60,5,15,.35),inset 0 2px 2px rgba(255,170,180,.35)}
+.nav:before{content:'';position:absolute;left:20px;right:20px;top:3px;height:40%;border-radius:40px 40px 10px 10px;background:linear-gradient(180deg,rgba(255,180,190,.18),rgba(255,255,255,0));pointer-events:none}
+.nv{position:relative;width:104px;height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:#fff;font:400 17px/1 var(--sans);border-radius:20px;white-space:nowrap}
+.nv svg.i{font-size:38px;stroke-width:1.9;color:#fff}
+.nv.chart svg.i{color:#f2c56a}
+.nv.on{width:106px;background:linear-gradient(180deg,#a31a2e 0%,#7c0f20 50%,#650b1a 100%);border:2px solid #f0c06e;
+  box-shadow:0 0 12px rgba(255,190,110,.75),inset 0 0 10px rgba(255,140,150,.45)}
+.nv.on svg.i,.nv.on span{color:#ffe7b5}
+.nv.on span{color:#fff2d6}
+.home-ind{position:absolute;left:364px;bottom:12px;width:298px;height:7px;border-radius:4px;background:#fff}
+
+/* hide simulated phone chrome on real touch phones (the phone draws its own) */
+@media (pointer:coarse) and (max-width:600px){.status,.home-ind{display:none}}
+
+/* small feedback toast */
+.toast{position:fixed;left:50%;bottom:calc(var(--dockH,110px) + 14px);transform:translateX(-50%) translateY(10px);opacity:0;z-index:30;
+  max-width:88vw;padding:10px 16px;border-radius:14px;background:rgba(60,8,18,.92);color:#fff4df;font:600 14px/1.3 var(--sans);
+  border:1px solid #d9a95a;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+button:active{filter:brightness(.96);transform:translateY(1px)}
+
+/* ================= CLIENTS PAGE (flow layout on the 1024 px canvas, scaled with zoom) ================= */
+#canvas.flowcv{position:relative;height:auto;transform:none;padding-top:395px;padding-bottom:40px}
+.ctop{height:395px}
+.ctop .photo{left:236px;top:58px;width:800px}
+.logo-link{left:64px;top:62px;width:212px;display:block}
+.logo-link img{display:block;width:100%;height:auto;mix-blend-mode:multiply}
+
+/* ================= CLIENT CARD WINDOW ================= */
+.mback{position:fixed;inset:0;z-index:40;background:rgba(40,5,12,.45);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;transition:opacity .25s}
+.mback.show{opacity:1}
+.mwin{position:fixed;z-index:41;left:8px;right:8px;top:calc(8px + env(safe-area-inset-top,0px));bottom:calc(var(--dockH,60px) + 10px);
+  border-radius:26px;overflow:hidden;background:#f3d2b5;border:2px solid #efc57a;
+  box-shadow:0 0 0 1px rgba(255,235,190,.6),0 0 22px rgba(255,200,120,.55),0 20px 50px rgba(30,0,8,.55);
+  transform:translateY(14px) scale(.98);opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s,left .25s,right .25s,top .25s,bottom .25s,border-radius .25s}
+.mwin.show{transform:none;opacity:1}
+.mwin.full{left:0;right:0;top:0;bottom:var(--dockH,60px);border-radius:0;border-width:0}
+.mscroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  background:radial-gradient(120% 60% at 50% 55%,#f6d3b6 0%,#efc19c 55%,#e2a882 100%)}
+.mcv{position:relative;width:1024px;padding:392px 0 34px}
+.mtop{height:385px}
+.mctl{position:absolute;right:12px;top:12px;display:flex;gap:10px;z-index:5}
+.mbtn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:21px;color:#5a0a12;
+  background:radial-gradient(circle at 35% 28%,#fffdf6 0%,#f7e3b3 45%,#d9a650 100%);box-shadow:0 3px 8px rgba(0,0,0,.45),0 0 0 1px #fff2c4 inset,0 0 10px rgba(255,214,140,.55)}
+.mbtn svg.i{stroke-width:2.6}
+.nb b{position:absolute;right:-6px;top:-6px;width:22px;height:22px;border-radius:50%;background:#ee1c25;color:#fff;font:700 14px/22px var(--sans);text-align:center;filter:none}
+
+
+html.locked,html.locked body{overflow:hidden}
+@media (prefers-reduced-motion:reduce){.mwin,.mback{transition:none}}
+#dock{z-index:50}
+/* ================= DESKTOP (same rules as the other CRM pages) ================= */
+html.desk,html.desk body{height:100%;overflow:hidden}
+html.desk #stage{height:100vh;padding-bottom:0!important;overflow:hidden}
+html.desk .status,html.desk .home-ind,html.desk .dock-bg{display:none}
+html.desk .ctop{width:100%}
+html:not(.desk) .mbtn{width:32px;height:32px;font-size:17px}
+@media (hover:hover){button:hover{filter:brightness(1.06)}}
+
+/* ================= SMOOTH PAGE-TO-PAGE TRANSITION (shared by all CRM pages) ================= */
+@view-transition{navigation:auto}
+body{background:#efc19c}
+#dock{view-transition-name:crm-dock}
+::view-transition-old(root){animation:crmOut .22s ease both}
+::view-transition-new(root){animation:crmIn .36s cubic-bezier(.2,.7,.2,1) both}
+::view-transition-group(crm-dock){animation-duration:.3s}
+@keyframes crmOut{to{opacity:0}}
+@keyframes crmIn{from{opacity:0;transform:translateY(10px)}}
+html.no-vt #stage{animation:crmIn .34s cubic-bezier(.2,.7,.2,1) both}
+html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s ease,transform .17s ease}
+@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root),html.no-vt #stage{animation:none}html.leaving #stage{transition:none}}
+
+/* ================= PROPERTY CARD WINDOW (design canvas 1024 wide on phones, 2048 × 1250 on desktop) ================= */
+
+
+/* =====================================================================
+   НОВО СТРОИТЕЛСТВО (TASK-008) – компоненти на страницата.
+   Същият визуален език като „Имоти“ (Вариант 3): голям стъклен прозорец под шапката, кремави стъклени плочки,
+   винени бутони със златен ръб, златно сияние на активното, винени ленти-заглавия (NDUI.group / .ndg).
+   Мерките са в пикселите на платното (телефон 1024; компютър ≥ 2072), което страницата мащабира.
+   ===================================================================== */
+html,body,#stage{background:#2a050d}
+#canvas.ncv{padding-top:455px;background:
+  linear-gradient(180deg,rgba(42,5,13,.1) 0,rgba(42,5,13,.1) 455px,rgba(42,5,13,.42) 820px,rgba(42,5,13,.86) 1180px,#2a050d 1420px),
+  url(assets/nd/ph14.jpg) 50% 455px/100% auto no-repeat,#2a050d}
+html.desk #canvas.ncv{padding-top:0;background:linear-gradient(180deg,rgba(42,5,13,.18) 0%,rgba(42,5,13,.42) 55%,rgba(36,4,11,.7) 100%),url(assets/nd/ph14.jpg) 50% 72%/cover no-repeat,#2a050d}
+.nctop{height:455px}
+.ncv .ctop .photo{left:236px;top:72px;width:800px}
+.nc-skip{position:fixed;left:12px;top:-80px;z-index:300;padding:10px 18px;border-radius:14px;background:#55071a;color:#fff3dc;font:700 16px/1 var(--cond);text-decoration:none;box-shadow:0 0 0 2px #edc47a}
+.nc-skip:focus{top:12px}
+
+/* --- големият стъклен прозорец --- */
+.nc-flow{position:relative;margin:18px 16px 34px;padding:28px 24px 40px;border-radius:50px;min-height:600px;outline:0;
+  background:linear-gradient(160deg,rgba(255,248,238,.30) 0%,rgba(255,236,214,.12) 60%,rgba(255,236,214,.08) 100%);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);
+  box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.7),inset 0 0 60px rgba(255,214,160,.12),0 0 44px rgba(246,212,142,.3),0 40px 80px -30px rgba(0,0,0,.65)}
+html.desk .nc-flow{margin:16px 0 0 var(--xL,24px)!important;padding:26px 30px 30px!important;width:calc(2000px + var(--G,24px));height:calc(var(--lh,640px) + 76px);
+  border-radius:44px;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html.desk .nc-flow{scroll-behavior:auto}}
+
+/* общи: кремаво стъкло, винен бутон, златно активно */
+.ncx{--cream:linear-gradient(180deg,rgba(255,253,249,.97) 0%,rgba(252,241,231,.93) 100%);
+  --cream-sh:0 0 0 2px rgba(255,255,255,.95),0 0 0 4px rgba(214,163,92,.26),0 0 22px rgba(255,228,196,.35),0 16px 26px -16px rgba(0,0,0,.65),inset 0 2px 0 #fff;
+  --wine:linear-gradient(180deg,#a3213a 0%,#7a0f22 42%,#55071a 100%);
+  --wine-sh:0 0 0 1px rgba(255,236,190,.55),0 0 14px rgba(255,200,120,.55),inset 0 2px 3px rgba(255,170,180,.5);
+  --gold:linear-gradient(180deg,#f8dc98,#d9a254);
+  --gold-sh:inset 0 0 0 1.5px rgba(255,248,220,.85),0 0 0 2px rgba(255,240,205,.5),0 0 20px rgba(246,212,142,.7);
+  --ink:#22090d;--lab:#6b0a1c;--muted:#5b4038;--ihalo:0 0 2px #fff,0 0 6px #fff,0 0 12px rgba(255,248,240,.95);
+  color:var(--ink);font-family:var(--cond)}
+.ncx [hidden]{display:none!important}
+.ncx button{font-family:var(--cond)}
+.ncx :focus-visible{outline:3px solid #f6d48e!important;outline-offset:3px}
+.nc-btn{display:inline-flex;align-items:center;justify-content:center;gap:14px;min-height:72px;padding:0 30px;border-radius:36px;border:0;cursor:pointer;
+  font:700 27px/1.1 var(--cond);color:#5a0a12;background:var(--cream);box-shadow:var(--cream-sh);text-decoration:none;white-space:nowrap;transition:transform .2s,filter .2s,box-shadow .2s}
+.nc-btn svg.i{font-size:32px;color:#7b1020;stroke-width:2}
+.nc-btn.hot{color:#fff3dc;background:var(--wine);border:2px solid #edc47a;box-shadow:var(--wine-sh)}
+.nc-btn.hot svg.i{color:#f6d48e}
+.nc-btn.gold{color:#3a1d00;background:var(--gold);box-shadow:var(--gold-sh)}
+.nc-btn.gold svg.i{color:#5a0a12}
+.nc-btn.sm{min-height:56px;padding:0 22px;font-size:23px;border-radius:28px;gap:10px}.nc-btn.sm svg.i{font-size:26px}
+.nc-btn.rm{color:#9b0d27}
+.nc-btn[disabled],.nc-btn[aria-disabled="true"]{opacity:.58;cursor:not-allowed;filter:saturate(.6)}
+@media (hover:hover){.nc-btn:not([disabled]):not([aria-disabled="true"]):hover{transform:translateY(-2px);filter:brightness(1.05) drop-shadow(0 0 10px rgba(255,205,140,.6))}}
+.nc-btn .nc-why{font:400 19px/1.1 var(--cond);opacity:.9}
+
+/* зареждане / грешка / празно */
+.nc-load{display:flex;align-items:center;justify-content:center;gap:22px;min-height:420px;font:700 34px/1.2 var(--cond);color:#fff6e6;text-shadow:0 2px 8px rgba(40,0,8,.6)}
+.nc-spin{width:46px;height:46px;border-radius:50%;border:5px solid rgba(255,236,200,.35);border-top-color:#f6d48e;animation:ncSpin 1s linear infinite}
+@keyframes ncSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.nc-spin{animation:none;border-top-color:#f6d48e}}
+.nc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:44px 36px;border-radius:30px;background:var(--cream);box-shadow:var(--cream-sh);color:var(--ink)}
+.nc-empty>svg.i{font-size:72px;color:#8d1530;stroke-width:1.5}
+.nc-empty h3{font:700 36px/1.15 var(--serif);color:#5e0a1a}
+.nc-empty p{max-width:900px;font:400 26px/1.4 var(--cond);color:var(--muted)}
+.nc-empty .nc-acts{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:8px}
+.nc-empty.err>svg.i{color:#b4142e}
+.nc-note{font:400 22px/1.35 var(--cond);color:var(--muted)}
+.nc-note b{color:#5e0a1a}
+
+/* ---------------- СПИСЪК С ПРОЕКТИ ---------------- */
+.nc-lhead{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin:0 0 24px}
+.nc-lhead h2{flex:1 1 auto;display:flex;align-items:center;gap:18px;font:700 46px/1.1 var(--serif);color:#fff6e6;text-shadow:0 2px 8px rgba(40,0,8,.6)}
+.nc-lhead h2 svg.i{font-size:42px;color:#f6d48e}
+.nc-q{display:flex;align-items:center;gap:16px;height:80px;padding:0 26px;border-radius:24px;flex:1 1 420px;
+  background:linear-gradient(160deg,rgba(255,248,238,.34),rgba(255,236,214,.14));box-shadow:inset 0 0 0 2px rgba(255,236,200,.55),inset 0 2px 0 rgba(255,255,255,.35),0 10px 22px -14px rgba(0,0,0,.5)}
+.nc-q svg.i{font-size:32px;color:#fff0d6}
+.nc-q input{flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;color:#fff8ec;font:400 28px/1 var(--sans)}
+.nc-q input::placeholder{color:rgba(255,240,220,.85)}
+.nc-q:focus-within{box-shadow:inset 0 0 0 2px #f6d48e,0 0 20px rgba(246,212,142,.6)}
+.nc-seg{display:flex;flex-wrap:wrap;gap:12px}
+.nc-seg button{height:64px;padding:0 26px;border-radius:32px;border:0;cursor:pointer;font:700 25px/1 var(--cond);color:#5a0a12;background:var(--cream);box-shadow:var(--cream-sh)}
+.nc-seg button[aria-pressed="true"]{color:#3a1d00;background:var(--gold);box-shadow:var(--gold-sh)}
+.nc-grid{display:grid;grid-template-columns:1fr;gap:26px}
+html.desk .nc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.nc-pcard{position:relative;display:grid;grid-template-rows:300px auto;border-radius:32px;overflow:hidden;text-align:left;cursor:pointer;border:0;padding:0;
+  background:var(--cream);box-shadow:var(--cream-sh);color:var(--ink);transition:transform .25s,box-shadow .25s}
+@media (hover:hover){.nc-pcard:hover{transform:translateY(-3px);box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5px rgba(255,240,205,.45),0 0 26px rgba(246,212,142,.7),0 16px 26px -16px rgba(0,0,0,.65)}}
+.nc-pcard .cv{position:relative;background:#4a0f1b center/cover no-repeat}
+.nc-pcard .cv.none{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:linear-gradient(160deg,#5c0d1c,#3f0d17);color:#f6d9a8;font:400 23px/1.3 var(--cond);text-align:center;padding:0 30px}
+.nc-pcard .cv.none svg.i{font-size:60px;color:#f6d48e;stroke-width:1.4}
+.nc-pcard .bd{padding:22px 26px 24px;display:flex;flex-direction:column;gap:12px}
+.nc-pcard h3{font:700 36px/1.15 var(--serif);color:#5e0a1a}
+.nc-pcard .loc{display:flex;align-items:center;gap:10px;font:400 25px/1.2 var(--cond);color:var(--muted)}
+.nc-pcard .loc svg.i{font-size:26px;color:#8d1530}
+.nc-pcard .cnt{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.nc-pcard .cnt span{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:18px;background:rgba(255,255,255,.6);box-shadow:inset 0 0 0 1px rgba(226,176,120,.45);font:400 21px/1.1 var(--cond);color:var(--muted)}
+.nc-pcard .cnt b{display:flex;align-items:center;gap:8px;font:700 34px/1 var(--cond);color:var(--ink)}
+.nc-pcard .meta{font:400 21px/1.3 var(--cond);color:var(--muted)}
+.nc-badge{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 18px;border-radius:23px;font:700 21px/1 var(--cond);white-space:nowrap;
+  color:#fff3dc;background:var(--wine);border:1.5px solid #edc47a;box-shadow:0 0 10px rgba(255,190,120,.45)}
+.nc-badge.pub{background:linear-gradient(160deg,#2b7a44,#185a2d);border-color:rgba(214,255,224,.85)}
+.nc-badge.arch{background:linear-gradient(160deg,#6a5a55,#3e322e);border-color:rgba(255,236,200,.6)}
+.nc-badge.ok{color:#1e4d12;background:linear-gradient(180deg,#e4f5cb,#cfe9ad);border-color:rgba(120,170,80,.6);box-shadow:none}
+.nc-badge.warn{color:#5a3a00;background:linear-gradient(180deg,#fff1cc,#f7dc9a);border-color:rgba(200,150,60,.6);box-shadow:none}
+.nc-pcard .tags{position:absolute;left:18px;top:18px;display:flex;gap:10px;flex-wrap:wrap}
+
+/* точки за статус (Свободен / Капариран / Продаден) */
+.nc-dot{display:inline-block;width:.62em;height:.62em;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.85),0 1px 2px rgba(0,0,0,.35)}
+.nc-dot.free{background:radial-gradient(circle at 35% 30%,#a5f59b,#1f9c3a 70%)}
+.nc-dot.reserved{background:radial-gradient(circle at 35% 30%,#ffe38a,#d99a12 70%)}
+.nc-dot.sold{background:radial-gradient(circle at 35% 30%,#ff8f8f,#c8102e 70%)}
+.nc-st{display:inline-flex;align-items:center;gap:10px;height:48px;padding:0 18px;border-radius:24px;font:700 23px/1 var(--cond);white-space:nowrap}
+.nc-st.free{color:#13461f;background:linear-gradient(180deg,#e6f7d8,#c9ebb4);box-shadow:inset 0 0 0 1.5px rgba(70,150,80,.55)}
+.nc-st.reserved{color:#5a3a00;background:linear-gradient(180deg,#fff2c8,#f6d98c);box-shadow:inset 0 0 0 1.5px rgba(200,150,40,.6)}
+.nc-st.sold{color:#fff;background:linear-gradient(180deg,#d8304a,#9b0d27);box-shadow:inset 0 0 0 1.5px rgba(255,200,200,.55)}
+
+/* ---------------- ПРОЕКТ: лента + броячи ---------------- */
+.nc-pv{display:flex;flex-direction:column;gap:22px}
+.nc-head{display:grid;grid-template-columns:1fr;gap:18px}
+html.desk .nc-head{grid-template-columns:minmax(0,1fr) auto;align-items:stretch}
+.nc-strip{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px 22px;padding:22px 30px 24px 22px;border-radius:34px;
+  color:#fff3dc;background:linear-gradient(100deg,#55071a 0%,#7a0f22 40%,#8d1530 70%,#5c0d1c 100%);
+  box-shadow:0 0 0 2px #e6b866,0 0 0 4px rgba(255,236,190,.35),0 0 26px rgba(255,200,120,.45),inset 0 2px 3px rgba(255,170,180,.45),0 16px 26px -16px rgba(0,0,0,.65)}
+.nc-back{grid-row:1/3;width:84px;height:84px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;font-size:40px;color:#5a0a12;
+  background:radial-gradient(circle at 35% 28%,#fffdf6 0%,#f7e3b3 45%,#d9a650 100%);box-shadow:0 3px 8px rgba(0,0,0,.45),0 0 0 1px #fff2c4 inset,0 0 12px rgba(255,214,140,.6)}
+.nc-back svg.i{stroke-width:2.6}
+.nc-strip h2{font:700 54px/1.08 var(--serif);color:#fff6e0;text-shadow:0 2px 4px rgba(30,0,8,.6);overflow-wrap:anywhere}
+.nc-strip .sub{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;font:400 27px/1.25 var(--cond);color:#fff3e2}
+.nc-strip .sub svg.i{font-size:30px;color:#f6d48e}
+.nc-strip .nc-badge{height:50px;font-size:23px;background:rgba(40,4,12,.45);border-color:#edc47a}
+.nc-strip .nc-badge.pub{background:linear-gradient(160deg,#2b7a44,#185a2d)}
+.nc-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+html.desk .nc-stats{grid-template-columns:repeat(6,150px);gap:14px}
+.nc-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:150px;padding:14px 8px;border-radius:26px;background:var(--cream);box-shadow:var(--cream-sh);text-align:center}
+.nc-stat svg.i{font-size:40px;color:#7b1020;stroke-width:1.8}
+.nc-stat .nc-dot{width:30px;height:30px}
+.nc-stat b{font:700 46px/1 var(--cond);color:var(--ink)}
+.nc-stat span{font:400 23px/1.1 var(--cond);color:#3b0a0e}
+
+/* staff лента с действия */
+.nc-sbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 16px;border-radius:30px;background:rgba(40,4,12,.32);box-shadow:inset 0 0 0 1.5px rgba(255,236,200,.4)}
+.nc-sbar .lbl{display:flex;align-items:center;gap:10px;margin-right:6px;font:700 22px/1 var(--cond);color:#fff0d6}
+.nc-sbar .lbl svg.i{font-size:26px;color:#f6d48e}
+
+/* ---------------- ТАБОВЕ ---------------- */
+.nc-tabs{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;padding:8px 6px 12px;margin:-8px -6px -6px;-webkit-overflow-scrolling:touch}
+.nc-tabs::-webkit-scrollbar{display:none}
+html.desk .nc-tabs{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));overflow:visible;margin:0;padding:0}
+.nc-tab{flex:0 0 auto;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;gap:12px;height:80px;padding:0 26px;border-radius:40px;cursor:pointer;
+  font:700 26px/1.05 var(--cond);color:#fff3dc;white-space:nowrap;background:var(--wine);border:2px solid rgba(237,196,122,.85);box-shadow:var(--wine-sh)}
+.nc-tab svg.i{font-size:32px;color:#f6d48e;stroke-width:1.8}
+.nc-tab[aria-selected="true"]{color:#3a1d00;background:var(--gold);border-color:#fff0c8;box-shadow:var(--gold-sh),0 0 30px rgba(246,212,142,.75)}
+.nc-tab[aria-selected="true"] svg.i{color:#6b0a1c}
+html.desk .nc-tab{padding:0 10px;font-size:23px;gap:10px;height:76px}
+html.desk .nc-tab svg.i{font-size:28px}
+@media (hover:hover){.nc-tab:not([aria-selected="true"]):hover{filter:brightness(1.1) drop-shadow(0 0 10px rgba(255,205,140,.6))}}
+.nc-panel{outline:0}
+
+/* ---------------- КАРТИ (лента-заглавие като NDUI.group) ---------------- */
+.ncx .ndg{position:relative;border-radius:30px;overflow:hidden;padding:80px 0 24px;min-height:170px;
+  background:linear-gradient(180deg,rgba(255,250,244,.97),rgba(252,238,226,.96));border:1.5px solid rgba(255,255,255,.95);
+  box-shadow:0 0 0 1px rgba(226,176,120,.45),0 0 18px rgba(255,230,204,.95),0 8px 18px rgba(120,50,20,.18),inset 0 1px 0 #fff}
+.ncx .ndg-h{position:absolute;left:-1px;top:-1px;z-index:2;height:62px;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:18px;margin:0;padding:0 80px 0 30px;color:#fff3dc;font:700 31px/1 var(--serif);white-space:nowrap;
+  background:linear-gradient(100deg,#55071a 0%,#8d1530 45%,#b42446 70%,#7a1022 100%);border-radius:30px 0 60px 0;
+  box-shadow:inset 0 2px 3px rgba(255,170,180,.45),0 3px 0 #e6b866,0 6px 12px rgba(60,5,15,.25);text-shadow:0 2px 3px rgba(30,0,8,.5);clip-path:polygon(0 0,100% 0,88% 100%,0 100%);max-width:100%}
+.ncx .ndg-h svg.i{font-size:34px;color:#fff1de;stroke-width:1.8}
+.ncx .ndg-img{position:absolute;right:0;top:0;bottom:0;width:50%;background-size:cover;background-position:center;filter:saturate(1.1) contrast(1.04);
+  -webkit-mask-image:linear-gradient(270deg,#000 46%,rgba(0,0,0,.72) 74%,transparent 100%);mask-image:linear-gradient(270deg,#000 46%,rgba(0,0,0,.72) 74%,transparent 100%)}
+.ncx .ndg-f{position:relative;z-index:1;margin:0 24px 0 26px;display:block}
+.ncx .ndg:not(.noimg) .ndg-f{max-width:68%}
+.ncx .nc-hc{position:absolute;right:20px;top:8px;z-index:3}
+/* редове върху картата – върху съществуващата преливаща повърхност (като .ndsec>.ndrow) */
+.nc-rows{display:flex;flex-direction:column;gap:0}
+.nc-row{display:grid;grid-template-columns:40px auto minmax(0,1fr);align-items:center;gap:14px;min-height:58px;padding:6px 14px;border-radius:16px;
+  background:linear-gradient(90deg,rgba(255,253,249,.97) 0%,rgba(255,250,244,.93) 55%,rgba(251,239,229,.78) 100%)}
+.nc-row+.nc-row{box-shadow:inset 0 1.5px 0 rgba(226,176,120,.32)}
+.nc-row>svg.i{font-size:30px;color:#7b1020;stroke-width:1.8}
+.nc-row .k{font:400 25px/1.15 var(--cond);color:var(--lab);white-space:nowrap}
+.nc-row .v{display:flex;align-items:center;gap:10px;font:700 27px/1.15 var(--cond);color:var(--ink);text-align:right;justify-content:flex-end}
+.nc-row .v.emp{color:#6e5049;font-weight:400;font-style:italic}
+
+/* ---------------- ОБЩ ПРЕГЛЕД ---------------- */
+.nc-ov{display:grid;grid-template-columns:1fr;gap:22px}
+html.desk .nc-ov{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1.12fr);grid-template-areas:"hero info unit" "stage stage adv" "acts acts acts";align-items:stretch}
+html.desk .nc-ov>.a-hero{grid-area:hero}html.desk .nc-ov>.a-info{grid-area:info}html.desk .nc-ov>.a-unit{grid-area:unit}
+html.desk .nc-ov>.a-stage{grid-area:stage}html.desk .nc-ov>.a-adv{grid-area:adv}html.desk .nc-ov>.a-acts{grid-area:acts}
+/* главният медиен блок – без декоративно изображение отгоре (RULE-003) */
+.nc-hero{position:relative;border-radius:34px;overflow:hidden;background:#3f0d17;min-height:560px;
+  box-shadow:0 0 0 3px rgba(255,248,232,.95),0 0 0 5px rgba(226,176,120,.6),0 0 22px rgba(255,214,160,.8),0 14px 26px -12px rgba(0,0,0,.6);display:flex;flex-direction:column}
+html.desk .nc-hero{min-height:600px}
+.nc-hero .stage{position:relative;flex:1 1 auto;min-height:420px;background:#2a050d}
+.nc-hero .stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.nc-hero .cap{position:absolute;left:22px;top:20px;z-index:2;display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 20px;border-radius:26px;
+  background:rgba(25,18,22,.78);color:#fff;font:700 22px/1 var(--cond);box-shadow:0 0 0 1.5px rgba(255,255,255,.4)}
+.nc-hero .cap svg.i{font-size:26px;color:#f6d48e}
+.nc-round{position:absolute;z-index:2;width:74px;height:74px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;font-size:34px;color:#fff3dc;
+  background:rgba(25,18,22,.72);box-shadow:0 0 0 2px rgba(237,196,122,.8),0 0 12px rgba(255,190,120,.5)}
+.nc-round svg.i{stroke-width:2.2}
+.nc-round.tr{top:18px;right:18px}.nc-round.tr2{top:18px;right:104px}
+.nc-round.l{left:18px;top:50%;margin-top:-37px}.nc-round.r{right:18px;top:50%;margin-top:-37px}
+.nc-thumbs{display:flex;gap:12px;padding:14px;overflow-x:auto;background:linear-gradient(180deg,#4a0f1b,#3a0b15);scrollbar-width:thin}
+.nc-thumbs button{flex:0 0 150px;height:96px;border-radius:16px;border:0;padding:0;cursor:pointer;background:#2a050d center/cover;box-shadow:0 0 0 2px rgba(237,196,122,.45)}
+.nc-thumbs button[aria-current="true"]{box-shadow:0 0 0 3px #f6d48e,0 0 14px rgba(246,212,142,.8)}
+.nc-hero .none{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px;text-align:center;color:#f6e3c6;
+  background:radial-gradient(90% 80% at 50% 40%,#5c0d1c 0%,#3f0d17 70%,#2a050d 100%)}
+.nc-hero .none svg.i{font-size:84px;color:#f6d48e;stroke-width:1.3}
+.nc-hero .none h3{font:700 38px/1.15 var(--serif);color:#fff3dc}
+.nc-hero .none p{max-width:760px;font:400 25px/1.4 var(--cond);color:#f3dcc4}
+
+/* „Избран апартамент“ */
+.nc-uc .ndg-f{display:flex;flex-direction:column;gap:16px}
+.nc-uc .big{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;border-radius:22px;background:rgba(255,255,255,.55);box-shadow:inset 0 0 0 1px rgba(226,176,120,.45)}
+.nc-uc .big>div{display:flex;flex-direction:column;gap:6px;padding:16px 18px}
+.nc-uc .big>div+div{box-shadow:inset 2px 0 0 rgba(120,60,50,.18)}
+.nc-uc .big span{display:flex;align-items:center;gap:10px;font:400 24px/1.1 var(--cond);color:var(--lab)}
+.nc-uc .big span svg.i{font-size:30px;color:#7b1020}
+.nc-uc .big small{font:400 19px/1 var(--cond);color:var(--muted)}
+.nc-uc .big b{font:700 60px/1 var(--serif);color:#4e0912;white-space:nowrap}
+.nc-uc .big b sup{font-size:.5em}
+.nc-uc .tot{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px 18px;min-height:88px;padding:10px 24px;border-radius:44px;text-align:center;
+  color:#3a1d00;background:var(--gold);box-shadow:var(--gold-sh)}
+.nc-uc .tot svg.i{font-size:36px;color:#6b0a1c}
+.nc-uc .tot span{font:700 28px/1 var(--cond)}
+.nc-uc .tot b{font:700 48px/1 var(--serif);color:#4e0912}
+.nc-uc .tot.na{background:linear-gradient(180deg,#f3ece6,#e2d6cc);box-shadow:inset 0 0 0 1.5px rgba(160,130,110,.5)}
+.nc-uc .tot.na b{font:700 30px/1.15 var(--cond);color:#5b4038}
+.nc-uc .tnote{margin-top:-6px;text-align:center;font:400 20px/1.3 var(--cond);color:var(--muted)}
+.nc-uc .specs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-radius:20px;background:rgba(255,255,255,.55);box-shadow:inset 0 0 0 1px rgba(226,176,120,.45)}
+.nc-uc .specs>div{display:flex;align-items:center;gap:10px;padding:12px 12px;font:400 22px/1.15 var(--cond);color:var(--ink)}
+.nc-uc .specs>div:nth-child(2n){box-shadow:inset 1.5px 0 0 rgba(120,60,50,.16)}.nc-uc .specs>div:nth-child(n+3){border-top:1.5px solid rgba(120,60,50,.12)}
+.nc-uc .specs svg.i{flex:none;font-size:32px;color:#7b1020;stroke-width:1.7}
+.nc-uc .specs b{display:block;font-weight:700}
+.nc-uc .where{display:flex;flex-wrap:wrap;gap:8px 18px;font:400 23px/1.2 var(--cond);color:var(--muted)}
+.nc-uc .where b{color:var(--ink)}
+.nc-uc .acts{display:flex;flex-wrap:wrap;gap:12px}
+.nc-uc .acts .nc-btn{flex:1 1 calc(50% - 6px);min-height:64px;padding:0 16px;font-size:24px}.nc-uc .acts .nc-btn.hot{flex-basis:100%}
+.nc-uc .pick{display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 10px;text-align:center;font:400 25px/1.35 var(--cond);color:var(--muted)}
+.nc-uc .pick svg.i{font-size:60px;color:#8d1530}
+.nc-uc .sact{display:flex;flex-wrap:wrap;gap:10px;padding-top:6px;border-top:1.5px dashed rgba(160,26,51,.3)}
+
+/* етап на завършване */
+.nc-steps{display:flex;align-items:flex-start;justify-content:space-between;gap:0;padding:6px 6px 0;position:relative}
+.nc-step{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;font:400 22px/1.15 var(--cond);color:var(--muted);min-width:0}
+.nc-step::before{content:"";position:absolute;top:20px;left:-50%;right:50%;height:5px;background:rgba(160,120,100,.35);z-index:0}
+.nc-step:first-child::before{display:none}
+.nc-step i{position:relative;z-index:1;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#fffaf4;box-shadow:inset 0 0 0 3px rgba(160,120,100,.55)}
+.nc-step.done{color:#3b0a0e}.nc-step.done::before,.nc-step.cur::before{background:linear-gradient(90deg,#7a0f22,#b42446)}
+.nc-step.done i{background:var(--wine);box-shadow:0 0 0 2px #edc47a}
+.nc-step.done i::after{content:"";width:9px;height:17px;margin-top:-4px;border:solid #fff3dc;border-width:0 4px 4px 0;transform:rotate(45deg)}
+.nc-step.cur{color:#3a1d00;font-weight:700}
+.nc-step.cur i{background:var(--gold);box-shadow:0 0 0 3px #fff0c8,0 0 18px rgba(246,212,142,.95)}
+.nc-stage-ft{display:flex;flex-wrap:wrap;align-items:center;gap:14px 26px;margin-top:20px;font:400 24px/1.25 var(--cond);color:var(--muted)}
+.nc-stage-ft b{color:var(--ink)}
+.nc-stage-ft svg.i{font-size:34px;color:#7b1020}
+/* предимства */
+.nc-adv{display:flex;flex-direction:column;gap:10px}
+.nc-adv li{list-style:none;display:flex;align-items:center;gap:14px;padding:8px 14px;border-radius:16px;font:400 26px/1.2 var(--cond);color:var(--ink);background:linear-gradient(90deg,rgba(255,253,249,.97),rgba(255,250,244,.9) 60%,rgba(251,239,229,.6))}
+.nc-adv li svg.i{flex:none;font-size:30px;color:#8d1530}
+/* действия долу */
+.nc-acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+html.desk .nc-acts{grid-template-columns:repeat(8,minmax(0,1fr))}
+.nc-act{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:104px;padding:10px 12px;border-radius:26px;border:0;cursor:pointer;text-align:center;text-decoration:none;
+  font:700 22px/1.12 var(--cond);color:#fff3dc;background:var(--wine);border:2px solid rgba(237,196,122,.85);box-shadow:var(--wine-sh)}
+.nc-act svg.i{font-size:36px;color:#f6d48e;stroke-width:1.8}
+.nc-act.gold{color:#3a1d00;background:var(--gold);border-color:#fff0c8;box-shadow:var(--gold-sh)}.nc-act.gold svg.i{color:#6b0a1c}
+.nc-act[aria-disabled="true"]{opacity:.62;cursor:not-allowed;filter:saturate(.5)}
+.nc-act small{font:400 17px/1.15 var(--cond);opacity:.92}
+@media (hover:hover){.nc-act:not([aria-disabled="true"]):hover{transform:translateY(-2px);filter:brightness(1.08) drop-shadow(0 0 14px rgba(255,190,120,.6))}}
+
+/* ---------------- ДВЕ КОЛОНИ (табове с карта вдясно) ---------------- */
+.nc-two{display:grid;grid-template-columns:1fr;gap:22px}
+html.desk .nc-two{grid-template-columns:minmax(0,1fr) 640px;align-items:start}
+html.desk .nc-two>.side{position:sticky;top:0;display:flex;flex-direction:column;gap:20px}
+.nc-two>.side{display:flex;flex-direction:column;gap:20px}
+
+/* ---------------- АПАРТАМЕНТИ ---------------- */
+.nc-filt{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+html.desk .nc-filt{grid-template-columns:repeat(5,minmax(0,1fr))}
+.nc-f{position:relative;display:flex;align-items:center;gap:12px;height:96px;padding:0 16px 0 18px;border-radius:24px;background:var(--cream);box-shadow:var(--cream-sh);cursor:pointer}
+.nc-f>svg.i{flex:none;font-size:34px;color:#7b1020}
+.nc-f .ftx{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.nc-f .flab{font:500 20px/1 var(--cond);color:#6b4a40;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nc-f .val{font:700 25px/1.08 var(--cond);color:#22090d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nc-f .chev{font-size:24px;color:#7a5a52}
+.nc-f select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.nc-f.set{box-shadow:0 0 0 2.5px #e6bf5b,0 0 0 5px rgba(255,240,205,.45),0 0 22px rgba(246,212,142,.7),0 16px 26px -16px rgba(0,0,0,.65)}
+.nc-f:focus-within{box-shadow:0 0 0 3px #f6d48e,0 0 18px rgba(246,212,142,.8)}
+.nc-fbar{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:16px 0 8px}
+.nc-found{flex:1 1 auto;font:400 27px/1.2 var(--cond);color:#fff6e6;text-shadow:0 2px 6px rgba(40,0,8,.6)}
+.nc-found b{color:#f6d48e}
+.nc-bsec{margin-top:18px}
+.nc-bsec>h3{display:flex;align-items:center;gap:14px;margin:0 4px 12px;font:700 36px/1.1 var(--serif);color:#fff6e6;text-shadow:0 2px 8px rgba(40,0,8,.6)}
+.nc-bsec>h3 svg.i{font-size:34px;color:#f6d48e}
+.nc-fsec{margin:0 0 16px;border-radius:26px;overflow:hidden;background:var(--cream);box-shadow:var(--cream-sh)}
+.nc-fsec>h4{display:flex;align-items:center;gap:14px;padding:14px 22px;font:700 27px/1.1 var(--cond);color:#fff3dc;background:linear-gradient(100deg,#55071a 0%,#8d1530 55%,#7a1022 100%);box-shadow:0 2px 0 #e6b866}
+.nc-fsec>h4 svg.i{font-size:28px;color:#f6d48e}
+.nc-fsec>h4 .c{margin-left:auto;display:flex;gap:14px;font:400 21px/1 var(--cond)}
+.nc-fsec>h4 .c span{display:flex;align-items:center;gap:6px}
+.nc-ul{display:flex;flex-direction:column}
+.nc-u{display:grid;grid-template-columns:52px 160px 190px minmax(0,1fr) 200px;align-items:center;gap:12px;min-height:86px;padding:8px 18px;cursor:pointer;border:0;text-align:left;background:transparent;width:100%;
+  font:400 24px/1.15 var(--cond);color:var(--ink);box-shadow:inset 0 1.5px 0 rgba(226,176,120,.32)}
+.nc-u:first-child{box-shadow:none}
+.nc-u[aria-pressed="true"],.nc-u.sel{background:linear-gradient(90deg,rgba(248,220,152,.55),rgba(255,248,232,.4));box-shadow:inset 0 0 0 2.5px #e6bf5b}
+@media (hover:hover){.nc-u:hover{background:rgba(255,236,200,.4)}}
+.nc-u .code{font:700 28px/1 var(--cond);color:#5e0a1a}
+.nc-u .sp{display:flex;flex-wrap:wrap;gap:4px 16px;color:var(--muted)}
+.nc-u .sp b{color:var(--ink)}
+.nc-u .pr{text-align:right;font:700 27px/1.1 var(--cond);color:#4e0912}
+.nc-u .pr small{display:block;font:400 19px/1.1 var(--cond);color:var(--muted)}
+.nc-u .pr.na{font:400 21px/1.2 var(--cond);color:var(--muted);font-style:italic}
+.nc-cmpk{position:relative;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;cursor:pointer;background:#fffaf4;box-shadow:inset 0 0 0 2.5px rgba(160,26,51,.55)}
+.nc-cmpk input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0}
+.nc-cmpk svg.i{font-size:30px;color:#fff3dc;opacity:0;pointer-events:none}
+.nc-cmpk.on{background:var(--wine);box-shadow:0 0 0 2px #edc47a}.nc-cmpk.on svg.i{opacity:1}
+.nc-cmpk:focus-within{outline:3px solid #f6d48e;outline-offset:2px}
+html:not(.desk) .nc-u{grid-template-columns:52px minmax(0,1fr) auto;grid-template-areas:"k c s" "k sp pr";row-gap:6px}
+html:not(.desk) .nc-u .nc-cmpk{grid-area:k}html:not(.desk) .nc-u .code{grid-area:c}html:not(.desk) .nc-u .nc-st{grid-area:s;justify-self:end}
+html:not(.desk) .nc-u .sp{grid-area:sp}html:not(.desk) .nc-u .pr{grid-area:pr}
+
+/* ---------------- РАЗПРЕДЕЛЕНИЯ / ПЛАН ---------------- */
+.nc-pl{display:grid;grid-template-columns:1fr;gap:16px;padding:0}
+html.desk .nc-pl{grid-template-columns:190px minmax(0,1fr)}
+.nc-floors{display:flex;gap:10px;overflow-x:auto;padding:4px;scrollbar-width:thin}
+html.desk .nc-floors{flex-direction:column;overflow:visible;padding:0}
+.nc-floors button{flex:0 0 auto;min-height:58px;padding:0 20px;border-radius:29px;border:0;cursor:pointer;font:700 23px/1.05 var(--cond);color:#3b0a0e;background:var(--cream);box-shadow:var(--cream-sh);white-space:nowrap}
+.nc-floors button[aria-pressed="true"]{color:#3a1d00;background:var(--gold);box-shadow:var(--gold-sh)}
+.nc-floors .bl{font:700 20px/1.1 var(--cond);color:var(--lab);padding:8px 6px 2px;white-space:nowrap}
+.nc-vw{position:relative;height:660px;border-radius:26px;overflow:hidden;background:#fbf6ef;touch-action:none;cursor:grab;outline:0;
+  box-shadow:inset 0 0 0 2px rgba(226,176,120,.55),0 0 0 3px rgba(255,248,232,.9)}
+html:not(.desk) .nc-vw{height:720px}
+.nc-vw.drag{cursor:grabbing}
+.nc-vw:focus-visible{box-shadow:inset 0 0 0 3px #e6bf5b,0 0 0 4px #f6d48e}
+.nc-vw .pan{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.nc-vw .pan img{display:block;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.nc-vw .pan svg.poly{position:absolute;left:0;top:0;overflow:visible}
+.nc-vw .ctl{position:absolute;right:16px;top:50%;transform:translateY(-50%);z-index:3;display:flex;flex-direction:column;gap:12px}
+.nc-vw .ctl button{width:70px;height:70px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;font-size:32px;color:#5a0a12;
+  background:radial-gradient(circle at 35% 28%,#fffdf8,#f6e5cd 70%,#e6c99f);box-shadow:0 4px 10px rgba(0,0,0,.3),0 0 0 1.5px #fff6e0}
+.nc-vw .ctl button svg.i{stroke-width:2.3}
+.nc-vw .lab{position:absolute;left:16px;top:16px;z-index:3;display:inline-flex;align-items:center;gap:10px;max-width:70%;padding:10px 16px;border-radius:18px;background:rgba(25,18,22,.78);color:#fff;font:700 21px/1.2 var(--cond)}
+.nc-vw .lab svg.i{font-size:24px;color:#f6d48e}
+.nc-vw .hint{position:absolute;left:16px;bottom:14px;z-index:3;padding:8px 14px;border-radius:14px;background:rgba(255,250,244,.92);color:#5b4038;font:400 19px/1.2 var(--cond);box-shadow:0 0 0 1px rgba(226,176,120,.6)}
+.nc-vw.fs{position:fixed;inset:0;z-index:400;height:auto;border-radius:0}
+.nc-vw:fullscreen{height:100%;border-radius:0}
+.poly .pu{cursor:pointer;stroke-width:3;vector-effect:non-scaling-stroke}
+.poly .pu.free{fill:rgba(40,160,70,.16);stroke:#1f9c3a}
+.poly .pu.reserved{fill:rgba(217,154,18,.2);stroke:#c98a08}
+.poly .pu.sold{fill:rgba(200,16,46,.18);stroke:#c8102e}
+.poly .pu.sel{fill:rgba(246,212,142,.5);stroke:#b8843a;stroke-width:6}
+.poly .pu:focus{outline:none;stroke:#245a91;stroke-width:6}
+.nc-plabel{position:absolute;transform:translate(-50%,-50%);padding:6px 14px;border-radius:14px;font:700 22px/1 var(--cond);color:#fff;white-space:nowrap;pointer-events:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.85),0 2px 5px rgba(0,0,0,.3)}
+.nc-plabel.free{background:#1b7a31}.nc-plabel.reserved{background:#8a5a00}.nc-plabel.sold{background:#b00e29}.nc-plabel.sel{background:#d9a254;color:#3a1d00}
+.nc-pmode{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.nc-pmode button{height:58px;padding:0 22px;border-radius:29px;border:0;cursor:pointer;font:700 22px/1 var(--cond);color:#5a0a12;background:var(--cream);box-shadow:var(--cream-sh)}
+.nc-pmode button[aria-pressed="true"]{color:#3a1d00;background:var(--gold);box-shadow:var(--gold-sh)}
+/* печат за Капариран / Продаден – текст и CSS, без файл на плана */
+.nc-locked{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:40px;text-align:center;
+  background:repeating-linear-gradient(135deg,rgba(226,176,120,.10) 0 22px,rgba(255,255,255,0) 22px 44px),linear-gradient(180deg,#fffaf4,#f6eadc)}
+.nc-stamp{display:inline-block;margin:40px 0 50px;padding:18px 48px;border:9px double #c8102e;border-radius:26px;transform:rotate(-11deg);
+  font:900 96px/1 var(--sans);letter-spacing:8px;color:#c8102e;text-transform:uppercase;background:rgba(255,255,255,.35);box-shadow:0 0 0 3px rgba(200,16,46,.18)}
+html:not(.desk) .nc-stamp{font-size:84px;letter-spacing:5px}
+.nc-locked p{max-width:780px;font:400 25px/1.4 var(--cond);color:#3b0a0e}
+.nc-locked .nc-btn{margin-top:4px}
+.nc-vw .none{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:40px;text-align:center;font:400 25px/1.4 var(--cond);color:#5b4038}
+.nc-vw .none svg.i{font-size:72px;color:#8d1530;stroke-width:1.4}
+.nc-vw .none b{font:700 32px/1.2 var(--serif);color:#5e0a1a}
+.nc-ucodes{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.nc-ucodes button{display:inline-flex;align-items:center;gap:10px;height:58px;padding:0 18px;border-radius:29px;border:0;cursor:pointer;font:700 23px/1 var(--cond);color:#3b0a0e;background:var(--cream);box-shadow:var(--cream-sh)}
+.nc-ucodes button[aria-pressed="true"]{background:var(--gold);box-shadow:var(--gold-sh);color:#3a1d00}
+
+/* ---------------- 3D / 360 – честно „още не е налично“ ---------------- */
+.nc-na{position:relative;min-height:640px;border-radius:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:50px 44px;text-align:center;color:#f6e3c6;
+  background:radial-gradient(90% 80% at 50% 35%,#5c0d1c 0%,#3f0d17 70%,#2a050d 100%);
+  box-shadow:0 0 0 3px rgba(255,248,232,.9),0 0 0 5px rgba(226,176,120,.55),0 0 22px rgba(255,214,160,.6)}
+.nc-na>svg.i{font-size:110px;color:#f6d48e;stroke-width:1.2}
+.nc-na h3{font:700 44px/1.15 var(--serif);color:#fff3dc}
+.nc-na p{max-width:980px;font:400 27px/1.45 var(--cond);color:#f3dcc4}
+.nc-na ul{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:1100px}
+.nc-na li{list-style:none;display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border-radius:22px;font:400 23px/1.2 var(--cond);color:#fff3e2;background:rgba(255,236,200,.08);box-shadow:inset 0 0 0 1.5px rgba(237,196,122,.45)}
+.nc-na li svg.i{font-size:26px;color:#f6d48e}
+.nc-na .tag{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 22px;border-radius:26px;font:700 23px/1 var(--cond);color:#3a1d00;background:var(--gold);box-shadow:var(--gold-sh)}
+.nc-na .tech{font:400 20px/1.3 var(--cond);color:#d9bfa6}
+.nc-flist{display:flex;flex-direction:column;gap:10px}
+.nc-flist button{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:0 20px;border-radius:30px;border:0;cursor:pointer;font:700 24px/1 var(--cond);color:#3b0a0e;background:var(--cream);box-shadow:var(--cream-sh)}
+.nc-flist button[aria-pressed="true"]{background:var(--gold);box-shadow:var(--gold-sh);color:#3a1d00}
+.nc-flist button .c{display:flex;gap:10px;font:400 20px/1 var(--cond)}
+.nc-flist button .c span{display:flex;align-items:center;gap:5px}
+.nc-sel{position:relative;display:flex;align-items:center;gap:12px;height:76px;padding:0 20px;border-radius:38px;color:#fff3dc;background:var(--wine);border:2px solid rgba(237,196,122,.85);box-shadow:var(--wine-sh);font:700 25px/1 var(--cond)}
+.nc-sel select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.nc-sel svg.i{font-size:28px;color:#f6d48e}
+.nc-sel .val{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------------- ГАЛЕРИЯ ---------------- */
+.nc-gal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+html.desk .nc-gal{grid-template-columns:repeat(4,minmax(0,1fr))}
+.nc-gi{position:relative;aspect-ratio:4/3;border-radius:22px;overflow:hidden;border:0;padding:0;cursor:pointer;background:#3f0d17;box-shadow:0 0 0 2px rgba(255,248,232,.85),0 0 0 4px rgba(226,176,120,.5),0 10px 18px -10px rgba(0,0,0,.6)}
+.nc-gi img{width:100%;height:100%;object-fit:cover;display:block}
+.nc-gi .t{position:absolute;left:0;right:0;bottom:0;padding:24px 14px 10px;text-align:left;font:700 21px/1.2 var(--cond);color:#fff;background:linear-gradient(0deg,rgba(25,8,12,.88),rgba(25,8,12,0))}
+.nc-gi .k{position:absolute;left:10px;top:10px;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:14px;font:700 18px/1 var(--cond);color:#fff;background:rgba(25,18,22,.78)}
+.nc-gi .k svg.i{font-size:20px;color:#f6d48e}
+.nc-lb{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;background:rgba(20,3,8,.94)}
+.nc-lb[hidden]{display:none}
+.nc-lb .bar{display:flex;align-items:center;gap:12px;padding:12px 16px;color:#fff3dc;font:700 18px/1.2 var(--cond,Arial)}
+.nc-lb .bar .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nc-lb .bar button,.nc-lb .nav button{width:48px;height:48px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;font-size:24px;color:#5a0a12;background:radial-gradient(circle at 35% 28%,#fffdf6,#f7e3b3 45%,#d9a650);box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.nc-lb .bar svg.i,.nc-lb .nav svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2.4}
+.nc-lb .media{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 70px 16px}
+.nc-lb .media img,.nc-lb .media video{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+.nc-lb .nav button{position:absolute;top:50%;margin-top:-24px}
+.nc-lb .nav .p{left:12px}.nc-lb .nav .n{right:12px}
+
+/* ---------------- ДОКУМЕНТИ ---------------- */
+.nc-docs{display:flex;flex-direction:column;gap:12px}
+.nc-doc{display:grid;grid-template-columns:54px minmax(0,1fr) auto;align-items:center;gap:16px;min-height:96px;padding:12px 18px 12px 20px;border-radius:24px;
+  background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1.5px rgba(227,178,94,.55),0 0 10px rgba(255,226,190,.8),0 3px 6px rgba(120,50,20,.12)}
+.nc-doc>svg.i{font-size:44px;color:#7b1020;stroke-width:1.6}
+.nc-doc .tx b{display:block;font:700 27px/1.15 var(--cond);color:#5e0a1a;overflow-wrap:anywhere}
+.nc-doc .tx span{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font:400 22px/1.2 var(--cond);color:var(--muted)}
+.nc-doc .bt{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.nc-acc{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:12px;font:700 19px/1.2 var(--cond)}
+.nc-acc.pub{color:#13461f;background:#dff2d2}.nc-acc.priv{color:#fff;background:#7a0f22}
+html:not(.desk) .nc-doc{grid-template-columns:54px minmax(0,1fr)}html:not(.desk) .nc-doc .bt{grid-column:1/-1;justify-content:flex-start}
+
+/* ---------------- КОНТАКТИ / ФОРМИ ---------------- */
+.nc-form{display:grid;grid-template-columns:1fr;gap:16px}
+html.desk .nc-form{grid-template-columns:1fr 1fr}
+.nc-form .wide{grid-column:1/-1}
+.nc-fl{display:flex;flex-direction:column;gap:8px;font:700 23px/1.1 var(--cond);color:var(--lab)}
+.nc-fl input,.nc-fl textarea,.nc-fl select{width:100%;min-height:68px;padding:0 20px;border-radius:20px;border:0;font:400 26px/1.2 var(--cond);color:#1f1111;
+  background:linear-gradient(180deg,#fffdf9,#fcf2e8);box-shadow:0 0 0 1.5px rgba(222,184,150,.8),inset 0 1px 0 #fff;outline:0;-webkit-appearance:none;appearance:none}
+.nc-fl textarea{min-height:150px;padding:14px 20px;resize:vertical}
+.nc-fl :is(input,textarea,select):focus{box-shadow:0 0 0 3px #d9a95a,0 0 12px rgba(217,169,90,.55)}
+.nc-fl [aria-invalid="true"]{box-shadow:0 0 0 3px #c81a3a,0 0 10px rgba(200,26,58,.35)}
+.nc-ferr{min-height:30px;font:700 23px/1.3 var(--cond);color:#b0102e}
+.nc-ok{display:flex;align-items:center;gap:16px;padding:20px 24px;border-radius:22px;font:700 26px/1.3 var(--cond);color:#13461f;background:linear-gradient(180deg,#e6f7d8,#c9ebb4);box-shadow:inset 0 0 0 1.5px rgba(70,150,80,.55)}
+.nc-ok svg.i{font-size:40px;color:#1f8a37}
+.nc-agency{display:flex;flex-direction:column;gap:12px}
+.nc-agency a{color:#5e0a1a;font-weight:700;text-decoration:none}
+.nc-agency a:hover{text-decoration:underline}
+
+/* сравнение (в прозореца NDUI) */
+.nc-cmp{grid-column:1/-1;overflow-x:auto}
+.nc-cmp table{width:100%;border-collapse:separate;border-spacing:0;font:400 24px/1.25 var(--cond);color:#1f1111}
+.nc-cmp th,.nc-cmp td{padding:12px 14px;text-align:left;border-bottom:1.5px solid rgba(226,176,120,.4);vertical-align:top}
+.nc-cmp thead th{font:700 26px/1.1 var(--cond);color:#fff3dc;background:#7a0f22}
+.nc-cmp tbody th{font-weight:700;color:#6b0a1c;white-space:nowrap}
+.nc-pre{grid-column:1/-1;font:400 23px/1.4 var(--cond);color:#3b0a0e;padding:16px 20px;border-radius:18px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px rgba(226,176,120,.55)}
+.nc-pre b{color:#6b0a1c}
+.nc-pre ul{margin:8px 0 0 26px}
+.nc-issues{grid-column:1/-1;padding:16px 20px;border-radius:18px;background:linear-gradient(180deg,#fff1ec,#ffe0d6);box-shadow:inset 0 0 0 2px rgba(200,26,58,.45);font:400 24px/1.4 var(--cond);color:#5e0a1a}
+.nc-issues b{display:block;margin-bottom:6px;color:#b0102e}
+.nc-issues li{margin-left:26px}
+.nc-sw{grid-column:1/-1;display:flex;gap:10px}
+.nc-sw button{flex:1;height:64px;border-radius:32px;border:0;cursor:pointer;font:700 24px/1 var(--cond);color:#5a0a12;background:linear-gradient(180deg,#fffcf9,#fbefe5);box-shadow:0 0 0 1.5px rgba(222,184,150,.8)}
+.nc-sw button[aria-pressed="true"]{color:#3a1d00;background:linear-gradient(180deg,#f8dc98,#d9a254);box-shadow:inset 0 0 0 1.5px rgba(255,248,220,.85),0 0 14px rgba(246,212,142,.7)}
+.nc-calc{grid-column:1/-1;font:700 24px/1.3 var(--cond);color:#6b0a1c;padding:10px 16px;border-radius:16px;background:rgba(255,248,220,.7)}
+/* очертаване на апартаменти върху етажния план */
+.nc-draw .pan svg.poly{pointer-events:auto}
+.nc-draw .pt{fill:#245a91;stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke}
+.nc-draw .cur{fill:rgba(36,90,145,.18);stroke:#245a91;stroke-width:3;stroke-dasharray:8 6;vector-effect:non-scaling-stroke}
+.nc-dtools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+.nc-dtools select{min-height:56px;padding:0 16px;border-radius:18px;font:400 23px/1 var(--cond);border:0;box-shadow:0 0 0 1.5px rgba(222,184,150,.8);background:#fffdf9}
+
+/* малки екрани и мащаб 200 % – нищо не се реже */
+.ncx h2,.ncx h3,.ncx h4,.ncx b,.ncx span,.ncx p{overflow-wrap:break-word}
+@media (prefers-reduced-motion:reduce){.ncx *{transition:none!important;animation:none!important}}
+
+/* ---------------- 3D сграда / 360° панорама (истински визуализатори, зареждат се само в своя таб) ---------------- */
+.nc-3d,.nc-pano{position:relative;height:720px;border-radius:30px;overflow:hidden;background:#f4ece3;outline:0;
+  box-shadow:0 0 0 3px rgba(255,248,232,.95),0 0 0 5px rgba(226,176,120,.6),0 0 22px rgba(255,214,160,.8),0 14px 26px -12px rgba(0,0,0,.6)}
+.nc-pano{background:#1a0408}
+html.desk .nc-3d,html.desk .nc-pano{height:760px}
+.nc-3d:focus-visible,.nc-pano:focus-visible{box-shadow:0 0 0 4px #f6d48e,0 0 22px rgba(246,212,142,.9)}
+.nc-3d.fs,.nc-pano.fs{position:fixed;inset:0;z-index:400;height:auto;border-radius:0}
+.nc-3d:fullscreen,.nc-pano:fullscreen{height:100%;border-radius:0}
+.nc3d-cv{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;touch-action:none;cursor:grab}
+.nc3d-cv:active{cursor:grabbing}
+.tag3{position:absolute;left:18px;top:18px;z-index:3;display:inline-flex;align-items:center;gap:10px;height:56px;padding:0 22px;border-radius:28px;
+  font:700 23px/1 var(--cond);color:#3a1d00;background:var(--gold);box-shadow:var(--gold-sh)}
+.tag3 svg.i{font-size:30px;color:#6b0a1c}
+.plab{position:absolute;left:18px;top:88px;z-index:3;max-width:70%;padding:10px 18px;border-radius:18px;background:rgba(25,18,22,.78);color:#fff;font:700 23px/1.25 var(--cond);box-shadow:0 0 0 1.5px rgba(255,255,255,.35)}
+.ctl3{position:absolute;left:18px;top:50%;transform:translateY(-50%);z-index:3;display:flex;flex-direction:column;gap:12px}
+.ctl3.h{left:auto;right:18px;top:18px;transform:none;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;max-width:60%}
+.ctl3 button{width:72px;height:72px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;font-size:32px;color:#fff3dc;background:rgba(60,8,20,.78);box-shadow:0 0 0 2px rgba(237,196,122,.85),0 0 12px rgba(255,190,120,.5)}
+.ctl3 button svg.i{stroke-width:2.2}
+.st3{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;gap:18px;padding:40px;text-align:center;font:700 28px/1.3 var(--cond);color:#5a0a12;background:rgba(251,244,236,.86)}
+.nc-pano .st3{background:rgba(26,4,8,.82);color:#fff3dc}
+.st3.err{background:rgba(251,244,236,.96)}.nc-pano .st3.err{background:rgba(26,4,8,.94)}
+.st3[hidden]{display:none}
+.none3{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:880px}
+.none3 svg.i{font-size:72px;color:#8d1530}.nc-pano .none3 svg.i{color:#f6d48e}
+.views3{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px}
+.views3 button{height:62px;padding:0 24px;border-radius:31px;border:0;cursor:pointer;font:700 23px/1 var(--cond);color:#fff3dc;background:var(--wine);border:2px solid rgba(237,196,122,.85);box-shadow:var(--wine-sh)}
+.only3{display:inline-flex;align-items:center;gap:12px;height:62px;padding:0 22px;border-radius:31px;font:700 23px/1 var(--cond);color:#5a0a12;background:var(--cream);box-shadow:var(--cream-sh);cursor:pointer}
+.only3 input{width:28px;height:28px;accent-color:#7a0f22}
+.nc-note.n3{margin-top:12px;color:#fff3e2;text-shadow:0 1px 4px rgba(40,0,8,.7)}
+.pth{margin-top:14px;border-radius:24px}
+.pth button{position:relative;flex:0 0 220px;height:130px;overflow:hidden;background:#1a0408}
+.pth button img{width:100%;height:100%;object-fit:cover;display:block}
+.pth button span{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;font:700 20px/1.15 var(--cond);color:#fff;text-align:left;background:linear-gradient(0deg,rgba(25,8,12,.9),rgba(25,8,12,0))}
+.nc-pano.lockedp{background:#fbf6ef}
+/* честно празно състояние с декоративна илюстрация (ph28 – обобщена сграда, не е проектът) */
+.nc-na.deco{align-items:flex-start;justify-content:center;text-align:left;padding:56px 50px;overflow:hidden;background:#24040b}
+.nc-na-img{position:absolute;right:0;top:0;bottom:0;width:66%;background-size:cover;background-position:right center;opacity:.9;
+  -webkit-mask-image:linear-gradient(270deg,#000 40%,rgba(0,0,0,.6) 70%,transparent 100%);mask-image:linear-gradient(270deg,#000 40%,rgba(0,0,0,.6) 70%,transparent 100%)}
+.nc-na-cap{position:absolute;right:16px;bottom:14px;z-index:2;padding:6px 14px;border-radius:14px;font:700 18px/1.2 var(--cond);color:#fff3dc;background:rgba(25,8,12,.78);box-shadow:0 0 0 1px rgba(237,196,122,.5)}
+.nc-na-t{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:18px;max-width:58%;padding:28px 30px;border-radius:28px;
+  background:linear-gradient(90deg,rgba(36,4,11,.94) 0%,rgba(36,4,11,.86) 70%,rgba(36,4,11,.55) 100%)}
+.nc-na-t h3{text-align:left}.nc-na-t p{text-align:left}.nc-na-t ul{justify-content:flex-start}
+html:not(.desk) .nc-na.deco{padding:300px 26px 30px}
+html:not(.desk) .nc-na-img{left:0;right:0;width:auto;height:420px;bottom:auto;-webkit-mask-image:linear-gradient(180deg,#000 45%,transparent 100%);mask-image:linear-gradient(180deg,#000 45%,transparent 100%)}
+html:not(.desk) .nc-na-t{max-width:none}
+html:not(.desk) .nc-na-cap{top:14px;bottom:auto}
+
+.nc-uc .where .nc-st{height:42px;font-size:21px}
+.nc-uc .where{align-items:center}
+
+.nc-ov>div>.ndg,.nc-ov .nc-uc-slot,.nc-ov .nc-uc-slot>.ndg{height:100%}
+.nc-uc .ndg-h{font-size:27px;padding-right:64px;gap:14px}
+.nc-uc .ndg-h svg.i{font-size:30px}
+
+/* меню „Действия на екипа“ в лентата на проекта */
+.nc-smw{position:absolute;right:24px;top:22px;z-index:5}
+html.desk .nc-strip:has(.nc-smw) h2{padding-right:330px}
+.nc-smenu{position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.nc-smenu .nc-badge{height:40px;font-size:19px}
+.nc-smenu-l{position:absolute;right:0;top:calc(100% + 8px);z-index:20;display:flex;flex-direction:column;min-width:400px;padding:10px;border-radius:26px;
+  background:linear-gradient(180deg,rgba(255,252,248,.99),rgba(251,238,227,.98));box-shadow:0 0 0 1.5px rgba(227,178,94,.7),0 0 18px rgba(255,226,190,.95),0 14px 30px rgba(40,5,12,.45)}
+.nc-smenu-l>button,.nc-smenu-l>a{display:flex;align-items:center;gap:14px;min-height:64px;padding:0 20px;border:0;border-radius:18px;background:none;text-align:left;cursor:pointer;text-decoration:none;font:700 25px/1.1 var(--cond);color:#5a0a18}
+.nc-smenu-l>button svg.i,.nc-smenu-l>a svg.i{font-size:28px;color:#7b1020}
+.nc-smenu-l>button:hover,.nc-smenu-l>a:hover,.nc-smenu-l>button:focus-visible,.nc-smenu-l>a:focus-visible{background:linear-gradient(90deg,rgba(237,196,122,.4),rgba(255,255,255,0))}
+.nc-mnote{padding:8px 20px;font:400 20px/1.3 var(--cond);color:#5b4038}
+html:not(.desk) .nc-smw{position:static;grid-column:1/-1;grid-row:3;justify-self:stretch}
+html:not(.desk) .nc-smenu{flex-direction:row;justify-content:space-between;align-items:center}
+.nc-stat{min-height:132px}
+.nc-strip .nc-badge.ok{color:#1e4d12;background:linear-gradient(180deg,#e4f5cb,#cfe9ad);border-color:rgba(214,255,224,.85)}
+.nc-strip .nc-badge.warn{color:#5a3a00;background:linear-gradient(180deg,#fff1cc,#f7dc9a);border-color:#edc47a}
+.nc-strip .nc-badge.arch{background:linear-gradient(160deg,#6a5a55,#3e322e)}
+
+/* ---------------- TASK-008 (изп. 3): илюстрации, местоположение, височини от измереното място ---------------- */
+/* всяка декоративна снимка в карта носи надпис „Илюстрация“ – никога не изглежда като снимка на реалния проект или адрес */
+.ncx .ndg>.ndg-img::after{content:"Илюстрация";position:absolute;right:14px;bottom:12px;padding:5px 12px;border-radius:12px;font:700 17px/1.2 var(--cond);color:#fff3dc;background:rgba(25,8,12,.72);box-shadow:0 0 0 1px rgba(237,196,122,.5)}
+.nc-gempty h3{font:700 34px/1.15 var(--serif);color:#5e0a1a;margin:0 0 10px}
+.nc-gempty .nc-note{max-width:58%}
+html:not(.desk) .nc-gempty .nc-note{max-width:none}
+.nc-locc .nc-rows{max-width:100%}
+#nc-loc{outline:0;scroll-margin-top:10px}
+#nc-viewing,#nc-inquiry{scroll-margin-top:10px}
+/* формите с илюстрация: полетата заемат цялата ширина, снимката е само в горната лента */
+.ncx .ndg:has(>.ndg-f>.nc-form)>.ndg-img{bottom:auto;height:150px;-webkit-mask-image:linear-gradient(270deg,#000 30%,rgba(0,0,0,.55) 70%,transparent 100%),linear-gradient(180deg,#000 40%,transparent 100%);mask-image:linear-gradient(270deg,#000 30%,rgba(0,0,0,.55) 70%,transparent 100%);-webkit-mask-composite:source-in;mask-composite:intersect}
+.ncx .ndg:has(>.ndg-f>.nc-form)>.ndg-f{max-width:none;margin-top:70px}
+/* 3D: списъкът с етажи вляво, илюстрацията вдясно (като одобрената референция 03) */
+html.desk .nc-fsel .nc-flist,html.desk .nc-fsel .nc-ucodes,html.desk .nc-fsel .nc-sel{max-width:100%}
+/* визуализаторите: височина от реално измереното видимо място (--vis = видимата височина на прозореца в пикселите на платното) */
+html.desk .nc-vw{height:clamp(440px,calc(var(--vis,820px) - 64px),1100px)}
+html.desk .nc-3d{height:clamp(460px,calc(var(--vis,820px) - 112px),1100px)}
+html.desk .nc-pano{height:clamp(440px,calc(var(--vis,820px) - 200px),1000px)}
+html:not(.desk) .nc-vw{height:clamp(560px,calc(var(--vis,1400px) - 380px),900px)}
+html:not(.desk) .nc-3d,html:not(.desk) .nc-pano{height:clamp(560px,calc(var(--vis,1400px) - 380px),900px)}
+.nc-vw.fs,.nc-3d.fs,.nc-pano.fs{height:auto!important}
+.nc-vw:fullscreen,.nc-3d:fullscreen,.nc-pano:fullscreen{height:100%!important}
+.nc-btns{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px}
+/* 360°: миниатюрен план с текущото помещение (реф. 04) */
+.nc-mini .pic{position:relative;border-radius:18px;overflow:hidden;background:#fffdf9;box-shadow:inset 0 0 0 1.5px rgba(226,176,120,.6)}
+.nc-mini img{display:block;width:100%;height:auto;max-height:420px;object-fit:contain}
+.nc-mini .pos{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c8,#d9a254 70%);box-shadow:0 0 0 4px rgba(255,255,255,.92),0 0 16px rgba(246,212,142,.95)}
+.nc-mini .cur{margin-top:12px;font:700 23px/1.25 var(--cond);color:#5e0a1a}
+/* TASK-010: компонентът сам мери мястото (--ntr-h), но е монтиран под заглавието и разделите на проекта и излиза нисък; на компютър височината му се взима от
+   измереното видимо място на стъкления прозорец (--vis), за да изпълни прозореца като в одобрената референция 04 и да се вижда цял. Не важи на цял екран. */
+html.desk .nc-t10:not(.ntr-fs):not(.ntr-narrow):not(:fullscreen) .ntr-wrap{height:clamp(500px,calc(var(--vis,820px) - 40px),1150px)}
+.nc-t10s{margin-top:18px}
+.nc-t10s:empty{display:none}
