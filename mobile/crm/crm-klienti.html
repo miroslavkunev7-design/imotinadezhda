@@ -469,6 +469,10 @@ html.desk #canvas .cgrid{flex:0 0 auto;height:var(--rowH)!important;min-height:0
 #canvas .cgrid::-webkit-scrollbar{display:none}
 #canvas .cgrid .ccard{zoom:var(--cz,.97);flex:none}
 html:not(.desk) #canvas .cgrid{min-height:var(--rowH,520px);padding:12px 8px 8px}
+/* 11.11: на телефон картите са една под друга и страницата се превърта надолу (не настрани) – по искане на собственика */
+html:not(.desk) #canvas .cgrid,html:not(.desk) #canvas .cgrid.off{flex-direction:column;align-items:center;gap:26px;overflow-x:hidden;overflow-y:visible;min-height:0;padding:14px 8px 10px;touch-action:pan-y;scroll-padding:0}
+html:not(.desk) #canvas .cgrid .ccard{zoom:var(--cz,.97);width:973px;max-width:100%}
+html:not(.desk) #canvas .cgrid .empty{width:100%}
 html.desk #canvas .cgrid{margin:0;padding:0 12px}
 html.desk #canvas .ccard .tg{height:66px;font-size:28px;border-radius:33px}
 html.desk #canvas .ccard .mn{width:66px;height:66px}
@@ -901,7 +905,8 @@ html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
     var fold=root.classList.contains('nd-ffold');
     var rowH=Math.max(420,Math.round(innerHeight/k-180-(fold?70:210)));
     root.style.setProperty('--rowH',rowH+'px');
-    root.style.setProperty('--cz',Math.max(.55,Math.min(1,(rowH-12)/878)).toFixed(4));
+    /* 11.11: вертикален списък – картата е на цялата ширина на платното (не се смалява по височина) */
+    root.style.setProperty('--cz',Math.max(.55,Math.min(1,(W-76)/973)).toFixed(4));
     fitModal();
   }
   addEventListener('nd-ffold',fit);
@@ -1271,7 +1276,9 @@ html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
 <script src="/mobile/nd-hscroll.js" defer></script>
 <script>/* Клиенти: лентата с карти се превърта със стрелките ‹ › (nd-hscroll.js), плъзгане, колелце и ← → – и на телефон, и на компютър. */
 (function(){
-  document.querySelectorAll('.cgrid').forEach(function(g){g.setAttribute('data-nd-hs','')});
+  /* 11.11: стрелките и хоризонталното превъртане са само на компютър; на телефон картите са една под друга */
+  var desk=document.documentElement.clientWidth>=1024&&document.documentElement.clientWidth/innerHeight>=1.2;
+  document.querySelectorAll('.cgrid').forEach(function(g){if(desk)g.setAttribute('data-nd-hs','');else g.removeAttribute('data-nd-hs')});
 })();</script>
 </body>
 </html>
