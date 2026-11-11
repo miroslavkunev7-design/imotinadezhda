@@ -593,7 +593,9 @@ export function mount(el, opts) {
       else if (a === "fs") fsToggle(el, () => { fit(); fsMark(); S.pano && S.pano.req(); S.walk && S.walk.req(); });
       else if (a === "reset") { if (S.pano) S.pano.reset(roomById(S.room)); if (S.walk) S.walk.reset(); }
       else if (a === "zin") S.pano && S.pano.zoom(-8); else if (a === "zout") S.pano && S.pano.zoom(8);
-      else if (a === "plan") { const f = $(".ntr-flmm"), on = f.hidden; f.hidden = !on; b.setAttribute("aria-pressed", on); if (on) { f.innerHTML = minimapSvg(S.model.minimap, S.model.rooms, S.room); } }
+      else if (a === "plan") { const f = $(".ntr-flmm"), on = f.hidden; f.hidden = !on; b.setAttribute("aria-pressed", on);
+        if (on) { f.innerHTML = minimapSvg(S.model.minimap, S.mode === "walk" && S.model.scene ? S.model.scene.navigation.nodes.map((n) => ({ room_id: n.room_id })) : S.model.rooms, S.room);
+          const rr = roomById(S.room); if (S.walk) { const q = S.walk.pos(); setView(q.x, q.y, q.yaw); } else if (S.pano && rr && rr.node) setView(rr.node.x, rr.node.y, S.pano.view().lon); } }
       else if (a === "tup" || a === "tdown") { const l = $(".ntr-left .ntr-lst"); l.scrollBy({ top: (a === "tup" ? -1 : 1) * l.clientHeight * 0.8, behavior: RM() ? "auto" : "smooth" }); }
       else if (a === "sprev" || a === "snext") { const l = $(".ntr-strip .ntr-lst"); l.scrollBy({ left: (a === "sprev" ? -1 : 1) * l.clientWidth * 0.8, behavior: RM() ? "auto" : "smooth" }); }
       else if (a === "staffview" && o.onStaffView) o.onStaffView();
