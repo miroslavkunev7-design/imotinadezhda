@@ -317,7 +317,7 @@ function walkViewer(stage, scene, ctx) {
   const roomAt = (x, y) => A.rooms.find((r) => pip([x, y], r.polygon));
   function draw() {
     st.raf = 0; if (st.dead) return;
-    const now = performance.now(), dt = Math.min(0.05, (now - (st.last || now)) / 1000); st.last = now;
+    const now = performance.now(), dt = Math.min(0.12, (now - (st.last || now)) / 1000); st.last = now;   /* скоростта не зависи от честотата на кадрите (стъпките в tryMove са ≤ 4 см) */
     let fw = 0, sd = 0, turn = 0;
     if (st.keys.has("f")) fw += 1; if (st.keys.has("b")) fw -= 1; if (st.keys.has("sl")) sd -= 1; if (st.keys.has("sr")) sd += 1; if (st.keys.has("tl")) turn -= 1; if (st.keys.has("tr")) turn += 1;
     if (st.joy) { fw += -st.joy.y; sd += st.joy.x; }
@@ -460,7 +460,9 @@ export function mount(el, opts) {
   const onResize = () => fit();
   window.addEventListener("resize", onResize);
   let lastW = 0; const roEl = window.ResizeObserver ? new ResizeObserver(() => { const w = el.clientWidth; if (Math.abs(w - lastW) > 1) { lastW = w; fit(); } }) : null; if (roEl) roEl.observe(el);
-  const onFs = () => setTimeout(() => { fit(); S.pano && S.pano.req(); S.walk && S.walk.req(); }, 80); document.addEventListener("fullscreenchange", onFs);
+  /* надписът на бутона следва състоянието (и при изход с Esc от браузъра) */
+  function fsMark() { const on = document.fullscreenElement === el || el.classList.contains("ntr-fs"), b = el.querySelector(".ntr-tools [data-act=fs]"); if (b) { b.setAttribute("aria-pressed", on); b.setAttribute("aria-label", on ? "Изход от цял екран" : "На цял екран"); b.title = b.getAttribute("aria-label"); } }
+  const onFs = () => setTimeout(() => { fit(); fsMark(); S.pano && S.pano.req(); S.walk && S.walk.req(); }, 80); document.addEventListener("fullscreenchange", onFs);
   const onVis = () => { S.vis = !document.hidden; if (document.hidden) { S.pano && S.pano.stopAuto(); } };
   document.addEventListener("visibilitychange", onVis);
 
@@ -584,7 +586,7 @@ export function mount(el, opts) {
       const a = b.dataset.act;
       if (a === "room") goRoom(b.dataset.room);
       else if (a === "mode") setMode(b.dataset.mode);
-      else if (a === "fs") fsToggle(el, () => { fit(); S.pano && S.pano.req(); S.walk && S.walk.req(); });
+      else if (a === "fs") fsToggle(el, () => { fit(); fsMark(); S.pano && S.pano.req(); S.walk && S.walk.req(); });
       else if (a === "reset") { if (S.pano) S.pano.reset(roomById(S.room)); if (S.walk) S.walk.reset(); }
       else if (a === "zin") S.pano && S.pano.zoom(-8); else if (a === "zout") S.pano && S.pano.zoom(8);
       else if (a === "plan") { const f = $(".ntr-flmm"), on = f.hidden; f.hidden = !on; b.setAttribute("aria-pressed", on); if (on) { f.innerHTML = minimapSvg(S.model.minimap, S.model.rooms, S.room); } }
@@ -594,6 +596,7 @@ export function mount(el, opts) {
     };
     const fm = $(".ntr-flmm"); if (fm) fm.onclick = (e) => { const p = e.target.closest(".ntr-mm-r"); if (p) goRoom(p.dataset.room); };
     const stage = $(".ntr-stage"); if (!stage) return;
+    el.onkeydown = (e) => { if (e.key === "Escape" && (document.fullscreenElement === el || el.classList.contains("ntr-fs"))) { e.preventDefault(); fsToggle(el, () => { fit(); fsMark(); S.pano && S.pano.req(); S.walk && S.walk.req(); }); } };
     stage.onkeydown = (e) => {
       if (e.target !== stage) return; const k = e.key;
       if (S.mode === "pano" && S.pano) {
