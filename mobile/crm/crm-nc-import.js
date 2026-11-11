@@ -322,7 +322,7 @@
       body = '<p class="nci-note ok">Създадени: ' + (c.buildings || 0) + " сгради, " + (c.floors || 0) + " етажа, " + (c.units || 0) + " обекта · обновени: " + (u2.units || 0) + " обекта" + (u2.project ? ", данни на проекта" : "") + (r.replayed ? " (вече беше записано – нищо не е дублирано)" : "") + "</p>" +
         ((r.downstream || []).length ? '<div class="nci-panel"><h4>Заявки към TASK-009</h4><ul class="nci-list">' + r.downstream.map(function (d) { return '<li><span class="nm">' + esc(d.file_id) + " · проверка на CAD/BIM</span>" + (d.ok ? '<span class="tg info">чака изпълнител</span>' : '<span class="tg bad">' + esc(d.error || "грешка") + "</span>") + "</li>"; }).join("") + "</ul></div>" : "") +
         '<p class="nci-note">Всички обекти са със статус „Свободен“. Цените са изчислени от системата (площ × цена на кв.м); ръчните цени са с причина. Източникът на всяко поле е записан в обекта.</p>';
-      foot = '<button type="button" class="nci-b" data-a="close">Затвори</button><button type="button" class="nci-b pri" data-a="open-project">Отвори проекта</button>';
+      foot = '<button type="button" class="nci-b" data-a="close">Затвори</button>' + (S.onDone ? '<button type="button" class="nci-b pri" data-a="open-project">Отвори проекта</button>' : '');
     } else if (st === "cancelled") {
       h = hero("Импортът е отменен", proj + " · нищо не е записано в проекта.", IMG.up);
       body = '<p class="nci-note">Качените файлове остават в частната папка на проекта (не са публични). Може да започнете нов импорт по всяко време.</p>';

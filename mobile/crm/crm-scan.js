@@ -53,7 +53,9 @@
         (ctxKind === "property" ? item(I.folder, "Прикачи папка", "Снимки, видеа и опис на имота", "folder") : "") +
         '<button type="button" class="back" data-a="back">‹ Назад</button>'
       : item(I.pen, "Добави ръчно", "Попълване на картата", "manual") +
-        item(I.scan, "Сканиране на " + what, "Лична карта, визитка, бележка, обява, документ…", "scan");
+        item(I.scan, "Сканиране на " + what, "Лична карта, визитка, бележка, обява, документ…", "scan") +
+        (ctxKind === "property" && handlers && typeof handlers.projectImport === "function" ?
+          item(I.folder, "Импорт на строителен проект", "ZIP, папка, чертежи и таблици", "project-import") : "");
   }
   function place(anchor) {
     var r = anchor.getBoundingClientRect(), w = pop.offsetWidth;
@@ -92,6 +94,7 @@
         if (a === "manual") { close(); handlers.manual(); }
         else if (a === "scan") { render(2); place(pop._anchor); }
         else if (a === "back") { render(1); place(pop._anchor); }
+        else if (a === "project-import") { var importHandler = handlers && handlers.projectImport; close(); if (typeof importHandler === "function") importHandler(); }
         else { close(); pick(a); }
       });
       document.addEventListener("click", function (e) { if (pop && !pop.hidden && !pop.contains(e.target) && e.target !== pop._anchor && !(pop._anchor && pop._anchor.contains(e.target))) close(); }, true);
