@@ -110,7 +110,7 @@ export function building(el, o) {
   /* коя сграда е: от /model/<сграда>, от o.building_id или от текущия избор на страницата (при адрес за преглед на екипа) */
   const NCp = window.NC, pageS = NCp && (typeof NCp.state === "function" ? NCp.state() : NCp.state), pageB = pageS && pageS.b;
   const bid = (/^\/model\/([a-z0-9]{8,64})$/.exec(String(o.url || "")) || [])[1] || o.building_id || (ID.test(String(pageB || "")) ? pageB : null);
-  const reg = bid ? status(bid) : { state: "none" };
+  let reg = bid ? status(bid) : { state: "none" };
   const ok = allowedUrl(o.url);
   let bar = null, note = null;
   if (ok) {
@@ -142,6 +142,7 @@ export function building(el, o) {
   }).catch((e) => { if (e && e.name === "AbortError") return; fail((e && e.message) || "Моделът не се зареди."); });
 
   function badge() {
+    reg = bid ? status(bid) : reg; out.model = reg;                      /* състоянието може да е дошло след старта на зареждането */
     if (!bid || reg.state === "none") return;
     const parts = ["Версия " + (reg.version || "?"), ST_BG[reg.state] || reg.state];
     if (reg.fidelity && FID[reg.fidelity]) parts.push(FID[reg.fidelity]); if (reg.source && SRC[reg.source]) parts.push(SRC[reg.source]);
@@ -181,7 +182,7 @@ export function stateHtml(building, name) {
     : r.state === "review" ? "Версия " + r.version + " е готова и чака изрично „Да“ от администратор (models.publish). Публиката не я вижда."
     : "За тази сграда няма качен и проверен 3D модел.";
   return '<div class="nc-na deco" role="status"><div class="nc-na-img" style="background-image:url(' + esc(img(ph)) + ')" aria-hidden="true"></div><span class="nc-na-cap">Илюстрация – не е този проект</span>' +
-    '<div class="nc-na-t"><span class="tag">' + esc(ST_BG[r.state] || "3D модел") + "</span><h3>" + esc(title) + "</h3><p>" + text + "</p></div></div>";
+    '<div class="nc-na-t"><span class="tag">' + esc(cap(ST_BG[r.state] || "3D модел")) + "</span><h3>" + esc(title) + "</h3><p>" + text + "</p></div></div>";
 }
 
 /* ---------- състояние на модела по сграда – САМО ЧЕТЕНЕ (страницата сама решава откъде зарежда) ---------- */
@@ -232,7 +233,8 @@ function wrapAdapter(A) {
   if (!A || A._nc9 || typeof A.project !== "function") return A;
   A._nc9 = true;
   const orig = A.project.bind(A);
-  A.project = (key) => orig(key).then((M) => { if (M) return refresh(M, A).then(() => M, () => M); return M; });
+  /* екип: изчаква (състоянието „обработва се“ трябва да е известно преди първото рисуване); публично: без изчакване – значката чете състоянието при готовност */
+  A.project = (key) => orig(key).then((M) => { if (!M) return M; const p = refresh(M, A); return A.mode === "staff" ? p.then(() => M, () => M) : M; });
   return A;
 }
 export function install(NC) {
