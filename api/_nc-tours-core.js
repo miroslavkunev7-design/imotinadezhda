@@ -481,9 +481,11 @@ function navigation(g, env, furniture, warnings) {
       const z = env.doorZones.find((d) => d.room === room.id); p = z ? [r3(z.c[0] + z.v[0] * (-z.hd + 0.3)), r3(z.c[1] + z.v[1] * (-z.hd + 0.3))] : [r3(c0[0]), r3(c0[1])];
       warnings.push((room.name || room.id) + ": няма място за стоене в 3D (твърде малко) – гледната точка е при вратата");
     }
-    /* начален поглед: към най-дългия свободен лъч (16 посоки) */
+    /* начален поглед: към най-отворената част на стаята – свободните лъчи в 16 посоки, изгладени в сектор ±45° (а не към единичен ъгъл) */
+    const rays = [];
+    for (let k = 0; k < 16; k++) { const d = dirOf(k * 22.5); let L = 0; for (let s = 0.1; s < 12; s += 0.1) { const pp = [p[0] + d[0] * s, p[1] + d[1] * s], ij = cellOf(N, pp); const inRoomCell = ij[0] >= 0 && ij[1] >= 0 && ij[0] < N.w && ij[1] < N.h && N.roomOf[ij[1] * N.w + ij[0]] === ri; if (!inRoomCell) break; L = s; } rays.push(L); }
     let yaw = 0, far = -1;
-    for (let k = 0; k < 16; k++) { const b = k * 22.5, d = dirOf(b); let L = 0; for (let s = 0.1; s < 12; s += 0.1) { const pp = [p[0] + d[0] * s, p[1] + d[1] * s], ij = cellOf(N, pp); const inRoomCell = ij[0] >= 0 && ij[1] >= 0 && ij[0] < N.w && ij[1] < N.h && N.roomOf[ij[1] * N.w + ij[0]] === ri; if (!inRoomCell) break; L = s; } if (L > far + 1e-9) { far = L; yaw = b; } }
+    for (let k = 0; k < 16; k++) { const R = (d) => rays[(k + d + 16) % 16], sc = R(0) + 0.6 * (R(-1) + R(1)) + 0.3 * (R(-2) + R(2)); if (sc > far + 1e-9) { far = sc; yaw = k * 22.5; } }
     nodes.push({ id: "n-" + room.id, room_id: room.id, x: p[0], y: p[1], eye_h: EYE_H, start_yaw: yaw, standing });
   });
   const byRoom = {}; nodes.forEach((n) => { byRoom[n.room_id] = n; });
@@ -689,8 +691,23 @@ function resample(im, W, H) {
   }
   return { w: W, h: H, d: out };
 }
-/* производна за публиката: прекодиран JPEG (без EXIF/GPS/автор), ширина ≤ out, + миниатюра 256×128 */
-function panoDerivative(buf, quality) {
+/* миниатюра: изрязък 120° × 75° от панорамата около началния поглед (yaw спрямо средата на картината), с пренасяне през шева */
+function thumbCrop(im, yawDeg, W2, H2, spanDeg) {
+  const span = spanDeg || 120, cw = (im.w * span) / 360, ch = cw * H2 / W2, cx = im.w * (0.5 + (((yawDeg || 0) % 360) + 360) % 360 / 360), cy = im.h * (0.5 + 4 / 180);
+  const x0 = cx - cw / 2, y0 = Math.max(0, Math.min(im.h - ch, cy - ch / 2)), sx = cw / W2, sy = ch / H2, out = new Uint8Array(W2 * H2 * 4);
+  for (let Y = 0; Y < H2; Y++) {
+    const ya = Math.floor(y0 + Y * sy), yb = Math.max(ya + 1, Math.floor(y0 + (Y + 1) * sy));
+    for (let X = 0; X < W2; X++) {
+      const xa = Math.floor(x0 + X * sx), xb = Math.max(xa + 1, Math.floor(x0 + (X + 1) * sx));
+      let r = 0, g = 0, b = 0, n = 0;
+      for (let y = ya; y < yb && y < im.h; y++) for (let x = xa; x < xb; x++) { const o = (y * im.w + (((x % im.w) + im.w) % im.w)) * 4; r += im.d[o]; g += im.d[o + 1]; b += im.d[o + 2]; n++; }
+      const k = (Y * W2 + X) * 4; out[k] = r / n; out[k + 1] = g / n; out[k + 2] = b / n; out[k + 3] = 255;
+    }
+  }
+  return { w: W2, h: H2, d: out };
+}
+/* производна за публиката: прекодиран JPEG (без EXIF/GPS/автор), ширина ≤ out, + миниатюра 256×160 (изрязък около началния поглед; o.thumb_yaw) */
+function panoDerivative(buf, quality, o) {
   const c = checkPano(buf, quality); if (!c.ok) return c;
   let im;
   try { im = decode(buf); } catch (e) { return { ok: false, code: "FILE_CORRUPT", message: "файлът е повреден и не се декодира" }; }
@@ -700,7 +717,7 @@ function panoDerivative(buf, quality) {
   const out = resample(im, W, H);
   const J = require("./_vendor/jpeg-js");
   const enc = Buffer.from(J.encode({ data: out.d, width: W, height: H }, 86).data);
-  const th = resample(out, 256, 128), thumb = Buffer.from(J.encode({ data: th.d, width: 256, height: 128 }, 72).data);
+  const th = thumbCrop(out, o && isFinite(o.thumb_yaw) ? +o.thumb_yaw : 0, 256, 160), thumb = Buffer.from(J.encode({ data: th.d, width: 256, height: 160 }, 74).data);
   /* грубо отчитане на „празна“ панорама (едноцветна) – предупреждение, не грешка */
   let mn = 255, mx = 0; for (let k = 0; k < th.d.length; k += 4) { const v = th.d[k]; if (v < mn) mn = v; if (v > mx) mx = v; }
   return { ok: true, buf: enc, w: W, h: H, bytes: enc.length, sha256: shaBuf(enc), src_sha256: shaBuf(buf), src: c.info, thumb: "data:image/jpeg;base64," + thumb.toString("base64"), flat: mx - mn < 8 };
@@ -709,6 +726,6 @@ function panoDerivative(buf, quality) {
 module.exports = {
   G_SCHEMA, S_SCHEMA, B_SCHEMA, GENERATOR, ROOM_TYPES, ROOM_BG, LABELS, STYLE_SYSTEMS, DEFAULT_STYLE, PREFS, QUALITY, CELL, BODY_R, EYE_H,
   validateGeometry, validateStyle, materialsFor, buildScene, validateScene, architectureOf, hotspotsFor, validateHotspots,
-  imageInfo, checkPano, panoDerivative, resample, canon, sha, shaBuf, deepFreeze,
+  imageInfo, checkPano, panoDerivative, resample, thumbCrop, canon, sha, shaBuf, deepFreeze,
   _: { area, centroid, pip, segDist, rect, rectsOverlap, rectInPoly, envOf, navGrid, unrle, rle, cellOf, walk, bfs, furnRect, bearing, angDiff, placeFurniture }
 };

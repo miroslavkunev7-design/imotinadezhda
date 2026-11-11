@@ -252,8 +252,8 @@ const RUN = {
     }
     const dl = await BACK.download(i.upload_path, 25 * 1048576);
     if (!dl.ok) return { ok: false, job_id: i.job_id, state: "running", error_code: dl.code, retryable: RETRYABLE.has(dl.code), panorama_set_id: set.id, message: dl.code === "FILE_MISSING" ? "Файлът още не се вижда в хранилището" : dl.code === "FILE_TOO_LARGE" ? "Файлът е над 25 MB" : "Хранилището не отговори", correlation_id: c };
-    const d = T.panoDerivative(dl.buf, set.quality);
     const prev = (set.items || {})[i.room_id] || {};
+    const d = T.panoDerivative(dl.buf, set.quality, { thumb_yaw: (+prev.start_yaw || 0) - (+prev.yaw_offset || 0) });
     if (!d.ok) {
       /* постоянна грешка: записва се като отказан файл за стаята, без повтаряне и без да се харчи опит на задачата */
       try { await svc("nd_tour_set_put", { p_set_id: set.id, p_job_id: i.job_id, p_room_id: i.room_id, p_rev: i.rev, p_item: { status: "rejected", error_code: d.code, message: d.message, at: new Date().toISOString() } }, c); } catch (e) { await BACK.remove(i.upload_path); throw e; }

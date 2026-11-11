@@ -5,14 +5,16 @@
   --glow:0 0 0 1px rgba(237,196,122,.85),0 0 .9em rgba(255,190,120,.45);
   font-size:var(--ntr-fs,15px);font-family:'Roboto Condensed','Roboto Condensed Local','Arial Narrow',Arial,sans-serif;color:var(--ink);position:relative;box-sizing:border-box;line-height:1.25}
 .ntr *,.ntr *::before,.ntr *::after{box-sizing:border-box}
-.ntr button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:where(.ntr) button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .ntr-i{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
 .ntr :focus-visible{outline:.18em solid var(--g3);outline-offset:.12em}
 
 /* ---------- рамка ---------- */
-.ntr-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:.9em;height:var(--ntr-h,560px);min-height:0}
+/* колони: ntr-wide – миниатюри | преглед | карта; ntr-hosted – картата е в колоната на страницата (TASK-008); ntr-narrow – една под друга */
+.ntr-wrap{display:grid;grid-template-columns:minmax(0,1fr) 17.5em;gap:.9em;height:var(--ntr-h,560px);min-height:0}
 .ntr.ntr-wide .ntr-wrap{grid-template-columns:8.6em minmax(0,1fr) 19.5em}
-.ntr:not(.ntr-wide):not(.ntr-narrow) .ntr-wrap{grid-template-columns:minmax(0,1fr) 17.5em}
+.ntr.ntr-hosted .ntr-wrap{grid-template-columns:minmax(0,1fr)}
+.ntr.ntr-hosted.ntr-wide .ntr-wrap{grid-template-columns:8.6em minmax(0,1fr)}
 .ntr.ntr-narrow .ntr-wrap{height:auto;grid-template-columns:minmax(0,1fr)}
 .ntr-left{display:none}
 .ntr.ntr-wide .ntr-left{display:flex;flex-direction:column;align-items:stretch;gap:.4em;min-height:0;padding:.55em .5em;border-radius:1.3em;
@@ -20,7 +22,7 @@
 .ntr-left .ntr-lst{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:.55em;scrollbar-width:none}
 .ntr-left .ntr-lst::-webkit-scrollbar{display:none}
 .ntr-left .ntr-th{flex:0 0 auto;width:100%;aspect-ratio:4/3}
-.ntr-arr{display:grid;place-items:center;min-height:2em;border-radius:1em;color:var(--g1)}
+.ntr-arr{flex:0 0 auto;display:grid;place-items:center;min-height:2em;border-radius:1em;color:var(--g1)}
 .ntr-arr:hover{background:rgba(255,241,201,.1)}
 .ntr-main{display:flex;flex-direction:column;gap:.6em;min-width:0;min-height:0;padding:.6em;border-radius:1.4em;
   background:linear-gradient(180deg,rgba(74,15,27,.96),rgba(46,6,16,.98));box-shadow:var(--glow)}
@@ -28,7 +30,7 @@
 
 /* ---------- сцена (преглед) ---------- */
 .ntr-stage{position:relative;flex:1;min-height:12em;border-radius:1.1em;overflow:hidden;background:#1a0408;outline:0;touch-action:none;user-select:none;-webkit-user-select:none}
-.ntr.ntr-narrow .ntr-stage{flex:none;height:min(78vw,62vh);min-height:15em}
+.ntr.ntr-narrow .ntr-stage{flex:none;height:var(--ntr-sh,20em);min-height:12em}
 .ntr-stage:focus-visible{box-shadow:0 0 0 .22em var(--g3),0 0 1.2em rgba(246,212,142,.8)}
 .ntr-cv{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
 .ntr-top{position:absolute;left:.7em;top:.7em;right:12em;z-index:3;display:flex;flex-wrap:wrap;gap:.5em;align-items:flex-start;pointer-events:none}
@@ -37,6 +39,9 @@
 .ntr-tag .ntr-i{color:var(--w6)}
 .ntr-modes{padding:.2em;gap:.2em}
 .ntr-modes button{display:inline-flex;align-items:center;gap:.4em;height:2em;padding:0 .8em;border-radius:1em;color:var(--iw);font-weight:700}
+.ntr-ms{display:none}.ntr.ntr-narrow .ntr-ml{display:none}.ntr.ntr-narrow .ntr-ms{display:inline}
+.ntr.ntr-narrow .ntr-tools [data-act=zin],.ntr.ntr-narrow .ntr-tools [data-act=zout]{display:none}
+.ntr.ntr-narrow .ntr-top{right:9.6em}.ntr.ntr-narrow .ntr-tools{max-width:none}
 .ntr-modes button[aria-pressed="true"]{color:var(--g1);background:linear-gradient(180deg,#8a1428,#5c0d1c);box-shadow:0 0 0 1px var(--g5),0 0 .7em rgba(255,190,120,.55)}
 .ntr-lab{display:flex;flex-direction:column;gap:.05em;padding:.45em .9em;border-radius:.9em;color:#fff3dc;background:rgba(40,6,14,.72);box-shadow:var(--glow);backdrop-filter:blur(4px)}
 .ntr-lab b{font-size:1.08em}.ntr-lab span{font-size:.95em;opacity:.92}
@@ -45,12 +50,12 @@
 .ntr-tools button{width:2.6em;height:2.6em;border-radius:.8em;display:grid;place-items:center;color:#fff3dc;background:rgba(60,8,20,.8);box-shadow:var(--glow)}
 .ntr-tools button[aria-pressed="true"]{color:var(--w8);background:var(--g3)}
 .ntr-tools button:hover{background:rgba(110,16,34,.92)}
-.ntr-hint{position:absolute;left:50%;bottom:1.1em;z-index:2;transform:translateX(-50%);display:flex;align-items:center;gap:.4em;padding:.45em 1.1em;border-radius:2em;color:#fff3dc;font-size:1.25em;
+.ntr-hint{position:absolute;left:50%;bottom:3.3em;z-index:2;transform:translateX(-50%);display:flex;align-items:center;gap:.4em;padding:.45em 1.1em;border-radius:2em;color:#fff3dc;font-size:1.25em;
   background:rgba(40,6,14,.55);box-shadow:0 0 0 .12em rgba(246,212,142,.9),0 0 1.4em rgba(255,180,90,.65);transition:opacity .5s;pointer-events:none}
 .ntr-hint .ntr-i{width:1.6em;height:1.6em;color:var(--g3)}
 .ntr-hint.gone{opacity:0}
-.ntr-help{position:absolute;left:.7em;bottom:.6em;z-index:2;max-width:55%;padding:.3em .7em;border-radius:.7em;font-size:.82em;color:#fff3dc;background:rgba(30,4,10,.6);pointer-events:none}
-.ntr-badge{position:absolute;right:.7em;bottom:.6em;z-index:2;max-width:42%;padding:.3em .7em;border-radius:.7em;font-size:.82em;font-weight:700;color:var(--w8);background:rgba(255,241,201,.92);box-shadow:0 0 0 1px var(--g5)}
+.ntr-help{position:absolute;left:.7em;bottom:.6em;z-index:2;max-width:52%;padding:.3em .7em;border-radius:.7em;font-size:.82em;color:#fff3dc;background:rgba(30,4,10,.6);pointer-events:none}
+.ntr-badge{position:absolute;right:.7em;bottom:.6em;z-index:2;max-width:44%;padding:.3em .7em;border-radius:.7em;font-size:.82em;font-weight:700;color:var(--w8);background:rgba(255,241,201,.92);box-shadow:0 0 0 1px var(--g5)}
 .ntr.ntr-narrow .ntr-help{display:none}
 .ntr.ntr-narrow .ntr-badge{max-width:70%;left:.7em;right:auto}
 .ntr-st{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;gap:.7em;padding:1.5em;text-align:center;font-weight:700;font-size:1.1em;color:#fff3dc;background:rgba(26,4,8,.82)}
@@ -96,7 +101,10 @@
 /* ---------- кремава карта вдясно ---------- */
 .ntr-side{min-width:0;min-height:0;overflow:auto;border-radius:1.4em;background:linear-gradient(180deg,#fffaf3,#f8e8d6);box-shadow:var(--glow)}
 .ntr.ntr-narrow .ntr-side{overflow:visible}
-.ntr-sidehost{font-size:var(--ntr-fs,15px)}
+.ntr-sidehost{font-size:var(--ntr-fs,15px);border-radius:1.4em;background:linear-gradient(180deg,#fffaf3,#f8e8d6);box-shadow:var(--glow)}
+.ntr-sidehost:empty{display:none}
+/* карта в колоната на TASK-008: по-сбита, за да стои до прегледа */
+.ntr-sidehost .ntr-card{font-size:.93em;gap:.6em;padding:.8em}.ntr-sidehost .ntr-row{padding:.32em 0}.ntr-sidehost .ntr-ut{font-size:1.25em}
 .ntr-card{display:flex;flex-direction:column;gap:.75em;padding:.9em}
 .ntr-sel{position:relative;display:flex;align-items:center;gap:.5em;height:2.6em;padding:0 1em;border-radius:1.3em;color:#fff3dc;font-weight:700;background:linear-gradient(180deg,#8a1428,#5c0d1c);box-shadow:var(--glow)}
 .ntr-sel-l{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

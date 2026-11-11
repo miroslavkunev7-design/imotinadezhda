@@ -150,6 +150,16 @@ test("панорама: 2:1, размер, повреден файл, PNG; пр�
   assert.ok(!d.buf.includes(Buffer.from("GPS-TEST")), "метаданните са махнати");
   assert.match(d.thumb, /^data:image\/jpeg;base64,/); assert.ok(d.thumb.length < 40000);
   const big = T.panoDerivative(F.testPano(4096, 2048, { png: true }), "preview"); assert.ok(big.ok); assert.strictEqual(big.w, 2048, "предварителният е 2048");
+  /* миниатюрата е изрязък около началния поглед (с пренасяне през шева): лявата половина червена, дясната синя */
+  const W = 360, H = 180, im = { w: W, h: H, d: new Uint8Array(W * H * 4) };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const o = (y * W + x) * 4; if (x < W / 2) im.d[o] = 255; else im.d[o + 2] = 255; im.d[o + 3] = 255; }
+  const px = (t, X, Y) => { const o = (Y * t.w + X) * 4; return [t.d[o], t.d[o + 1], t.d[o + 2]]; };
+  const tb = T.thumbCrop(im, 90, 64, 40), tr = T.thumbCrop(im, -90, 64, 40), ts = T.thumbCrop(im, 180, 64, 40);
+  assert.deepStrictEqual([tb.w, tb.h], [64, 40]);
+  assert.deepStrictEqual(px(tb, 32, 20), [0, 0, 255], "yaw +90° → средата е в синята половина");
+  assert.deepStrictEqual(px(tr, 32, 20), [255, 0, 0], "yaw −90° → средата е в червената половина");
+  assert.deepStrictEqual(px(ts, 2, 20), [0, 0, 255], "yaw 180° → левият край е син (преди шева)");
+  assert.deepStrictEqual(px(ts, 61, 20), [255, 0, 0], "yaw 180° → десният край е червен (след шева)");
 });
 
 test("010.104–105 размер на сцената и бюджет на текстурите (измерено)", () => {

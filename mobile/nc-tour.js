@@ -141,10 +141,11 @@ export function buildScene3D(scene) {
   sky.position.set(cx, 0, -cy); group.add(sky);
   const ground = new T.Mesh(new T.PlaneGeometry(400, 400), new T.MeshBasicMaterial({ color: new T.Color(cols.ground) })); ground.rotation.x = -Math.PI / 2; ground.position.set(cx, -0.06, -cy); group.add(ground);
   /* светлина */
-  const L = scene.lighting || {}, lights = [];
-  const amb = new T.AmbientLight(0xffffff, 0.55 * ((L.ambient && L.ambient.intensity) || 0.35)); group.add(amb); lights.push(amb);
-  const hemi = new T.HemisphereLight(new T.Color((L.hemisphere && L.hemisphere.sky) || "#fffaf2"), new T.Color((L.hemisphere && L.hemisphere.ground) || "#b9a58f"), 0.6 * ((L.hemisphere && L.hemisphere.intensity) || 0.75)); group.add(hemi);
-  if (L.sun) { const s = new T.DirectionalLight(new T.Color(L.sun.color || "#fff1dc"), 0.75 * (L.sun.intensity || 1.2)), d = dir3(L.sun.bearing_plan || 180, L.sun.elevation_deg || 38); s.position.set(cx + d.x * 30, d.y * 30, -cy + d.z * 30); s.target.position.set(cx, 0, -cy); group.add(s); group.add(s.target); }
+  /* физически светлини (three r155+): разсеяната светлина се дели на π – множителят K я връща към замисленото ниво на сцената */
+  const L = scene.lighting || {}, lights = [], K = 2.6;
+  const amb = new T.AmbientLight(0xffffff, K * 0.55 * ((L.ambient && L.ambient.intensity) || 0.35)); group.add(amb); lights.push(amb);
+  const hemi = new T.HemisphereLight(new T.Color((L.hemisphere && L.hemisphere.sky) || "#fffaf2"), new T.Color((L.hemisphere && L.hemisphere.ground) || "#b9a58f"), K * 0.6 * ((L.hemisphere && L.hemisphere.intensity) || 0.75)); group.add(hemi);
+  if (L.sun) { const s = new T.DirectionalLight(new T.Color(L.sun.color || "#fff1dc"), K * 0.5 * (L.sun.intensity || 1.2)), d = dir3(L.sun.bearing_plan || 180, L.sun.elevation_deg || 38); s.position.set(cx + d.x * 30, d.y * 30, -cy + d.z * 30); s.target.position.set(cx, 0, -cy); group.add(s); group.add(s.target); }
   const point = new T.PointLight(0xfff0dc, 0, 9, 1.6); group.add(point);
   const setRoomLight = (roomId) => { const l = (L.rooms || []).find((x) => x.room_id === roomId); if (!l) { point.intensity = 0; return; } point.color.set(l.color || "#fff0dc"); point.intensity = 2.4 * (l.intensity || 1); point.position.set(l.x, l.z, -l.y); };
   return { group, floors, setRoomLight, center: [cx, cy], textures: M.texs };
@@ -168,14 +169,16 @@ export async function renderPanoramas(scene, o) {
       "vec3 toSRGB(vec3 c){ c = clamp(c, 0.0, 1.0); return mix(c * 12.92, 1.055 * pow(c, vec3(1.0/2.4)) - 0.055, step(0.0031308, c)); }" +
       "void main(){ float yaw = yaw0 + (vUv.x - 0.5) * 2.0 * PI; float pitch = (vUv.y - 0.5) * PI; vec3 d = vec3(sin(yaw) * cos(pitch), sin(pitch), -cos(yaw) * cos(pitch)); gl_FragColor = vec4(toSRGB(textureCube(cube, d).rgb), 1.0); }" });
   const quad = new T.Mesh(new T.PlaneGeometry(2, 2), quadMat), qs = new T.Scene(), qc = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1); qs.add(quad);
-  const px = new Uint8Array(W * Hh * 4), canvas = document.createElement("canvas"); canvas.width = W; canvas.height = Hh; const g = canvas.getContext("2d"), img = g.createImageData(W, Hh);
+  /* платно в паметта (willReadFrequently – без копие в GPU) и асинхронно четене на пикселите (WebGL2), за да не спира графичния процесор */
+  const px = new Uint8Array(W * Hh * 4), canvas = document.createElement("canvas"); canvas.width = W; canvas.height = Hh; const g = canvas.getContext("2d", { willReadFrequently: true }), img = g.createImageData(W, Hh);
+  const readPx = (r) => (renderer.capabilities.isWebGL2 && renderer.readRenderTargetPixelsAsync ? renderer.readRenderTargetPixelsAsync(r, 0, 0, W, Hh, px) : Promise.resolve(renderer.readRenderTargetPixels(r, 0, 0, W, Hh, px)));
   const out = [];
   try {
     for (const n of nodes) {
       if (opt.signal && opt.signal.aborted) break;
       built.setRoomLight(n.room_id);
       cubeCam.position.set(n.x, n.eye_h || 1.6, -n.y); cubeCam.update(renderer, sc);
-      renderer.setRenderTarget(rt); renderer.render(qs, qc); renderer.readRenderTargetPixels(rt, 0, 0, W, Hh, px); renderer.setRenderTarget(null);
+      renderer.setRenderTarget(rt); renderer.render(qs, qc); renderer.setRenderTarget(null); await readPx(rt);
       for (let y = 0; y < Hh; y++) img.data.set(px.subarray((Hh - 1 - y) * W * 4, (Hh - y) * W * 4), y * W * 4);
       g.putImageData(img, 0, 0);
       const blob = await new Promise((ok, no) => canvas.toBlob((b) => (b ? ok(b) : no(new Error("JPEG не се създаде"))), "image/jpeg", opt.quality || 0.9));
@@ -244,10 +247,14 @@ function panoViewer(stage, ctx) {
     const r = await fetch(url, { credentials: "omit", referrerPolicy: "no-referrer" });
     if (!r.ok) throw new Error(r.status === 404 ? "Панорамата не е достъпна (може статусът да се е сменил)" : "Грешка " + r.status);
     const blob = await r.blob();
-    let src = await (window.createImageBitmap ? createImageBitmap(blob) : new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => no(new Error("Файлът не е изображение")); im.src = URL.createObjectURL(blob); }));
-    if (Math.abs(src.width - 2 * src.height) > 2) throw new Error("Файлът не е равноправоъгълна панорама 2:1");
+    /* ориентация: за ImageBitmap браузърите може да пренебрегнат UNPACK_FLIP_Y (по спецификация) – затова картината се обръща още при
+       декодирането (imageOrientation: "flipY") и текстурата е с flipY = false. Така небето е горе във всеки браузър (Chrome, Chromium, Safari, Firefox). */
+    let src = null, flipped = false;
+    if (window.createImageBitmap) { try { src = await createImageBitmap(blob, { imageOrientation: "flipY" }); flipped = true; } catch (e) { src = null; } }
+    if (!src) src = await new Promise((ok, no) => { const u = URL.createObjectURL(blob), im = new Image(); im.onload = () => { URL.revokeObjectURL(u); ok(im); }; im.onerror = () => { URL.revokeObjectURL(u); no(new Error("Файлът не е изображение")); }; im.src = u; });
+    if (Math.abs(src.width - 2 * src.height) > 2) { if (src.close) src.close(); throw new Error("Файлът не е равноправоъгълна панорама 2:1"); }
     if (src.width > maxTex) { const c = document.createElement("canvas"); c.width = maxTex; c.height = maxTex / 2; c.getContext("2d").drawImage(src, 0, 0, c.width, c.height); if (src.close) src.close(); src = c; }
-    const t = new T.Texture(src); t.colorSpace = T.NoColorSpace; t.wrapS = T.RepeatWrapping; t.wrapT = T.ClampToEdgeWrapping; t.minFilter = T.LinearFilter; t.magFilter = T.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
+    const t = new T.Texture(src); t.flipY = !flipped; t.colorSpace = T.NoColorSpace; t.wrapS = T.RepeatWrapping; t.wrapT = T.ClampToEdgeWrapping; t.minFilter = T.LinearFilter; t.magFilter = T.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
     return t;
   }
   /* смяна на помещение: запазва посоката на погледа (непрекъсната ориентация, панорамите са подравнени по плана) */
@@ -416,26 +423,43 @@ export function mount(el, opts) {
   el.classList.add("ntr"); el.innerHTML = '<div class="ntr-st" role="status"><span class="ntr-spin" aria-hidden="true"></span><span>Зареждане на разходката…</span></div>';
   const $ = (s) => el.querySelector(s), $$ = (s) => [].slice.call(el.querySelectorAll(s));
   const sideRoot = () => S.side || el.querySelector(".ntr-side");
+  /* мащаб на страницата: CRM/публичната страница на TASK-008 мащабира платното с CSS zoom – всички размери тук са в px на компонента */
+  const zoomOf = (n) => { const r = n.getBoundingClientRect(); return n.offsetWidth && r.width ? r.width / n.offsetWidth : 1; };
+  function scrollBox(n) { for (let p = n.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) { const s = getComputedStyle(p); if (/(auto|scroll)/.test(s.overflowY) && p.clientHeight > 0) return p; } return null; }
   function fit() {
     if (S.dead || !el.isConnected) return;
-    const main = $(".ntr-main"); if (!main) return;
-    const r = el.getBoundingClientRect(), zoom = el.offsetWidth ? r.width / el.offsetWidth : 1;
     const fsMode = el.classList.contains("ntr-fs") || document.fullscreenElement === el;
-    const fs = clamp((window.innerWidth < 600 ? 13 : clamp(window.innerWidth / 92, 13, 18)) / (zoom || 1), 9, 60);
-    el.style.setProperty("--ntr-fs", fs.toFixed(2) + "px");
-    if (fsMode) { el.style.removeProperty("--ntr-h"); return; }
-    /* височината: реално измереното свободно място под горния ръб на компонента (в екранни px → px на страницата) */
-    let top = r.top; const sp = scrollParent(el); if (sp) top += sp === document.scrollingElement ? 0 : 0;
-    const docTop = r.top + (sp ? (sp === document.scrollingElement || sp === document.documentElement ? window.scrollY : sp.scrollTop) : window.scrollY) - (sp && sp !== document.scrollingElement && sp !== document.documentElement ? sp.getBoundingClientRect().top : 0);
-    const avail = window.innerHeight - Math.min(Math.max(0, docTop), window.innerHeight * 0.55) - 14;
-    const narrow = el.clientWidth < 760;
-    const h = narrow ? clamp(el.clientWidth * 0.78, 240, window.innerHeight * 0.62 / zoom) : clamp(avail / zoom, 330 / zoom, 1400);
-    el.style.setProperty("--ntr-h", Math.round(h) + "px");
-    el.classList.toggle("ntr-narrow", narrow); el.classList.toggle("ntr-wide", el.clientWidth >= 1100 && !S.side);
+    /* на цял екран мащабът на платното се неутрализира, за да заеме целия екран */
+    if (fsMode) { const pz = el.parentElement ? zoomOf(el.parentElement) : 1; const zz = Math.abs(pz - 1) > 0.01 ? String(+(1 / pz).toFixed(4)) : ""; if (el.style.zoom !== zz) el.style.zoom = zz; } else if (el.style.zoom) el.style.zoom = "";
+    const z = zoomOf(el) || 1, vw = window.innerWidth, vh = window.innerHeight;
+    const fs = clamp((vw < 600 ? 13 : clamp(vw / 92, 13, 18)) / z, 8, 90);
+    el.style.setProperty("--ntr-fs", fs.toFixed(2) + "px"); if (S.side) S.side.style.setProperty("--ntr-fs", fs.toFixed(2) + "px");
+    const wEm = el.clientWidth / fs, hosted = !!S.side, narrow = wEm < 44 && !(fsMode && vw > vh), wide = !narrow && wEm >= (hosted ? 46 : 62);
+    el.classList.toggle("ntr-narrow", narrow); el.classList.toggle("ntr-wide", wide); el.classList.toggle("ntr-hosted", hosted);
+    if (fsMode) { el.style.removeProperty("--ntr-h"); el.style.setProperty("--ntr-sh", "auto"); return; }
+    /* височината: реално измереното видимо място в превъртащия се контейнер, под горния ръб на компонента (≤ видимата височина – винаги се побира цял) */
+    const sb = scrollBox(el), r = el.getBoundingClientRect();
+    let visH, topIn;
+    if (sb) { const sr = sb.getBoundingClientRect(); visH = Math.min(vh, sr.bottom) - Math.max(0, sr.top); topIn = r.top - sr.top + sb.scrollTop * zoomOf(sb); }
+    else { visH = vh; topIn = r.top + (window.scrollY || 0); }
+    const avail = visH - Math.min(Math.max(0, topIn), visH * 0.5) - 10;
+    if (narrow) { el.style.setProperty("--ntr-sh", Math.round(clamp(el.clientWidth * 0.8, 13 * fs, Math.max(13 * fs, (visH * 0.6) / z))) + "px"); el.style.removeProperty("--ntr-h"); }
+    else { el.style.removeProperty("--ntr-sh"); el.style.setProperty("--ntr-h", Math.round(clamp(avail / z, 21 * fs, 1600)) + "px"); }
+    fitSide();
   }
-  function scrollParent(n) { for (let p = n.parentElement; p; p = p.parentElement) { const s = getComputedStyle(p); if (/(auto|scroll)/.test(s.overflowY) && p.scrollHeight > p.clientHeight) return p; } return document.scrollingElement; }
+  /* кремавата карта да не е по-висока от прегледа: свива се само мини-картата (до 5em) */
+  function fitSide() {
+    const host = sideRoot(); if (!host) return;
+    const svg = host.querySelector(".ntr-mm-svg"); if (!svg) return;
+    svg.style.maxHeight = "";
+    if (el.classList.contains("ntr-narrow") || el.classList.contains("ntr-fs") || document.fullscreenElement === el) return;
+    const z = zoomOf(host) || 1, fs = parseFloat(el.style.getPropertyValue("--ntr-fs")) || 15;
+    const over = S.side ? (host.getBoundingClientRect().bottom - el.getBoundingClientRect().bottom) / z : host.scrollHeight - host.clientHeight;
+    if (over > 1) svg.style.maxHeight = Math.round(Math.max(8 * fs, svg.getBoundingClientRect().height / z - over - 2)) + "px";
+  }
   const onResize = () => fit();
   window.addEventListener("resize", onResize);
+  let lastW = 0; const roEl = window.ResizeObserver ? new ResizeObserver(() => { const w = el.clientWidth; if (Math.abs(w - lastW) > 1) { lastW = w; fit(); } }) : null; if (roEl) roEl.observe(el);
   const onFs = () => setTimeout(() => { fit(); S.pano && S.pano.req(); S.walk && S.walk.req(); }, 80); document.addEventListener("fullscreenchange", onFs);
   const onVis = () => { S.vis = !document.hidden; if (document.hidden) { S.pano && S.pano.stopAuto(); } };
   document.addEventListener("visibilitychange", onVis);
@@ -474,7 +498,7 @@ export function mount(el, opts) {
   function layout(m) {
     const modes = []; if (m.rooms.length) modes.push("pano"); if (m.scene && m.scene.navigation) modes.push("walk");
     const tag = S.mode === "walk" ? ic("walk") + "3D разходка" : ic("r360") + "360° панорама";
-    const sw = modes.length > 1 ? '<div class="ntr-modes" role="group" aria-label="Режим">' + modes.map((k) => '<button type="button" data-act="mode" data-mode="' + k + '" aria-pressed="' + (S.mode === k) + '">' + ic(k === "walk" ? "walk" : "r360") + "<span>" + (k === "walk" ? "3D разходка" : "360° панорама") + "</span></button>").join("") + "</div>" : '<span class="ntr-tag">' + tag + "</span>";
+    const sw = modes.length > 1 ? '<div class="ntr-modes" role="group" aria-label="Режим">' + modes.map((k) => '<button type="button" data-act="mode" data-mode="' + k + '" aria-pressed="' + (S.mode === k) + '" aria-label="' + (k === "walk" ? "3D разходка" : "360° панорама") + '">' + ic(k === "walk" ? "walk" : "r360") + '<span class="ntr-ml">' + (k === "walk" ? "3D разходка" : "360° панорама") + '</span><span class="ntr-ms" aria-hidden="true">' + (k === "walk" ? "3D" : "360°") + "</span></button>").join("") + "</div>" : '<span class="ntr-tag">' + tag + "</span>";
     const help = S.mode === "walk" ? (COARSE() ? "Джойстик – ходене · плъзгане – поглед · докосни пода – отиди" : "Стрелки / W A S D – ходене · мишка – поглед · колело – напред · двоен клик – отиди дотук") : COARSE() ? "Плъзни – поглед · два пръста – мащаб · стрелките на пода – към съседната стая" : "Плъзни с мишката – поглед · колело – мащаб · стрелките на пода – към съседната стая";
     el.innerHTML = '<div class="ntr-wrap">' +
       '<div class="ntr-left" role="group" aria-label="Помещения"><button type="button" class="ntr-arr" data-act="tup" aria-label="Нагоре">' + ic("up") + '</button><div class="ntr-lst">' + thumbsHtml(m, true) + '</div><button type="button" class="ntr-arr" data-act="tdown" aria-label="Надолу">' + ic("down") + "</button></div>" +
@@ -489,7 +513,7 @@ export function mount(el, opts) {
     if (S.side) S.side.innerHTML = '<div class="ntr ntr-sidehost">' + sideHtml(m) + "</div>";
     fit();
   }
-  function refreshSide() { const host = sideRoot(); if (!host) return; const html = sideHtml(S.model); if (S.side) S.side.innerHTML = '<div class="ntr ntr-sidehost">' + html + "</div>"; else host.innerHTML = html; bindSide(); markRoom(); }
+  function refreshSide() { const host = sideRoot(); if (!host) return; const html = sideHtml(S.model); if (S.side) S.side.innerHTML = '<div class="ntr ntr-sidehost">' + html + "</div>"; else host.innerHTML = html; bindSide(); markRoom(); fitSide(); }
   function markRoom() {
     const r = S.room, name = S.mode === "walk" ? sceneRoomName(r) : (roomById(r) || {}).name;
     const lab = $(".ntr-lab-room"); if (lab) lab.textContent = name || "";
@@ -608,7 +632,7 @@ export function mount(el, opts) {
   }
   load();
   return {
-    destroy() { S.dead = true; destroyViewers(); if (io) io.disconnect(); window.removeEventListener("resize", onResize); document.removeEventListener("fullscreenchange", onFs); document.removeEventListener("visibilitychange", onVis); el.onclick = null; el.innerHTML = ""; el.classList.remove("ntr", "ntr-fs", "ntr-narrow", "ntr-wide"); if (S.side) S.side.innerHTML = ""; },
+    destroy() { S.dead = true; destroyViewers(); if (io) io.disconnect(); if (roEl) roEl.disconnect(); el.style.zoom = ""; ['--ntr-h', '--ntr-sh', '--ntr-fs'].forEach((k) => el.style.removeProperty(k)); window.removeEventListener("resize", onResize); document.removeEventListener("fullscreenchange", onFs); document.removeEventListener("visibilitychange", onVis); el.onclick = null; el.innerHTML = ""; el.classList.remove("ntr", "ntr-fs", "ntr-narrow", "ntr-wide", "ntr-hosted"); if (S.side) S.side.innerHTML = ""; },
     reload: load, setMode, goRoom, fit,
     state: () => ({ mode: S.mode, room: S.room, auto: S.auto, pano: S.pano ? S.pano.view() : null, walk: S.walk ? S.walk.pos() : null, gpu: S.pano ? S.pano.info() : S.walk ? S.walk.info() : null, rooms: S.model ? S.model.rooms.length : 0 }),
     _walk: () => S.walk, _pano: () => S.pano
