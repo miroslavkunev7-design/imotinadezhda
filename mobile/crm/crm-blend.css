@@ -100,17 +100,18 @@ html.rail .nda-fab{display:none}
 .fld input{font:italic 400 22px/1 var(--cond)!important}
 
 /* ===== Premium drop-down menus (replaces the browser list on desktop) ===== */
-.ndmenu{position:fixed;z-index:9000;min-width:220px;max-width:min(420px,92vw);max-height:min(60vh,520px);overflow:auto;padding:8px;border-radius:22px;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;
+.ndmenu{position:fixed;z-index:9000;min-width:220px;max-width:min(420px,92vw);max-height:min(60vh,520px);overflow-x:hidden;overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none;padding:8px;border-radius:22px;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;
   background:linear-gradient(180deg,rgba(255,252,248,.98),rgba(251,238,227,.97));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   box-shadow:0 0 0 1.5px rgba(227,178,94,.75),0 0 22px rgba(255,226,190,.95),0 14px 34px rgba(60,10,10,.3);font-family:var(--cond,'Roboto Condensed',Arial,sans-serif);
   transform-origin:top center;animation:ndmIn .18s cubic-bezier(.2,.7,.2,1)}
 @keyframes ndmIn{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 .ndmenu.up{transform-origin:bottom center}
+.ndmenu::-webkit-scrollbar{width:0;height:0;display:none}
 .ndmenu .ndm-q{position:sticky;top:0;margin:0 0 6px;padding:0 0 6px;background:inherit}
 .ndmenu .ndm-q input{width:100%;height:42px;border-radius:14px;border:1.5px solid rgba(227,178,94,.8);background:#fffdfa;padding:0 14px 0 40px;font:400 17px/1 var(--cond,Arial);color:#2b1414;outline:0;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a0f22' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='m15.5 15.5 6 6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-size:18px;background-position:12px center}
 .ndmenu .ndm-q input:focus{box-shadow:0 0 0 2px #edc47a}
-.ndmenu button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 14px;border:0;border-radius:14px;background:none;text-align:left;cursor:pointer;font:400 18px/1.2 var(--cond,Arial);color:#2b1414;transition:background .15s,color .15s,transform .15s}
+.ndmenu button{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 14px;border:0;border-radius:14px;background:none;text-align:left;cursor:pointer;font:400 18px/1.2 var(--cond,Arial);color:#2b1414;transition:background .15s,color .15s,transform .15s}
 .ndmenu button:hover,.ndmenu button.hl{background:linear-gradient(90deg,rgba(237,196,122,.38),rgba(255,255,255,0));color:#5a0a18;transform:translateX(2px)}
 .ndmenu button.on{background:linear-gradient(180deg,#a3213a,#55071a);color:#fff3dc;box-shadow:0 0 0 1px #edc47a,0 0 12px rgba(255,190,120,.55)}
 .ndmenu button.on::after{content:"✓";margin-left:auto;font-weight:700;color:#f5d58f}
@@ -235,6 +236,9 @@ html.nd-ffold .v3-filt,html.nd-ffold .v3-kfilt,html.nd-ffold .bchips,html.nd-ffo
   max-height:0!important;opacity:0;margin:0!important;padding:0!important;overflow:hidden;pointer-events:none;border-width:0!important}
 html.nd-ffold .b-pop{display:none!important}
 .pm-smenu,.o-pop,.cm-menu,.b-pop{overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;max-height:min(60vh,520px);overflow:auto}
+/* 12.11: падащите менюта се плъзгат, но лентата за плъзгане е невидима */
+.pm-smenu,.o-pop,.cm-menu,.b-pop{scrollbar-width:none;-ms-overflow-style:none}
+.pm-smenu::-webkit-scrollbar,.o-pop::-webkit-scrollbar,.cm-menu::-webkit-scrollbar,.b-pop::-webkit-scrollbar{width:0;height:0;display:none}
 .kdeal{position:relative;display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:center;margin:8px 12px 14px;z-index:2}
 .kdeal .dl{height:64px;border-radius:32px;display:flex;align-items:center;justify-content:center;gap:16px;border:0;cursor:pointer;
   font:700 28px/1 var(--cond,'Roboto Condensed',Arial,sans-serif);color:#6b0a1c;

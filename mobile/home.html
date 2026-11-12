@@ -143,6 +143,11 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   box-shadow:0 0 0 1px rgba(255,255,255,.75) inset,0 8px 20px rgba(40,10,14,.32),0 0 22px rgba(255,214,140,.55)}
 .nc-pill svg{width:30px;height:30px;color:#a3213a;flex:none}
 .nc-pill:active{transform:scale(.97)}
+.nc-pill .ncv{width:22px;height:22px;margin-left:-4px}
+/* 12.11: цена и площ се пишат на ръка; без зададени стойности */
+.fs .rg{display:flex;align-items:baseline;gap:5px}.fs .v .rg b:after{display:none!important}
+.fs input.num{box-sizing:border-box;width:98px;min-width:0;border:0;border-bottom:2px solid rgba(160,110,60,.65);border-radius:0;background:transparent;font:inherit;font-size:21px;color:inherit;padding:0;margin:0;outline:0}
+.f-price .v{padding-right:1px!important}.f-price .rg{gap:4px}.f-price input.num{width:94px}.f-area .rg{gap:4px}.f-area input.num{width:42px}.f-area .v{max-width:none!important;min-width:112px!important;clip-path:polygon(0 0,100% 0,100% 56%,85% 100%,0 100%)!important}
 /* 11.11: картите на градовете са със снимки (клиповете остават само в страницата на града) */
 .city img.ph{display:block;object-fit:cover;object-position:center 30%;pointer-events:none}
 .city img.ph-shumen{object-position:center 22%}.city img.ph-burgas{object-position:center 30%}.city img.ph-varna{object-position:center 45%}
@@ -161,7 +166,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
       <a href="#" id="about">За нас</a><i></i>
       <a class="me" href="/mobile/crm/crm-nachalo.html" aria-label="Вход за брокери"><img src="/mobile/home-assets/user.svg" alt=""></a>
     </nav>
-    <a class="abs nc-pill" href="/mobile/nc.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V8l6-4v17M10 21V11h10v10M2 21h20M7 9v.01M7 13v.01M7 17v.01M14 14v.01M17 14v.01M14 18v.01M17 18v.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Проекти на зелено</a>
+    <a class="abs nc-pill" href="/mobile/nc-shumen.html" data-ncnav aria-haspopup="listbox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V8l6-4v17M10 21V11h10v10M2 21h20M7 9v.01M7 13v.01M7 17v.01M14 14v.01M17 14v.01M14 18v.01M17 18v.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Ново строителство<svg class="ncv" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </header>
 
   <form class="abs sp" id="sp" aria-label="Търсене на имот">
@@ -169,8 +174,8 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
     <span class="abs div1"></span><span class="abs div2"></span><span class="abs div3"></span>
     <label class="fs f-city"><img src="/mobile/home-assets/pin.svg" alt=""><span class="t"><small>Град</small><span class="v"><b id="v-city"></b><img src="/mobile/home-assets/chevron-down.svg" alt=""></span></span><select id="s-city" aria-label="Град"></select></label>
     <label class="fs f-hood"><img src="/mobile/home-assets/house.svg" alt=""><span class="t"><small>Квартал</small><span class="v"><b id="v-hood"></b><img src="/mobile/home-assets/chevron-down.svg" alt=""></span></span><select id="s-hood" aria-label="Квартал"></select></label>
-    <label class="fs f-price"><img src="/mobile/home-assets/tag.svg" alt=""><span class="t"><small>Цена</small><span class="v" id="v-price"></span></span><select id="s-price" aria-label="Цена"></select></label>
-    <label class="fs f-area"><img src="/mobile/home-assets/area.svg" alt=""><span class="t"><small>Площ</small><span class="v" id="v-area"></span></span><select id="s-area" aria-label="Площ"></select></label>
+    <div class="fs f-price"><img src="/mobile/home-assets/tag.svg" alt=""><span class="t"><small>Цена</small><span class="v" id="v-price"><span class="rg"><b>от</b><input class="num" id="p-min" inputmode="numeric" autocomplete="off" aria-label="Цена от, в евро"><b>€</b></span><span class="rg"><b>до</b><input class="num" id="p-max" inputmode="numeric" autocomplete="off" aria-label="Цена до, в евро"><b>€</b></span></span></span></div>
+    <div class="fs f-area"><img src="/mobile/home-assets/area.svg" alt=""><span class="t"><small>Площ</small><span class="v" id="v-area"><span class="rg"><b>от</b><input class="num" id="a-min" inputmode="numeric" autocomplete="off" aria-label="Площ от, в квадратни метри"><b>м²</b></span><span class="rg"><b>до</b><input class="num" id="a-max" inputmode="numeric" autocomplete="off" aria-label="Площ до, в квадратни метри"><b>м²</b></span></span></span></div>
     <label class="fs f-type"><img src="/mobile/home-assets/briefcase.svg" alt=""><span class="t"><small>Вид имот</small><span class="v"><b id="v-type"></b><img src="/mobile/home-assets/chevron-down.svg" alt=""></span></span><select id="s-type" aria-label="Вид имот"></select></label>
     <button type="button" class="abs adv" id="adv" aria-expanded="false"><img src="/mobile/home-assets/sliders.svg" alt="">Филтри</button>
     <button type="submit" class="abs go"><img src="/mobile/home-assets/search.svg" alt="">Търси</button>
@@ -193,6 +198,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
 
 <script src="/mobile/places.js"></script>
 <script src="/mobile/nd-menu.js"></script>
+<script src="/mobile/nc-nav.js"></script>
 <script src="/mobile/site-data.js"></script>
 <script>
 (function () {
@@ -237,7 +243,7 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   }
   fit();
 
-  var CITIES = { "Шумен": "shumen", "Варна": "varna", "Бургас": "burgas" };
+  var CITIES = { "Шумен": "shumen", "Бургас": "burgas", "Варна": "varna" };
   var HOODS = window.NDPlaces ? { "Бургас": NDPlaces.PLACES["Бургас"], "Шумен": NDPlaces.PLACES["Шумен"], "Варна": NDPlaces.PLACES["Варна"] } : {
     "Бургас": ["Лазур", "Славейков", "Изгрев", "Възраждане", "Център", "Братя Миладинови", "Зорница", "Меден рудник", "Сарафово", "Крайморие", "Победа"],
     "Шумен": ["Център", "Тракия", "Боян Българанов 1", "Боян Българанов 2", "Добруджански", "Еверест", "Гривица", "Пети полк", "Дивдядово"],
@@ -250,18 +256,18 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   function fill(sel, opts, val) { sel.innerHTML = opts.map(function (o) { var v = Array.isArray(o) ? o[0] : o, t = Array.isArray(o) ? o[1] : o; return '<option value="' + esc(v) + '"' + (v === val ? " selected" : "") + ">" + esc(t.replace("|", " ")) + "</option>"; }).join(""); }
   var chev = '<img src="/mobile/home-assets/chevron-down.svg" alt="">';
   function show() {
-    $("v-city").textContent = $("s-city").value; $("v-hood").textContent = $("s-hood").value || "Всички"; $("v-type").textContent = $("s-type").value;
-    [["s-price", "v-price", PRICES], ["s-area", "v-area", AREAS]].forEach(function (x) {
-      var t = (x[2].filter(function (o) { return o[0] === $(x[0]).value; })[0] || x[2][0])[1].split("|");
-      $(x[1]).innerHTML = "<span><b>" + esc(t[0]) + "</b>" + chev + (t[1] ? "<br><b>" + esc(t[1]) + "</b>" : "") + "</span>";
-    });
+    $("v-city").textContent = $("s-city").value || "Всички"; $("v-hood").textContent = $("s-hood").value || "Всички"; $("v-type").textContent = $("s-type").value;
   }
-  fill($("s-city"), Object.keys(CITIES), "Бургас");
-  function hoods() { fill($("s-hood"), [["", "Всички"]].concat(HOODS[$("s-city").value]), $("s-city").value === "Бургас" ? "Лазур" : ""); }
+  /* 12.11: без зададен град, цена и площ; наличните градове са Шумен, Бургас и Варна */
+  fill($("s-city"), [["", "Всички градове"]].concat(Object.keys(CITIES)), "");
+  function hoods() { var c = $("s-city").value; fill($("s-hood"), [["", "Всички"]].concat(c ? HOODS[c] || [] : []), ""); }
   hoods();
-  fill($("s-price"), PRICES, "200000-500000"); fill($("s-area"), AREAS, "100-200"); fill($("s-type"), TYPES, "Апартамент");
+  fill($("s-type"), TYPES, "Всички");
   $("s-city").onchange = function () { hoods(); show(); };
-  ["s-hood", "s-price", "s-area", "s-type"].forEach(function (id) { $(id).onchange = show; });
+  ["s-hood", "s-type"].forEach(function (id) { $(id).onchange = show; });
+  ["p-min", "p-max", "a-min", "a-max"].forEach(function (id) { var el = $(id), ar = id.charAt(0) === "a"; el.addEventListener("input", function () { var d = el.value.replace(/\D/g, ""); el.value = ar ? d.slice(0, 4) : d.slice(0, 9).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }); });
+  function typed(a, b) { var x = $(a).value.replace(/\D/g, ""), y = $(b).value.replace(/\D/g, ""); return x || y ? [x ? Number(x) : 0, y ? Number(y) : Infinity] : null; }
+  function typedTxt(r, unit) { return r ? (r[0] ? "от " + new Intl.NumberFormat("bg-BG").format(r[0]) + " " : "") + (r[1] !== Infinity ? "до " + new Intl.NumberFormat("bg-BG").format(r[1]) + " " : "") + unit : ""; }
   show();
   $("adv").onclick = function () { var p = $("advp"); p.hidden = !p.hidden; this.setAttribute("aria-expanded", !p.hidden); };
 
@@ -270,13 +276,13 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
   function search(o) {
     o = o || {};
     var city = o.city || $("s-city").value, hood = o.all ? "" : $("s-hood").value, type = o.all ? "Всички" : $("s-type").value;
-    var pr = o.all ? null : range($("s-price").value), ar = o.all ? null : range($("s-area").value), deal = o.deal || (o.all ? "" : $("s-deal").value), rooms = o.all ? 0 : Number($("s-rooms").value || 0);
+    var pr = o.all ? null : typed("p-min", "p-max"), ar = o.all ? null : typed("a-min", "a-max"), deal = o.deal || (o.all ? "" : $("s-deal").value), rooms = o.all ? 0 : Number($("s-rooms").value || 0);
     $("sh-list").innerHTML = '<div class="empty">Зареждане…</div>'; $("sheet").hidden = false;
-    $("sh-t").firstChild.nodeValue = (deal === "rent" ? "Под наем" : deal === "sale" ? "За продажба" : "Имоти") + " – " + city;
-    $("sh-s").textContent = [hood, type !== "Всички" ? type : "", pr ? $("s-price").options[$("s-price").selectedIndex].text : "", ar ? $("s-area").options[$("s-area").selectedIndex].text : ""].filter(Boolean).join(" · ");
+    $("sh-t").firstChild.nodeValue = (deal === "rent" ? "Под наем" : deal === "sale" ? "За продажба" : "Имоти") + " – " + (city || "всички градове");
+    $("sh-s").textContent = [hood, type !== "Всички" ? type : "", typedTxt(pr, "€"), typedTxt(ar, "м²")].filter(Boolean).join(" · ");
     (window.__ND_READY || Promise.resolve()).then(function () {
       var list = (window.__ND_LISTINGS || []).filter(function (p) {
-        if ((window.NDPlaces ? NDPlaces.city(p.city) : p.city) !== (window.NDPlaces ? NDPlaces.city(city) : city)) return false;
+        if (city && (window.NDPlaces ? NDPlaces.city(p.city) : p.city) !== (window.NDPlaces ? NDPlaces.city(city) : city)) return false;
         if (hood && p.hood && p.hood !== hood) return false;
         if (type !== "Всички" && p.type && p.type !== type) return false;
         if (deal && p.deal !== deal) return false;
@@ -285,11 +291,11 @@ button,select,input{font:inherit;color:inherit}button{cursor:pointer;background:
         if (rooms && p.rooms && p.rooms < rooms) return false;
         return true;
       });
-      var slug = CITIES[city] || "burgas";
+      var slug = CITIES[city] || "shumen", slugOf = function (p) { return CITIES[window.NDPlaces ? NDPlaces.city(p.city) : p.city] || slug; };
       $("sh-list").innerHTML = list.length ? list.map(function (p) {
-        return '<a class="pc" href="/mobile/ilj.html#/property/' + encodeURIComponent(p.id) + "/" + slug + '"><img src="' + esc(p.img || "/mobile/home-assets/city-" + slug + ".webp") + '" alt="" loading="lazy"><span class="tx"><b>' + esc(p.title) + "</b><span>" +
+        return '<a class="pc" href="/mobile/ilj.html#/property/' + encodeURIComponent(p.id) + "/" + slugOf(p) + '"><img src="' + esc(p.img || "/mobile/home-assets/city-" + slugOf(p) + ".webp") + '" alt="" loading="lazy"><span class="tx"><b>' + esc(p.title) + "</b><span>" +
           esc([p.city, p.hood].filter(Boolean).join(", ")) + (p.area ? " · " + p.area + " м²" : "") + (p.rooms ? " · " + p.rooms + " стаи" : "") + "</span><em>" + new Intl.NumberFormat("bg-BG").format(p.price) + " €" + (p.deal === "rent" ? " / мес." : "") + "</em></span></a>";
-      }).join("") : '<div class="empty">Няма публикувани имоти по тези критерии.<br>Опитайте с по-широко търсене или вижте целия град.<br><a href="/mobile/ilj.html#/city/' + slug + '">Виж ' + esc(city) + "</a></div>";
+      }).join("") : '<div class="empty">Няма публикувани имоти по тези критерии.<br>Опитайте с по-широко търсене или вижте целия град.<br><a href="/mobile/ilj.html#/city/' + slug + '">Виж ' + esc(city || "Шумен") + "</a></div>";
     });
   }
   $("about").onclick = function (e) {

@@ -71,7 +71,7 @@
       q.set("p", S.key); if (S.tab !== "overview") q.set("tab", S.tab);
       if (S.b) q.set("b", S.b); if (S.f) q.set("f", S.f); if (S.u && !implicitU) q.set("u", S.u); if (S.pmode === "unit") q.set("pl", "unit");
       Object.keys(FK).forEach(function (k) { var v = S.flt[FK[k]]; if (v) q.set(k, v); });
-    } else { if (S.lf !== "all") q.set("ls", S.lf); if (S.lq) q.set("lq", S.lq); }
+    } else { if (S.lf !== "all") q.set("ls", S.lf); if (S.lq) q.set("lq", S.lq); if (A && A.listQuery) A.listQuery(q); }
     var s = q.toString(); return location.pathname + (s ? "?" + s : "");
   }
   function sync(push) { var url = toUrl(); if (url === location.pathname + location.search) return; try { history[push ? "pushState" : "replaceState"]({ nc: 1 }, "", url); } catch (e) { /* без адрес – състоянието остава */ } }
@@ -137,7 +137,7 @@
   function renderList() {
     setSub("Проекти, сгради и апартаменти");
     var staff = A.mode === "staff";
-    var head = '<div class="nc-lhead"><h2>' + ic("building-2") + "Проекти – ново строителство</h2>" +
+    var head = '<div class="nc-lhead"><h2>' + ic("building-2") + esc(A.listTitle || "Проекти – ново строителство") + "</h2>" +
       '<label class="nc-q"><span class="sr" hidden>Търси проект</span>' + ic("search") + '<input id="nc-q" type="search" placeholder="Търси по име, град, квартал…" autocomplete="off" aria-label="Търси проект по име, град или квартал" value="' + esc(S.lq) + '"></label>' +
       (staff ? '<div class="nc-seg" role="group" aria-label="Статус на проекта">' + [["all", "Всички"], ["draft", "Чернови"], ["published", "Публикувани"], ["archived", "Архив"]].map(function (x) { return '<button type="button" data-act="lfilt" data-v="' + x[0] + '" aria-pressed="' + (S.lf === x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>" : "") +
       (A.listActs ? A.listActs() : "") + "</div>";
@@ -146,7 +146,7 @@
     var q = S.lq.toLocaleLowerCase("bg");
     var list = LIST.filter(function (p) { return (S.lf === "all" || p.status === S.lf) && (!q || [p.title, p.city, p.hood, p.slug].some(function (v) { return String(v || "").toLocaleLowerCase("bg").indexOf(q) >= 0; })); });
     var body;
-    if (!LIST.length) body = card(staff ? "Още няма проекти" : "Няма публикувани проекти", "building-2", PH.list, '<div class="nc-gempty" role="status"><p class="nc-note" style="max-width:56%">' + esc(staff ? "Създайте чернова на проект или внесете проектен пакет с „Импорт на проект“." : "В момента няма публикувани проекти ново строителство.") + "</p>" + (A.emptyListActs ? '<div class="nc-btns">' + A.emptyListActs() + "</div>" : "") + '</div>', "nc-illu nc-lempty");
+    if (!LIST.length) body = card(staff ? "Още няма проекти" : A.emptyTitle || "Няма публикувани проекти", "building-2", PH.list, '<div class="nc-gempty" role="status"><p class="nc-note" style="max-width:56%">' + esc(staff ? "Създайте чернова на проект или внесете проектен пакет с „Импорт на проект“." : A.emptyText || "В момента няма публикувани проекти ново строителство.") + "</p>" + (A.emptyListActs ? '<div class="nc-btns">' + A.emptyListActs() + "</div>" : "") + '</div>', "nc-illu nc-lempty");
     else if (!list.length) body = empty("search", "Няма проекти по избраните критерии", "Променете търсенето или филтъра.", btn("lclear", "x", "Изчисти"));
     else body = '<div class="nc-grid">' + list.map(projCard).join("") + "</div>";
     root.innerHTML = head + body;

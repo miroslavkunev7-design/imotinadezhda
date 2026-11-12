@@ -45,6 +45,11 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
 /* 11.11: четвърта връзка „Проекти на зелено“ – по-малки отстояния, за да се побере лентата */
 .nav a,.nav button{padding:12px 24px;font-size:27px;white-space:nowrap}.nav .acc{padding:8px 0 8px 24px}
 .nav .acc svg{width:54px;height:54px;display:block}
+.nav .ncv{width:22px;height:22px;margin-left:6px;vertical-align:-3px}
+/* 12.11: цена и площ се пишат на ръка; без зададени стойности */
+.f.fnum{cursor:default}.f .rg{display:flex;align-items:center;gap:8px}.f .rg:after{display:none}.f .rg span{flex:none}
+.f input.num{box-sizing:border-box;width:138px;min-width:0;height:1.1em;line-height:1;border:0;border-bottom:2px solid rgba(201,154,90,.75);border-radius:0;background:transparent;font:inherit;color:inherit;padding:0 2px;margin:0;outline:0;-webkit-appearance:none;appearance:none}
+.f input.num:focus{border-bottom-color:#9c0f2c}.f.fnum.ar input.num{width:104px}
 /* search */
 .search{left:282px;top:calc(432px - var(--nd-up,0px));width:1104px;height:170px;background:url(desktop-home-assets/search-desktop.svg) 0 0/100% 100% no-repeat;filter:drop-shadow(0 8px 16px rgba(30,0,8,.45))}
 .f{position:absolute;display:flex;align-items:center;gap:22px;cursor:pointer}
@@ -115,20 +120,20 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
       <a href="#" data-deal="sale">За продажба</a><i></i>
       <a href="#" data-deal="rent">Под наем</a><i></i>
       <button type="button" id="aboutBtn">За нас</button><i></i>
-      <a href="/mobile/nc.html" class="nc-link">Проекти на зелено</a><i></i>
+      <a href="/mobile/nc-shumen.html" class="nc-link" data-ncnav aria-haspopup="listbox">Ново строителство<svg class="ncv" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><i></i>
       <a class="acc" href="/mobile/crm/crm-nachalo.html" aria-label="Вход за служители"><svg><use href="#user"/></svg></a>
     </nav>
   </header>
 
   <form class="abs search" id="sf" role="search" aria-label="Търсене на имот">
-    <label class="f" style="left:62px;top:22px"><svg class="i"><use href="#pin"/></svg><span class="t"><small>Град</small><b id="v-city">Бургас</b></span><select id="s-city" aria-label="Град"></select></label>
-    <label class="f" style="left:382px;top:22px"><svg class="i"><use href="#house"/></svg><span class="t"><small>Квартал</small><b id="v-hood">Лазур</b></span><select id="s-hood" aria-label="Квартал"></select></label>
+    <label class="f" style="left:62px;top:22px"><svg class="i"><use href="#pin"/></svg><span class="t"><small>Град</small><b id="v-city">Всички</b></span><select id="s-city" aria-label="Град"></select></label>
+    <label class="f" style="left:382px;top:22px"><svg class="i"><use href="#house"/></svg><span class="t"><small>Квартал</small><b id="v-hood">Всички</b></span><select id="s-hood" aria-label="Квартал"></select></label>
     <span class="vl" style="left:332px;top:12px"></span>
     <span class="hl" style="left:38px;top:79px;width:566px"></span>
     <span class="vl" style="left:332px;top:98px"></span>
-    <label class="f" style="left:62px;top:90px"><svg class="i"><use href="#tag"/></svg><span class="t"><small>Цена</small><b id="v-price">от 200 000 €</b><em id="v-price2">до 500 000 €</em></span><select id="s-price" aria-label="Цена"></select></label>
-    <label class="f" style="left:382px;top:90px"><svg class="i"><use href="#area"/></svg><span class="t"><small>Площ</small><b id="v-area">от 100 м²</b><em id="v-area2">до 200 м²</em></span><select id="s-area" aria-label="Площ"></select></label>
-    <label class="f dark" style="left:762px;top:22px"><svg class="i"><use href="#brief"/></svg><span class="t"><small>Вид имот</small><b id="v-type">Апартамент</b></span><select id="s-type" aria-label="Вид имот"></select></label>
+    <div class="f fnum" style="left:62px;top:90px"><svg class="i"><use href="#tag"/></svg><span class="t"><small>Цена, €</small><b class="rg"><span>от</span><input class="num" id="p-min" inputmode="numeric" autocomplete="off" aria-label="Цена от, в евро"></b><em class="rg"><span>до</span><input class="num" id="p-max" inputmode="numeric" autocomplete="off" aria-label="Цена до, в евро"></em></span></div>
+    <div class="f fnum ar" style="left:382px;top:90px"><svg class="i"><use href="#area"/></svg><span class="t"><small>Площ, м²</small><b class="rg"><span>от</span><input class="num" id="a-min" inputmode="numeric" autocomplete="off" aria-label="Площ от, в квадратни метри"></b><em class="rg"><span>до</span><input class="num" id="a-max" inputmode="numeric" autocomplete="off" aria-label="Площ до, в квадратни метри"></em></span></div>
+    <label class="f dark" style="left:762px;top:22px"><svg class="i"><use href="#brief"/></svg><span class="t"><small>Вид имот</small><b id="v-type">Всички</b></span><select id="s-type" aria-label="Вид имот"></select></label>
     <span class="hl g" style="left:690px;top:79px;width:380px"></span>
     <button type="button" class="filt" id="filt"><svg><use href="#sliders"/></svg>Филтри</button>
     <button type="submit" class="go"><svg><use href="#search"/></svg>Търси</button>
@@ -148,6 +153,7 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
 
 <script src="/mobile/places.js"></script>
 <script src="/mobile/nd-menu.js"></script>
+<script src="/mobile/nc-nav.js"></script>
 <script>
 (function(){
   var W=1672,H=941,UP=226,cv=document.getElementById('cv'),st=document.getElementById('stage'),bg=cv.querySelector('.bg');
@@ -172,21 +178,22 @@ body{min-height:100vh;min-height:-webkit-fill-available;min-height:100dvh;font-f
   if(window.matchMedia){['(display-mode: standalone)','(display-mode: fullscreen)','(display-mode: minimal-ui)'].forEach(function(q){var m=matchMedia(q);if(m.addEventListener)m.addEventListener('change',fit);else if(m.addListener)m.addListener(fit);});}
   var CITY={'Шумен':'shumen','Варна':'varna','Бургас':'burgas','Нови пазар':'shumen'};
   var HOODS={};
-  var PR=[['200000-500000','от 200 000 €','до 500 000 €'],['0-100000','до 100 000 €',''],['100000-200000','от 100 000 €','до 200 000 €'],['500000-','над 500 000 €',''],['','Без значение','']];
-  var AR=[['100-200','от 100 м²','до 200 м²'],['0-60','до 60 м²',''],['60-100','от 60 м²','до 100 м²'],['200-','над 200 м²',''],['','Без значение','']];
-  var TYPES=['Апартамент','Къща','Парцел','Офис','Магазин','Гараж','Вила','Етаж от къща'];
+  var TYPES=['Всички','Апартамент','Къща','Парцел','Офис','Магазин','Гараж','Вила','Етаж от къща'];
   function $(i){return document.getElementById(i)}
   function fill(sel,opts,val){sel.innerHTML=opts.map(function(o){var v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]+(o[2]?' – '+o[2]:''):o;return '<option value="'+v+'"'+(v===val?' selected':'')+'>'+t+'</option>'}).join('')}
   function hoods(c){var P=window.NDPlaces;return HOODS[c]||(P&&P.PLACES[P.city?P.city(c):c])||['Център']}
-  fill($('s-city'),['Бургас','Шумен','Варна','Нови пазар'],'Бургас');
-  fill($('s-hood'),hoods('Бургас'),'Лазур');
-  fill($('s-price'),PR,'200000-500000');fill($('s-area'),AR,'100-200');fill($('s-type'),TYPES,'Апартамент');
-  $('s-city').onchange=function(){var c=this.value;$('v-city').textContent=c;var h=hoods(c);fill($('s-hood'),h,h[0]);$('v-hood').textContent=h[0]};
-  $('s-hood').onchange=function(){$('v-hood').textContent=this.value};
+  /* 12.11: без зададен град; наличните градове са Шумен, Бургас и Варна */
+  fill($('s-city'),[['','Всички градове'],'Шумен','Бургас','Варна'],'');
+  fill($('s-hood'),[['','Всички']],'');
+  fill($('s-type'),TYPES,'Всички');
+  $('s-city').onchange=function(){var c=this.value;$('v-city').textContent=c||'Всички';fill($('s-hood'),[['','Всички']].concat(c?hoods(c):[]),'');$('v-hood').textContent='Всички'};
+  $('s-hood').onchange=function(){$('v-hood').textContent=this.value||'Всички'};
   $('s-type').onchange=function(){$('v-type').textContent=this.value};
-  function pair(sel,list,a,b){sel.onchange=function(){var o=list.filter(function(x){return x[0]===sel.value})[0];$(a).textContent=o[1];$(b).textContent=o[2]}}
-  pair($('s-price'),PR,'v-price','v-price2');pair($('s-area'),AR,'v-area','v-area2');
-  function go(deal){var c=$('s-city').value;try{sessionStorage.setItem('nd-search',JSON.stringify({city:c,hood:$('s-hood').value,price:$('s-price').value,area:$('s-area').value,type:$('s-type').value,deal:deal||'sale'}))}catch(e){}
+  ['p-min','p-max','a-min','a-max'].forEach(function(i){var el=$(i),ar=i.charAt(0)==='a';el.addEventListener('input',function(){var d=el.value.replace(/\D/g,'');el.value=ar?d.slice(0,5):d.slice(0,9).replace(/\B(?=(\d{3})+(?!\d))/g,' ')})});
+  function rng(a,b){var x=$(a).value.replace(/\D/g,''),y=$(b).value.replace(/\D/g,'');return x||y?x+'-'+y:''}
+  function go(deal){var c=$('s-city').value;
+    if(!c&&!deal){try{$('s-city').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,cancelable:true}))}catch(e){}return}
+    try{sessionStorage.setItem('nd-search',JSON.stringify({city:c,hood:$('s-hood').value,price:rng('p-min','p-max'),area:rng('a-min','a-max'),type:$('s-type').value==='Всички'?'':$('s-type').value,deal:deal||'sale'}))}catch(e){}
     location.href='/mobile/ilj.html#/city/'+(CITY[c]||'shumen')}
   $('sf').onsubmit=function(e){e.preventDefault();go()};
   $('filt').onclick=function(){go()};

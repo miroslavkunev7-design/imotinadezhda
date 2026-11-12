@@ -11,6 +11,12 @@
   var KEY = "sb_publishable_wtwa6JU-FNbbRINe4A1lTA_DYQvINni";   /* публичният ключ на сайта (същият като в mobile/site-data.js) */
   var H = { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json" };
   var SLUG = /^[a-z0-9][a-z0-9-]{2,60}$/, SIG = {}, MODELS = {};
+  /* 12.11: проектът в Шумен има собствена страница; „Ново строителство ▾“ → „В проект“ / „Завършено“ (?t=plan|done) */
+  var OWN = { "shumen-kv-366": "/mobile/nc-shumen.html" }, Q0 = new URLSearchParams(location.search), T = Q0.get("t") === "done" ? "done" : Q0.get("t") === "plan" ? "plan" : "";
+  function ownUrl(slug, uid) { return OWN[slug] ? OWN[slug] + (uid && /^[a-z0-9-]{3,64}$/.test(uid) ? "?uid=" + encodeURIComponent(uid) : "") : null; }
+  if (ownUrl(Q0.get("p"))) { location.replace(ownUrl(Q0.get("p"), Q0.get("u"))); return; }
+  function isDone(r) { return /завърш|акт\s*16|въведен/i.test(String((r && r.stage) || "")); }
+  document.addEventListener("click", function (e) { var c = e.target && e.target.closest && e.target.closest(".nc-pcard[data-key]"), u = c && ownUrl(c.getAttribute("data-key")); if (u) { e.preventDefault(); e.stopPropagation(); location.href = u; } }, true);
   function rpc(name, body) {
     return fetch(URL + "/rest/v1/rpc/" + name, { method: "POST", headers: H, body: JSON.stringify(body || {}) }).then(function (r) {
       return r.json().catch(function () { return null; }).then(function (j) { if (!r.ok) { var e = new Error(r.status >= 500 ? "Услугата временно не отговаря – опитайте по-късно." : (j && j.message) || "Грешка " + r.status); e.status = r.status; throw e; } return j; });
@@ -48,6 +54,7 @@
     list: function () {
       return rpc("nd_public_projects").then(function (rows) {
         rows = unwrap(rows, "nd_public_projects");
+        if (T) rows = rows.filter(function (r) { return isDone(r) === (T === "done"); });
         return sign(rows.map(function (r) { return r.cover; })).then(function () {
           return rows.filter(function (r) { return r && r.slug; }).map(function (r) { return { key: r.slug, slug: r.slug, title: r.title, city: r.city, hood: r.hood, status: "published", cover_url: r.cover ? SIG[r.cover] || null : null, counts: { units: r.units_total, free: r.units_free } }; });
         });
@@ -71,6 +78,10 @@
     /* TASK-010: публичният източник на компонента (nd_public_tour + /pano/<обект>/<n>); rpc е същата функция с публичния ключ */
     tour10Source: function (L, u) { return typeof L.publicSource === "function" ? L.publicSource({ rpc: rpc, unitId: u.id, unit: { id: u.id, code: u.code, status: u.status, area_total: u.area_total, area_net: u.area_net, terrace_area: u.terrace_area, exposure: u.exposure, rooms: u.rooms } }) : null; },
     shareUrl: function (M, u) { return location.origin + "/mobile/nc.html?p=" + encodeURIComponent(M.project.slug) + (u ? "&u=" + encodeURIComponent(u.id) : ""); },
+    listTitle: T === "done" ? "Завършени проекти – ново строителство" : T === "plan" ? "В проект – ново строителство" : "",
+    emptyTitle: T === "done" ? "Няма завършени проекти" : T === "plan" ? "Няма проекти в проект" : "",
+    emptyText: T === "done" ? "В момента няма завършени проекти ново строителство. Вижте проектите „В проект“." : T === "plan" ? "В момента няма проекти в проект." : "",
+    listQuery: function (q) { if (T) q.set("t", T); },
     canMortgage: function () { return false; },
     acts: {}
   };
