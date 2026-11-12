@@ -203,13 +203,13 @@ module.exports = async (req, res) => {
   LLM.catalog().filter((m) => m.provider !== "gemini" && m.id !== chosen.id && !order.some((o) => o.id === m.id)).forEach((m) => order.push(m));
   /* действия, които променят данни: след тях не сменяме модела (за да не се повтори запис или изпращане) */
   const MUTATING = /\.(create|update|delete|set_status|add_note|send|generate|merge|split|translate|bank_statements_pack|create_pdf|assign|remember|mark_paid|add_employee|attach)$|^video\.|^събиране/;
-  const T_END = T0 + 108000; /* лимитът на функцията е 120 s */
+  const T_END = T0 + 288000; /* лимитът на функцията е 300 s (vercel.json) – времето зависи от задачата */
   let lastErr = "", quota = false;
   for (const model of order) {
     const left = T_END - Date.now(); if (left < 8000) break;
     let real = null;
     try {
-      const text = await LLM.chat(model, { system, msgs: convo, tools, run: (c) => runTool(c, ctx), budgetMs: Math.min(80000, left - 6000), onModel: (id) => { real = id; } });
+      const text = await LLM.chat(model, { system, msgs: convo, tools, run: (c) => runTool(c, ctx), budgetMs: Math.min(250000, left - 6000), maxSteps: 30, onModel: (id) => { real = id; } });
       if (text === null) return send(res, 200, { ok: true, text: "Задачата изисква твърде много стъпки – разделете я на по-малки.", actions: ctx.actions, staff: ctx.staff, model: model.id, ui: ctx.ui || null });
       const out = text || "Не успях да формулирам отговор – опитайте отново.";
       if (ctx.staff && mem.enabled && lastUser) { await MEM.save(ctx.token, user.id, caseId, lastUser.text, out, { meta: { mode: mode || null, model: real || model.id } }).catch(() => null); if (caseId && mem.kase) await MEM.maybeSummarize(ctx.token, caseId, LLM).catch(() => null); }

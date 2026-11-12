@@ -246,6 +246,7 @@
   var N8N_URL = "", N8N_SID = (function () { try { var k = "nd-ted-n8n-sid", v = localStorage.getItem(k); if (!v) { v = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)); localStorage.setItem(k, v); } return v; } catch (e) { return "s" + Date.now(); } })();
   /* прикачени файлове и глас към агента (само за влезли служители): качват се в nd-files/ted-chat/<гггг-мм>/ (както bank.html),
      получават линк за 7 дни и отиват към n8n в блок [ATTACHMENTS] в текста + поле "attachments" */
+  var TED_WAIT_MS = 300000; /* Тед чака до 5 минути – колкото изисква задачата (Vercel функцията е с maxDuration 300 s) */
   var N8N_MAX_FILES = 6, N8N_MAX_MB = 20, ATT_RE = /\n*\[ATTACHMENTS\][\s\S]*?\[\/ATTACHMENTS\]\n*/g;
   var AUTO_TXT = /^(\(гласово съобщение\)|Анализирай прикачените файлове\.)$/;
   var EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "application/pdf": "pdf", "audio/webm": "webm", "audio/mp4": "m4a", "audio/aac": "aac", "audio/ogg": "ogg", "audio/mpeg": "mp3", "audio/wav": "wav" };
@@ -351,7 +352,7 @@
       if (x && x.done) return x;
       var att = x[2];
       if (extra.signal) extra.signal.addEventListener("abort", function () { ctrl.abort(); });
-      timer = setTimeout(function () { ctrl.abort(); }, att.length ? 80000 : 40000);
+      timer = setTimeout(function () { ctrl.abort(); }, TED_WAIT_MS); /* без кратък лимит – времето зависи от задачата; при по-дълга задача готовият отговор идва в прозореца на Тед (ted_inbox) */
       return fetch(N8N_URL || N8N_DEFAULT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: x[1], sessionId: N8N_SID, accessToken: x[0] || null, toolsUrl: location.origin + "/api/tools", model: n8nModelId(), mode: extra.mode || undefined, case_id: extra.case_id || undefined, page: document.title, attachments: att.length ? att : undefined }), signal: ctrl.signal });
     }).then(function (r) { if (r && r.done) return r; if (!r.ok) throw new Error("агентът върна HTTP " + r.status); return r.json(); })
       .then(function (d) {
@@ -362,7 +363,7 @@
           email: d.email && typeof d.email === "object" ? d.email : undefined, ui: d.ui && typeof d.ui === "object" ? d.ui : undefined, video: d.video || undefined,
           transcript: heard || (d && typeof d.transcript === "string" && d.transcript.trim() ? d.transcript.trim() : undefined) };
       })
-      .catch(function (e) { return { ok: false, transcript: heard || undefined, error: e && e.user ? e.message : e && e.name === "AbortError" ? "Отговорът се забави твърде дълго и спря. Натиснете за нов опит." : "Агент n8n: " + ((e && e.message) || e) }; })
+      .catch(function (e) { return { ok: false, transcript: heard || undefined, error: e && e.user ? e.message : e && e.name === "AbortError" ? "Задачата отнема повече време. Тед продължава да работи и ще покаже отговора тук, щом е готов. Натиснете за нов опит." : "Агент n8n: " + ((e && e.message) || e) }; })
       .then(function (j) { clearTimeout(timer); return j; });
   }
   function ask(history, extra) {
@@ -372,7 +373,7 @@
       var h = { "Content-Type": "application/json" }; if (tok) h.Authorization = "Bearer " + tok;
       return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title, model: modelId || undefined, mode: extra.mode || undefined, case_id: extra.case_id || undefined }), signal: extra.signal });
     }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); })
-      .catch(function (e) { return { ok: false, error: e && e.name === "AbortError" ? "Отговорът се забави твърде дълго и спря. Опитайте отново." : "Няма връзка (" + ((e && e.message) || e) + ")" }; });
+      .catch(function (e) { return { ok: false, error: e && e.name === "AbortError" ? "Задачата отнема повече време от очакваното. Опитайте отново." : "Няма връзка (" + ((e && e.message) || e) + ")" }; });
   }
 
   /* ---- казуси (проекти с безкрайна памет): активният казус се пази за брокера; историята му идва от сървъра ---- */
@@ -773,7 +774,7 @@
         var w = api.add("a", voice ? "Слушам" : "Мисля", "wait");
         var anyF = isN8n();
         var ctrl = new AbortController(), settled = false;
-        var killer = setTimeout(function () { ctrl.abort(); fail("Заявката спря по време. Опитайте отново."); }, voice ? 50000 : 90000);
+        var killer = setTimeout(function () { ctrl.abort(); fail("Заявката спря по време. Опитайте отново."); }, TED_WAIT_MS + 10000); /* времето за изчакване зависи от задачата, не е фиксирано на 50–90 s */
         function fail(msg, transcript) {
           if (settled) return; settled = true; clearTimeout(killer);
           if (transcript) ub.innerHTML = "🎤 „" + esc(transcript) + "“";
