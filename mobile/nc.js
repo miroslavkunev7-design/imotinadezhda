@@ -15,7 +15,7 @@
   var OWN = { "shumen-kv-366": "/mobile/nc-shumen.html" }, Q0 = new URLSearchParams(location.search), T = Q0.get("t") === "done" ? "done" : Q0.get("t") === "plan" ? "plan" : "";
   function ownUrl(slug, uid) { return OWN[slug] ? OWN[slug] + (uid && /^[a-z0-9-]{3,64}$/.test(uid) ? "?uid=" + encodeURIComponent(uid) : "") : null; }
   if (ownUrl(Q0.get("p"))) { location.replace(ownUrl(Q0.get("p"), Q0.get("u"))); return; }
-  function isDone(r) { return /завърш|акт\s*16|въведен/i.test(String((r && r.stage) || "")); }
+  function isDone(r) { return /^act16$|завърш|акт\s*16|въведен/i.test(String((r && r.stage) || "").trim()); }   /* етапите в CRM са кодове: start … act16 */
   document.addEventListener("click", function (e) { var c = e.target && e.target.closest && e.target.closest(".nc-pcard[data-key]"), u = c && ownUrl(c.getAttribute("data-key")); if (u) { e.preventDefault(); e.stopPropagation(); location.href = u; } }, true);
   function rpc(name, body) {
     return fetch(URL + "/rest/v1/rpc/" + name, { method: "POST", headers: H, body: JSON.stringify(body || {}) }).then(function (r) {
