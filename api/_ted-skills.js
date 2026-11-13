@@ -111,16 +111,32 @@ function artPath(client, name) { return (client ? "clients/" + client.id + "/ted
 let fontCache = null;
 function fontBytes() { if (!fontCache) fontCache = { reg: fs.readFileSync(FONT.reg), bold: fs.readFileSync(FONT.bold) }; return fontCache; }
 async function loadPdf(buf) { try { return await PDFLib.PDFDocument.load(buf, { ignoreEncryption: true }); } catch (e) { throw new ToolError("Файлът не е валиден PDF: " + (e.message || e)); } }
-async function pagesOf(ctx, doc) {
-  const buf = await download(ctx, doc.path); const mime = doc.mime || "";
-  if (/pdf/i.test(mime) || /\.pdf$/i.test(doc.name || "")) { const pdf = await loadPdf(buf); return { kind: "pdf", pages: pdf.getPageCount(), size: buf.length, buf }; }
-  if (/^image\//.test(mime) || /\.(jpe?g|png)$/i.test(doc.name || "")) return { kind: "image", pages: 1, size: buf.length, buf, mime: mime || (/png$/i.test(doc.name) ? "image/png" : "image/jpeg") };
+/* истинският вид на файла по първите му байтове (името и mime от телефона често са грешни: PNG с име .jpg и обратно) */
+function sniff(buf) {
+  if (!buf || buf.length < 12) return "";
+  if (buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46) return "application/pdf";
+  if (buf[0] === 0xFF && buf[1] === 0xD8) return "image/jpeg";
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) return "image/png";
+  if (buf.slice(0, 4).toString("latin1") === "RIFF" && buf.slice(8, 12).toString("latin1") === "WEBP") return "image/webp";
+  if (buf.slice(0, 3).toString("latin1") === "GIF") return "image/gif";
+  return "";
+}
+async function infoOfBytes(buf, name, mime) {
+  const real = sniff(buf); mime = mime || "";
+  if (real === "application/pdf" || (!real && (/pdf/i.test(mime) || /\.pdf$/i.test(name || "")))) { const pdf = await loadPdf(buf); return { kind: "pdf", pages: pdf.getPageCount(), size: buf.length, buf }; }
+  if (real) return { kind: "image", pages: 1, size: buf.length, buf, mime: real };
+  if (/^image\//.test(mime) || /\.(jpe?g|png)$/i.test(name || "")) return { kind: "image", pages: 1, size: buf.length, buf, mime: mime || (/png$/i.test(name) ? "image/png" : "image/jpeg") };
   return { kind: "other", pages: null, size: buf.length, buf, mime };
+}
+async function pagesOf(ctx, doc) {
+  return infoOfBytes(await download(ctx, doc.path), doc.name, doc.mime);
 }
 async function appendDoc(out, info) {
   if (info.kind === "pdf") { const src = await loadPdf(info.buf); const copied = await out.copyPages(src, src.getPageIndices()); copied.forEach((p) => out.addPage(p)); return copied.length; }
   if (info.kind === "image") {
-    const img = /png/.test(info.mime) ? await out.embedPng(info.buf) : await out.embedJpg(info.buf);
+    const real = sniff(info.buf) || info.mime || "";
+    if (!/png|jpe?g/i.test(real)) throw new ToolError("Снимка във формат " + (real || "неизвестен") + " не става страница в PDF – качете я като JPG или PNG");
+    const img = /png/i.test(real) ? await out.embedPng(info.buf) : await out.embedJpg(info.buf);
     const A4 = [595.28, 841.89], page = out.addPage(A4), m = 28, k = Math.min((A4[0] - 2 * m) / img.width, (A4[1] - 2 * m) / img.height);
     page.drawImage(img, { x: (A4[0] - img.width * k) / 2, y: (A4[1] - img.height * k) / 2, width: img.width * k, height: img.height * k }); return 1;
   }
@@ -440,6 +456,68 @@ async function attachChatFile(ctx, i) {
   }
   return out;
 }
+/* ---------- файлове от чата (ATTACHMENTS: path) и документи от CRM (id) като еднакъв източник ---------- */
+function chatSources(i) {
+  const list = [], add = (x) => { if (x && (x.doc_id || x.path || x.url)) list.push(x); };
+  const one = (f) => typeof f === "string" ? (/^(ted-chat|clients|properties|ted|nd-files)\//.test(f) || /^https?:/.test(f) ? (/^https?:/.test(f) ? { url: f } : { path: f }) : { doc_id: f })
+    : (f && typeof f === "object" ? { path: f.path, url: f.url || f.download_url, name: f.name, mime: f.mime, doc_id: f.document_id || f.doc_id || (f.path || f.url || f.download_url ? undefined : f.id) } : null);
+  (Array.isArray(i.doc_ids) ? i.doc_ids : []).forEach((id) => add(one(typeof id === "string" ? id : id && (id.id || id.document_id) ? String(id.id || id.document_id) : id)));
+  if (i.doc_id) add({ doc_id: String(i.doc_id) });
+  (Array.isArray(i.files) ? i.files : []).forEach((f) => add(one(f)));
+  (Array.isArray(i.paths) ? i.paths : []).forEach((f) => add(one(f)));
+  if (i.path || i.url) add({ path: i.path, url: i.url, name: i.name, mime: i.mime });
+  const seen = new Set();
+  return list.filter((x) => { const k = x.doc_id ? "d:" + x.doc_id : "p:" + (STORE.safeStoragePath(x.path) || STORE.pathFromReference(x.url) || x.path || x.url); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, MAX_DOCS);
+}
+async function loadSource(ctx, s) {
+  if (s.doc_id) { const d = await row(ctx, "documents", s.doc_id); return { info: await pagesOf(ctx, d), name: d.name || "документ", doc: d }; }
+  const p = STORE.safeStoragePath(s.path) || STORE.pathFromReference(s.url);
+  if (!p) throw new ToolError("Няма устойчив път на файла от чата (path от ATTACHMENTS). Качете го отново.");
+  const buf = await readBytes(ctx, p), name = safeName(s.name || p.split("/").pop());
+  return { info: await infoOfBytes(buf, name, s.mime), name, path: p };
+}
+const cap = (t) => { t = String(t || "").trim(); return t ? t.charAt(0).toLocaleUpperCase("bg") + t.slice(1) : t; };
+/* снимки и PDF файлове (от чата или от CRM) → един PDF в подадения ред (или по един PDF за всеки вид документ) → записан при клиента/имота */
+async function filesToPdf(ctx, i) {
+  const srcs = chatSources(i);
+  if (!srcs.length) throw new ToolError("Подай files: [{path, name, mime}] от ATTACHMENTS (или doc_ids на документи от CRM).");
+  let client = (i.client_id || i.client_name) ? await clientOf(ctx, i.client_id, i.client_name) : null;
+  const prop = i.property_id ? await row(ctx, "properties", i.property_id) : (i.property_code ? await propByCode(ctx, i.property_code) : null);
+  const items = [], skipped = [];
+  for (const s of srcs) {
+    try { const x = await loadSource(ctx, s); if (x.info.kind === "other") skipped.push({ name: x.name, reason: "форматът не става страница в PDF" + (x.info.mime ? " (" + x.info.mime + ")" : "") }); else items.push(x); }
+    catch (e) { skipped.push({ name: s.name || s.path || s.doc_id || "файл", reason: String(e.message || e) }); }
+  }
+  if (!items.length) throw new ToolError("Нито един файл не може да стане PDF: " + skipped.map((x) => x.name + " – " + x.reason).join("; "));
+  /* без посочен клиент: ако всички документи от CRM са на един и същ клиент, PDF-ът отива при него */
+  if (!client && !prop) { const ids = Array.from(new Set(items.map((x) => x.doc && x.doc.client_id).filter(Boolean))); if (ids.length === 1 && items.every((x) => x.doc)) client = await row(ctx, "clients", ids[0]).catch(() => null); }
+  const who = client ? client.name : prop ? (prop.code || prop.title || "") : "";
+  let groups = [];
+  if (i.group_by_type && items.length > 1) {
+    const by = new Map();
+    for (const x of items) { let type = "други"; try { const c = await classifyDoc(x.info, x.name); if (c && c.type) type = String(c.type).slice(0, 60); } catch (e) {} if (!by.has(type)) by.set(type, []); by.get(type).push(x); }
+    by.forEach((list, type) => groups.push({ type, title: cap(type) + (who ? " – " + who : ""), list }));
+  } else groups.push({ type: null, title: i.title || ("Документ" + (who ? " – " + who : " от чата")), list: items });
+  const files = [], propDocs = prop && Array.isArray(prop.docs) ? prop.docs.slice() : [];
+  for (const g of groups) {
+    const out = await PDFLib.PDFDocument.create(), parts = [];
+    for (const x of g.list) { try { const n = await appendDoc(out, x.info); parts.push({ name: x.name, pages: n }); } catch (e) { skipped.push({ name: x.name, reason: String(e.message || e) }); } }
+    if (!parts.length) continue;
+    const buf = Buffer.from(await out.save()), name = safeName(g.title) + ".pdf", p = artPath(client, name);
+    await uploadBytes(ctx, p, buf, "application/pdf");
+    const art = await registerArtifact(ctx, client, name, p, buf.length, "application/pdf", i.folder || "Тед", "Тед направи PDF „" + name + "“ от " + parts.length + (parts.length === 1 ? " файл" : " файла") + " (" + out.getPageCount() + " стр.)");
+    if (prop) propDocs.push({ name, path: p, size: buf.length, mime: "application/pdf", at: new Date().toISOString(), by: "ted" });
+    files.push(Object.assign({ pages: out.getPageCount(), parts, type: g.type || undefined }, art));
+  }
+  if (!files.length) throw new ToolError("PDF не се получи: " + skipped.map((x) => x.name + " – " + x.reason).join("; "));
+  if (prop) { const upd = Object.assign({}, prop, { docs: propDocs }); delete upd.id; delete upd.updated_at; delete upd.created_at; await put(ctx, "properties", upd, prop.id); }
+  const res = { created: true, count: files.length, files, skipped,
+    client: client ? { id: client.id, name: client.name } : null, property: prop ? { id: prop.id, code: prop.code || null, title: prop.title || "" } : null,
+    saved_to: [client ? "клиент " + client.name + " (Документи → " + (i.folder || "Тед") + ")" : "", prop ? "имот " + (prop.code || prop.title || prop.id) + " (документи)" : ""].filter(Boolean).join(" и ") || "папка „Тед“ (без клиент – посочи client_name, за да се запише при клиент)" };
+  if (files.length === 1) Object.assign(res, { document_id: files[0].document_id, name: files[0].name, pages: files[0].pages, download_url: files[0].download_url, path: files[0].path });
+  return res;
+}
+const FILE_IN = { files: S("array", { max: MAX_DOCS }), paths: S("array", { max: MAX_DOCS }), path: S("string", { max: 400 }), url: S("string", { max: 2000 }), name: S("string", { max: 180 }), mime: S("string", { max: 120 }) };
 async function classifyDoc(info, name) {
   const t = await gemini([docPart(info), { text: "Това е документ от досие на клиент на агенция за недвижими имоти. Име на файла: " + name + ". Върни САМО JSON: {\"type\": един от [\"банково извлечение\",\"фиш за заплата\",\"трудов договор\",\"лична карта\",\"нотариален акт\",\"скица\",\"данъчна оценка\",\"удостоверение\",\"декларация\",\"фактура\",\"договор\",\"превод\",\"друго\"], \"language\": ISO 639-1 код на основния език, \"is_translation\": true/false (дали е превод на български), \"period_from\": \"YYYY-MM\" или null, \"period_to\": \"YYYY-MM\" или null, \"issuer\": кратко име на институцията или null, \"person\": име на лицето или null, \"pages\": брой страници, \"confidence\": 0..1}. Без обяснения." }], { json: true });
   return parseJson(t);
@@ -474,9 +552,10 @@ const tools = {
     }
   },
   "documents.merge": {
-    description: "Обединява PDF и снимки в един валиден PDF в подадения ред (doc_ids), записва го при клиента и връща реален линк за изтегляне с брой страници.",
-    input: schema({ doc_ids: S("array", { required: true, max: MAX_DOCS }), title: S("string", { max: 120, default: "Обединен документ" }), client_id: S("string"), client_name: S("string", { max: 120 }) }),
+    description: "Обединява (групира) PDF и снимки в един валиден PDF в подадения ред, записва го при клиента и връща реален линк за изтегляне с брой страници. Източници: doc_ids (документи от CRM) и/или files [{path,name,mime}] от ATTACHMENTS (файлове от чата).",
+    input: schema(Object.assign({ doc_ids: S("array", { max: MAX_DOCS }), title: S("string", { max: 120, default: "Обединен документ" }), client_id: S("string"), client_name: S("string", { max: 120 }), property_id: S("string", { max: 80 }), property_code: S("string", { max: 40 }) }, FILE_IN)),
     run: async (ctx, i) => {
+      if (!(i.doc_ids && i.doc_ids.length) || (i.files && i.files.length) || (i.paths && i.paths.length) || i.path || i.url || i.property_id || i.property_code || i.doc_ids.some((x) => typeof x !== "string" || /\//.test(x))) return filesToPdf(ctx, i);
       const client = await clientOf(ctx, i.client_id, i.client_name); const out = await PDFLib.PDFDocument.create(); const parts = [];
       for (const id of i.doc_ids) { const d = await row(ctx, "documents", id); const info = await pagesOf(ctx, d); const n = await appendDoc(out, info); parts.push({ id, name: d.name, pages: n }); }
       const buf = Buffer.from(await out.save()), name = safeName(i.title) + ".pdf", p = artPath(client || (parts.length ? { id: (await row(ctx, "documents", i.doc_ids[0])).client_id || "common" } : null), name);
@@ -515,10 +594,13 @@ const tools = {
     }
   },
   "documents.translate": {
-    description: "Превежда документ на български (или друг език) страница по страница с AI и го връща като нов PDF със заглавие „Превод от <език>“ и бележка, че е автоматичен превод за преглед. append_original=true добавя оригинала след превода.",
-    input: schema({ doc_id: S("string", { required: true }), target: S("string", { max: 5, default: "bg" }), append_original: S("boolean", { default: false }), title: S("string", { max: 120 }) }),
+    description: "Превежда документ на български (или друг език: target) страница по страница с AI и го връща като нов PDF със заглавие „Превод от <език>“ и бележка, че е автоматичен превод за преглед. Източник: doc_id (документ от CRM) ИЛИ path от ATTACHMENTS (файл от чата: снимка или PDF). client_name записва превода при клиента. append_original=true добавя оригинала след превода.",
+    input: schema(Object.assign({ doc_id: S("string"), target: S("string", { max: 5, default: "bg" }), append_original: S("boolean", { default: false }), title: S("string", { max: 120 }), client_id: S("string"), client_name: S("string", { max: 120 }) }, FILE_IN)),
     run: async (ctx, i) => {
-      const d = await row(ctx, "documents", i.doc_id), info = await pagesOf(ctx, d); if (info.kind === "other") throw new ToolError("Форматът не се превежда: " + (d.mime || ""));
+      /* документ от CRM (doc_id) или файл от чата (path от ATTACHMENTS) */
+      const src0 = chatSources(i)[0]; if (!src0) throw new ToolError("Подай doc_id (документ от CRM) или path от ATTACHMENTS (файл от чата).");
+      const src = await loadSource(ctx, src0), info = src.info, d = src.doc || { id: null, name: src.name, client_id: null, mime: info.mime };
+      if (info.kind === "other") throw new ToolError("Форматът не се превежда: " + (d.mime || info.mime || "неизвестен") + ". Качете PDF, JPG или PNG.");
       const LANGS = { bg: "български", en: "английски", de: "немски", ru: "руски", uk: "украински", tr: "турски", ro: "румънски", el: "гръцки", it: "италиански", fr: "френски", es: "испански", nl: "нидерландски", pl: "полски" };
       const tgt = LANGS[i.target] || i.target;
       const t = await gemini([docPart(info), { text: "Преведи целия документ на " + tgt + ". Върни САМО JSON: {\"source_language\": ISO код, \"source_language_bg\": името на езика на български, \"pages\": [{\"n\": номер, \"text\": преведеният текст на страницата}]}. Запази имена, числа, валути, IBAN, дати, периоди и реда на таблиците (колони с |). Не съкращавай и не пропускай редове. Без обяснения." }], { json: true });
@@ -530,10 +612,10 @@ const tools = {
       const tr = await textPdf(blocks, { footer: "Превод от " + srcLang + " · " + d.name });
       let final = tr, total = (await loadPdf(tr)).getPageCount();
       if (i.append_original && info.kind !== "other") { const out = await loadPdf(tr); const n = await appendDoc(out, info); final = Buffer.from(await out.save()); total += n; }
-      const client = d.client_id ? await row(ctx, "clients", d.client_id).catch(() => null) : null;
+      const client = (i.client_id || i.client_name) ? await clientOf(ctx, i.client_id, i.client_name) : (d.client_id ? await row(ctx, "clients", d.client_id).catch(() => null) : null);
       const name = safeName(i.title || ("Превод – " + d.name.replace(/\.\w+$/, ""))) + ".pdf", p = artPath(client, name);
-      await upload(ctx, p, final, "application/pdf");
-      return Object.assign({ source_language: j.source_language, pages: total, translated_pages: pages.length, note: "Автоматичен превод – за преглед, не е заверен." }, await registerArtifact(ctx, client, name, p, final.length, "application/pdf", "Преводи", "Тед преведе „" + d.name + "“ от " + srcLang));
+      await uploadBytes(ctx, p, final, "application/pdf");
+      return Object.assign({ source_language: j.source_language, pages: total, translated_pages: pages.length, client: client ? { id: client.id, name: client.name } : null, note: "Автоматичен превод – за преглед, не е заверен." }, await registerArtifact(ctx, client, name, p, final.length, "application/pdf", "Преводи", "Тед преведе „" + d.name + "“ от " + srcLang));
     }
   },
   "documents.bank_statements_pack": {
@@ -696,6 +778,11 @@ const tools = {
     description: "Прикачва нов файл от чата към избран клиент и/или имот в CRM. Задължителни са path (bucket nd-files, напр. ted-chat/гггг-мм/файл) и поне едно от client_id, client_name, property_id, property_code. Успехът е само след записан файл и CRM връзка. Повторен опит със същия path не създава дубликат.",
     input: schema({ path: S("string", { max: 400 }), url: S("string", { max: 2000 }), name: S("string", { max: 180 }), mime: S("string", { max: 120 }), client_id: S("string", { max: 80 }), client_name: S("string", { max: 120 }), property_id: S("string", { max: 80 }), property_code: S("string", { max: 40 }), folder: S("string", { max: 80 }) }),
     run: attachChatFile
+  },
+  "files.to_pdf": {
+    description: "Прави ЕДИН PDF файл от снимки и/или PDF файлове от чата (files: [{path,name,mime}] от ATTACHMENTS) или от CRM (doc_ids), в подадения ред, и го записва при клиент (client_name или client_id) и/или имот (property_code или property_id). group_by_type=true: вместо един файл – по един PDF за всеки вид документ (лична карта, нотариален акт, банково извлечение…). Връща име, брой страници и линк. Ползвай го при „направи ги на PDF/на файл“, „събери/групирай снимките“, „направи файл и го добави към клиента“.",
+    input: schema(Object.assign({ doc_ids: S("array", { max: MAX_DOCS }), title: S("string", { max: 120 }), group_by_type: S("boolean", { default: false }), client_id: S("string", { max: 80 }), client_name: S("string", { max: 120 }), property_id: S("string", { max: 80 }), property_code: S("string", { max: 40 }), folder: S("string", { max: 80 }) }, FILE_IN)),
+    run: filesToPdf
   },
   "documents.attach": {
     description: "Същото като files.attach: качва/прикачва файл от чата към клиент или имот. path + client_id/client_name или property_id/property_code.",

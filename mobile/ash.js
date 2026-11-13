@@ -280,7 +280,125 @@
     if (k.pdf) h.push("PDF → analyze_document с path");
     if (k.file) h.push("друг файл → files.attach, ако служителят поиска да се запише при клиент или имот");
     h.push("запис при клиент/имот → files.attach {path, name, mime, client_id или client_name, property_id или property_code}");
+    h.push("„направи ги на PDF / на един файл / събери / групирай“ → files.to_pdf {files:[{path,name,mime}…] в реда им, title, client_name или property_code; group_by_type:true = отделен PDF за всеки вид документ} – прави файла и го записва при клиента с едно извикване");
+    h.push("превод на файл → documents.translate {path, name, mime, target:\"bg\", client_name}");
+    h.push("обединяване с документи от CRM → documents.merge {doc_ids:[…], files:[{path,name,mime}…], client_name}");
     return "(Прикачени файлове – в ATTACHMENTS са bucket и path, не временен линк. Инструментите са еднакви за всеки избран модел през /api/tools: " + h.join("; ") + ".)";
+  }
+  /* ---- файлови команди без AI (както „Да“ за имейла): „направи ги на PDF“, „добави ги към клиент …“, „преведи го“, „групирай ги по вид“.
+     Ясната команда върху качените файлове се изпълнява направо през /api/tools (същите умения, същият токен) и връща файла с линк.
+     Въпроси и всичко останало отиват при агента както досега; при неуспех на директния път съобщението също отива при агента. ---- */
+  var LASTF_KEY = "nd-ted-lastfiles", LASTF_MS = 45 * 60000;
+  function rememberFiles(a) {
+    try {
+      var f = (a || []).filter(function (x) { return x && x.path && x.kind !== "audio"; }).map(function (x) { return { kind: x.kind || kindOf(x.mime || ""), name: x.name, mime: x.mime, bucket: "nd-files", path: x.path }; });
+      if (f.length) sessionStorage.setItem(LASTF_KEY, JSON.stringify({ at: Date.now(), files: f.slice(0, 12) }));
+    } catch (e) {}
+  }
+  function recentFiles() { try { var j = JSON.parse(sessionStorage.getItem(LASTF_KEY) || "null"); return j && Date.now() - j.at < LASTF_MS && Array.isArray(j.files) ? j.files : []; } catch (e) { return []; } }
+  var FC_STOP = /^(и|или|като|в|във|на|с|със|за|от|до|pdf|пдф|файл|файла|файлове|файловете|документ|документа|документи|документите|снимка|снимки|снимките|моля|после|след|също|го|ги|я|му|й|папка|папката|един|една|едно|общ|веднага|сега|там|тук|преведи|преведен|преведени|направи|запиши|добави|прикачи|обедини|групирай|благодаря)$/i;
+  var FC_ASK = /[?]|какво|какви|каква|какъв|кажи|обясни|провери|анализирай|сравни|колко|дали|защо|къде|кога|опиши|прочети|извлечи|разпознай|имейл|мейл|e-?mail|изпрати|прати|изготви|състави|напиши|обява|публикувай|изтрий|махни/;
+  var FC_REF = /(^|[^а-яa-z])(ги|го|тях|него|нея|този|тези|това|горните|горния|последните|последния)([^а-яa-z]|$)|снимк|файл|документ|pdf|пдф/;
+  function fcTarget(t) {
+    var o = {}, m = /(?:клиент(?:ката|ка|ът|а|и)?|досието\s+на|картата\s+на|папката\s+на)\s*[:\-–]?\s*([^\n.,;!?()]{2,80})/i.exec(t);
+    if (m) {
+      var w = m[1].replace(/[„“"«»']/g, "").replace(/^\s*клиент\S*\s+/i, "").trim().split(/\s+/), nm = [];
+      for (var k = 0; k < w.length && nm.length < 4; k++) { if (FC_STOP.test(w[k]) || /^имот/i.test(w[k])) break; nm.push(w[k]); }
+      if (nm.length && !/^[\d#№]+$/.test(nm.join(""))) o.client_name = nm.join(" ");
+    }
+    var p = /имот(?:а|ът)?\s*(?:с\s+)?(?:код|номер|№|#)?\s*[:#№]?\s*([A-Za-zА-Яа-я]{0,5}[-–]?\d{1,7})(?![\dA-Za-zА-Яа-я])/i.exec(t); if (p) o.property_code = p[1].replace("–", "-");
+    return o;
+  }
+  function fcTitle(t) {
+    var m = /(?:с\s+име|със\s+заглавие|заглавие|наречи\s+го|кръсти\s+го|да\s+се\s+казва|казва\s+се)\s*[:\-–]?\s*[„"«']?([^"“»'\n.,;!?]{2,80})/i.exec(t); if (!m) return undefined;
+    var v = m[1].split(/\s+(?:и|към|при|за\s+клиент|на\s+клиент|в\s+досие)\s+/i)[0].trim(); return v || undefined;
+  }
+  function fileCommand(text, att) {
+    var t = String(text || "").trim(); if (!t || t.length > 240 || AUTO_TXT.test(t)) return null;
+    var fresh = !!(att && att.length), files = (fresh ? att : recentFiles()).filter(function (a) { return a && a.path && (a.kind === "image" || a.kind === "pdf"); });
+    if (!files.length) return null;
+    var l = t.toLowerCase(); if (FC_ASK.test(l)) return null;                                     /* въпрос или друга задача → агентът */
+    if (!fresh && !FC_REF.test(l)) return null;                                                   /* без нов файл командата трябва да сочи към файловете */
+    var tr = /превед|превод/.test(l), join = /обедин|събери|слей|комбинир|групир|сглоби/.test(l), make = /направи|преобразув|превърни|конвертир|стани|станат/.test(l),
+      pdfW = /pdf|пдф|(във?|на|един|общ|едно|единен)\s+файл|един\s+документ|общ\s+документ|направи\s+(го\s+|ги\s+)?файл|файл\s+от\s+(снимк|тях|тези)/.test(l), img = files.some(function (f) { return f.kind === "image"; }),
+      grp = /по\s+(вид|видове|тип|типове|документ)/.test(l) && /групир|раздел|подреди|сортир|събери/.test(l),
+      put = /прикач|добав|запиш|запаз|качи|сложи|вкарай|постав/.test(l), tg = fcTarget(t), fl = files.map(function (f) { return { path: f.path, name: f.name, mime: f.mime }; });
+    if (tr) {
+      if (files.length > 4 || (files.length > 1 && (join || /един|общ/.test(l)))) return null;   /* превод + обединяване на много файлове → агентът */
+      var lm = /на\s+(английски|немски|руски|турски|румънски|гръцки|украински|италиански|френски|испански|български)/.exec(l), LG = { "английски": "en", "немски": "de", "руски": "ru", "турски": "tr", "румънски": "ro", "гръцки": "el", "украински": "uk", "италиански": "it", "френски": "fr", "испански": "es", "български": "bg" };
+      return { kind: "translate", files: fl, target: lm ? LG[lm[1]] : "bg", client_name: tg.client_name, orig: /оригинал/.test(l) };
+    }
+    if (grp || join || (pdfW && (img || make))) return { kind: "pdf", files: fl, group: grp, client_name: tg.client_name, property_code: tg.property_code, title: fcTitle(t) };
+    if (put && (tg.client_name || tg.property_code)) return { kind: "attach", files: fl, client_name: tg.client_name, property_code: tg.property_code };
+    return null;
+  }
+  function toolCall(tok, tool, input, ms, signal) {
+    var c = new AbortController(), tm = setTimeout(function () { c.abort(); }, ms || 60000); if (signal) signal.addEventListener("abort", function () { c.abort(); });
+    return fetch("/api/tools", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ tool: tool, input: input }), signal: c.signal })
+      .then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }).then(function (j) { j = j || { ok: false }; j.status = r.status; return j; }); })
+      .catch(function (e) { return { ok: false, status: 0, error: String((e && e.message) || e) }; })
+      .then(function (j) { clearTimeout(tm); return j; });
+  }
+  /* грешка, която служителят може да оправи сам (няма такъв клиент, няколко клиенти, негоден файл) → показва се; всичко друго → агентът */
+  function fcUserError(j) { return j && !j.ok && (j.status === 400 || j.status === 404 || j.status === 409) && j.error && !/Unknown tool|Invalid input/i.test(j.error); }
+  function fcDone(text, tools, bad) { return { ok: true, text: text, actions: tools.map(function (x) { return x + (bad ? " ✗" : ""); }), model: "n8n", model_name: "Тед" }; }
+  function fcSkipped(sk) { return sk && sk.length ? "\nПропуснати: " + sk.map(function (x) { return x.name + " – " + x.reason; }).join("; ") : ""; }
+  function runFileCommand(tok, cmd, signal) {
+    var where = function (x) { return x && x.saved_to ? x.saved_to : ""; };
+    if (cmd.kind === "pdf") {
+      return toolCall(tok, "files.to_pdf", { files: cmd.files, title: cmd.title, group_by_type: !!cmd.group, client_name: cmd.client_name, property_code: cmd.property_code }, cmd.group ? 85000 : 60000, signal).then(function (j) {
+        if (!j.ok) return fcUserError(j) ? fcDone("Не направих файла: " + j.error, ["files.to_pdf"], true) : null;
+        var x = j.result || {}, fs = x.files || []; if (!fs.length) return null;
+        rememberFiles(fs.map(function (f) { return { kind: "pdf", name: f.name, mime: "application/pdf", path: f.path }; }));
+        var head = fs.length === 1 ? "✔ Направих един PDF от " + fs[0].parts.length + (fs[0].parts.length === 1 ? " файл" : " файла") + " (" + fs[0].pages + " стр.)" : "✔ Групирах файловете по вид документ – " + fs.length + " PDF файла";
+        var tail = x.client || x.property ? " и го записах при " + where(x) + "." : ". Не е записан при клиент – напишете „добави го към клиент <име>“.";
+        if (fs.length > 1) tail = x.client || x.property ? " и ги записах при " + where(x) + "." : ". Не са записани при клиент – напишете „добави ги към клиент <име>“.";
+        return fcDone(head + tail + "\n" + fs.map(function (f) { return "[" + f.name + "](" + f.download_url + ")" + (fs.length > 1 ? " – " + f.pages + " стр." : ""); }).join("\n") + fcSkipped(x.skipped), ["files.to_pdf"]);
+      });
+    }
+    if (cmd.kind === "attach") {
+      var done = [], fail = [], hard = false, stop = null, i = 0;
+      var next = function () {
+        if (i >= cmd.files.length || stop) return Promise.resolve();
+        var f = cmd.files[i++];
+        return toolCall(tok, "files.attach", { path: f.path, name: f.name, mime: f.mime, client_name: cmd.client_name, property_code: cmd.property_code }, 45000, signal).then(function (j) {
+          if (j.ok && j.result && j.result.attached) done.push({ f: f, r: j.result });
+          else if (fcUserError(j)) { if (j.status === 404 || j.status === 409) stop = j.error; else fail.push(f.name + " – " + j.error); }
+          else hard = true;
+          return next();
+        });
+      };
+      return next().then(function () {
+        if (stop && !done.length) return fcDone("Не го добавих: " + stop, ["files.attach"], true);
+        if (!done.length) return hard || !fail.length ? null : fcDone("Не го добавих: " + fail.join("; "), ["files.attach"], true);
+        var r0 = done[0].r, to = [r0.client ? "клиент " + r0.client.name + " (Документи → Чат)" : "", r0.property ? "имот " + (r0.property.code || r0.property.title || "") + " (документи)" : ""].filter(Boolean).join(" и ");
+        var lines = done.map(function (d) { var c = d.r.client; return c && c.download_url ? "[" + (c.file || d.f.name) + "](" + c.download_url + ")" + (c.already ? " – вече беше добавен" : "") : "• " + d.f.name; });
+        return fcDone("✔ Добавих " + done.length + (done.length === 1 ? " файл" : " файла") + " към " + to + ".\n" + lines.join("\n") + (fail.length || hard ? "\nНе се добавиха: " + (fail.join("; ") || "останалите файлове – опитайте отново") : ""), ["files.attach"]);
+      });
+    }
+    if (cmd.kind === "translate") {
+      var ok = [], bad = [], hard2 = false, stop2 = null, k = 0;
+      var nx = function () {
+        if (k >= cmd.files.length || stop2) return Promise.resolve();
+        var f = cmd.files[k++];
+        return toolCall(tok, "documents.translate", { path: f.path, name: f.name, mime: f.mime, target: cmd.target, append_original: !!cmd.orig, client_name: cmd.client_name }, 85000, signal).then(function (j) {
+          if (j.ok && j.result && j.result.download_url) ok.push(j.result);
+          else if (fcUserError(j)) { if (j.status === 404 || j.status === 409) stop2 = j.error; else bad.push(f.name + " – " + j.error); }
+          else if (j.status === 429 || j.status === 502) bad.push(f.name + " – " + (j.error || "AI не отговори"));
+          else hard2 = true;
+          return nx();
+        });
+      };
+      return nx().then(function () {
+        if (stop2 && !ok.length) return fcDone("Не го преведох: " + stop2, ["documents.translate"], true);
+        if (!ok.length) return hard2 || !bad.length ? null : fcDone("Преводът не се получи: " + bad.join("; "), ["documents.translate"], true);
+        rememberFiles(ok.map(function (r) { return { kind: "pdf", name: r.name, mime: "application/pdf", path: r.path }; }));
+        var cl = ok[0].client;
+        return fcDone("✔ Преведох " + ok.length + (ok.length === 1 ? " файл" : " файла") + (cl ? " и записах превода при клиент " + cl.name + " (Документи → Преводи)." : ". Преводът не е записан при клиент – напишете „добави го към клиент <име>“.") +
+          "\n" + ok.map(function (r) { return "[" + r.name + "](" + r.download_url + ")"; }).join("\n") + "\nАвтоматичен превод – за преглед, не е заверен." + (bad.length || hard2 ? "\nНе се преведоха: " + (bad.join("; ") || "останалите файлове – опитайте отново") : ""), ["documents.translate"]);
+      });
+    }
+    return Promise.resolve(null);
   }
   /* „Да“ след подготвен имейл → изпраща се веднага (както в Тед на сайта): без AI, точно показаното – email.send {confirm:true} */
   var N8N_AFFIRM = /^\s*(да|да,?\s*(изпрати|прати|изпращай|го изпрати|го прати)(\s+го)?|изпрати(\s+го)?|прати(\s+го)?|ок|окей|потвърждавам|давай|yes)\s*[.!]*\s*$/i;
@@ -339,12 +457,23 @@
         if (big) throw uErr("Файлът „" + (big.name || "запис") + "“ е " + (big.data.length * 3 / 4 / 1048576).toFixed(1) + " MB – агентът в n8n приема файлове до " + N8N_MAX_MB + " MB.");
         return Promise.all(fl.map(function (f) { return upFile(tok, f); })).then(function (a) {
           att = a;
-          return readUploads(tok, att).then(function (reads) {
-            if (!text) text = "Анализирай прикачените файлове.";
-            if (reads.length) text += "\n\nРазпознаване по файл (един неуспех не отменя другите):\n" + reads.map(function (r) { return (r.name || "файл") + ": " + (r.ok ? r.text : "неуспех – " + (r.error || "грешка")); }).join("\n");
-            if (att.length) text += "\n\n" + attHint(att) + "\n[ATTACHMENTS]\n" + JSON.stringify(att.map(function (x) { return { kind: x.kind, name: x.name, mime: x.mime, bucket: x.bucket, path: x.path }; })) + "\n[/ATTACHMENTS]";
-            return [tok, text, att];
-          });
+          var toAgent = function () {
+            return readUploads(tok, att).then(function (reads) {
+              if (!text) text = "Анализирай прикачените файлове.";
+              if (reads.length) text += "\n\nРазпознаване по файл (един неуспех не отменя другите):\n" + reads.map(function (r) { return (r.name || "файл") + ": " + (r.ok ? r.text : "неуспех – " + (r.error || "грешка")); }).join("\n");
+              if (att.length) text += "\n\n" + attHint(att) + "\n[ATTACHMENTS]\n" + JSON.stringify(att.map(function (x) { return { kind: x.kind, name: x.name, mime: x.mime, bucket: x.bucket, path: x.path }; })) + "\n[/ATTACHMENTS]";
+              else {
+                /* без нов файл, но съобщението е за качените преди малко → агентът получава техните path */
+                var rf = recentFiles();
+                if (rf.length && FC_REF.test(text.toLowerCase())) text += "\n\n(Ако съобщението е за последно качените/създадените файлове в този чат, ползвай техния path.) " + attHint(rf) + "\n[ATTACHMENTS]\n" + JSON.stringify(rf) + "\n[/ATTACHMENTS]";
+              }
+              return [tok, text, att];
+            });
+          };
+          var cmd = fileCommand(text, att);
+          if (att.length) rememberFiles(att);
+          if (!cmd) return toAgent();
+          return runFileCommand(tok, cmd, extra.signal).then(function (r) { return r ? { done: r } : toAgent(); }, function () { return toAgent(); });
         });
       });
     }).then(function (x) {
@@ -1031,6 +1160,7 @@
     ask: ask, token: token, esc: esc, fmt: fmt,
     addSkill: function (s, first) { if (s && s.embed) { embedded.push(s); embedded.sort(function (a, b) { return (a.order || 9) - (b.order || 9); }); return; } if (typeof first === "number") skills.splice(Math.min(first, skills.length), 0, s); else if (first) skills.unshift(s); else skills.push(s); if (booted && !skill) setSkill(homeSkill()); },
     open: function () { boot(); fab.click(); },
+    _fileCommand: fileCommand,
     use: function (id) { boot(); var s = skills.filter(function (x) { return x.id === id; })[0]; var em = !s && (embedded.filter(function (x) { return x.id === id; })[0] || id === "mail"); if (!s && !em) return false; win.hidden = false; fab.hidden = true; if (s) setSkill(s); else { if (!skill) setSkill(homeSkill()); openUi(id); } inboxOpened(); return true; },
     panel: function (id) { return this.use(id); },
     hide: function () { if (win && !win.hidden) { win.hidden = true; fab.hidden = false; } },
