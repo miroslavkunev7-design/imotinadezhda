@@ -13,11 +13,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#4a0f18">
 <title>Жилищна сграда — Шумен · Ново строителство · Имоти Надежда</title>
-<meta name="description" content="Ново строителство в Шумен, кв. 366 – 6 апартамента от 64,05 и 72,51 м², по два на етаж, с асансьор и гаражи. Разпределения, 3D сграда и запитване към Недвижими имоти Надежда.">
+<meta name="description" content="Ново строителство в Шумен, кв. 366 – 2 апартамента (72,51 и 64,05 м²) и 2 мезонета (145,02 и 128,10 м²), по две жилища на етаж, с асансьор и гаражи. Разпределения, 3D сграда и запитване към Недвижими имоти Надежда.">
 <link rel="canonical" href="https://imotinadezhda.bg/mobile/nc-shumen.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Жилищна сграда — Шумен · Ново строителство">
-<meta property="og:description" content="6 апартамента по два на етаж, асансьор и гаражи. Разпределения по етажи, 3D сграда и запитване.">
+<meta property="og:description" content="2 апартамента и 2 мезонета, по две жилища на етаж, асансьор и гаражи. Разпределения по етажи, 3D сграда и запитване.">
 <meta property="og:image" content="https://imotinadezhda.bg/mobile/nc-shumen/og.jpg">
 <meta property="og:url" content="https://imotinadezhda.bg/mobile/nc-shumen.html">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -426,8 +426,8 @@ table.rt tr.on td{background:rgba(246,217,147,.5);font-weight:700}
     </div>
     <div class="tile"><svg class="i"><use href="#i-building"/></svg><b>1</b><span>Сграда</span></div>
     <div class="tile"><svg class="i"><use href="#i-layers"/></svg><b>3 + П</b><span>Етажа</span></div>
-    <div class="tile"><svg class="i"><use href="#i-grid"/></svg><b>6</b><span>Апартамента</span></div>
-    <div class="tile"><i class="dot ok"></i><b id="n-free">6</b><span>Свободни</span></div>
+    <div class="tile"><svg class="i"><use href="#i-grid"/></svg><b>4</b><span>Жилища</span></div>
+    <div class="tile"><i class="dot ok"></i><b id="n-free">4</b><span>Свободни</span></div>
     <div class="tile"><i class="dot warn"></i><b id="n-res">0</b><span>Капарирани</span></div>
     <div class="tile"><i class="dot bad"></i><b id="n-sold">0</b><span>Продадени</span></div>
   </div>
@@ -436,7 +436,7 @@ table.rt tr.on td{background:rgba(246,217,147,.5);font-weight:700}
   <div class="actw"><p class="actt" id="act-t"></p><div class="acts">
     <button class="ab gold" data-act="viewing"><svg class="i"><use href="#i-calendar"/></svg>Запази оглед</button>
     <button class="ab" data-act="inquiry"><svg class="i"><use href="#i-mail"/></svg>Изпрати запитване</button>
-    <button class="ab" data-act="compare"><svg class="i"><use href="#i-scale"/></svg>Сравни апартаменти</button>
+    <button class="ab" data-act="compare"><svg class="i"><use href="#i-scale"/></svg>Сравни жилищата</button>
     <button class="ab" data-act="mortgage"><svg class="i"><use href="#i-calc"/></svg>Калкулатор ипотека</button>
     <button class="ab" data-act="fav" id="fav-b"><svg class="i"><use href="#i-heart"/></svg>Добави в любими</button>
   </div></div>
@@ -498,23 +498,38 @@ table.rt tr.on td{background:rgba(246,217,147,.5);font-weight:700}
 /* ---------- данни: точно по чертежите ---------- */
 var PPM=1550;
 var ROOMS={
+  /* мезонети (етажи 2–3): [помещение, площ, ниво] – по преработените чертежи plan-2m / plan-3m */
+  MA:[["Входно предверие / коридор",9.83,1],["Помощно помещение",1.83,1],["Лоджия",3.46,1],["Вътрешна стълба и кабинет",13.52,1],["Спалня",12.71,1],["Санитарен възел",4.21,1],["Дневен тракт",21.52,1],["Балкон",5.43,1],
+      ["Коридор",9.83,2],["Помощно помещение",1.83,2],["Лоджия",3.46,2],["Стълба и гардеробна",13.52,2],["Спалня",12.71,2],["Санитарен възел",4.21,2],["Спалня (родителска)",21.52,2],["Балкон",5.43,2]],
+  MB:[["Входно предверие / коридор",8.33,1],["Помощно помещение",1.96,1],["Дневен тракт",20.79,1],["Балкон",4.85,1],["Спалня",12.69,1],["Вътрешна стълба и килер",11.95,1],["Санитарен възел",3.48,1],
+      ["Коридор",8.33,2],["Помощно помещение",1.96,2],["Спалня (родителска)",20.79,2],["Балкон",4.85,2],["Спалня",12.69,2],["Стълба и гардеробна",11.95,2],["Санитарен възел",3.48,2]],
   A:[["Входно предверие / коридор",9.83],["Помощно помещение",1.83],["Лоджия",3.46],["Спалня 1",13.52],["Спалня 2",12.71],["Санитарен възел",4.21],["Дневен тракт",21.52],["Балкон",5.43]],
   B:[["Входно предверие / коридор",8.33],["Помощно помещение",1.96],["Дневен тракт",20.79],["Балкон",4.85],["Спалня 1",12.69],["Спалня 2",11.95],["Санитарен възел",3.48]]
 };
 var TYPES={
-  A:{name:"Тип А",area:72.51,rooms:3,baths:1,out:"5,43 м² балкон + 3,46 м² лоджия",outShort:"5,43 м² балкон",img:"/mobile/nc-shumen/r-aptA.jpg"},
-  B:{name:"Тип Б",area:64.05,rooms:3,baths:1,out:"4,85 м² балкон",outShort:"4,85 м² балкон",img:"/mobile/nc-shumen/r-aptB.jpg"}
+  A:{name:"Тип А",area:72.51,rooms:3,baths:1,out:"5,43 м² балкон + 3,46 м² лоджия",outShort:"5,43 м² балкон",img:"/mobile/nc-shumen/r-aptA.jpg",base:"A"},
+  B:{name:"Тип Б",area:64.05,rooms:3,baths:1,out:"4,85 м² балкон",outShort:"4,85 м² балкон",img:"/mobile/nc-shumen/r-aptB.jpg",base:"B"},
+  MA:{name:"Мезонет",area:145.02,rooms:4,baths:2,out:"2 × 5,43 м² балкон + 2 × 3,46 м² лоджия",outShort:"2 балкона + 2 лоджии",base:"A",mz:true},
+  MB:{name:"Мезонет",area:128.10,rooms:4,baths:2,out:"2 × 4,85 м² балкон",outShort:"2 балкона",base:"B",mz:true}
 };
 var FLOORS=[
-  {id:3,label:"Етаж 3",kota:"+9,40",plan:"/mobile/nc-shumen/plan-3.png",sheet:"/mobile/nc-shumen/sheet-3.png",units:[5,6]},
-  {id:2,label:"Етаж 2",kota:"+6,50",plan:"/mobile/nc-shumen/plan-2.png",sheet:"/mobile/nc-shumen/sheet-2.png",units:[3,4]},
+  {id:3,label:"Етаж 3",kota:"+9,40",plan:"/mobile/nc-shumen/plan-3m.png",sheet:"/mobile/nc-shumen/sheet-3m.png",units:[3,4],lv:2,sub:"мезонети, горно ниво",cap:"Разпределение · мезонети, ниво 2, кота +9,40"},
+  {id:2,label:"Етаж 2",kota:"+6,50",plan:"/mobile/nc-shumen/plan-2m.png",sheet:"/mobile/nc-shumen/sheet-2m.png",units:[3,4],lv:1,sub:"мезонети, долно ниво (вход)",cap:"Разпределение · мезонети, ниво 1, кота +6,50"},
   {id:1,label:"Етаж 1",kota:"+3,60",plan:"/mobile/nc-shumen/plan-1.png",sheet:"/mobile/nc-shumen/sheet-1.png",units:[1,2]},
   {id:0,label:"Партер",kota:"±0,00",plan:"/mobile/nc-shumen/plan-0.png",sheet:"/mobile/nc-shumen/sheet-0.png",units:[]}
 ];
 var UNITS={};
-[1,2,3,4,5,6].forEach(function(n){var t=n%2?"A":"B";UNITS[n]={n:n,type:t,floor:Math.ceil(n/2),status:"free",area:TYPES[t].area,ppm:PPM,total:Math.round(TYPES[t].area*PPM*100)/100};});
+var UNO=[1,2,3,4];   /* етаж 1: апартаменти 1 и 2 · етажи 2–3: мезонети 3 и 4 */
+[[1,"A",1],[2,"B",1],[3,"MA",2,[2,3]],[4,"MB",2,[2,3]]].forEach(function(d){var n=d[0],t=d[1];UNITS[n]={n:n,type:t,floor:d[2],levels:d[3]||null,status:"free",area:TYPES[t].area,ppm:PPM,total:Math.round(TYPES[t].area*PPM*100)/100};});
+function isMz(u){return !!TYPES[u.type].mz;}
+function isA(u){return TYPES[u.type].base==="A";}
+function uName(u,sh){return (isMz(u)?(sh?"Мез. ":"Мезонет "):(sh?"Ап. ":"Апартамент "))+u.n;}
+function pickFloor(n){var u=UNITS[n];return u.levels&&u.levels.indexOf(S.floor)>-1?S.floor:u.floor;}
+function uFloor(u){return floorOf(u.levels&&u.levels.indexOf(S.floor)>-1?S.floor:u.floor);}
+function uFl(u){return u.levels?"Етажи 2–3":floorOf(u.floor).label;}
+function uKota(u){return u.levels?"+6,50 / +9,40":floorOf(u.floor).kota;}
 function ptxt(u){return u.total==null?"—":eur(u.total);}
-function ALLU(){return [1,2,3,4,5,6].map(function(n){return UNITS[n];});}
+function ALLU(){return UNO.map(function(n){return UNITS[n];});}
 var GROUND=[
   {k:"shop",name:"Магазин",full:"Магазин за промишлени стоки",area:55.31,pts:[[165,143],[1125,143],[1125,283],[960,283],[960,715],[165,715]],lab:[560,430]},
   {k:"g1",name:"Гараж 1",full:"Гараж 1",area:23.23,pts:[[170,720],[493,720],[493,1345],[170,1345]],lab:[332,1030]},
@@ -535,14 +550,14 @@ var GAL=[
 var DOCS=[
   ["/mobile/nc-shumen/sheet-0.png","Разпределение на кота ±0,00","Партер – магазин и гаражи"],
   ["/mobile/nc-shumen/sheet-1.png","Разпределение на кота +3,60","Етаж 1 – апартаменти 1 и 2"],
-  ["/mobile/nc-shumen/sheet-2.png","Разпределение на кота +6,50","Етаж 2 – апартаменти 3 и 4"],
-  ["/mobile/nc-shumen/sheet-3.png","Разпределение на кота +9,40","Етаж 3 – апартаменти 5 и 6"],
+  ["/mobile/nc-shumen/sheet-2m.png","Мезонети – ниво 1, кота +6,50","Етаж 2 – мезонети 3 и 4: вход, дневна зона, вътрешна стълба"],
+  ["/mobile/nc-shumen/sheet-3m.png","Мезонети – ниво 2, кота +9,40","Етаж 3 – мезонети 3 и 4: спални и бани"],
   ["/mobile/nc-shumen/sheet-section.png","Разрез А/А","Коти, височини и материали"]
 ];
 var TABS=[["overview","Общ преглед","home"],["apartments","Апартаменти","grid"],["plan","Разпределение","layers"],["build","Строителство","hat"],["gallery","Галерия","image"],["docs","Документи","file"]];
 var ST={free:"Свободен",reserved:"Капариран",sold:"Продаден"};
 
-var S={tab:"overview",floor:3,unit:5,mode:"furn",zone:null,zoom:1,fav:{},b3d:"model",cut:false,fs:false,room:-1};
+var S={tab:"overview",floor:3,unit:3,mode:"furn",zone:null,zoom:1,fav:{},b3d:"model",cut:false,fs:false,room:-1};
 try{S.fav=JSON.parse(localStorage.getItem("nc-fav")||"{}")||{};}catch(e){}
 
 /* ---------- помощни ---------- */
@@ -558,22 +573,24 @@ function pts(a){return a.map(function(p){return p.join(",");}).join(" ");}
 
 /* ---------- части ---------- */
 function selPanel(compact){
-  var u=UNITS[S.unit],t=TYPES[u.type],f=floorOf(u.floor);
-  var h='<div class="pn"><div class="sel-h"><h3 class="h3">'+ic("home")+'Избран апартамент — № '+u.n+'</h3>'+badge(u.status)+'</div>'+
+  var u=UNITS[S.unit],t=TYPES[u.type],f=uFloor(u),mz=isMz(u);
+  var h='<div class="pn"><div class="sel-h"><h3 class="h3">'+ic("home")+(mz?'Избран мезонет — № ':'Избран апартамент — № ')+u.n+'</h3>'+badge(u.status)+'</div>'+
     '<div class="kv2"><div><div class="l">'+ic("area")+'Площ по проекта</div><div class="v">'+num(u.area)+' <small>м²</small></div></div>'+
     '<div><div class="l">'+ic("coins")+'Цена на м²</div><div class="v">'+(u.total==null||u.ppm==null?'—':num(u.ppm,u.ppm%1?2:0)+' <small>€</small>')+'</div></div></div>'+
     '<div class="total">'+ic("coins")+(u.total==null?'<b>'+(u.status==="sold"?'Продаден':'Цена по запитване')+'</b>':'Обща цена: <b>'+eur(u.total)+'</b>')+'</div>';
   if(compact){
-    h+='<p class="note">'+f.label+' · кота '+f.kota+' · '+t.name+' · '+t.rooms+' стаи</p>'+
+    h+='<p class="note">'+(mz?'Мезонет на две нива · '+uFl(u)+' · кота '+uKota(u):f.label+' · кота '+f.kota+' · '+t.name)+' · '+t.rooms+' стаи</p>'+
        '<div class="cta3" style="grid-template-columns:1fr"><button class="btn wine" data-act="tab" data-tab="plan">'+ic("plan")+'Виж разпределение '+ic("right")+'</button></div></div>';
     return h;
   }
-  h+='<p class="note">Сбор от светлите площи на помещенията, лоджията и балкона. Стени и общи части не са включени.</p>'+
+  h+='<p class="note">'+(mz?'Две нива (етаж 2 и етаж 3), свързани с вътрешна стълба. ':'')+'Сбор от светлите площи на помещенията, лоджията и балкона. Стени и общи части не са включени.</p>'+
     '<details class="rooms" open><summary>Помещения и точни площи по проекта</summary><table class="rt"><tr><th>№</th><th>Помещение</th><th>Площ</th></tr>';
-  var sum=0;ROOMS[u.type].forEach(function(r,i){sum+=r[1];h+='<tr data-act="room" data-i="'+i+'" data-r class="'+(S.room===i?'on':'')+'"><td>'+(i+1)+'</td><td>'+r[0]+'</td><td>'+m2(r[1])+'</td></tr>';});
+  var sum=0,lv=0,k=0;ROOMS[u.type].forEach(function(r,i){sum+=r[1];
+    if(r[2]&&r[2]!==lv){lv=r[2];k=0;h+='<tr class="sum"><td colspan="3" style="text-align:left">Ниво '+lv+(lv===1?' · етаж 2, кота +6,50 (вход)':' · етаж 3, кота +9,40')+'</td></tr>';}
+    k++;h+='<tr data-act="room" data-i="'+i+'" data-r class="'+(S.room===i?'on':'')+'"><td>'+k+'</td><td>'+r[0]+'</td><td>'+m2(r[1])+'</td></tr>';});
   h+='<tr class="sum"><td colspan="2">Сбор по таблицата</td><td>'+m2(Math.round(sum*100)/100)+'</td></tr></table>'+
-    '<button class="orig" data-act="lb" data-src="'+f.sheet+'" data-cap="Оригинален чертеж · Разпределение на кота '+f.kota+'">'+ic("file")+'Виж оригиналния чертеж · Разпределение на кота '+f.kota+'</button></details>'+
-    '<div class="facts"><span>'+ic("bed")+t.rooms+' стаи</span><span>'+ic("bath")+t.baths+' баня</span><span>'+ic("umb")+t.outShort+'</span><span>'+ic("layers")+f.label+'</span></div></div>';
+    '<button class="orig" data-act="lb" data-src="'+f.sheet+'" data-cap="'+(f.cap||'Оригинален чертеж · Разпределение на кота '+f.kota)+'">'+ic("file")+(f.cap?'Виж чертежа · '+f.cap:'Виж оригиналния чертеж · Разпределение на кота '+f.kota)+'</button></details>'+
+    '<div class="facts"><span>'+ic("bed")+t.rooms+' стаи</span><span>'+ic("bath")+t.baths+(t.baths>1?' бани':' баня')+'</span><span>'+ic("umb")+t.outShort+'</span><span>'+ic("layers")+uFl(u)+'</span></div></div>';
   return h;
 }
 function zonePanel(){
@@ -595,8 +612,8 @@ function zonesSvg(f,mini){
   }
   h='<svg class="zones" viewBox="0 0 1420 1374" preserveAspectRatio="none">';
   [[f.units[0],ZA,LA],[f.units[1],ZB,LB]].forEach(function(z){var on=(S.unit===z[0]?" on":"")+(UNITS[z[0]].status!=="free"?" "+UNITS[z[0]].status:"");
-    h+='<polygon class="zone'+on+'" points="'+pts(z[1])+'" data-act="unit" data-u="'+z[0]+'"><title>Апартамент '+z[0]+'</title></polygon>';
-    if(!mini)h+='<g class="zlab'+on+'" data-act="unit" data-u="'+z[0]+'"><rect x="'+(z[2][0]-105)+'" y="'+(z[2][1]-42)+'" width="210" height="84" rx="14"/><text x="'+z[2][0]+'" y="'+z[2][1]+'">Ап. '+z[0]+'</text></g>';});
+    h+='<polygon class="zone'+on+'" points="'+pts(z[1])+'" data-act="unit" data-u="'+z[0]+'"><title>'+uName(UNITS[z[0]])+'</title></polygon>';
+    if(!mini)h+='<g class="zlab'+on+'" data-act="unit" data-u="'+z[0]+'"><rect x="'+(z[2][0]-105)+'" y="'+(z[2][1]-42)+'" width="210" height="84" rx="14"/><text x="'+z[2][0]+'" y="'+z[2][1]+'">'+uName(UNITS[z[0]],true)+'</text></g>';});
   return h+'</svg>';
 }
 function priceLine(){
@@ -797,8 +814,8 @@ function t3Build(){
     T3.dirty=true;};
   function label(){var f=floorOf(S.floor),v=null,txt="";
     if(S.cut){var m=zoneMeshes.filter(function(z){return (z.userData.unit&&z.userData.unit===S.unit)||(z.userData.zone&&z.userData.zone===S.zone);})[0];
-      if(m){v=new THREE.Vector3(m.userData.c[0],cut.position.y+0.4,m.userData.c[1]);txt=m.userData.unit?"Ап. "+m.userData.unit:GROUND.filter(function(g){return g.k===m.userData.zone;})[0].name;}}
-    else if(f.id){var a=UNITS[S.unit].type==="A",y=(YB[f.id]+YB[f.id+1])/2-0.2;v=a?new THREE.Vector3(x0+2.0,y,zf):new THREE.Vector3(x0+9.1,y,zf);txt="Ап. "+S.unit;}
+      if(m){v=new THREE.Vector3(m.userData.c[0],cut.position.y+0.4,m.userData.c[1]);txt=m.userData.unit?uName(UNITS[m.userData.unit],true):GROUND.filter(function(g){return g.k===m.userData.zone;})[0].name;}}
+    else if(f.id){var a=isA(UNITS[S.unit]),y=(YB[f.id]+YB[f.id+1])/2-0.2;v=a?new THREE.Vector3(x0+2.0,y,zf):new THREE.Vector3(x0+9.1,y,zf);txt=uName(UNITS[S.unit],true);}
     else{v=new THREE.Vector3(-1.2,1.9,z1);txt="Гаражи";}
     if(!v){T3.hs.style.display="none";return;}
     v.project(cam);var w=cv.clientWidth,h=cv.clientHeight;if(v.z>1||v.z<-1){T3.hs.style.display="none";return;}
@@ -857,7 +874,7 @@ function trBuild(){
   d.innerHTML='<div class="tl"><img alt=""><div class="spots"></div></div><div class="fade"></div><div class="pick"><h4>Избери апартамент</h4><div></div></div>'+
     '<div class="hint" style="bottom:74px">Плъзни, за да огледаш · докосни точка, за да продължиш</div><div class="cap"><div class="tx"><b></b><span></span></div><em></em><button class="cb" data-act="trstep" data-d="-1" aria-label="Назад">'+ic("left")+'</button><button class="cb" data-act="trplay" aria-label="Автоматична разходка">'+ic("play")+'</button><button class="cb" data-act="trstep" data-d="1" aria-label="Напред">'+ic("right")+'</button></div>';
   TR.dom=d;TR.tl=d.querySelector(".tl");TR.img=d.querySelector("img");TR.spots=d.querySelector(".spots");
-  d.querySelector(".pick div").innerHTML=[5,6,3,4,1,2].map(function(n){return '<button data-act="trunit" data-u="'+n+'">Ап. '+n+' · '+floorOf(UNITS[n].floor).label+'</button>';}).join("");
+  d.querySelector(".pick div").innerHTML=[3,4,1,2].map(function(n){return '<button data-act="trunit" data-u="'+n+'">'+uName(UNITS[n],true)+' · '+uFl(UNITS[n])+'</button>';}).join("");
   TR.img.addEventListener("load",function(){trLayout(true);});
   var p=null,mv=0,ptrs={},pd=0;
   d.addEventListener("pointerdown",function(e){if(e.target.closest("button"))return;ptrs[e.pointerId]=[e.clientX,e.clientY];p=[e.clientX,e.clientY];mv=0;TR.tl.classList.remove("an");});
@@ -877,7 +894,7 @@ function trFocus(x,y,z,anim){var b=trBase();TR.z=z;TR.tx=b.W/2-x/100*b.bw*z;TR.t
 function trZoom(f,cx,cy){var r=TR.dom.getBoundingClientRect(),px=cx-r.left,py=cy-r.top,nz=Math.min(4,Math.max(1,TR.z*f));TR.tx=px-(px-TR.tx)*nz/TR.z;TR.ty=py-(py-TR.ty)*nz/TR.z;TR.z=nz;trApply();}
 function trLayout(reset){if(!TR.dom||!TR.dom.isConnected)return;if(reset){TR.z=1;TR.room=-1;trFocus(50,50,1,false);}else trApply();}
 function trCap(t,n){var s=SC[TR.id],c=TR.dom.querySelector(".cap");c.querySelector("b").textContent=t||s.t;c.querySelector("span").textContent=(n||s.n)+(s.viz&&!n?" · илюстративна визуализация":"");c.querySelector("em").textContent=(SORDER.indexOf(TR.id)+1)+" / "+SORDER.length;}
-function trUnit(type){var f=floorOf(S.floor||3);if(!f.units.length)f=floorOf(3);return type==="A"?f.units[0]:f.units[1];}
+function trUnit(type){return type==="A"?1:2;}
 function trSpots(){var s=SC[TR.id],h="";
   s.sp.forEach(function(p,i){h+='<button class="sp'+(p.info?' info':'')+'" style="left:'+p.x+'%;top:'+p.y+'%" data-act="trsp" data-i="'+i+'"><u>'+ic(p.info?"info":p.pick?"grid":"right")+'</u><b>'+p.l+'</b></button>';});
   if(s.type){ROOMS[s.type].forEach(function(r,i){var q=RSPOT[s.type][i];h+='<button class="sp info'+(TR.room===i?' on':'')+'" style="left:'+q[0]+'%;top:'+q[1]+'%" data-act="trroom" data-i="'+i+'"><u>'+(i+1)+'</u>'+(TR.room===i?'<b>'+r[0]+' · '+m2(r[1])+'</b>':'')+'</button>';});}
@@ -908,32 +925,32 @@ V.overview=function(){
     '<dt>'+ic("home")+'Тип проект:</dt><dd>Многофамилна жилищна сграда с магазин и гаражи</dd>'+
     '<dt>'+ic("pin")+'Място:</dt><dd>гр. Шумен, кв. 366 · УПИ II-9729</dd>'+
     '<dt>'+ic("file")+'Идентификатор:</dt><dd>83510.668.87</dd>'+
-    '<dt>'+ic("grid")+'Апартаменти:</dt><dd>3 × тип А (72,51 м²) · 3 × тип Б (64,05 м²)</dd>'+
+    '<dt>'+ic("grid")+'Жилища:</dt><dd>етаж 1: тип А (72,51 м²) и тип Б (64,05 м²) · етажи 2–3: 2 мезонета (145,02 и 128,10 м²)</dd>'+
     '<dt>'+ic("coins")+'Цена:</dt><dd>'+priceLine()+'</dd>'+
     '<dt>'+ic("box")+'Партер:</dt><dd>магазин 55,31 м² и 4 гаража</dd>'+
     '<dt>'+ic("hat")+'Фаза:</dt><dd>Технически проект (01.2026)</dd></dl></div></div></div>'+
     '<div class="row2"><div class="pn"><h3>'+ic("hat")+'Етап на завършване</h3><div class="steps"><div>Старт</div><div>Изкоп</div><div>Груб строеж</div><div>Акт 14</div><div>Акт 15</div><div>Акт 16</div></div>'+
     '<p class="note" style="font-size:13.5px;margin-top:12px">Етапите на строителството и срокът за завършване още не са въведени.</p></div>'+
-    '<div class="pn"><h3>'+ic("gem")+'Предимства</h3><ul class="adv"><li>'+ic("check")+'Само 2 апартамента на етаж</li><li>'+ic("check")+'Асансьор</li><li>'+ic("check")+'4 гаража на партера</li><li>'+ic("check")+'Светла височина 2,70 м</li><li>'+ic("check")+'Балкон към всеки апартамент</li></ul></div></div>';
+    '<div class="pn"><h3>'+ic("gem")+'Предимства</h3><ul class="adv"><li>'+ic("check")+'Само 2 жилища на етаж</li><li>'+ic("check")+'2 мезонета с вътрешна стълба</li><li>'+ic("check")+'Асансьор</li><li>'+ic("check")+'4 гаража на партера</li><li>'+ic("check")+'Светла височина 2,70 м</li><li>'+ic("check")+'Балкон към всяко жилище</li></ul></div></div>';
 };
 V.apartments=function(q){
-  var list=[1,2,3,4,5,6].map(function(n){return UNITS[n];});
-  if(q)list=list.filter(function(u){var f=floorOf(u.floor);return ("ап. "+u.n+" апартамент "+u.n+" "+f.label+" "+TYPES[u.type].name+" "+num(u.area)).toLowerCase().indexOf(q)>-1;});
+  var list=ALLU();
+  if(q)list=list.filter(function(u){return (uName(u)+" "+uName(u,true)+" "+uFl(u)+" "+TYPES[u.type].name+" "+num(u.area)).toLowerCase().indexOf(q)>-1;});
   var h='<div class="pn"><h3>'+ic("grid")+'Апартаменти</h3><div class="tblw"><table class="ut"><tr><th>Апартамент</th><th>Етаж</th><th>Кота</th><th>Тип</th><th>Площ по проекта</th><th>Стаи</th><th>Балкон / лоджия</th><th>Цена на м²</th><th>Обща цена</th><th>Статус</th><th></th></tr>';
   list.forEach(function(u){var f=floorOf(u.floor),t=TYPES[u.type];
-    h+='<tr data-act="unit" data-u="'+u.n+'" class="'+(u.n===S.unit?'on':'')+'"><td><b>Ап. '+u.n+'</b></td><td>'+f.label+'</td><td>'+f.kota+'</td><td>'+t.name+'</td><td>'+m2(u.area)+'</td><td>'+t.rooms+'</td><td>'+t.out+'</td><td>'+(u.total==null||u.ppm==null?'—':eur(u.ppm))+'</td><td><b>'+ptxt(u)+'</b></td><td>'+badge(u.status)+'</td><td><button class="pill wine" data-act="open" data-u="'+u.n+'">'+ic("plan")+'Разпределение</button></td></tr>';});
+    h+='<tr data-act="unit" data-u="'+u.n+'" class="'+(u.n===S.unit?'on':'')+'"><td><b>'+uName(u,true)+'</b></td><td>'+uFl(u)+'</td><td>'+uKota(u)+'</td><td>'+t.name+'</td><td>'+m2(u.area)+'</td><td>'+t.rooms+'</td><td>'+t.out+'</td><td>'+(u.total==null||u.ppm==null?'—':eur(u.ppm))+'</td><td><b>'+ptxt(u)+'</b></td><td>'+badge(u.status)+'</td><td><button class="pill wine" data-act="open" data-u="'+u.n+'">'+ic("plan")+'Разпределение</button></td></tr>';});
   h+='</table></div><div class="cards">';
   list.forEach(function(u){var f=floorOf(u.floor),t=TYPES[u.type];
-    h+='<button class="ucard'+(u.n===S.unit?' on':'')+'" data-act="open" data-u="'+u.n+'"><h4>Ап. '+u.n+' · '+t.name+'</h4><span class="p">'+ptxt(u)+'</span><small>'+f.label+' · кота '+f.kota+' · '+m2(u.area)+' · '+t.rooms+' стаи</small><span style="text-align:right">'+badge(u.status)+'</span></button>';});
-  h+='</div>'+(list.length?'':'<p class="muted" style="margin-top:8px">Няма апартамент по това търсене.</p>')+
+    h+='<button class="ucard'+(u.n===S.unit?' on':'')+'" data-act="open" data-u="'+u.n+'"><h4>'+uName(u,true)+' · '+t.name+'</h4><span class="p">'+ptxt(u)+'</span><small>'+uFl(u)+' · кота '+uKota(u)+' · '+m2(u.area)+' · '+t.rooms+' стаи</small><span style="text-align:right">'+badge(u.status)+'</span></button>';});
+  h+='</div>'+(list.length?'':'<p class="muted" style="margin-top:8px">Няма жилище по това търсене.</p>')+
     '<p class="sub4">Други обекти в сградата (партер)</p><table class="kt">';
   GROUND.forEach(function(g){h+='<tr><td>'+g.full+'</td><td>'+m2(g.area)+'</td></tr>';});
   h+='</table><p class="note">Цените на магазина и гаражите не са въведени — по запитване.</p></div>';
   return h;
 };
 V.plan=function(){
-  var f=floorOf(S.floor),ground=f.id===0,furn=!ground&&S.mode==="furn",u=UNITS[S.unit];
-  var h='<div class="mg"><div class="pn"><h3>'+ic("grid")+'Разпределение — '+f.label+'</h3><div class="stage"><div class="fbtns">'+
+  var f=floorOf(S.floor),ground=f.id===0,u=UNITS[S.unit],mzu=!ground&&isMz(u),furn=!ground&&!mzu&&S.mode==="furn";
+  var h='<div class="mg"><div class="pn"><h3>'+ic("grid")+'Разпределение — '+f.label+(f.sub?' · '+f.sub:'')+'</h3><div class="stage"><div class="fbtns">'+
     FLOORS.map(function(x){return '<button class="fb'+(x.id===f.id?' on':'')+'" data-act="floor" data-f="'+x.id+'">'+x.label+'</button>';}).join("")+'</div><div class="view">';
   if(furn){
     h+='<div class="furn"><div class="scroller"><div class="sqr" style="width:'+(S.zoom*100)+'%;max-width:'+(S.zoom>1?'none':'560px')+'"><img src="'+TYPES[u.type].img+'" alt="Обзаведен изглед на апартамент '+u.n+'">'+
@@ -945,9 +962,9 @@ V.plan=function(){
   h+='</div><div class="ctrls"><button class="rb" data-act="zoom" data-d="1" aria-label="Увеличи">'+ic("plus")+'</button><button class="rb" data-act="zoom" data-d="-1" aria-label="Намали">'+ic("minus")+'</button>'+
     '<button class="rb" data-act="lb" data-src="'+(furn?TYPES[u.type].img:f.plan)+'" data-cap="'+f.label+' · кота '+f.kota+'" aria-label="На цял екран">'+ic("full")+'</button></div></div>'+
     '<div class="sfoot"><span class="muted" style="font-size:14.5px;color:var(--ink)">Кота '+f.kota+' м</span>';
-  if(!ground)h+='<span class="seg"><button class="'+(furn?'on':'')+'" data-act="mode" data-m="furn">'+ic("sofa")+'Обзаведен</button><button class="'+(furn?'':'on')+'" data-act="mode" data-m="draw">'+ic("plan")+'Чертеж</button></span>';
+  if(!ground&&!mzu)h+='<span class="seg"><button class="'+(furn?'on':'')+'" data-act="mode" data-m="furn">'+ic("sofa")+'Обзаведен</button><button class="'+(furn?'':'on')+'" data-act="mode" data-m="draw">'+ic("plan")+'Чертеж</button></span>';
   h+='<span style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill wine" data-act="see3d">'+ic("box")+'Разгледай етажа в 3D</button>'+
-    (ground?'':'<button class="pill gold" data-act="enter">'+ic("walk")+'Влез в Ап. '+u.n+'</button>')+'</span></div></div>'+
+    (ground||mzu?'':'<button class="pill gold" data-act="enter">'+ic("walk")+'Влез в Ап. '+u.n+'</button>')+'</span></div></div>'+
     (ground?zonePanel():selPanel(false))+'</div>';
   return h;
 };
@@ -971,8 +988,8 @@ function render(q){
   $("#tabs").innerHTML=TABS.map(function(t){return '<button class="tab'+(t[0]===S.tab?' on':'')+'" data-act="tab" data-tab="'+t[0]+'">'+ic(t[2])+t[1]+'</button>';}).join("");
   $("#main").innerHTML=V[S.tab](q);
   attach3();
-  var fb=$("#fav-b");fb.classList.toggle("on",!!S.fav[S.unit]);fb.lastChild.textContent=S.fav[S.unit]?"В любими · Ап. "+S.unit:"Добави в любими";
-  var ft=$("#act-t");if(ft)ft.textContent=S.floor===0?"Партер — магазин и гаражи":"Ап. "+S.unit+" · "+m2(UNITS[S.unit].area)+(UNITS[S.unit].total==null?"":" · "+eur(UNITS[S.unit].total));
+  var fb=$("#fav-b");fb.classList.toggle("on",!!S.fav[S.unit]);fb.lastChild.textContent=S.fav[S.unit]?"В любими · "+uName(UNITS[S.unit],true):"Добави в любими";
+  var ft=$("#act-t");if(ft)ft.textContent=S.floor===0?"Партер — магазин и гаражи":uName(UNITS[S.unit],true)+" · "+m2(UNITS[S.unit].area)+(UNITS[S.unit].total==null?"":" · "+eur(UNITS[S.unit].total));
   var cn={free:0,reserved:0,sold:0};ALLU().forEach(function(u){cn[u.status]++;});$("#n-free").textContent=cn.free;$("#n-res").textContent=cn.reserved;$("#n-sold").textContent=cn.sold;
 }
 function attach3(){
@@ -1004,12 +1021,12 @@ function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){retur
 function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
 function form(kind){
   var view=kind==="viewing",title=view?"Запази оглед":"Изпрати запитване",cur=S.floor===0?"":String(S.unit),o=$("#ov");
-  var opts='<option value="">— целият проект —</option>'+ALLU().map(function(u){return '<option value="'+u.n+'"'+(String(u.n)===cur?" selected":"")+'>Ап. '+u.n+' · '+m2(u.area)+' · '+ST[u.status]+'</option>';}).join("");
+  var opts='<option value="">— целият проект —</option>'+ALLU().map(function(u){return '<option value="'+u.n+'"'+(String(u.n)===cur?" selected":"")+'>'+uName(u,true)+' · '+m2(u.area)+' · '+ST[u.status]+'</option>';}).join("");
   o.innerHTML='<form class="dlg" id="frm" novalidate><h3 class="h3">'+ic(view?"calendar":"mail")+title+'</h3><p class="note" style="font-size:14px">Жилищна сграда — Шумен, кв. 366</p>'+
     '<label>Име и фамилия<input name="n" required autocomplete="name" maxlength="200"></label>'+
     '<label>Телефон<input name="p" type="tel" inputmode="tel" autocomplete="tel" maxlength="40" placeholder="+359"></label>'+
     '<label>Имейл<input name="e" type="email" inputmode="email" autocomplete="email" maxlength="200"></label>'+
-    '<label>Апартамент<select name="u" data-native>'+opts+'</select></label>'+
+    '<label>Жилище<select name="u" data-native>'+opts+'</select></label>'+
     (view?'<label>Желана дата<input name="d" type="date" min="'+today()+'" required></label>':'<label>Съобщение<textarea name="m" rows="3" maxlength="1500"></textarea></label>')+
     '<p class="note" style="font-size:12.5px">С изпращането приемате <a href="/privacy.html" target="_blank" rel="noopener">Политиката за поверителност</a>. Нужен е телефон или имейл.'+(view?' Консултант ще потвърди часа.':'')+'</p>'+
     '<p class="ferr" id="ferr" role="alert" hidden></p>'+
@@ -1027,7 +1044,7 @@ function form(kind){
     if(view){var d=f.elements.d.value;if(!d)return bad("Изберете дата за огледа.",f.elements.d);if(d<today())return bad("Датата не може да е в миналото.",f.elements.d);msg="Дата за оглед: "+d.split("-").reverse().join(".");}
     else msg=(f.elements.m.value||"").trim();
     err.hidden=true;f.dataset.busy="1";var b=$("#fsub"),bt=b.textContent;b.disabled=true;b.textContent="Изпращане…";
-    rpc("nd_public_inquiry",{p:{kind:view?"viewing":"inquiry",name:name.slice(0,200),phone:ph.slice(0,40),email:mail.slice(0,200),property:("Ново строителство: "+PTITLE+(un?" · Ап. "+un:"")).slice(0,300),message:msg.slice(0,1800),city:"Шумен",hood:"",deal:"sale",type:"Апартамент"}})
+    rpc("nd_public_inquiry",{p:{kind:view?"viewing":"inquiry",name:name.slice(0,200),phone:ph.slice(0,40),email:mail.slice(0,200),property:("Ново строителство: "+PTITLE+(un&&UNITS[un]?" · "+uName(UNITS[un],true):"")).slice(0,300),message:msg.slice(0,1800),city:"Шумен",hood:"",deal:"sale",type:"Апартамент"}})
       .then(function(){closeOv();toast(view?"Заявката за оглед е изпратена. Наш консултант ще се свърже с вас за потвърждение.":"Запитването е изпратено. Наш консултант ще се свърже с вас.");},
         function(x){delete f.dataset.busy;b.disabled=false;b.textContent=bt;bad(/Твърде много/.test(x.message)?"Твърде много запитвания в момента – опитайте след няколко минути.":/телефон или имейл/.test(x.message)?"Въведете телефон или имейл.":x.message||"Неуспешно изпращане – опитайте отново.");});
   });
@@ -1048,16 +1065,16 @@ function live(){
   }).catch(function(){});
 }
 function compare(){
-  var h='<div class="dlg wide"><h3 class="h3">'+ic("scale")+'Сравни апартаменти</h3><div class="tblw"><table class="ut" style="display:table;min-width:560px"><tr><th>Апартамент</th><th>Етаж</th><th>Площ</th><th>Дневен тракт</th><th>Спални</th><th>Балкон / лоджия</th><th>Обща цена</th></tr>';
-  [1,2,3,4,5,6].forEach(function(n){var u=UNITS[n],t=TYPES[u.type],r=ROOMS[u.type];
+  var h='<div class="dlg wide"><h3 class="h3">'+ic("scale")+'Сравни жилищата</h3><div class="tblw"><table class="ut" style="display:table;min-width:560px"><tr><th>Жилище</th><th>Етаж</th><th>Площ</th><th>Дневен тракт</th><th>Спални</th><th>Балкон / лоджия</th><th>Обща цена</th></tr>';
+  UNO.forEach(function(n){var u=UNITS[n],t=TYPES[u.type],r=ROOMS[u.type];
     var day=r.filter(function(x){return x[0]==="Дневен тракт";})[0][1],sp=r.filter(function(x){return x[0].indexOf("Спалня")===0;}).map(function(x){return num(x[1]);}).join(" + ");
-    h+='<tr class="'+(n===S.unit?'on':'')+'" data-act="open" data-u="'+n+'"><td><b>Ап. '+n+'</b> · '+t.name+'</td><td>'+floorOf(u.floor).label+'</td><td>'+m2(u.area)+'</td><td>'+m2(day)+'</td><td>'+sp+' м²</td><td>'+t.out+'</td><td><b>'+ptxt(u)+'</b></td></tr>';});
+    h+='<tr class="'+(n===S.unit?'on':'')+'" data-act="open" data-u="'+n+'"><td><b>'+uName(u,true)+'</b> · '+t.name+'</td><td>'+uFl(u)+'</td><td>'+m2(u.area)+'</td><td>'+m2(day)+'</td><td>'+sp+' м²</td><td>'+t.out+'</td><td><b>'+ptxt(u)+'</b></td></tr>';});
   h+='</table></div><div class="acts2"><button class="btn wine" data-act="close">Затвори</button></div></div>';
   var o=$("#ov");o.innerHTML=h;o.classList.add("show");
 }
 function mortgage(){
   var u=UNITS[S.unit],o=$("#ov");
-  o.innerHTML='<div class="dlg"><h3 class="h3">'+ic("calc")+'Калкулатор ипотека</h3><p class="note" style="font-size:14px">Ап. '+u.n+(u.total==null?'':' · обща цена '+eur(u.total))+'</p>'+
+  o.innerHTML='<div class="dlg"><h3 class="h3">'+ic("calc")+'Калкулатор ипотека</h3><p class="note" style="font-size:14px">'+uName(u,true)+(u.total==null?'':' · обща цена '+eur(u.total))+'</p>'+
     '<label>Цена на имота (€)<input id="mp" inputmode="decimal" value="'+(u.total==null?'':u.total)+'"></label><label>Самоучастие (%)<input id="ms" inputmode="decimal" value="20"></label>'+
     '<label>Срок (години)<input id="my" inputmode="numeric" value="25"></label><label>Годишна лихва (%)<input id="mr" inputmode="decimal" placeholder="въведете лихвата от банката"></label>'+
     '<div class="res" id="mres">Въведете лихва, за да видите месечната вноска.</div><div class="acts2"><button class="btn wine" data-act="close">Затвори</button></div></div>';
@@ -1079,20 +1096,20 @@ document.addEventListener("click",function(e){
   else if(a==="fs"){S.fs=!S.fs;render();setTimeout(function(){if(T3.ready)T3.resize();trLayout(false);},60);}
   else if(a==="t3r"){if(T3.ready)T3.reset();}
   else if(a==="see3d"){S.b3d="model";S.cut=true;if(S.floor===0)S.zone=S.zone||"g1";go("overview");window.scrollTo({top:$("#tabs").offsetTop-6,behavior:"smooth"});}
-  else if(a==="enter"){S.b3d="tour";var sid=UNITS[S.unit].type==="A"?"aptA":"aptB";if(TR.dom)TR.pending=sid;else TR.id=sid;go("overview");window.scrollTo({top:$("#tabs").offsetTop-6,behavior:"smooth"});}
+  else if(a==="enter"){S.b3d="tour";var sid=isA(UNITS[S.unit])?"aptA":"aptB";if(TR.dom)TR.pending=sid;else TR.id=sid;go("overview");window.scrollTo({top:$("#tabs").offsetTop-6,behavior:"smooth"});}
   else if(a==="walk"){S.b3d="tour";if(TR.dom)TR.pending="street";else TR.id="street";go("overview");window.scrollTo({top:$("#tabs").offsetTop-6,behavior:"smooth"});}
   else if(a==="trsp"){var sp=SC[TR.id].sp[+el.dataset.i];if(sp.to)trScene(sp.to,false,sp);else if(sp.pick)TR.dom.querySelector(".pick").classList.toggle("on");else{trCap(sp.l,sp.info);trFocus(sp.x,sp.y,Math.max(1.7,TR.z),true);}}
   else if(a==="trroom"){var ri=+el.dataset.i,ty=SC[TR.id].type,rq=RSPOT[ty][ri];if(TR.room===ri){TR.room=-1;trFocus(50,50,1,true);trCap("Апартамент "+S.unit+" · "+TYPES[ty].name+" · "+m2(TYPES[ty].area),SC[TR.id].n);}else{TR.room=ri;trFocus(rq[0],rq[1],2.3,true);trCap(ROOMS[ty][ri][0]+" · "+m2(ROOMS[ty][ri][1]),"Ап. "+S.unit+" · докосни пак за целия апартамент");}trSpots();}
-  else if(a==="trunit"){S.unit=+el.dataset.u;S.floor=UNITS[S.unit].floor;trScene(UNITS[S.unit].type==="A"?"aptA":"aptB");}
+  else if(a==="trunit"){S.unit=+el.dataset.u;S.floor=UNITS[S.unit].floor;if(isMz(UNITS[S.unit])){S.mode="draw";S.room=-1;go("plan");window.scrollTo({top:$("#tabs").offsetTop-6,behavior:"smooth"});}else trScene(UNITS[S.unit].type==="A"?"aptA":"aptB");}
   else if(a==="trstep"){if(TR.play)trPlay(false);trStep(+el.dataset.d);}
   else if(a==="trplay"){trPlay(!TR.play);}
-  else if(a==="room"){var rr=+el.dataset.i;S.room=S.room===rr?-1:rr;if(S.tab==="plan"&&S.floor!==0)S.mode="furn";render();}
+  else if(a==="room"){var rr=+el.dataset.i;S.room=S.room===rr?-1:rr;if(S.tab==="plan"&&S.floor!==0&&!isMz(UNITS[S.unit]))S.mode="furn";render();}
   else if(a==="lbn"){lightbox.i=(lightbox.i+(+el.dataset.d)+GAL.length)%GAL.length;var lg=GAL[lightbox.i],li=$("#lbi");li.src=lg[0];$("#lbc").textContent=lg[1];lightbox.z=1;li.onload=fitLb;}
   else if(a==="tab"){e.preventDefault();go(el.dataset.tab);window.scrollTo({top:$("#tabs").offsetTop-6,behavior:"smooth"});}
   else if(a==="home"){e.preventDefault();location.href="/";}
   else if(a==="floor"||a==="floor3"){S.floor=+el.dataset.f;S.zoom=1;S.zone=null;S.room=-1;var f=floorOf(S.floor);if(f.units.length&&f.units.indexOf(S.unit)<0)S.unit=f.units[0];if(f.id===0&&S.cut)S.zone="g1";render();}
-  else if(a==="unit"){S.unit=+el.dataset.u;S.floor=UNITS[S.unit].floor;S.room=-1;render();}
-  else if(a==="open"){e.stopPropagation();S.room=-1;S.unit=+el.dataset.u;S.floor=UNITS[S.unit].floor;closeOv();go("plan");}
+  else if(a==="unit"){S.unit=+el.dataset.u;S.floor=pickFloor(S.unit);S.room=-1;render();}
+  else if(a==="open"){e.stopPropagation();S.room=-1;S.unit=+el.dataset.u;S.floor=pickFloor(S.unit);closeOv();go("plan");}
   else if(a==="zone"){S.zone=el.dataset.z;render();}
   else if(a==="mode"){S.mode=el.dataset.m;S.zoom=1;render();}
   else if(a==="zoom"){S.zoom=Math.min(3,Math.max(1,S.zoom+(+el.dataset.d)*0.5));render();}
@@ -1102,7 +1119,7 @@ document.addEventListener("click",function(e){
   else if(a==="viewing"||a==="inquiry"){form(a);}
   else if(a==="compare"){compare();}
   else if(a==="mortgage"){mortgage();}
-  else if(a==="fav"){S.fav[S.unit]=!S.fav[S.unit];try{localStorage.setItem("nc-fav",JSON.stringify(S.fav));}catch(x){}render();toast(S.fav[S.unit]?"Ап. "+S.unit+" е добавен в любими.":"Ап. "+S.unit+" е махнат от любими.");}
+  else if(a==="fav"){S.fav[S.unit]=!S.fav[S.unit];try{localStorage.setItem("nc-fav",JSON.stringify(S.fav));}catch(x){}render();toast(uName(UNITS[S.unit],true)+(S.fav[S.unit]?" е добавен в любими.":" е махнат от любими."));}
 });
 document.addEventListener("keydown",function(e){if(e.key==="Escape"){if($("#ov").classList.contains("show"))closeOv();else if(S.fs){S.fs=false;render();}}});
 window.addEventListener("resize",function(){if(T3.ready)T3.resize();trLayout(false);});
