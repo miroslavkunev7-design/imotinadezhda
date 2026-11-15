@@ -99,7 +99,7 @@
       var code = "C-" + Date.now().toString(36).toUpperCase();
       p = call({ action: "photos", code: code, urls: x.photos || [] }).then(function (r) {
         return D.put("properties", { code: code, title: x.title || ((x.type || "Имот") + (city ? ", " + city : "")), deal: x.deal || "sale", type: x.type || "Апартамент", price: x.price, area: x.area, rooms: x.rooms, floor: x.floor,
-          city: city, region: city, hood: hood, client: x.name || "", ownerPhone: x.phone, privDesc: (x.text || "") + (x.link ? "\nИзточник: " + x.link : ""), desc: "", status: "Архивиран",
+          city: city, region: (window.NDPlaces && window.NDPlaces.regionOf ? window.NDPlaces.regionOf(city) : city), hood: hood, client: x.name || "", ownerPhone: x.phone, privDesc: (x.text || "") + (x.link ? "\nИзточник: " + x.link : ""), desc: "", status: "Архивиран",
           source: x.source, sourceLink: x.link, pics: (r && r.paths) || [], docs: [], log: [{ icon: "archive", text: "Събран от " + (x.source || "интернет") + " (без посредник)", at: new Date().toISOString() }] });
       }).then(function () { return done("property"); });
     } else {

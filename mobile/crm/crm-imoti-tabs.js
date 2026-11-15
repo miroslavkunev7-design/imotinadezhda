@@ -174,7 +174,7 @@
       var n = function (id) { var v = g(id).replace(/\s/g, "").replace(",", "."); return v === "" ? null : Number(v); };
       p.title = g("p-title"); p.deal = g("p-deal"); p.type = g("p-type"); p.price = n("p-price"); p.area = n("p-area");
       p.rooms = n("p-rooms"); p.beds = n("p-beds"); p.baths = n("p-baths"); p.floor = g("p-floor"); p.build = g("p-build"); p.year = n("p-year");
-      p.cond = g("p-cond"); p.status = g("p-status"); p.city = PL.city(g("p-city")); p.place = g("p-place") || p.city; p.hood = PL.hood(p.city, g("p-hood")); p.region = g("p-region") || p.city;
+      p.cond = g("p-cond"); p.status = g("p-status"); p.city = PL.city(g("p-city")); p.place = g("p-place") || p.city; p.hood = PL.hood(p.city, g("p-hood")); p.region = g("p-region") || (PL.regionOf ? PL.regionOf(p.city) : p.city);
       p.address = g("p-addr"); p.client = g("p-client"); p.desc = g("p-desc");
       if (ctx && ctx.q("p-broker") && g("p-broker")) p.broker = g("p-broker");
       if (ctx && ctx.q("p-expo")) { p.expo = g("p-expo"); p.heat = g("p-heat"); p.parking = g("p-park"); p.elevator = g("p-elev") === "1"; p.terraces = n("p-terr"); p.act = g("p-act");

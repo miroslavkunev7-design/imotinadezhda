@@ -25,7 +25,7 @@ async function staff(token) {
   return r.ok && (await r.json()) === true ? user : null;
 }
 const H = (extra) => Object.assign({ apikey: SR(), Authorization: "Bearer " + SR(), "Content-Type": "application/json" }, extra || {});
-async function q(path, init) { const r = await fetch(SB_URL + "/rest/v1/" + path, Object.assign({ headers: H(init && init.headers) }, init || {})); const j = await r.json().catch(() => null); if (!r.ok) throw new Error((j && (j.message || j.error)) || "HTTP " + r.status); return j; }
+async function q(path, init) { const r = await fetch(SB_URL + "/rest/v1/" + path, Object.assign({}, init || {}, { headers: H(init && init.headers) })); const j = await r.json().catch(() => null); if (!r.ok) throw new Error((j && (j.message || j.error)) || "HTTP " + r.status); return j; }
 const id = () => crypto.randomBytes(12).toString("hex");
 const b64u = (b) => Buffer.from(b).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const sign = (rid) => b64u(crypto.createHmac("sha256", SECRET()).update(rid).digest()).slice(0, 32);

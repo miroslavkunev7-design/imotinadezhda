@@ -619,7 +619,7 @@ html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
 
   <div class="flow">
     <div class="kdeal deal" role="tablist" aria-label="Вид клиенти">
-      <button type="button" class="dl on" data-kcat="sales" role="tab" aria-selected="true" aria-pressed="true"><svg class="i"><use href="#house"/></svg>Клиенти продажба</button>
+      <button type="button" class="dl on" data-kcat="sales" role="tab" aria-selected="true" aria-pressed="true"><svg class="i"><use href="#house"/></svg>Клиенти купувачи</button>
       <button type="button" class="dl" data-kcat="rent" role="tab" aria-selected="false" aria-pressed="false"><svg class="i"><use href="#key-round"/></svg>Клиенти наем</button>
     </div>
     <!-- ============ SALES ============ -->
@@ -629,15 +629,15 @@ html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
         <path d="M0 0 H 720 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0 Z" fill="url(#satin)" opacity=".45"/>
         <path d="M720 1 C 650 5 610 30 562 50 C 532 62 500 64 450 64 H 0" fill="none" stroke="url(#gold)" stroke-width="3"/>
       </svg>
-      <h2 class="ctitle" id="t-sales"><svg class="i"><use href="#users"/></svg>Клиенти – Продажби<span class="ccount" id="cnt-sales"></span></h2>
-      <button type="button" class="nd-new" data-new="sales" aria-label="Нов клиент – продажби"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
+      <h2 class="ctitle" id="t-sales"><svg class="i"><use href="#users"/></svg>Клиенти – Купувачи<span class="ccount" id="cnt-sales"></span></h2>
+      <button type="button" class="nd-new" data-new="sales" aria-label="Нов клиент – купувач"><svg class="i"><use href="#user-plus"/></svg>Нов клиент</button>
       <div class="filters">
-        <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-sales" type="search" placeholder="Търси клиент, телефон или К#…" autocomplete="off" aria-label="Търси клиент в продажби"></label>
+        <label class="fld f-q"><svg class="i"><use href="#search"/></svg><input id="q-sales" type="search" placeholder="Търси клиент, телефон или К#…" autocomplete="off" aria-label="Търси клиент в купувачи"></label>
         <label class="fld f-city"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="city-sales" aria-label="Град"></select></label>
         <label class="fld f-hood"><svg class="i"><use href="#pin"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="hood-sales" aria-label="Квартал"></select></label>
         <label class="fld f-type"><svg class="i"><use href="#house"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="type-sales" aria-label="Вид имот"></select></label>
         <label class="fld f-sort"><svg class="i"><use href="#list-filter"/></svg><span class="val"></span><svg class="i chev"><use href="#chev-d"/></svg><select id="sort-sales" aria-label="Сортиране"></select></label>
-        <button type="button" class="fld f-more" id="more-sales" aria-label="Още филтри – продажби"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h11M18 6h3M3 12h5M12 12h9M3 18h13M20 18h1"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Още</button>
+        <button type="button" class="fld f-more" id="more-sales" aria-label="Още филтри – купувачи"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 6h11M18 6h3M3 12h5M12 12h9M3 18h13M20 18h1"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Още</button>
       </div>
     </section>
     <div class="cgrid" id="grid-sales" data-cat="sales" data-nd-hs data-h="196"></div>
@@ -941,7 +941,7 @@ html:not(.desk).nd-ffold #canvas .cpanel{height:78px}
   /* "Още" – extra client filters (priority, payment, timeframe, rooms, budget, status, source, due contact) */
   function moreFilters(cat,btn,done){
     var U=window.NDUI,O=(window.NDKTabs&&window.NDKTabs.OPTS)||{},X=MOREK[cat]||{},f=U.fld,opt=function(a){return [['','Всички']].concat((a||[]).filter(Boolean))};
-    U.open({title:'Още филтри – '+(cat==='rent'?'Наеми':'Продажби'),icon:'list-filter',photo:'nd/ph15.jpg',saveText:'Приложи',
+    U.open({title:'Още филтри – '+(cat==='rent'?'Наеми':'Купувачи'),icon:'list-filter',photo:'nd/ph15.jpg',saveText:'Приложи',
       html:U.group('Профил на клиента','users','nd/ph10.jpg',
         f({id:'xk-prio',label:'Приоритет',icon:'star',type:'select',value:X.priority||'',options:opt(O.PRIO)})+
         f({id:'xk-pay',label:'Плащане',icon:'coins',type:'select',value:X.payment||'',options:opt(O.PAY)})+
