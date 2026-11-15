@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="crm-zoomfix.js"></script>
 <meta name="theme-color" content="#4a0f18">
 <link rel="expect" href="#page-ready" blocking="render">
 <style>html:not(.ready) #stage,html:not(.ready) #dock{opacity:0}html.ready #stage,html.ready #dock{transition:opacity .18s ease}#dock{z-index:60}
@@ -429,7 +430,7 @@ button.st{cursor:pointer;font-family:var(--sans)}button.st:hover{filter:brightne
 .pm-stage{position:absolute;right:30px;top:150px;height:44px;padding:0 22px;border-radius:25px;display:flex;align-items:center;gap:10px;font:700 27px/1 var(--cond);color:#3a2a00;background:linear-gradient(180deg,#fff1cc,#f7dc9a);box-shadow:0 0 0 1.5px rgba(255,255,255,.6),0 0 14px rgba(255,214,120,.8)}
 .pm-stage.sold{color:#fff3dc;background:linear-gradient(180deg,#c8233f,#7a0f22);box-shadow:0 0 0 1.5px rgba(255,255,255,.5),0 0 16px rgba(200,35,63,.6)}
 .pm-stage i{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd36a,#b8780e 70%)}.pm-stage.sold i{background:radial-gradient(circle at 35% 30%,#ff9aa6,#8e0d1f 70%)}
-.pm-smenu{position:fixed;z-index:9000;min-width:300px;padding:10px;border-radius:22px;background:linear-gradient(180deg,rgba(255,252,248,.98),rgba(251,238,227,.97));backdrop-filter:blur(10px);box-shadow:0 0 0 1.5px rgba(237,196,122,.9),0 0 26px rgba(255,214,160,.9),0 16px 34px rgba(80,20,30,.3)}
+.pm-smenu{position:fixed;z-index:9000;min-width:300px;padding:10px;border-radius:22px;background:linear-gradient(180deg,rgba(255,252,248,.98),rgba(251,238,227,.97));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 0 0 1.5px rgba(237,196,122,.9),0 0 26px rgba(255,214,160,.9),0 16px 34px rgba(80,20,30,.3)}
 .pm-smenu button{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:8px 14px;border:0;border-radius:14px;background:none;font:700 18px/1.1 var(--cond);color:#4e0912;text-align:left;cursor:pointer}
 .pm-smenu button:hover{background:linear-gradient(90deg,rgba(237,196,122,.38),rgba(255,255,255,0))}
 .pm-smenu button i{width:14px;height:14px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#7de86a,#1e9c1a 70%)}.pm-smenu button.y i{background:radial-gradient(circle at 35% 30%,#ffd36a,#b8780e 70%)}.pm-smenu button.r i{background:radial-gradient(circle at 35% 30%,#ff9aa6,#8e0d1f 70%)}.pm-smenu button.g i{background:radial-gradient(circle at 35% 30%,#c9bcb5,#7d6e68 70%)}
