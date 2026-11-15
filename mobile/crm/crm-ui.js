@@ -2,8 +2,10 @@
    photo strip, two-column cream glass fields, gold-glow buttons). Used for every card tab. */
 (function () {
   try {
-    var k = "nd-crm-ffold:" + (location.pathname.split("/").pop() || "page");
-    if (localStorage.getItem(k) === "1") document.documentElement.classList.add("nd-ffold");
+    /* бутонът „Филтри“ (сгъване) е премахнат – дублираше филтрите на страниците; стари запомнени сгъвания се изчистват,
+       за да не остане никой с безвъзвратно скрити филтри */
+    document.documentElement.classList.remove("nd-ffold");
+    for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (k && k.indexOf("nd-crm-ffold:") === 0) localStorage.removeItem(k); }
   } catch (e) {}
 })();
 (function () {
@@ -918,8 +920,9 @@
     b.setAttribute("aria-label", open ? "Сгъни филтрите" : "Разгъни филтрите");
     b.classList.toggle("off", !open);
   }
+  var ENABLED = false;   /* излишно падащо меню до собствените филтри на всяка страница – изключено */
   function mount() {
-    if (!hasFilters() || document.querySelector(".nd-ffold-btn")) return;
+    if (!ENABLED || !hasFilters() || document.querySelector(".nd-ffold-btn")) return;
     var h = host(); if (!h) return;
     var b = document.createElement("button");
     b.type = "button"; b.className = "nd-ffold-btn";

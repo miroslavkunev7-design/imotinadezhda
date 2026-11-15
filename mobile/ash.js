@@ -1149,7 +1149,14 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !win.hidden) { win.hidden = true; fab.hidden = false; } });
     if (/\/mobile\/crm\//.test(location.pathname)) { fab.style.bottom = "calc(96px + env(safe-area-inset-bottom,0px))"; fab.style.zIndex = "45";
       var sync = function () { fab.style.visibility = document.documentElement.classList.contains("locked") ? "hidden" : ""; };
-      new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] }); sync(); }
+      new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] }); sync();
+      /* „Начало“ на телефона не се превърта – долу бутонът закриваше „Последни дейности“; там стои горе вдясно, върху снимката на хедъра */
+      if (/crm-nachalo\.html$/.test(location.pathname)) {
+        var place = function () { var top = innerWidth < 700 && !document.documentElement.classList.contains("desk");
+          fab.style.top = top ? "calc(" + Math.round(Math.min(innerWidth, 600) * 0.2) + "px + env(safe-area-inset-top,0px))" : "";
+          fab.style.bottom = top ? "auto" : "calc(96px + env(safe-area-inset-bottom,0px))"; };
+        place(); addEventListener("resize", place);
+      } }
     hideOnCrmRoute(); addEventListener("hashchange", hideOnCrmRoute);
     inboxStart();
   }
