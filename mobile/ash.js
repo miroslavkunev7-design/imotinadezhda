@@ -170,7 +170,7 @@
   var STYLES = [["calm", "Спокоен и топъл"], ["brief", "Кратък и делови"], ["slow", "Бавен и ясен (за диктовка на клиент)"]];
   /* моделите на агента в n8n – всички с едни и същи инструменти (crm_tools); Groq е постоянният по подразбиране.
      id "groq-llama" остава за съвместимост: Groq спря Llama 4 на 17.07.2026, в n8n на негово място е qwen/qwen3.8-27b */
-  var N8N_MODELS = [["groq-llama", "Groq Qwen 3.8", "безплатен · по подразбиране"], ["groq", "Groq GPT-OSS 120B", "безплатен"], ["gemini", "Gemini", "безплатен"], ["gpt", "ChatGPT", "GPT от n8n"], ["claude", "Claude", "Anthropic"]];
+  var N8N_MODELS = [["groq-llama", "Groq Qwen 3.8", "безплатен"], ["groq", "Groq GPT-OSS 120B", "безплатен"], ["gemini", "Gemini", "безплатен"], ["gpt", "ChatGPT", "платен · кредитите в n8n"], ["claude", "Claude", "платен · кредитите в n8n"]];
   function n8nModelId() { var v = prefs.n8nModel; return N8N_MODELS.some(function (m) { return m[0] === v; }) ? v : "groq-llama"; }
   function n8nModelName() { var id = n8nModelId(); return N8N_MODELS.filter(function (m) { return m[0] === id; })[0][1]; }
   var N8N_OPT = { id: "n8n", name: "Агент n8n", note: "вашият агент от n8n – еднакви инструменти за всички модели", provider: "n8n", vision: true, pdf: true, sub: N8N_MODELS.map(function (m) { return [m[0], m[1] + " (" + m[2] + ")"]; }) };
@@ -197,7 +197,7 @@
         VOICES.map(function (v) { return '<button type="button" class="nda-opt' + (prefs.voice === v.id ? " on" : "") + '" data-voice="' + v.id + '"><i></i><span class="d">' + esc(v.name) + "<small>" + esc(v.note) + '</small></span><span class="pl" data-play="' + v.id + '" title="Чуй">' + I.spk + "</span></button>"; }).join("") + "</div>" +
         '<div class="nda-sec"><h4>Стил на говорене</h4>' + STYLES.map(function (x) { return '<button type="button" class="nda-opt' + (prefs.style === x[0] ? " on" : "") + '" data-style="' + x[0] + '"><i></i><span class="d">' + x[1] + "</span></button>"; }).join("") + "</div>" +
         '<div class="nda-sec"><h4>Кога да говори</h4>' + [["voice", "Само след гласов въпрос"], ["always", "Чете всеки отговор на глас"], ["never", "Никога – само бутона ▶"]].map(function (x) { return '<button type="button" class="nda-opt' + (prefs.autoSpeak === x[0] ? " on" : "") + '" data-auto="' + x[0] + '"><i></i><span class="d">' + x[1] + "</span></button>"; }).join("") + "</div>";
-    } else if (setTab === "model" && inCrmPath()) {
+    } else if (setTab === "model" && inCrmPath() && skill === n8nSkill) {
       html += '<div class="nda-sec"><h4>Модел на Тед</h4><p>Активен: <b>' + esc(n8nModelName()) + "</b>. Всички модели работят с едни и същи инструменти – клиенти, имоти, огледи, имейли с документи, преводи, Facebook. Сменя се и от менюто горе в чата.</p>" +
         N8N_MODELS.map(function (m) { return '<button type="button" class="nda-opt' + (n8nModelId() === m[0] ? " on" : "") + '" data-n8nm="' + m[0] + '"><i></i><span class="d">' + esc(m[1]) + "<small>" + esc(m[2]) + "</small></span><em>" + (/^groq/.test(m[0]) ? "Groq" : m[0] === "gemini" ? "Google" : m[0] === "gpt" ? "OpenAI" : "Anthropic") + "</em></button>"; }).join("") + "</div>";
     } else if (setTab === "model") {
@@ -1106,10 +1106,10 @@
   }
   var api = { add: function (r, h, c) { return add(r, h, c); }, esc: esc, list: function () { return list; } };
   function inCrmPath() { return /\/mobile\/crm\//.test(location.pathname); }
-  function homeSkill() { return inCrmPath() ? n8nSkill : chatSkill; } /* в CRM чатът е агентът в n8n с избрания модел (Groq Llama 4 по подразбиране) */
-  function skillLabel(s) { return s === n8nSkill && inCrmPath() ? n8nModelName() : s.name; }
+  function homeSkill() { return inCrmPath() && prefs.crmEngine === "n8n" ? n8nSkill : chatSkill; } /* основен е Тед на CRM (сайта); агентът в n8n е избор от менюто и се помни */
+  function skillLabel(s) { return s === n8nSkill && inCrmPath() ? "n8n · " + n8nModelName() : s === chatSkill && inCrmPath() ? "Тед Асистент" : s.name; }
   function pickN8nModel(id) {
-    prefs.n8nModel = id; savePrefs();
+    prefs.n8nModel = id; prefs.crmEngine = "n8n"; savePrefs();
     if (!win) return;
     if (skill !== n8nSkill) { setSkill(n8nSkill); return; }
     win.querySelector(".nda-skill span").textContent = skillLabel(skill);
@@ -1126,7 +1126,8 @@
     if (!inCrm) { menu.innerHTML = skills.map(item).join(""); return; }
     /* в CRM: горе петте модела (еднакви инструменти), отдолу останалите умения (AI Видео на имот…) */
     var rest = skills.map(item).join("");
-    menu.innerHTML = '<div class="g">Модел</div>' + N8N_MODELS.map(function (m) { return '<button type="button" role="option" data-nm="' + m[0] + '" class="' + (skill === n8nSkill && n8nModelId() === m[0] ? "on" : "") + '">' + esc(m[1]) + "<small>" + esc(m[2]) + "</small></button>"; }).join("") + (rest ? '<div class="g">Умения</div>' + rest : "");
+    menu.innerHTML = '<div class="g">Основен</div><button type="button" role="option" data-cs="1" class="' + (skill === chatSkill ? "on" : "") + '">Тед Асистент<small>CRM чатът · ⚙ → Модел за избор на модел</small></button>' +
+      '<div class="g">Агент n8n</div>' + N8N_MODELS.map(function (m) { return '<button type="button" role="option" data-nm="' + m[0] + '" class="' + (skill === n8nSkill && n8nModelId() === m[0] ? "on" : "") + '">' + esc(m[1]) + "<small>" + esc(m[2]) + "</small></button>"; }).join("") + (rest ? '<div class="g">Умения</div>' + rest : "");
   }
   function boot() {
     if (booted) return; booted = true;
@@ -1146,7 +1147,7 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) { var vw = win.querySelector(".nda-view,.ted-panel,.ted-image-view"); if (vw) { vw.remove();e.stopImmediatePropagation(); } } });
     var sk = win.querySelector(".nda-skill"), gear = win.querySelector(".nda-gear"), setBox = win.querySelector(".nda-set");
     sk.onclick = function (e) { e.stopPropagation(); renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
-    menu.onclick = function (e) { var nm = e.target.closest("[data-nm]"); if (nm) { menu.hidden = true; pickN8nModel(nm.getAttribute("data-nm")); return; } var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
+    menu.onclick = function (e) { if (e.target.closest("[data-cs]")) { menu.hidden = true; prefs.crmEngine = "site"; savePrefs(); if (skill !== chatSkill) setSkill(chatSkill); return; } var nm = e.target.closest("[data-nm]"); if (nm) { menu.hidden = true; pickN8nModel(nm.getAttribute("data-nm")); return; } var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
     win.addEventListener("click", function (e) {
       if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target)) menu.hidden = true;
       var pop = foot.querySelector(".nda-case-pop"); if (pop && !pop.hidden && !pop.contains(e.target) && !e.target.closest(".nda-case-btn,.att")) pop.hidden = true;
