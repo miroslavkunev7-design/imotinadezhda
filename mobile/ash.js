@@ -482,7 +482,7 @@
       if (extra.signal) extra.signal.addEventListener("abort", function () { ctrl.abort(); });
       timer = setTimeout(function () { ctrl.abort(); }, att.length ? 80000 : 40000);
       return fetch(N8N_URL || N8N_DEFAULT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: x[1], sessionId: N8N_SID, accessToken: x[0] || null, toolsUrl: location.origin + "/api/tools", model: n8nModelId(), mode: extra.mode || undefined, case_id: extra.case_id || undefined, page: document.title, attachments: att.length ? att : undefined }), signal: ctrl.signal });
-    }).then(function (r) { if (r && r.done) return r; if (!r.ok) throw new Error("агентът върна HTTP " + r.status); return r.json(); })
+    }).then(function (r) { if (r && r.done) return r; if (!r.ok) { var he = new Error("агентът върна HTTP " + r.status); if (r.status >= 500) he.n8nDown = true; throw he; } return r.json(); })
       .then(function (d) {
         if (d && d.done) return d.done;
         if (Array.isArray(d)) d = d[0]; var out = d && (d.output || d.text || d.answer); if (typeof out === "string") out = out.replace(ATT_RE, "\n").trim(); if (typeof out !== "string" || !out) throw new Error("невалиден отговор от агента");
@@ -491,15 +491,24 @@
           email: d.email && typeof d.email === "object" ? d.email : undefined, ui: d.ui && typeof d.ui === "object" ? d.ui : undefined, video: d.video || undefined,
           transcript: heard || (d && typeof d.transcript === "string" && d.transcript.trim() ? d.transcript.trim() : undefined) };
       })
-      .catch(function (e) { return { ok: false, transcript: heard || undefined, error: e && e.user ? e.message : e && e.name === "AbortError" ? "Отговорът се забави твърде дълго и спря. Натиснете за нов опит." : "Агент n8n: " + ((e && e.message) || e) }; })
+      .catch(function (e) {
+        /* агентът в n8n не е приел задачата (напр. изчерпан лимит на изпълненията → HTTP 500, или няма връзка) → отговаря вграденият Тед със същите CRM инструменти */
+        if (e && !e.user && e.name !== "AbortError" && !(extra.signal && extra.signal.aborted) && (e.n8nDown || e.name === "TypeError")) {
+          return askSite(history, extra).then(function (j) { if (j && heard && !j.transcript) j.transcript = heard; return j; });
+        }
+        return { ok: false, transcript: heard || undefined, error: e && e.user ? e.message : e && e.name === "AbortError" ? "Отговорът се забави твърде дълго и спря. Натиснете за нов опит." : "Агент n8n: " + ((e && e.message) || e) }; })
       .then(function (j) { clearTimeout(timer); return j; });
   }
   function ask(history, extra) {
     if (modelId === "n8n" || (skill && skill.id === "n8n")) return askN8n(history, extra);
+    return askSite(history, extra);
+  }
+  function askSite(history, extra) {
     extra = extra || {};
+    var mid = modelId === "n8n" ? undefined : modelId || undefined;   /* при резервен път от n8n – моделът по подразбиране на сайта */
     return token().then(function (tok) {
       var h = { "Content-Type": "application/json" }; if (tok) h.Authorization = "Bearer " + tok;
-      return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title, model: modelId || undefined, mode: extra.mode || undefined, case_id: extra.case_id || undefined }), signal: extra.signal });
+      return fetch("/api/assistant", { method: "POST", headers: h, body: JSON.stringify({ messages: history, page: document.title, model: mid, mode: extra.mode || undefined, case_id: extra.case_id || undefined }), signal: extra.signal });
     }).then(function (r) { return r.json().catch(function () { return { ok: false, error: "HTTP " + r.status }; }); })
       .catch(function (e) { return { ok: false, error: e && e.name === "AbortError" ? "Отговорът се забави твърде дълго и спря. Опитайте отново." : "Няма връзка (" + ((e && e.message) || e) + ")" }; });
   }
