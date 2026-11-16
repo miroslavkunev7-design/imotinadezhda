@@ -625,10 +625,13 @@
   function add(role, html, cls) { var m = document.createElement("div"); m.className = "nda-m " + role + (cls ? " " + cls : ""); m.innerHTML = html; list.appendChild(m); if (role === "a" && cls !== "wait") speaker(m); followChat(true); return m; }
 
   /* ---- резултатите от планираните задачи на Тед (напомняния, повтарящи се задачи, промени по сайтове) идват тук, в чата, вместо в Telegram.
-     Само за влезли служители: на всеки 60 s (докато страницата е видима) и при отваряне на прозореца питаме n8n (ted-inbox) за непрочетените;
+     Само за влезли служители: при отваряне на прозореца (най-много веднъж на 2 мин) и сам най-много веднъж на 30 мин питаме n8n (ted-inbox) за непрочетените;
      всяко идва като съобщение от Тед в историята, а докато прозорецът е затворен – брояч върху бутона. Грешките са тихи (най-много едно предупреждение). ---- */
   var INBOX_URL = "https://imotinadezhda.app.n8n.cloud/webhook/ted-inbox", INBOX_SEEN = "nd-ted-inbox-seen", INBOX_UNREAD = "nd-ted-inbox-unread";
   var inboxBusy = false, inboxOff = false, inboxWarned = false, inboxTimer = null, inboxLast = 0;
+  /* пести изпълненията в n8n: общ таймер за всички CRM страници – най-много веднъж на 30 мин сам, при отваряне на Тед – най-много веднъж на 2 мин */
+  var INBOX_LAST = "nd-ted-inbox-last", INBOX_EVERY = 30 * 60000, INBOX_OPEN_EVERY = 2 * 60000;
+  function inboxAgo() { var t = 0; try { t = +localStorage.getItem(INBOX_LAST) || 0; } catch (e) {} return Date.now() - Math.max(t, inboxLast); }
   function inboxToken() {
     /* CRM: сесията от Supabase клиента (след проверката за служител); иначе само валиден запазен токен – без собствено опресняване */
     if (window.ND && window.ND.token) return window.ND.user ? window.ND.token().then(function (t) { return t || ""; }, function () { return ""; }) : Promise.resolve("");
@@ -665,11 +668,11 @@
   }
   function inboxPoll(force) {
     if (inboxOff || inboxBusy || window.NDAshNoWidget) return;
-    if (!force && (document.visibilityState === "hidden" || Date.now() - inboxLast < 20000)) return;
+    if (document.visibilityState === "hidden" || inboxAgo() < (force ? INBOX_OPEN_EVERY : INBOX_EVERY)) return;
     inboxBusy = true;
     inboxToken().then(function (tk) {
       if (!tk) return;
-      inboxLast = Date.now();
+      inboxLast = Date.now(); try { localStorage.setItem(INBOX_LAST, String(inboxLast)); } catch (e) {}
       return fetch(INBOX_URL, { method: "GET", headers: { Authorization: "Bearer " + tk }, cache: "no-store" }).then(function (r) {
         if (r.status === 401 || r.status === 403 || r.status === 404) { inboxOff = true; throw new Error("HTTP " + r.status); }
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -683,9 +686,8 @@
   function inboxStart() {
     if (inboxTimer || window.NDAshNoWidget) return;
     inboxBadge(inboxUnread());
-    setTimeout(function () { inboxBadge(inboxUnread()); inboxPoll(true); }, 2500);
-    setTimeout(function () { if (!inboxLast) inboxPoll(true); }, 10000);
-    inboxTimer = setInterval(function () { inboxBadge(inboxUnread()); inboxPoll(false); }, 60000);
+    setTimeout(function () { inboxBadge(inboxUnread()); inboxPoll(false); }, 2500);
+    inboxTimer = setInterval(function () { inboxBadge(inboxUnread()); inboxPoll(false); }, 5 * 60000);   /* само поглежда часовника; заявка към n8n – най-много веднъж на 30 мин */
     document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") inboxPoll(false); });
   }
 
