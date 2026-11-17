@@ -40,12 +40,15 @@ Rules:
   `messages[i] = {role:"user"|"assistant", text, files?:[{name,mime,data(base64)}]}`. Server keeps the last 16 messages,
   ≤ 8000 chars each, ≤ 3 files on a message (image/jpeg|png|webp, application/pdf), files only on the last message.
   Inside a case send ONLY the current message (the server rebuilds history). Non-streaming, up to ~108 s.
+  A current message with files and blank text is sent with the website's default text `"Анализирай прикачените файлове."`
+  (`FILES_ONLY_TEXT` in `assistant.js`; otherwise the server shows the model "(без текст)" and stores an empty question).
   Reply `{ok:true, text, transcript, actions[], staff, listings, video, ui:{panel}, email, mode, model, model_name, fallback}`
   or `{ok:false, error, quota?}`.
 - Models: `POST {SITE}/api/assistant {action:"models"}` → `{ok, models:[{id,name,note,provider,vision,pdf}], modes:[{id,name}], n8n}`.
 - Tools: `POST {SITE}/api/tools {tool, input}` → `{ok:true, result}` | `{ok:false, error}` (HTTP 400/404/409/412/500).
 - Voice: `POST {SITE}/api/voice?fn=tts {text(≤1200), voice, style}` → `audio/wav`;
-  `POST {SITE}/api/voice?fn=transcribe {mime, data}` → `{ok, text}`.
+  `POST {SITE}/api/voice?fn=transcribe {mime, data}` → `{ok, text}`. Exhausted quota: transcribe HTTP 429,
+  tts HTTP 502 with `error` containing "лимитът е изчерпан" – both become code `quota` in `voice.js`.
 - NEVER retry a POST automatically, except: on HTTP 401 refresh the session once and retry the same request once
   (auth is checked before anything executes).
 - From this development container: never call `auth-login`, never call a write tool, never send real data.
@@ -123,7 +126,8 @@ RgResult   = {ok:true, text, model, incomplete?:boolean, effortIgnored?:boolean}
 //   signin_timeout, browser, oauth, registration, id_token, account_mismatch, auth, not_eligible, usage_limit,
 //   unavailable, unsupported, config, forbidden, rate_limit, http, failed, incomplete, empty, stream_interrupted,
 //   network, timeout, aborted, host. UI: usage_limit -> "Управление на лимита" (no retry); plan_disabled, reauth,
-//   not_connected -> sign in again; registration, account_mismatch, oauth, id_token -> signIn({newAccount:true}).
+//   not_connected -> sign in again; registration, account_mismatch, oauth, id_token, signin_timeout -> signIn({newAccount:true})
+//   (signin_timeout: a saved issued client id OpenAI no longer knows gets a 400 page in the browser and never calls back).
 // realgpt.onDelta: `text` is the full answer so far (authoritative); `delta` may join several server deltas.
 // Write/tool results may add code and maybeExecuted; crm.read of a non-allowlisted tool returns code:"forbidden".
 // realgpt.send messages: [{role:"user"|"assistant", text, images?:[{mime, data(base64)}]}]

@@ -21,7 +21,9 @@ function httpError(res, fallback) {
   const j = res.json;
   const text = j && typeof j.error === "string" && j.error.trim() ? j.error.trim().slice(0, 400) : "";
   if (res.status === 401) return fail("auth", "Сесията е изтекла – влезте отново.", 401);
-  return fail(res.status === 429 ? "quota" : "http", text || `${fallback} (HTTP ${res.status}).`, res.status);
+  // transcribe answers an exhausted quota with 429; tts (api/_tts.js) with 502 "…: лимитът е изчерпан…". Same code for both.
+  const quota = res.status === 429 || (res.status === 502 && /лимитът е изчерпан/.test(text));
+  return fail(quota ? "quota" : "http", text || `${fallback} (HTTP ${res.status}).`, res.status);
 }
 
 export function createVoice({ session }) {

@@ -356,7 +356,11 @@ function App({ user, remembered, onLogout }) {
   }
   function openChat(id) { dropTemp(id); setActive(id); setView("chat"); setDrawer(false); }
   function openView(v) { setView(v); setDrawer(false); closePop(); }
-  function delChat(id) { setChats((cs) => cs.filter((c) => c.id !== id)); if (active === id) setActive(null); }
+  function delChat(id) {
+    const b = busyRef.current;
+    if (b && b.chatId === id) stop(); // a deleted chat has no thread to wait in: stop waiting, otherwise the Home shows a lone "Спри"
+    setChats((cs) => cs.filter((c) => c.id !== id)); if (active === id) setActive(null);
+  }
   function askDelete(c) { setConfirm({ title: "Изтриване на чата?", text: "„" + c.title + "“ ще бъде изтрит от този компютър. Данните в CRM и паметта на Тед на сървъра не се променят.", ok: () => delChat(c.id) }); }
   function openCanvas(b) { const txt = String(b.text || ""); setCanvas({ title: b.title || "Документ", kind: b.kind || "doc", versions: [{ v: 1, text: txt, at: now() }], cur: 1 }); }
   function openSettings(tab) { closePop(); setDrawer(false); setSetTab(tab || "general"); setModal("settings"); }
@@ -388,7 +392,7 @@ function App({ user, remembered, onLogout }) {
     if (!list || !list.length) return;
     const r = await addFiles(list, filesRef.current);
     if (r.items.length) setFiles((fs) => [...fs, ...r.items]);
-    if (r.errors.length) toast(r.errors[0]);
+    if (r.errors.length) toast(r.errors.join(" ")); // every refused file is named, not only the first
     focusComposer();
   }
   function attachRefs(refs, text) {
@@ -481,7 +485,8 @@ function App({ user, remembered, onLogout }) {
     let cid = cur ? cur.id : null;
     if (!cid) {
       cid = uid("c_");
-      const title = (text || (useFiles[0] && useFiles[0].name) || "Нов чат").slice(0, 48);
+      // Cut by code points: a plain slice can split an emoji into a lone surrogate (broken title and file name).
+      const title = Array.from(text || (useFiles[0] && useFiles[0].name) || "Нов чат").slice(0, 48).join("");
       const fresh = { id: cid, title, caseId: sendCase || null, caseTitle: sendCase && curCase ? curCase.title : null, updatedAt: now(), archived: false, pinned: false, temporary: o.fresh ? false : temp, messages: [] };
       setChats((cs) => [fresh, ...cs.filter((c) => !c.temporary)]);
       setActive(cid); setView("chat");
@@ -767,7 +772,8 @@ function App({ user, remembered, onLogout }) {
           </> : null}
           <span className="spacer" />
           <button className={"cbtn c-mic" + (rec ? " rec" : "")} onClick={toggleRec} disabled={rec === "busy"} aria-label={rec ? "Спри диктовката" : "Диктовка"} title="Диктовка">{rec ? <Icon n="stopsq" fill="currentColor" /> : <Icon n="mic" />}</button>
-          {busy ? <button className="snd" onClick={stop} aria-label="Спри" title="Спри"><Icon n="stopsq" fill="currentColor" /></button>
+          {/* The second click of a double-click on "Изпрати" lands here (the button swaps while busy): it must not stop the request. */}
+          {busy ? <button className="snd" onClick={(e) => { if (e.detail > 1) return; stop(); }} aria-label="Спри" title="Спри"><Icon n="stopsq" fill="currentColor" /></button>
             : (input.trim() || files.length) ? <button className="snd" onClick={() => send()} aria-label="Изпрати"><Icon n="up" /></button>
               : <button className="snd" onClick={() => setVoice(true)} aria-label="Гласов режим" title="Гласов режим"><Icon n="wave" /></button>}
         </div>

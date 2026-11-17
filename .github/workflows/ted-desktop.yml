@@ -156,6 +156,19 @@ jobs:
           if ($code -ne 0) { Write-Host "::error::Smoke test failed (exit code $code)"; exit 1 }
           Write-Host "Smoke test passed."
 
+      # scripts/ci-installer-test.ps1: real silent installs of the installer that was just built.
+      # A) normal install; B) %TEMP% on a too-small disk (the "disk C: is full" case) must still
+      # install completely; C) no room anywhere must be refused with exit code 3. Each installed
+      # program is compared with win-unpacked and runs the smoke test.
+      - name: Installer tests (real installs, full temp drive)
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          ./scripts/ci-installer-test.ps1 `
+            -Setup (Join-Path $PWD "dist-installer\Ted-Setup-$version-x64.exe") `
+            -Unpacked (Join-Path $PWD 'dist-installer\win-unpacked') `
+            -OldSetupUrl 'https://github.com/miroslavkunev7-design/imotinadezhda/releases/download/ted-desktop-v0.1.1/Ted-Setup-0.1.1-x64.exe'
+
       - name: Unversioned copy and SHA256SUMS.txt
         run: |
           version="$(node -p "require('./package.json').version")"

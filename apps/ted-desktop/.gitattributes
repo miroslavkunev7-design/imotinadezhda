@@ -1,0 +1,6 @@
+# Ted for Windows: check out with LF everywhere, so the app.asar built on the Windows runner (autocrlf) is
+# byte-identical to a Linux build. Assets are binary whatever the detection says.
+* text=auto eol=lf
+*.png binary
+*.webp binary
+*.woff2 binary

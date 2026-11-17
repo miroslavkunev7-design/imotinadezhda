@@ -63,7 +63,9 @@ nsis:
     - en_US
   # No auto-update, so no .blockmap next to the installer.
   differentialPackage: false
-  # Deliberately no `include:` / `script:` (no custom NSIS code).
+  # Extra installer steps: temporary files move next to the install folder when the %TEMP% drive is
+  # full, a clear refusal when there is no room anywhere, and a completeness check after copying.
+  include: build/installer.nsh
 
 # Electron fuses, flipped in the packaged .exe by electron-builder (@electron/fuses) after packing.
 # The app is served from app://ted/ out of app.asar and never needs file:// or Node-style switches.

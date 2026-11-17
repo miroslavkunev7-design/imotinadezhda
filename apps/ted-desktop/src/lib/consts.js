@@ -60,7 +60,9 @@ export const RG_USAGE_URL ="https://chatgpt.com/settings/usage"; // "Manage usag
 // Real GPT result codes that need a new "Continue with ChatGPT" sign-in instead of a retry.
 export const RG_SIGNIN_CODES = ["plan_disabled", "reauth", "not_connected"];
 // Sign-in failures that a fresh registration (realgpt.signIn({newAccount:true})) can fix.
-export const RG_NEW_ACCOUNT_CODES = ["registration", "account_mismatch", "oauth", "id_token"];
+// signin_timeout: a saved issued client id that OpenAI no longer knows answers the browser with a 400 JSON page
+// and never redirects back, so the only way out is a new registration.
+export const RG_NEW_ACCOUNT_CODES = ["registration", "account_mismatch", "oauth", "id_token", "signin_timeout"];
 
 const PROV = { google: "🔷", gemini: "🔷", openai: "⚪", anthropic: "🟠", claude: "🟠", openrouter: "🛰️", ollama: "🦙", gateway: "🌐" };
 export const provEm = (p) => PROV[String(p || "").toLowerCase()] || "🤖";

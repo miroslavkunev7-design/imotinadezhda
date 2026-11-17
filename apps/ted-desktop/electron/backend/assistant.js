@@ -6,6 +6,8 @@ import { KNOWN_TOOLS, toolLabel } from "./labels.js";
 import { isMutating } from "./tools.js";
 
 export const LIMITS = { messages: 16, textChars: 8000, files: 3, base64Chars: Math.floor(3.8 * 1024 * 1024) };
+export const FILES_ONLY_TEXT = "Анализирай прикачените файлове."; // what the website sends for a files-only message
+export const VOICE_ONLY_TEXT = "(гласово съобщение)"; // what the website sends with a voice note
 const CHAT_TIMEOUT_MS = 115000; // server budget 108 s, function limit 120 s
 const DOC_MIME = /^(image\/(jpeg|png|webp)|application\/pdf)$/;
 // Voice-note types the server transcribes; anything else it would silently drop.
@@ -71,6 +73,10 @@ export function buildBody({ messages, model, mode, caseId } = {}) {
   const current = out[out.length - 1];
   if (current.role !== "user") throw invalid("Последното съобщение трябва да е от служителя.");
   if (!current.text.trim() && !current.files) throw invalid("Празно съобщение.");
+  // Files without text: the same default as the website (mobile/ash.js), otherwise the server shows the model
+  // "(без текст)" and stores an empty question in Ted's memory.
+  // A voice note gets the website's other literal: api/assistant.js replaces exactly it with the transcript.
+  if (!current.text.trim()) current.text = current.files.some((f) => AUDIO_MIME.test(f.mime)) ? VOICE_ONLY_TEXT : FILES_ONLY_TEXT;
 
   const body = { messages: out, page: PAGE };
   const m1 = optionalId(model, 80, "модел");

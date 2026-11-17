@@ -24,7 +24,11 @@ export default function Login({ onLogin, notice }) {
     catch { r = { ok: false, error: "Входът не успя. Опитайте отново." }; }
     setBusy(false);
     if (r && r.ok) onLogin(r.user);
-    else setError((r && r.error) || "Входът не успя. Опитайте отново.");
+    else {
+      setError((r && r.error) || "Входът не успя. Опитайте отново.");
+      // The fields were disabled while waiting, so the focus fell to the page: put it back on the empty password.
+      setTimeout(() => { const el = document.getElementById("lg-pw"); if (el) el.focus(); }, 0);
+    }
   }
 
   return (

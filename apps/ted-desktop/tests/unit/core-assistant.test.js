@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildBody, normalize, createAssistant, LIMITS } from "../../electron/backend/assistant.js";
+import { buildBody, normalize, createAssistant, LIMITS, FILES_ONLY_TEXT, VOICE_ONLY_TEXT } from "../../electron/backend/assistant.js";
 import { SITE, PAGE } from "../../electron/backend/config.js";
 import { fakeSession, reply, httpError, deferred } from "./core-helpers.js";
 
@@ -79,6 +79,19 @@ describe("buildBody", () => {
     expect(body.messages[2].files).toEqual([img()]);
     // A message with files may have an empty text.
     expect(buildBody({ messages: [user("", [img()])] }).messages[0].files).toHaveLength(1);
+  });
+
+  it("files without text get the website's default text (never an empty question for the model and the memory)", () => {
+    for (const blank of ["", "   ", "\n"]) {
+      expect(buildBody({ messages: [user(blank, [img()])] }).messages[0]).toEqual({ role: "user", text: FILES_ONLY_TEXT, files: [img()] });
+    }
+    expect(FILES_ONLY_TEXT).toBe("Анализирай прикачените файлове."); // mobile/ash.js sends exactly this
+    expect(buildBody({ messages: [user("виж", [img()])] }).messages[0].text).toBe("виж");   // a typed text stays as it is
+    // a voice note without text: the literal api/assistant.js swaps for the transcript (as mobile/ash.js sends it)
+    expect(buildBody({ messages: [user("", [{ mime: "audio/webm;codecs=opus", data: B64 }])] }).messages[0].text).toBe(VOICE_ONLY_TEXT);
+    expect(VOICE_ONLY_TEXT).toBe("(гласово съобщение)");
+    expect(buildBody({ messages: [user("по-рано"), bot(""), user("x", [img()])] }).messages[1].text).toBe(""); // only the current message
+    expect(invalid({ messages: [user("   ")] })).toMatchObject({ code: "invalid" });              // no files: still refused
   });
 
   it("accepts only jpeg, png, webp and pdf", () => {

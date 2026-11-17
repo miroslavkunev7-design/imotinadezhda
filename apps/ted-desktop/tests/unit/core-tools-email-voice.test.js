@@ -204,6 +204,11 @@ describe("voice", () => {
   it("tts maps server errors and a non-audio reply", async () => {
     const tts = (handler) => createVoice({ session: fakeSession(handler) }).tts({ text: "x" });
     expect(await tts(() => reply(502, { ok: false, error: "Гласът не е наличен: лимит" }))).toEqual({ ok: false, error: "Гласът не е наличен: лимит", code: "http", status: 502 });
+    // api/_tts.js reports an exhausted Gemini TTS quota as HTTP 502 "…: лимитът е изчерпан…" (never 429): same code as transcribe.
+    expect(await tts(() => reply(502, { ok: false, error: "Гласът не е наличен: gemini-tts: лимитът е изчерпан за днес | gemini-tts-2: лимитът е изчерпан" })))
+      .toMatchObject({ ok: false, code: "quota", status: 502, error: /^Гласът не е наличен: gemini-tts: лимитът е изчерпан за днес/ });
+    expect(await tts(() => reply(502, { ok: false, error: "Гласът не е наличен: gemini-tts: HTTP 500" }))).toMatchObject({ ok: false, code: "http", status: 502 });
+    expect(await tts(() => reply(429, { ok: false, error: "Твърде много заявки." }))).toMatchObject({ ok: false, code: "quota", status: 429 });
     expect(await tts(() => reply(401, { ok: false, error: "Само за CRM" }))).toMatchObject({ ok: false, code: "auth" });
     expect(await tts(() => reply(200, { ok: true }, { headers: { "content-type": "application/json" } }))).toMatchObject({ ok: false, code: "http" });
     expect(await tts(() => { throw httpError("timeout"); })).toEqual({ ok: false, error: "Сървърът не отговори навреме.", code: "timeout" });

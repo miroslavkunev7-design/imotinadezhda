@@ -3,9 +3,26 @@
 import { describe, it, expect } from "vitest";
 import {
   AFFIRM_BLOCK_TEXT, AFFIRM_CASE_TEXT, affirmGuard, cleanChats, emailBlock, lastAssistant, markFromReply, newestEmailId,
-  newestInterrupted, raiseMark, readMark, serverHistory,
+  newestInterrupted, raiseMark, readMark, safeFileName, serverHistory,
 } from "../../src/lib/chat.js";
-import { AFFIRM, AFFIRM_START, INTERRUPTED_TEXT } from "../../src/lib/consts.js";
+import { AFFIRM, AFFIRM_START, INTERRUPTED_TEXT, RG_NEW_ACCOUNT_CODES } from "../../src/lib/consts.js";
+
+describe("safeFileName", () => {
+  it("cuts by code points: an emoji on the 80-character boundary is dropped whole, never left as a lone surrogate", () => {
+    const name = safeFileName("а".repeat(79) + "👋 и още", "md");
+    expect(name.isWellFormed()).toBe(true);
+    expect(name).toBe("а".repeat(79) + "👋.md");           // 80 code points kept
+    expect(safeFileName("🏠".repeat(90), "md")).toBe("🏠".repeat(80) + ".md");
+    expect(safeFileName('a/b\\c:d*e?f"g<h>i|j', "md")).toBe("a-b-c-d-e-f-g-h-i-j.md");
+    expect(safeFileName("", "md")).toBe("чат.md");
+  });
+});
+
+describe("Real GPT sign-in codes", () => {
+  it("a sign-in timeout offers a fresh registration (a dead issued client id never calls back)", () => {
+    expect(RG_NEW_ACCOUNT_CODES).toEqual(["registration", "account_mismatch", "oauth", "id_token", "signin_timeout"]);
+  });
+});
 
 const T = 1_800_000_000_000;
 const user = (id, text, extra = {}) => ({ id, role: "user", text, time: T, ...extra });

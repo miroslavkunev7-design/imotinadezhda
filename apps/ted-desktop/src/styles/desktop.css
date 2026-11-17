@@ -43,7 +43,7 @@ svg.i.sm16{width:16px;height:16px}
 svg.i.sm19{width:19px;height:19px}
 
 /* ---------- Boot and sign-in ---------- */
-.login{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 16px;
+.login{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:14px;padding:24px 16px;
   background:linear-gradient(0deg,#370714 0%,#370714d9 22%,#3707148c 55%,#37071466 100%),url('../assets/house.webp') center 30%/cover no-repeat,var(--ted-wine)}
 .wait.boot{color:var(--title);font-size:16px}
 .login-card{width:min(430px,100%);display:flex;flex-direction:column;align-items:stretch;padding:22px 24px 18px;border-radius:26px;color:var(--ink);
@@ -137,3 +137,6 @@ svg.i.sm19{width:19px;height:19px}
 /* Phone tweaks for the additions */
 .shell.phone .lw-n{display:none}
 .shell.phone .rg-wait{flex-direction:column;text-align:center}
+
+/* The dialog takes the keyboard focus when it opens (see Modal in ui.jsx); it must not draw a focus ring. */
+.modal:focus { outline: none; }

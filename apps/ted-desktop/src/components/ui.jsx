@@ -58,13 +58,31 @@ export function It({ icon, em, title, sub, onClick, check, danger, prov, right, 
 }
 
 export function Modal({ title, onClose, children, foot, size }) {
+  const ref = useRef(null);
   useEffect(() => {
-    const k = (e) => { if (e.key === "Escape") onClose(); };
+    // Only the topmost dialog answers the keyboard: a confirmation over Settings must not close both at once.
+    const top = () => { const all = document.querySelectorAll(".modal"); return all[all.length - 1] === ref.current; };
+    const k = (e) => {
+      if (e.key === "Escape") { if (top()) onClose(); return; }
+      // Tab stays inside the dialog: otherwise it reaches the composer behind it, where Enter would send a message.
+      if (e.key !== "Tab" || !top() || !ref.current) return;
+      const f = [...ref.current.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter((el) => !el.disabled && el.getClientRects().length);
+      const i = f.indexOf(document.activeElement);
+      let to = null;
+      if (!f.length || !ref.current.contains(document.activeElement)) to = e.shiftKey ? f[f.length - 1] : f[0];
+      else if (e.shiftKey && i <= 0) to = f[f.length - 1];
+      else if (!e.shiftKey && i === f.length - 1) to = f[0];
+      if (to || !f.length) { e.preventDefault(); if (to) to.focus(); }
+    };
+    // Opened from the keyboard (Ctrl+/) the focus would stay in the composer behind the dialog, where Enter sends a
+    // message: move it inside, unless something in the dialog (an autofocus input) already has it.
+    // The dialog itself takes it (tabIndex -1), not a button: a stray Space/Enter must not press anything.
+    if (ref.current && !ref.current.contains(document.activeElement)) ref.current.focus();
     document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k);
   }, []);
   return (
     <div className="back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={"modal " + (size || "")} role="dialog" aria-modal="true" aria-label={title}>
+      <div className={"modal " + (size || "")} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} ref={ref}>
         <div className="mh"><h2>{title}</h2><button className="ibtn" onClick={onClose} aria-label="Затвори"><Icon n="x" /></button></div>
         {children}
         {foot ? <div className="mf">{foot}</div> : null}

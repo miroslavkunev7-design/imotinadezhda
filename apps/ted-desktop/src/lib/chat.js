@@ -162,7 +162,8 @@ export function chatMarkdown(chat) {
   return lines.join("\n");
 }
 
-export const safeFileName = (title, ext) => (String(title || "чат").replace(/[\\/:*?"<>|\x00-\x1f]/g, "-").trim().slice(0, 80) || "чат") + "." + ext;
+// Cut by code points, so an emoji at the limit is dropped whole instead of leaving a lone surrogate in the file name.
+export const safeFileName = (title, ext) => (Array.from(String(title || "чат").replace(/[\\/:*?"<>|\x00-\x1f]/g, "-").trim()).slice(0, 80).join("") || "чат") + "." + ext;
 
 // A server request still marked `pending` when the chats were saved had no recorded answer: the program was
 // closed, the session ended or the profile signed out meanwhile. It becomes an "interrupted" answer.
