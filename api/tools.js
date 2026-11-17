@@ -26661,6 +26661,8 @@ async function handler(req, res) {
   const auth = String(req.headers["authorization"] || "");
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (!token) return send({ ok: false, error: "Missing bearer token (sign in to the CRM)" }, 401);
+  /* OIDC токенът на проекта (за Vercel AI Gateway без отделен ключ, както в api/assistant.js) */
+  if (!process.env.VERCEL_OIDC_TOKEN && req.headers["x-vercel-oidc-token"]) process.env.VERCEL_OIDC_TOKEN = String(req.headers["x-vercel-oidc-token"]);
   const sb = createClient(URL2, KEY, { auth: { persistSession: false, autoRefreshToken: false }, global: { headers: { Authorization: "Bearer " + token } } });
   const { data: u, error: ue } = await sb.auth.getUser(token);
   if (ue || !u?.user) return send({ ok: false, error: "Invalid or expired token" }, 401);

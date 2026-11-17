@@ -524,6 +524,59 @@ async function classifyDoc(info, name) {
 }
 
 /* ---------- the skills ---------- */
+/* ---------- снимки през Vercel AI Gateway (резерва, когато безплатният Gemini е изчерпан) ----------
+   Генериране: OpenAI GPT Image 2 (моделът за снимки на ChatGPT) през /v1/images/generations; при грешка – FLUX.2 [pro].
+   Редакция на снимка: Gemini Flash Image през /v1/chat/completions (modalities text+image). Плаща се от кредитите
+   на AI Gateway в акаунта на Vercel (около 0,04–0,05 $ за снимка). Ключ: AI_GATEWAY_API_KEY / VERCEL_AI_GATEWAY_KEY /
+   AI_GATEWAY_KEY или OIDC токенът на проекта. */
+const GW_IMG = "https://ai-gateway.vercel.sh/v1";
+let gemImgBlockedUntil = 0; /* дневният безплатен лимит на Gemini за снимки е изчерпан → не губим време до този момент */
+function gwTokens() {
+  const out = [], seen = new Set();
+  for (const k of ["AI_GATEWAY_API_KEY", "VERCEL_AI_GATEWAY_KEY", "AI_GATEWAY_KEY", "VERCEL_OIDC_TOKEN"]) { const v = process.env[k]; if (v && !seen.has(v)) { seen.add(v); out.push({ name: k, token: v }); } }
+  return out;
+}
+const GW_SIZE = { "1:1": "1024x1024", "4:3": "1536x1024", "16:9": "1536x1024", "3:4": "1024x1536", "9:16": "1024x1536" };
+async function gwFetch(path, body, ms) {
+  const toks = gwTokens(); if (!toks.length) return { ok: false, status: 0, err: "няма ключ за Vercel AI Gateway" };
+  let last = null;
+  for (const t of toks) {
+    const r = await fetch(GW_IMG + path, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + t.token }, body: JSON.stringify(body), signal: AbortSignal.timeout(Math.max(5000, ms)) })
+      .catch((e) => ({ ok: false, status: 0, json: async () => ({ error: { message: /timeout|abort/i.test(String(e && e.name) + String(e && e.message)) ? "AI Gateway не отговори навреме" : String(e.message || e) } }) }));
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) return { ok: true, json: j, via: t.name };
+    const msg = String((j.error && (j.error.message || j.error)) || j.message || ("HTTP " + r.status)).slice(0, 200);
+    last = { ok: false, status: r.status, err: r.status === 402 || /credit|balance|insufficient|payment/i.test(msg) ? "няма кредити във Vercel AI Gateway" : msg };
+    if (r.status !== 401 && r.status !== 403) return last; /* друг ключ няма да помогне */
+  }
+  return last;
+}
+async function gwImage(prompt, src, aspect, deadline) {
+  const left = () => deadline - Date.now();
+  if (src) {
+    const url = "data:" + src.mime + ";base64," + src.buf.toString("base64");
+    const r = await gwFetch("/chat/completions", { model: "google/gemini-3.1-flash-image-preview", modalities: ["text", "image"], stream: false, messages: [{ role: "user", content: [{ type: "text", text: prompt }, { type: "image_url", image_url: { url } }] }] }, left() - 2000);
+    if (!r.ok) return r;
+    const im = ((((r.json.choices || [])[0] || {}).message || {}).images || [])[0];
+    const m = im && im.image_url && /^data:([^;]+);base64,(.+)$/.exec(im.image_url.url || "");
+    return m ? { ok: true, img: { buf: Buffer.from(m[2], "base64"), mime: m[1] }, model: "Gemini Flash Image (AI Gateway)" } : { ok: false, err: "AI Gateway не върна снимка" };
+  }
+  let lastErr = null;
+  for (const [model, name, extra] of [["openai/gpt-image-2", "GPT Image 2 (AI Gateway)", { quality: "medium" }], ["bfl/flux-2-pro", "FLUX.2 pro (AI Gateway)", {}]]) {
+    if (left() < 12000) break;
+    const r = await gwFetch("/images/generations", Object.assign({ model, prompt, n: 1, size: GW_SIZE[aspect] || "1536x1024" }, extra), left() - 2000);
+    if (r.ok) {
+      const d = (r.json.data || [])[0] || {};
+      if (d.b64_json) { const buf = Buffer.from(d.b64_json, "base64"); const png = buf[0] === 0x89 && buf[1] === 0x50; return { ok: true, img: { buf, mime: png ? "image/png" : buf[0] === 0xff ? "image/jpeg" : "image/webp" }, model: name }; }
+      lastErr = { ok: false, err: "AI Gateway не върна снимка" };
+      continue;
+    }
+    lastErr = r;
+    if (/кредити|ключ/.test(r.err || "") || r.status === 401 || r.status === 403) break; /* другият модел няма да помогне */
+  }
+  return lastErr || { ok: false, err: "няма време за резервния модел" };
+}
+
 const tools = {
   "documents.find": {
     description: "Намира документи в CRM по клиент (id или име), текст в името, папка или вид. Връща id, име, папка, размер, дата и кратък линк. За клиенти с еднакви имена връща грешка с избор.",
@@ -738,30 +791,40 @@ const tools = {
     }
   },
   "images.generate": {
-    description: "Генерира нова снимка или редактира съществуваща с AI (Gemini): prompt = какво да се направи (напр. „виртуално обзаведен хол в светли тонове“, „махни логото на агенцията“, „направи снимката по-светла“, „празен парцел без къщата“). За редакция подай property_code + photo_index (1 = първата снимка на имота) или source_path. save_to_property=true добавя резултата към снимките на имота; иначе към клиента или в папка „Тед“. aspect: 1:1, 4:3, 3:4, 16:9, 9:16. Резултатът е AI визуализация.",
+    description: "Генерира нова снимка или редактира съществуваща с AI (Gemini; при изчерпан безплатен лимит – GPT Image 2 през Vercel AI Gateway): prompt = какво да се направи (напр. „виртуално обзаведен хол в светли тонове“, „махни логото на агенцията“, „направи снимката по-светла“, „празен парцел без къщата“). За редакция подай property_code + photo_index (1 = първата снимка на имота) или source_path. save_to_property=true добавя резултата към снимките на имота; иначе към клиента или в папка „Тед“. aspect: 1:1, 4:3, 3:4, 16:9, 9:16. Резултатът е AI визуализация.",
     input: schema({ prompt: S("string", { required: true, max: 2000 }), property_code: S("string", { max: 40 }), photo_index: S("number", { min: 1, max: 100, default: 1 }), source_path: S("string", { max: 400 }), save_to_property: S("boolean", { default: false }), client_id: S("string"), client_name: S("string", { max: 120 }), aspect: S("string", { enum: ["1:1", "4:3", "3:4", "16:9", "9:16"] }) }),
     run: async (ctx, i) => {
-      if (!GEMINI()) throw new ToolError("Липсва GEMINI_API_KEY на сървъра", 500);
+      const T0 = Date.now(), DEADLINE = T0 + 110000; /* функцията има 120 s */
+      if (!GEMINI() && !gwTokens().length) throw new ToolError("Няма ключ за снимки на сървъра (GEMINI_API_KEY или Vercel AI Gateway)", 500);
       let src = null, prop = null;
       if (i.source_path) src = { buf: await download(ctx, i.source_path), path: i.source_path };
       else if (i.property_code) { prop = await propByCode(ctx, i.property_code); const pth = (prop.pics || [])[(i.photo_index || 1) - 1]; if (pth) src = { buf: await download(ctx, pth), path: pth }; else if (!/нов|генерирай|създай/i.test(i.prompt)) throw new ToolError("Имот " + (prop.code || prop.id) + " няма снимка №" + (i.photo_index || 1)); }
       const parts = [{ text: (src ? "Редактирай прикачената снимка на имот: " : "Създай реалистична снимка за агенция за недвижими имоти: ") + i.prompt + (src ? " Запази всичко останало непроменено (кадър, перспектива, светлина, размери), освен ако не е поискано друго. Махни всички лога и водни знаци, включително бледото лого в средата – логото на агенцията се добавя отново автоматично." : "") + " Без надписи, лога и водни знаци." }];
       if (src) parts.push({ inline_data: { mime_type: /\.png$/i.test(src.path) ? "image/png" : /\.webp$/i.test(src.path) ? "image/webp" : "image/jpeg", data: src.buf.toString("base64") } });
-      const ids = await GEM.models("image"); let last = "", img = null, used = null;
+      const ids = GEMINI() && Date.now() >= gemImgBlockedUntil ? await GEM.models("image") : []; let last = GEMINI() ? "безплатният лимит за снимки е изчерпан за днес" : "", img = null, used = null, daily = false;
       for (const m of ids.slice(0, 4)) {
+        if (DEADLINE - Date.now() < 60000) break; /* оставяме време за резервния модел */
         let gc = Object.assign({ responseModalities: ["IMAGE", "TEXT"] }, i.aspect ? { imageConfig: { aspectRatio: i.aspect } } : {});
         for (let attempt = 0; attempt < 2 && !img; attempt++) {
-          const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(GEMINI()), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: gc }), signal: AbortSignal.timeout(50000) }).catch((e) => ({ ok: false, status: 0, json: async () => ({ error: { message: String(e.message || e) } }) }));
+          const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(GEMINI()), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ role: "user", parts }], generationConfig: gc }), signal: AbortSignal.timeout(Math.min(45000, Math.max(5000, DEADLINE - Date.now() - 50000))) }).catch((e) => ({ ok: false, status: 0, json: async () => ({ error: { message: String(e.message || e) } }) }));
           const j = await r.json().catch(() => ({}));
-          if (!r.ok) { const cl = GEM.classify(m, r.status, j); last = cl.kind === "quota" ? "безплатният лимит за снимки е изчерпан" + (cl.daily ? " за днес" : " – опитайте след минута") : cl.msg; if (cl.kind === "bad" && gc.imageConfig && /image_?config|aspect/i.test(cl.msg)) { gc = { responseModalities: ["IMAGE", "TEXT"] }; continue; } break; }
+          if (!r.ok) { const cl = GEM.classify(m, r.status, j); if (cl.kind === "quota" && cl.daily) daily = true; last = cl.kind === "quota" ? "безплатният лимит за снимки е изчерпан" + (cl.daily ? " за днес" : " – опитайте след минута") : cl.msg; if (cl.kind === "bad" && gc.imageConfig && /image_?config|aspect/i.test(cl.msg)) { gc = { responseModalities: ["IMAGE", "TEXT"] }; continue; } break; }
           const part = ((((j.candidates || [])[0] || {}).content || {}).parts || []).find((x) => (x.inlineData || x.inline_data) && (x.inlineData || x.inline_data).data);
           if (part) { const d = part.inlineData || part.inline_data; img = { buf: Buffer.from(d.data, "base64"), mime: d.mimeType || d.mime_type || "image/png" }; used = m; } else { last = "моделът не върна снимка"; break; }
         }
         if (img) break;
       }
-      if (!img) throw new ToolError("Снимката не е генерирана: " + last, /лимит/.test(last) ? 429 : 502);
+      if (daily) gemImgBlockedUntil = Date.now() + 60 * 60000;
+      let via = null;
+      if (!img && gwTokens().length) {
+        const gwPrompt = parts[0].text;
+        const g = await gwImage(gwPrompt, src ? { buf: src.buf, mime: parts[1] ? parts[1].inline_data.mime_type : "image/jpeg" } : null, i.aspect, DEADLINE);
+        if (g.ok) { img = g.img; used = g.model; via = "Vercel AI Gateway (кредити)"; }
+        else last = (last ? last + "; " : "") + "резервният модел: " + g.err;
+      }
+      if (!img) throw new ToolError("Снимката не е генерирана: " + last, /лимит|кредити/.test(last) ? 429 : 502);
       const target = Object.assign({}, i, { property_code: i.save_to_property && (prop || i.property_code) ? (prop ? prop.code || prop.id : i.property_code) : undefined });
-      return Object.assign({ model: used, edited: !!src, note: "AI визуализация – при публикуване я обозначете като такава." }, await saveImages(ctx, [img], target, src ? "AI редакция" : "AI снимка"));
+      return Object.assign({ model: used, edited: !!src, note: "AI визуализация – при публикуване я обозначете като такава." + (via ? " Безплатният лимит на Gemini беше изчерпан – снимката е направена с " + used + " през " + via + "." : "") }, via ? { via } : {}, await saveImages(ctx, [img], target, src ? "AI редакция" : "AI снимка"));
     }
   },
   "analyze_image": {

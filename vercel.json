@@ -156,7 +156,7 @@
       "maxDuration": 60
     },
     "api/tools.js": {
-      "maxDuration": 60,
+      "maxDuration": 120,
       "includeFiles": "api/_vendor/**"
     },
     "api/email.js": {
