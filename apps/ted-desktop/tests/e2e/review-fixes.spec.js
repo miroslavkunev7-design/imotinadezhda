@@ -137,13 +137,15 @@ test("the Real GPT model stays readable at 1024 px; the „+“ menu never cover
   const topBottom = (await page.locator(".shell .top").boundingBox()).y + (await page.locator(".shell .top").boundingBox()).height;
   await page.locator(".c-plus").click();
   const pop = page.locator(".pop");
-  const root = await pop.boundingBox();
+  // The menu is first rendered off-screen (-9999) to measure itself, then placed: wait for the placement.
+  const placed = async () => { let b = null; await expect.poll(async () => { b = await pop.boundingBox(); return b ? b.y : -1; }, { timeout: 5000 }).toBeGreaterThanOrEqual(0); return b; };
+  const root = await placed();
   expect(root.y).toBeGreaterThanOrEqual(topBottom);
   const plus = await page.locator(".c-plus").boundingBox();
   const below = root.y > plus.y;
   for (const name of [/^Последни файлове/, /^Проекти/]) {
     await pop.getByRole("menuitem", { name }).click();
-    const box = await pop.boundingBox();
+    const box = await placed();
     expect(box.y).toBeGreaterThanOrEqual(topBottom);
     expect(box.y > plus.y).toBe(below); // the same side as the first level
     await pop.getByRole("menuitem", { name: /^Назад/ }).click();
