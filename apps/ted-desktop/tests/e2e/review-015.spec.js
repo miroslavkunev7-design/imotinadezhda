@@ -201,7 +201,8 @@ test("keyboard: + → Enter opens with the focus inside; ↓↓ Enter = „Съ�
   await page.keyboard.press("Enter");
   await expect(page.locator(".pop")).toHaveCount(0);
   await expect(page.locator("#composer")).toHaveValue(/^Създай изображение: /);
-  await expect(page.locator("#composer")).toBeFocused(); // the hint puts the focus into the composer
+  // the hint puts the focus into the composer (activeElement – the CI page may lack window focus)
+  await expect.poll(() => page.evaluate(() => (document.activeElement && document.activeElement.id) || "")).toBe("composer");
   // Esc closes and gives the focus back to „+“.
   await page.locator(".c-plus").focus();
   await page.keyboard.press("Enter");

@@ -114,11 +114,14 @@ test("Чат | Работа on a page opens that mode's start screen; arrow keys
   const chat = toggle.getByRole("tab", { name: "Чат" });
   await expect(chat).toHaveAttribute("aria-controls", "main-area");
   await chat.focus();
+  // document.activeElement, not toBeFocused(): with parallel CI workers the page itself may not have window focus,
+  // which Playwright reports as "inactive" although the right tab holds the focus.
+  const active = () => page.evaluate(() => (document.activeElement && document.activeElement.id) || "");
   await page.keyboard.press("ArrowRight"); // from „Чат“ (not selected) the next tab is „Работа“
-  await expect(toggle.getByRole("tab", { name: "Работа" })).toBeFocused();
+  await expect.poll(active).toBe("mode-tab-work");
   await page.keyboard.press("ArrowLeft");
   await expect(chat).toHaveAttribute("aria-selected", "true");
-  await expect(chat).toBeFocused();
+  await expect.poll(active).toBe(await chat.getAttribute("id"));
   await expect(page.locator(".home h1")).toContainText("Готови ли сте?");
   await g.check();
 });
