@@ -102,6 +102,7 @@ async function makeEnv(options = {}) {
     callbackParams: { code: 'auth-code-1', client_id: 'oaiapp_issued_1', scope: FULL_SCOPE },
     refreshes: 0,
     available: true,
+    writable: true,
   };
   env.callsTo = (url) => env.calls.filter((c) => c.url === url);
   env.record = () => env.store.get('realgpt');
@@ -141,10 +142,15 @@ async function makeEnv(options = {}) {
       throw Object.assign(new Error(`unexpected url ${opts.url}`), { code: 'host' });
     },
   };
+  // Same behaviour as electron/store/secure-file.js: synchronous, write() returns false without encryption.
   const secureStore = {
     available: () => env.available,
     read: (name) => structuredClone(env.store.get(name) ?? null),
-    write: (name, value) => { env.store.set(name, structuredClone(value)); },
+    write: (name, value) => {
+      if (!env.writable) return false;
+      env.store.set(name, structuredClone(value));
+      return true;
+    },
     remove: (name) => { env.store.delete(name); },
   };
   const level = (name) => (event, fields) => env.logs.push([name, event, fields]);
@@ -223,6 +229,18 @@ describe('sign-in', () => {
     expect(sent).toMatchObject({ ok: false, code: 'plan_disabled' });
     expect(await env.rg.models()).toMatchObject({ ok: false, code: 'plan_disabled' });
     expect(env.calls.filter((c) => c.url.startsWith('https://api.openai.com'))).toHaveLength(0);
+
+    // Signing in again is the request to enable plan use: the consent screen is asked for once more.
+    env.scope = FULL_SCOPE;
+    env.callbackParams = { code: 'auth-code-2' };
+    expect(await env.rg.signIn()).toMatchObject({ ok: true, status: { planEnabled: true } });
+    expect(env.authUrl.searchParams.get('prompt')).toBe('consent');
+    expect(env.authUrl.searchParams.get('client_id')).toBe('oaiapp_issued_1');
+    expect((await env.rg.send({ requestId: 'r2', messages: hello, model: 'model-a' })).ok).toBe(true);
+
+    // An ordinary re-authorisation with plan use granted does not force consent.
+    expect(await env.rg.signIn()).toMatchObject({ ok: true });
+    expect(env.authUrl.searchParams.has('prompt')).toBe(false);
   });
 
   it('returning sign-in reuses the issued client id and the host id, without agent_name_hint', async () => {
@@ -358,6 +376,15 @@ describe('sign-in', () => {
     refused.onOpen = () => ({ ok: false, error: 'blocked' });
     expect(await refused.rg.signIn()).toMatchObject({ ok: false, code: 'browser' });
   });
+
+  it('is not reported as connected when the credentials could not be stored encrypted', async () => {
+    const env = await makeEnv();
+    env.writable = false; // secure store refuses to write (it never falls back to plaintext)
+    expect(await env.rg.signIn()).toMatchObject({ ok: false, code: 'storage' });
+    expect(await env.rg.status()).toEqual({ connected: false });
+    expect(env.store.size).toBe(0);
+    expect((await env.page).body).toContain('Входът не беше завършен');
+  });
 });
 
 describe('token refresh', () => {
@@ -479,6 +506,14 @@ describe('sign-out', () => {
     expect(await env.rg.signOut()).toEqual({ ok: true, revoked: false });
     expect(env.callsTo(REVOKE_URL)).toHaveLength(3);
     expect(env.record()).not.toHaveProperty('refresh_token');
+    expect(await env.rg.status()).toEqual({ connected: false });
+  });
+
+  it('removes the tokens even if the registration cannot be rewritten', async () => {
+    const env = await signedIn();
+    env.writable = false;
+    expect(await env.rg.signOut()).toEqual({ ok: true, revoked: true });
+    expect(env.store.has('realgpt')).toBe(false);
     expect(await env.rg.status()).toEqual({ connected: false });
   });
 
@@ -692,6 +727,16 @@ describe('send', () => {
     const result = await pending;
     expect(result).toMatchObject({ ok: false, code: 'aborted' });
     expect(result).not.toHaveProperty('text');
+  });
+
+  it('a cancel that lands while an error body is being read is still reported as cancelled', async () => {
+    const env = await signedIn();
+    env.onResponses = () => streamRes(503, [], { hold: true }); // error status whose body never arrives
+    const pending = env.rg.send({ requestId: 'r1', messages: hello, model: 'model-a' });
+    await waitFor(() => env.callsTo(RESPONSES_URL).length === 1);
+    await new Promise((r) => setTimeout(r, 10));
+    env.rg.cancel('r1');
+    expect(await pending).toMatchObject({ ok: false, code: 'aborted' });
   });
 
   it('times out on silent headers and on a stalled stream', async () => {

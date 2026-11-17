@@ -108,6 +108,14 @@ describe('authorize URL', () => {
     expect(url.searchParams.get('ext_agent_host_id')).toBe(base.hostId);
   });
 
+  it('asks for consent again only on request and never on a first registration', () => {
+    const again = new URL(buildAuthorizeUrl({ ...base, clientId: 'oaiapp_abc', consent: true }));
+    expect(again.searchParams.get('prompt')).toBe('consent');
+    expect(again.searchParams.get('scope')).toContain('chatgpt.tokens.use.direct'); // the complete scope set
+    expect(new URL(buildAuthorizeUrl({ ...base, clientId: 'oaiapp_abc' })).searchParams.has('prompt')).toBe(false);
+    expect(new URL(buildAuthorizeUrl({ ...base, consent: true })).searchParams.has('prompt')).toBe(false);
+  });
+
   it('drops an id_token_hint that would make the URL too long for the Windows shell', () => {
     const raw = buildAuthorizeUrl({ ...base, clientId: 'oaiapp_abc', loginHint: 'user@example.com', idTokenHint: 'x'.repeat(2500) });
     expect(raw.length).toBeLessThanOrEqual(2000);

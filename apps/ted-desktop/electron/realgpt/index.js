@@ -2,7 +2,9 @@
 // Real GPT: "Sign in with ChatGPT" for open-source local apps and inference on the user's ChatGPT plan.
 // MAIN process only. Tokens never leave this module; the renderer sees RgStatus, model names and answer text.
 
-import { applyRefresh, buildRecord, clearTokens, createCredentials, expiresAtMs, planEnabled, publicStatus, refreshDue } from './credentials.js';
+import {
+  applyRefresh, buildRecord, clearTokens, createCredentials, expiresAtMs, planEnabled, publicStatus, refreshDue,
+} from './credentials.js';
 import { RgError, fail, mapApiError, toFailure } from './errors.js';
 import { getHostId } from './hostid.js';
 import { remoteJwks, verifyIdToken } from './idtoken.js';
@@ -101,6 +103,8 @@ export function createRealGpt({
         challenge: pkceChallenge(verifier),
         loginHint: saved?.email,
         idTokenHint: saved?.id_token,
+        // Signed in but plan use was not granted: this sign-in is the user's request to enable it.
+        consent: Boolean(saved?.access_token) && !planEnabled(saved),
       });
       let opened;
       try {
@@ -150,7 +154,8 @@ export function createRealGpt({
         await creds.save({ client_id: issuedForNew, ext_agent_host_id: host }).catch(noop);
       }
       const out = toFailure(e);
-      log.warn('realgpt.signin_failed', { code: out.code, error: out.code === 'internal' ? String(e?.message || e) : undefined });
+      const error = out.code === 'internal' ? String(e?.message || e) : undefined;
+      log.warn('realgpt.signin_failed', { code: out.code, error });
       return out;
     } finally {
       attempt.loop?.finish(pageKey);
@@ -218,9 +223,10 @@ export function createRealGpt({
     const res = await request(token);
     if (res.status !== 401) return res;
     await discard(res);
+    // Another caller may have rotated the tokens already; then its result is used instead of a second refresh.
     const current = await load();
-    const fresh = current?.access_token && current.access_token !== token ? current.access_token : (await refresh()).access_token;
-    return request(fresh);
+    const rotated = current?.access_token && current.access_token !== token;
+    return request(rotated ? current.access_token : (await refresh()).access_token);
   }
 
   async function usableRecord() {
@@ -340,6 +346,7 @@ export function createRealGpt({
     })));
     const ok = res.status >= 200 && res.status < 300;
     const error = ok ? null : parseJson(await guarded(job, headersTimeoutMs, () => readText(res, job.ctl.signal)));
+    if (job.why) throw new RgError('aborted'); // send() reports the real reason from job.why
     return { res, ok, error };
   }
 
@@ -362,7 +369,11 @@ export function createRealGpt({
     const { res } = opened;
     if (!opened.ok) {
       const mapped = mapApiError(res.status, opened.error);
-      log.warn('realgpt.send_rejected', { requestId, status: res.status, code: mapped.serverCode, param: mapped.param, serverRequestId: requestIdOf(res) });
+      // Direct-route admission may answer {detail:"..."}: diagnostic text only, kept for the log.
+      const detail = typeof opened.error?.detail === 'string' ? opened.error.detail.slice(0, 200) : undefined;
+      log.warn('realgpt.send_rejected', {
+        requestId, status: res.status, code: mapped.serverCode, param: mapped.param, detail, serverRequestId: requestIdOf(res),
+      });
       return fail(mapped.code, mapped.detail);
     }
 
@@ -387,9 +398,11 @@ export function createRealGpt({
       clearTimeout(idle);
       sink.flush();
     }
-    if (outcome.kind !== 'completed' && job.why) throw new RgError('aborted'); // mapped by send() from job.why
+    if (outcome.kind !== 'completed' && job.why) throw new RgError('aborted');
     if (outcome.kind !== 'completed') {
-      log.warn('realgpt.send_unfinished', { requestId, kind: outcome.kind, code: outcome.error?.code, reason: outcome.reason, serverRequestId: requestIdOf(res) });
+      log.warn('realgpt.send_unfinished', {
+        requestId, kind: outcome.kind, code: outcome.error?.code, reason: outcome.reason, serverRequestId: requestIdOf(res),
+      });
     }
     const result = resultOf(outcome, body.model);
     if (result.ok && effortIgnored) result.effortIgnored = true;

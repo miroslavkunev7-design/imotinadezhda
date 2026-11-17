@@ -139,7 +139,7 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
     "ted:memory.forget": async (args) => {
       if (!isObj(args) || !isStr(args.id, 64, 1) || !optStr(args.preview, 4000)) return bad();
       const preview = String(args.preview || "").replace(/\s+/g, " ").trim().slice(0, 300);
-      const yes = await confirm("Да забравя ли Тед това?", (preview ? `„${preview}“\n\n` : "") + "Фактът ще бъде изтрит от паметта на Тед на сървъра. Действието не може да бъде отменено.", { okLabel: "Забрави", cancelLabel: "Отказ" });
+      const yes = await confirm("Да забрави ли Тед това?", (preview ? `„${preview}“\n\n` : "") + "Фактът ще бъде изтрит от паметта на Тед на сървъра. Действието не може да бъде отменено.", { okLabel: "Забрави", cancelLabel: "Отказ" });
       if (!yes) return { ok: false, canceled: true };
       const r = await tools.call("memory.forget", { id: args.id });
       return r.ok ? { ok: true } : written(r);
@@ -194,7 +194,13 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
         requestId: args.requestId, messages, model: args.model,
         effort: args.effort || undefined, instructions: args.instructions || undefined,
       });
-      if (r && r.ok) return { ok: true, text: String(r.text || ""), model: String(r.model || args.model), ...(r.incomplete ? { incomplete: true } : {}) };
+      if (r && r.ok) {
+        return {
+          ok: true, text: String(r.text || ""), model: String(r.model || args.model),
+          ...(r.incomplete ? { incomplete: true } : {}),
+          ...(r.effortIgnored ? { effortIgnored: true } : {}), // the route does not support the chosen effort
+        };
+      }
       return rgError(r, r && typeof r.text === "string" && r.text ? { text: r.text } : {});
     },
     "ted:realgpt.cancel": async (requestId) => {

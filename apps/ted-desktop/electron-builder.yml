@@ -1,0 +1,74 @@
+# electron-builder 26 configuration for "Тед за Windows".
+# Built only by the GitHub Actions workflow (.github/workflows/ted-desktop.yml) on windows-latest:
+#   npm run dist:win  ->  dist-installer/Ted-Setup-<version>-x64.exe + SHA256SUMS.txt
+# Option names were checked against node_modules/app-builder-lib/scheme.json (26.18.0).
+
+appId: bg.imotinadezhda.ted
+# ASCII on purpose: it becomes the install folder, the userData folder and the .exe name.
+# The window title shown to the user is Bulgarian and is set at runtime.
+productName: "Ted Imoti Nadezhda"
+copyright: "Copyright (c) Imoti Nadezhda"
+
+directories:
+  output: dist-installer
+  buildResources: build
+
+# Only the built renderer and the main-process sources go into app.asar.
+# Production node_modules (jose) are added by electron-builder itself.
+files:
+  - dist/**
+  - electron/**
+  - package.json
+  - "!**/*.map"
+asar: true
+
+# Licence texts next to the program (the fonts' OFL asks for the notice to travel with every copy).
+extraResources:
+  - from: LICENSE
+    to: licenses/Ted-LICENSE.txt
+  - from: src/assets/fonts/LICENSES.md
+    to: licenses/Fonts-LICENSES.md
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.png # 512x512; electron-builder converts it to .ico
+  artifactName: "Ted-Setup-${version}-x64.${ext}"
+  requestedExecutionLevel: asInvoker
+
+nsis:
+  # Assisted per-user installer: no administrator rights, default folder under
+  # %LOCALAPPDATA%\Programs, and the user may pick another folder.
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  # ASCII-safe names (Cyrillic shortcut names are not verified on real Windows yet).
+  shortcutName: "Ted - Imoti Nadezhda"
+  uninstallDisplayName: "Ted - Imoti Nadezhda ${version}"
+  runAfterFinish: true
+  # Uninstall keeps the user's settings and encrypted local chats.
+  deleteAppDataOnUninstall: false
+  # en_US only: bg_BG broke an earlier installer build of the agency.
+  installerLanguages:
+    - en_US
+  # No auto-update, so no .blockmap next to the installer.
+  differentialPackage: false
+  # Deliberately no `include:` script.
+
+# Electron fuses, flipped in the packaged .exe by electron-builder (@electron/fuses).
+electronFuses:
+  runAsNode: false
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  onlyLoadAppFromAsar: true
+  enableEmbeddedAsarIntegrityValidation: true
+  enableCookieEncryption: true
+  grantFileProtocolExtraPrivileges: false
+
+# Nothing is published from the build; the workflow uploads the installer itself.
+publish: null

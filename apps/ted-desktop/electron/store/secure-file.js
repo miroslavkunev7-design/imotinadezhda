@@ -5,6 +5,38 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 
+// Short synchronous pause (the store API is synchronous by design).
+function pause(ms) {
+  try {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+  } catch {
+    const end = Date.now() + ms;
+    while (Date.now() < end) { /* spin */ }
+  }
+}
+
+// tmp + rename, so a crash never leaves a half-written file. On Windows an antivirus or the search
+// indexer may hold the target for a moment: the rename is retried briefly before giving up.
+export function writeAtomic(file, data, options) {
+  const tmp = `${file}.${process.pid}.${crypto.randomBytes(4).toString("hex")}.tmp`;
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  try {
+    fs.writeFileSync(tmp, data, options);
+    for (let attempt = 0; ; attempt++) {
+      try {
+        fs.renameSync(tmp, file);
+        break;
+      } catch (e) {
+        if (attempt >= 4 || !["EPERM", "EACCES", "EBUSY"].includes(e.code)) throw e;
+        pause(40);
+      }
+    }
+  } catch (e) {
+    try { fs.unlinkSync(tmp); } catch { /* ignore */ }
+    throw e;
+  }
+}
+
 // Keeps any name inside `dir`: unsafe characters are escaped, so distinct names never collide.
 function fileName(name) {
   const safe = String(name).replace(/[^A-Za-z0-9_-]/g, (c) => "~" + c.codePointAt(0).toString(16));
@@ -23,30 +55,20 @@ export function createSecureStore({ dir, safeStorage }) {
     const file = fileOf(name);
     let raw;
     try { raw = fs.readFileSync(file); } catch { return null; }
+    if (!available()) return null; // cannot decrypt right now: leave the file untouched
     try {
       const value = JSON.parse(safeStorage.decryptString(raw));
-      return value && typeof value === "object" ? value : null;
-    } catch {
-      // Corrupt or encrypted for another Windows user: keep one copy aside and start clean.
-      try { fs.renameSync(file, file + ".corrupt"); } catch { /* ignore */ }
-      return null;
-    }
+      if (value && typeof value === "object") return value;
+    } catch { /* handled below */ }
+    // Corrupt or encrypted for another Windows user: keep one copy aside and start clean.
+    try { fs.renameSync(file, file + ".corrupt"); } catch { /* ignore */ }
+    return null;
   }
 
   // Returns false (and writes nothing) when encryption is unavailable: never store plaintext.
   function write(name, value) {
     if (!available()) return false;
-    const file = fileOf(name);
-    const tmp = `${file}.${process.pid}.${crypto.randomBytes(4).toString("hex")}.tmp`;
-    const data = safeStorage.encryptString(JSON.stringify(value));
-    fs.mkdirSync(dir, { recursive: true });
-    try {
-      fs.writeFileSync(tmp, data, { mode: 0o600 });
-      fs.renameSync(tmp, file);
-    } catch (e) {
-      try { fs.unlinkSync(tmp); } catch { /* ignore */ }
-      throw e;
-    }
+    writeAtomic(fileOf(name), safeStorage.encryptString(JSON.stringify(value)), { mode: 0o600 });
     return true;
   }
 

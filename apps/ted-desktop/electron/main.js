@@ -118,6 +118,10 @@ function start() {
       url: dev ? dev.href : APP_URL,
       packaged: app.isPackaged,
     });
+  }).catch((e) => {
+    // A start-up failure must be visible, not a background process without a window.
+    dialog.showErrorBox(TITLE, "Програмата не можа да стартира.\n\n" + String((e && e.message) || e));
+    app.quit();
   });
 }
 

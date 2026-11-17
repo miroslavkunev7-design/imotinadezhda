@@ -37,6 +37,7 @@ export async function verifyIdToken(idToken, { jwks, clientId, nonce }) {
     ({ payload } = await jwtVerify(idToken, jwks, {
       issuer: ISSUER,
       audience: clientId,
+      algorithms: ['RS256'], // the only ID-token algorithm the issuer's discovery document announces
       requiredClaims: ['sub', 'exp', 'iat'],
       clockTolerance: 30,
     }));

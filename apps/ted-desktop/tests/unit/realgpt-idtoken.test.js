@@ -71,6 +71,18 @@ describe('ID token verification', () => {
     await expect(verify(unsigned)).rejects.toMatchObject({ code: 'id_token' });
   });
 
+  it('accepts only the RS256 algorithm announced by the issuer', async () => {
+    const ec = await generateKeyPair('ES256');
+    const ecJwks = createLocalJWKSet({ keys: [{ ...(await exportJWK(ec.publicKey)), kid: 'ec1', alg: 'ES256' }] });
+    const now = Math.floor(Date.now() / 1000);
+    const token = await new SignJWT({ nonce: NONCE, sub: 'subject-1', iat: now, exp: now + 600 })
+      .setProtectedHeader({ alg: 'ES256', kid: 'ec1' })
+      .setIssuer('https://auth.openai.com')
+      .setAudience([CLIENT])
+      .sign(ec.privateKey);
+    await expect(verify(token, { jwks: ecJwks })).rejects.toMatchObject({ code: 'id_token' });
+  });
+
   it('error messages are Bulgarian and carry no token text', async () => {
     const token = await idToken({}, { iss: 'https://evil.example' });
     const err = await verify(token).catch((e) => e);

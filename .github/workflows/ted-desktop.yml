@@ -1,0 +1,148 @@
+# Builds the unsigned Windows installer of "Тед за Windows" (apps/ted-desktop).
+# This file lives ONLY on the orphan branch `ted-desktop`; it never touches main or the website.
+# workflow_dispatch is left out on purpose: it only shows up for workflows on the default branch.
+#
+# The actions are pinned to full commit SHAs (latest majors, checked 2026-11-17 with `git ls-remote`).
+name: Ted Desktop (Windows)
+
+on:
+  push:
+    branches:
+      - ted-desktop
+    paths:
+      - "apps/ted-desktop/**"
+      - ".github/workflows/ted-desktop.yml"
+    # Path filters do not apply to tags: every ted-desktop-v* tag builds and publishes a pre-release.
+    tags:
+      - "ted-desktop-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ted-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests (Linux)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/ted-desktop
+    env:
+      # Tests never start Electron; they only need its JavaScript API surface.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/ted-desktop/package-lock.json
+
+      - name: Release tag must match package.json version
+        if: startsWith(github.ref, 'refs/tags/ted-desktop-v')
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "ted-desktop-v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version (expected ted-desktop-v$version)"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build renderer (includes the secret/demo-data gate)
+        run: npm run build:renderer
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests (mock bridge, no network)
+        run: npm run e2e -- --trace off
+
+      - name: Dependency audit (warning only)
+        run: npm audit --omit=dev --audit-level=high || echo "::warning::npm audit reported high-severity issues in production dependencies"
+
+  build-windows:
+    name: Installer (Windows x64)
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/ted-desktop
+    env:
+      # Unsigned build: do not look for a code-signing certificate.
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/ted-desktop/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --fund=false
+
+      - name: Build installer and SHA256SUMS.txt
+        run: npm run dist:win
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ted-desktop-windows-${{ github.sha }}
+          path: |
+            apps/ted-desktop/dist-installer/Ted-Setup-*-x64.exe
+            apps/ted-desktop/dist-installer/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Pre-release (tags only)
+    if: startsWith(github.ref, 'refs/tags/ted-desktop-v')
+    needs: build-windows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ted-desktop-windows-${{ github.sha }}
+          path: release
+
+      - name: Verify checksums and create the pre-release
+        working-directory: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          sha256sum --check SHA256SUMS.txt
+          {
+            echo "Неподписан инсталатор за Windows 10/11 (x64)."
+            echo "Инструкции за инсталиране и проверка: apps/ted-desktop/README.md в клона ted-desktop."
+            echo
+            echo "SHA-256:"
+            echo
+            echo '```'
+            cat SHA256SUMS.txt
+            echo '```'
+          } > notes.md
+          gh release create "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --prerelease \
+            --title "Тед за Windows $GITHUB_REF_NAME" \
+            --notes-file notes.md \
+            Ted-Setup-*-x64.exe SHA256SUMS.txt

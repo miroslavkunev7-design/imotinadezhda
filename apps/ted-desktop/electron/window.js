@@ -112,10 +112,17 @@ export function createMainWindow({ BrowserWindow, screen, Menu, state, preload, 
     return { ok: true };
   }
 
-  win.once("ready-to-show", () => {
+  let revealed = false;
+  const reveal = () => {
+    if (revealed || win.isDestroyed()) return;
+    revealed = true;
     if (maximized && !compact) win.maximize();
     win.show();
-  });
+  };
+  win.once("ready-to-show", reveal);
+  // Safety net: never leave the app running without a visible window.
+  const revealTimer = setTimeout(reveal, 5000);
+  if (revealTimer.unref) revealTimer.unref();
 
   // With no application menu, offer the basic edit actions on right click.
   win.webContents.on("context-menu", (_event, p) => {

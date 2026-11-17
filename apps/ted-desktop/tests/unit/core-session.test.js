@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { createSession, decodeJwt, jwtExp, mapUser, maskPhone } from "../../electron/backend/session.js";
 import { createHttp } from "../../electron/backend/http.js";
 import { SITE, SB_URL, SB_KEY } from "../../electron/backend/config.js";
-import { makeJwt, memoryStore, fakeHttp, reply, httpError, startServer, sendJson, deferred } from "./core-helpers.js";
+import { makeJwt, memoryStore, fakeHttp, reply, httpError, startServer, sendJson, deferred, localFetch } from "./core-helpers.js";
 
 const NOW = 1_800_000_000_000; // fixed clock (ms)
 const nowS = NOW / 1000;
@@ -78,7 +78,7 @@ describe("login", () => {
       sendJson(res, 404, {});
     });
     // Real fetch through createHttp; only the destination is redirected to the local server.
-    const http = createHttp({ fetchImpl: (url, init) => fetch(url.replace(SITE, server.base).replace(SB_URL, server.base), init) });
+    const http = createHttp({ fetchImpl: localFetch(server.base, [SITE, SB_URL]) });
     const { session, store } = setup({ http });
     const out = await session.login({ identifier: "  0888123456 ", password: "p@ss word" });
 
@@ -256,7 +256,25 @@ describe("restore and refresh", () => {
       expect(session.state().status).toBe("signedIn");
       expect(store.read("session").refresh_token).toBe("r-old");
       expect(changes).toEqual([]);
+      // The next calls use the still-valid token without waiting for another refresh attempt.
+      expect(await session.getAccessToken()).toBe(token("old"));
+      expect(http.to("grant_type=refresh_token")).toHaveLength(1);
     }
+  });
+
+  it("tries the refresh again once the pause after a failure has passed", async () => {
+    let t = NOW;
+    let fail = true;
+    const store = memoryStore();
+    store.write("session", saved(200));
+    const http = backend({ "grant_type=refresh_token": () => (fail ? reply(503, undefined) : reply(200, { access_token: token("new"), refresh_token: "r-new" })) });
+    const { session } = setup({ http, store, now: () => t });
+    session.init();
+    expect(await session.getAccessToken()).toBe(token("old"));
+    fail = false;
+    t += 31000;
+    expect(await session.getAccessToken()).toBe(token("new"));
+    expect(http.to("grant_type=refresh_token")).toHaveLength(2);
   });
 
   it("an expired token that cannot be refreshed (offline) fails without sending the request", async () => {

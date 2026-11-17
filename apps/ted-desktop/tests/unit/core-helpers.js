@@ -102,3 +102,14 @@ export function deferred() {
   const promise = new Promise((r) => { resolve = r; });
   return { promise, resolve };
 }
+
+// Real fetch whose destination is swapped for the local stand-in; anything else is refused, so a test
+// can never reach a real server by mistake.
+export function localFetch(base, hosts) {
+  return (url, init) => {
+    let target = String(url);
+    for (const host of hosts) target = target.replace(host, base);
+    if (!target.startsWith(base + "/")) throw new Error("test tried to leave 127.0.0.1: " + new URL(target).host);
+    return fetch(target, init);
+  };
+}

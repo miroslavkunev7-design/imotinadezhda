@@ -1,6 +1,6 @@
 // Plain JSON preferences (nothing sensitive). Atomic writes; a corrupt file reads as {}.
 import fs from "node:fs";
-import path from "node:path";
+import { writeAtomic } from "./secure-file.js";
 
 export function createSettings({ file }) {
   let cache = null;
@@ -20,10 +20,7 @@ export function createSettings({ file }) {
   function set(patch) {
     const next = { ...load(), ...(patch && typeof patch === "object" && !Array.isArray(patch) ? patch : {}) };
     for (const k of Object.keys(next)) if (next[k] === undefined) delete next[k];
-    const tmp = `${file}.${process.pid}.tmp`;
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(tmp, JSON.stringify(next, null, 2));
-    fs.renameSync(tmp, file);
+    writeAtomic(file, JSON.stringify(next, null, 2));
     cache = next;
     return get();
   }

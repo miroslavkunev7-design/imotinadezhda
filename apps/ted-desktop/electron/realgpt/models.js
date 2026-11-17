@@ -9,5 +9,8 @@ export function pickModels(body) {
   if (!Array.isArray(body?.models)) return null;
   return body.models
     .filter((m) => m && m.visibility === 'list' && typeof m.slug === 'string' && m.slug)
-    .map((m) => ({ slug: m.slug, displayName: typeof m.display_name === 'string' && m.display_name ? m.display_name : m.slug }));
+    .map((m) => ({
+      slug: m.slug,
+      displayName: typeof m.display_name === 'string' && m.display_name ? m.display_name : m.slug,
+    }));
 }

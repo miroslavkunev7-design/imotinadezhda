@@ -43,13 +43,18 @@ export function safeEqual(a, b) {
 }
 
 // `clientId` empty = first registration (dynamic client + name hint); otherwise the issued id is reused.
-export function buildAuthorizeUrl({ clientId, hostId, redirectUri, state, nonce, challenge, loginHint, idTokenHint }) {
+// `consent` asks for the consent screen again (prompt=consent): only when the user wants to enable plan use
+// after an earlier grant without it, never on an ordinary sign-in.
+export function buildAuthorizeUrl({
+  clientId, hostId, redirectUri, state, nonce, challenge, loginHint, idTokenHint, consent,
+}) {
   const first = !clientId;
   const params = [
     ['client_id', first ? DYNAMIC_CLIENT_ID : clientId],
     ...(first ? [['agent_name_hint', AGENT_NAME]] : []),
     ['ext_agent_host_id', hostId],
     ...(!first && loginHint ? [['login_hint', loginHint]] : []),
+    ...(!first && consent ? [['prompt', 'consent']] : []),
     ['response_type', 'code'],
     ['redirect_uri', redirectUri],
     ['scope', SCOPE],
@@ -134,6 +139,7 @@ export async function startLoopback({ state, timeoutMs = CALLBACK_TIMEOUT_MS }) 
     server.once('error', reject);
     server.listen(0, '127.0.0.1', resolve);
   });
+  server.on('error', () => {}); // a late listener error must not take the app down; the timeout ends the attempt
 
   function shutdown() {
     clearTimeout(timer);

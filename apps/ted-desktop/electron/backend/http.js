@@ -21,6 +21,9 @@ const NOT_SENT = new Set([
 ]);
 
 function neverSent(err) {
+  // fetch reports transport failures as TypeError("fetch failed", {cause}); a TypeError without a cause
+  // means the request itself was malformed and was never put on the wire.
+  if (err instanceof TypeError && err.cause === undefined) return true;
   for (let e = err, i = 0; e && i < 5; e = e.cause, i++) {
     const codes = [e.code, ...(Array.isArray(e.errors) ? e.errors.map((x) => x && x.code) : [])];
     if (codes.some((c) => NOT_SENT.has(c))) return true;

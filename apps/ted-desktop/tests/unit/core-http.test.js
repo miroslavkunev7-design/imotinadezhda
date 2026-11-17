@@ -147,6 +147,16 @@ describe("request over a real socket", () => {
   });
 });
 
+describe("failures before anything is sent", () => {
+  it("a malformed request (rejected by fetch itself) is reported as not sent", async () => {
+    let listening = 0;
+    server = await startServer((req, res) => { listening++; sendJson(res, 200, {}); });
+    const http = createHttp({ allowedHosts: ["127.0.0.1"] });
+    await expect(http.request({ url: server.base + "/x", method: "POST", headers: { "X-Bad": "line1\nline2" }, json: {} })).rejects.toMatchObject({ code: "network", sent: false });
+    expect(listening).toBe(0);
+  });
+});
+
 describe("logging", () => {
   it("logs method, host, path and status - never the query, headers or body", async () => {
     const lines = [];

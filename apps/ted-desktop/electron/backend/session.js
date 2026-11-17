@@ -74,6 +74,7 @@ export function createSession({ http, secureStore, log, onChange, now = Date.now
   let gen = 0;            // bumped on every sign-in/sign-out so stale async results are dropped
   let refreshing = null;  // single-flight: Supabase refresh tokens rotate, a reused one revokes the session
   let timer = null;
+  let refreshFailedAt = 0; // last non-terminal refresh failure (ms)
 
   const state = () => (sess ? { status: "signedIn", user: { ...sess.user }, remembered } : { status: "signedOut" });
   const authError = () => new HttpError("auth", MSG.expired, false);
@@ -121,6 +122,7 @@ export function createSession({ http, secureStore, log, onChange, now = Date.now
       });
     } catch (e) {
       if (log) log.warn("session.refresh_failed", { code: e.code });
+      if (g === gen) refreshFailedAt = now();
       return { ok: false, terminal: false };
     }
     if (g !== gen) return { ok: false, terminal: false }; // signed out or signed in again meanwhile
@@ -141,6 +143,7 @@ export function createSession({ http, secureStore, log, onChange, now = Date.now
       return { ok: false, terminal: true };
     }
     if (log) log.warn("session.refresh_failed", { status: res.status });
+    refreshFailedAt = now();
     return { ok: false, terminal: false };
   }
 
@@ -156,6 +159,8 @@ export function createSession({ http, secureStore, log, onChange, now = Date.now
   async function validToken() {
     if (!sess) throw authError();
     if (secondsLeft() > REFRESH_MARGIN_S) return sess.access_token;
+    // A refresh has just failed (offline, 5xx): do not make every call wait for another attempt.
+    if (secondsLeft() > 5 && now() - refreshFailedAt < 30000) return sess.access_token;
     const r = await refresh();
     if (!sess || r.terminal) throw authError();
     if (r.ok || secondsLeft() > 5) return sess.access_token; // refresh failed but the token still works for now
