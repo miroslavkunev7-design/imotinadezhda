@@ -7,7 +7,7 @@ import { CRM_URL, PANEL_TEXT, SKILLS } from "../lib/consts.js";
 import { actionsSummary, recipientText } from "../lib/chat.js";
 import { fmtEUR } from "../lib/format.js";
 
-export const openCrm = () => ted.app.openExternal(CRM_URL);
+export const openCrm = () => Promise.resolve(ted.app.openExternal(CRM_URL)).catch(() => {});
 
 // What Ted did for this answer. Every status is the one the server returned; nothing is animated.
 export function ActionsCard({ actions }) {

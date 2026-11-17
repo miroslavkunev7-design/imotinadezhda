@@ -19,6 +19,10 @@ export const CSP = [
   "base-uri 'none'", "form-action 'none'", "frame-ancestors 'none'",
 ].join("; ");
 
+// The same policy for the <meta> tag in index.html (defence in depth). frame-ancestors cannot be
+// delivered by a <meta> (Chromium logs an error for it), so it travels in the header only.
+export const META_CSP = CSP.split("; ").filter((d) => !d.startsWith("frame-ancestors")).join("; ");
+
 const MIME = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8", ".txt": "text/plain; charset=utf-8",

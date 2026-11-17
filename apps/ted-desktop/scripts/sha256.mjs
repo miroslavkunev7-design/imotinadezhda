@@ -1,5 +1,6 @@
-// Writes dist-installer/SHA256SUMS.txt for the installer .exe files, in `sha256sum` format
-// ("<hex>  <file name>"), so it can be checked with `sha256sum -c` or compared with Get-FileHash.
+// Writes dist-installer/SHA256SUMS.txt for every installer named Ted-Setup*.exe (the versioned
+// Ted-Setup-<version>-x64.exe and, in CI, its unversioned copy Ted-Setup-x64.exe), in `sha256sum`
+// format ("<hex>  <file name>"), so it can be checked with `sha256sum -c` or compared with Get-FileHash.
 //
 //   node scripts/sha256.mjs [folder]     default folder: dist-installer
 import { createHash } from "node:crypto";
@@ -17,16 +18,17 @@ async function sha256(file) {
   return hash.digest("hex");
 }
 
-// Top level only: win-unpacked/ holds the unpacked program, not something we hand out.
+// Top level only: win-unpacked/ holds the unpacked program and __uninstaller-*.exe is a build
+// by-product; neither is handed out.
 const installers = fs.existsSync(dir)
   ? fs.readdirSync(dir, { withFileTypes: true })
-      .filter((e) => e.isFile() && /\.exe$/i.test(e.name) && !e.name.includes("__uninstaller"))
+      .filter((e) => e.isFile() && /^Ted-Setup.*\.exe$/i.test(e.name))
       .map((e) => e.name)
       .sort()
   : [];
 
 if (!installers.length) {
-  console.error(`sha256: няма .exe файлове в ${dir} - първо изградете инсталатора (npm run dist:win).`);
+  console.error(`sha256: няма файлове Ted-Setup*.exe в ${dir} - първо изградете инсталатора (npm run dist:win).`);
   process.exit(1);
 }
 

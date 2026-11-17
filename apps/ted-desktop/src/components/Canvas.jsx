@@ -16,7 +16,9 @@ export default function Canvas({ cv, setCv, toast, copy }) {
     toast("Нова версия " + v);
   };
   async function saveFile() {
-    const r = await ted.app.saveFile({ suggestedName: safeFileName(cv.title, cv.kind === "code" ? "txt" : "md"), text: txt });
+    let r;
+    try { r = await ted.app.saveFile({ suggestedName: safeFileName(cv.title, cv.kind === "code" ? "txt" : "md"), text: txt }); }
+    catch { r = { ok: false, error: "Файлът не можа да се запише." }; }
     if (r && r.ok) toast("✅ Запазено: " + r.path);
     else if (r && !r.canceled) toast(r.error || "Файлът не можа да се запише.");
   }

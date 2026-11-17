@@ -66,6 +66,17 @@ export function mapUser(u) {
   };
 }
 
+// Hosts that may receive the CRM bearer token. Checked on every authed() call, before any request.
+export const CRM_TOKEN_HOSTS = [new URL(SITE).hostname, new URL(SB_URL).hostname];
+export function assertCrmUrl(url) {
+  let u = null;
+  try { u = new URL(String(url)); } catch { u = null; }
+  if (!u || u.protocol !== "https:" || u.port !== "" || !CRM_TOKEN_HOSTS.includes(u.hostname)) {
+    throw new HttpError("host", "Адресът не е разрешен за сесията на CRM.", false);
+  }
+  return u;
+}
+
 const serverText = (json) => (json && typeof json.error === "string" && json.error.trim() ? json.error.trim().slice(0, 300) : "");
 
 export function createSession({ http, secureStore, log, onChange, now = Date.now }) {
@@ -174,6 +185,7 @@ export function createSession({ http, secureStore, log, onChange, now = Date.now
   // Request with Bearer. On 401: refresh once and retry the same request once - safe because the
   // server checks auth before it executes anything. No other automatic retry exists.
   async function authed(opts) {
+    assertCrmUrl(opts && opts.url); // the CRM token never goes to any other host (e.g. OpenAI)
     const token = await validToken();
     const send = (t) => http.request({ ...opts, headers: { ...(opts.headers || {}), Authorization: "Bearer " + t } });
     const first = await send(token);

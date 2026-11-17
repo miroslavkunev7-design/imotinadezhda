@@ -10,6 +10,7 @@ import { createAppHandler, resolveAsset, CSP, SCHEME, APP_URL } from "../../elec
 import { installSecurity, createOriginCheck, externalUrl } from "../../electron/security.js";
 import { createMainWindow, webPreferences, usableBounds } from "../../electron/window.js";
 import { READ_ONLY } from "../../electron/backend/tools.js";
+import { TED_SURFACE } from "../../electron/smoke.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
@@ -72,6 +73,7 @@ function loadPreload() {
 
 describe("preload (window.ted)", () => {
   it("exposes exactly the contract surface under the single key 'ted'", () => {
+    expect(TED_SURFACE).toEqual(SURFACE); // the --smoke-test checks the same surface in the real program
     const { exposed, required } = loadPreload();
     expect(required).toEqual(["electron"]);
     expect(Object.keys(exposed)).toEqual(["ted"]);
@@ -103,6 +105,18 @@ describe("preload (window.ted)", () => {
   it("every invoke channel has exactly one MAIN handler, and nothing more", () => {
     const expected = Object.entries(SURFACE).flatMap(([group, fns]) => fns.filter((fn) => !SUBSCRIPTIONS[`${group}.${fn}`]).map((fn) => `ted:${group}.${fn}`));
     expect(Object.keys(createHandlers(services().deps)).sort()).toEqual(expected.sort());
+  });
+
+  it("realgpt.signIn sends only a boolean newAccount flag", async () => {
+    const { exposed, invoked } = loadPreload();
+    await exposed.ted.realgpt.signIn();
+    await exposed.ted.realgpt.signIn({ newAccount: true, extra: "x" });
+    await exposed.ted.realgpt.signIn({ newAccount: "yes" });
+    expect(invoked).toEqual([
+      ["ted:realgpt.signIn", { newAccount: false }],
+      ["ted:realgpt.signIn", { newAccount: true }],
+      ["ted:realgpt.signIn", { newAccount: false }],
+    ]);
   });
 
   it("subscriptions deliver only the payload and return a working unsubscribe", () => {
@@ -204,7 +218,7 @@ describe("ipc registration", () => {
       ["ted:memory.forget", {}], ["ted:memory.forget", { id: "" }], ["ted:memory.forget", { id: 7 }],
       ["ted:email.confirmSend", "x"], ["ted:voice.tts", "x"], ["ted:voice.transcribe", { mime: "audio/webm" }],
       ["ted:store.saveChats", { chats: [] }], ["ted:store.saveChats", ["x"]], ["ted:store.saveChats", Array.from({ length: 2001 }, () => ({}))],
-      ["ted:realgpt.cancel", 5],
+      ["ted:realgpt.cancel", 5], ["ted:realgpt.signIn", "new"], ["ted:realgpt.signIn", { newAccount: "yes" }],
       ["ted:realgpt.send", {}], ["ted:realgpt.send", { requestId: "r", model: "m", messages: [] }], ["ted:realgpt.send", { requestId: "r", model: "m", messages: [{ role: "system", text: "x" }] }],
       ["ted:realgpt.send", { requestId: "r", model: "", messages: [{ role: "user", text: "x" }] }],
       ["ted:realgpt.send", { requestId: "r", model: "m", messages: [{ role: "user", text: "x", images: [{ mime: "image/svg+xml", data: "AAAA" }] }] }],
@@ -312,6 +326,33 @@ describe("ipc registration", () => {
       requestId: "r1", model: "gpt-x", effort: "low", instructions: "Кратко.",
       messages: [{ role: "user", text: "здравей", images: [{ mime: "image/png", data: "AAAA" }] }, { role: "assistant", text: "да" }],
     }]]);
+  });
+
+  it("forwards only the newAccount flag of realgpt.signIn, and effortIgnored of a send", async () => {
+    const seen = [];
+    const { call } = register({
+      realgpt: {
+        status: () => ({}), cancelSignIn: () => ({}), signOut: () => ({}), cancel: () => ({}), models: () => ({}),
+        signIn: async (opts) => { seen.push(opts); return { ok: true, status: { connected: true } }; },
+        send: async () => ({ ok: true, text: "т", model: "m", effortIgnored: true }),
+      },
+    });
+    await call("ted:realgpt.signIn");
+    await call("ted:realgpt.signIn", { newAccount: true, client_id: "oaiapp_x" });
+    await call("ted:realgpt.signIn", { newAccount: false });
+    expect(seen).toEqual([{ newAccount: false }, { newAccount: true }, { newAccount: false }]);
+    expect(await call("ted:realgpt.send", { requestId: "r", model: "m", effort: "high", messages: [{ role: "user", text: "x" }] }))
+      .toEqual({ ok: true, text: "т", model: "m", effortIgnored: true });
+  });
+
+  it("passes a failed Real GPT sign-out through instead of reporting success", async () => {
+    const { call } = register({
+      realgpt: {
+        status: () => ({}), cancelSignIn: () => ({}), cancel: () => ({}), models: () => ({}), signIn: () => ({}), send: () => ({}),
+        signOut: async () => ({ ok: false, error: "Защитеното хранилище на Windows не е достъпно.", code: "storage", revoked: true, token: "LEAK" }),
+      },
+    });
+    expect(await call("ted:realgpt.signOut")).toEqual({ ok: false, error: "Защитеното хранилище на Windows не е достъпно.", code: "storage", revoked: true });
   });
 
   it("keeps the partial text of a failed Real GPT answer and maps failures", async () => {

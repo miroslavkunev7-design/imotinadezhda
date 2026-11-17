@@ -19,6 +19,16 @@ export function externalUrl(value) {
   return null;
 }
 
+// No spell-checker. A session downloads Hunspell dictionaries from Google servers as soon as it is
+// created or its spell-checker is touched (seen in net logs of the smoke run), even with
+// webPreferences.spellcheck false. Clearing the language list first prevents the download.
+export function disableSpellChecker(session) {
+  try {
+    if (typeof session.setSpellCheckerLanguages === "function") session.setSpellCheckerLanguages([]);
+    if (typeof session.setSpellCheckerEnabled === "function") session.setSpellCheckerEnabled(false);
+  } catch { /* not supported on this platform: nothing to download either */ }
+}
+
 export function installSecurity({ app, session, shell, log, devOrigin }) {
   const isApp = createOriginCheck(devOrigin);
 
@@ -50,6 +60,8 @@ export function installSecurity({ app, session, shell, log, devOrigin }) {
       return { action: "deny" };
     });
   });
+
+  disableSpellChecker(session);
 
   // Files are saved through the native "save as" dialog in MAIN, never by a renderer download.
   session.on("will-download", (event) => event.preventDefault());

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Icon from "./Icon.jsx";
 import { Modal, Opt, Sw } from "./ui.jsx";
 import { ted } from "../bridge.js";
-import { EFFORTS, RG_LIMITS, SPEAK, STYLES, VOICES, provEm } from "../lib/consts.js";
+import { EFFORTS, RG_LIMITS, SESSION_NOTE, SPEAK, STYLES, VOICES, provEm } from "../lib/consts.js";
 import { fmtDate } from "../lib/format.js";
 
 const TABS = [
@@ -10,6 +10,8 @@ const TABS = [
   ["apps", "🔌", "Свързани услуги"], ["data", "🗄️", "Данни"], ["account", "👤", "Акаунт"], ["about", "💻", "За програмата"],
 ];
 const KIND = { fact: "запомнен факт", message: "от разговор", summary: "резюме" };
+// A bridge call that never rejects: an IPC failure becomes an ordinary error result.
+const call = async (fn) => { try { return await fn(); } catch { return { ok: false, error: "Вътрешна грешка в програмата." }; } };
 
 // Memory lives on Ted's server (the same one the website uses): search, remember, forget.
 function MemoryPane({ read, toast }) {
@@ -30,12 +32,12 @@ function MemoryPane({ read, toast }) {
     const text = fact.trim();
     if (!text || saving) return;
     setSaving(true);
-    const r = await ted.memory.remember({ text: text.slice(0, 1500) });
+    const r = await call(() => ted.memory.remember({ text: text.slice(0, 1500) }));
     setSaving(false);
     if (r && r.ok) { setFact(""); toast("🔖 Запомнено в паметта на Тед."); } else toast((r && r.error) || "Не успях да запомня.");
   }
   async function forget(m) {
-    const r = await ted.memory.forget({ id: String(m.id), preview: String(m.text || "").slice(0, 300) });
+    const r = await call(() => ted.memory.forget({ id: String(m.id), preview: String(m.text || "").slice(0, 300) }));
     if (r && r.ok) { setSt((s) => ({ ...s, items: s.items.filter((x) => x.id !== m.id) })); toast("Забравено."); }
     else if (r && !r.canceled) toast(r.error || "Не успях да забравя.");
   }
@@ -73,21 +75,21 @@ function AboutPane({ S, set, toast, onConn }) {
     return () => { off = true; };
   }, []);
   async function setLaunch(on) {
-    const r = await ted.app.setLaunchAtLogin(on);
+    const r = await call(() => ted.app.setLaunchAtLogin(on));
     setBoot(!!(r && r.enabled));
     if (!r || !r.ok) toast((r && r.error) || "Настройката не можа да се промени.");
   }
   async function setCompact(on) {
-    const r = await ted.app.setCompact(on);
+    const r = await call(() => ted.app.setCompact(on));
     if (r && r.ok) set("compact", on); else toast("Размерът на прозореца не можа да се смени.");
   }
-  async function logs() { const r = await ted.app.openLogs(); if (!r || !r.ok) toast((r && r.error) || "Папката с логове не можа да се отвори."); }
+  async function logs() { const r = await call(() => ted.app.openLogs()); if (!r || !r.ok) toast((r && r.error) || "Папката с логове не можа да се отвори."); }
   async function verify() {
     setCheck({ status: "loading" });
     const t0 = Date.now();
-    const r = await ted.api.models();
+    const r = await call(() => ted.api.models());
     onConn(r);
-    setCheck(r && r.ok ? { status: "ok", text: "Сървърът на Тед отговори за " + (Date.now() - t0) + " ms · " + r.models.length + " модела." } : { status: "bad", text: (r && r.error) || "Няма връзка със сървъра." });
+    setCheck(r && r.ok ? { status: "ok", text: "Сървърът на Тед отговори за " + (Date.now() - t0) + " ms · " + (Array.isArray(r.models) ? r.models.length : 0) + " модела." } : { status: "bad", text: (r && r.error) || "Няма връзка със сървъра." });
   }
   return <>
     <h3>За програмата</h3><p className="lead">Тед за Windows – програмата на „Имоти Надежда“. Работи със същия сървър и права като Тед в сайта.</p>
@@ -102,7 +104,7 @@ function AboutPane({ S, set, toast, onConn }) {
   </>;
 }
 
-export default function Settings({ phone, S, set, patch, tab, setTab, close, user, chats, setChats, active, toast, testVoice, speaking, models, modelsErr, refreshModels, rg, rgModels, rgErr, openRealGpt, rgSignOut, read, conn, onConn, exportChat, deleteChat, clearLocal, setConfirm, logout }) {
+export default function Settings({ phone, S, set, patch, tab, setTab, close, user, chats, setChats, active, toast, testVoice, speaking, models, modelsErr, refreshModels, rg, rgModels, rgErr, openRealGpt, rgSignOut, read, conn, onConn, exportChat, deleteChat, clearLocal, setConfirm, logout, remembered, manageUsage }) {
   const archived = chats.filter((c) => c.archived);
   const [ptab, setPtab] = useState(tab && tab !== "general" ? tab : null);
   const login = user.email || user.phoneMasked || "—";
@@ -123,13 +125,15 @@ export default function Settings({ phone, S, set, patch, tab, setTab, close, use
         {models.map((m) => <button key={m.id} className={"radio" + (S.engine === "server" && S.model === m.id ? " on" : "")} onClick={() => patch({ engine: "server", model: m.id })}><span className="rd" /><span className="tx"><b>{m.name}</b><small>{[m.note, m.vision ? "снимки" : "без снимки", m.pdf ? "PDF" : "без PDF"].filter(Boolean).join(" · ")}</small></span><span className="prov">{provEm(m.provider)} {m.provider}</span></button>)}
         {modelsErr ? <div className="err" role="alert">⚠️ Списъкът с модели не се зареди: {modelsErr} <button className="b" onClick={refreshModels}><Icon n="refresh" />Опитай отново</button></div> : null}
         <div className="sec-h mt">🔗 Real GPT <small>вашият ChatGPT план · само разговор, без достъп до CRM</small></div>
-        {!rg.connected ? <button className="radio" onClick={openRealGpt}><span className="rd" /><span className="tx"><b>🔗 Свържи</b><small>Не е свързан · вход с вашия ChatGPT акаунт в браузъра</small></span><span className="prov">ChatGPT план</span></button> : <>
-          {rg.planEnabled === false ? <div className="err">⚠️ Използването на ChatGPT плана не е разрешено. Прекъснете връзката и влезте отново, като го разрешите.</div> : null}
+        {!rg.connected ? <button className="radio" onClick={openRealGpt}><span className="rd" /><span className="tx"><b>🔗 Продължи с ChatGPT</b><small>Не е свързан · вход с вашия ChatGPT акаунт в браузъра</small></span><span className="prov">ChatGPT план</span></button> : <>
+          {rg.planEnabled === false
+            ? <div className="err">⚠️ Използването на ChatGPT плана не е разрешено. <button className="b wine" onClick={openRealGpt}>Продължи с ChatGPT</button></div>
+            : <div className="verify"><Icon n="check" /><span>Използва вашия ChatGPT план · <button className="lnk" onClick={manageUsage}>Управление на лимита</button></span></div>}
           {rgModels.map((m) => <button key={m.slug} className={"radio" + (S.engine === "realgpt" && S.rgModel === m.slug ? " on" : "")} disabled={rg.planEnabled === false} onClick={() => patch({ engine: "realgpt", rgModel: m.slug })}><span className="rd" /><span className="tx"><b>{m.displayName}</b><small>{m.slug} · от вашия акаунт</small></span><span className="prov">ChatGPT план</span></button>)}
           {rgErr ? <div className="err" role="alert">⚠️ {rgErr}</div> : null}
           <Opt title="🧠 Ниво на мислене" sub="По избор. Изпраща се само ако изберете ниво; ако моделът не го поддържа, програмата го казва.">
             <select id="rg-eff" className="inp auto" value={S.rgEffort || ""} onChange={(e) => set("rgEffort", e.target.value)}><option value="">По подразбиране</option>{EFFORTS.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}</select></Opt>
-          <Opt title={rg.email || "ChatGPT акаунт"} sub="Свързан акаунт"><button className="b" onClick={rgSignOut}>Прекъсни връзката</button></Opt>
+          <Opt title={rg.email || "ChatGPT акаунт"} sub="Свързан акаунт"><button className="b" onClick={openRealGpt}>Смени акаунта</button><button className="b" onClick={rgSignOut}>Прекъсни връзката</button></Opt>
         </>}
         <div className="rg-na"><span>ℹ️</span><span>{RG_LIMITS}</span></div>
       </>}
@@ -155,7 +159,7 @@ export default function Settings({ phone, S, set, patch, tab, setTab, close, use
         <div className="conn"><span className="ci"><Icon n="home" /></span><div className="tx"><b>CRM „Имоти Надежда“</b><small>{user.name ? user.name + " · " : ""}{login}</small></div>
           <span className={"status " + (conn === "ok" ? "st-succeeded" : conn === "off" ? "st-failed" : "st-queued")}>{conn === "ok" ? "Свързано" : conn === "off" ? "Няма връзка" : "Проверява се"}</span></div>
         <div className="conn"><span className="ci"><Icon n="link" /></span><div className="tx"><b>Real GPT</b><small>{rg.connected ? (rg.email || "ChatGPT акаунт") + (rg.planEnabled === false ? " · планът не е разрешен" : " · планът е разрешен") : "Вашият платен ChatGPT план · не е свързан"}</small></div>
-          {rg.connected ? <button className="b" onClick={rgSignOut}>Прекъсни</button> : <button className="b wine" onClick={openRealGpt}>Свържи</button>}</div>
+          {rg.connected ? <button className="b" onClick={rgSignOut}>Прекъсни</button> : <button className="b wine" onClick={openRealGpt}>Продължи с ChatGPT</button>}</div>
         <div className="info">Пощата за изпращане, n8n и хранилището за файлове се управляват от CRM на сайта. Програмата ги използва през сървъра на Тед и не пази техни настройки.</div>
       </>}
       {tab === "data" && <>
@@ -172,6 +176,7 @@ export default function Settings({ phone, S, set, patch, tab, setTab, close, use
         <h3>Акаунт</h3><p className="lead">Профилът, с който сте влезли в CRM.</p>
         <dl className="kv"><dt>Име</dt><dd>{user.name || "—"}</dd><dt>Вход</dt><dd>{login}</dd><dt>Агенция</dt><dd>Имоти Надежда</dd></dl>
         <div className="hrow mt"><button className="b wine" onClick={logout}><Icon n="logout" />Изход</button></div>
+        {remembered === false ? <div className="err" role="note" data-testid="session-note-settings">🔐 {SESSION_NOTE}</div> : null}
         <div className="info">Изходът прекратява сесията на този компютър. Запазените тук чатове остават за следващото ви влизане.</div>
       </>}
       {tab === "about" && <AboutPane S={S} set={set} toast={toast} onConn={onConn} />}

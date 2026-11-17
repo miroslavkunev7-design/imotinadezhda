@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { createHttp, checkUrl, HttpError } from "../../electron/backend/http.js";
+import { createHttp, checkUrl, HttpError, wrapNetFetch } from "../../electron/backend/http.js";
 import { ALLOWED_HOSTS, SITE, SB_URL } from "../../electron/backend/config.js";
 import { startServer, sendJson } from "./core-helpers.js";
 
@@ -169,5 +169,29 @@ describe("logging", () => {
     expect(dump).not.toContain("secret-token");
     expect(dump).not.toContain("поверително");
     expect(dump).not.toContain("code=abc");
+  });
+});
+
+describe("Electron net transport (wrapNetFetch)", () => {
+  it("forces no cookies, no HTTP cache and no redirect following on every request", async () => {
+    const seen = [];
+    const fetchImpl = wrapNetFetch(async (url, init) => { seen.push([url, init]); return new Response("{}", { status: 200 }); });
+    const http = createHttp({ fetchImpl });
+    await http.request({ url: SITE + "/api/assistant", method: "POST", json: { a: 1 }, headers: { Origin: "x" } });
+    expect(seen).toHaveLength(1);
+    expect(seen[0][1]).toMatchObject({ method: "POST", redirect: "manual", credentials: "omit", cache: "no-store", body: "{\"a\":1}" });
+    expect(Object.keys(seen[0][1].headers).map((k) => k.toLowerCase())).not.toContain("origin");
+  });
+
+  it.each([
+    ["net::ERR_NAME_NOT_RESOLVED", false], ["net::ERR_INTERNET_DISCONNECTED", false], ["net::ERR_CONNECTION_REFUSED", false],
+    ["net::ERR_PROXY_CONNECTION_FAILED", false], ["net::ERR_CERT_AUTHORITY_INVALID", false], ["net::ERR_TUNNEL_CONNECTION_FAILED", false],
+    ["net::ERR_CONNECTION_RESET", true], ["net::ERR_EMPTY_RESPONSE", true], ["Redirect was cancelled", true],
+  ])("maps the Chromium error %s to code network with sent=%s", async (message, sent) => {
+    const http = createHttp({ fetchImpl: wrapNetFetch(async () => { throw new Error(message); }) });
+    const err = await http.request({ url: SITE + "/api/assistant", method: "POST", json: {} }).catch((e) => e);
+    expect(err).toBeInstanceOf(HttpError);
+    expect(err.code).toBe("network");
+    expect(err.sent).toBe(sent);
   });
 });

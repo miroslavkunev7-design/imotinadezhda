@@ -61,7 +61,8 @@ contextBridge.exposeInMainWorld("ted", {
   },
   realgpt: {
     status: () => invoke("ted:realgpt.status"),
-    signIn: () => invoke("ted:realgpt.signIn"),
+    // {newAccount:true} starts a fresh registration (another ChatGPT account or a deleted one).
+    signIn: (opts) => invoke("ted:realgpt.signIn", { newAccount: !!(opts && opts.newAccount === true) }),
     cancelSignIn: () => invoke("ted:realgpt.cancelSignIn"),
     signOut: () => invoke("ted:realgpt.signOut"),
     models: () => invoke("ted:realgpt.models"),

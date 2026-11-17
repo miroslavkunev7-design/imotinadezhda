@@ -54,6 +54,13 @@ export const EFFORTS = [
   { id: "low", name: "Леко" }, { id: "medium", name: "Средно" }, { id: "high", name: "Високо" }, { id: "xhigh", name: "Много високо" },
 ];
 export const RG_LIMITS = "ChatGPT Work, Agent mode, Codex Cloud, изображения и Code Interpreter от плана не се дават на външни програми.";
+// AuthState.remembered === false: MAIN keeps the session in memory only (no Windows encryption).
+export const SESSION_NOTE = "Windows не позволи шифровано запазване на сесията на този компютър. Ще трябва да влизате отново при всяко стартиране на програмата.";
+export const RG_USAGE_URL ="https://chatgpt.com/settings/usage"; // "Manage usage" page of the ChatGPT plan
+// Real GPT result codes that need a new "Continue with ChatGPT" sign-in instead of a retry.
+export const RG_SIGNIN_CODES = ["plan_disabled", "reauth", "not_connected"];
+// Sign-in failures that a fresh registration (realgpt.signIn({newAccount:true})) can fix.
+export const RG_NEW_ACCOUNT_CODES = ["registration", "account_mismatch", "oauth", "id_token"];
 
 const PROV = { google: "🔷", gemini: "🔷", openai: "⚪", anthropic: "🟠", claude: "🟠", openrouter: "🛰️", ollama: "🦙", gateway: "🌐" };
 export const provEm = (p) => PROV[String(p || "").toLowerCase()] || "🤖";
@@ -68,7 +75,10 @@ export const DEF_SETTINGS = {
 
 // Same expression as the server's fast path in /api/assistant: a bare "yes" after a prepared e-mail.
 export const AFFIRM = /^\s*(да|да,?\s*(изпрати|прати|изпращай|го изпрати|го прати)(\s+го)?|изпрати(\s+го)?|прати(\s+го)?|ок|окей|потвърждавам|давай|yes)\s*[.!]*\s*$/i;
+// Any reply that BEGINS with a confirmation word, with or without more words ("Да, моля", "ок, прати го на …").
+export const AFFIRM_START = /^[\s"„“'«(]*(да|ок|окей|ok|okay|изпрати|изпращай|прати|пращай|давай|потвърждавам|потвърди|yes|добре|разбира се)(?=$|[\s,.!?;:…\-–—)"“»])/i;
 export const ASKS_TO_SEND = /изпратя ли/i;
+export const INTERRUPTED_TEXT = "Прекъснато при затваряне – възможно е действия да са изпълнени.";
 export const DRAFT_TTL_MS = 6 * 3600 * 1000; // the server keeps a prepared e-mail for 6 hours
 
 export const PANEL_TEXT = {

@@ -10,7 +10,7 @@ const el = vi.hoisted(() => {
   function reset({ packaged = true, lock = true } = {}) {
     Object.assign(state, {
       packaged, lock, calls: [], appEvents: {}, ipc: new Map(), protocolHandlers: {}, windows: [], sessionHandlers: {},
-      dialogs: [], dialogResponse: 1, opened: [], ready: null, userData: null, appPath: null,
+      dialogs: [], dialogResponse: 1, opened: [], ready: null, userData: null, appPath: null, partitions: {}, netFetches: [],
     });
   }
   reset();
@@ -75,8 +75,23 @@ const el = vi.hoisted(() => {
       decryptString: (b) => Buffer.from(Buffer.from(b).toString("utf8").slice(5), "hex").toString("utf8"),
     },
     screen: { getAllDisplays: () => [{ workArea: { x: 0, y: 0, width: 1920, height: 1040 } }], getDisplayMatching: () => ({ workArea: { x: 0, y: 0, width: 1920, height: 1040 } }) },
+    net: { fetch: async (url) => { state.netFetches.push(["net", String(url)]); throw new Error("network must not be used in this test"); } },
     session: {
+      // Backend traffic: Electron net through an in-memory partition (session.fetch).
+      fromPartition: (name) => {
+        if (!state.partitions[name]) {
+          state.partitions[name] = {
+            spell: [],
+            fetch: async (url, init) => { state.netFetches.push([name, String(url), init]); throw new Error("network must not be used in this test"); },
+            setSpellCheckerLanguages: (l) => state.partitions[name].spell.push(["languages", l]),
+            setSpellCheckerEnabled: (on) => state.partitions[name].spell.push(["enabled", on]),
+          };
+        }
+        return state.partitions[name];
+      },
       defaultSession: {
+        setSpellCheckerLanguages: (l) => note("defaultSpell", "languages", l),
+        setSpellCheckerEnabled: (on) => note("defaultSpell", "enabled", on),
         on: (event, fn) => { state.sessionHandlers[event] = fn; },
         setPermissionRequestHandler: (fn) => { state.sessionHandlers.request = fn; },
         setPermissionCheckHandler: (fn) => { state.sessionHandlers.check = fn; },
@@ -147,6 +162,32 @@ describe("main.js", () => {
     expect(Object.keys(s.sessionHandlers).sort()).toEqual(["check", "device", "request", "will-download"]);
     expect(typeof s.appEvents["web-contents-created"]).toBe("function");
     expect(typeof s.appEvents["window-all-closed"]).toBe("function");
+
+    // No spell-checker anywhere (it would download dictionaries from Google at start-up).
+    expect(s.calls.filter((c) => c[0] === "defaultSpell")).toEqual([["defaultSpell", "languages", []], ["defaultSpell", "enabled", false]]);
+    expect(Object.keys(s.partitions)).toEqual(["ted-backend"]); // in-memory: no "persist:" prefix
+    expect(s.partitions["ted-backend"].spell).toEqual([["languages", []], ["enabled", false]]);
+  });
+
+  it("sends backend requests through Electron net (partition fetch): no cookies, no cache, no redirects", async () => {
+    const realFetch = globalThis.fetch;
+    let nodeFetches = 0;
+    globalThis.fetch = async () => { nodeFetches++; throw new Error("Node fetch must not be used by the program"); };
+    try {
+      const s = await boot();
+      // The login is the first request that needs the network; the fake transport fails it, so nothing is sent.
+      const r = await s.ipc.get("ted:auth.login")(fromApp, { identifier: "a@example.com", password: "x" });
+      expect(r).toMatchObject({ ok: false });
+      expect(nodeFetches).toBe(0);
+      expect(s.netFetches).toHaveLength(1);
+      const [partition, url, init] = s.netFetches[0];
+      expect(partition).toBe("ted-backend");
+      expect(url).toBe("https://imotinadezhda.bg/api/register");
+      expect(init).toMatchObject({ method: "POST", redirect: "manual", credentials: "omit", cache: "no-store" });
+      expect(Object.keys(init.headers).map((k) => k.toLowerCase()).sort()).toEqual(["content-type", "user-agent"]);
+    } finally {
+      globalThis.fetch = realFetch;
+    }
   });
 
   it("serves the renderer through the app protocol with the CSP header", async () => {
@@ -184,7 +225,13 @@ describe("main.js", () => {
       expect(await s.ipc.get("ted:voice.tts")(fromApp, { text: "здравей" })).toMatchObject({ ok: false, code: "auth" });
       expect(await s.ipc.get("ted:store.saveChats")(fromApp, [{ id: 1 }])).toMatchObject({ ok: false });
       expect(await s.ipc.get("ted:auth.logout")(fromApp)).toEqual({ ok: true });
+      // Real GPT is bound to the CRM user: signed out, nothing is connected and nothing can be started.
+      expect(await s.ipc.get("ted:realgpt.status")(fromApp)).toEqual({ connected: false });
+      expect(await s.ipc.get("ted:realgpt.signIn")(fromApp)).toMatchObject({ ok: false, code: "signed_out" });
+      expect(await s.ipc.get("ted:realgpt.models")(fromApp)).toMatchObject({ ok: false, code: "signed_out" });
+      expect(await s.ipc.get("ted:realgpt.send")(fromApp, { requestId: "r1", model: "m", messages: [{ role: "user", text: "x" }] })).toMatchObject({ ok: false, code: "signed_out" });
       expect(fetched).toBe(0);
+      expect(s.netFetches).toEqual([]);
     } finally {
       globalThis.fetch = realFetch;
     }

@@ -64,7 +64,9 @@ describe("tools allowlist", () => {
     expect(await run(() => reply(403, { ok: false, error: "This account has no CRM access" }))).toMatchObject({ error: "Този профил няма достъп до CRM.", status: 403 });
     expect(await run(() => reply(404, { ok: false, error: "Unknown tool: x.y" }))).toMatchObject({ error: "Сървърът не познава този инструмент." });
     expect(await run(() => reply(400, { ok: false, error: "Invalid input" }))).toMatchObject({ error: "Невалидни данни за заявката. (Invalid input)" });
-    expect(await run(() => reply(500, { ok: false, error: "duplicate key value" }))).toMatchObject({ error: "Грешка от сървъра (HTTP 500): duplicate key value", maybeExecuted: false });
+    // CONTRACT §2: any 5xx leaves the outcome unknown, even with the tool's own JSON error.
+    expect(await run(() => reply(500, { ok: false, error: "duplicate key value" }))).toMatchObject({ error: "Грешка от сървъра (HTTP 500): duplicate key value", maybeExecuted: true });
+    expect(await run(() => reply(502, { ok: false, error: "Имейлът не е изпратен от a@b.bg: Няма връзка със SMTP сървъра" }))).toMatchObject({ status: 502, code: "http", maybeExecuted: true });
     expect(await run(() => reply(401, { ok: false, error: "Invalid or expired token" }))).toEqual({ ok: false, error: "Сесията е изтекла – влезте отново.", status: 401, code: "auth", maybeExecuted: false });
     // No JSON verdict from the tool (gateway timeout page): the outcome is unknown.
     expect(await run(() => reply(504, null))).toMatchObject({ ok: false, status: 504, code: "http", maybeExecuted: true });
@@ -137,8 +139,15 @@ describe("email.confirmSend", () => {
     const { s, email } = setup({ handler: () => reply(400, { ok: false, error: "Няма подготвен имейл – първо email.preview." }) });
     expect(await email.confirmSend(card)).toEqual({ ok: false, error: "Имейлът не е изпратен: Няма подготвен имейл – първо email.preview.", code: "http", maybeExecuted: false });
     expect(s.calls).toHaveLength(1);
-    const smtp = setup({ handler: () => reply(502, { ok: false, error: "Имейлът не е изпратен от broker@example.com: грешна парола" }) });
-    expect((await smtp.email.confirmSend(card)).error).toBe("Имейлът не е изпратен от broker@example.com: грешна парола");
+  });
+
+  it("treats a 5xx JSON error (e.g. SMTP timeout after DATA) as an unknown outcome, showing the server text", async () => {
+    const smtp = setup({ handler: () => reply(502, { ok: false, error: "Имейлът не е изпратен от broker@example.com: Няма връзка със SMTP сървъра" }) });
+    const out = await smtp.email.confirmSend(card);
+    expect(out).toMatchObject({ ok: false, code: "http", maybeExecuted: true });
+    expect(out.error).toMatch(/^Не е ясно дали имейлът е изпратен: сървърът върна грешка \(HTTP 502\)/);
+    expect(out.error).toContain("Няма връзка със SMTP сървъра");
+    expect(smtp.s.calls).toHaveLength(1);
   });
 
   it("says the outcome is unknown when the connection drops after sending", async () => {

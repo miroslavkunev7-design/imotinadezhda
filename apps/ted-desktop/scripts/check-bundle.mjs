@@ -26,7 +26,12 @@ const RULES = [
   { kind: "demo", name: "демо данни (SAMPLE_)", re: /SAMPLE_/g },
   { kind: "demo", name: "демо данни (Пример клиент)", re: /Пример клиент/giu },
   { kind: "demo", name: "демо данни (P-1042)", re: /P-1042/g },
+  { kind: "demo", name: "демо данни (C-2201)", re: new RegExp(B + "C-2201", "g") },
+  { kind: "demo", name: "демо етикет (ДЕМО)", re: /ДЕМО/gu }, // the prototype's ribbon; case-sensitive on purpose
   { kind: "demo", name: "мок мост (bridge.mock)", re: /bridge\.mock/g },
+  // Runtime hooks of the approved web prototype, which must never reach the program.
+  { kind: "demo", name: "прототип (cap.sample)", re: /cap\.sample/g },
+  { kind: "demo", name: "прототип (window.claude)", re: /window\.claude/g },
   { kind: "name", name: "лично име", re: /Мирослав|Кънев/giu },
 ];
 
@@ -43,19 +48,28 @@ function walk(dir) {
 const mask = (s) => `${s.slice(0, 6)}…(${s.length} знака)`;
 
 // Returns [{rule, where, shown}] for one text; `label` is the file path shown to the user.
-function scan(text, label) {
+// withPosition=false is used for file names, where a line:column would mean nothing.
+function scan(text, label, withPosition = true) {
   const found = [];
   for (const rule of RULES) {
     for (const m of text.matchAll(rule.re)) {
       if (rule.accept && !rule.accept(m[0])) continue;
-      const before = text.slice(0, m.index);
-      const line = before.split("\n").length;
-      const col = m.index - before.lastIndexOf("\n");
+      let where = label;
+      if (withPosition) {
+        const before = text.slice(0, m.index);
+        where += `:${before.split("\n").length}:${m.index - before.lastIndexOf("\n")}`;
+      }
       // No surrounding context: in a minified bundle it could quote a neighbouring secret.
-      found.push({ rule: rule.name, where: `${label}:${line}:${col}`, shown: rule.kind === "secret" ? mask(m[0]) : m[0] });
+      found.push({ rule: rule.name, where, shown: rule.kind === "secret" ? mask(m[0]) : m[0] });
     }
   }
   return found;
+}
+
+// Paths inside the project are shown relative to it, anything else (e.g. a temp folder) in full.
+function show(p) {
+  const rel = path.relative(root, p);
+  return rel.startsWith("..") || path.isAbsolute(rel) ? p : (rel || ".").split(path.sep).join("/");
 }
 
 const explicit = process.argv.slice(2);
@@ -64,26 +78,26 @@ const dirs = (explicit.length ? explicit : ["dist", "electron"]).map((d) => path
 const problems = [];
 let files = 0;
 for (const dir of dirs) {
-  const rel = path.relative(root, dir) || ".";
   if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
-    problems.push({ rule: "липсваща папка", where: rel, shown: "няма какво да се провери - първо изпълнете `vite build`" });
+    problems.push({ rule: "липсваща папка", where: show(dir), shown: "няма какво да се провери - първо изпълнете `vite build`" });
     continue;
   }
   const list = walk(dir);
   if (dir === path.join(root, "dist") && !fs.existsSync(path.join(dir, "index.html"))) {
-    problems.push({ rule: "непълен билд", where: rel, shown: "липсва index.html" });
+    problems.push({ rule: "непълен билд", where: show(dir), shown: "липсва index.html" });
   }
   for (const file of list) {
     files += 1;
-    const label = path.relative(root, file).split(path.sep).join("/");
+    const label = show(file);
     // The name counts too: a chunk called bridge.mock-<hash>.js means the mock bridge was bundled.
-    problems.push(...scan(label, label + " (име на файл)"));
+    // Only the part inside the scanned folder is checked, never the folder's own location.
+    problems.push(...scan(path.relative(dir, file).split(path.sep).join("/"), label + " (име на файл)", false));
     // Binary assets are scanned as text as well (image metadata can carry a name).
     problems.push(...scan(fs.readFileSync(file, "utf8"), label));
   }
 }
 
-const scope = dirs.map((d) => path.relative(root, d) || ".").join(", ");
+const scope = dirs.map(show).join(", ");
 if (problems.length) {
   console.error(`check-bundle: НЕУСПЕХ - ${problems.length} находки в ${scope}:`);
   for (const p of problems.slice(0, 200)) console.error(`  [${p.rule}] ${p.where}  ${p.shown}`);

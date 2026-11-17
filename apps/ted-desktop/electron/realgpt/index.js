@@ -17,6 +17,25 @@ import { RESPONSES_URL, buildRequest, consumeStream, rejectsEffort, resultOf, wi
 import { discard, parseJson, readText, requestIdOf } from './wire.js';
 
 const noop = () => {};
+// The only host that may receive a ChatGPT access token (CRM hosts never do).
+export const API_HOST = 'api.openai.com';
+
+export function assertApiUrl(url) {
+  let u = null;
+  try {
+    u = new URL(String(url));
+  } catch {
+    u = null;
+  }
+  if (!u || u.protocol !== 'https:' || u.port !== '' || u.hostname !== API_HOST) throw new RgError('host');
+  return u;
+}
+
+// Bearer request to the OpenAI API; the host is checked on every call, before anything is sent.
+export function bearerRequest(http, token, opts) {
+  assertApiUrl(opts?.url);
+  return http.request({ ...opts, headers: { ...(opts.headers || {}), Authorization: `Bearer ${token}` } });
+}
 // Upper bound handed to http for a streaming request; the real guards are the header and idle timers below.
 const STREAM_HTTP_TIMEOUT_MS = 30 * 60 * 1000;
 
@@ -25,6 +44,8 @@ export function createRealGpt({
   secureStore,
   dataDir,
   openExternal,
+  // Signed-in CRM user id (null when signed out). Production always passes it: the connection belongs to that user.
+  owner,
   log = { info: noop, warn: noop, error: noop },
   emit = noop,
   // Test seams; production uses the defaults.
@@ -36,7 +57,7 @@ export function createRealGpt({
   idleTimeoutMs = 5 * 60 * 1000,
   deltaIntervalMs = 30,
 }) {
-  const creds = createCredentials(secureStore);
+  const creds = createCredentials(secureStore, owner);
   const active = new Map(); // requestId -> {ctl, why, text}
   const noEffort = new Set(); // models for which the route rejected reasoning.effort in this session
   let pending = null; // current sign-in attempt
@@ -48,9 +69,9 @@ export function createRealGpt({
     throw e;
   }));
 
-  async function load() {
+  async function load(slot) {
     try {
-      return await creds.load();
+      return await creds.load(slot);
     } catch (e) {
       log.error('realgpt.store_read_failed', { error: String(e?.message || e) });
       return null;
@@ -82,10 +103,12 @@ export function createRealGpt({
     let issuedForNew = null;
     let saved = null;
     let host = null;
+    const slot = creds.slot(); // the CRM user this sign-in belongs to, fixed for the whole attempt
     try {
+      if (!slot) throw new RgError('signed_out');
       if (!(await secureStore.available())) throw new RgError('storage');
       host = await hostId();
-      saved = newAccount ? null : await load();
+      saved = newAccount ? null : await load(slot);
       alive();
 
       const state = randomToken();
@@ -144,14 +167,14 @@ export function createRealGpt({
       alive();
 
       const record = buildRecord({ tokens, identity, clientId, hostId: host, nowMs: now() });
-      await creds.save(record);
+      await creds.save(record, slot);
       pageKey = 'done';
       log.info('realgpt.signin_done', { planEnabled: planEnabled(record) });
       return { ok: true, status: publicStatus(record) };
     } catch (e) {
       // A registration that was issued but not completed is kept, so the next attempt does not create another.
-      if (issuedForNew && !(await load()) && !(e instanceof RgError && e.code === 'storage')) {
-        await creds.save({ client_id: issuedForNew, ext_agent_host_id: host }).catch(noop);
+      if (issuedForNew && slot && !(await load(slot)) && !(e instanceof RgError && e.code === 'storage')) {
+        await creds.save({ client_id: issuedForNew, ext_agent_host_id: host }, slot).catch(noop);
       }
       const out = toFailure(e);
       const error = out.code === 'internal' ? String(e?.message || e) : undefined;
@@ -166,20 +189,21 @@ export function createRealGpt({
   // ---- tokens ----------------------------------------------------------------------------------------------
 
   async function doRefresh() {
-    const before = await load();
+    const slot = creds.slot();
+    const before = await load(slot);
     if (!before?.refresh_token) throw new RgError('reauth');
     const out = await refreshTokens(http, { clientId: before.client_id, refreshToken: before.refresh_token });
-    const current = await load();
+    const current = await load(slot);
     // Signed out or replaced while the request was in flight: the result belongs to nobody.
     if (current?.refresh_token !== before.refresh_token) throw new RgError('not_connected');
     if (out.ok) {
       const next = applyRefresh(current, out.tokens, now());
-      await creds.save(next);
+      await creds.save(next, slot);
       return next;
     }
     log.warn('realgpt.refresh_failed', { status: out.status, code: out.code, requestId: out.requestId });
     if (out.terminal) {
-      await creds.save(clearTokens(current, { keepIdToken: true }));
+      await creds.save(clearTokens(current, { keepIdToken: true }), slot);
       throw new RgError('reauth');
     }
     // Anything else (invalid_client, 5xx, ...) keeps the credentials: it is not proof that the session is gone.
@@ -197,13 +221,14 @@ export function createRealGpt({
   }
 
   async function accessToken() {
-    const record = await load();
+    const slot = creds.slot();
+    const record = await load(slot);
     if (!record?.access_token) throw new RgError('not_connected');
     if (!refreshDue(record, now())) return record.access_token;
     if (!record.refresh_token) {
       // Nothing to renew with: usable until it expires, then only a new sign-in helps.
       if (now() < expiresAtMs(record)) return record.access_token;
-      await creds.save(clearTokens(record, { keepIdToken: true }));
+      await creds.save(clearTokens(record, { keepIdToken: true }), slot);
       throw new RgError('reauth');
     }
     try {
@@ -230,6 +255,7 @@ export function createRealGpt({
   }
 
   async function usableRecord() {
+    if (!creds.slot()) throw new RgError('signed_out');
     const record = await load();
     if (!record?.access_token) throw new RgError('not_connected');
     if (!planEnabled(record)) throw new RgError('plan_disabled');
@@ -242,17 +268,19 @@ export function createRealGpt({
     cancelSignIn();
     for (const job of active.values()) abortJob(job, 'cancel');
     if (refreshing) await refreshing.catch(noop); // revoke the latest rotation, not a stale token
-    const record = await load();
+    const slot = creds.slot();
+    if (!slot) return { ok: true, revoked: false }; // no CRM user: there is no connection to remove
+    const record = await load(slot);
     let revoked = false;
     if (record?.refresh_token) {
       revoked = await revokeToken(http, { clientId: record.client_id, refreshToken: record.refresh_token, sleep });
     }
     if (record) {
       try {
-        await creds.save(clearTokens(record));
+        await creds.save(clearTokens(record), slot);
       } catch {
         try {
-          await creds.clear(); // the tokens must not stay behind, even if the registration is lost with them
+          await creds.clear(slot); // the tokens must not stay behind, even if the registration is lost with them
         } catch {
           return fail('storage', null, { revoked });
         }
@@ -262,15 +290,24 @@ export function createRealGpt({
     return { ok: true, revoked };
   }
 
+  // CRM sign-out, session expiry or another CRM user: stop everything of the previous user and drop the
+  // decrypted credentials from memory. The encrypted record stays for that user's next CRM sign-in.
+  function detach() {
+    cancelSignIn();
+    for (const job of active.values()) abortJob(job, 'cancel');
+    creds.forget();
+    return { ok: true };
+  }
+
   // ---- models ----------------------------------------------------------------------------------------------
 
   async function models() {
     try {
       await usableRecord();
-      const res = await authed((token) => http.request({
+      const res = await authed((token) => bearerRequest(http, token, {
         url: MODELS_URL,
         method: 'GET',
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+        headers: { Accept: 'application/json' },
         timeoutMs: 30_000,
         as: 'text',
       }));
@@ -335,10 +372,10 @@ export function createRealGpt({
 
   // Opens the stream; a non-2xx answer comes back with its parsed error body.
   async function openStream(body, job) {
-    const res = await authed((token) => guarded(job, headersTimeoutMs, () => http.request({
+    const res = await authed((token) => guarded(job, headersTimeoutMs, () => bearerRequest(http, token, {
       url: RESPONSES_URL,
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+      headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
       body: JSON.stringify(body),
       signal: job.ctl.signal,
       timeoutMs: STREAM_HTTP_TIMEOUT_MS,
@@ -446,5 +483,5 @@ export function createRealGpt({
     return { ok: true };
   }
 
-  return { status, signIn, cancelSignIn, signOut, models, send, cancel };
+  return { status, signIn, cancelSignIn, signOut, detach, models, send, cancel };
 }

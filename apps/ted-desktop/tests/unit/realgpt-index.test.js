@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { SignJWT, createLocalJWKSet, exportJWK, generateKeyPair } from 'jose';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { createRealGpt } from '../../electron/realgpt/index.js';
+import { assertApiUrl, bearerRequest, createRealGpt } from '../../electron/realgpt/index.js';
 
 const TOKEN_URL = 'https://auth.openai.com/api/accounts/oauth/token';
 const REVOKE_URL = 'https://auth.openai.com/api/accounts/oauth/revoke';
@@ -809,5 +809,85 @@ describe('secrets stay inside the module', () => {
     expect([...env.store.keys()]).toEqual(['realgpt']);
     const hostFile = await readFile(path.join(env.dataDir, 'realgpt-host.json'), 'utf8');
     expect(hostFile).not.toMatch(/at-1|rt-1|user@example\.com/);
+  });
+});
+
+describe('the connection belongs to the signed-in CRM user', () => {
+  it('stores the record per CRM user; another user or no user sees no connection', async () => {
+    let crm = 'crm-a';
+    const env = await makeEnv({ owner: () => crm });
+    expect(await env.rg.signIn()).toMatchObject({ ok: true });
+    expect([...env.store.keys()]).toEqual(['realgpt-crm-a']);
+    expect(await env.rg.status()).toMatchObject({ connected: true, email: 'user@example.com' });
+
+    env.rg.detach();
+    crm = 'crm-b';
+    expect(await env.rg.status()).toEqual({ connected: false });
+    expect(await env.rg.models()).toMatchObject({ ok: false, code: 'not_connected' });
+    const before = env.calls.length;
+    expect(await env.rg.send({ requestId: 'r-b', messages: hello, model: 'model-a' })).toMatchObject({ ok: false, code: 'not_connected' });
+    expect(env.calls.length).toBe(before);
+
+    env.rg.detach();
+    crm = null;
+    expect(await env.rg.status()).toEqual({ connected: false });
+    expect(await env.rg.signIn()).toMatchObject({ ok: false, code: 'signed_out' });
+    expect(await env.rg.models()).toMatchObject({ ok: false, code: 'signed_out' });
+    expect(await env.rg.send({ requestId: 'r-0', messages: hello, model: 'model-a' })).toMatchObject({ ok: false, code: 'signed_out' });
+    expect(await env.rg.signOut()).toEqual({ ok: true, revoked: false });
+    expect(env.calls.length).toBe(before);
+    expect(env.store.get('realgpt-crm-a').access_token).toBe('at-1'); // user A's own connection is kept for A
+
+    crm = 'crm-a';
+    expect(await env.rg.status()).toMatchObject({ connected: true });
+  });
+
+  it('a new user signing in starts a fresh registration, not the previous user\'s one', async () => {
+    let crm = 'crm-a';
+    const env = await makeEnv({ owner: () => crm });
+    await env.rg.signIn();
+    env.rg.detach();
+    crm = 'crm-b';
+    env.identity = { sub: 'sub-2', email: 'other@example.com' };
+    env.callbackParams = { ...env.callbackParams, client_id: 'oaiapp_issued_2' };
+    expect(await env.rg.signIn()).toMatchObject({ ok: true, status: { email: 'other@example.com' } });
+    expect(env.authUrl.searchParams.get('client_id')).toBe('dynamic_agent_client');
+    expect(env.authUrl.searchParams.get('login_hint')).toBeNull();
+    expect(env.store.get('realgpt-crm-a').email).toBe('user@example.com');
+    expect(env.store.get('realgpt-crm-b').email).toBe('other@example.com');
+  });
+
+  it('detach() stops a running answer and an open sign-in', async () => {
+    const env = await signedIn({ owner: () => 'crm-a' });
+    env.onResponses = () => streamRes(200, [delta('част')], { hold: true });
+    const pending = env.rg.send({ requestId: 'r1', messages: hello, model: 'model-a' });
+    await waitFor(() => env.callsTo(RESPONSES_URL).length === 1);
+    env.rg.detach();
+    expect(await pending).toMatchObject({ ok: false, code: 'aborted' });
+
+    env.onOpen = () => {}; // the browser never comes back
+    const signIn = env.rg.signIn({ newAccount: true });
+    await waitFor(() => env.opened.length === 2);
+    env.rg.detach();
+    expect(await signIn).toMatchObject({ ok: false, code: 'cancelled' });
+  });
+});
+
+describe('the ChatGPT token goes only to api.openai.com', () => {
+  it('assertApiUrl accepts only https://api.openai.com', () => {
+    expect(assertApiUrl('https://api.openai.com/v1/models').hostname).toBe('api.openai.com');
+    for (const url of ['https://imotinadezhda.bg/api/tools', 'https://hyvwfsmjbaynozceookv.supabase.co/rest/v1/x',
+      'https://auth.openai.com/oauth/token', 'http://api.openai.com/v1/models', 'https://api.openai.com:444/v1', 'x']) {
+      expect(() => assertApiUrl(url)).toThrow(expect.objectContaining({ code: 'host' }));
+    }
+  });
+
+  it('bearerRequest refuses a cross-routed URL before any request', async () => {
+    const seen = [];
+    const http = { request: async (o) => { seen.push(o); return { status: 200 }; } };
+    expect(() => bearerRequest(http, 'at-x', { url: 'https://imotinadezhda.bg/api/tools' })).toThrow(expect.objectContaining({ code: 'host' }));
+    expect(seen).toEqual([]);
+    await bearerRequest(http, 'at-x', { url: 'https://api.openai.com/v1/models', headers: { Accept: 'application/json' } });
+    expect(seen[0].headers).toEqual({ Accept: 'application/json', Authorization: 'Bearer at-x' });
   });
 });

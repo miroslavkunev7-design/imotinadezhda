@@ -60,9 +60,9 @@ export function createTools({ session, log }) {
     if (res.ok && j && j.ok === true) return { ok: true, result: j.result };
     if (log) log.warn("tools.error", { tool, status: res.status });
     if (res.status === 401) return { ok: false, error: "Сесията е изтекла – влезте отново.", status: 401, code: "auth", maybeExecuted: false };
-    // A JSON error is the tool's own verdict; a 5xx without one (gateway timeout) leaves the outcome unknown.
-    const answered = !!j && typeof j === "object" && j.ok === false;
-    return { ok: false, error: errorText(res.status, j), status: res.status, code: "http", maybeExecuted: !answered && res.status >= 500 };
+    // CONTRACT §2: a 4xx is a refusal before execution; any 5xx (even with a JSON error, e.g. an SMTP
+    // timeout after the message data was sent) leaves the outcome unknown.
+    return { ok: false, error: errorText(res.status, j), status: res.status, code: "http", maybeExecuted: res.status >= 500 };
   }
 
   async function read(tool, input) {

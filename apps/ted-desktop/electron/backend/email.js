@@ -37,17 +37,19 @@ export function createEmail({ tools, confirm }) {
         attachmentLine(a.attachments),
         "",
         "Ще бъде изпратена последната подготвена чернова, запазена на сървъра на Тед. " +
-          "Ако междувременно сте подготвили друг имейл (в сайта или на телефона), ще бъде изпратен той.",
+          "Ако междувременно е подготвен по-нов имейл (в тази програма, в друг чат, в сайта или на телефона), ще бъде изпратен той, а не показаният тук.",
       ].join("\n");
       const yes = await confirm("Изпращане на имейл", detail, { okLabel: "Изпрати", cancelLabel: "Отказ" });
       if (!yes) return { ok: false, canceled: true }; // no network call at all
 
       const r = await tools.call("email.send", { confirm: true });
       if (r.ok) return { ok: true, result: r.result };
-      // maybeExecuted: the request left this computer and no answer came back - the e-mail may have been sent.
-      const error = r.maybeExecuted
-        ? "Не е ясно дали имейлът е изпратен (връзката прекъсна, преди сървърът да отговори). Проверете, преди да опитате отново."
-        : /^Имейлът не е изпратен/.test(r.error || "") ? r.error : `Имейлът не е изпратен: ${r.error || "грешка"}`;
+      // maybeExecuted: the request left this computer and its outcome is unknown - the e-mail may have been sent.
+      const error = !r.maybeExecuted
+        ? /^Имейлът не е изпратен/.test(r.error || "") ? r.error : `Имейлът не е изпратен: ${r.error || "грешка"}`
+        : r.code === "http"
+          ? `Не е ясно дали имейлът е изпратен: сървърът върна грешка (HTTP ${r.status || "5xx"}), а писмото може вече да е тръгнало. Отговор на сървъра: ${r.error || "няма"}. Проверете изпратените си писма, преди да опитате отново.`
+          : "Не е ясно дали имейлът е изпратен (връзката прекъсна, преди сървърът да отговори). Проверете, преди да опитате отново.";
       return { ok: false, error, code: r.code, maybeExecuted: !!r.maybeExecuted };
     } finally {
       sending = false;

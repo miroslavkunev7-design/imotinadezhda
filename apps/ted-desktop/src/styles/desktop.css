@@ -1,0 +1,139 @@
+/* Desktop-only additions on top of the approved prototype CSS (style.css stays untouched).
+   Electron window: titleBarStyle "hidden" + titleBarOverlay (36 px): Windows draws its own caption
+   buttons over the right end of .winbar, so the bar is the drag region and keeps room for them. */
+
+/* ---------- Page box: the shell fills the whole window ---------- */
+html,body{margin:0;padding:0}
+#root{height:100%}
+
+/* ---------- Window frame ---------- */
+.winbar{-webkit-app-region:drag;padding-right:max(140px,calc(100vw - env(titlebar-area-x,0px) - env(titlebar-area-width,100vw) + 8px))}
+.winbar button,.winbar a,.winbar input,.winbar select{-webkit-app-region:no-drag}
+.winbar img{pointer-events:none}
+.wb-st.off i{background:#ff5a6e;box-shadow:0 0 5px #ff5a6e}
+.wb-st.wait i{background:#ffcf5c;box-shadow:0 0 5px #ffcf5c}
+.wb-st.out i{background:#b9a39a;box-shadow:none}
+.wbtn.wq{margin-left:2px}
+.online.off i{background:#ff5a6e;box-shadow:0 0 6px #ff5a6e}
+.online.wait i{background:#ffcf5c;box-shadow:0 0 6px #ffcf5c}
+/* Phone layout (narrow / compact window): the bar stays - it holds the drag area and the caption buttons. */
+.shell.phone .winbar{display:flex}
+.shell.phone .winbar .wb-sub,.shell.phone .winbar .wb-st{display:none}
+.shell.phone .winbar .wq{margin-left:auto}
+.shell.phone .side{top:36px}
+/* Full-window layers start below the title bar, so the caption buttons never cover their controls. */
+.back,.voice,.lb,.quick-back{top:36px}
+@media (max-width:899px){.canvas{top:36px}}
+
+/* ---------- Small utilities used by the renderer ---------- */
+.file-in{display:none}
+.p0{margin:0}
+.mt{margin-top:14px}
+.mb0{padding:0}
+.self-start{align-self:flex-start}
+.grow{flex:1 1 180px;min-width:0}
+.narrow{width:150px;flex:0 1 150px}
+.inp.auto{width:auto;min-width:170px}
+.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.lnk{display:inline;padding:0;border:0;background:none;color:inherit;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.lnk:hover{text-decoration-thickness:2px}
+.lnk[disabled]{opacity:.5;cursor:not-allowed}
+svg.i.sm14{width:14px;height:14px}
+svg.i.sm16{width:16px;height:16px}
+svg.i.sm19{width:19px;height:19px}
+
+/* ---------- Boot and sign-in ---------- */
+.login{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 16px;
+  background:linear-gradient(0deg,#370714 0%,#370714d9 22%,#3707148c 55%,#37071466 100%),url('../assets/house.webp') center 30%/cover no-repeat,var(--ted-wine)}
+.wait.boot{color:var(--title);font-size:16px}
+.login-card{width:min(430px,100%);display:flex;flex-direction:column;align-items:stretch;padding:22px 24px 18px;border-radius:26px;color:var(--ink);
+  background:var(--noise),linear-gradient(180deg,rgba(255,252,247,.97),rgba(247,230,210,.95));border:1.5px solid;border-color:#ffeab0 #e6bb5e #b8862f #f0c766;
+  box-shadow:var(--rim-cream),0 0 0 5px rgba(255,214,130,.12),0 40px 90px -12px rgba(8,0,4,.85),0 0 44px rgba(255,42,95,.2);animation:modalIn .24s cubic-bezier(.2,.9,.25,1.08) backwards}
+.login-logo{height:58px;margin:0 0 14px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fffdf8,#f3e2cc);box-shadow:inset 0 1px 1px #fff,0 0 0 1px #f2c76f,0 6px 14px rgba(8,0,4,.25)}
+.login-logo img{max-height:44px;width:auto}
+.login-av{align-self:center;width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(#ad6b37,#370714);box-shadow:0 0 0 1.5px var(--e-gold-2),0 0 0 4px rgba(255,42,95,.18),0 0 20px rgba(255,42,95,.4)}
+.login-av img{width:86px;height:86px;max-width:none}
+.login-card h1{margin:12px 0 4px;text-align:center;font:700 26px/1.15 var(--f-title);color:#6a0b27}
+.login-sub{margin:0 0 16px;text-align:center;color:var(--muted);font-size:14.5px}
+.login-card .err{margin:0 0 12px}
+.login-btn{min-height:44px;font-size:16px;margin-top:4px}
+.login-note{margin:12px 0 0;text-align:center;color:var(--muted);font-size:12.5px}
+.login-note .lnk{color:#7a1023}
+.login-notice{width:min(430px,100%);padding:10px 14px;border-radius:16px;background:var(--warn-bg);color:var(--warn);border:1px solid #e6bb5e;font:700 14px var(--f-text);text-align:center}
+.no-bridge{max-width:46ch;margin:0;text-align:center;color:var(--title);font-size:16px}
+
+/* ---------- Sidebar ---------- */
+.ini{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font:700 15px var(--f-text);letter-spacing:.02em;color:#ffe1a7;
+  background:radial-gradient(circle at 30% 25%,rgba(255,110,145,.55),transparent 55%),linear-gradient(135deg,#a8123f,#3a0617);box-shadow:0 0 0 2px var(--e-gold-2),0 0 12px rgba(255,42,95,.35)}
+.sec-chev{width:14px!important;height:14px!important;transition:transform .15s}
+.sec-chev.folded{transform:rotate(-90deg)}
+.row .row-ic{display:flex;align-items:center;gap:10px}
+.side-err{color:#ffb4c2}
+.side-err .lnk{color:#ffd77a}
+
+/* ---------- Top bar: Real GPT indicator next to the model selector ---------- */
+.rg-ind{display:inline-flex;flex-direction:column;justify-content:center;gap:1px;min-width:0;padding:3px 12px;border-radius:14px;border:1px solid rgba(25,194,106,.45);background:rgba(25,194,106,.12);color:#c8f7dc;font:700 12px/1.2 var(--f-text);white-space:nowrap}
+.rg-ind .lnk{color:#fff2d4;font-weight:400;text-align:left}
+.rg-ind-d{display:none}
+@media (max-width:899px){.top .rg-ind{display:none}.rg-ind-d{display:inline}}
+.disc .lnk{color:#ffe1a7}
+.pop .rg-use{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin:2px 4px 6px;padding:8px 10px;border-radius:12px;background:rgba(25,194,106,.12);border:1px solid rgba(25,194,106,.4);color:#c8f7dc;font:700 12.5px var(--f-text)}
+.pop .rg-use .lnk{color:#fff3dc;font-weight:400}
+.pop .pop-info{margin:6px 4px}
+.pop .pop-info .lnk{color:#ffd77a}
+
+/* ---------- Home ---------- */
+.sess-note{max-width:620px;padding:8px 14px;border-radius:14px;background:rgba(255,207,92,.14);border:1px solid rgba(255,214,130,.6);color:#ffe9b8;font-size:13.5px;text-align:center}
+.shell.phone .sess-note{font-size:12.5px;margin:0 4px}
+
+/* ---------- Thread ---------- */
+.ufile{max-width:260px;padding:8px 10px}
+.ufile .ficon{width:36px;height:42px;font-size:10px}
+.ficon.ref{background:linear-gradient(160deg,#c99a3e,#7a4b12)}
+.ficon.pdf{background:linear-gradient(160deg,#b3123f,#5a0a1f)}
+.cfile-tx{min-width:0;display:flex;flex-direction:column}
+.clock{font-variant-numeric:tabular-nums;font-weight:700}
+.lw{display:flex;flex-direction:column;gap:8px;white-space:normal}
+.lw .wait{flex-wrap:wrap}
+.lw-bar{height:4px;border-radius:3px;background:#efe0cc;overflow:hidden}
+.lw-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#e3124b,#ffcf5c);transition:width .5s linear}
+.lw-n{color:var(--muted);font-size:12.5px}
+.lw .stop-b{align-self:flex-start}
+.err{white-space:normal}
+.err.quota{background:var(--warn-bg);color:var(--warn);border:1px solid #f2c76f}
+.err-w{flex-basis:100%;font-size:13px;font-weight:700}
+.stop-note{color:#7a4b12}
+.demo.fb{background:linear-gradient(180deg,#fff1d2,#ffe1a0)!important;color:#8a5a00!important}
+.run-t{font-size:14.5px}
+.mail-body.formula{font:400 14.5px/1.45 var(--f-text);white-space:pre-wrap;max-height:280px;overflow:auto}
+.mail-files{display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:13.5px}
+.mail-files a{color:#a3213a;font-weight:700}
+.panel-note{margin-top:0}
+
+/* ---------- Pages ---------- */
+.case-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.case-sub{color:#fde9cf;font-size:14px}
+.case-h .case-ref{color:var(--title)}
+.case-sum{margin-top:0}
+.case-msg{padding:10px 12px;border-radius:14px;margin-bottom:6px;border:1px solid #e3b25e66;background:#fffdf9;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14.5px}
+.case-msg.a{background:#fbf2e4}
+.case-msg small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.cv-foot{padding:8px 14px;border-top:1px solid #e3b25e66;color:var(--muted);font-size:12.5px}
+.help-p{margin:0 0 10px;color:var(--ink);font-size:14.5px}
+.skill-sub{margin:0 0 6px;color:var(--muted)}
+
+/* ---------- Modals and settings ---------- */
+.filt{margin-bottom:10px}
+.mem-search{margin-bottom:10px}
+.about-kv,.rg-kv{margin:8px 0}
+.rg-wait{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:#f8efe2;border:1px solid #e3b25e66}
+.rg-wait .spin{width:18px;height:18px}
+.pick-em{font-size:20px;line-height:1;flex:none}
+.pick-tx{flex:1;min-width:0;display:flex;flex-direction:column}
+.pick-tx b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ficon.sm-ic{width:34px;height:40px;font-size:10px;border-radius:8px}
+.err .b{flex:none}
+
+/* Phone tweaks for the additions */
+.shell.phone .lw-n{display:none}
+.shell.phone .rg-wait{flex-direction:column;text-align:center}

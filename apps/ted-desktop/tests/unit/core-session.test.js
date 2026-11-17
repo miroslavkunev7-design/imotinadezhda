@@ -301,6 +301,20 @@ describe("restore and refresh", () => {
 });
 
 describe("authed()", () => {
+  it("never attaches the CRM token to a non-CRM host: throws before any request", async () => {
+    const { session, http } = setup();
+    await session.login({ identifier: "broker@example.com", password: "pw" });
+    const before = http.calls.length;
+    for (const url of ["https://api.openai.com/v1/models", "https://auth.openai.com/oauth/token", "https://evil.example/api/tools",
+      "http://imotinadezhda.bg/api/tools", "https://imotinadezhda.bg:8443/api/tools", "https://x.imotinadezhda.bg/api/tools", "not a url"]) {
+      await expect(session.authed({ url, method: "POST", json: {} })).rejects.toMatchObject({ code: "host", sent: false });
+    }
+    expect(http.calls.length).toBe(before);
+    // Both CRM hosts are accepted.
+    expect((await session.authed({ url: SITE + "/api/tools", method: "POST", json: {} })).status).toBe(200);
+    expect((await session.authed({ url: SB_URL + "/rest/v1/x" })).status).toBe(200);
+  });
+
   it("adds the Bearer token and passes the request through", async () => {
     const { session, http } = setup();
     await session.login({ identifier: "broker@example.com", password: "pw" });

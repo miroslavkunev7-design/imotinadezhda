@@ -33,7 +33,8 @@ export default function VoiceMode({ close, toast, ask, speak, stopSpeak }) {
     const out = await rec.stop();
     if (!alive.current) return;
     if (!out.ok) { setProblem(out.error); setSt("idle"); return; }
-    const t = await ted.voice.transcribe({ mime: out.mime, data: out.data });
+    let t;
+    try { t = await ted.voice.transcribe({ mime: out.mime, data: out.data }); } catch { t = null; }
     if (!alive.current) return;
     if (!t || !t.ok) { setProblem((t && t.error) || "Разпознаването не успя."); setSt("idle"); return; }
     const q = String(t.text || "").trim();

@@ -168,8 +168,9 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
     },
 
     "ted:realgpt.status": async () => rgStatus(await realgpt.status()),
-    "ted:realgpt.signIn": async () => {
-      const r = await realgpt.signIn();
+    "ted:realgpt.signIn": async (opts) => {
+      if (opts != null && (!isObj(opts) || (opts.newAccount !== undefined && typeof opts.newAccount !== "boolean"))) return bad();
+      const r = await realgpt.signIn({ newAccount: !!(opts && opts.newAccount) });
       return r && r.ok ? { ok: true, status: rgStatus(r.status) } : rgError(r);
     },
     "ted:realgpt.cancelSignIn": async () => {
@@ -178,7 +179,9 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
     },
     "ted:realgpt.signOut": async () => {
       const r = await realgpt.signOut();
-      return { ok: true, revoked: !!(r && r.revoked) };
+      // A failed local removal (secure store) must not look like success: the tokens are still saved.
+      if (!(r && r.ok)) return rgError(r, { revoked: !!(r && r.revoked) });
+      return { ok: true, revoked: !!r.revoked };
     },
     "ted:realgpt.models": async () => {
       const r = await realgpt.models();

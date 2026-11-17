@@ -1,6 +1,8 @@
-// The single network egress of the app: Node's global fetch behind a host allowlist.
-// Never sets Origin/Referer (the production login rejects foreign origins), never follows
-// redirects, never retries. Timeouts and caller aborts map to typed errors.
+// The single network egress of the app behind a host allowlist. In the program the transport is
+// Electron's net (Chromium network stack: Windows proxy settings and certificate store), injected
+// by main.js through wrapNetFetch; tests inject a fake fetch. Never sets Origin/Referer (the
+// production login rejects foreign origins), never follows redirects, never retries.
+// Timeouts and caller aborts map to typed errors.
 import { ALLOWED_HOSTS } from "./config.js";
 
 export class HttpError extends Error {
@@ -20,7 +22,12 @@ const NOT_SENT = new Set([
   "UNABLE_TO_VERIFY_LEAF_SIGNATURE", "UNABLE_TO_GET_ISSUER_CERT_LOCALLY", "ERR_TLS_CERT_ALTNAME_INVALID",
 ]);
 
+// Chromium (Electron net) reports failures as Error("net::ERR_..."). These happen before the request
+// could reach the server: name resolution, refused/unreachable, proxy, TLS trust, blocked port.
+const NET_NOT_SENT = /^net::ERR_(NAME_NOT_RESOLVED|NAME_RESOLUTION_FAILED|INTERNET_DISCONNECTED|ADDRESS_UNREACHABLE|ADDRESS_INVALID|CONNECTION_REFUSED|CONNECTION_TIMED_OUT|NETWORK_ACCESS_DENIED|PROXY_CONNECTION_FAILED|TUNNEL_CONNECTION_FAILED|PROXY_AUTH_REQUESTED|PROXY_CERTIFICATE_INVALID|MANDATORY_PROXY_CONFIGURATION_FAILED|UNSAFE_PORT|BLOCKED_BY_CLIENT|CERT_[A-Z_]+|SSL_[A-Z_]+|BAD_SSL_CLIENT_AUTH_CERT)\b/;
+
 function neverSent(err) {
+  if (err && typeof err.message === "string" && NET_NOT_SENT.test(err.message)) return true;
   // fetch reports transport failures as TypeError("fetch failed", {cause}); a TypeError without a cause
   // means the request itself was malformed and was never put on the wire.
   if (err instanceof TypeError && err.cause === undefined) return true;
@@ -68,6 +75,13 @@ function responseHeaders(res) {
 
 function parseJson(text) {
   try { return JSON.parse(text); } catch { return null; }
+}
+
+// Electron net.fetch (session.fetch) adapter: no cookies in either direction, no HTTP cache,
+// redirects are not followed (net rejects with "Redirect was cancelled", reported as a network error).
+// Checked by the --smoke-test run: no Origin/Referer header is sent, also on POST.
+export function wrapNetFetch(netFetch) {
+  return (url, init = {}) => netFetch(url, { ...init, redirect: "manual", credentials: "omit", cache: "no-store" });
 }
 
 export function createHttp({ fetchImpl = globalThis.fetch, log, allowedHosts = ALLOWED_HOSTS, userAgent } = {}) {

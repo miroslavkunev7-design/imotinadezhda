@@ -1,20 +1,27 @@
-# Builds the unsigned Windows installer of "Тед за Windows" (apps/ted-desktop).
-# This file lives ONLY on the orphan branch `ted-desktop`; it never touches main or the website.
-# workflow_dispatch is left out on purpose: it only shows up for workflows on the default branch.
+# Builds, smoke-tests and (for ted-desktop-v* tags) releases the unsigned Windows installer of
+# "Тед за Windows" (apps/ted-desktop). The code lives in the production branch live-site; this
+# workflow only reads the repository and never deploys or changes the website.
 #
-# The actions are pinned to full commit SHAs (latest majors, checked 2026-11-17 with `git ls-remote`).
-name: Ted Desktop (Windows)
+# - push to live-site touching apps/ted-desktop/** or this file -> tests + Windows installer (artifact)
+# - push of a tag ted-desktop-v<version>                       -> the same + a normal GitHub release
+#   (normal, not a pre-release: the site links to releases/latest/download/Ted-Setup-x64.exe and
+#   "latest" ignores pre-releases)
+# - workflow_dispatch: harmless; GitHub only offers it once a workflow file is on the default branch.
+#
+# Actions are pinned to full commit SHAs of their current majors (checked 2026-11-17 with `git ls-remote`).
+name: Тед за Windows
 
 on:
   push:
     branches:
-      - ted-desktop
+      - live-site
     paths:
       - "apps/ted-desktop/**"
       - ".github/workflows/ted-desktop.yml"
-    # Path filters do not apply to tags: every ted-desktop-v* tag builds and publishes a pre-release.
+    # Path filters are not evaluated for tag pushes: every ted-desktop-v* tag builds and releases.
     tags:
       - "ted-desktop-v*"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,15 +32,13 @@ concurrency:
 
 jobs:
   test:
-    name: Tests (Linux)
+    name: Тестове (Linux)
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     defaults:
       run:
+        shell: bash
         working-directory: apps/ted-desktop
-    env:
-      # Tests never start Electron; they only need its JavaScript API surface.
-      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -69,16 +74,40 @@ jobs:
       - name: End-to-end tests (mock bridge, no network)
         run: npm run e2e -- --trace off
 
+      # The real program under xvfb: app:// + CSP, the exact window.ted surface, no Node in the page,
+      # window.open/navigation blocked, and Electron net sending no Origin/Referer to a local
+      # 127.0.0.1 echo server. Never contacts the site, Supabase or OpenAI.
+      - name: Electron smoke test (Linux, xvfb)
+        run: |
+          node node_modules/electron/install.js
+          # Ubuntu 24.04 restricts unprivileged user namespaces, which Chromium's sandbox needs.
+          # Allow them on this throwaway runner instead of starting the app with --no-sandbox.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          xvfb-run -a npm run smoke
+          cat test-results/smoke.json
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-${{ github.run_number }}-${{ github.run_attempt }}
+          path: |
+            apps/ted-desktop/playwright-report/
+            apps/ted-desktop/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Dependency audit (warning only)
         run: npm audit --omit=dev --audit-level=high || echo "::warning::npm audit reported high-severity issues in production dependencies"
 
   build-windows:
-    name: Installer (Windows x64)
+    name: Инсталатор (Windows x64)
     needs: test
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     defaults:
       run:
+        shell: bash
         working-directory: apps/ted-desktop
     env:
       # Unsigned build: do not look for a code-signing certificate.
@@ -97,20 +126,70 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --fund=false
 
-      - name: Build installer and SHA256SUMS.txt
+      - name: Build the installer (npm run dist:win)
         run: npm run dist:win
+
+      # electron/smoke.js (--smoke-test): temporary userData, loads the renderer from app://ted/,
+      # checks the CSP, the preload surface, the sandbox and that Electron net sends no Origin/Referer
+      # to a local 127.0.0.1 echo server; writes a JSON report and exits 0 (pass) or 1 (fail).
+      # Links are recorded instead of opened; no other network access.
+      - name: Packaged smoke test (win-unpacked, fuses and asar integrity on)
+        shell: pwsh
+        run: |
+          $exe = Join-Path $PWD 'dist-installer\win-unpacked\TedImotiNadezhda.exe'
+          $report = Join-Path $env:RUNNER_TEMP 'smoke.json'
+          if (-not (Test-Path $exe)) { Write-Host "::error::Missing $exe"; exit 1 }
+          Remove-Item $report -ErrorAction SilentlyContinue
+          $p = Start-Process -FilePath $exe -ArgumentList @('--smoke-test', "`"--smoke-report=$report`"") -PassThru
+          $null = $p.Handle # keep the process handle so ExitCode stays readable after exit
+          if (-not $p.WaitForExit(120000)) {
+            Get-Process -Name 'TedImotiNadezhda' -ErrorAction SilentlyContinue | Stop-Process -Force
+            Write-Host "::error::The smoke test did not finish within 120 s"
+            exit 1
+          }
+          $code = $p.ExitCode
+          if (-not (Test-Path $report)) { Write-Host "::error::No smoke report at $report (exit code $code)"; exit 1 }
+          $json = Get-Content -Raw -Encoding utf8 $report
+          Write-Host $json
+          try { $null = $json | ConvertFrom-Json } catch { Write-Host "::error::The smoke report is not valid JSON"; exit 1 }
+          if ($code -ne 0) { Write-Host "::error::Smoke test failed (exit code $code)"; exit 1 }
+          Write-Host "Smoke test passed."
+
+      - name: Unversioned copy and SHA256SUMS.txt
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          cp "dist-installer/Ted-Setup-${version}-x64.exe" dist-installer/Ted-Setup-x64.exe
+          node scripts/sha256.mjs
+          grep -q "  Ted-Setup-${version}-x64.exe\$" dist-installer/SHA256SUMS.txt
+          grep -q "  Ted-Setup-x64.exe\$" dist-installer/SHA256SUMS.txt
+          (cd dist-installer && sha256sum --check SHA256SUMS.txt)
+          {
+            echo "## Тед за Windows ${version}"
+            echo
+            echo "Неподписан инсталатор за Windows 10/11 (x64), commit \`${GITHUB_SHA}\`."
+            echo "Изтегляне: секция **Artifacts** на тази страница (нужен е вход в GitHub; пази се 30 дни)."
+            echo "SmartScreen: „Повече информация“ → „Изпълни въпреки това“."
+            echo
+            echo "SHA-256:"
+            echo
+            echo '```'
+            cat dist-installer/SHA256SUMS.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ted-desktop-windows-${{ github.sha }}
+          name: Ted-za-Windows-${{ github.run_number }}
           path: |
             apps/ted-desktop/dist-installer/Ted-Setup-*-x64.exe
+            apps/ted-desktop/dist-installer/Ted-Setup-x64.exe
             apps/ted-desktop/dist-installer/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
+          overwrite: true
 
   release:
-    name: Pre-release (tags only)
+    name: GitHub release (само за тагове)
     if: startsWith(github.ref, 'refs/tags/ted-desktop-v')
     needs: build-windows
     runs-on: ubuntu-24.04
@@ -120,19 +199,38 @@ jobs:
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: ted-desktop-windows-${{ github.sha }}
+          name: Ted-za-Windows-${{ github.run_number }}
           path: release
 
-      - name: Verify checksums and create the pre-release
+      - name: Verify checksums and publish the release
         working-directory: release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#ted-desktop-v}"
+          assets=("Ted-Setup-${version}-x64.exe" "Ted-Setup-x64.exe" "SHA256SUMS.txt")
+          for f in "${assets[@]}"; do
+            [ -f "$f" ] || { echo "::error::Missing release asset $f"; exit 1; }
+          done
+          grep -q "  Ted-Setup-${version}-x64.exe\$" SHA256SUMS.txt
+          grep -q "  Ted-Setup-x64.exe\$" SHA256SUMS.txt
           sha256sum --check SHA256SUMS.txt
+          readme="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/apps/ted-desktop/README.md"
           {
-            echo "Неподписан инсталатор за Windows 10/11 (x64)."
-            echo "Инструкции за инсталиране и проверка: apps/ted-desktop/README.md в клона ted-desktop."
+            echo "Тед за Windows ${version} – неподписан инсталатор за Windows 10/11 (64-битов)."
+            echo
+            echo "**Изтегляне:** \`Ted-Setup-x64.exe\` (същият файл като \`Ted-Setup-${version}-x64.exe\`)."
+            echo "Входът е със същия телефон/имейл и парола като в CRM на сайта. На сайта не се променя нищо."
+            echo
+            echo "**Първо стартиране:** Windows SmartScreen може да покаже „Windows защити компютъра ви“."
+            echo "Натиснете „Повече информация“ → „Изпълни въпреки това“. Инсталира се само за текущия потребител, без администраторски права."
+            echo
+            echo "**Проверка на файла** (PowerShell): \`Get-FileHash .\\Ted-Setup-x64.exe -Algorithm SHA256\` – стойността трябва да съвпада с реда в SHA256SUMS.txt (малки/главни букви нямат значение)."
+            echo
+            echo "Няма автоматично обновяване: новата версия се инсталира върху старата, настройките и чатовете остават."
+            echo "Пълно ръководство: ${readme}"
             echo
             echo "SHA-256:"
             echo
@@ -140,9 +238,11 @@ jobs:
             cat SHA256SUMS.txt
             echo '```'
           } > notes.md
-          gh release create "$GITHUB_REF_NAME" \
-            --verify-tag \
-            --prerelease \
-            --title "Тед за Windows $GITHUB_REF_NAME" \
-            --notes-file notes.md \
-            Ted-Setup-*-x64.exe SHA256SUMS.txt
+          title="Тед за Windows ${version}"
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            # Re-run of the same tag: replace the files and make sure the release is public and latest.
+            gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
+            gh release edit "$GITHUB_REF_NAME" --title "$title" --notes-file notes.md --draft=false --prerelease=false --latest
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --latest --title "$title" --notes-file notes.md "${assets[@]}"
+          fi

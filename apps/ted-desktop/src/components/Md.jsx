@@ -6,7 +6,7 @@ import { ted } from "../bridge.js";
 const LINK_OK = /^(https:\/\/|mailto:)/i;
 
 export function ExtLink({ href, children, className }) {
-  const go = (e) => { e.preventDefault(); if (LINK_OK.test(href)) ted.app.openExternal(href); };
+  const go = (e) => { e.preventDefault(); if (LINK_OK.test(href)) Promise.resolve(ted.app.openExternal(href)).catch(() => {}); };
   return <a className={className} href={href} rel="noopener noreferrer" onClick={go} onAuxClick={go}>{children}</a>;
 }
 

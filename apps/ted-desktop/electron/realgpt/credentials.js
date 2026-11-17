@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Credential record of the connected ChatGPT account (documented field names). It lives only in MAIN, inside the
-// encrypted secure store under the name "realgpt"; the renderer receives nothing but publicStatus().
+// encrypted secure store under the name "realgpt-<CRM user id>"; the renderer receives nothing but publicStatus().
 
 import { RgError } from './errors.js';
 import { DYNAMIC_CLIENT_ID, ISSUER, PLAN_SCOPE } from './oauth.js';
@@ -93,33 +93,44 @@ const usable = (record) =>
     ? record
     : null;
 
-export function createCredentials(secureStore) {
-  let cached = null;
-  let loaded = false;
+// `owner` binds the record to the signed-in CRM user: a function returning the CRM user id (null when signed out)
+// gives every CRM user an own record "realgpt-<id>", so a shared Windows account never hands one broker's ChatGPT
+// connection to the next. Without `owner` (unit tests of the module alone) there is one record "realgpt".
+// Every method takes an explicit slot, so a flow that started for one user never writes into another user's record.
+export function createCredentials(secureStore, owner) {
+  const cache = new Map(); // slot -> record (decrypted, MAIN memory only); emptied by forget()
+  const slot = () => {
+    if (typeof owner !== 'function') return STORE_NAME;
+    const id = owner();
+    return typeof id === 'string' && id ? `${STORE_NAME}-${id}` : null;
+  };
   return {
-    async load() {
-      if (!loaded) {
-        cached = usable(await secureStore.read(STORE_NAME));
-        loaded = true;
-      }
-      return cached;
+    slot,
+    async load(name = slot()) {
+      if (!name) return null;
+      if (!cache.has(name)) cache.set(name, usable(await secureStore.read(name)));
+      return cache.get(name);
     },
     // The secure store reports "encryption unavailable" by returning false; nothing is ever kept unencrypted.
-    async save(record) {
+    async save(record, name = slot()) {
+      if (!name) throw new RgError('signed_out');
       let written;
       try {
-        written = await secureStore.write(STORE_NAME, record);
+        written = await secureStore.write(name, record);
       } catch {
         written = false;
       }
       if (written === false) throw new RgError('storage');
-      cached = record;
-      loaded = true;
+      cache.set(name, record);
     },
-    async clear() {
-      await secureStore.remove(STORE_NAME);
-      cached = null;
-      loaded = true;
+    async clear(name = slot()) {
+      if (!name) return;
+      await secureStore.remove(name);
+      cache.set(name, null);
+    },
+    // Drops every decrypted record from memory (CRM sign-out or user change); the encrypted files stay.
+    forget() {
+      cache.clear();
     },
   };
 }

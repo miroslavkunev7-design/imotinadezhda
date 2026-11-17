@@ -1,25 +1,27 @@
 # electron-builder 26 configuration for "Тед за Windows".
 # Built only by the GitHub Actions workflow (.github/workflows/ted-desktop.yml) on windows-latest:
-#   npm run dist:win  ->  dist-installer/Ted-Setup-<version>-x64.exe + SHA256SUMS.txt
-# Option names were checked against node_modules/app-builder-lib/scheme.json (26.18.0).
+#   npm run dist:win  ->  dist-installer/Ted-Setup-<version>-x64.exe (+ win-unpacked/, SHA256SUMS.txt)
+# Every option name was checked against node_modules/app-builder-lib/scheme.json (26.18.0).
 
-appId: bg.imotinadezhda.ted
-# ASCII on purpose: it becomes the install folder, the userData folder and the .exe name.
-# The window title shown to the user is Bulgarian and is set at runtime.
+appId: bg.imotinadezhda.ted # main.js sets the same AppUserModelId
+# ASCII on purpose: it names the userData folder (%APPDATA%\Ted Imoti Nadezhda) and the program
+# in Windows. The window title shown to the user is Bulgarian and is set at runtime.
 productName: "Ted Imoti Nadezhda"
 copyright: "Copyright (c) Imoti Nadezhda"
 
 directories:
   output: dist-installer
-  buildResources: build
+  buildResources: build # never copied into app.asar
 
-# Only the built renderer and the main-process sources go into app.asar.
-# Production node_modules (jose) are added by electron-builder itself.
+# What goes into app.asar: the built renderer, the main-process sources and package.json.
+# Production dependencies (package.json "dependencies": jose) are collected from node_modules by
+# electron-builder itself; devDependencies (electron, vite, react, ...) never are.
 files:
   - dist/**
   - electron/**
   - package.json
   - "!**/*.map"
+  - "!**/*.test.*"
 asar: true
 
 # Licence texts next to the program (the fonts' OFL asks for the notice to travel with every copy).
@@ -34,13 +36,16 @@ win:
     - target: nsis
       arch:
         - x64
-  icon: build/icon.png # 512x512; electron-builder converts it to .ico
+  # Stable, space-free .exe name: the CI smoke test starts win-unpacked/TedImotiNadezhda.exe.
+  # It also names the default install folder: %LOCALAPPDATA%\Programs\TedImotiNadezhda.
+  executableName: TedImotiNadezhda
+  icon: build/icon.png # 512x512 PNG; converted to .ico for the program and the installer
   artifactName: "Ted-Setup-${version}-x64.${ext}"
   requestedExecutionLevel: asInvoker
 
 nsis:
   # Assisted per-user installer: no administrator rights, default folder under
-  # %LOCALAPPDATA%\Programs, and the user may pick another folder.
+  # %LOCALAPPDATA%\Programs, and the user may pick another folder. No path is hard-coded.
   oneClick: false
   perMachine: false
   allowElevation: false
@@ -58,17 +63,20 @@ nsis:
     - en_US
   # No auto-update, so no .blockmap next to the installer.
   differentialPackage: false
-  # Deliberately no `include:` script.
+  # Deliberately no `include:` / `script:` (no custom NSIS code).
 
-# Electron fuses, flipped in the packaged .exe by electron-builder (@electron/fuses).
+# Electron fuses, flipped in the packaged .exe by electron-builder (@electron/fuses) after packing.
+# The app is served from app://ted/ out of app.asar and never needs file:// or Node-style switches.
 electronFuses:
   runAsNode: false
   enableNodeOptionsEnvironmentVariable: false
   enableNodeCliInspectArguments: false
   onlyLoadAppFromAsar: true
+  # If the packaged smoke test ever fails because of this fuse, set only this one to false.
   enableEmbeddedAsarIntegrityValidation: true
   enableCookieEncryption: true
   grantFileProtocolExtraPrivileges: false
+  loadBrowserProcessSpecificV8Snapshot: false
 
-# Nothing is published from the build; the workflow uploads the installer itself.
+# Nothing is published by electron-builder; the workflow uploads and releases the installer itself.
 publish: null
