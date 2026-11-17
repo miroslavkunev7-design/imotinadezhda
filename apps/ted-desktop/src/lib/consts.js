@@ -54,7 +54,7 @@ export const EFFORTS = [
   { id: "none", name: "Мигновено" }, { id: "low", name: "Ниско" }, { id: "medium", name: "Средно" }, { id: "high", name: "Високо" }, { id: "xhigh", name: "Много високо" },
 ];
 export const effortName = (id) => (EFFORTS.find((e) => e.id === id) || { name: "Стандартно" }).name;
-export const RG_LIMITS = "Рисуването на OpenAI (gpt-image), Code Interpreter, търсенето на OpenAI, Codex и Agent mode на ChatGPT не се дават на външни програми. Тед ги замества със свои инструменти: снимки с Gemini, документи на този компютър, собствено търсене в интернет.";
+export const RG_LIMITS = "Рисуването на OpenAI (gpt-image), Code Interpreter, търсенето на OpenAI, Codex и Agent mode на ChatGPT не се дават на външни програми. Тед ги замества със свои инструменти: снимки със сървъра на Тед (Gemini, а при изчерпан лимит – GPT Image 2 през Vercel AI Gateway), документи на този компютър, собствено търсене в интернет.";
 
 // Чат | Работа (ChatGPT Chat | Work). Both have every capability; Работа allows longer multi-step work.
 export const MODES = [

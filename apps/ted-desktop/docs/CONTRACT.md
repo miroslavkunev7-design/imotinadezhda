@@ -911,7 +911,7 @@ names; no network.
 | Effort / Instant / Thinking | Усилие: Стандартно, Мигновено, Ниско, Средно, Високо, Много високо; „+ → Мислене“ | Real GPT only; an unsupported level is dropped with a note |
 | + Add photos & files | any file ≤ 20 MB, 10 per message (Real GPT); server engine: images/PDF + local text of Word/Excel/CSV/TXT | no audio/video input to the model (OpenAI route) |
 | Recent files | „Последни файлове ›“ from the Library | – |
-| Create image (gpt-image) | images.generate through Ted's server (Google Gemini); edit an attached image or a property photo | OpenAI image generation exists only in OpenAI's apps; results are labelled AI visualisation |
+| Create image (gpt-image) | images.generate through Ted's server (Google Gemini; when its free quota is used up – GPT Image 2 / FLUX through Vercel AI Gateway credits); edit an attached image or a property photo | OpenAI image generation exists only in OpenAI's apps; results are labelled AI visualisation |
 | Web search / browsing | local browsing from your PC: DuckDuckGo results + read_page (text, phones, e-mails, prices, photos as cards); Ted (server) uses Google grounding | Facebook/Instagram need a login and are not read; search may be rate-limited and says so |
 | Deep research | „Задълбочено проучване“: Работа limits, many sites, findings with links | stops at the limit and says so |
 | Canvas | Canvas: model edits as new versions, „Преглед“ (Markdown + sanitised SVG charts), export DOCX/PDF | documents only, no code canvas |
