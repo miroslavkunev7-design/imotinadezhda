@@ -1,0 +1,29 @@
+/* „Балонче“ (0.1.6): Ted's avatar in a burgundy-gold ring like the site's bubble (mobile/ash.js .nda-fab), drawn
+   inside a 64 px transparent window. Only the premium palette of premium.css (wine, champagne gold, ivory). */
+@font-face{font-family:TedText;src:url("../assets/fonts/roboto-condensed-latin-700-normal.woff2") format("woff2");font-weight:700;font-display:block}
+html,body{margin:0;padding:0;width:100%;height:100%;background:transparent;overflow:hidden;user-select:none;-webkit-user-select:none}
+body.no-bridge{background:transparent}
+#bubble-root{position:relative;width:100%;height:100%}
+.bub{position:absolute;inset:5px;border-radius:50%;border:0;padding:0;margin:0;cursor:grab;display:grid;place-items:center;outline:none;
+  background:radial-gradient(circle at 36% 30%,#fffbea 0%,#fff3c4 16%,#f6cf6c 50%,#e0a63a 78%,#c98a22 100%);
+  box-shadow:inset 0 2px 5px rgba(255,255,255,.8),inset 0 -5px 10px rgba(150,85,10,.38),0 0 0 2px #7d1530,0 0 0 3.5px #e8c27a,0 2px 4px rgba(40,4,12,.45);
+  transition:transform .15s ease}
+.bub:hover{transform:scale(1.03)}
+.bub:active,.bub.drag{cursor:grabbing;transform:scale(.97)}
+.bub:focus-visible{box-shadow:inset 0 2px 5px rgba(255,255,255,.8),inset 0 -5px 10px rgba(150,85,10,.38),0 0 0 2px #7d1530,0 0 0 4px #fff3c4}
+.bub img{width:38px;height:38px;object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(40,0,10,.45))}
+/* Ted is working: a soft champagne ring fades in and out (opacity only – cheap, no animated shadow). */
+.bub::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid #f6d68c;opacity:0;pointer-events:none}
+.bub.working::after{animation:bubPulse 1.6s ease-in-out infinite}
+@keyframes bubPulse{0%,100%{opacity:0}50%{opacity:.95}}
+/* Unread badge: wine coin with a gold rim (the site's .nda-fab .n), towards the screen centre. */
+.bub-n{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;display:grid;place-items:center;
+  font:700 12px/1 TedText,"Roboto Condensed",Arial,sans-serif;color:#fff;background:radial-gradient(circle at 35% 30%,#d23a5a,#9a1a3f 60%,#5e1129);
+  border:1.5px solid #f3d38f;pointer-events:none}
+.bub[data-side="right"] .bub-n{right:auto;left:-5px}
+.bub-n.att{background:radial-gradient(circle at 35% 30%,#e0a63a,#a86a14 70%);color:#2a0410}
+.bub-n[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){
+  .bub{transition:none}
+  .bub.working::after{animation:none;opacity:.95}
+}

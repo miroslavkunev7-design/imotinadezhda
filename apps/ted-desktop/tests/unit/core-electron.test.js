@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { createHandlers, registerIpc, createAppApi } from "../../electron/ipc.js";
 import { createAppHandler, resolveAsset, CSP, SCHEME, APP_URL } from "../../electron/protocol.js";
 import { installSecurity, createOriginCheck, externalUrl } from "../../electron/security.js";
-import { createMainWindow, webPreferences, usableBounds } from "../../electron/window.js";
+import { createMainWindow, createBubbleWindow, webPreferences, usableBounds } from "../../electron/window.js";
 import { READ_ONLY } from "../../electron/backend/tools.js";
 import { TED_SURFACE } from "../../electron/smoke.js";
 
@@ -19,7 +19,7 @@ let dir;
 beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), "ted-core-el-")); });
 afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }); });
 
-// The window.ted surface of docs/CONTRACT.md §2 and §8 (0.1.3).
+// The window.ted surface of docs/CONTRACT.md §2 and §8 (0.1.3) and §22 (0.1.6 „Балонче“).
 const SURFACE = {
   app: ["info", "setCompact", "getLaunchAtLogin", "setLaunchAtLogin", "openLogs", "openExternal", "copy", "saveFile", "storage", "clearTemp", "reportProblem"],
   auth: ["state", "login", "logout", "onChange"],
@@ -38,11 +38,12 @@ const SURFACE = {
   projects: ["assign", "saveAnswer", "exportZip", "saveToCrm"],
   scheduled: ["list", "save", "remove", "onDue"],
   updates: ["state", "check", "setAuto", "download", "install", "onChange"],
+  window: ["bubble", "miniChat", "restore", "state", "onMode"],
 };
 const SUBSCRIPTIONS = {
   "auth.onChange": "ted:auth.changed", "realgpt.onDelta": "ted:realgpt.delta", "realgpt.onEvent": "ted:realgpt.event",
   "video.onEvent": "ted:video.event", "library.onChange": "ted:library.changed", "scheduled.onDue": "ted:scheduled.due",
-  "updates.onChange": "ted:updates.changed",
+  "updates.onChange": "ted:updates.changed", "window.onMode": "ted:window.mode",
 };
 
 // Records calls into fake services; individual tests override what they need.
@@ -163,7 +164,7 @@ describe("ipc registration", () => {
 
   it("registers one handler per channel, all named ted:<group>.<fn>", () => {
     const { handlers, channels } = register();
-    expect(channels).toHaveLength(67); // 74 window.ted functions minus the 7 subscriptions (0.1.5: + browse.image, + 4 projects)
+    expect(channels).toHaveLength(71); // 79 window.ted functions minus the 8 subscriptions (0.1.5: + browse.image, + 4 projects; 0.1.6: + 4 window)
     expect([...handlers.keys()]).toEqual(channels);
     for (const c of channels) expect(c).toMatch(/^ted:[a-z]+\.[A-Za-z]+$/);
   });
@@ -186,6 +187,60 @@ describe("ipc registration", () => {
     }
     expect(calls).toHaveLength(0);
     expect(logged.every(([event]) => event === "ipc.rejected")).toBe(true);
+  });
+
+  // 0.1.6: the bubble window shows a page of the same origin; MAIN tells the windows apart by identity.
+  it("refuses a call from any window but the main one when isMainSender is given", async () => {
+    const handlers = new Map();
+    const { calls, deps } = services();
+    registerIpc({ ipcMain: { handle: (c, fn) => handlers.set(c, fn) }, isTrusted: createOriginCheck(null), isMainSender: (e) => !!e.sender && e.sender.id === 1, ...deps });
+    const frame = { url: "app://ted/index.html", parent: null };
+    expect(await handlers.get("ted:app.info")({ senderFrame: frame, sender: { id: 1 } })).toMatchObject({ version: "0.1.0" });
+    for (const sender of [{ id: 2 }, null, undefined]) {
+      for (const [channel, fn] of handlers) await expect(fn({ senderFrame: { url: "app://ted/bubble.html", parent: null }, sender }), channel).rejects.toThrow("forbidden");
+      await expect(handlers.get("ted:app.info")({ senderFrame: frame, sender })).rejects.toThrow("forbidden");
+    }
+    expect(calls.filter((c) => c[0] !== "app.info")).toEqual([]);
+  });
+
+  it("observe(channel) is told when a call has finished, also after an exception (the bubble's pulse and badge)", async () => {
+    const handlers = new Map();
+    const seen = [];
+    const { deps } = services({ assistant: { models: () => { throw new Error("x"); }, chat: () => ({ ok: true, text: "t" }), cancel: () => ({ ok: true }) } });
+    registerIpc({
+      ipcMain: { handle: (c, fn) => handlers.set(c, fn) }, isTrusted: createOriginCheck(null), log: { warn() {}, error() {}, info() {} },
+      observe: (channel) => { seen.push(["start", channel]); return (r) => seen.push(["done", channel, r && r.ok]); }, ...deps,
+    });
+    const ev = { senderFrame: { url: "app://ted/index.html", parent: null } };
+    await handlers.get("ted:api.chat")(ev, { requestId: "r", messages: [{ role: "user", text: "x" }] });
+    await handlers.get("ted:api.models")(ev);
+    expect(seen).toEqual([["start", "ted:api.chat"], ["done", "ted:api.chat", true], ["start", "ted:api.models"], ["done", "ted:api.models", null]]);
+    // A refused sender is never observed.
+    await expect(handlers.get("ted:api.chat")({ senderFrame: { url: "https://evil.example/" } }, {})).rejects.toThrow("forbidden");
+    expect(seen).toHaveLength(4);
+  });
+
+  it("window group: no arguments are read; the answers carry only ok and a known mode", async () => {
+    const handlers = new Map();
+    const got = [];
+    const windowApi = {
+      bubble: (...a) => { got.push(["bubble", a]); return { ok: true, mode: "bubble", secret: "x" }; },
+      miniChat: async (...a) => { got.push(["mini", a]); return { ok: true, mode: "mini" }; },
+      restore: (...a) => { got.push(["restore", a]); return { ok: true, mode: "weird" }; },
+      state: () => ({ mode: "mini", other: 1 }),
+    };
+    registerIpc({ ipcMain: { handle: (c, fn) => handlers.set(c, fn) }, isTrusted: createOriginCheck(null), ...services().deps, windowApi });
+    const ev = { senderFrame: { url: "app://ted/index.html", parent: null } };
+    expect(await handlers.get("ted:window.bubble")(ev, { x: 1 })).toEqual({ ok: true, mode: "bubble" });
+    expect(await handlers.get("ted:window.miniChat")(ev, "a", "b")).toEqual({ ok: true, mode: "mini" });
+    expect(await handlers.get("ted:window.restore")(ev)).toEqual({ ok: true, mode: "normal" });
+    expect(await handlers.get("ted:window.state")(ev)).toEqual({ mode: "mini" });
+    expect(got).toEqual([["bubble", []], ["mini", []], ["restore", []]]);
+    // Without a controller (no window yet) nothing floats.
+    const bare = new Map();
+    registerIpc({ ipcMain: { handle: (c, fn) => bare.set(c, fn) }, isTrusted: createOriginCheck(null), ...services().deps });
+    expect(await bare.get("ted:window.bubble")(ev)).toEqual({ ok: false, mode: "normal" });
+    expect(await bare.get("ted:window.state")(ev)).toEqual({ mode: "normal" });
   });
 
   it("accepts the dev server origin only when it was configured", async () => {
@@ -683,6 +738,7 @@ describe("window", () => {
       isFullScreen() { return false; }
       setFullScreen() {}
       isVisible() { return this.shown; }
+      setAlwaysOnTop(on, level) { this.top = on ? level : null; }
       isMaximized() { return this.maximized; }
       maximize() { this.normalBounds = { ...this.bounds }; this.maximized = true; }
       unmaximize() { this.maximized = false; if (this.normalBounds) this.bounds = { ...this.normalBounds }; }
@@ -796,6 +852,45 @@ describe("window", () => {
     expect(win.options).toMatchObject({ x: 300, y: 60, width: 420, height: 860 });
     ui.setCompact(false);
     expect(win.bounds).toEqual({ x: 300, y: 60, width: 1366, height: 860 });
+  });
+
+  // 0.1.6 „Балонче“: while the window floats (hidden behind the bubble or as the mini chat) its bounds are never
+  // remembered as the normal ones, and the compact switch waits for the normal window.
+  it("floating: the remembered state stays the one from before; compact is refused until the normal window is back", () => {
+    const { ui, win, saved } = open({ bounds: { x: 300, y: 60, width: 1366, height: 860 } });
+    win.maximize(); // pressed „Балонче“ right away: the debounced save has not run yet
+    win.events.resize();
+    ui.setFloating(true);
+    expect(ui.isFloating()).toBe(true);
+    win.unmaximize();
+    win.bounds = { x: 1500, y: 300, width: 400, height: 640 }; // the mini chat
+    win.events.close();
+    expect(saved()).toMatchObject({ bounds: { x: 300, y: 60, width: 1366, height: 860 }, maximized: true, compact: false });
+    expect(ui.setCompact(true)).toMatchObject({ ok: false });
+    expect(win.bounds).toEqual({ x: 1500, y: 300, width: 400, height: 640 });
+    win.bounds = { x: 300, y: 60, width: 1366, height: 860 };
+    ui.setFloating(false);
+    expect(saved()).toMatchObject({ bounds: { x: 300, y: 60, width: 1366, height: 860 }, maximized: false });
+    expect(ui.setCompact(true)).toEqual({ ok: true });
+  });
+
+  it("the bubble window: 64 px, frameless, transparent, always on top, no taskbar button, hardened, its own preload", async () => {
+    const el = fakeElectron();
+    const logged = [];
+    const { win, ready } = createBubbleWindow({ BrowserWindow: el.BrowserWindow, preload: "/app/electron/preload-bubble.cjs", url: "app://ted/bubble.html", packaged: true, platform: "win32", log: { error: (e) => logged.push(e) } });
+    expect(win.options).toMatchObject({
+      width: 64, height: 64, show: false, frame: false, transparent: true, backgroundColor: "#00000000", hasShadow: false, resizable: false,
+      minimizable: false, maximizable: false, fullscreenable: false, skipTaskbar: true, alwaysOnTop: true, focusable: true, type: "toolbar", title: "Тед – балонче",
+    });
+    expect(win.options.webPreferences).toEqual(webPreferences({ preload: "/app/electron/preload-bubble.cjs", packaged: true }));
+    expect(win.top).toBe("floating");
+    expect(win.url).toBe("app://ted/bubble.html");
+    expect(win.shown).toBe(false);
+    win.onceEvents["ready-to-show"]();
+    expect(await ready).toBe(true);
+    // Not a tool window outside Windows.
+    expect(createBubbleWindow({ BrowserWindow: el.BrowserWindow, preload: "p", url: "u", packaged: false, platform: "linux" }).win.options.type).toBeUndefined();
+    expect(logged).toEqual([]);
   });
 
   it("offers a Bulgarian edit menu on right click, only where it makes sense", () => {

@@ -13,17 +13,17 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 const sortedSurface = (o) => Object.fromEntries(Object.keys(o).sort().map((k) => [k, [...o[k]].sort()]));
 
 describe("window.ted surface", () => {
-  it("CONTRACT.md §2 + §8 list exactly the surface the smoke test checks", () => {
+  it("CONTRACT.md §2 + §8 + §22 list exactly the surface the smoke test checks", () => {
     const contract = read("docs/CONTRACT.md");
     const section = (n) => contract.split(new RegExp(`^## ${n}\\.`, "m"))[1].split(/^## \d+\./m)[0];
-    const block = section(2) + section(8);
+    const block = section(2) + section(8) + section(22);
     const found = {};
     const add = (g, fn) => { found[g] = found[g] || []; if (!found[g].includes(fn)) found[g].push(fn); };
     for (const m of block.matchAll(/^ted\.(\w+)\.(\w+)\(/gm)) add(m[1], m[2]);
-    // §8.10 names the new subscriptions: "Subscriptions in preload: `realgpt.onEvent`, `video.onEvent`, …".
-    const subs = /Subscriptions in preload:([\s\S]*?)(\n\n|$)/.exec(block);
-    expect(subs).not.toBeNull();
-    for (const m of subs[1].matchAll(/`(\w+)\.(\w+)`/g)) add(m[1], m[2]);
+    // §8.10 and §22 name the new subscriptions: "Subscriptions in preload: `realgpt.onEvent`, `video.onEvent`, …".
+    const subs = [...block.matchAll(/Subscriptions in preload:([\s\S]*?)(\n\n|$)/g)];
+    expect(subs).toHaveLength(2);
+    for (const sub of subs) for (const m of sub[1].matchAll(/`(\w+)\.(\w+)`/g)) add(m[1], m[2]);
     expect(sortedSurface(found)).toEqual(sortedSurface(TED_SURFACE));
   });
 
@@ -108,8 +108,13 @@ describe("window.ted surface", () => {
       expect(pushed).toEqual(subscribed);
       const s810 = read("docs/CONTRACT.md").split(/^### 8\.10/m)[1].split(/^### /m)[0];
       const listed = [...s810.matchAll(/`(ted:[\w.]+)`/g)].map((m) => m[1]);
-      // 0.1.2 (§2) had auth.changed and realgpt.delta; §8.10 lists the new ones.
-      expect([...listed, "ted:auth.changed", "ted:realgpt.delta"].sort()).toEqual(subscribed);
+      // §22 (0.1.6): "Subscriptions in preload: `window.onMode` (channel `ted:window.mode`)."
+      const s22 = read("docs/CONTRACT.md").split(/^## 22\./m)[1];
+      const sub22 = /Subscriptions in preload:([^\n]*)/.exec(s22)[1];
+      const listed22 = [...sub22.matchAll(/`(ted:[\w.]+)`/g)].map((m) => m[1]);
+      expect(listed22).toEqual(["ted:window.mode"]);
+      // 0.1.2 (§2) had auth.changed and realgpt.delta; §8.10 lists the 0.1.3 ones, §22 the 0.1.6 one.
+      expect([...listed, ...listed22, "ted:auth.changed", "ted:realgpt.delta"].sort()).toEqual(subscribed);
       expect(SUBS.map(([g, fn]) => `${g}.${fn}`).sort()).toEqual(
         Object.entries(TED_SURFACE).flatMap(([g, fns]) => fns.filter((fn) => /^on[A-Z]/.test(fn)).map((fn) => `${g}.${fn}`)).sort());
     });
@@ -122,7 +127,8 @@ describe("window.ted surface", () => {
     const unused = Object.entries(TED_SURFACE).flatMap(([g, fns]) => fns.map((fn) => `${g}.${fn}`))
       .filter((k) => !new RegExp(`\\bted\\.${k.replace(".", "\\.")}\\b`).test(src));
     // files.forget is called through the ted.files object handed to lib/files.js addFiles().
-    expect(unused).toEqual(["files.forget"]);
+    // window.miniChat (0.1.6, §22): the employee reaches the mini chat through the bubble (MAIN's own path).
+    expect(unused).toEqual(["files.forget", "window.miniChat"]);
     expect(read("src/lib/files.js")).toMatch(/files\.forget\(/);
   });
 
@@ -141,7 +147,44 @@ describe("window.ted surface", () => {
 });
 
 // Every subscription of the surface (on* functions).
-const SUBS = [["auth", "onChange"], ["realgpt", "onDelta"], ["realgpt", "onEvent"], ["video", "onEvent"], ["library", "onChange"], ["scheduled", "onDue"], ["updates", "onChange"]];
+const SUBS = [["auth", "onChange"], ["realgpt", "onDelta"], ["realgpt", "onEvent"], ["video", "onEvent"], ["library", "onChange"], ["scheduled", "onDue"], ["updates", "onChange"], ["window", "onMode"]];
+
+// 0.1.6 „Балонче“ (§22): the bubble window has its own preload and channels, documented in the contract.
+describe("bubble window bridge", () => {
+  const preload = read("electron/preload-bubble.cjs");
+  const bubble = read("electron/bubble.js");
+  const s22 = read("docs/CONTRACT.md").split(/^## 22\./m)[1] || "";
+
+  it("preload-bubble.cjs exposes only window.tedBubble with the §22 functions, each on its own ted-bubble: channel", () => {
+    expect([...preload.matchAll(/exposeInMainWorld\("(\w+)"/g)].map((m) => m[1])).toEqual(["tedBubble"]);
+    const fns = [...preload.matchAll(/^ {2}(\w+): \(/gm)].map((m) => m[1]);
+    const documented = [...s22.matchAll(/^tedBubble\.(\w+)\(/gm)].map((m) => m[1]);
+    expect(fns.sort()).toEqual([...documented].sort());
+    const invoked = [...preload.matchAll(/invoke\("(ted-bubble:\w+)"/g)].map((m) => m[1]);
+    expect(invoked.sort()).toEqual(fns.filter((f) => f !== "onState").map((f) => "ted-bubble:" + f).sort());
+    // Exactly the channels registerBubbleIpc handles, and one push channel.
+    const handled = [...bubble.matchAll(/^ {4}"(ted-bubble:\w+)": /gm)].map((m) => m[1]);
+    expect(handled.sort()).toEqual(invoked.sort());
+    expect([...preload.matchAll(/ipcRenderer\.on\("([\w:.-]+)"/g)].map((m) => m[1])).toEqual(["ted-bubble:state"]);
+    expect(bubble).toContain('BUBBLE_STATE = "ted-bubble:state"');
+    // Nothing of the main bridge, no generic invoke, no other module.
+    expect(preload).not.toMatch(/"ted:/);
+    expect(preload).not.toMatch(/ipcRenderer\.(send|sendSync|postMessage|sendToHost)\b/);
+    expect(preload).not.toMatch(/require\((?!"electron"\))/);
+    const code = preload.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+    expect(code).not.toMatch(/\b(crm|realgpt|openai|fetch|files|api|chat|store|auth)\b/i);
+  });
+
+  it("bubble.html carries the same CSP and is built as a second page; the bubble renderer uses only tedBubble", () => {
+    const meta = read("bubble.html").match(/http-equiv="Content-Security-Policy" content="([^"]*)"/);
+    expect(meta && meta[1]).toBe(META_CSP);
+    expect(read("vite.config.mjs")).toMatch(/bubble: fileURLToPath\(new URL\("\.\/bubble\.html"/);
+    expect(read("scripts/check-bundle.mjs")).toMatch(/"index\.html", "bubble\.html"/);
+    const src = read("src/bubble/bubble.js");
+    expect(src).not.toMatch(/window\.ted\b(?!Bubble)|from "\.\.\/bridge\.js"/);
+    expect(src).toMatch(/import\.meta\.env\.MODE === "mock"/); // the mock is dead code in the production build
+  });
+});
 
 describe("CSP", () => {
   it("index.html carries META_CSP: the header policy without frame-ancestors", () => {
@@ -155,7 +198,7 @@ describe("CSP", () => {
 describe("README ↔ CONTRACT", () => {
   const rows = (text) => text.split("\n").filter((l) => /^\| /.test(l) && !/^\|---/.test(l)).length;
   it("README carries the parity table of CONTRACT §20 (same rows) and the updater facts", () => {
-    const s20 = read("docs/CONTRACT.md").split(/^## 20\./m)[1];
+    const s20 = read("docs/CONTRACT.md").split(/^## 20\./m)[1].split(/^## \d+\./m)[0];
     const readme = read("README.md");
     const table = readme.split(/^## ChatGPT → Тед за Windows$/m)[1].split(/^## /m)[0];
     expect(rows(table)).toBe(rows(s20));

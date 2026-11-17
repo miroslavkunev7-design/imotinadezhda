@@ -29,6 +29,7 @@ const RULES = [
   { kind: "demo", name: "демо данни (C-2201)", re: new RegExp(B + "C-2201", "g") },
   { kind: "demo", name: "демо етикет (ДЕМО)", re: /ДЕМО/gu }, // the prototype's ribbon; case-sensitive on purpose
   { kind: "demo", name: "мок мост (bridge.mock)", re: /bridge\.mock/g },
+  { kind: "demo", name: "мок на балончето (bubble.mock / __tedBubbleMock)", re: /bubble\.mock|__tedBubbleMock/g },
   // Runtime hooks of the approved web prototype, which must never reach the program.
   { kind: "demo", name: "прототип (cap.sample)", re: /cap\.sample/g },
   { kind: "demo", name: "прототип (window.claude)", re: /window\.claude/g },
@@ -83,8 +84,9 @@ for (const dir of dirs) {
     continue;
   }
   const list = walk(dir);
-  if (dir === path.join(root, "dist") && !fs.existsSync(path.join(dir, "index.html"))) {
-    problems.push({ rule: "непълен билд", where: show(dir), shown: "липсва index.html" });
+  // 0.1.6: the „Балонче“ window has its own page (app://ted/bubble.html).
+  for (const page of dir === path.join(root, "dist") ? ["index.html", "bubble.html"] : []) {
+    if (!fs.existsSync(path.join(dir, page))) problems.push({ rule: "непълен билд", where: show(dir), shown: "липсва " + page });
   }
   for (const file of list) {
     files += 1;

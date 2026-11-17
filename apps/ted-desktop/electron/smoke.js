@@ -12,7 +12,7 @@ import path from "node:path";
 
 export const SMOKE_TIMEOUT_MS = 90000;
 
-// The window.ted surface of docs/CONTRACT.md §2 + §8 (also pinned by tests/unit/core-electron.test.js).
+// The window.ted surface of docs/CONTRACT.md §2 + §8 + §22 (also pinned by tests/unit/core-electron.test.js).
 export const TED_SURFACE = {
   app: ["info", "setCompact", "getLaunchAtLogin", "setLaunchAtLogin", "openLogs", "openExternal", "copy", "saveFile", "storage", "clearTemp", "reportProblem"],
   auth: ["state", "login", "logout", "onChange"],
@@ -31,6 +31,7 @@ export const TED_SURFACE = {
   projects: ["assign", "saveAnswer", "exportZip", "saveToCrm"],
   scheduled: ["list", "save", "remove", "onDue"],
   updates: ["state", "check", "setAuto", "download", "install", "onChange"],
+  window: ["bubble", "miniChat", "restore", "state", "onMode"], // 0.1.6 „Балонче“ (§22)
 };
 
 // null when the program runs normally.
@@ -132,7 +133,7 @@ async function freePort() {
 const sorted = (o) => Object.fromEntries(Object.keys(o).sort().map((k) => [k, [...o[k]].sort()]));
 
 // Runs every check and returns the report. Never throws: a crash becomes a failed check.
-export async function runSmoke({ win, appUrl, csp, metaCsp, appFetch, backendFetch, createHttp, shell, external, windowCount, info, shot }) {
+export async function runSmoke({ win, appUrl, csp, metaCsp, appFetch, backendFetch, createHttp, shell, external, windowCount, bubbleOpen, info, shot }) {
   const t0 = Date.now();
   const checks = [];
   const consoleErrors = [];
@@ -211,6 +212,8 @@ export async function runSmoke({ win, appUrl, csp, metaCsp, appFetch, backendFet
     const still = wc.getURL() === appUrl && (await js(`typeof window.ted === "object" && !!document.querySelector("#lg-pw")`));
     check("navigation to https://example.com blocked", still && !external.some((u) => u.includes("ted-smoke-navigation")), wc.getURL());
     check("renderer made no external requests", external.length === 0, external);
+    // „Балонче“ (0.1.6): the bubble window is made only when the employee asks for it – never by a smoke run.
+    check("no bubble window was opened (only the main window exists)", windowCount() === 1 && !(bubbleOpen && bubbleOpen()), { windows: windowCount() });
     // Automatic updates never run in a smoke test (electron/updater.js: disabled with --smoke-test).
     check("updater is off in the smoke test", info.updater === "off", info.updater);
 

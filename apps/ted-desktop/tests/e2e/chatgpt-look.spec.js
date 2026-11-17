@@ -301,7 +301,7 @@ test("coloured icons: every „+“ menu item (all levels), sidebar row and acco
   expect(caseIcons.length).toBeGreaterThan(1);
   await page.getByTestId("me-btn").click();
   items = await menuIcons(page);
-  expect(items.map((x) => x.ci)).toEqual(["gear", "help", "monitor", "logout"]);
+  expect(items.map((x) => x.ci)).toEqual(["gear", "help", "monitor", "bubble", "logout"]); // 0.1.6: + „Балонче“
   await page.keyboard.press("Escape");
   await g.check();
 });

@@ -247,6 +247,25 @@ button,input,textarea,select{font-kerning:normal}
 .b.earlier{align-self:center;min-height:32px;padding:4px 14px;font-size:13px;color:#6e1430}
 .b.earlier svg.up{transform:rotate(180deg)}
 
+/* ---------- „Балонче“ (0.1.6): the title-bar button next to the Windows caption buttons and the mini chat's header ---------- */
+.winbar .wbtn.wbub{width:auto;display:inline-flex;align-items:center;gap:6px;padding:0 12px 0 10px;margin-left:2px;color:var(--p-gold-2);
+  font:700 13px/1 var(--f-text);letter-spacing:.03em;border-left:1px solid rgba(230,201,140,.18)}
+.winbar .wbtn.wbub svg.i{width:17px;height:17px;color:var(--p-gold)}
+.winbar .wbtn.wbub:hover{background:rgba(255,240,215,.1);color:var(--p-champagne)}
+.winbar .wbtn.wbub:hover svg.i{color:var(--p-gold-3)}
+.winbar .wbtn:focus-visible{outline:2px solid var(--p-gold-2);outline-offset:-3px}
+.shell.phone .winbar .wq + .wbub{margin-left:0}
+@media (max-width:400px){.winbar .wbtn.wbub .wbub-t{display:none}.winbar .wbtn.wbub{padding:0 12px}}
+/* The mini chat (always on top, about 400×640): its header keeps the drag bar and the room for the caption buttons. */
+.winbar.mini-bar{gap:6px}
+.winbar.mini-bar.no-wco{padding-right:6px} /* no Windows caption buttons (a browser): the header draws its own „–“ */
+.winbar.mini-bar b{margin-right:auto}
+.winbar.mini-bar .wbtn{width:auto;height:28px;min-width:30px;padding:0 9px;border-radius:8px;color:var(--p-gold-2);font:700 12.5px/1 var(--f-text);letter-spacing:.02em}
+.winbar.mini-bar .mini-normal{gap:5px;display:inline-flex;align-items:center;border:1px solid rgba(230,201,140,.4);background:rgba(255,240,215,.06)}
+.winbar.mini-bar .mini-normal span{font-size:14px}
+.winbar.mini-bar .mini-b span{font-size:18px;line-height:1;transform:translateY(-1px)}
+.winbar.mini-bar .wbtn:hover{background:rgba(255,240,215,.12);color:var(--p-champagne)}
+
 /* ---------- prefers-reduced-motion: nothing moves ---------- */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}

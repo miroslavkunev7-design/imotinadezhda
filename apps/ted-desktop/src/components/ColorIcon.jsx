@@ -174,6 +174,14 @@ const ART = {
     <circle cx="11.4" cy="12" r="1" fill="#ffd77a" />
     <path d="M14.6 12h7M18.6 8.6L22 12l-3.4 3.4" fill="none" stroke="#e5484d" strokeWidth="2.1" {...S} />
   </>,
+  // 0.1.6 „Балонче“: a golden bubble in a wine ring (the bubble at the screen edge) with three chat dots.
+  bubble: <>
+    <path d="M7.4 18.2L5 22l4.9-2.3z" fill="#7d1530" />
+    <circle cx="12" cy="11" r="9.3" fill="#7d1530" />
+    <circle cx="12" cy="11" r="7.6" fill="#f6cf6c" stroke="#e0a63a" strokeWidth=".8" />
+    <circle cx="9.6" cy="8.4" r="2.4" fill="#fff3c4" />
+    <circle cx="8.8" cy="11.6" r="1.05" fill="#7d1530" /><circle cx="12" cy="11.6" r="1.05" fill="#7d1530" /><circle cx="15.2" cy="11.6" r="1.05" fill="#7d1530" />
+  </>,
   sliders: <>
     <path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" stroke="#a3adba" strokeWidth="1.9" {...S} />
     <circle cx="9" cy="6.5" r="2.5" fill="#ff5a4f" stroke="#fff" strokeWidth="1" />

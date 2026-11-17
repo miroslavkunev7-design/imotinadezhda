@@ -1,5 +1,6 @@
-// The single application window: hardened webPreferences, Windows caption buttons drawn over the
-// app's own title bar, remembered size/position and the compact (phone layout) mode.
+// The application window: hardened webPreferences, Windows caption buttons drawn over the app's own title bar,
+// remembered size/position and the compact (phone layout) mode. 0.1.6: the „Балонче“ window (createBubbleWindow) and
+// the floating state of the main window (electron/bubble.js), whose bounds are never remembered as the normal ones.
 export const TITLE = "Тед – Имоти Надежда";
 export const DEFAULT_SIZE = { width: 1366, height: 860 };
 export const COMPACT_SIZE = { width: 420, height: 860 };
@@ -45,6 +46,7 @@ export function createMainWindow({ BrowserWindow, screen, Menu, state, preload, 
   let normal = usableBounds(saved.bounds, screen.getAllDisplays()); // bounds of the full-size layout
   let maximized = !!saved.maximized;
   let compact = !!saved.compact;
+  let floating = false; // 0.1.6: hidden behind the bubble or shown as the mini chat (electron/bubble.js)
 
   const start = normal
     ? (compact ? { x: normal.x, y: normal.y, ...COMPACT_SIZE } : normal)
@@ -65,7 +67,7 @@ export function createMainWindow({ BrowserWindow, screen, Menu, state, preload, 
 
   function save() {
     if (win.isDestroyed()) return;
-    if (!compact && !win.isMinimized() && !win.isFullScreen()) {
+    if (!compact && !floating && !win.isMinimized() && !win.isFullScreen()) {
       normal = win.getNormalBounds();
       maximized = win.isMaximized();
     }
@@ -88,6 +90,8 @@ export function createMainWindow({ BrowserWindow, screen, Menu, state, preload, 
   function setCompact(on) {
     const want = !!on;
     if (want === compact || win.isDestroyed()) return { ok: true };
+    // The mini chat has its own size; the compact switch applies again in the normal window.
+    if (floating) return { ok: false, error: "В балончето размерът се връща с „Нормален прозорец“." };
     if (want) {
       if (win.isFullScreen()) win.setFullScreen(false);
       normal = win.getNormalBounds();
@@ -148,5 +152,46 @@ export function createMainWindow({ BrowserWindow, screen, Menu, state, preload, 
 
   win.loadURL(url).catch((e) => { if (log) log.error("window.load_failed", { message: e.message }); });
 
-  return { win, setCompact, isCompact: () => compact };
+  // While floating, the remembered state stays the one from before (bounds, maximised): a quit from the bubble or
+  // the mini chat starts the next run in the normal window exactly as it was.
+  function setFloating(on) {
+    const want = !!on;
+    if (want && !floating) { clearTimeout(saveTimer); save(); } // the state of the normal window as it is right now
+    floating = want;
+    if (!floating) save();
+  }
+
+  return { win, setCompact, isCompact: () => compact, setFloating, isFloating: () => floating };
+}
+
+export const BUBBLE_TITLE = "Тед – балонче";
+
+// The bubble (0.1.6): a small frameless, transparent, round, always-on-top window without a taskbar button, with the
+// same hardened webPreferences as the main window and its own preload (preload-bubble.cjs: only the bubble's moves
+// and clicks – no CRM, ChatGPT or network function). Shown with showInactive(): it never takes the focus by itself.
+// Returns {win, ready}; ready resolves when the page can be shown.
+export function createBubbleWindow({ BrowserWindow, preload, url, packaged, log, platform, size = 64 }) {
+  const win = new BrowserWindow({
+    width: size, height: size, show: false, frame: false, transparent: true, backgroundColor: "#00000000", hasShadow: false,
+    resizable: false, minimizable: false, maximizable: false, fullscreenable: false, skipTaskbar: true, alwaysOnTop: true,
+    focusable: true, thickFrame: false, roundedCorners: false, autoHideMenuBar: true, title: BUBBLE_TITLE,
+    // Windows: a tool window – no taskbar button and no Alt+Tab entry.
+    ...(platform === "win32" ? { type: "toolbar" } : {}),
+    webPreferences: webPreferences({ preload, packaged }),
+  });
+  win.setAlwaysOnTop(true, "floating");
+  const ready = new Promise((resolve) => {
+    win.once("ready-to-show", () => resolve(true));
+    win.webContents.on("did-fail-load", (_event, code, description, _failedUrl, isMainFrame) => {
+      if (!isMainFrame) return;
+      if (log) log.error("bubble.load_failed", { errorCode: code, description });
+      resolve(false);
+    });
+  });
+  win.webContents.on("render-process-gone", (_event, details) => {
+    if (log) log.error("bubble.renderer_gone", { reason: details && details.reason });
+    if (!win.isDestroyed()) win.destroy(); // electron/bubble.js brings the normal window back
+  });
+  win.loadURL(url).catch((e) => { if (log) log.error("bubble.load_failed", { message: e.message }); });
+  return { win, ready };
 }

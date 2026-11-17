@@ -176,9 +176,15 @@ const rgStep = (s) => (isObj(s) ? { ...s } : s);
 export const IMAGE_URL_MAX = 2048;
 export const IMAGE_MAX = 8 * MB;
 
-export function createHandlers({ appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance }) {
+// „Балонче“ (0.1.6, electron/bubble.js): the window modes. Without a controller (unit tests) nothing floats.
+const NO_WINDOW = { bubble: () => ({ ok: false, mode: "normal" }), miniChat: () => ({ ok: false, mode: "normal" }), restore: () => ({ ok: false, mode: "normal" }), state: () => ({ mode: "normal" }) };
+const MODES = ["normal", "bubble", "mini"];
+const winResult = (r) => ({ ok: !!(r && r.ok), mode: r && MODES.includes(r.mode) ? r.mode : "normal" });
+
+export function createHandlers({ appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance, windowApi }) {
   // Pictures MAIN itself handed to the window (browse/provenance.js); without one nothing loads without a click.
   const imgProv = imageProvenance || createImageProvenance();
+  const win = windowApi || NO_WINDOW;
   const chatInvalid = (error) => ({ ok: false, error, code: "invalid", maybeExecuted: false });
   // {ok:true, result} | {ok:false, error} for the dedicated write channels.
   const written = (r) => (r.ok ? { ok: true, result: r.result } : { ok: false, error: r.error, ...(r.maybeExecuted ? { maybeExecuted: true } : {}) });
@@ -347,7 +353,7 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
       return r && r.ok ? { ok: true, consent: choice } : rgError(r);
     },
     "ted:realgpt.approve": (args) => {
-      if (!isObj(args) || !isStr(args.requestId, 100, 1) || !isStr(args.approvalId, 100, 1) || !["allow", "deny", "allow_all"].includes(args.decision)) return bad();
+      if (!isObj(args) || !isStr(args.requestId, 100, 1) || !isStr(args.approvalId, 100, 1) || !["allow", "deny", "allow_all", "allow_host"].includes(args.decision)) return bad();
       let options;
       if (args.options != null) {
         if (!isObj(args.options) || !isStr(args.options.engine, 40, 1) || !Number.isFinite(args.options.duration)) return bad();
@@ -475,22 +481,37 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
     "ted:updates.setAuto": (on) => (typeof on === "boolean" ? updater.setAuto(on) : bad()),
     "ted:updates.download": () => updater.download(),
     "ted:updates.install": () => updater.install(),
+
+    // ---- window (§22, 0.1.6): „Балонче“, the mini chat and back to the normal window; no arguments are read ----
+    "ted:window.bubble": async () => winResult(await win.bubble()),
+    "ted:window.miniChat": async () => winResult(await win.miniChat()),
+    "ted:window.restore": async () => winResult(await win.restore()),
+    "ted:window.state": () => ({ mode: winResult({ ok: true, mode: win.state().mode }).mode }),
   };
 }
 
 // isTrusted(url): true only for the app's own origin (see security.createOriginCheck).
-export function registerIpc({ ipcMain, isTrusted, log, ...services }) {
+// isMainSender(event) (0.1.6): true only for the main window's webContents – the bubble window shows a page of the
+// same origin, so its calls are refused here by identity (it has its own preload and channels, electron/bubble.js).
+// observe(channel) (0.1.6): may return done(result), called when that call has finished (the bubble's pulse/badge).
+export function registerIpc({ ipcMain, isTrusted, isMainSender, observe, log, ...services }) {
   const handlers = createHandlers(services);
   for (const [channel, fn] of Object.entries(handlers)) {
     ipcMain.handle(channel, async (event, ...args) => {
       const frame = event && event.senderFrame;
-      if (!frame || frame.parent || !isTrusted(frame.url)) {
+      if (!frame || frame.parent || !isTrusted(frame.url) || (typeof isMainSender === "function" && !isMainSender(event))) {
         if (log) log.warn("ipc.rejected", { channel });
         throw new Error("ted: forbidden sender");
       }
+      let done = null;
+      try { done = typeof observe === "function" ? observe(channel) : null; } catch { done = null; }
+      const finish = (r) => { if (typeof done === "function") { try { done(r); } catch { /* the badge only */ } } };
       try {
-        return await fn(...args);
+        const r = await fn(...args);
+        finish(r);
+        return r;
       } catch (e) {
+        finish(null);
         if (log) log.error("ipc.failed", { channel, message: String((e && e.message) || e) });
         return { ok: false, error: "Вътрешна грешка в програмата. Подробности има в логовете.", code: "internal" };
       }

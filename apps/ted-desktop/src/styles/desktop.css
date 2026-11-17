@@ -9,6 +9,9 @@ html,body{margin:0;padding:0}
 /* ---------- Window frame ---------- */
 .winbar{-webkit-app-region:drag;padding-right:max(140px,calc(100vw - env(titlebar-area-x,0px) - env(titlebar-area-width,100vw) + 8px))}
 .winbar button,.winbar a,.winbar input,.winbar select{-webkit-app-region:no-drag}
+/* 0.1.6 „Балонче“: hidden behind the bubble and for the mini chat's guard (App.jsx useMiniGuard) the bar is client area –
+   the second click of a double click on the bubble reaches the guard instead of moving the window. Looks the same. */
+html.mini-guard .winbar{-webkit-app-region:no-drag}
 .winbar img{pointer-events:none}
 .wb-st.off i{background:#ff5a6e;box-shadow:0 0 5px #ff5a6e}
 .wb-st.wait i{background:#ffcf5c;box-shadow:0 0 5px #ffcf5c}

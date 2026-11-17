@@ -332,8 +332,11 @@ ted.realgpt.openInChatGpt({prompt} | {bare:true}) -> {ok:true} | {ok:false, erro
   `https://chatgpt.com/` without a prompt. Called only from the click on the card's button; the agent loop never
   opens anything.
 - `approve.decision` = `"allow"` | `"deny"` | `"allow_all"` (= allow every later CRM write of THIS answer; never covers
-  confirm-required tools, e-mail or paid video). `options` (video only) = `{engine, duration}` from the card.
-  An approval left unanswered 10 min = deny. `realgpt.cancel` while waiting = deny + stop.
+  confirm-required tools, e-mail or paid video; on a `web` card = every later web address/query of THIS answer) |
+  `"allow_host"` (0.1.5, only on a `web` card with `allowHost:true` – the site MAIN named in `host`, until the end of
+  the chat; MAIN refuses it on any other card). `options` (video only) = `{engine, duration}` from the card.
+  An approval left unanswered 10 min = deny. `realgpt.cancel` while waiting = deny + stop. IPC (`ted:realgpt.approve`)
+  and the mock accept the same four decisions.
 
 ```
 RgResult = {ok:true, text, model, incomplete?, effortIgnored?, steps?:Step[], files?:FileRef[], limited?:{rounds,calls},
@@ -366,14 +369,19 @@ Step     = {id, kind, label, status, detail?, tool?, mutating?, startedAt, ended
   label  = plain Bulgarian, e.g. „Търся в интернет: <query>“, „Чета страница: <host/path>“, „Правя документ: <title>.docx“,
            „Заявка за ChatGPT: снимка“, „CRM: клиенти.търсене“, „Качвам „<name>“ в хранилището на CRM“, „Чета файла: <name>“
 Approval = {id, kind:"crm_write"|"confirm"|"video"|"web", title, tool?, lines:[[label, value]], json?, allowAll:boolean,
+            allowHost?:boolean, host?:string,                // web only (0.1.5): „Разреши за този сайт“ for `host`
             video?:{engines:[{id,name,note,price,durs,frames}], gateway?:{ok,balance?}, parts, aspect, defaults:{engine,duration}}}
 EmailDraft = the server `email.preview` result (to, to_name, subject, body, attachments, can_send …) unchanged
 ```
 
 `lines` = EVERY field of the input (identifying/target keys first; a value over 300 chars ends with „…(още N знака)“;
 past 40 lines one line says how many fields are left); `json` = the exact input that will be sent (pretty JSON, a cut
-is marked), shown behind „Точните данни, които ще се изпратят“. `kind:"web"` = §9.3 rule 8 (full URL or query on the
-card; `allowAll` covers further web cards of the same answer only).
+is marked), shown behind „Точните данни, които ще се изпратят“. `kind:"web"` = §9.3 rule 8, hybrid: a STRICT card
+(personal data in the URL or query – full URL or query, the site and the personal data found; `allowAll:false`, no
+`allowHost`/`host`: only „Разреши“/„Откажи“, never covered by an earlier „за този сайт“/„всички адреси“) or a per-site
+card (a model-built URL in a chat with private data; `allowAll` = „Разреши всички адреси до края на отговора“ covers
+further per-site cards of the same answer only; `allowHost` + `host` = „Разреши за този сайт“, that site until the end
+of the chat – offered when the card names exactly one site, never for a search query).
 `label` and `lines` are built in MAIN from the real tool name and input (never from model text alone). Statuses come only
 from real results: `ok` = the local operation finished or `/api/tools` answered `{ok:true}`.
 
@@ -588,8 +596,14 @@ event and gives the model the result with `download_url` replaced by `"file:<id>
    get their own card with `allowAll:false` (0.1.5 review F4). Card values in Bulgarian (`deal` продажба/наем, money as
    „99 000 €“, `area` „65 м²“), file refs shown by name only (the ids stay in „Точните данни“), titles say who asks
    („ChatGPT иска …“; „… да добави 2 снимки в галерията на имот P-1042“, „… да създаде проект „…““).
-   `images.download` with web addresses (`urls`, `page_url`) in a tainted context: every address not in the provenance
-   set needs the same „web“ card as read_page (rule 8; review F10). Photos of 15 000 bytes or less and photos past 30
+   `images.download` with web addresses (`urls`, `page_url`): every address not in the provenance set gets the same
+   „web“ card as read_page under the hybrid rule 8 (review F10) – a strict card when an address carries a sensitive value
+   (it lists every address of the call that needs a card), else, in a private chat, one card per site (the call's site
+   when there is one; several sites → no „за този сайт“). 0.1.6 release gate C3: every address is first normalised
+   with the WHATWG parser the server uses (it also reads „ https://…“, „https:evil.example/…“, „https:\\evil.example\…“
+   and a `urls` item it turns into a string, e.g. `["https://…"]`), and only the normalised address is checked, shown on
+   the card and sent; a `urls` item or `page_url` that is not an http(s) address (other than a chat photo `file:<id>`)
+   or is over 2048 chars → `{ok:false}` before any card – the server is not called. Photos of 15 000 bytes or less and photos past 30
    are left out before the card (the site would skip them) and reported to the model as `skipped`; `max` = the number
    sent. `documents.merge` always goes with `group_by_type:false` (`AI_OFF_INPUT`).
 4. CONFIRM (approval card, then the native Windows dialog in MAIN with the exact tool and input; MAIN injects
@@ -602,12 +616,96 @@ event and gives the model the result with `download_url` replaced by `"file:<id>
 6. Tool outputs are data. The instructions say so; the gate holds regardless of what any page or tool returns.
 7. A 5xx / network error after sending → output `{ok:false, maybeExecuted:true, error}` and the step shows
    „може да е изпълнено – проверете в CRM“; never retried automatically (§1).
-8. URL provenance (browsing never carries CRM data): `read_page`/`fetch_image` run without a card only for URLs that
-   appeared verbatim in the employee's messages or in a function output of this answer (search results, links/images
-   of pages read, CRM results). Once the context is tainted – a CRM call, `read_document`, the selected Проект, an
-   open Canvas, attached files or an earlier assistant turn – any other URL needs
-   a `kind:"web"` card showing the full URL. A `web_search` query in a tainted context that contains an e-mail or a run
-   of ≥ 8 digits the employee did not type needs the same card. URLs over 2048 chars are refused.
+8. URL provenance – HYBRID rule (browsing never carries CRM data; 0.1.5 owner: „Защо 15 пъти ми иска едно
+   потвърждение…“ – CHANGES the 0.1.3 „tainted context“ rule, under which every model-built URL of every follow-up
+   question asked; the security review of the data-only detector – `tests/unit/agent-provenance-attack.test.js` – showed
+   values can be split or encoded past any detector, so a chat with real private data keeps a per-site card).
+   `electron/agent/provenance.js` (pure, no Node API) finds the sensitive values; `electron/agent/loop.js` decides:
+   - Known URLs (no check, no card): verbatim in the employee's messages or in a SUCCESSFUL function output of this chat
+     (search results, links/images of pages read, CRM results) – kept per chat in MAIN's memory (newest 30 chats). NEVER
+     made known (0.1.6 release gate C1/C2 – an echo never launders an address):
+     (a) any URL of a failed output (`ok:false`: errors repeat what was sent);
+     (b) an ECHO of a model-built URL – one the model wrote into function arguments that was not known at that moment.
+         The arguments are read in full (never cut) and noted BEFORE the call runs (also when it fails); a URL that
+         appears only once a text of them is decoded (HTML entities, also numeric without „;“, %xx, NFKC – „ﬁ“ → „fi“,
+         full-width „ｈｔｔｐｓ：／／“ – invisible characters) or read by a URL parser („https:evil.example/…“,
+         „https:\\evil.example\…“) counts as model-built too. Compared in that decoded, lower-case form, an output URL
+         is an echo when it is contained in one (equal, cut short), contains one (the result adds text right after it,
+         e.g. „Няма „<to_query>““ of email.preview, or removes spaces from it), or – its start up to the first character
+         that is not an ASCII URL character, decoded but before NFKC – is one cut and followed by other text („Няма
+         проект „<160 знака>““, the „…(съкратено)“ of the output limit). One occurrence is one verdict: when any of its
+         forms (as written, without trailing punctuation) is an echo, none becomes known. Scope: the model-built URLs
+         of the same call for every output (for web results only „contained in“: a page that repeats the address it was
+         sent), and of any earlier call of this program session for outputs that can return text the model wrote – CRM,
+         `project_folder`, `read_document` (not web results): a note, an event, a Проект the model wrote and reads back,
+         also in another chat. MAIN keeps up to 500 000 characters of such URLs and forgets none of them: past that, these
+         outputs make no URL known until the program is restarted (an address from them then asks under the rules below);
+     (c) the URLs of a file this program made from the model's text – `read_document` of a file with origin `ted`
+         (create_document, exports, the ZIP) or of a CRM copy that is not known to be the employee's: a copy without a
+         server path (the attachments of email.preview), a file of Ted's server folders `ted/` (documents.create_pdf,
+         merge, split, files.to_pdf, contracts.generate), `…/chat/` (files.attach of a chat file – the employee allows
+         saving a file, not the addresses in it) or `ted-chat/` (the uploads of chat files), and in this program session any copy that came from a write, a file
+         maker or email.preview, or a document the server marks as Ted's (`by_ted`) – even when no argument held the URL
+         (an HTML entity „https&#58;//“ or a ligature that the file turns into a URL) and after a restart. Only URLs of
+         the employee's attachments, of web files and of his own CRM documents (documents.find, documents.download_link
+         of a document outside those folders) count as not model-built. Not tracked: text the model wrote into a CRM
+         record (a note, a description) after the employee allowed it on a write card that showed it, once it comes
+         back after a restart or through a web page (e.g. a published listing).
+   - PRIVATE CHAT (`chat.private`, remembered per chat in the same memory): set when real private data is in the chat –
+     a successful `crm` or `project_folder` result, a `read_document` result, the selected Проект (`req.caseId`), a
+     non-empty Canvas, attached files; and – only when MAIN does not remember the chat (after a restart, or the chat left
+     the memory) – earlier answers that show a run of 7+ digits or an e-mail in their text (`sens.size()`; never the
+     ids inside their links, 0.1.6 release gate C5). While MAIN remembers the chat its own flag decides: the phones and
+     listing ids of a listings answer never make a follow-up private.
+   - SENSITIVE values are collected per chat: from CRM results (`crm`, `project_folder`, the selected Проект) – every
+     word of 4+ letters of personal fields (keys with name/phone/mail/addr/street/note/comment/contact/client/owner/
+     person/egn/iban/eik/bulstat/passport/birth/bank/account, `to`) and capitalised words of free-text fields
+     (text/summary/facts/path/subject…); from `read_document` results, the open Canvas and attached Word/Excel/CSV/
+     text/PDF files (read locally the first time a model-built URL or query is checked) – capitalised words; from
+     earlier answers – „Име Фамилия“ pairs; from all of them – every run of 7+ digits (dates excluded), e-mails and
+     IBANs; of earlier answers and the Canvas only outside their links (0.1.6 release gate C5: the listing ids in the
+     links of a listings answer – imot.bg „1b172345678901234“, alo.bg „/10123456“, bazar.bg „/obiava/52345678/“ – never
+     raise a strict card or make the chat private, also after a restart; phones, ЕГН, e-mails and IBANs are found in
+     any address by the structural detectors anyway). Words are compared diacritics- and case-insensitively and across transliteration (ts→c, j/y→i, doubles
+     once), as stems (one ending off: Петров = Петрова = Petrova), whole words, or inside a joined segment for stems of
+     6+ letters („ivanpetrov“). Common words, real-estate/address vocabulary, the agency's name and Bulgarian towns
+     are never sensitive.
+   - Structural values are sensitive wherever they come from: e-mails, IBANs (mod 97), Bulgarian phones (+359/00359/
+     0[2-9] + 7–8 digits), ЕГН (date + checksum).
+   - Not sensitive: what the employee typed in this chat (his messages, custom instructions, nick) and what a public
+     web result showed (search results and pages read in this chat) – except what the request itself sent: an echo
+     („Резултати за: <име>“) never makes a sent value public.
+   - Checked text: of a URL – the host labels (no `www.`), path and query (never the fragment: it is not sent); of a
+     search – the query; each as written, URL-decoded (≤ 3 times, „+“ = space) and with every base64/base64url/
+     hex-looking segment decoded (UTF-8, printable).
+   - Decision for a model-built URL of `read_page`/`fetch_image`/`images.download`:
+     (1) it carries a sensitive value → ALWAYS a STRICT `kind:"web"` card: `allowAll:false`, `allowHost:false`, no
+         `host`; lines „Адрес“ (the full URL), „Сайт“, „Лични данни“ (the values found, as they appeared in the source),
+         „Защо питаме“; buttons „Разреши“ / „Откажи“ only. „Разреши за този сайт“ and „Разреши всички адреси“ never
+         cover it; every new such address is asked (once per answer, rule 9).
+     (2) else, in a PRIVATE chat, unless the site was allowed in this chat or „всички адреси“ was given in this answer →
+         a per-site `kind:"web"` card: `allowAll:true`, `allowHost:true`, `host` = the URL's host (no `www.`); lines
+         „Адрес“, „Сайт“, „Защо питаме“; buttons „Разреши“ (this address), „Разреши за този сайт“ (`allow_host`: that
+         exact host – no subdomains, no look-alikes – until the end of the chat), „Разреши всички адреси до края на
+         отговора“ (`allow_all`), „Откажи“.
+     (3) else (a chat without private data) → no card: a site search page such as
+         `https://www.imot.bg/obiavi/prodazhbi/grad-shumen`, also in a follow-up question.
+   - `web_search`: a query that carries a sensitive value → a STRICT card (lines „Търсене“, „Лични данни“, „Защо
+     питаме“; „Разреши“/„Откажи“); every other query goes without a card (no per-site card for the search engine).
+   - MAIN accepts `allow_host` only on a `web` card with `allowHost` and `host` (the host is MAIN's, never one from the
+     window; `ted:realgpt.approve` passes only the decision), `allow_all` only on a card with `allowAll`. The renderer
+     (`ApprovalCard`) shows „Разреши за този сайт“ only with `allowHost` + `host` and „Разреши всички…“ only with
+     `allowAll`; a strict card is marked `data-strict="1"`. URLs over 2048 chars are refused; the SSRF rules of §10.1
+     are unchanged.
+9. Ask once per answer (0.1.5): the same approval in one answer is never shown twice. Web: the same normalised URL
+   (hash dropped; `read_page` and `fetch_image` share it), the same query (case and spaces folded), the same set of
+   `images.download` addresses. CRM (rules 3–4): the same tool with the same normalised input (after `confirm`
+   stripping, AI switches and boolean normalisation; keys in any order); `project_folder save_to_crm`: the same project,
+   target and files. A refused one → output `{ok:false, repeated:true, error:"…вече отказа…"}` at once, no card, no
+   step, nothing sent. A CRM write that was done or may have been done (`maybeExecuted`) → the earlier output with
+   `repeated:true` and a note – never executed twice. An allowed one that failed for certain → runs again without a
+   new card (the same decision, incl. a confirmation already given). CRM writes, e-mail, uploads and paid actions keep
+   their own cards and buttons exactly as in rules 3–5 and §12.
 
 ### 9.4 Limits
 
@@ -640,7 +738,10 @@ written FROM SCRATCH go through `create_document` (docx by default, pdf when ask
 `read_document` then `create_document`; CHANGES in 0.1.5 (§9.6): translation and analysis are done by GPT itself
 (attached images/PDFs are in the message, the rest via `read_document`, the result via `create_document`); images and
 video = `open_in_chatgpt` (never claim a picture or clip was made); if DuckDuckGo refuses, read the sites' own listing and
-search pages with `read_page`; writes ask the user through approval cards automatically; programming
+search pages with `read_page`; 0.1.5 (§9.3 rule 8): prefer addresses from search results and pages read, build only the
+sites' search pages (town, type, deal, price) and never put personal data (names, phones, e-mails, ЕГН, IBAN, ЕИК,
+addresses, notes from the CRM, files, Canvas or earlier answers – also not encoded) into an address or a search; a
+refused address is not tried again; writes ask the user through approval cards automatically; programming
 help is out of scope for files (code blocks in text stay as they are). Context blocks appended when present: hints
 („Служителят избра: …“), the selected Проект (`cases.get` summary + ≤ 20 facts, read automatically), the role prompt
 (`GET {SITE}/api/tools?mode=<id>` – public, no token, cached per run), the open Canvas (in the user message, ≤ 60 000
@@ -1062,7 +1163,9 @@ export function answerMedia(agent) -> {allowed:Set<url>, bySource:Map<url,fileId
 // src/components/agent/*
 <AgentSteps steps live since? writing? />      // 0.1.5: the ChatGPT activity line (§15); click = the full step list
 <ThinkingLine since />                          // 0.1.5: „Мисля…“ + time of a text-only answer before its first words
-<ApprovalCard approval onDecide(decision, options) busy />   // decision "allow"|"deny"|"allow_all"
+<ApprovalCard approval onDecide(decision, options) busy />   // decision "allow"|"deny"|"allow_all"|"allow_host" (web:
+                                                //  „Разреши“, „Разреши за този сайт“ when allowHost+host, „Разреши всички
+                                                //  адреси до края на отговора“, „Откажи“)
 <FileCard file compact? onToast />              // preview (image: thumb → full via files.read; video: <video> from blob;
                                                 //  PDF/DOCX/XLSX: icon + pages/sheets), „Отвори“, „Запази…“, savedTo line
 <ConsentModal account onDecide(choice) />       // „Real GPT ползва само вашия ChatGPT план. Тед дава достъп до CRM,
@@ -1145,7 +1248,15 @@ recently active although created last – checks the order of „Вижте вс
 чат А/Б“ with n question/answer pairs, Markdown answers with a table – the speed checks). 0.1.5 agent phrases: „качи …
 имот“ (with a number: a card for properties.create → P-1042 → a card for images.download with the attached photos →
 upload steps; without data: one question for the missing fields), „папка“ („събирай … в папка“: a card for cases.create,
-then a document filed in the new folder; with „zip/изтегли/архив“: export_zip as a FileCard). The mock's `projects`
+then a document filed in the new folder; with „zip/изтегли/архив“: export_zip as a FileCard). 0.1.5 provenance, hybrid
+rule (§9.3 rules 8–9; the mock imports MAIN's own `electron/agent/provenance.js` and keeps a per-chat memory like MAIN):
+„по сайтовете“ = a listings sweep over four model-built site search pages – no `web` card in a chat without CRM data,
+also in a follow-up; with „клиент“ in the question the test client is read from the CRM first (the chat is private from
+then on) → one per-site card for each site (`allowHost` + `host`), `allow_host` holds for the rest of the chat,
+`allow_all` for the rest of the answer; „изнеси“ = a CRM read + a model-built address with the test client's name and
+phone, twice → exactly one STRICT card (`allowAll:false`, no `allowHost`/`host`; a refusal is not asked again in the
+answer). `realgpt.approve` accepts `allow_host` and, as MAIN, refuses `allow_host`/`allow_all` on a card that does not
+offer it. e2e: `tests/e2e/provenance.spec.js`. The mock's `projects`
 group checks like MAIN and records `calls.projAssign/projAnswer/projZip/projCrm`; `calls.site` lists every call MAIN would
 turn into a request to imotinadezhda.bg or its Supabase host. The scripted agent files the files it
 makes with the asking chat (`chatId`, as MAIN). All fixtures are visibly test data („Тест…“, example.test), never real
@@ -1177,6 +1288,38 @@ names; no network.
   read_page only; listing instructions), `tests/e2e/chatgpt-look.spec.js` (no assistant bubble, running/collapsed/expanded
   activity with counts, approval stays visible, GFM table, exact links via openExternal, source chips, provenance
   pictures vs. a foreign chip that loads on click, store pictures not downloaded twice, phone width, coloured icons).
+
+- 0.1.5 provenance, hybrid rule (§9.3 rules 8–9): `agent-provenance.test.js` (transliteration/stems, URL/base64/hex
+  decoding, phones/ЕГН/IBAN detectors, CRM names/address/notes found in any spelling, site search pages/towns/dates not
+  sensitive, typed and public values allowed, echo not laundering, earlier answers' name pairs and the `size()` restart
+  signal, documents), `agent-loop.test.js` ((a) a first question and a follow-up without CRM data → a listings sweep
+  shows no card; (b) a follow-up after a CRM read → one per-site card, „Разреши за този сайт“ for the rest of the chat
+  only; after a restart an earlier answer with a phone → per-site cards; (c) phone/e-mail/ЕГН/name/address from the CRM
+  → a strict card each, also on an allowed site and after „всички адреси“, again in the next answer; the same URL twice
+  → one card; refused → not asked again, no step; base64/hex → strict card; search with a client's name → strict card,
+  a phone from a public page → none; attached document names; the same CRM write twice → one card, never executed
+  twice; `allow_host` refused on other cards, `allow_host`/`allow_all` refused on a strict card; IPC passes
+  `allow_host`), `agent-provenance-attack.test.js` (the security review: part A the detector alone, part B the loop –
+  „caught (hybrid)“ = a detector bypass the per-site card still catches, `it.fails` = open bypasses/risks),
+  `review-015.test.js` F10 (images.download: strict card; per-site card in a Проект; a strict card lists every address
+  of the call that needs a card), e2e `provenance.spec.js`. 0.1.6 release gate: `agent-provenance-attack.test.js` B4
+  (C1/C2: an unknown tool name cut to 60 chars and a Проект name cut to 160 chars launder nothing, also for the next
+  answer; a successful result repeating the query cut short; a failed output; a CRM note the model wrote and reads
+  back – same answer and another chat; create_document → read_document as txt and as HTML with „https&#58;//“; files Ted
+  made after a restart vs. the employee's attachment and CRM document; a search link the model wrote into a note stays
+  known), B4b (the second round of the gate: email.preview repeating to_query followed by „““; a Проект name cut to
+  160 and followed by „““ and a query cut inside „( … )“ – no form of one occurrence becomes known; an address cut by
+  the output limit „…(съкратено)“; arguments past 200 000 chars; notes written with an HTML entity, a ligature,
+  full-width characters, a zero-width space, „https:\\…“ or spaces and read back decoded; a write that fails here after
+  the server stored it; over 500 000 chars of model-built addresses → nothing forgotten, CRM outputs make nothing known;
+  documents.create_pdf → its email.preview attachment in one answer with no card before; copies made before a restart
+  – an email.preview attachment and a `…/chat/` copy vs. the employee's documents.find / documents.download_link
+  documents; a `by_ted` document; files.attach of Ted's own file; a CRM listing link and a search result still open
+  without a card) and B5 (C3: page_url/urls in six non-canonical forms and as `["https://…"]` → strict card, server not called;
+  „https:evil.example/…“ without data → per-site card, allowed → the normalised address is sent; non-http, non-string
+  page_url, `null`, over 2048 chars → refused before any card), `agent-loop.test.js` (C5: the listings of an earlier
+  listings answer after a restart and after leaving the memory → no card; a phone in the answer's text, a Canvas with
+  listing links, a CRM number in the text → unchanged), `agent-provenance.test.js` (C5: `addPrivate(…, {links:false})`).
 
 - 0.1.5 Builder C: `main-projects.test.js` (folder index and assign, ZIP contents – unique UTF-8 names, stored vs deflated,
   the index file – size cap, the save dialog, „Запази в сайта“ refused → nothing uploaded, client/property targets with
@@ -1284,3 +1427,156 @@ Owner: „леко полиране на визията, по-премиум, п
   run (failed: retried after 5 min, parallel asks share one request), the role prompt once per run, `cases.get` of the
   selected Проект at most every 90 s (and after a CRM write), + 1 `cases.list` after an answer that changed CRM data.
 
+
+## 22. „Балонче“ – Ted as a bubble at the screen edge and a mini chat (0.1.6)
+
+Owner: „За Тед искам бутон до бутона за минимизиране, който да се казва Балонче. Щом го натисна, програмата да се лепне в
+някой край на лаптопа като балонче, както е на сайта. Да мога да го местя. Щом го кликна, да се отваря програмата във формата
+на малък чат като на сайта, но да има и бутон за връщане към нормалното положение.“ The site's widget (`mobile/ash.js`
+`.nda-fab` + its panel) is the visual model. Version after this work: `0.1.6` (bumped by the integrator).
+
+**Window modes** (MAIN, `electron/bubble.js` `createBubbleController`; never remembered across restarts – the program always
+starts in the normal window, only the bubble's position is kept in `window-state.json` `{bubble:{x,y}}`):
+
+| mode | main window | bubble window |
+|---|---|---|
+| `normal` | as always (bounds, maximised, full screen, compact) | hidden or not made yet |
+| `bubble` | hidden; its renderer keeps the chat, the unsent text, approvals and banners in memory | shown (`showInactive`, never takes the focus) |
+| `mini` | the compact chat panel (~400×640, the phone layout), always on top (`floating`), next to the bubble's place | hidden |
+
+- Leaving `normal` takes a snapshot `{bounds (normal bounds when maximised/full screen), maximized, fullScreen}` and calls
+  `window.js setFloating(true)`: the state saved so far is written once, then floating bounds are never remembered as the
+  normal ones and `app.setCompact` answers `{ok:false}` until the normal window is back. `restore` puts exactly that
+  snapshot back (unminimise, bounds – centred on a display when they no longer touch one –, maximise, full screen),
+  always-on-top off, `setFloating(false)`, show + focus.
+- **The bubble window** (`window.js createBubbleWindow`): 64×64, `frame:false`, `transparent:true` (`#00000000`), no shadow,
+  not resizable/minimisable/maximisable/full-screenable, `skipTaskbar:true`, `alwaysOnTop` level `floating`, `focusable:true`
+  but shown with `showInactive()`, on Windows `type:"toolbar"` (no taskbar button, no Alt+Tab entry), the same
+  `webPreferences()` as the main window with its own preload `electron/preload-bubble.cjs`, page `app://ted/bubble.html`
+  (same CSP, `vite.config.mjs` builds both pages and checks both metas; `scripts/check-bundle.mjs` requires both). It is
+  made only when the employee first asks for the bubble (never in a smoke run) and kept hidden afterwards; if it closes or
+  its renderer dies while only the bubble was on screen, the normal window comes back. When the main window is closed
+  (✕ in the normal window, a real quit) the hidden bubble window is destroyed with it – it must never keep Ted running
+  without a visible window. If the bubble page is not ready within 4 s (failed or hung load) nothing is hidden: the window
+  stays as it was (`{ok:false}`), the broken bubble window is destroyed and the next „Балонче“ makes a fresh one.
+- **Position**: first time the right edge of the work area at 75 % of its height on the display the main window is on
+  (`defaultPosition`); later the remembered `{x,y}` snapped again to the edge of the display it is on, or the default when
+  it is on no connected display (`placeBubble`). Work areas exclude the taskbar on any side; `display-added/removed/
+  metrics-changed` re-place it (and a mini chat left on no connected display goes back next to the bubble's place).
+  Gap to the edge 6 px (`EDGE_GAP`).
+- **Drag**: the bubble page captures the pointer (no `-webkit-app-region`, so clicks work) and reports screen deltas from the
+  press, at most one per animation frame (`src/bubble/gesture.js`: ≥ 4 px = drag, `isDrag = hypot(dx,dy) ≥ 4`). MAIN keeps the
+  window inside the work area of the display under it, ignores moves closer than 8 ms (`MOVE_MIN_MS`), clamps each delta to
+  ±20 000 and non-numbers to 0 (`cleanDelta`). On release it snaps to the nearest left/right edge of that display keeping
+  its height (`snapToEdge`, 160 ms ease-out), saves `{x,y}` and tells the page the side (the badge moves towards the
+  screen centre).
+- **Click** (press + release < 4 px, sent 240 ms after the release – `DOUBLE_MS`, a single click stays quick): the mini chat
+  opens (`miniBounds`: the bubble's side, outer edge 10 px from the screen edge, bottom level with the bubble's bottom,
+  inside the work area; the bubble hides – like the site, where the panel replaces the bubble). **Double click** = the
+  normal window; it follows Windows' double-click time (`SYSTEM_DOUBLE_MS` = 500 ms, Windows' default, press to press):
+  a second press while the click still waits is the double click on its release (a drag instead drops the click); a
+  second press after the click was sent but within 500 ms of the first press is the double click at once (MAIN: the mini
+  chat, then the normal window). **The second click never presses anything** (release gate 0.1.6): the mini chat lies
+  over the bubble's place (its corner is the composer's „Изпрати“ / „Гласов режим“ / „Спри“, on the left edge „Добави“),
+  so for `MINI_GUARD_MS` = 260 ms (500 − 240) after MAIN reports `bubble` → `mini` the main renderer takes no pointer input
+  (`src/bubble/gesture.js createMiniGuard`, `App.jsx useMiniGuard`, capture phase on `window` before any handler: every
+  press, release and click is cancelled; a press taken there also up to its release and that release's click, however
+  long it is held, also when the normal window has come meanwhile; a touch tap's mouse events and click, which Chromium
+  sends only after the touch ended, up to `TAP_MS` = 500 ms after its release or until the next press). The first left
+  press taken is that double click: `ted.window.restore()` (the normal window, while it is still the mini chat); so is a
+  left release whose press never came (it hit the bubble just as MAIN hid it). Input and the mode push are not ordered:
+  pointer input while the renderer still has `bubble` (the main window is hidden then, so MAIN has just shown it) is held
+  the same way – at most 260 ms from the first such event, so a window shown without a push is never stuck – and a double
+  click taken then is done when `mini` arrives. While hidden behind the bubble and during the 260 ms the title bar is no
+  drag region (`html.mini-guard .winbar` → `-webkit-app-region: no-drag`, `desktop.css`; looks the same), so a press on the
+  mini chat's header – under a bubble parked at the top of the screen – reaches the guard instead of moving the window.
+  Windows' own caption buttons are MAIN's (`electron/bubble.js`): for `DOUBLE_CLICK_MS` = 500 ms after the bubble's click
+  opened the mini chat (a press inside the 260 ms plus its hold), ✕ / — / ☐ of the mini chat are that double click – the
+  normal window (✕ prevented, never a quit); later, and after the menu's „Отвори чата“ or a dialog, as below. Pointer
+  moves, keys and keyboard/script clicks (`detail` 0) always go through; after the 260 ms every click works at once.
+  **Right click**
+  = MAIN's menu „Отвори чата“ · „Нормален прозорец“ · ─ · „Затвори Тед“ (`app.quit()`, a real quit). Enter/Space on the
+  focused bubble = click.
+- **Mini chat header** (`src/App.jsx MiniBar`, in the 36 px `.winbar` with the caption-button padding unchanged):
+  avatar, „Тед“, „⤢ Нормален прозорец“ (`data-testid="mini-normal"` → `ted.window.restore()`) and exactly ONE way back to
+  the bubble: on Windows it is Windows' own „—“ (the header draws no look-alike „–“ next to it); only when Windows draws no
+  caption buttons (`navigator.windowControlsOverlay.visible` false, followed on `geometrychange`; e.g. the browser tests)
+  the header draws its own „–“ (`mini-bubble` → `ted.window.bubble()`). The Windows caption buttons of the mini chat:
+  minimise and close go back to the bubble (close never quits from there), maximise = the normal window; within 500 ms of
+  the bubble's click all three are the normal window (the second click of a double click, above). Esc = back to the
+  bubble when no menu, dialog, preview, drawer, inline edit, rename field, quick window or voice mode takes the Esc – decided
+  in a capture-phase listener on `window` before any handler runs (a React handler that closes the quick window or a rename
+  field removes it before the document listener sees the key). Clicking outside does NOT close the mini chat. Opening it
+  focuses the composer; the chat and the unsent text are as they were.
+- **Title-bar button** „Балонче“ (`data-testid="bubble-btn"`, `.wbtn.wbub`, chat-bubble icon + text, tooltip „Балонче – свий
+  Тед в балонче (Ctrl + Shift + B)“) is the last item of `.winbar`, i.e. immediately left of the Windows caption buttons;
+  in the phone/narrow layout too (text hidden ≤ 400 px) and in the profile menu („Балонче“, ColorIcon `bubble`). In the mini
+  chat the profile menu offers „Нормален прозорец“ instead of „Компактен прозорец“. Shortcut **Ctrl+Shift+B** (`e.code
+  KeyB`, any keyboard layout) from the normal window and the mini chat.
+- **Badge and pulse**: `registerIpc observe(channel)` – every `ted:api.chat` / `ted:realgpt.send` in flight makes the bubble
+  pulse (`working`); one that finishes while the mode is `bubble` adds 1 to `unread` (not `aborted`/`invalid`). A Real GPT
+  `approval` event sets `attention` (badge „!“, it goes before the number) in any mode, so returning to the bubble without
+  deciding shows „!“; it clears on `ted:realgpt.approve` (observe) or when no answer is in flight any more. Opening the
+  mini chat or the normal window clears `unread`.
+- **Reachability**: approval cards, e-mail cards, the Real GPT sign-in card and the update banner live in the main renderer,
+  so the mini chat or the normal window shows them. A native confirmation (`confirm()` in main.js) asked while only the
+  bubble is on screen first opens the mini chat (a dialog needs a visible owner). A Windows notification click and a
+  second launch (single instance) bring the normal window back. `before-quit` and the window's `session-end` /
+  `query-session-end` (Windows log-off) mark a real quit, which is never turned into „back to the bubble“.
+
+**Bridge** (`window.ted`, same rules as §2; nothing is read from the arguments; `ipc.js` answers `{ok, mode}` with `mode` ∈
+normal|bubble|mini only):
+
+```
+ted.window.bubble()               -> {ok, mode}      // the bubble (from normal or mini)
+ted.window.miniChat()             -> {ok, mode}      // the mini chat (MAIN's bubble click uses the same path)
+ted.window.restore()              -> {ok, mode}      // the normal window exactly as before
+ted.window.state()                -> {mode}
+ted.window.onMode(cb({mode}))     -> unsubscribe     // push ted:window.mode
+```
+
+Subscriptions in preload: `window.onMode` (channel `ted:window.mode`).
+
+`registerIpc({…, isMainSender, observe, windowApi})`: every `ted:` channel additionally requires `event.sender.id` to be the
+main window's webContents (the bubble page has the same origin `app://ted`). `window.miniChat` is not called by the main
+renderer (the employee reaches the mini chat through the bubble); it stays for MAIN's own path and the tests.
+
+**Bubble window bridge** (`electron/preload-bubble.cjs` → `window.tedBubble`; no `window.ted`, nothing of CRM, ChatGPT, files
+or the network). Channels `ted-bubble:<fn>`, registered by `electron/bubble.js registerBubbleIpc`, accepted only from the top
+frame of `app://ted/bubble.html` (dev: the dev server's `/bubble.html`) whose `event.sender` is the bubble window:
+
+```
+tedBubble.ready()            -> {mode, unread, working, attention, side}
+tedBubble.dragStart()        -> {ok}
+tedBubble.dragMove(dx, dy)   -> {ok, skipped?}        // numbers only (preload: non-numbers -> 0; MAIN: cleanDelta)
+tedBubble.dragEnd(dx, dy)    -> {ok, side}
+tedBubble.click()            -> {ok, mode}            // -> mini chat
+tedBubble.openNormal()       -> {ok, mode}            // double click -> normal window
+tedBubble.menu()             -> {ok}                  // MAIN's context menu
+tedBubble.onState(cb(state)) -> unsubscribe           // push ted-bubble:state
+```
+
+**Mock** (`src/mock/bridge.mock.js`): `?win=normal|bubble|mini` (the mode at start), `ted.window.*` change it, emit `onMode` and
+are recorded in `calls.window`; `__tedMock.setWinMode(mode)`. `src/mock/bubble.mock.js` (bubble.html in the mock build only):
+`?unread=<n>`, `?working=1`, `?attention=1`, `?side=left|right`; `window.__tedBubbleMock = {calls, push(state)}`.
+
+**Tests**: `tests/unit/bubble-controller.test.js` (snap math, clamp to work areas of several displays with a fake screen –
+taskbar on every side, negative coordinates, mixed sizes –, default and remembered position, the mini-chat placement,
+snapshot/restore of bounds/maximised/full screen, the caption buttons in the mini chat, a real quit, rate limit and delta
+clamps, badge/pulse/attention, bubble IPC sender checks; review: ✕ of the normal window destroys the hidden bubble
+window, a bubble page that does not load hides nothing, a minimised window's snapshot, a mini chat on an unplugged
+monitor; a bubble parked at the top – its face over the mini chat's ✕ –: ✕ / — / ☐ within 500 ms of the bubble's click =
+the normal window, later or after the menu's „Отвори чата“ = the bubble), `tests/unit/bubble-gesture.test.js` (click vs drag threshold,
+double click, cancel; Windows' slower double click – a second press while the click waits or within 500 ms of the first
+press –, the mini chat's guard – armed only by `bubble` → `mini`, 260 ms, a held press up to its release and click, the
+double click = the normal window, a touch tap released after the guard, a release whose press was lost, input before the
+`mini` push, `regionsOff` –, and the release gate's timing sweep 236–499 ms press to press plus the press lost to the
+hiding bubble: always the normal window, nothing reaches a control), `core-electron` / `core-main` (bubble window options, floating state, sender identity, 71 + 7 channels),
+`contract-seams` (§22 surface, both preloads ↔ MAIN), `tests/e2e/bubble.spec.js` (the button left of the caption area,
+Ctrl+Shift+B, the mini-chat header – one way back to the bubble with and without the Windows caption buttons –, Esc –
+also that the Esc closing the quick window is not „back to the bubble“ –, the profile menu, the bubble page: badge, pulse, click, double click, drag, right
+click, a slower double click; the mini chat fresh from the bubble: a click on „Изпрати“ with a kept draft, „Гласов режим“,
+„Спри“ and „Добави“ presses nothing and opens the normal window, a press held past the guard is nothing either, a click
+after the guard sends at once; the header is no drag region meanwhile and a press there, a lost press's release and a
+click before the `mini` push are the double click; a touch double tap released after the guard sends nothing). The smoke test keeps checking the exact surface (now with `window`) and that no bubble
+window was opened.

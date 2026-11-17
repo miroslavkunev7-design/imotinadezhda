@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <!-- „Балонче“ (0.1.6): the same policy as index.html (electron/protocol.js META_CSP); vite.config.mjs fails the build if they differ. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Тед – балонче</title>
+  </head>
+  <body class="bubble-page">
+    <div id="bubble-root"></div>
+    <script type="module" src="/src/bubble/bubble.js"></script>
+  </body>
+</html>

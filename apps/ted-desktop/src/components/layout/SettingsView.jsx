@@ -19,7 +19,8 @@ export const SET_GROUPS = [
 const ROWS = SET_GROUPS.flatMap((g) => g.rows);
 const rowName = (k) => (ROWS.find((r) => r[0] === k) || [k, "", k])[2];
 export const SHORTCUTS = [["Нов чат", "Ctrl + Shift + O"], ["Търсене в чатовете", "Ctrl + K"], ["Скрий/покажи лентата", "Ctrl + Shift + S"], ["Копирай последния отговор", "Ctrl + Shift + C"],
-  ["Към полето за писане", "Shift + Esc"], ["Бърз прозорец", "Ctrl + Shift + Space"], ["Помощ", "Ctrl + /"], ["Нов ред", "Shift + Enter"]];
+  ["Към полето за писане", "Shift + Esc"], ["Бърз прозорец", "Ctrl + Shift + Space"], ["Балонче (свий Тед в балонче)", "Ctrl + Shift + B"],
+  ["От малкия чат към балончето", "Esc"], ["Помощ", "Ctrl + /"], ["Нов ред", "Shift + Enter"]];
 const KIND = { fact: "запомнен факт", message: "от разговор", summary: "резюме" };
 // A bridge call that never rejects: an IPC failure becomes an ordinary error result.
 const call = async (fn) => { try { return await fn(); } catch { return { ok: false, error: "Вътрешна грешка в програмата." }; } };

@@ -23,21 +23,29 @@ const el = vi.hoisted(() => {
       this.sent = [];
       this.focused = false;
       this.minimized = false;
-      this.webContents = { on: () => {}, once: () => {}, send: (channel, payload) => this.sent.push([channel, payload]), isDestroyed: () => false };
+      this.webContents = { id: state.windows.length + 1, on: () => {}, once: () => {}, send: (channel, payload) => this.sent.push([channel, payload]), isDestroyed: () => false };
+      this.visible = false;
+      this.top = null;
       state.windows.push(this);
     }
     on(event, fn) { this.events[event] = fn; }
     once(event, fn) { this.events[event] = fn; }
     loadURL(url) { this.url = url; return Promise.resolve(); }
-    getBounds() { return { x: 0, y: 0, width: this.options.width, height: this.options.height }; }
+    getBounds() { return this.bounds ? { ...this.bounds } : { x: 0, y: 0, width: this.options.width, height: this.options.height }; }
     getNormalBounds() { return this.getBounds(); }
-    setBounds() {}
+    setBounds(b) { this.bounds = { ...b }; }
+    hide() { this.visible = false; this.hidden = true; }
+    showInactive() { this.visible = true; this.inactive = true; }
+    setAlwaysOnTop(on, level) { this.top = on ? level || "floating" : null; }
+    unmaximize() {}
+    maximize() {}
+    setFullScreen() {}
     isDestroyed() { return false; }
     isMinimized() { return this.minimized; }
     isMaximized() { return false; }
     isFullScreen() { return false; }
     restore() { this.minimized = false; }
-    show() { this.shown = true; }
+    show() { this.shown = true; this.visible = true; }
     focus() { this.focused = true; }
   }
 
@@ -133,7 +141,8 @@ async function boot({ packaged = true, lock = true, devUrl } = {}) {
   return el.state;
 }
 
-const fromApp = { senderFrame: { url: "app://ted/index.html", parent: null } };
+// The app's page in the MAIN window (0.1.6: MAIN also checks the sender is that window, not the bubble window).
+const fromApp = { senderFrame: { url: "app://ted/index.html", parent: null }, get sender() { return el.state.windows[0] && el.state.windows[0].webContents; } };
 
 // main.js installs process-level error loggers; do not leave them in the test worker.
 function dropProcessListeners() {
@@ -212,9 +221,12 @@ describe("main.js", () => {
     expect((await s.protocolHandlers.app(new Request("app://ted/..%2F..%2Fpackage.json"))).status).toBe(403);
   });
 
-  it("registers all 67 IPC channels and answers the app's own page only", async () => {
+  it("registers all 71 IPC channels + the 7 bubble channels and answers the app's own page only", async () => {
     const s = await boot();
-    expect(s.ipc.size).toBe(67); // CONTRACT §2 + §8: 74 window.ted functions minus 7 subscriptions (0.1.5: + browse.image, + 4 projects)
+    // CONTRACT §2 + §8 + §22: 79 window.ted functions minus 8 subscriptions (0.1.5: + browse.image, + 4 projects; 0.1.6: + 4 window)
+    expect([...s.ipc.keys()].filter((c) => c.startsWith("ted:"))).toHaveLength(71);
+    expect([...s.ipc.keys()].filter((c) => c.startsWith("ted-bubble:")).sort()).toEqual(["ted-bubble:click", "ted-bubble:dragEnd", "ted-bubble:dragMove", "ted-bubble:dragStart", "ted-bubble:menu", "ted-bubble:openNormal", "ted-bubble:ready"]);
+    expect(s.ipc.size).toBe(78);
     expect(await s.ipc.get("ted:app.info")(fromApp)).toEqual({ version: "0.1.0", platform: process.platform, packaged: true });
     expect(await s.ipc.get("ted:auth.state")(fromApp)).toEqual({ status: "signedOut" });
     expect(await s.ipc.get("ted:store.loadChats")(fromApp)).toEqual({ chats: [] });
@@ -285,6 +297,47 @@ describe("main.js", () => {
     expect(s.windows).toHaveLength(1);
   });
 
+  // 0.1.6 „Балонче“: the bubble window exists only after the employee asks for it, gets its own preload and page,
+  // and can reach neither the window.ted channels nor its own from anywhere else.
+  it("Балонче: a lazy bubble window with its own preload; the channels of each window are refused from the other", async () => {
+    const s = await boot();
+    expect(s.windows).toHaveLength(1); // nothing at start (and never in a smoke run)
+    expect(await s.ipc.get("ted:window.state")(fromApp)).toEqual({ mode: "normal" });
+    const going = s.ipc.get("ted:window.bubble")(fromApp);
+    await new Promise((r) => setTimeout(r, 10));
+    expect(s.windows).toHaveLength(2);
+    const bw = s.windows[1];
+    expect(bw.url).toBe("app://ted/bubble.html");
+    expect(bw.options).toMatchObject({ width: 64, height: 64, frame: false, transparent: true, skipTaskbar: true, alwaysOnTop: true, resizable: false, show: false, focusable: true });
+    expect(bw.options.webPreferences).toMatchObject({ contextIsolation: true, sandbox: true, nodeIntegration: false, webviewTag: false, devTools: false });
+    expect(bw.options.webPreferences.preload).toMatch(/electron[\\/]preload-bubble\.cjs$/);
+    expect(fs.existsSync(bw.options.webPreferences.preload)).toBe(true);
+    bw.events["ready-to-show"]();
+    expect(await going).toEqual({ ok: true, mode: "bubble" });
+    expect(s.windows[0].hidden).toBe(true);
+    expect(bw.inactive).toBe(true); // shown without taking the focus
+    expect(bw.top).toBe("floating");
+    expect(s.windows[0].sent).toContainEqual(["ted:window.mode", { mode: "bubble" }]);
+
+    const fromBubble = { senderFrame: { url: "app://ted/bubble.html", parent: null }, sender: bw.webContents };
+    // The bubble page is of the same origin, but window.ted channels answer only the main window.
+    await expect(s.ipc.get("ted:auth.state")(fromBubble)).rejects.toThrow("forbidden");
+    await expect(s.ipc.get("ted:crm.read")(fromBubble, "cases.list", {})).rejects.toThrow("forbidden");
+    // And the bubble channels answer only the bubble page in the bubble window.
+    await expect(s.ipc.get("ted-bubble:click")(fromApp)).rejects.toThrow("forbidden");
+    await expect(s.ipc.get("ted-bubble:click")({ senderFrame: { url: "app://ted/index.html", parent: null }, sender: bw.webContents })).rejects.toThrow("forbidden");
+    expect(await s.ipc.get("ted-bubble:ready")(fromBubble)).toEqual({ mode: "bubble", unread: 0, working: false, attention: false, side: "right" });
+    // Click -> the mini chat: the main window, always on top, next to the bubble; the bubble hides.
+    expect(await s.ipc.get("ted-bubble:click")(fromBubble)).toEqual({ ok: true, mode: "mini" });
+    expect(s.windows[0].top).toBe("floating");
+    expect(s.windows[0].bounds).toMatchObject({ width: 400, height: 640 });
+    expect(bw.visible).toBe(false);
+    // „Нормален прозорец“ from the main window.
+    expect(await s.ipc.get("ted:window.restore")(fromApp, "ignored", { x: 1 })).toEqual({ ok: true, mode: "normal" });
+    expect(s.windows[0].top).toBe(null);
+    expect(s.windows[0].bounds).toEqual({ x: 0, y: 0, width: 1366, height: 860 });
+  });
+
   it("quits immediately when another instance already runs", async () => {
     const s = await boot({ lock: false });
     expect(s.calls.map((c) => c[0])).toEqual(["lock", "quit"]);
@@ -315,7 +368,7 @@ describe("main.js", () => {
     expect(s.windows[0].url).toBe("http://localhost:5173/");
     expect(s.windows[0].options.webPreferences.devTools).toBe(true);
     expect(s.calls.map((c) => c[0])).not.toContain("menu");
-    expect(await s.ipc.get("ted:auth.state")({ senderFrame: { url: "http://localhost:5173/" } })).toEqual({ status: "signedOut" });
+    expect(await s.ipc.get("ted:auth.state")({ senderFrame: { url: "http://localhost:5173/" }, sender: s.windows[0].webContents })).toEqual({ status: "signedOut" });
     await expect(s.ipc.get("ted:auth.state")({ senderFrame: { url: "http://localhost:9999/" } })).rejects.toThrow("forbidden");
   });
 

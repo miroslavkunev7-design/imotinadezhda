@@ -11,6 +11,7 @@ import { CHATGPT_PROMPT_MAX, HANDOFF_KINDS, cleanPrompt, fitsLink } from "./chat
 import { buildInstructions } from "./instructions.js";
 import { buildTools, callName, crmTools } from "./tools-spec.js";
 import { FILE_REF } from "./uploads.js";
+import { createSensitive, hostOf, typedView, urlHaystack } from "./provenance.js";
 import { PHOTO_MAX, PHOTO_MIN_BYTES } from "../projects.js";
 import { createDocument } from "../docs/create.js";
 
@@ -165,10 +166,16 @@ const hostPath = (url) => {
 };
 
 // ---- URL provenance (CONTRACT §9.3 rule 8) ---------------------------------------------------------------------
-// read_page / fetch_image run without a card only for URLs the model did NOT build: URLs that appeared verbatim in the
-// employee's messages or in the output of a function of this answer (search results, links/images of pages read,
-// CRM results). Once CRM data, a read document, the Проект or an earlier answer is in the context, any other URL
-// (a model-built one could carry that data to a third party) needs a „web“ approval card with the full address.
+// read_page / fetch_image / images.download run without a card for URLs the model did NOT build: URLs that appeared
+// verbatim in the employee's messages or in the successful output of a function of this chat (search results,
+// links/images of pages read, CRM results) – never an echo of what the model itself wrote (MODEL_URLS_MAX below) and
+// never a URL of a file this program made from the model's text (tedMade). HYBRID rule (owner: „Защо 15 пъти ми иска
+// едно потвърждение…“ + the security review of the data-only check): a model-built URL (or a web_search query) that carries a SENSITIVE value GPT has seen
+// (provenance.js: phones, e-mails, ЕГН, IBAN, 7+ digit numbers, names/addresses/notes of CRM records, words of
+// documents read) that the employee did not type and no public result showed → always a „strict“ card (no „за този
+// сайт“, no „всички адреси“, never covered by them). Otherwise a model-built URL asks only in a chat with real private
+// data (chat.private: a CRM result, a document read, a Проект, the Canvas, attached files) – once per site with „Разреши
+// за този сайт“; in a chat without such data a site search page goes without a card, also in a follow-up question.
 export const URL_MAX = 2048;
 const URL_RE = /https?:\/\/[^\s"'<>\\^`{|}]+/gi;
 export function normUrl(raw) {
@@ -179,21 +186,107 @@ export function normUrl(raw) {
     return u.href;
   } catch { return null; }
 }
-// Every URL in a text, also without trailing punctuation („…/обява.“ → „…/обява“).
-export function urlsIn(text, add) {
+// Every URL in a text, one entry per occurrence: its forms [normalised, as written] – as written and without trailing
+// punctuation („…/обява.“ → „…/обява“).
+export function urlMatches(text) {
+  const out = [];
   for (const m of String(text || "").matchAll(URL_RE)) {
     const raw = m[0].slice(0, URL_MAX + 1);
-    for (const v of [raw, raw.replace(/[.,;:!?…»“”"')\]]+$/, "")]) { const n = normUrl(v); if (n) add(n); }
+    const forms = [];
+    for (const v of [raw, raw.replace(/[.,;:!?…»“”"')\]]+$/, "")]) { const n = normUrl(v); if (n) forms.push([n, v]); }
+    if (forms.length) out.push(forms);
   }
+  return out;
 }
-// Personal data in a search query: e-mails and runs of ≥ 8 digits (phones, ЕГН, IBAN parts).
-export function personalTokens(query) {
-  const s = String(query || "");
-  return [...(s.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || []), ...(s.match(/\d(?:[\s\-./]?\d){7,}/g) || [])];
+// Every URL in a text, also without trailing punctuation: add(normalised, as written).
+export function urlsIn(text, add) {
+  for (const forms of urlMatches(text)) for (const [n, v] of forms) add(n, v);
 }
+// Echoes (CONTRACT §9.3 rule 8, release gate C1/C2): the model-built URLs the model wrote into function arguments
+// (not known when it wrote them – also ones written in a hidden form that only decodes to a URL), in the comparable
+// form below. An output URL that shares its text with one – the same, cut short („Непознат инструмент на CRM: <60
+// знака>“), longer (followed by „“…“ the result adds), cut and then followed by other text („Няма проект „<160>““,
+// „…(съкратено)“), or read back later from a CRM record the model wrote – is an echo and never becomes known. Over
+// MODEL_URLS_MAX characters of such URLs in one program session, outputs that can repeat the model's text (CRM, project
+// folder, documents) make nothing known any more (nothing is forgotten to make room).
+export const MODEL_URLS_MAX = 500_000;
+const NAMED_CHARS = { amp: "&", colon: ":", sol: "/", bsol: "\\", period: ".", quest: "?", equals: "=", num: "#", percnt: "%", plus: "+", commat: "@", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", tab: "\t", newline: "\n", lpar: "(", rpar: ")", comma: ",", semi: ";", excl: "!", dollar: "$", ast: "*", lowbar: "_", hyphen: "-", dash: "-" };
+const fromCode = (cp) => (cp > 0 && cp < 0x110000 && !(cp >= 0xd800 && cp <= 0xdfff) ? String.fromCodePoint(cp) : "");
+// The comparable form of a text for echoes: HTML entities (numeric also without „;“) and %xx decoded (up to 3 rounds),
+// NFKC („ﬁ“ → „fi“, „ｈｔｔｐｓ：／／“ → „https://“), invisible format characters (zero-width, soft hyphen, bidi) removed,
+// lower case. Applied to both sides of every comparison.
+function decodeEcho(text, nfkc = true) {
+  const norm = (x) => (nfkc ? x.normalize("NFKC") : x);
+  let t = norm(String(text == null ? "" : text));
+  for (let i = 0; i < 3; i++) {
+    const n = norm(t
+      .replace(/&#(?:x([0-9a-f]{1,6})|(\d{1,7}));?/gi, (m, h, d) => fromCode(h ? parseInt(h, 16) : parseInt(d, 10)))
+      .replace(/&([a-z]{2,8});/gi, (m, e) => (Object.hasOwn(NAMED_CHARS, e.toLowerCase()) ? NAMED_CHARS[e.toLowerCase()] : m))
+      .replace(/(?:%[0-9a-f]{2})+/gi, (m) => { try { return decodeURIComponent(m); } catch { return m.replace(/%([0-7][0-9a-f])/gi, (x, h) => String.fromCharCode(parseInt(h, 16))); } }));
+    if (n === t) break;
+    t = n;
+  }
+  return t.replace(/\p{Cf}/gu, "").toLowerCase();
+}
+export const echoForm = (text) => decodeEcho(text);
+// „http(s):“ and what follows up to a space or quote: what a URL parser may still read as an address (also with „\“).
+const LOOSE_URL_RE = /https?:[^\s"'<>^`{|}]+/gi;
+// Every key and string value of a function's arguments (all of them, at any depth).
+function argStrings(args) {
+  const out = [];
+  const stack = [args];
+  while (stack.length) {
+    const v = stack.pop();
+    if (typeof v === "string") out.push(v);
+    else if (Array.isArray(v)) for (const x of v) stack.push(x);
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) { out.push(k); stack.push(x); }
+  }
+  return out;
+}
+// The start of an output URL up to its first character that is not an ASCII URL character (RFC 3986) – decoded, but
+// without NFKC, which would turn „…“ into „...“ and „№“ into „No“: an echo cut short and followed by „““,
+// „…(съкратено)“ or other text keeps the model's own start (the normalised form of the same occurrence covers a
+// full-width host). A URL whose host is not ASCII stays whole.
+const URL_CHAR = /[a-z0-9\-._~:/?#[\]@!$&'()*+,;=%]/;
+function echoStart(text) {
+  const c = decodeEcho(text, false);
+  let i = 0;
+  while (i < c.length && URL_CHAR.test(c[i])) i++;
+  return i > c.indexOf("://") + 3 ? c.slice(0, i) : echoForm(text);
+}
+// A file this program made from the model's text (CONTRACT §9.3 rule 8 (c)): its URLs are model-built. Origin "ted"
+// (create_document, exports, ZIP) or a copy of a CRM file that is not known to be one of the employee's: a copy without
+// a server path (the attachments of email.preview), a file of Ted's server folders „ted/“ (documents.create_pdf, merge,
+// split, files.to_pdf, contracts.generate), „…/chat/“ (files.attach of a chat file) and „ted-chat/“ (the uploads of
+// this program's chat files), or – `made`, this program
+// session – a copy that came from a write, a file maker or email.preview, or a document the server marks as Ted's.
+const TED_PATH = /(?:^|\/)(?:ted|chat|ted-chat)\//i;
+export function tedMade(ref, made = null) {
+  if (!ref) return false;
+  if (ref.origin === "ted") return true;
+  if (ref.origin !== "crm") return false;
+  const path = String((ref.crm && ref.crm.path) || "");
+  return !path || TED_PATH.test(path) || !!(made && made.has(ref.id));
+}
+// Per chat (in memory, newest CHAT_MEMORY chats): sites the employee allowed with „Разреши за този сайт“, the known
+// URLs and the sensitive / public values seen in its answers.
+export const CHAT_MEMORY = 30;
+// Attached documents read (locally, no AI) for names only when a model-built URL or query has to be checked.
+const ATTACH_READ_MAX = 10;
+const ATTACH_KINDS = new Set(["pdf", "docx", "xlsx", "csv", "text"]);
+// A stable JSON of an input (keys sorted) – the identity of an action for „ask once per answer“.
+export function stableJson(v, depth = 0) {
+  if (depth > 12) return "null";
+  if (Array.isArray(v)) return `[${v.map((x) => stableJson(x, depth + 1)).join(",")}]`;
+  if (v && typeof v === "object") return `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${stableJson(v[k], depth + 1)}`).join(",")}}`;
+  return JSON.stringify(v === undefined ? null : v);
+}
+// What the model hears when the employee refuses an address (first time / the same address again in this answer).
+export const URL_REFUSED = "Служителят не разреши този адрес – в него има лични данни. Не слагай лични данни в адреси; ползвай адреси от търсенето или от прочетените страници.";
+export const URL_REFUSED_AGAIN = "Служителят вече отказа този адрес в този отговор – не го опитвай отново. Ползвай адреси от търсенето или от прочетените страници.";
+const shownList = (hits, max = 8) => hits.slice(0, max).map((h) => h.shown).join(", ") + (hits.length > max ? ` …и още ${hits.length - max}` : "");
 
 // Every function call kind -> step kind (§8.3)
-const TAINTING = new Set(["crm", "read_document"]);
 const STEP_KIND = { web_search: "web_search", read_page: "read_page", fetch_image: "fetch_image", create_document: "doc", read_document: "read_doc", update_canvas: "canvas", open_in_chatgpt: "chatgpt", project_folder: "folder" };
 // project_folder (0.1.5, CONTRACT §8.12): the folder of a Проект on this computer.
 export const FOLDER_ACTIONS = ["create", "add", "list", "export_zip", "save_to_crm"];
@@ -210,6 +303,24 @@ export function createAgent({
   const pending = new Map(); // requestId -> Map(approvalId -> {resolve, approval})
   const remembered = new Map(); // model -> {noEffort, flat, noIds}
   const caseCache = new Map(); // caseId -> {at, value}: cases.get of the selected Проект (CASE_TTL_MS)
+  const chats = new Map(); // chatId -> {hosts:Set, known:Set, sens} (newest CHAT_MEMORY chats; see URL_MAX above)
+  // Model-built URLs of function arguments in their comparable form (echoForm), with their length in characters; over
+  // MODEL_URLS_MAX nothing more is kept and outputs that can repeat the model's text make nothing known (see above).
+  const wrote = new Set();
+  let wroteChars = 0;
+  let wroteFull = false;
+  const crmMade = new Set(); // ids of CRM copies made from a write / file maker / email.preview or marked Ted's (tedMade)
+
+  // The memory of one chat; a request without chatId gets a fresh one (= this answer only).
+  function chatMemory(chatId) {
+    const fresh = () => ({ hosts: new Set(), known: new Set(), sens: createSensitive() });
+    if (typeof chatId !== "string" || !chatId) return fresh();
+    let c = chats.get(chatId);
+    if (c) chats.delete(chatId); else c = fresh();
+    chats.set(chatId, c);
+    while (chats.size > CHAT_MEMORY) chats.delete(chats.keys().next().value);
+    return c;
+  }
 
   function memo(model) {
     if (!remembered.has(model)) remembered.set(model, { noEffort: false, flat: false, noIds: false, noDocs: false });
@@ -220,8 +331,10 @@ export function createAgent({
     const p = pending.get(requestId);
     const entry = p && p.get(approvalId);
     if (!entry) return { ok: false, error: "Това одобрение вече не е активно." };
-    if (!["allow", "deny", "allow_all"].includes(decision)) return { ok: false, error: "Невалиден избор." };
+    if (!["allow", "deny", "allow_all", "allow_host"].includes(decision)) return { ok: false, error: "Невалиден избор." };
     if (decision === "allow_all" && !entry.approval.allowAll) return { ok: false, error: "„Разреши всички“ не важи за това действие." };
+    // „Разреши за този сайт“: only on a „web“ card that names one site (MAIN's host, never one from the window).
+    if (decision === "allow_host" && !(entry.approval.kind === "web" && entry.approval.allowHost && entry.approval.host)) return { ok: false, error: "„Разреши за този сайт“ не важи за това действие." };
     p.delete(approvalId);
     entry.resolve({ decision });
     return { ok: true };
@@ -263,15 +376,51 @@ export function createAgent({
     const send = (ev) => { try { emit(ev); } catch { /* window gone */ } };
     // caseId/caseTitle: files made in a chat of a Проект go into its folder (set once the case is read below).
     const fileOpts = { chatId: req.chatId, temporary: !!req.temporary };
-    // URL provenance: known URLs and whether private data is already in the context (see URL_MAX above).
-    const known = new Set();
+    // URL provenance (see URL_MAX above): known URLs, the sites allowed in this chat, the sensitive values GPT has
+    // seen and what the employee typed himself.
+    const freshChat = !(typeof req.chatId === "string" && req.chatId && chats.has(req.chatId));
+    const chat = chatMemory(req.chatId);
+    const known = chat.known;
+    const sens = chat.sens;
     const addKnown = (u) => { if (known.size < 20000) known.add(u); };
-    const userText = (Array.isArray(messages) ? messages : []).filter((m) => m && m.role === "user").map((m) => String(m.text || "")).join("\n");
+    const msgs = Array.isArray(messages) ? messages.filter((m) => m && typeof m === "object") : [];
+    const userText = msgs.filter((m) => m.role === "user").map((m) => String(m.text || "")).join("\n");
     urlsIn(userText, addKnown);
-    const userDigits = userText.replace(/\D/g, "");
-    const userLower = userText.toLowerCase();
-    state.tainted = !!req.caseId || !!(req.canvas && typeof req.canvas.text === "string" && req.canvas.text.trim())
-      || (Array.isArray(messages) && messages.some((m) => m && (m.role === "assistant" || (Array.isArray(m.files) && m.files.length))));
+    const typed = typedView([userText, req.custom || settings.instructions || "", req.nick || settings.nick || ""].map((x) => (typeof x === "string" ? x : "")));
+    // Earlier answers may show CRM data: their numbers, e-mails and „Име Фамилия“ pairs count as sensitive – numbers
+    // inside their links do not (the listing ids of a listings answer, also after a restart; release gate C5).
+    for (const m of msgs) if (m.role === "assistant") sens.addPrivate(m.text, "names", { links: false });
+    if (req.canvas && typeof req.canvas.text === "string") sens.addPrivate(req.canvas.text.slice(0, 200_000), "proper", { links: false });
+    // Private data really in this chat (a CRM result, a document read, a Проект, the Canvas, attached files): then any
+    // address GPT builds itself asks once per site (security review of the data-only check: values can be encoded in
+    // ways no detector catches). Without such data a site search page goes without a card, also in follow-ups.
+    if (req.caseId || (req.canvas && typeof req.canvas.text === "string" && req.canvas.text.trim()) || msgs.some((m) => Array.isArray(m.files) && m.files.length)) chat.private = true;
+    // After a restart (or when the chat left the memory) the chat memory is empty: earlier answers that show phones,
+    // e-mails, ЕГН or IBANs count too (in their text – the ids in their links never do). While MAIN remembers the chat
+    // its own flag decides – the phones and listing ids of a listings answer (public results) never turn a follow-up
+    // into a „private“ chat.
+    if (freshChat) { const z = sens.size(); if (z.digits || z.emails) chat.private = true; }
+    const privateData = () => !!chat.private;
+    const decided = new Map(); // this answer: key of a „web“ card -> "allow" | "deny"; of a CRM card -> {denied} | {out}
+    let attachmentsRead = false;
+    // Attached documents are read (locally) for names only when a model-built URL or query has to be checked.
+    async function readAttachments() {
+      if (attachmentsRead) return;
+      attachmentsRead = true;
+      const ids = [...new Set(msgs.filter((m) => m.role === "user" && Array.isArray(m.files)).flatMap((m) => m.files))].slice(0, 40);
+      let n = 0;
+      for (const id of ids) {
+        const ref = files.ref(id);
+        if (!ref || !ATTACH_KINDS.has(ref.kind) || n >= ATTACH_READ_MAX) continue;
+        n++;
+        try { const r = await files.extract(ref.id); if (r && r.ok && r.doc) sens.addPrivate(r.doc.text, "proper"); } catch { /* unreadable: numbers in the address are still checked */ }
+      }
+    }
+    // -> the sensitive values a model-built address / query carries (empty = no card).
+    async function sensitiveIn(text) {
+      await readAttachments();
+      return sens.find(text, typed);
+    }
 
     // ---- steps, files, approvals ------------------------------------------------------------------------
     function step({ kind, label, tool, mutating }) {
@@ -331,7 +480,8 @@ export function createAgent({
       if (buf.length > maxBytes) throw new Error("too large");
       return { buffer: buf, mime: String((res.headers && res.headers["content-type"]) || "").split(";")[0] };
     }
-    async function materialize(result, s) {
+    // modelMade: the result of a write, a file maker or email.preview – its copies count as made by this program (tedMade).
+    async function materialize(result, s, modelMade = false) {
       const seen = new Map();
       let count = 0;
       const savedTo = result && typeof result.saved_to === "string" ? result.saved_to : undefined;
@@ -348,7 +498,10 @@ export function createAgent({
               const got = await download(url, isVideo ? 300 * 1048576 : 50 * 1048576);
               const name = String(node.name || node.file || (node.path ? String(node.path).split("/").pop() : "") || "файл");
               const r = addFile({ name, mime: node.mime || got.mime, data: got.buffer, origin: "crm", savedTo, crm: { documentId: node.document_id, path: node.path }, maxBytes: 300 * 1048576 }, s.id);
-              if (r.ok) id = r.file.id;
+              if (r.ok) {
+                id = r.file.id;
+                if ((modelMade || node.by_ted === true || node.by === "ted") && crmMade.size < 20_000) crmMade.add(id);
+              }
             } catch (e) {
               if (log) log.warn("agent.download_failed", { message: String((e && e.message) || e).slice(0, 80) });
             }
@@ -402,6 +555,27 @@ export function createAgent({
       }
       // The AI switches of plain tools (documents.inspect classify, files.to_pdf group_by_type) are always off.
       input = aiOff(tool, normalizeInput(stripConfirm(input)));
+      // images.download: the server parses and fetches what it gets (`urls` items as String(), so also [„https://…“];
+      // page_url also as „ https://…“, „https:evil.example/…“, „https:\\evil.example\…“). Every address is normalised
+      // here and only the normalised one is checked below and sent; anything that is not an http(s) address (or a
+      // "file:<id>" photo of the chat) is refused before a card (CONTRACT §9.3 rule 8, release gate C3).
+      if (tool === "images.download") {
+        const bad = [];
+        const norm = (u) => {
+          const s = String(u);
+          if (FILE_REF.test(s)) return s;
+          const n = s.length <= URL_MAX ? normUrl(s) : null;
+          if (!n) bad.push(s.replace(/\s+/g, " ").trim().slice(0, 120));
+          return n;
+        };
+        const next = { ...input };
+        if (Array.isArray(input.urls)) next.urls = input.urls.map(norm);
+        if (input.page_url !== undefined && input.page_url !== null && input.page_url !== "") {
+          if (typeof input.page_url === "string") next.page_url = norm(input.page_url); else bad.push("page_url");
+        }
+        if (bad.length) return { ok: false, error: `Невалиден адрес за images.download: „${bad[0]}“. Подай пълни адреси, които започват с https:// (снимките от чата – като "file:<id>").` };
+        input = next;
+      }
       // Photos of this program for a property's gallery: the site skips photos of 15 KB or less and takes at most 30
       // at once (api/_ted-skills.js images.download) – such photos are left out BEFORE the card, so the card shows
       // exactly what is sent and the model hears which were skipped (review F12).
@@ -422,12 +596,21 @@ export function createAgent({
       // Files of THIS computer going to a CRM record (photos into a gallery, files.attach of a chat file): always their
       // own card, never covered by an earlier „Разреши всички“ (review F4).
       const localToCrm = cls === "approval" && uploads.hasRefs(input);
+      // Asked once per answer (owner: „Защо 15 пъти ми иска едно потвърждение…“): the same tool with the same
+      // normalised input shows no second card – a refusal stays a refusal (no step), a done or maybe-done action is not
+      // repeated (the model gets the earlier result), an allowed action that failed for certain runs again without a card.
+      const once = cls === "approval" || cls === "confirm" ? `crm|${tool}|${stableJson(input)}` : null;
+      const before = once ? decided.get(once) : null;
+      if (before && before.denied) return { ok: false, repeated: true, error: "Служителят вече отказа същото действие в този отговор – не го предлагай отново." };
+      if (before && before.out && (before.out.ok || before.out.maybeExecuted)) return { ...before.out, repeated: true, note: "Същото действие вече е изпълнено в този отговор – не е изпълнено втори път." };
+      const reuse = !!(before && before.out);
+      const record = (out, extra = {}) => { if (once) decided.set(once, extra.denied ? { denied: true } : { out, confirmed: !!extra.confirmed }); return out; };
       // Plain step names for the server's file makers (CONTRACT §8.3: „Правя PDF“); every other tool: „CRM: …“.
       const own = tool === "images.download" && cls === "approval"
         ? ["image", `Добавям снимки в галерията${input.property_code ? ` на имот ${String(input.property_code).slice(0, 40)}` : ""}`]
         : GEN_LABEL[tool];
       const s = step({ kind: own ? own[0] : "crm", label: own ? own[1] : `CRM: ${toolLabel(tool)}`, tool, mutating: cls !== "auto" });
-      let confirmed = false;
+      let confirmed = reuse && before.confirmed;
 
       // The card names files of this program by their names („снимка.jpg“), not by "file:<id>".
       const shown = namedRefs(input);
@@ -438,25 +621,52 @@ export function createAgent({
         return !!yes;
       }
 
-      // The server fetches web addresses of images.download itself: an address the model built in a context with CRM
-      // data needs the same „web“ card as read_page/fetch_image (CONTRACT §9.3 rule 8, review F10).
-      if (tool === "images.download") {
-        const web = [...(Array.isArray(input.urls) ? input.urls : []), input.page_url].filter((u) => typeof u === "string" && /^https?:\/\//i.test(u));
-        const foreign = state.tainted ? web.filter((u) => { const n = normUrl(u); return !n || !known.has(n); }) : [];
+      // The server fetches web addresses of images.download itself: a model-built address that carries sensitive data
+      // needs the same „web“ card as read_page/fetch_image (CONTRACT §9.3 rule 8, review F10).
+      if (tool === "images.download" && !reuse) {
+        // Every address here is already normalised (above): exactly what the server gets is checked and shown.
+        const web = [...(Array.isArray(input.urls) ? input.urls : []), input.page_url].filter((u) => typeof u === "string" && u && !FILE_REF.test(u));
+        const foreign = [];
+        const built = [];
+        for (const u of web) {
+          if (known.has(u)) continue;
+          const hits = await sensitiveIn(urlHaystack(u));
+          if (hits.length) foreign.push({ u, n: u, hits });
+          else if (privateData() && !state.allowWeb && !chat.hosts.has(hostOf(u))) built.push({ u, n: u });
+        }
+        if (!foreign.length && built.length) {
+          const hosts = [...new Set(built.map((f) => hostOf(f.u)))];
+          const v = await askWeb(s, {
+            key: `dl|${built.map((f) => f.n).sort().join(" ")}`, host: hosts.length === 1 ? hosts[0] : "",
+            title: "ChatGPT иска сървърът на Тед да изтегли адрес, който сам е съставил",
+            lines: [["Адрес", built.slice(0, 5).map((f) => f.u).join("\n") + (built.length > 5 ? `\n…и още ${built.length - 5}` : "")], ["Сайт", hosts.slice(0, 5).join(", ")],
+              ["Защо питаме", "В този чат има данни от CRM или файлове, а адресът не е от търсенето или от прочетена страница."]],
+          });
+          if (!v.ok) return record({ ok: false, ...(v.repeated ? { repeated: true } : {}), error: v.repeated ? URL_REFUSED_AGAIN : URL_REFUSED }, { denied: true });
+        }
         if (foreign.length) {
-          const allowed = await askWeb(s, "ChatGPT иска сървърът на Тед да изтегли адрес, който сам е съставил", [
-            ["Адрес", foreign.slice(0, 5).join("\n") + (foreign.length > 5 ? `\n…и още ${foreign.length - 5}` : "")],
-            ["Защо питаме", "Адресът не е от вашите съобщения, от търсенето или от прочетена страница, а в разговора има данни от CRM или файлове. Сървърът на Тед ще го отвори."]]);
-          if (!allowed) return { ok: false, error: "Служителят не разреши този адрес. Ползвай адреси от търсенето или от прочетените страници." };
+          // The strict card lists every address of the call that needs a card – also the model-built ones without
+          // personal data, which would otherwise go to the server unseen once the card is allowed.
+          const all = [...foreign, ...built];
+          const hosts = [...new Set(all.map((f) => hostOf(f.u)))];
+          const hits = [...new Map(foreign.flatMap((f) => f.hits).map((h) => [h.shown, h])).values()];
+          const v = await askWeb(s, {
+            key: `dl|${all.map((f) => f.n).sort().join(" ")}`, strict: true,
+            title: "ChatGPT иска сървърът на Тед да изтегли адрес с лични данни",
+            lines: [["Адрес", all.slice(0, 5).map((f) => f.u).join("\n") + (all.length > 5 ? `\n…и още ${all.length - 5}` : "")],
+              ["Сайт", hosts.slice(0, 5).join(", ")], ["Лични данни", shownList(hits)],
+              ["Защо питаме", "В адреса има данни от CRM, от файл или от по-ранен отговор, които не сте написали вие. Сървърът на Тед ще отвори адреса и сайтът ще получи данните."]],
+          });
+          if (!v.ok) return record({ ok: false, ...(v.repeated ? { repeated: true } : {}), error: v.repeated ? URL_REFUSED_AGAIN : URL_REFUSED }, { denied: true });
         }
       }
 
-      if (cls === "approval" && (!state.allowAll || localToCrm)) {
+      if (!reuse && cls === "approval" && (!state.allowAll || localToCrm)) {
         const d = await ask({ kind: "crm_write", title: approvalTitle(tool, input, { photos: photoCount(input) }), tool, lines: inputLines(shown), json: approvalJson(input), allowAll: !localToCrm }, s);
-        if (d.decision === "deny") { s.denied(); return { ok: false, error: d.timeout ? "Няма отговор от служителя 10 минути – действието не е изпълнено." : "Служителят отказа." }; }
+        if (d.decision === "deny") { s.denied(); return record({ ok: false, error: d.timeout ? "Няма отговор от служителя 10 минути – действието не е изпълнено." : "Служителят отказа." }, { denied: true }); }
         if (d.decision === "allow_all" && !localToCrm) state.allowAll = true;
-      } else if (cls === "confirm") {
-        if (!(await askConfirm("confirm"))) { s.denied(); return { ok: false, error: "Служителят отказа." }; }
+      } else if (!reuse && cls === "confirm") {
+        if (!(await askConfirm("confirm"))) { s.denied(); return record({ ok: false, error: "Служителят отказа." }, { denied: true }); }
         confirmed = true;
       }
       let sendInput = confirmed ? { ...input, confirm: true } : input;
@@ -470,64 +680,99 @@ export function createAgent({
         if (uploads.hasRefs(sendInput)) sendInput = await uploads.resolve(sendInput, subStep);
       } catch (e) {
         s.fail(e.message);
-        return { ok: false, error: e.message };
+        return record({ ok: false, error: e.message }, { confirmed });
       }
       let r = await tools.call(tool, sendInput);
       if (!r.ok && !confirmed && asksConfirm(r)) {
         // Refused before execution: the employee decides, then exactly one retry with confirm:true.
-        if (!(await askConfirm("confirm"))) { s.denied(); return { ok: false, error: "Служителят отказа." }; }
+        if (!(await askConfirm("confirm"))) { s.denied(); return record({ ok: false, error: "Служителят отказа." }, { denied: true }); }
+        confirmed = true;
         r = await tools.call(tool, { ...sendInput, confirm: true });
       }
       if (!r.ok) {
         if (r.maybeExecuted) {
           s.fail("може да е изпълнено – проверете в CRM");
-          return { ok: false, maybeExecuted: true, error: `${r.error} Не е ясно дали действието е изпълнено – проверете в CRM.` };
+          return record({ ok: false, maybeExecuted: true, error: `${r.error} Не е ясно дали действието е изпълнено – проверете в CRM.` });
         }
         s.fail(r.error);
-        return { ok: false, error: r.error, ...(r.status ? { status: r.status } : {}) };
+        return record({ ok: false, error: r.error, ...(r.status ? { status: r.status } : {}) }, { confirmed });
       }
       // A CRM change may change the selected Проект (facts, summary): read it again next time.
       if (cls !== "auto") caseCache.clear();
       const result = r.result && typeof r.result === "object" ? structuredClone(r.result) : r.result;
       if (tool === "email.preview" && result && typeof result === "object") send({ type: "email", email: result });
-      if (result && typeof result === "object") await materialize(result, s);
+      if (result && typeof result === "object") await materialize(result, s, cls !== "auto" || tool === "email.preview");
       // Photos into a gallery: the step says how many the server really stored (it may skip some).
       if (tool === "images.download" && cls === "approval" && result && Number.isFinite(Number(result.downloaded))) {
         const n = Number(result.downloaded);
         const sent = Array.isArray(input.urls) ? input.urls.length : n;
         if (n < sent) s.fail(`записани ${n} от ${sent} снимки – проверете галерията в CRM`); else s.ok(`${n} ${n === 1 ? "снимка" : "снимки"} в галерията`);
       } else s.ok();
-      return { ok: true, result, ...(skippedPhotos.length ? { skipped: skippedPhotos } : {}) };
+      return record({ ok: true, result, ...(skippedPhotos.length ? { skipped: skippedPhotos } : {}) });
     }
 
-    // A „web“ card: the employee sees the full address (or query) before it leaves the PC. -> true when allowed.
-    async function askWeb(s, title, lines) {
-      if (state.allowWeb) return true;
-      const d = await ask({ kind: "web", title, lines, allowAll: true }, s);
-      if (d.decision === "deny") { s.denied(); return false; }
+    // A „web“ card (CONTRACT §9.3 rule 8): the full address or query before it leaves the PC, asked once per answer.
+    // „Разреши“ = this address, „Разреши за този сайт“ (allow_host) = that site until the end of the chat, „Разреши
+    // всички адреси до края на отговора“ (allow_all) = the rest of this answer. -> {ok:true} | {ok:false, repeated?}
+    async function askWeb(s, { key, host = "", title, lines, strict = false }) {
+      const before = key ? decided.get(key) : undefined;
+      if (before === "deny") { s.denied(); return { ok: false, repeated: true }; }
+      if (before === "allow" || (!strict && (state.allowWeb || (host && chat.hosts.has(host))))) return { ok: true };
+      if (strict) host = "";
+      const d = await ask({ kind: "web", title, lines, allowAll: !strict, allowHost: !!host, ...(host ? { host } : {}) }, s);
+      if (d.decision === "deny") { if (key) decided.set(key, "deny"); s.denied(); return { ok: false }; }
+      if (key) decided.set(key, "allow");
       if (d.decision === "allow_all") state.allowWeb = true;
-      return true;
+      if (d.decision === "allow_host" && host) chat.hosts.add(host);
+      return { ok: true };
     }
+    const urlKey = (raw) => { const n = normUrl(raw); return n ? `url|${n}` : null; };
     // read_page / fetch_image: -> null when the URL may be fetched, else the function output.
     async function urlGate(url, s) {
       const raw = String(url || "");
       if (raw.length > URL_MAX) { s.fail("адресът е твърде дълъг"); return { ok: false, error: `Адресът е над ${URL_MAX} знака и не се отваря.` }; }
       const n = normUrl(raw);
-      if (!n || known.has(n) || !state.tainted) return null;
-      const allowed = await askWeb(s, "ChatGPT иска да отвори адрес, който сам е съставил", [["Адрес", raw], ["Защо питаме", "Адресът не е от вашите съобщения, от търсенето или от прочетена страница, а в разговора има данни от CRM или файлове."]]);
-      return allowed ? null : { ok: false, error: "Служителят не разреши този адрес. Ползвай адреси от търсенето или от прочетените страници." };
+      if (!n || known.has(n)) return null;
+      const host = hostOf(n);
+      const key = `url|${n}`;
+      if (decided.get(key) === "allow") return null;
+      const hits = await sensitiveIn(urlHaystack(n));
+      if (hits.length) {
+        // Personal data found in the address: always its own card – „за този сайт“ / „всички адреси“ never cover it.
+        const v = await askWeb(s, {
+          key, title: "ChatGPT иска да отвори адрес с лични данни", strict: true,
+          lines: [["Адрес", raw], ["Сайт", host], ["Лични данни", shownList(hits)],
+            ["Защо питаме", "В адреса има данни от CRM, от файл или от по-ранен отговор, които не сте написали вие. Сайтът ще ги получи."]],
+        });
+        return v.ok ? null : { ok: false, ...(v.repeated ? { repeated: true } : {}), error: v.repeated ? URL_REFUSED_AGAIN : URL_REFUSED };
+      }
+      if (!privateData() || state.allowWeb || chat.hosts.has(host)) return null;
+      const v = await askWeb(s, {
+        key, host, title: "ChatGPT иска да отвори адрес, който сам е съставил",
+        lines: [["Адрес", raw], ["Сайт", host],
+          ["Защо питаме", "В този чат има данни от CRM или файлове, а адресът не е от търсенето или от прочетена страница. С „Разреши за този сайт“ няма да питам повече за този сайт в чата."]],
+      });
+      return v.ok ? null : { ok: false, ...(v.repeated ? { repeated: true } : {}), error: v.repeated ? URL_REFUSED_AGAIN : URL_REFUSED };
     }
     async function runLocal(name, args) {
       const web = (v) => ({ untrusted: true, source: "web", ...v });
       if (name === "web_search") {
         if (!browseOn) return { ok: false, error: "Интернетът е изключен в Настройки → Браузър." };
         const q = String((args && args.query) || "").slice(0, 300);
+        // A query with sensitive data the employee did not type goes out only after a card – asked once per answer.
+        const key = `q|${q.trim().replace(/\s+/g, " ").toLowerCase()}`;
+        if (decided.get(key) === "deny") return { ok: false, repeated: true, error: "Служителят вече отказа това търсене в този отговор – не го опитвай отново." };
         const s = step({ kind: "web_search", label: `Търся в интернет: ${q}` });
-        // After private data entered the context, a query with phones/e-mails/ЕГН that the employee did not type
-        // goes out only after a card.
-        const foreign = state.tainted ? personalTokens(q).filter((t) => !(t.includes("@") ? userLower.includes(t.toLowerCase()) : userDigits.includes(t.replace(/\D/g, "")))) : [];
-        if (foreign.length && !(await askWeb(s, "ChatGPT иска да търси в интернет с лични данни", [["Търсене", q], ["Лични данни", foreign.join(", ")]]))) {
-          return { ok: false, error: "Служителят не разреши търсене с тези данни." };
+        if (decided.get(key) !== "allow") {
+          const hits = await sensitiveIn(q);
+          if (hits.length) {
+            const v = await askWeb(s, {
+              key, strict: true, title: "ChatGPT иска да търси в интернет с лични данни",
+              lines: [["Търсене", q], ["Лични данни", shownList(hits)],
+                ["Защо питаме", "В търсенето има данни от CRM, от файл или от по-ранен отговор, които не сте написали вие. Търсачката (DuckDuckGo) ще ги получи."]],
+            });
+            if (!v.ok) return { ok: false, error: "Служителят не разреши търсене с тези данни. Търси без лични данни." };
+          }
         }
         const r = await search({ query: q, n: args && args.n }, { signal });
         if (r.ok) s.ok(`${r.results.length} резултата`); else s.fail(r.error);
@@ -535,6 +780,7 @@ export function createAgent({
       }
       if (name === "read_page") {
         if (!browseOn) return { ok: false, error: "Интернетът е изключен в Настройки → Браузър." };
+        if (decided.get(urlKey(args && args.url)) === "deny") return { ok: false, repeated: true, error: URL_REFUSED_AGAIN };
         if (state.read_page >= limits.read_page) return { ok: false, error: `${LIMIT_TEXT} (четене на страници: ${limits.read_page}).` };
         state.read_page++;
         const s = step({ kind: "read_page", label: `Чета страница: ${hostPath(args && args.url)}` });
@@ -561,6 +807,7 @@ export function createAgent({
       }
       if (name === "fetch_image") {
         if (!browseOn) return { ok: false, error: "Интернетът е изключен в Настройки → Браузър." };
+        if (decided.get(urlKey(args && args.url)) === "deny") return { ok: false, repeated: true, error: URL_REFUSED_AGAIN };
         if (state.fetch_image >= limits.fetch_image) return { ok: false, error: `${LIMIT_TEXT} (снимки от интернет: ${limits.fetch_image}).` };
         state.fetch_image++;
         const s = step({ kind: "fetch_image", label: `Изтеглям снимка: ${hostPath(args && args.url)}` });
@@ -745,6 +992,12 @@ export function createAgent({
       if (!target) target = args.client_name ? { clientName: String(args.client_name) } : p.clientId ? { clientId: p.clientId, clientName: p.client || "" } : p.client ? { clientName: p.client } : null;
       const t = projects.targetOf(target);
       if (!t) return { ok: false, error: "При кой клиент или имот да се запишат файловете? Подай client_name, client_id или property_code." };
+      // Asked once per answer (as runCrm): the same files to the same target – refused stays refused, a save that
+      // stored (or may have stored) something is not repeated; one that stored nothing for certain asks again.
+      const once = `folder|${p.id}|${stableJson(t.input)}|${chosen.map((f) => f.id).sort().join(",")}`;
+      const before = decided.get(once);
+      if (before && before.denied) return { ok: false, repeated: true, error: "Служителят вече отказа този запис в този отговор – не го предлагай отново." };
+      if (before && before.out && (before.out.saved > 0 || (before.out.results || []).some((x) => x.maybeExecuted))) return { ...before.out, repeated: true, note: "Тези файлове вече са записани в този отговор – не са записани втори път." };
       const s = step({ kind: "crm", label: `CRM: папка „${String(p.title || "").slice(0, 50)}“ → ${t.label}`, tool: "files.attach", mutating: true });
       // Always its own card with every file and the target – an earlier „Разреши всички“ never covers an upload of
       // this computer's files (review F4); the card itself offers no „Разреши всички“.
@@ -755,14 +1008,37 @@ export function createAgent({
             ["Файлове", fileListLine(chosen)]],
           json: approvalJson({ project: { id: p.id, title: p.title }, target: t.input, files: chosen.map((f) => ({ file: `file:${f.id}`, name: f.name, size: f.size })) }),
         }, s);
-        if (d.decision === "deny") { s.denied(); return { ok: false, error: d.timeout ? "Няма отговор от служителя 10 минути – нищо не е записано." : "Служителят отказа – нищо не е записано." }; }
+        if (d.decision === "deny") { s.denied(); decided.set(once, { denied: true }); return { ok: false, error: d.timeout ? "Няма отговор от служителя 10 минути – нищо не е записано." : "Служителят отказа – нищо не е записано." }; }
       }
       const r = await projects.upload({ fileIds: chosen.map((f) => f.id), target, folderName: `Проект: ${p.title}`.slice(0, 80), onStep: subStep });
       if (!r.results) { s.fail(r.error); return { ok: false, error: r.error }; }
       const maybe = r.results.some((x) => x.maybeExecuted);
       if (r.failed) s.fail(`${r.saved} записани, ${r.failed} неуспешни${maybe ? " – може да е изпълнено, проверете в CRM" : ""}`); else s.ok(`${r.saved} записани при ${t.label}`);
       if (r.saved) caseCache.clear();
-      return { ok: r.saved > 0, saved: r.saved, failed: r.failed, target: t.label, results: r.results.map((x) => ({ name: x.name, ok: x.ok, ...(x.savedTo ? { savedTo: x.savedTo } : {}), ...(x.error ? { error: x.error } : {}), ...(x.maybeExecuted ? { maybeExecuted: true } : {}) })) };
+      const out = { ok: r.saved > 0, saved: r.saved, failed: r.failed, target: t.label, results: r.results.map((x) => ({ name: x.name, ok: x.ok, ...(x.savedTo ? { savedTo: x.savedTo } : {}), ...(x.error ? { error: x.error } : {}), ...(x.maybeExecuted ? { maybeExecuted: true } : {}) })) };
+      decided.set(once, { out });
+      return out;
+    }
+
+    // -> the model-built URLs of a function's arguments in their comparable form (echoForm): every URL of the arguments
+    // that is not known when written, plus every URL that appears only once a text of them is decoded (entities, %xx,
+    // full-width, invisible characters) or read by a URL parser („https:evil.example/…“, „https:\\evil.example\…“) –
+    // hidden by the model, so always model-built.
+    function modelUrls(args) {
+      const mine = new Set();
+      const asWritten = new Set();
+      urlsIn(JSON.stringify(args), (n, raw) => { const f = [echoForm(raw), echoForm(n)]; for (const x of f) asWritten.add(x); if (!known.has(n)) for (const x of f) mine.add(x); });
+      let list = null;
+      const written = (f) => asWritten.has(f) || (list ||= [...asWritten]).some((x) => x.includes(f));
+      for (const s of argStrings(args)) {
+        for (const m of echoForm(s).matchAll(LOOSE_URL_RE)) {
+          const raw = m[0].slice(0, URL_MAX + 1);
+          const n = normUrl(raw);
+          if (!n) continue;
+          for (const f of [echoForm(raw), echoForm(n)]) if (!written(f)) mine.add(f);
+        }
+      }
+      return mine;
     }
 
     async function execute(call) {
@@ -772,11 +1048,43 @@ export function createAgent({
       try { args = call.arguments ? JSON.parse(call.arguments) : {}; } catch { return { cap: OUTPUT_CAP, value: { ok: false, error: "Аргументите не са валиден JSON." } }; }
       if (!args || typeof args !== "object" || Array.isArray(args)) args = {};
       try {
+        // Echoes (CONTRACT §9.3 rule 8, release gate C1/C2): the model-built URLs of this call's arguments – all of them,
+        // never cut, as written and as any text of them decodes – noted BEFORE the call runs (also when it fails).
+        const mine = modelUrls(args);
+        for (const m of mine) {
+          if (wroteFull || wrote.has(m)) continue;
+          if (wroteChars + m.length > MODEL_URLS_MAX) { wroteFull = true; break; }
+          wrote.add(m); wroteChars += m.length;
+        }
         const value = name === "crm" ? await runCrm(args) : await runLocal(name, args);
         const cap = name === "read_document" ? 64_000 : name === "read_page" ? Math.min(48_000, (Number(args.maxChars) || 20000) + 8000) : OUTPUT_CAP;
-        // What the model now sees: URLs in it are not model-built; CRM data and documents taint the context.
-        urlsIn(capOutput(value, cap), addKnown);
-        if (TAINTING.has(name)) state.tainted = true;
+        // What the model now sees: URLs in a successful output are not model-built; web results are public, CRM data
+        // and documents read are sensitive (provenance.js).
+        const seen = capOutput(value, cap);
+        // …except an echo: a URL that shares its text with a model-built URL of this call or – for an output that can
+        // return text the model wrote (CRM, project folder, documents; not web results) – of an earlier call (a note or
+        // an event the model wrote and reads back). Web results: contained in one of this call (a page that repeats the
+        // address it was sent). Other outputs: its start (echoStart) contained in one, or it contains one. One
+        // occurrence is one verdict: when any of its forms is an echo, none becomes known. A failed output and the text
+        // of a file this program made from the model's text (tedMade) make nothing known.
+        const fromWeb = name === "web_search" || name === "read_page" || name === "fetch_image";
+        const echo = (forms) => forms.some(([n, raw]) => [raw, n].some((x) => {
+          const c = echoForm(x);
+          if (mine.has(c) || (!fromWeb && wrote.has(c))) return true;
+          const start = fromWeb ? c : echoStart(x);
+          const shares = (m) => m.includes(start) || (!fromWeb && c.includes(m));
+          for (const m of mine) if (shares(m)) return true;
+          if (!fromWeb) for (const m of wrote) if (shares(m)) return true;
+          return false;
+        }));
+        const fileRef = name === "read_document" ? FILE_REF.exec(String(args.file || "")) : null;
+        const modelText = !!fileRef && tedMade(files.ref(fileRef[1]), crmMade);
+        if (value && value.ok !== false && !modelText && (fromWeb || !wroteFull)) {
+          for (const forms of urlMatches(seen)) if (!echo(forms)) for (const [n] of forms) addKnown(n);
+        }
+        if (name === "web_search" || name === "read_page") { if (value && value.ok) sens.addPublic(seen, name === "web_search" ? String(args.query || "") : urlHaystack(String(args.url || ""))); }
+        else if (name === "crm" || name === "project_folder") { sens.addValue(value); if (value && value.ok !== false) chat.private = true; }
+        else if (name === "read_document" && value && value.ok) { sens.addPrivate(value.text, "proper"); sens.addPrivate(value.name, "proper"); chat.private = true; }
         return { cap, value };
       } catch (e) {
         if (signal?.aborted) throw new RgError("aborted");
@@ -794,7 +1102,7 @@ export function createAgent({
       const hit = caseCache.get(req.caseId);
       const r = hit && now() - hit.at < CASE_TTL_MS ? { ok: true, result: structuredClone(hit.value) } : await tools.call("cases.get", { id: req.caseId });
       if (r.ok) {
-        kase = r.result; s.ok(); state.tainted = true;
+        kase = r.result; s.ok(); sens.addValue(kase);
         if (!hit || now() - hit.at >= CASE_TTL_MS) { caseCache.set(req.caseId, { at: now(), value: structuredClone(r.result) }); if (caseCache.size > 20) caseCache.delete(caseCache.keys().next().value); }
       } else s.fail(r.error);
       // Files Ted makes in a chat of this Проект go into its folder (never in a temporary chat: those are not kept).

@@ -124,4 +124,12 @@ contextBridge.exposeInMainWorld("ted", {
     install: () => invoke("ted:updates.install"),
     onChange: (callback) => subscribe("ted:updates.changed", callback),
   },
+  // 0.1.6 „Балонче“ (docs/CONTRACT.md §22): no arguments are passed on.
+  window: {
+    bubble: () => invoke("ted:window.bubble"),
+    miniChat: () => invoke("ted:window.miniChat"),
+    restore: () => invoke("ted:window.restore"),
+    state: () => invoke("ted:window.state"),
+    onMode: (callback) => subscribe("ted:window.mode", callback),
+  },
 });

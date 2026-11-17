@@ -31,7 +31,8 @@ import { createScheduled } from "./scheduled.js";
 import { createUpdater } from "./updater.js";
 import { APP_URL, CSP, META_CSP, SCHEME, registerAppProtocol } from "./protocol.js";
 import { disableSpellChecker, installSecurity } from "./security.js";
-import { createMainWindow, TITLE } from "./window.js";
+import { createBubbleWindow, createMainWindow, TITLE } from "./window.js";
+import { BUBBLE_URL, createBubbleController, registerBubbleIpc } from "./bubble.js";
 import { createAppApi, registerIpc } from "./ipc.js";
 import { SMOKE_TIMEOUT_MS, guardRendererRequests, parseSmokeArgs, prepareSmoke, recordingShell, removeSmokeProfile, runSmoke, writeSmokeReport } from "./smoke.js";
 
@@ -89,19 +90,24 @@ function start() {
   app.setAppUserModelId("bg.imotinadezhda.ted");
 
   let ui = null; // { win, setCompact } once the window exists
+  let bubble = null; // „Балонче“ controller (electron/bubble.js) once the window exists
   const currentWindow = () => (ui && !ui.win.isDestroyed() ? ui.win : null);
   const push = (channel, payload) => {
     const win = currentWindow();
     if (win && !win.webContents.isDestroyed()) win.webContents.send(channel, payload);
   };
 
+  // A second launch brings the normal window back (also from the bubble or the mini chat).
   app.on("second-instance", () => {
     const win = currentWindow();
     if (!win) return;
+    if (bubble && bubble.mode() !== "normal") { bubble.restore(); return; }
     if (win.isMinimized()) win.restore();
     win.show();
     win.focus();
   });
+  // A real quit (bubble menu „Затвори Тед“, update install) is never turned into „back to the bubble“.
+  app.on("before-quit", () => { if (bubble) bubble.setQuitting(); });
   app.on("window-all-closed", () => app.quit());
 
   app.whenReady().then(() => {
@@ -154,6 +160,8 @@ function start() {
 
     // Native confirmation for anything that sends or deletes. "Cancel" is the default button.
     async function confirm(message, detail, opts = {}) {
+      // From the bubble the mini chat opens first: the dialog needs a visible owner window.
+      if (bubble) { try { await bubble.beforeDialog(); } catch { /* the dialog is shown anyway */ } }
       const options = {
         type: "question", title: TITLE, message: String(message), detail: String(detail || ""),
         buttons: [opts.okLabel || "Да", opts.cancelLabel || "Отказ"], defaultId: 1, cancelId: 1, noLink: true,
@@ -211,7 +219,10 @@ function start() {
     const notify = (title, body) => {
       if (smoke || !Notification.isSupported()) return;
       const n = new Notification({ title: String(title).slice(0, 120), body: String(body || "").slice(0, 300), silent: false });
-      n.on("click", () => { const win = currentWindow(); if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
+      n.on("click", () => {
+        if (bubble && bubble.mode() !== "normal") { bubble.restore(); return; }
+        const win = currentWindow(); if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); }
+      });
       n.show();
     };
     const scheduled = createScheduled({ secureStore, owner: crmUserId, notify, emitDue: (d) => push("ted:scheduled.due", d), getSettings: () => settings.get(), log });
@@ -237,7 +248,11 @@ function start() {
       },
       emit: (event, payload) => {
         if (event === "realgpt:delta") push("ted:realgpt.delta", payload);
-        else if (event === "realgpt:event") { imageProvenance.observe(payload); push("ted:realgpt.event", payload); }
+        else if (event === "realgpt:event") {
+          imageProvenance.observe(payload);
+          if (bubble && payload && payload.type === "approval") bubble.attention(); // the bubble shows „!“
+          push("ted:realgpt.event", payload);
+        }
       },
       agent,
     });
@@ -258,7 +273,23 @@ function start() {
       chatsFile: path.join(userData, "secure", "chats.bin"),
       files,
     });
-    registerIpc({ ipcMain, isTrusted: security.isApp, log, appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance });
+    // „Балонче“ (0.1.6): the window modes; the bubble's pulse/badge follow the answers in flight.
+    const windowApi = {
+      bubble: () => (bubble ? bubble.toBubble() : { ok: false, mode: "normal" }),
+      miniChat: () => (bubble ? bubble.miniChat() : { ok: false, mode: "normal" }),
+      restore: () => (bubble ? bubble.restore() : { ok: false, mode: "normal" }),
+      state: () => ({ mode: bubble ? bubble.mode() : "normal" }),
+    };
+    const isMainSender = (event) => {
+      const win = currentWindow();
+      return !!win && !!event && !!event.sender && event.sender.id === win.webContents.id;
+    };
+    const observe = (channel) => {
+      if (!bubble) return null;
+      if (channel === "ted:realgpt.approve") { bubble.decided(); return null; } // „!“ off: the employee decided
+      return channel === "ted:api.chat" || channel === "ted:realgpt.send" ? bubble.track() : null;
+    };
+    registerIpc({ ipcMain, isTrusted: security.isApp, isMainSender, observe, log, appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance, windowApi });
 
     registerAppProtocol({ protocol, root: path.join(app.getAppPath(), "dist") });
     session.init();
@@ -269,6 +300,16 @@ function start() {
       url: dev ? dev.href : APP_URL,
       packaged: app.isPackaged,
     });
+    // The bubble window is made only when the employee presses „Балонче“ (never in a smoke run).
+    const bubbleUrl = dev ? new URL("bubble.html", dev.href).href : BUBBLE_URL;
+    bubble = createBubbleController({
+      screen, main: ui.win, setFloating: ui.setFloating, store: windowState, log,
+      makeBubbleWindow: () => createBubbleWindow({ BrowserWindow, preload: path.join(here, "preload-bubble.cjs"), url: bubbleUrl, packaged: app.isPackaged, log, platform: process.platform }),
+      popupMenu: (win, items) => Menu.buildFromTemplate(items).popup({ window: win }),
+      quit: () => app.quit(),
+      onMode: (mode) => push("ted:window.mode", { mode }),
+    });
+    registerBubbleIpc({ ipcMain, controller: bubble, isBubbleUrl: (u) => u === bubbleUrl, log });
     if (!smoke) {
       // Scheduled tasks run only while the program is open; updates are checked 20 s after start, then every 6 h.
       ui.win.webContents.once("did-finish-load", () => {
@@ -282,6 +323,7 @@ function start() {
         win: ui.win, appUrl: APP_URL, csp: CSP, metaCsp: META_CSP,
         appFetch: (url) => net.fetch(url), backendFetch, createHttp, shell, external,
         windowCount: () => BrowserWindow.getAllWindows().length,
+        bubbleOpen: () => !!bubble.bubbleWindow(),
         shot: smoke.shot,
         info: {
           userAgent,

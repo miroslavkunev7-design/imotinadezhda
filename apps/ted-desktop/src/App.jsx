@@ -41,6 +41,7 @@ import { affirmGuard, answerChanged, chatMarkdown, cleanChats, unfinished, email
 import { createSpeaker, startRecorder } from "./lib/voice.js";
 import { createStore } from "./lib/store.js";
 import ProjectFolder, { SaveToCrmModal } from "./components/layout/ProjectFolder.jsx";
+import { createMiniGuard } from "./bubble/gesture.js";
 import avatar from "./assets/avatar.webp";
 
 const STOP_NOTE = "Спряно изчакването. Ако Тед вече е започнал действие на сървъра, то може да бъде довършено – проверете в CRM.";
@@ -50,15 +51,103 @@ const CONN_TEXT = { ok: "Свързан с imotinadezhda.bg", off: "Няма в�
 const CHATS_SHOWN = 20; // ChatGPT „Recents“: the newest chats, the rest through „Вижте всички…“
 const drafts = new Map(); // unsent composer text per profile, kept if the session expires
 
-/* ---------- Window frame: the title bar is the drag region; Windows draws its own caption buttons ---------- */
-function Shell({ phone, conn, onQuick, children }) {
+/* ---------- „Балонче“ (0.1.6): the window mode MAIN reports – "normal" | "bubble" | "mini" (docs/CONTRACT.md §22) ---------- */
+const WIN_MODES = ["normal", "bubble", "mini"];
+function useWinMode() {
+  const [mode, setMode] = useState("normal");
+  useEffect(() => {
+    let off = false;
+    const take = (m) => { if (!off && m && WIN_MODES.includes(m.mode)) setMode(m.mode); };
+    Promise.resolve(ted.window.state()).then(take, () => {});
+    const un = ted.window.onMode(take);
+    return () => { off = true; if (typeof un === "function") un(); };
+  }, []);
+  return mode;
+}
+const winCall = (fn) => { Promise.resolve().then(fn).catch(() => {}); };
+const toBubble = () => winCall(() => ted.window.bubble());
+const toNormal = () => winCall(() => ted.window.restore());
+// The mini chat that has just come from the bubble takes no pointer input for the rest of Windows' double-click time: the
+// second click of a slower double click on the bubble lands where the bubble was (on „Изпрати“ / „Гласов режим“ / „Спри“)
+// and must press nothing – it is the double click, i.e. the normal window (src/bubble/gesture.js createMiniGuard).
+// Capture phase on window: decided before any handler runs. Meanwhile (and while hidden behind the bubble) the title bar is
+// no drag region (html.mini-guard, desktop.css): a press on the mini chat's header reaches the guard instead of moving the
+// window. Windows' own caption buttons are MAIN's (electron/bubble.js).
+const GUARDED = ["pointerdown", "mousedown", "pointerup", "pointercancel", "mouseup", "click", "dblclick", "auxclick", "contextmenu"];
+function useMiniGuard() {
+  useEffect(() => {
+    let off = false;
+    let timer = null;
+    const guard = createMiniGuard({ onDouble: toNormal });
+    const regions = () => {
+      clearTimeout(timer);
+      timer = null;
+      const ms = off ? 0 : guard.regionsOff();
+      document.documentElement.classList.toggle("mini-guard", ms > 0);
+      if (ms > 0 && ms !== Infinity) timer = setTimeout(regions, ms + 1);
+    };
+    const take = (m) => { if (!off && m && WIN_MODES.includes(m.mode)) { guard.mode(m.mode); regions(); } };
+    Promise.resolve(ted.window.state()).then(take, () => {});
+    const un = ted.window.onMode(take);
+    const stop = (e) => { if (guard.swallow(e)) { e.preventDefault(); e.stopImmediatePropagation(); } };
+    for (const t of GUARDED) window.addEventListener(t, stop, true);
+    return () => { off = true; regions(); if (typeof un === "function") un(); for (const t of GUARDED) window.removeEventListener(t, stop, true); };
+  }, []);
+}
+// Windows draws its own caption buttons over the title bar (Window Controls Overlay). In the mini chat MAIN turns its
+// „—“ (and ✕) into „back to the bubble“ and its „☐“ into the normal window, so the header draws no second „–“ next to
+// them; only without them (a browser, the tests) the header draws its own single „–“.
+const captionOverlay = () => { try { return !!(navigator.windowControlsOverlay && navigator.windowControlsOverlay.visible); } catch { return false; } };
+function useCaptionOverlay() {
+  const [on, setOn] = useState(captionOverlay);
+  useEffect(() => {
+    let o = null;
+    try { o = navigator.windowControlsOverlay || null; } catch { o = null; }
+    if (!o || typeof o.addEventListener !== "function") return undefined;
+    const f = () => setOn(captionOverlay());
+    o.addEventListener("geometrychange", f);
+    return () => { try { o.removeEventListener("geometrychange", f); } catch { /* gone */ } };
+  }, []);
+  return on;
+}
+// Esc goes back to the bubble only when nothing else on screen takes the Esc (menus, dialogs, previews, the drawer,
+// the inline edit, a rename field, the quick window, the voice mode). Decided when the key is pressed, before any
+// handler runs: a React onKeyDown that closes the quick window or a rename field removes it before the document sees it.
+const ESC_TAKERS = ".modal, .pop, .lb, .quick-back, .voice, .side.open, .edit-box, .cv-menu";
+const escIsFree = (target) => {
+  if (document.querySelector(ESC_TAKERS)) return false;
+  const el = target && target.nodeType === 1 ? target : document.activeElement;
+  return !(el && (el.tagName === "INPUT" || el.tagName === "SELECT"));
+};
+
+// The mini chat's header (the title bar of the small always-on-top chat): „⤢ Нормален прозорец“ brings the window
+// back exactly as it was; Windows' own „—“ (or the header's „–“ without them) and Esc put Ted back into the bubble.
+function MiniBar() {
+  const wco = useCaptionOverlay();
   return (
-    <div className={"shell tedwin" + (phone ? " phone" : "")}>
-      <div className="winbar" aria-label="Прозорец на програмата">
-        <img src={avatar} alt="" /><b>Тед</b><span className="wb-sub">Имоти Надежда · Тед за Windows</span>
-        <span className={"wb-st " + conn} data-testid="conn"><i />{CONN_TEXT[conn]}</span>
-        {onQuick ? <button className="wbtn wq" aria-label="Бърз прозорец" title="Бърз прозорец (Ctrl + Shift + Space)" onClick={onQuick}>⚡</button> : null}
-      </div>
+    <div className={"winbar mini-bar" + (wco ? "" : " no-wco")} aria-label="Малкият чат на Тед" data-testid="mini-bar">
+      <img src={avatar} alt="" /><b>Тед</b>
+      <button className="wbtn mini-normal" data-testid="mini-normal" title="Нормален прозорец – програмата се връща както беше" onClick={toNormal}><span aria-hidden="true">⤢</span> Нормален прозорец</button>
+      {wco ? null : <button className="wbtn mini-b" data-testid="mini-bubble" aria-label="Обратно в балончето" title="Обратно в балончето (Esc)" onClick={toBubble}><span aria-hidden="true">–</span></button>}
+    </div>
+  );
+}
+
+/* ---------- Window frame: the title bar is the drag region; Windows draws its own caption buttons ---------- */
+function Shell({ phone, conn, onQuick, onBubble, children }) {
+  const mode = useWinMode();
+  const mini = mode === "mini";
+  return (
+    <div className={"shell tedwin" + (phone ? " phone" : "") + (mini ? " mini" : "")} data-win={mode}>
+      {mini ? <MiniBar /> : (
+        <div className="winbar" aria-label="Прозорец на програмата">
+          <img src={avatar} alt="" /><b>Тед</b><span className="wb-sub">Имоти Надежда · Тед за Windows</span>
+          <span className={"wb-st " + conn} data-testid="conn"><i />{CONN_TEXT[conn]}</span>
+          {onQuick ? <button className="wbtn wq" aria-label="Бърз прозорец" title="Бърз прозорец (Ctrl + Shift + Space)" onClick={onQuick}>⚡</button> : null}
+          {/* 0.1.6: right next to the Windows caption buttons (minimise / maximise / close). */}
+          {onBubble ? <button className="wbtn wbub" data-testid="bubble-btn" aria-label="Балонче – свий Тед в балонче" title="Балонче – свий Тед в балонче (Ctrl + Shift + B)" onClick={onBubble}><Icon n="bubble" /><span className="wbub-t">Балонче</span></button> : null}
+        </div>
+      )}
       {children}
     </div>
   );
@@ -329,6 +418,8 @@ function App({ user, remembered, onLogout }) {
   const [win, setWin] = useState({ id: null, n: THREAD_WINDOW }); // how many messages of a long chat are drawn
   const [crmSave, setCrmSave] = useState(null);         // „Запази в сайта“ card of a project folder
   const phone = usePhone();
+  const winMode = useWinMode(); // 0.1.6 „Балонче“: "normal" | "bubble" | "mini"
+  useMiniGuard(); // the second click of a double click on the bubble never presses anything in the mini chat
   const [agentState, resetAgent] = useAgentEvents();
 
   const threadRef = useRef(null);
@@ -468,6 +559,8 @@ function App({ user, remembered, onLogout }) {
 
   useEffect(() => { const el = threadRef.current; if (el && atBottom) el.scrollTop = el.scrollHeight; }, [active, chats, busy, agentState, approvals]);
   useEffect(() => { setAtBottom(true); }, [active]);
+  // The mini chat opened from the bubble: the employee can type at once (the chat and the unsent text are as they were).
+  useEffect(() => { if (winMode === "mini") focusComposer(); }, [winMode]);
   // Earlier messages were added above: the view stays where the employee was reading.
   useLayoutEffect(() => {
     const el = threadRef.current; const d = keepBottom.current;
@@ -481,9 +574,15 @@ function App({ user, remembered, onLogout }) {
   useEffect(() => { if (loaded && cal.status === "idle" && (view === "plugins" || (S.mode === "work" && view === "chat" && !active))) checkCal(); }, [loaded, view, S.mode, active]);
 
   useEffect(() => {
+    // The mini chat's Esc: whether anything else takes it is decided first (capture phase on window, before any handler).
+    let escFree = false;
+    const escPre = (e) => { if (e.key === "Escape") escFree = escIsFree(e.target); };
     const k = (e) => {
       const key = (e.key || "").toLowerCase(); const mod = e.ctrlKey || e.metaKey; const f = live.current;
       if (mod && e.shiftKey && e.code === "Space") { e.preventDefault(); setQuick(true); }
+      else if (mod && e.shiftKey && (key === "b" || e.code === "KeyB")) { e.preventDefault(); toBubble(); }
+      // The mini chat: Esc goes back to the bubble (after any menu/dialog has taken its own Esc).
+      else if (key === "escape" && !e.shiftKey && !mod && f.winMode === "mini" && !e.defaultPrevented && escFree) { e.preventDefault(); toBubble(); }
       else if (mod && key === "k") { e.preventDefault(); setModal("search"); }
       else if (mod && e.shiftKey && key === "o") { e.preventDefault(); f.newChat(); }
       else if (mod && e.shiftKey && key === "s") { e.preventDefault(); f.toggleMini(); }
@@ -493,8 +592,9 @@ function App({ user, remembered, onLogout }) {
     };
     // A file dropped outside the composer must never navigate the window.
     const stopDrop = (e) => { e.preventDefault(); };
+    window.addEventListener("keydown", escPre, true);
     document.addEventListener("keydown", k); window.addEventListener("dragover", stopDrop); window.addEventListener("drop", stopDrop);
-    return () => { document.removeEventListener("keydown", k); window.removeEventListener("dragover", stopDrop); window.removeEventListener("drop", stopDrop); };
+    return () => { window.removeEventListener("keydown", escPre, true); document.removeEventListener("keydown", k); window.removeEventListener("dragover", stopDrop); window.removeEventListener("drop", stopDrop); };
   }, []);
 
   // The server's model list (/api/assistant {action:"models"}, no AI on the server) is read only when it is needed:
@@ -1226,6 +1326,7 @@ function App({ user, remembered, onLogout }) {
   live.current.send = send; live.current.toggleRec = toggleRec; live.current.newChat = newChat; live.current.copy = copy;
   live.current.onAgentEvent = onAgentEvent; live.current.onDue = onDue;
   live.current.toggleMini = () => set("mini", !SRef.current.mini);
+  live.current.winMode = winMode;
   live.current.lastAnswer = chat ? ((chat.messages.filter((m) => m.role === "assistant" && m.text).slice(-1)[0]) || {}).text || null : null;
 
   /* ---- Parts of the interface ---- */
@@ -1437,7 +1538,10 @@ function App({ user, remembered, onLogout }) {
         <div className="sep" />
         <It ci="gear" title="Настройки" onClick={() => openSettings("general")} />
         <It ci="help" title="Помощ" sub="клавишни комбинации" onClick={() => { closeAll(); setDrawer(false); setModal("help"); }} />
-        <It ci="monitor" title={S.compact ? "Пълен прозорец" : "Компактен прозорец"} sub="тесен прозорец с подредба като на телефон" onClick={toggleCompact} />
+        {winMode === "mini" ? null : <It ci="monitor" title={S.compact ? "Пълен прозорец" : "Компактен прозорец"} sub="тесен прозорец с подредба като на телефон" onClick={toggleCompact} />}
+        {winMode === "mini"
+          ? <It ci="monitor" title="Нормален прозорец" sub="програмата се връща както беше" onClick={() => { closeAll(); toNormal(); }} />
+          : <It ci="bubble" title="Балонче" sub="свий Тед в балонче на края на екрана · Ctrl + Shift + B" onClick={() => { closeAll(); setDrawer(false); toBubble(); }} />}
         <div className="sep" />
         <It ci="logout" title="Изход" onClick={() => { closeAll(); onLogout(); }} />
       </Pop>
@@ -1551,7 +1655,7 @@ function App({ user, remembered, onLogout }) {
             : view === "case" ? CasePage : (chat ? Thread : HomeView);
   const notify = { ...NOTIFY_DEF, ...(S.notify && typeof S.notify === "object" ? S.notify : {}) };
   return (
-    <Shell phone={phone} conn={conn} onQuick={() => setQuick(true)}>
+    <Shell phone={phone} conn={conn} onQuick={() => setQuick(true)} onBubble={toBubble}>
       <div className={"app cg-app" + (S.big ? " big" : "")}>
         {phone ? <PhoneDrawer {...sideProps} /> : <Sidebar {...sideProps} />}
         {drawer ? <div className="scrim" onClick={() => setDrawer(false)} /> : null}

