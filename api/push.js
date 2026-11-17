@@ -78,18 +78,12 @@ async function notifyMail(mailId, data) {
     actions: [{ action: "open", title: "Отвори пощата" }]
   });
 }
-/* проверката чете само папка/прочетено/известено/дата (без текста и HTML на писмата – до 600 KB всяко);
-   цялото писмо се взима само когато наистина ще се праща известие. Същите 40 реда и същите правила като досега. */
 async function tickMail(out) {
-  const rows = await q("nd_mail?select=id,folder:data->>folder,read:data->read,notified:data->notified,at:data->>at&limit=40").catch(() => []);
+  const rows = await q("nd_mail?select=id,data&limit=40").catch(() => []);
   const now = Date.now();
   out.mail = 0;
   for (const row of rows) {
-    if (row.folder !== "in" || row.read || row.notified) continue;
-    const at0 = Date.parse(row.at || "") || 0;
-    if (at0 && now - at0 > 36 * 3600000) continue;
-    const full = await q("nd_mail?select=id,data&id=eq." + encodeURIComponent(row.id)).catch(() => []);
-    const d = (full && full[0] && full[0].data) || {};
+    const d = row.data || {};
     if (d.folder !== "in" || d.read || d.notified) continue;
     const at = Date.parse(d.at || "") || 0;
     if (at && now - at > 36 * 3600000) continue;
@@ -109,10 +103,8 @@ async function tick() {
   const now = Date.now(), out = { sent: [], escalated: [], checked: 0 };
   const days = [todayIn(0), todayIn(1)];
   const events = await q("nd_events?select=id,data,created_by,created_at&or=(data->>date.eq." + days[0] + ",data->>date.eq." + days[1] + ")");
-  /* имената на брокерите трябват само в текста на „нова задача“ и ескалация – четат се тогава (веднъж на tick);
-     без събития за днес/утре няма какво да се търси в nd_reminders */
-  let names = null; const nameOf = async (uid) => { if (!names) names = await brokerNames(); return names[uid]; };
-  const existing = events.length ? await q("nd_reminders?select=id,event_id,user_id,kind,sent_at,acked_at&event_id=in.(" + events.map((e) => '"' + e.id + '"').join(",") + ")") : [];
+  const names = await brokerNames();
+  const existing = await q("nd_reminders?select=id,event_id,user_id,kind,sent_at,acked_at&event_id=in.(" + (events.map((e) => '"' + e.id + '"').join(",") || '""') + ")");
   const has = (eid, uid, kind) => existing.find((r) => r.event_id === eid && r.user_id === uid && r.kind === kind);
   for (const ev of events) {
     const d = ev.data || {}; if (!d.date || !d.from) continue;
@@ -123,7 +115,7 @@ async function tick() {
     const url = "/mobile/crm/crm-kalendar.html#" + encodeURIComponent(ev.id);
     /* нова задача, възложена от друг – веднага */
     if (d.assignee && d.assignee !== ev.created_by && !has(ev.id, who, "new") && now - new Date(ev.created_at).getTime() < 6 * 3600000 && diff > -600000) {
-      await remind(ev, who, "new", { title: "Нова задача от " + ((await nameOf(ev.created_by)) || "екипа") + ": " + t.kind, body: t.title + " · " + when + (t.where ? " · " + t.where : ""), url }, existing, out);
+      await remind(ev, who, "new", { title: "Нова задача от " + (names[ev.created_by] || "екипа") + ": " + t.kind, body: t.title + " · " + when + (t.where ? " · " + t.where : ""), url }, existing, out);
     }
     if (diff <= 2 * 3600000 && diff > 60 * 60000 && !has(ev.id, who, "2h")) await remind(ev, who, "2h", { title: "След 2 часа: " + t.kind + " в " + fmtTime(start), body: t.title + (t.where ? " · " + t.where : ""), url }, existing, out);
     if (diff <= 60 * 60000 && diff > -15 * 60000 && !has(ev.id, who, "1h")) await remind(ev, who, "1h", { title: "След 1 час: " + t.kind + " в " + fmtTime(start), body: t.title + (t.where ? " · " + t.where : "") + " – натиснете „Потвърждавам“", url }, existing, out);
@@ -131,7 +123,7 @@ async function tick() {
     const r1 = has(ev.id, who, "1h");
     if (r1 && r1.sent_at && !r1.acked_at && !has(ev.id, who, "esc") && now - new Date(r1.sent_at).getTime() >= ESCALATE_MIN * 60000 && diff > -30 * 60000) {
       const others = (await staffIds()).filter((u) => u !== who);
-      const nm = (await nameOf(who)) || "Брокерът";
+      const nm = names[who] || "Брокерът";
       const payload = { title: "⚠️ " + nm + " не потвърди: " + t.kind + " в " + fmtTime(start), body: t.title + (t.where ? " · " + t.where : "") + ". Моля, свържете се с него или поемете задачата.", url, tag: "esc-" + ev.id };
       const rid = id(); await q("nd_reminders", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: rid, event_id: ev.id, user_id: who, kind: "esc", due_at: start.toISOString(), sent_at: new Date().toISOString(), payload }) });
       const r = others.length ? await pushTo(others, Object.assign({ rid, ack: ackToken(rid) }, payload)) : { devices: 0, ok: 0 };

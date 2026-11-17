@@ -1361,38 +1361,19 @@ html.mini .cb{max-width:84%}
   });
 
   /* ---------- зареждане + на живо ---------- */
-  var lastAt=0,pollT=0,busy=0,again=false;
   function loadChats(){
-    lastAt=Date.now();arm();
-    var p=ND.sb().from('nd_chats').select('id,platform,ext_id,data,last_at').order('last_at',{ascending:false,nullsFirst:false}).limit(500).then(function(r){
+    return ND.sb().from('nd_chats').select('id,platform,ext_id,data,last_at').order('last_at',{ascending:false,nullsFirst:false}).limit(500).then(function(r){
       if(r.error)throw r.error;chats=r.data||[];
       if(sel&&!byId(sel))sel=null;
       renderRail();renderList();
       var c=byId(sel);if(c&&document.visibilityState==='visible'&&+(c.data||{}).unread)markRead(c);
     });
-    p.then(arm,arm);
-    return p;
   }
-  /* автоматичното опресняване (таймер, realtime, връщане в раздела) – 30 с след последното зареждане: пред очите данните са
-     най-много на 30 с, както досега, без излишна заявка веднага след realtime; без две автоматични заявки наведнъж
-     (промяна по време на заявка → още едно зареждане след нея; заявка, висяща над 30 с, не спира следващата – таймерът
-     се пуска още при тръгване на заявката, затова и при висяща заявка проверката идва на 30 с, както досега) */
-  function arm(){clearTimeout(pollT);pollT=setTimeout(poll,Math.max(1000,lastAt+30000-Date.now()))}
-  /* скрит раздел / затворен малък прозорец: без заявка, само нова проверка след 30 с (опресняването не спира, ако събитието при връщане се пропусне) */
-  function poll(){if(live2())refresh();else pollT=setTimeout(poll,30000)}
-  function refresh(){
-    if(busy&&Date.now()-busy<30000){again=true;return}
-    var my=busy=Date.now();again=false;
-    var fin=function(){if(busy!==my)return;busy=0;if(again&&live2())refresh()};
-    loadChats().then(fin,fin);
-  }
-  var rt=null,deb=null,miniOff=false;
-  /* скрит раздел или затворен малък прозорец (балончетата) не теглят разговорите – при връщане/отваряне се зареждат веднага */
-  function live2(){return !document.hidden&&!miniOff}
+  var rt=null,deb=null;
   function live(){
     try{
       rt=ND.sb().channel('nd-crm-chat')
-        .on('postgres_changes',{event:'*',schema:'public',table:'nd_chats'},function(){clearTimeout(deb);deb=setTimeout(function(){if(live2())refresh()},250)})
+        .on('postgres_changes',{event:'*',schema:'public',table:'nd_chats'},function(){clearTimeout(deb);deb=setTimeout(function(){loadChats().catch(function(){})},250)})
         .on('postgres_changes',{event:'INSERT',schema:'public',table:'nd_chat_msgs'},function(p){var m=p.new||{};if(m.chat_id===sel&&!msgs.some(function(x){return x.id===m.id})){msgs.push(m);
           renderDet()}})
         .subscribe();
@@ -1413,11 +1394,8 @@ html.mini .cb{max-width:84%}
   }
   $('mini-bar').addEventListener('click',miniAct);
   addEventListener('message',function(e){
-    if(e.origin!==location.origin||!e.data||!e.data.nch)return;
-    if(e.data.act==='hide'&&MINI){miniOff=true;return}
-    if(e.data.act!=='open')return;
+    if(e.origin!==location.origin||!e.data||!e.data.nch||e.data.act!=='open')return;
     var go=function(){var c=byId(e.data.id);if(c){plat=c.platform;select(c.id)}};
-    if(miniOff){miniOff=false;loadChats().then(go).catch(function(){});return}
     if(byId(e.data.id))go();else loadChats().then(go).catch(function(){});
   });
   fit();renderRail();renderList();
@@ -1429,9 +1407,8 @@ html.mini .cb{max-width:84%}
     else if(desk){var v=visible();if(v[0])select(v[0].id)}
     live();
   }).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
-  function catchUp(){if(live2()){refresh();if(sel)loadMsgs(sel).catch(function(){})}}
-  document.addEventListener('visibilitychange',catchUp);
-  addEventListener('online',catchUp);
+  setInterval(function(){if(!document.hidden)loadChats().catch(function(){})},30000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){loadChats().catch(function(){});if(sel)loadMsgs(sel).catch(function(){})}});
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>

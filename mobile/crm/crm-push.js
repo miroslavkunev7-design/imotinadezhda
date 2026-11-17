@@ -1,6 +1,6 @@
 /* Imoti Nadezhda CRM — известия на телефона (Web Push), дори на заключен екран.
    NDPush.enable() иска разрешение и записва абонамента на сървъра (/api/push); NDPush.status() връща състоянието;
-   докато CRM е отворен, на 5 минути се вика /api/push tick (резервен планировчик към pg_cron; един за всички раздели).
+   докато CRM е отворен, на 5 минути се вика /api/push tick (резервен планировчик към pg_cron).
    На началния екран: нови писма излизат на заключения екран. */
 (function () {
   "use strict";
@@ -28,10 +28,10 @@
       if (!v.ok || !v.key) throw new Error(v.error || "Известията не са настроени на сървъра (VAPID).");
       return reg().then(function (r) { return r.pushManager.getSubscription().then(function (s) { return s || r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(v.key) }); }); });
     }).then(function (s) {
-      return api({ action: "subscribe", subscription: s.toJSON(), ua: navigator.userAgent.slice(0, 160) }).then(function (r) { if (!r.ok) throw new Error(r.error || "Абонаментът не се записа"); try { localStorage.setItem("nd-push-on", "1"); localStorage.setItem(SUB_KEY, JSON.stringify({ fp: fpOf(s), at: Date.now() })); } catch (x) {} hideBanner(); return r; });
+      return api({ action: "subscribe", subscription: s.toJSON(), ua: navigator.userAgent.slice(0, 160) }).then(function (r) { if (!r.ok) throw new Error(r.error || "Абонаментът не се записа"); try { localStorage.setItem("nd-push-on", "1"); } catch (x) {} hideBanner(); return r; });
     });
   }
-  function disable() { return current().then(function (s) { var ep = s ? s.endpoint : null; return (s ? s.unsubscribe() : Promise.resolve()).then(function () { try { localStorage.removeItem("nd-push-on"); localStorage.removeItem(SUB_KEY); } catch (x) {} return api({ action: "unsubscribe", endpoint: ep }); }); }); }
+  function disable() { return current().then(function (s) { var ep = s ? s.endpoint : null; return (s ? s.unsubscribe() : Promise.resolve()).then(function () { try { localStorage.removeItem("nd-push-on"); } catch (x) {} return api({ action: "unsubscribe", endpoint: ep }); }); }); }
   function test() { return api({ action: "test" }); }
   function ack(eventId) { return api({ action: "ack", event_id: eventId }); }
   function hideBanner() { var el = document.getElementById("nd-push-mail"); if (el) el.remove(); }
@@ -51,52 +51,20 @@
     x.onclick = function () { try { sessionStorage.setItem("nd-push-mail-hide", "1"); } catch (e) {} hideBanner(); };
     document.body.appendChild(el);
   }
-  /* абонаментът се изпраща отново само ако е друг (друг служител, нов адрес/ключове от браузъра) или е минало денонощие –
-     същият абонамент при всяко отваряне на страница само трие и записва същия ред в базата */
-  var SUB_KEY = "nd-push-sub", SUB_MS = 24 * 3600000;
-  function fpOf(s) { var j = s.toJSON(), k = j.keys || {}; return [D.user && D.user.id, j.endpoint, k.p256dh, k.auth].join("|"); }
   function keepSub() {
     return current().then(function (s) {
-      if (!s) return enable();
-      var fp = fpOf(s), was = null, now = Date.now();
-      try { was = JSON.parse(localStorage.getItem(SUB_KEY) || "null"); } catch (x) {}
-      if (was && was.fp === fp && now - was.at >= 0 && now - was.at < SUB_MS) return { ok: true, kept: true };
-      return api({ action: "subscribe", subscription: s.toJSON(), ua: navigator.userAgent.slice(0, 160) }).then(function (r) {
-        try { if (r && r.ok) localStorage.setItem(SUB_KEY, JSON.stringify({ fp: fp, at: now })); } catch (x) {}
-        return r;
-      });
+      if (s) return api({ action: "subscribe", subscription: s.toJSON(), ua: navigator.userAgent.slice(0, 160) });
+      return enable();
     });
   }
-  /* резервният tick (pg_cron в Supabase е основният – на 5 минути) е общ за всички CRM страници и раздели на браузъра:
-     тръгва само ако от последния (от която и да е страница) са минали 5 минути. Проверка всяка минута → видим раздел
-     го праща на 5 мин, както досега. След запис на събитие/задача или действие на Тед – веднага (след 4 с), без чакане. */
-  var TICK_KEY = "nd-push-tick-at", TICK_MS = 5 * 60000 - 15000, lastTick = 0, soonT = 0;
-  function tick() {
-    if (document.visibilityState === "hidden") return;
-    var now = Date.now(), last = lastTick;
-    try { last = Math.max(last, +localStorage.getItem(TICK_KEY) || 0); } catch (x) {}
-    if (last && now >= last && now - last < TICK_MS) return;
-    /* два раздела може да проверят в един и същи миг: всеки записва свой знак и след малко праща само онзи, чийто знак е останал */
-    var me = String(now + Math.random()), shared = true; lastTick = now;
-    try { localStorage.setItem(TICK_KEY, me); } catch (x) { shared = false; }
-    /* знакът не може да се запише (пълна или забранена памет на браузъра) → както досега: този раздел го праща сам */
-    if (!shared) { api({ action: "tick" }).catch(function () {}); return; }
-    setTimeout(function () {
-      var cur = me; try { cur = localStorage.getItem(TICK_KEY); } catch (x) {}
-      if (cur === me || cur === null) api({ action: "tick" }).catch(function () {});
-    }, 50 + Math.floor(Math.random() * 150));
-  }
-  /* часът на последния tick се изтрива – ако страницата се смени преди 4-те секунди, новата страница го праща при зареждане */
-  function tickSoon() { lastTick = 0; try { localStorage.removeItem(TICK_KEY); } catch (x) {} clearTimeout(soonT); soonT = setTimeout(function () { tick(); }, 4000); }
-  /* подновяване на абонамента (ключът може да е сменен) + резервен tick */
+  /* подновяване на абонамента при всяко отваряне (ключът може да е сменен) + резервен tick */
   function boot() {
     D.ready().then(function () {
       var on = false; try { on = localStorage.getItem("nd-push-on") === "1"; } catch (x) {}
       if (supported() && Notification.permission === "granted" && (on || standalone)) keepSub().catch(function () {});
       else if (standalone && supported() && Notification.permission !== "denied") current().then(function (s) { if (!s) banner(); }).catch(function () { banner(); });
-      setTimeout(function () { tick(); }, 4000); setInterval(function () { tick(); }, 60000);
-      addEventListener("nd-put", function (e) { if (e.detail && e.detail.kind === "events") tickSoon(); });
-      addEventListener("nd-data-changed", tickSoon);
+      var tick = function () { if (document.visibilityState !== "hidden") api({ action: "tick" }).catch(function () {}); };
+      setTimeout(tick, 4000); setInterval(tick, 5 * 60000);
       /* потвърждение при отваряне на събитието от известието (#<event id>) */
       if (/crm-kalendar\.html$/.test(location.pathname) && location.hash.length > 1) ack(decodeURIComponent(location.hash.slice(1))).catch(function () {});
     }).catch(function () {});
