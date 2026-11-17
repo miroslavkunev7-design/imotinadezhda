@@ -225,3 +225,727 @@ no cookies, timeout -> `timeout`, refused -> `network` with `sent:false`, foreig
 errors. Exit 0 when every check passes, else 1 (also after 90 s). It never contacts production, Supabase or OpenAI.
 Linux: Chromium refuses to start sandboxed children as root (`app.enableSandbox()` ignores `--no-sandbox` for them),
 so run it as a normal user.
+
+---
+
+# v0.3 – Тед за Windows 0.1.3: ChatGPT-подредба, агент Real GPT, интернет, документи, видео, библиотека, планирани, обновления
+
+This section is binding for the three builders of 0.1.3 (MAIN, SHELL, FEATURES). It adds to §1–§6; where it
+changes an earlier rule it says so explicitly ("CHANGES §x"). Everything in §1–§6 that is not changed stays.
+Version after this work: `0.1.3` (`npm version 0.1.3 --no-git-tag-version`, done by the integrator).
+
+## 7. Ownership (who may edit what)
+
+| Area | Builder | Files |
+|---|---|---|
+| MAIN | MAIN | `electron/**` (new: `electron/agent/*`, `electron/browse/*`, `electron/docs/*`, `electron/files.js`, `electron/library.js`, `electron/video/*`, `electron/scheduled.js`, `electron/updater.js`), `electron/preload.cjs`, `electron/smoke.js` (TED_SURFACE), `electron-builder.yml`, `package.json` + `package-lock.json` (dependencies only), `.github/workflows/ted-desktop.yml`, `tests/unit/main-*.test.js`, `tests/unit/agent-*.test.js`, `tests/unit/browse-*.test.js`, `tests/unit/docs-*.test.js`, `tests/unit/updater-*.test.js` (+ fixtures under `tests/unit/fixtures/`) |
+| SHELL | SHELL | `src/App.jsx`, `src/main.jsx` (style imports only), `src/components/layout/*` (new), `src/components/Settings.jsx` (may be replaced by `layout/SettingsView.jsx`), `src/components/Icon.jsx`, `src/lib/consts.js`, `src/lib/chat.js`, `src/lib/files.js`, `src/styles/layout.css` (new), `tests/e2e/helpers.js` and the existing `tests/e2e/*.spec.js` (layout updates only, same behaviour), new `tests/e2e/layout-chatgpt.spec.js`, `tests/unit/renderer-chat.test.js` |
+| FEATURES | FEATURES | `src/components/agent/*` (new), `src/components/Canvas.jsx`, `src/lib/agent.js` (new), `src/lib/svg.js` (new), `src/lib/stitch.js` (new), `src/mock/bridge.mock.js`, `src/styles/agent.css` (new), `tests/e2e/agent.spec.js` (new), `tests/unit/renderer-agent.test.js` (new) |
+| Shared | integrator | `docs/CONTRACT.md` (spec author), `README.md` (integrator) |
+
+Never edited by anyone in 0.1.3: `src/styles/style.css` (approved artifact CSS), `src/components/Md.jsx`, `electron/protocol.js`
+(CSP unchanged), `index.html`, `vite.config.mjs`, anything outside `apps/ted-desktop` except the workflow file above.
+Nothing is committed or pushed by a builder.
+
+Style import order in `src/main.jsx`: `style.css`, `desktop.css`, `layout.css`, `agent.css`. New CSS reuses the tokens of
+`style.css` (`--wine-*`, `--ruby`, `--gold-*`, `--cream-*`, `--ink`, `--muted`, `--on-wine`, `--title`, `--ok/-bg`, `--warn/-bg`,
+`--bad/-bg`, `--f-text`, `--f-title`, `--side-w`) and existing classes (`.pop`, `.it`, `.modal`, `.b`, `.b.wine`, `.card`, `.card.run`,
+`.run-h`, `.steps`, `.dot.d-*`, `.status.st-*`, `.chip`, `.seg`, `.sw`, `.opt`, `.info`, `.err`, `.note`, `.verify`, `.empty`,
+`.ficon`, `.cfile`, `.mem`, `.kv`). No new colours, fonts or backgrounds. The window frame keeps the 36 px `.winbar` drag
+bar with `padding-right:max(140px,…)` (`desktop.css`), its connection pill (`data-testid="conn"`) and the ⚡ quick window.
+
+## 8. Bridge additions (`window.ted`, preload → renderer)
+
+Same rules as §2: Promises over `ipcRenderer.invoke`, fixed functions only, every input validated in MAIN, no token ever
+crosses IPC. New channels are `ted:<group>.<fn>`; new push events are listed in §8.10. `electron/smoke.js` `TED_SURFACE`
+gets exactly these keys (the smoke test keeps checking "exactly the contract keys").
+
+### 8.1 files (one file store for attachments and everything Ted makes)
+
+```
+ted.files.add({name, mime, data(base64), chatId?, temporary?}) -> {ok:true, file:FileRef} | {ok:false, error, code}
+ted.files.read({id, max?})      -> {ok:true, name, mime, size, data:ArrayBuffer} | {ok:false, error, code}   // preview; max default 150 MB
+ted.files.extract({id})         -> {ok:true, doc:DocText} | {ok:false, error, code}   // same engine as read_document (§10.3)
+ted.files.open(id)              -> {ok:true} | {ok:false, error}      // decrypted copy in the app temp dir -> shell.openPath
+ted.files.save(id)              -> {ok:true, path} | {ok:false, canceled:true} | {ok:false, error}   // native "Запази като"
+ted.files.forget(id)            -> {ok:true}                          // drops a temporary (non-library) file
+FileRef = {id, name, mime, size, kind, origin, createdAt, chatId?, thumb?, pages?, sheets?, sourceUrl?, savedTo?, crm?}
+  kind    = "image"|"pdf"|"docx"|"xlsx"|"csv"|"text"|"video"|"other"
+  origin  = "user" (attached) | "ted" (made by Ted: local engine or server tool) | "web" (fetch_image) | "crm" (downloaded server file)
+  thumb   = data:image/jpeg;base64,… ≤ 24 KB (images and video poster only; made in MAIN with nativeImage, PNG/JPEG sources only)
+  savedTo = text copied verbatim from a server result (`saved_to`, client/property names) – never invented by the UI
+  crm     = {documentId?, path?} when a server tool stored it in CRM (path = nd-files key; no URL, no token)
+```
+
+- `files.add` limits: ≤ 20 MB decoded per file, ≤ 10 files and ≤ 60 MB per message (the renderer enforces per message,
+  MAIN per call), `name` ≤ 180, `mime` ≤ 120. Refused: runnable types (the `RUNNABLE` list of `ipc.js`), empty files.
+  Allowed kinds by sniffed bytes + extension: JPEG/PNG/WEBP/GIF, PDF, DOCX, XLSX, CSV, TXT, MD, JSON, HTML (as text),
+  MP4 (video). Anything else is stored as `kind:"other"` (can be attached to CRM with `files.attach`, cannot be read).
+  Legacy `.doc`/`.xls` are `other` with the honest note "стар формат – запазете като .docx/.xlsx".
+- `temporary:true` (temporary chat) keeps the file in memory only (never in the library, gone at quit).
+- `files.open` opens ONLY files of this store (decrypted into `<temp>/TedImotiNadezhda/<session>/`), never a path from the
+  renderer, never a runnable extension, and only an allowlist of types: `.pdf .docx .xlsx .csv .txt .md .json .jpg .jpeg
+  .png .webp .gif .mp4 .webm` (+ `.html/.htm` only with `origin:"ted"`); anything else → `{ok:false, code:"not_openable"}`
+  and the FileCard shows only „Запази…“. On win32 the copy of a file with origin user/web/crm gets the Mark-of-the-Web
+  (`<copy>:Zone.Identifier` = `[ZoneTransfer] ZoneId=3`). The temp folder is removed at quit and stale ones (> 24 h)
+  at start.
+- Images for the model stay as today: the renderer keeps its ≤ 1400 px JPEG re-encode (`lib/files.js`) and adds that JPEG.
+
+### 8.2 realgpt (agent) – CHANGES §2/§4
+
+```
+ted.realgpt.consent()              -> {ok:true, consent:"all"|"text"|null, account?:string}   // per CRM user + ChatGPT account
+ted.realgpt.setConsent(choice)     -> {ok:true, consent}                // "all" | "text"; stored by MAIN in the secure store
+ted.realgpt.send({requestId, messages, model, effort?, instructions?, mode?, hints?, canvas?, caseId?, role?}) -> RgResult
+ted.realgpt.approve({requestId, approvalId, decision, options?}) -> {ok:true} | {ok:false, error}
+ted.realgpt.onEvent(cb(AgentEvent)) -> unsubscribe                      // push channel ted:realgpt.event
+(status, signIn, cancelSignIn, signOut, models, cancel, onDelta unchanged)
+```
+
+- `messages[i] = {role:"user"|"assistant", text, images?:[{mime,data}], files?:[fileId]}` – `files` only on user messages,
+  ≤ 10 per message; MAIN resolves ids (images → `input_image`, others → a text line
+  `[Прикачен файл: <name> · <kind> · <size> · file:<id>]` so the model decides to call `read_document`).
+- `instructions` CHANGES §2: it no longer replaces the default; it is the user's own text from Настройки → Персонализиране
+  (≤ 1500 chars) and MAIN appends it under „Указания от служителя“ after its own rules, which it can never override.
+- `mode` = `"chat"` (default) | `"work"` (limits §9.4). `hints` ⊆ `["image","search","research","thinking","canvas","video"]`
+  (from the „+“ menu; optional, never required). `canvas = {title, text(≤ 200 000), version}` = the open Canvas, sent as
+  context with this message – only the Canvas of the asking chat: the renderer keeps one Canvas per chat (`cv.chatId`;
+  switching chats puts it aside with any unsaved typing as a version), shows a removable „Canvas: <title>“ tag in the
+  composer while it goes along, and files agent `canvas` events under the chat of their `requestId`. `caseId` (≤ 64) = selected Проект; `role` = a server mode id from `ROLES` (not "auto").
+- Without consent `"all"` (null or `"text"`) MAIN sends exactly the 0.1.2 text-only request (no tools, no file reads,
+  no case/role/memory context) – the renderer cannot bypass this; MAIN reads the stored consent itself.
+- `approve.decision` = `"allow"` | `"deny"` | `"allow_all"` (= allow every later CRM write of THIS answer; never covers
+  confirm-required tools, e-mail or paid video). `options` (video only) = `{engine, duration}` from the card.
+  An approval left unanswered 10 min = deny. `realgpt.cancel` while waiting = deny + stop.
+
+```
+RgResult = {ok:true, text, model, incomplete?, effortIgnored?, steps?:Step[], files?:FileRef[], limited?:{rounds,calls},
+            toolsOff?:true}                                   // toolsOff: answered without tools (consent "text")
+         | {ok:false, error, code, text?, steps?, files?}      // + new codes below
+new codes: "tools_unsupported" (the plan route refused the tool request even after the corrected resend; UI offers
+           „Отговори с Тед (сървъра)“ and „Само текст“ – never silent), "approval_timeout", "limit".
+```
+
+### 8.3 AgentEvent (push `ted:realgpt.event`, always carries `requestId`)
+
+```
+{type:"step",     step:Step}                          // new or updated (same id) step
+{type:"approval", approval:Approval}                  // the loop waits for realgpt.approve
+{type:"file",     file:FileRef, stepId}               // a file Ted made / downloaded – shown as FileCard
+{type:"canvas",   canvas:{title, text, label}}        // update_canvas: the renderer adds a NEW version
+{type:"email",    email:EmailDraft}                   // from email.preview – rendered with the existing EmailCard
+{type:"video",    job:VideoJob}                       // video_walk created a job (progress continues on ted:video.event)
+{type:"limit",    rounds, calls}                      // the round/call cap stopped the work
+Step     = {id, kind, label, status, detail?, tool?, mutating?, startedAt, endedAt?}
+  kind   = "web_search"|"read_page"|"fetch_image"|"crm"|"upload"|"doc"|"read_doc"|"image"|"canvas"|"video"|"listings"|"memory"
+  status = "run"|"ok"|"fail"|"wait"(approval)|"denied"
+  label  = plain Bulgarian, e.g. „Търся в интернет: <query>“, „Чета страница: <host/path>“, „Правя документ: <title>.docx“,
+           „Генерирам снимка“, „CRM: клиенти.търсене“, „Качвам „<name>“ в хранилището на CRM“, „Чета файла: <name>“
+Approval = {id, kind:"crm_write"|"confirm"|"video"|"web", title, tool?, lines:[[label, value]], json?, allowAll:boolean,
+            video?:{engines:[{id,name,note,price,durs,frames}], gateway?:{ok,balance?}, parts, aspect, defaults:{engine,duration}}}
+EmailDraft = the server `email.preview` result (to, to_name, subject, body, attachments, can_send …) unchanged
+```
+
+`lines` = EVERY field of the input (identifying/target keys first; a value over 300 chars ends with „…(още N знака)“;
+past 40 lines one line says how many fields are left); `json` = the exact input that will be sent (pretty JSON, a cut
+is marked), shown behind „Точните данни, които ще се изпратят“. `kind:"web"` = §9.3 rule 8 (full URL or query on the
+card; `allowAll` covers further web cards of the same answer only).
+`label` and `lines` are built in MAIN from the real tool name and input (never from model text alone). Statuses come only
+from real results: `ok` = the local operation finished or `/api/tools` answered `{ok:true}`.
+
+### 8.4 browse (settings only; all browsing runs inside the agent)
+
+```
+ted.browse.test({url}) -> {ok:true, status, title} | {ok:false, error, code}   // Настройки → Браузър → „Провери“; GET only
+```
+Settings keys (renderer `ted.store.setSettings`, read by MAIN on every call): `browse = {enabled:true, robots:true,
+blocked:["host", …] (≤ 200, lower-case hostnames)}`. `enabled:false` removes `web_search`/`read_page`/`fetch_image`
+from the tool list.
+
+All new settings keys (`DEF_SETTINGS` in `src/lib/consts.js`; MAIN validates the ones it reads):
+`mode:"chat"|"work"`, `nick:""` (≤ 60), `instructions:""` (≤ 1500), `browse` (above), `notify:{scheduled:true,
+updates:true}`, `theme:"ted"`, `accent:"ted"`. `updates.auto` is written only by MAIN (`ted.updates.setAuto`). The Real GPT
+consent is NOT a settings key: MAIN keeps it in the secure store `realgpt-consent-<CRM user id>` keyed by the ChatGPT
+account (`subject` = `sub` of the verified ID token, already saved by `credentials.js`), so a renderer `setSettings` can never grant it.
+
+### 8.5 video
+
+```
+ted.video.prepare({code?, fileIds?, prompt?}) -> {ok:true, job:VideoJob} | {ok:false, error, code, candidates?}
+ted.video.start({jobId, engine, duration})      -> {ok:true} | {ok:false, error, code}      // the user's click = the approval
+ted.video.cancel({jobId})                        -> {ok:true}                                // stops polling; started clips may still bill
+ted.video.finish({jobId, fileId})                -> {ok:true, file:FileRef} | {ok:false, error}  // after renderer stitching; MAIN sets origin "ted"
+ted.video.onEvent(cb(VideoJob))                  -> unsubscribe                              // push ted:video.event
+VideoJob = {id, status, source:{code?, title?, photos}, parts:[{n, title, status, error?, fileId?}], aspect,
+            engines?, gateway?, defaults?, est?:{n, sec, cost, min}, engine?, duration?, fileId?, error?,
+            chatId?, temporary?}       // chatId/temporary: the stitched clip is added to the store with the job's chat
+  status = "need_engine"|"approval"|"running"|"stitch"|"done"|"failed"|"cancelled"
+  codes  = "no_engine" (server has no video key: say so plainly), "not_found", "candidates", "few_photos", "invalid"
+```
+
+### 8.6 library
+
+```
+ted.library.list({kind?, q?, limit?})  -> {ok:true, items:FileRef[], totalBytes, count}   // newest first, ≤ 500 per call
+ted.library.remove(id)                 -> {ok:true} | {ok:false, canceled:true}           // native confirm in MAIN
+ted.library.clear()                    -> {ok:true} | {ok:false, canceled:true}           // native confirm in MAIN
+```
+
+### 8.7 scheduled
+
+```
+ted.scheduled.list()             -> {ok:true, items:Task[]}
+ted.scheduled.save(task)         -> {ok:true, item:Task} | {ok:false, error, code:"invalid"}   // create (no id) or update
+ted.scheduled.remove(id)         -> {ok:true}
+ted.scheduled.onDue(cb({task, missed})) -> unsubscribe                                  // push ted:scheduled.due
+Task = {id, title(≤ 120), kind:"reminder"|"prompt", text(≤ 4000), engine:"server"|"realgpt", at(ISO, first run),
+        repeat:"none"|"daily"|"weekdays"|"weekly"|"monthly", enabled, nextRun, lastRun?, lastResult?:{ok, chatId?, error?}}
+```
+
+### 8.8 updates
+
+```
+ted.updates.state()        -> UpdState
+ted.updates.check()        -> UpdState                 // „Провери сега“
+ted.updates.setAuto(on)    -> UpdState                 // „Автоматично изтегляне и инсталиране“ (default true)
+ted.updates.download()     -> {ok:true} | {ok:false, error}   // „Изтегли“: only when status "available" and auto is off
+ted.updates.install()      -> {ok:true} | {ok:false, error}   // only when status "ready": quitAndInstall(true, true)
+ted.updates.onChange(cb(UpdState)) -> unsubscribe      // push ted:updates.changed
+UpdState = {supported, version, status, auto, lastCheck?, available?:{version, releaseDate?}, progress?:{percent,
+            transferred, total}, error?}
+  status = "disabled"|"idle"|"checking"|"none"|"available"|"downloading"|"ready"|"error"
+  supported = false (status "disabled") when not packaged, not win32, or in --smoke-test
+```
+
+### 8.9 app additions
+
+```
+ted.app.storage()       -> {ok:true, chatsBytes, libraryBytes, libraryCount, tempBytes}
+ted.app.clearTemp()     -> {ok:true}
+ted.app.reportProblem() -> {ok:true}   // opens the logs folder + mailto:?subject=Тед за Windows <версия> – проблем&body=<template>
+```
+
+### 8.10 push events (all new)
+
+`ted:realgpt.event`, `ted:video.event`, `ted:scheduled.due`, `ted:updates.changed`, `ted:library.changed` (no payload; the
+renderer re-lists). Subscriptions in preload: `realgpt.onEvent`, `video.onEvent`, `scheduled.onDue`, `updates.onChange`,
+`library.onChange`.
+
+### 8.11 Validation in MAIN (sizes)
+
+`files.add` base64 ≤ 28 MB string, ids `^[a-z0-9_-]{8,64}$`; `realgpt.send` ≤ 40 MB total (as today), `canvas.text`
+≤ 200 000, `hints` ≤ 6 known words; `approve` ids ≤ 100; `scheduled.save` ≤ 16 KB; `browse.test.url` ≤ 2000;
+`library.list.q` ≤ 200. Unknown keys are dropped. Any violation → `{ok:false, code:"invalid"}` without network.
+
+## 9. Real GPT agent (MAIN: `electron/agent/*`, `electron/realgpt/*`)
+
+### 9.1 Request shape on the plan route – CHANGES §4
+
+- Body keys: `model, instructions, input, store:false, stream:true, tools?, reasoning?`. `ALLOWED_KEYS` gains `tools`
+  (agent requests only). Still forbidden: every key of §4, `tool_choice`, `parallel_tool_calls`, `include`,
+  `previous_response_id` (defaults are used: tool_choice auto, parallel calls allowed – MAIN executes them one by one).
+- `assertRequest` CHANGES: `input` may contain `message` (user/assistant only, never system), `function_call`,
+  `function_call_output` and `reasoning` items. No `item_reference` items, ever.
+- `tools = [{type:"namespace", name:"ted", description:"Ръцете на Тед: CRM „Имоти Надежда“, интернет, документи, снимки, видео", tools:[…functions §9.2]}]`
+  (official form: developers.openai.com/api/docs/guides/tools; no `defer_loading` – `tool_search` is unsupported on this route).
+  Function definitions use `strict:false`; MAIN validates every argument itself.
+- Each round: stream as today; on `response.completed` take `response.output` (all items). Text deltas of every round go
+  to `realgpt.delta` (`text` = the whole answer so far, rounds joined with a blank line).
+- Echo: the received output items are appended to `input` exactly as received (full objects, with ids and
+  `encrypted_content`), followed by one `{type:"function_call_output", call_id, output}` per call (`output` = JSON string
+  ≤ 20 000 chars, cut with `"…(съкратено)"`). Reasoning items without `encrypted_content` are dropped.
+- Function call name: accept `name` with the separate `namespace:"ted"` field (as the open-source Codex client models it)
+  and also a dotted `ted.<name>` or a bare `<name>`; anything else → output `{ok:false, error:"Непознат инструмент"}`.
+- Corrective resends (each at most once per request, never the same body): 400
+  `subscription_sharing_unsupported_capability` with `error.param` naming (a) `reasoning…` → drop effort (as today);
+  (b) `tools…` / `namespace` → resend once with the same functions as top-level `{type:"function"}` tools; if that is
+  refused too → `code:"tools_unsupported"`; (c) `input[…]` on an echoed item → resend once with `id` removed from echoed
+  items; then fail with the server's code. Remember (per model, in memory) what was dropped.
+- Unverified on the live route (verify on the owner's PC, fallbacks above are mandatory): namespace acceptance, echo of
+  function_call/reasoning items under `store:false`, `namespace` field on `function_call` items.
+
+### 9.2 Functions (namespace `ted`)
+
+| name | arguments | does |
+|---|---|---|
+| `crm` | `{tool, input}` – `tool` enum = (`STAFF_TOOLS` of api/assistant.js ∩ live `GET /api/tools` manifest) minus `email.send`, `cases.log_turn`, `video.create` | `/api/tools` through the gate (§9.3). Description = manifest descriptions (fetched once per app run, no token; on failure the built-in copy of the 108 names). `"file:<id>"` anywhere in `input` (`path`, `source_path`, `files[].path`, `paths[]`) → MAIN uploads that file (§11.2) and substitutes `{path,name,mime}` / the path. |
+| `web_search` | `{query(≤ 300), n?(1–10, 8)}` | §10.1 |
+| `read_page` | `{url, maxChars?(1000–40000, 20000)}` | §10.1 |
+| `fetch_image` | `{url}` | §10.1 → `file` event |
+| `create_document` | `{format, title, content, filename?}` | §10.2 → `file` event |
+| `read_document` | `{file:"file:<id>"}` | §10.3 |
+| `update_canvas` | `{title?, text, label}` | `canvas` event; the renderer stores a NEW version „Тед: <label>“; returns `{ok:true, version}` |
+| `video_walk` | `{code?, files?:["file:<id>"…], prompt?}` | §12 – prepares, emits `approval` (kind video), returns after the decision: `{ok:true, status:"started", parts, est}` or `{ok:false, status:"denied"|"no_engine"|…}`; the clip continues outside the loop |
+| `listings_find` | `{place?, region?, site?, url?, text?}` | `listings.find_owners` (place/region) or `listings.collect_page` (url/text) – both SAVE into „Събрани“ → approval |
+
+Outputs of `web_search`/`read_page`/`fetch_image` are wrapped `{untrusted:true, source:"web", …}`.
+Server results with `download_url` (short `/f/` link or Supabase signed URL – both on allowlisted hosts): MAIN downloads
+the file without any Authorization header (≤ 50 MB, video ≤ 300 MB), adds it to the store (`origin:"crm"`), emits a `file`
+event and gives the model the result with `download_url` replaced by `"file:<id>"` (`images[]` likewise).
+
+### 9.3 Gate (MAIN, `electron/agent/gate.js`) – the model can never approve its own writes
+
+1. AUTO (no card): every tool with `isMutating(tool) === false` (tools.js rule) plus `email.preview` (prepares only →
+   `email` event), `documents.inspect`, `documents.extract_text`, `analyze_image`, `analyze_document`, `contacts.resolve`,
+   `audit.recent`, `nc.help`, `projects.list/get`, `units.list/get`, `models.get`, `tour.get`, `jobs.status/result`,
+   `memory.search`, and all local functions except `listings_find`/`video_walk`.
+2. AUTO-GENERATE (no card; shown as a step; result stays in Ted's own folder „Тед“ like on the site):
+   `images.generate`, `images.download`, `documents.translate`, `documents.merge`, `documents.split`,
+   `documents.create_pdf`, `files.to_pdf` – ONLY when the input has no `client_id`, `client_name`, `property_id`,
+   `property_code` (except `images.generate` reading `property_code`+`photo_index` with `save_to_property` false),
+   no `save_to_property` that is present and not false (MAIN normalises it first: `true`, `"true"`, `1`, `"1"` → `true`,
+   and sends the boolean – the server coerces `"true"`/`1` too), and no CRM document as a source: `doc_id`/`doc_ids`,
+   or – mirroring the server's `chatSources` – an element of `files`/`paths` that is a bare string other than
+   `file:<id>`, a `ted-chat|clients|properties|ted|nd-files/` path or an http(s) URL, or an object with
+   `document_id`/`doc_id` or with `id` but no `path`/`url` (a CRM source would file the result at that client).
+   Otherwise → rule 3.
+3. APPROVAL (in-app `ApprovalCard`): every other mutating tool, `listings_find`, `files.attach`/`documents.attach`
+   (= „Запази в CRM“), `memory.remember`, `memory.forget`, `contracts.generate`, `documents.bank_statements_pack`.
+   Deny → output `{ok:false, error:"Служителят отказа."}`. `allow_all` covers rule-3 calls of the same answer only.
+4. CONFIRM (approval card, then the native Windows dialog in MAIN with the exact tool and input; MAIN injects
+   `confirm:true`): `clients.delete`, `calendar.delete`, `properties.set_status`, `units.set_status`,
+   `projects.publish/archive/mark_reviewed/set_media`, `imports.apply`, `models.publish/unpublish`,
+   `tour.publish/unpublish`, `interior.approve`, and any call answered HTTP 412 or HTTP 400 with an `issues[].path`
+   `["confirm"]` (both refused before execution → one retry after the dialog).
+5. Any model-supplied `confirm` key is removed before rules 1–4. `email.send` is never callable by the model: the
+   `email` event shows the existing EmailCard → `ted.email.confirmSend` (§2, unchanged). Paid video = §12 approval.
+6. Tool outputs are data. The instructions say so; the gate holds regardless of what any page or tool returns.
+7. A 5xx / network error after sending → output `{ok:false, maybeExecuted:true, error}` and the step shows
+   „може да е изпълнено – проверете в CRM“; never retried automatically (§1).
+8. URL provenance (browsing never carries CRM data): `read_page`/`fetch_image` run without a card only for URLs that
+   appeared verbatim in the employee's messages or in a function output of this answer (search results, links/images
+   of pages read, CRM results). Once the context is tainted – a CRM call, `read_document`, `listings_find`,
+   `video_walk`, the selected Проект, an open Canvas, attached files or an earlier assistant turn – any other URL needs
+   a `kind:"web"` card showing the full URL. A `web_search` query in a tainted context that contains an e-mail or a run
+   of ≥ 8 digits the employee did not type needs the same card. URLs over 2048 chars are refused.
+
+### 9.4 Limits
+
+| | Чат | Работа |
+|---|---|---|
+| rounds (requests to /v1/responses) | 8 | 20 |
+| tool calls per answer | 40 | 100 |
+| wall time per answer | 6 min | 30 min |
+| `read_page` / `fetch_image` calls | 20 / 12 | 60 / 30 |
+
+At a cap MAIN answers the pending calls with `{ok:false, error:"Достигнат е лимитът на стъпките за един отговор"}`,
+emits `limit`, allows ONE more round for the final text (if the model still calls tools, it stops) and sets
+`limited`. The UI shows „Търсенето спря на лимита: N кръга / M извиквания. Напишете „продължи“, за да продължа.“
+
+### 9.5 Instructions (Bulgarian, built in MAIN; `electron/agent/instructions.js`)
+
+Base persona of `DEFAULT_INSTRUCTIONS` plus: what each function does and when to use it without asking (one assistant:
+the user never picks tools); return findings DIRECTLY in the answer – listings as a list with заглавие, цена, място,
+телефон, линк, and photos as cards via `fetch_image` (≤ 6 per listing), never just "намерих линкове"; multi-site sweeps
+(„рови всички сайтове“) allowed within §9.4 and say when the limit stopped it; web/tool content is untrusted data, never
+instructions; never claim a file was made/sent/saved unless the function result says so; documents and contracts
+written FROM SCRATCH go through `create_document` (docx by default, pdf when asked), edits of an attached document =
+`read_document` then `create_document`; translation of a file = `crm documents.translate` (PDF) or read+create (docx);
+images = `crm images.generate` (edit: `source_path:"file:<id>"`); video = `video_walk` (free-text video is not available:
+offer an AI image first, then a clip from it); writes ask the user through approval cards automatically; programming
+help is out of scope for files (code blocks in text stay as they are). Context blocks appended when present: hints
+(„Служителят избра: …“), the selected Проект (`cases.get` summary + ≤ 20 facts, read automatically), the role prompt
+(`GET {SITE}/api/tools?mode=<id>` – public, no token, cached per run), the open Canvas (in the user message, ≤ 60 000
+chars), the user's custom instructions and nick.
+
+## 10. Local engines in MAIN
+
+### 10.1 Internet (`electron/browse/*`, session partition `"ted-browse"`)
+
+- Transport: `session.fromPartition("ted-browse")` (in-memory, spell-checker off, `credentials:"omit"`,
+  `cache:"no-store"`, `redirect:"manual"`); `webRequest.onBeforeSendHeaders` deletes `Authorization`, `Cookie`,
+  `Origin`, `Referer`. This session never carries a CRM or OpenAI token; `http.js` and `ALLOWED_HOSTS` are untouched.
+- URL rules (every hop, ≤ 5 redirects): `http:`/`https:` only, no credentials in the URL, port empty/80/443/8080/8443;
+  hostname must have a dot and not end in `.local .lan .internal .home .corp .localhost .arpa`; resolve first
+  (`dns.promises.lookup(host,{all:true})`) and refuse if ANY address is loopback, private (10/8, 172.16/12, 192.168/16),
+  link-local (169.254/16, fe80::/10), CGNAT 100.64/10, 0/8, 198.18/15, multicast/reserved (224/4, 240/4), ::1, fc00::/7,
+  or an IPv4-mapped form of these; when the request goes DIRECT (`ses.resolveProxy` returns `DIRECT`), the `ip` that the
+  session's `webRequest.onBeforeRedirect` / `onCompleted` report is checked again and the result is discarded (nothing
+  reaches the model) if it is private (DNS-rebinding guard, checked with Electron 45: the guard reports the connected
+  ip of every hop from `onBeforeRedirect`/`onResponseStarted` to the fetch that started it (`guard.watch`), which
+  aborts at once – before any body is read – and the next hop of that request id is cancelled. Residual risk in the
+  README: the ip is known only after the request was sent; behind a proxy only the pre-resolve check applies).
+  User-blocked hosts (and their subdomains) are refused.
+- Facebook/Instagram (`facebook.com`, `fb.com`, `instagram.com` + subdomains): the server's `_web.js` message
+  („изискват вход в профил … Копирайте текста на поста или направете снимка на екрана и я прикачете.“).
+- `robots.txt` honoured when `browse.robots` (default on), as `_web.js` does.
+- `web_search`: GET `https://html.duckduckgo.com/html/?q=<query>&kl=bg-bg`; parse `a.result__a` (decode the
+  `uddg` parameter of `//duckduckgo.com/l/?…`), title, `.result__snippet`. A 202/403/anomaly page →
+  `{ok:false, code:"rate_limited", error:"Търсачката временно ограничи заявките – опитайте след малко."}`. Bing/Google
+  result pages are never fetched.
+- `read_page`: GET, ≤ 5 MB, 20 s, `text/html|text/plain|application/xhtml+xml` (PDF → hand to `fetch_image` path as a
+  file), charset from header/meta (`windows-1251` via `TextDecoder`), HTML → `{url, title, text(≤ maxChars), links(≤ 200),
+  images(≤ 60, absolute, no logo/icon/sprite), phones, emails, prices, truncated}`. Phones: `+359…`/`00359…` and
+  `0[2-9]…` with spaces/dashes/dots normalised to `+359XXXXXXXXX`, plus numbers within 30 chars after „тел“/„GSM“/„моб“.
+  Prices: numbers with `€|EUR|лв|BGN|$` (and „цена“ context).
+- `fetch_image`: GET, ≤ 8 MB, 20 s, accepted only when the magic bytes are JPEG/PNG/WEBP/GIF/PDF → `files` store
+  (`origin:"web"`, `sourceUrl`) + `file` event. Same URL rules.
+- UA: Chromium UA of the running Electron + ` TedDesktop/<version>`; `Accept-Language: bg,en;q=0.8`.
+
+### 10.2 `create_document` (`electron/docs/*`)
+
+```
+{format:"docx"|"pdf"|"xlsx"|"csv"|"md"|"txt"|"json"|"html", title(≤ 120), filename?(≤ 120), content}
+docx|pdf|html content = Block[] (≤ 2000 blocks, ≤ 400 000 chars):
+  {type:"h1"|"h2"|"h3", text} | {type:"p", text?, runs?:[{text, bold?, italic?, underline?}], align?:"left"|"center"|"right"|"justify"}
+  {type:"ul"|"ol", items:[string | {runs}]} | {type:"table", header?:[…], rows:[[…]], widths?:[%]}
+  {type:"pagebreak"} | {type:"hr"} | {type:"small", text} | {type:"signature", lines:[{label, name?}]}
+  {type:"image", file:"file:<id>", width?(% of text width)}
+xlsx content = {sheets:[{name(≤ 31), columns?:[{header, width?}], rows:[[string|number|boolean|null]]}]}  (≤ 20 000 rows × 100 cols)
+csv  content = {rows:[[…]]} (UTF-8 with BOM, `;` separator for Bulgarian Excel)   md|txt|html(string)|json(any JSON)
+```
+- `html` with a string content is never kept as HTML: only its visible text survives (h1–h3 and list items keep their
+  role, the rest become paragraphs) and the file is rendered by `blocksToHtml` – our own `<head>` with the CSP first,
+  every model character escaped (a regex sanitizer was bypassable: nested tags, `/` between attributes, meta refresh).
+- Libraries (dependencies, exact versions, MIT unless noted): `docx 9.15.1` (DOCX; body font Arial, headings Georgia –
+  Windows fonts with Cyrillic), `pdfkit 0.20.2` (PDF; embeds the app's Roboto Condensed / PT Serif WOFF2 files –
+  cyrillic and latin subsets are separate files, so text runs are split by script and set with the matching subset;
+  fallback when a unit test shows the WOFF2 subset cannot be embedded: `C:\Windows\Fonts\arial.ttf`),
+  `write-excel-file 4.1.1` (XLSX). CSV/MD/TXT/JSON/HTML are written without a library.
+- The fonts are packed for MAIN: `electron-builder.yml` `files:` adds `src/assets/fonts/*.woff2` and
+  `src/assets/fonts/LICENSES.md` (Vite hashes the copies in `dist/`, MAIN must not rely on those names).
+- Output → files store (`origin:"ted"`), `pages` for PDF; a `file` event; returns `{ok:true, file:{id,name,size,pages?}}`.
+  Header line „Недвижими Имоти Надежда · <дата>“ only when the model asks for a letterhead (`title` stays the title).
+- Unit test: DOCX/PDF with Cyrillic text („Договор за наем – гр. Шумен, 2026 г.“) read back with `read_document` equals
+  the input text (PDF via unpdf, DOCX via mammoth).
+
+### 10.3 `read_document` / `ted.files.extract`
+
+`DocText = {name, kind, pages?, sheets?:[{name, rows:[[…]] (≤ 2000 rows × 50 cols)}], text(≤ 60 000), truncated, note?}`
+- DOCX: `mammoth 1.13.0` (BSD-2-Clause) `convertToHtml` → paragraphs and tables as rows (tab-separated in `text`).
+- XLSX: `read-excel-file 9.3.14` (`read-excel-file/node`, every sheet). CSV: own parser (`,`/`;` auto, quotes, BOM).
+- PDF: `unpdf 2.1.0` `extractText` per page (no canvas peer needed). No text layer →
+  `note:"Сканиран PDF без текст – за разпознаване ползвай crm analyze_document с file:<id>"`.
+- TXT/MD/JSON/HTML: UTF-8 (HTML → text like `read_page`). Other kinds → `{ok:false, code:"unsupported"}`.
+- Server engine parity: for Тед (сървър) the renderer calls `ted.files.extract` for DOCX/XLSX/CSV/TXT/MD attachments and
+  inlines the text (the existing 8000-char rule and „съкратен“ note apply); images/PDF go as files as today.
+
+### 10.4 Dependencies (package.json "dependencies", exact, all published ≥ 14 days before 2026-11-17)
+
+`electron-updater 6.8.11` (2026-10-20, released with electron-builder 26.18.0), `docx 9.15.1` (2026-10-31),
+`pdfkit 0.20.2` (2026-08-30), `write-excel-file 4.1.1` (2026-06-08), `read-excel-file 9.3.14` (2026-10-29),
+`mammoth 1.13.0` (2026-09-26, BSD-2-Clause), `unpdf 2.1.0` (2026-10-30). Install with
+`npm install --save-exact --before=2026-11-03 <list>` so transitive packages are ≥ 2 weeks old too. They live in
+`node_modules` (packed by electron-builder into app.asar), not in `dist/`, so `scripts/check-bundle.mjs` stays unchanged
+(it scans `dist/` and `electron/` only). Licence texts travel inside each package folder; Настройки → Относно lists them.
+
+## 11. Files, library, uploads
+
+### 11.1 Storage
+
+- Store module `electron/files.js`: in-memory index + bytes for temporary files; library files encrypted on disk in
+  `userData/library/<first 16 hex of sha256(CRM user id)>/<id>.bin` (AES-256-GCM, random 12-byte IV per file) with the
+  key in the secure store `library-key-<CRM user id>` (safeStorage) and the index in the secure store
+  `library-<CRM user id>` (FileRef list + chatId + chat title). `remembered:false` (no Windows encryption) → memory only,
+  the Library page says so. A CRM sign-out detaches the store (like Real GPT); the next user sees only their own.
+- Every `file` event and every non-temporary `files.add` is a library entry. Deleting a chat does not delete its
+  library files (the Library shows „чатът е изтрит“); `library.remove`/`clear` do (native confirm).
+
+### 11.2 Upload for server tools (MAIN, `electron/agent/uploads.js`)
+
+`POST {SB_URL}/storage/v1/object/nd-files/ted-chat/<YYYY-MM>/<uuid>.<ext>` with headers `apikey: SB_KEY`,
+`Authorization: Bearer <CRM token>` (through `session.authed`, the Supabase host is allowlisted), `Content-Type: <mime>`,
+`x-upsert: true`, body = bytes – exactly as `mobile/ash.js` `upFile`. Once per file (the path is cached in the FileRef
+`crm.path`), ≤ 20 MB, only when a server tool input references `file:<id>`. The step reads
+„Качвам „<name>“ в хранилището на CRM“. 401 → refresh once (session rule §1); 403 → „нямате права за качване“.
+
+### 11.3 Property photos for video (read only)
+
+`GET {SB_URL}/rest/v1/nd_properties?id=eq.<id>&select=data` (apikey + Bearer, RLS) → `data.pics` (nd-files paths).
+This is the only new direct database read; nothing is ever written to the database outside `/api/tools`.
+
+## 12. AI video (`electron/video/*`) – same engines and flow as `mobile/crm/crm-video.js` + `api/video.js`
+
+1. Source: `code` → `/api/tools video.create {code, mode:"walk"}` (prepares only; result `start_video.property{id,code,
+   title,photos}` or `candidates` → the model/user picks) → photo paths via §11.3. Or `fileIds` (≥ 2 images, JPEG/PNG/WEBP)
+   → uploaded as §11.2. One image + `prompt` → a single clip from that image (first frame only). Free-text video without
+   any image → `{ok:false, code:"few_photos"}` with the explanation; the model offers `images.generate` first.
+2. Order: `POST {SITE}/api/video {action:"route", photos:[{data(≤ 512 px JPEG base64), mime}]}` → `{order:[{i,room}],
+   aspect}` (thumbnails made with `nativeImage`; WEBP photos keep their place). Rooms and prompts: `ROOMS`,
+   `WALK_BASE`, `move(a,b)` copied verbatim from `crm-video.js` lines 42–58.
+3. Engines: `{action:"engines"}` → `{engines:[{id,name,note,price($/s),frames,durs}], gateway}`. Empty list →
+   `status:"need_engine"`, code `no_engine`: „На сървъра няма настроен ключ за AI видео (Vercel AI Gateway, Gemini или
+   OpenAI). Видео не може да се направи, докато администраторът не добави ключ.“
+4. Approval card (kind `video`, never `allow_all`): engine (select), clip length from `durs`, parts = photos − 1,
+   ≈ seconds = parts × length, ≈ cost = parts × length × price (USD, „приблизително, по цената на сървъра; плаща се от
+   кредитите на агенцията“), ≈ minutes = max(2, ceil(parts/3) × 2), gateway balance when known. Buttons
+   „Започни (платено)“ / „Откажи“.
+5. Run: 3 parts in parallel; `{action:"start", engine, prompt, first:{path}, last:{path} (if frames > 1), aspect,
+   duration, resolution:"720p"}` → `{job}`; poll `{action:"status", job, save:"ted/video/<code|misc>/part-<n>-<ts>.mp4"}`
+   every 6 s (9 s after a 5xx/network error), ≤ 15 min per part, ≤ 3 attempts per part; the `FATAL` pattern of
+   crm-video.js stops everything with the server's message. A done part `{path, url, size}` is downloaded (signed
+   Supabase URL, no Authorization) into the store (`kind:"video"`).
+6. Stitch (renderer, `src/lib/stitch.js`): port of `crm-video.js` `stitch()` – canvas + `MediaRecorder`
+   (`video/mp4;codecs=avc1…` first, WebM fallback), parts from `ted.files.read` as blob URLs (`media-src blob:` is
+   already allowed), the bundled `logo.png` at 42 % opacity, 62 % of the short side, centred, and the label
+   „AI визуализация“ bottom-right – then `ted.files.add` + `ted.video.finish`. Failure → „Частите са готови, но
+   сглобяването не успя“ and every part stays a FileCard.
+7. Optional „Запази към имота“ = `files.attach {path:"file:<id>", property_code}` through the gate (approval). Cancel stops
+   polling only; clips already started on the server may still be billed – the card says so.
+
+## 13. Scheduled tasks (`electron/scheduled.js`)
+
+Stored per CRM user in the secure store `scheduled-<CRM user id>` (≤ 200 tasks). A runner checks every 30 s while the
+program runs (not in smoke). Due reminder → Windows notification (Electron `Notification`, AppUserModelId already set;
+click focuses the window) + `ted:scheduled.due`. Due prompt → `ted:scheduled.due`; the renderer opens a new chat
+„Планирано: <title>“ and sends `text` through the normal pipeline with `engine` (Real GPT without connection/consent →
+`lastResult {ok:false, error}` and a notification „Не е изпълнено: …“). Runs missed while the program was closed are
+reported once at start with `missed:true` and the button „Изпълни сега“ – never executed silently. Settings → Известия
+(`notify.scheduled`, default on) switches the Windows notifications, not the tasks. The Планирани page also shows the
+CRM calendar (`crm.read("calendar.list", {from, to})` for the next 14 days, read-only, with a link to the CRM).
+
+## 14. Updates (`electron/updater.js`, electron-updater 6.8.11)
+
+- `electron-builder.yml`: `publish: [{provider: generic, url: "https://github.com/miroslavkunev7-design/imotinadezhda/releases/latest/download", useMultipleRangeRequest: false}]`
+  replaces `publish: null`; `artifactName`, `differentialPackage: false`, NSIS options unchanged. With `--publish never`
+  electron-builder still writes `dist-installer/latest.yml` (`version`, `files[0].url = Ted-Setup-<v>-x64.exe`,
+  `sha512`, `size`, `releaseDate`) and `resources/app-update.yml` (checked in app-builder-lib 26.18.0
+  `PublishManager`: update info is written whenever a publish config exists; only the upload depends on `--publish`).
+  No `publisherName` (unsigned) → electron-updater skips the Authenticode check (`NsisUpdater.verifySignature` returns
+  null); the downloaded installer is still verified against `sha512` of `latest.yml` – integrity only (a corrupted or
+  cut download), NOT authenticity: `latest.yml` comes from the same release, so whoever can publish a release ships an
+  update. README says so and names the protections (write access, 2FA, a protected release environment) and the real
+  fix (code signing + `publisherName`).
+- Updater settings: `autoDownload = settings.updates.auto` (default true), `autoInstallOnAppQuit = same`,
+  `allowPrerelease = false`, `allowDowngrade = false`, `disableDifferentialDownload = true`, `disableWebInstaller = true`,
+  `logger` → `log.js` (events only). `quitAndInstall(true, true)` for „Рестартирай и обнови“; on quit electron-updater runs
+  the installer with `/S --updated` (silent, same per-user folder, the app is not restarted).
+- Network: electron-updater uses `session.fromPartition("electron-updater")`; `updater.js` installs on that session
+  `webRequest.onBeforeRequest` allowing only `https://github.com`, `https://objects.githubusercontent.com`,
+  `https://release-assets.githubusercontent.com` (everything else cancelled and logged), and
+  `onBeforeSendHeaders` removing `Authorization`/`Cookie`. No CRM/OpenAI token ever reaches it.
+- Schedule: first check 20 s after the window is shown, then every 6 h. Not started when `!app.isPackaged`,
+  `process.platform !== "win32"` or `--smoke-test` (UpdState `disabled`; the smoke report records `updater:"off"`).
+- UI: Settings → Общи → Обновления (§15) and a banner when `ready`. The feed needs the newest GitHub release of the repo
+  to be the Ted release: any other release marked "Latest" would hide updates (README says so). 0.1.2 has no updater:
+  0.1.3 is installed once by hand.
+- CI (`.github/workflows/ted-desktop.yml`, windows job): after the build, check `dist-installer/latest.yml` exists, has
+  `version: <version>`, `path: Ted-Setup-<version>-x64.exe` and `sha512` equal to
+  `openssl dgst -sha512 -binary Ted-Setup-<version>-x64.exe | base64 -w0`; upload it with the artifact; the release job
+  adds `latest.yml` to `assets` (create and `--clobber` re-upload). `SHA256SUMS.txt` stays for the two .exe files. The
+  installer tests (`scripts/ci-installer-test.ps1`) are unchanged and must pass (`app-update.yml` is part of
+  `win-unpacked`, so the completeness check includes it).
+
+## 15. Layout (SHELL) – ChatGPT desktop arrangement, our styling
+
+Breakpoints as today: desktop > 640 px; phone layout ≤ 640 px (`usePhone`, compact window 420 px).
+
+**Sidebar (`layout/Sidebar.jsx`, top → bottom)**: row [logo tile (existing `logo.png` tile, height 40) · „Тед“ ·
+search icon (`data-testid="side-search-ic"`, opens search) · collapse icon (`side-toggle`, Ctrl+Shift+S)];
+nav rows with icons: Нов чат (`side-new`, Ctrl⇧O), Търсене в чатовете (`side-search`, Ctrl K), Проекти
+(`side-projects` → Projects page; under it up to 5 open cases + „Нов проект…“, keeps `data-testid="case-list"`),
+Планирани (`side-scheduled`), Библиотека (`side-library`), Плъгини (`side-plugins`), Агенти (`side-agents`);
+section „Закачени“ (`side-pinned`, pinned chats) and section „Чатове“ (`side-chats`, the 20 newest, flat list, rows keep
+`.side .row .t` + „…“ menu: Преименувай, Закачи/Откачи, Експорт, Архивирай, Изтрий) + „Вижте всички…“ (`side-all` →
+search modal: with an empty query EVERY saved chat that is not archived, newest activity first; with a query also the
+archived ones); bottom `me-btn`: avatar initials + name + e-mail → menu Настройки, Помощ, Компактен/Пълен прозорец,
+Изход. Collapsed (mini) sidebar = icon rail of the same items.
+
+**Top bar (`layout/TopBar.jsx`)**: left: sidebar toggle (when collapsed/phone) + model button `data-testid="model-btn"`
+„Тед ▾“ (server default) / „<server model> ▾“ / „Real GPT · <displayName> ▾“ opening the existing model menu (groups
+„Тед Асистент · Сървър“ and „Real GPT · вашият ChatGPT план“, sign-in/out, models). Centre: segmented `mode-toggle`
+(`role="tablist"`, tabs „Чат“ / „Работа“, setting `mode`; both modes have every capability, Работа = §9.4 higher limits
+and the plugin list on Home; with Тед (сървър) the server's own limits apply and the toggle changes only Home/placeholder,
+said in its tooltip). Right: ⏳ temporary-chat toggle on a new chat, chat „…“ menu
+in a thread, `rg-ind` „Използва вашия ChatGPT план · Управление на лимита“ when Real GPT is selected. The `.winbar` above
+stays unchanged (drag bar, caption-button padding, `conn` pill, ⚡).
+
+**Home (`layout/Home.jsx`)**: centred `h1` „Здравейте, <име>. Готови ли сте?“ (Чат) / „Върху какво ще работим?“ (Работа)
+(„Здравейте! Готови ли сте?“ without a name; temporary chat keeps „⏳ Временен чат“ + its note); the session note and the
+case banner as today; composer; chips row `home-chips`: Създай изображение, Пиши или редактирай, Потърси нещо, Намери
+имот, Прегледай документи, Прикачи имот, Още ▾ (the six existing example groups). Chips only fill/arm the composer;
+nothing is sent. In Работа, under the composer `home-plugins`: the plugin list (§15 Плъгини rows, compact: icon, name,
+one-line description, status or „Свържи“).
+
+**Composer (`layout/Composer.jsx`)**: placeholder „Попитайте каквото и да е“ (Чат) / „Направете каквото и да е“ (Работа);
+`+` (`.c-plus`) at left → PlusMenu; armed hints and the selected Проект/Агент appear as removable tags above the text;
+right: model+effort pill `effort-pill` („<model> · <усилие>“; click → „Разширени“ popover with Модел › and Усилие ›),
+`.c-mic` dictation, and the round `.snd` button = voice mode when empty, send when there is text/files, stop while busy.
+The „Изпълнение“/disclaimer line under the composer stays (`.disc`).
+
+**PlusMenu (`layout/PlusMenu.jsx`)**: Добави снимки и файлове · Последни файлове › (8 newest library files) ·
+separator · Създай изображение · Мислене · Задълбочено проучване · Търсене в мрежата · Още › (Canvas, Видео на имот,
+Документи от CRM, Имот от CRM, Нов казус, Умения и роли, Свързани услуги) · separator · Проекти › (cases, „Общ
+разговор“, „Нов проект…“). Hints: image/thinking(effort high for this message)/research(Работа limits)/search.
+For Тед (сървър) the hints become a text prefix („Създай изображение: “, „Потърси в интернет: “, …) – shown in the field.
+
+**Effort (Real GPT only)**: Усилие › Стандартно (nothing sent) · Мигновено (`none`) · Ниско · Средно · Високо · Много
+високо (`xhigh`); an unsupported value is dropped by MAIN with the existing note. With Тед (сървър) the item is disabled
+„само за Real GPT“.
+
+**Pages**: Проекти (cases list from CRM + Нов проект; a case opens the existing CasePage), Планирани (§13), Библиотека
+(grid of FileCards with filter Всички/Снимки/Документи/Видео, search, „Отвори чата“), Плъгини (rows: CRM „Имоти
+Надежда“ – status from real requests + „Проверка“; ChatGPT план (Real GPT) – status/email/plan + Свържи/Прекъсни;
+Интернет – on/off (`browse.enabled`) + blocked sites; Имейл през CRM – „настройва се в CRM („Моята поща“)“ + Отвори CRM;
+Календар през CRM – last `calendar.list` result), Агенти (the existing „Умения и роли“ page: roles + built-in skills).
+
+**Settings (`layout/SettingsView.jsx`)**: one grouped list (desktop: large modal; phone: full screen) with rows that open
+sub-pages (Назад). Containers keep `.set-list` / `.set-row`; sub-pages keep `.pane[data-pane="<key>"]`.
+Profile header (initials avatar, name). Groups and rows:
+„Направете Тед по ваш избор“: Персонализиране (`personal`: nick, own instructions ≤ 1500 – used by Real GPT; „Запомни в
+паметта на Тед“ for the server; default role), Памет (`memory`, existing pane), Плъгини (`apps`).
+„Акаунт“: Имейл (`account`: CRM name and login, read-only, the `session-note-settings` note, „Изход“), ChatGPT акаунт
+(`chatgpt`: connect/switch/disconnect, plan status, consent), Използване и лимити (`usage`: chatgpt.com/settings/usage
+link; „Снимките и видеото се правят от сървъра на Тед и се плащат от агенцията“), Модел (`model`: the server model list,
+the Real GPT models and effort exactly as the 0.1.2 pane – nothing removed).
+„Тема“: Външен вид (`theme`: only „Имоти Надежда“ – a light/dark pair does not exist, said plainly), Акцентен цвят
+(only „Бордо и злато“).
+„Настройки на приложението“: Общи (`general`: Език – Български, Стартирай с Windows, Компактен прозорец, По-едри букви,
+Enter изпраща, Показвай действията, Обновления: version, last check, status, „Провери сега“, „Автоматично изтегляне и
+инсталиране“, „Рестартирай и обнови“ – block `data-testid="updates"`), Известия (`notify`), Глас (`voice`: voice,
+style, when to speak, test), Диктовка (`dict`, the 0.1.2 pane, row right under Глас),
+Безопасност (`safety`: approvals explained, Real GPT consent), Сигурност и вход (`security`: session remembered or not,
+„Изход от CRM и ChatGPT на този компютър“), Браузър (`browser`), Съхранение (`storage`: sizes, clear library, clear temp),
+Контрол на данните (`data`: export current chat, archived chats, archive all, delete local data, consent reset).
+„За помощ“: Съобщете за проблем, Помощен център (README on GitHub + keyboard shortcuts), Център за поверителност (the
+README privacy text), Относно (`about`: version, edition, connection check, licences).
+Red „Излизане от акаунта“ at the end (= CRM logout, same as today). Each sub-page keeps an `h3` with its row name.
+
+Kept selectors/test ids (existing tests rely on them): `#composer`, `.snd`, `.c-plus`, `.c-mic`, `.recbar`, `.home h1`,
+`.thread`, `.msg.a[data-engine]`, `.macts`, `.caret`, `.side .row .t`, `.side.open`, `.scrim`, `.top.ph`, `.winbar`,
+`.toast`, `.pop`, `.modal`, `#srch`, `#nc-t`, `#nc-c`, `#mem-q`, `#mem-new`, `#sw-*`, `case-list`, `case-page`,
+`case-pill` (the composer tag of the selected Проект, text „Казус: <title>“), `model-btn`, `model-chip`, `rg-ind`,
+`rg-ind-narrow`, `rg-use`, `conn`, `waiting`, `wait-clock`, `actions-card`, `quota-banner`, `error-banner`,
+`maybe-note`, `stop-note`, `mem-item`, `app-version`, `conn-ok`, `session-note`, `session-note-settings`.
+
+**Phone drawer**: header „Тед“ + round search button; Планирани, Проекти, Библиотека, Плъгини, Агенти, Персонализиране;
+„Закачено“; chats; „Вижте всички…“; bottom: pill „Чат“ (new chat, `data-testid="drawer-new"`) and the avatar
+(`me-btn` → same menu as desktop).
+
+**Update banner**: `data-testid="upd-banner"` under the top bar when `status:"ready"`: „Има нова версия <v>. Ще се
+инсталира при затваряне.“ [Рестартирай и обнови].
+
+**Conversation surfaces**: keep copy, read aloud, Canvas, stop, retry, edit-into-composer; add „Отговори пак“
+(regenerate the last answer; when it changed CRM data – actions mutating or approved steps – ask first, like today's
+retry), „Продължи“ when `incomplete`/`limited`, and inline „Редактирай“ on the last user message (edit + resend replaces
+the following answer after the same check). Search, rename, delete, temporary chat and effort exist already.
+
+## 16. Renderer component API (FEATURES exports, SHELL mounts – FEATURES never edits App.jsx)
+
+```
+// src/lib/agent.js
+export const AGENT_INIT = {}                                         // state keyed by requestId
+export function agentReduce(state, event) -> state                  // pure; handles every AgentEvent of §8.3
+export function useAgentEvents() -> [state, reset(requestId)]       // subscribes ted.realgpt.onEvent once
+export function rgMessages(prior, userMsg, payload) -> messages      // §8.2 messages incl. files[] ids
+export function agentSnapshot(state, requestId) -> {steps, files, limited, video?, email?}   // to persist on the message
+// src/components/agent/*
+<AgentSteps steps live />                       // .card.run, header „Изпълнение“, live statuses (spinner for "run")
+<ApprovalCard approval onDecide(decision, options) busy />   // decision "allow"|"deny"|"allow_all"
+<FileCard file compact? onToast />              // preview (image: thumb → full via files.read; video: <video> from blob;
+                                                //  PDF/DOCX/XLSX: icon + pages/sheets), „Отвори“, „Запази…“, savedTo line
+<ConsentModal account onDecide(choice) />       // „Real GPT ще ползва CRM, интернет и файловете, които прикачите, през
+                                                //  вашия ChatGPT акаунт.“ [Разбирам] → "all"  [Само текст] → "text"
+<VideoCard job onToast />                       // approval part, progress dots, stitching (lib/stitch.js), result FileCard
+<ToolsUnsupportedCard onServer onTextOnly />    // code "tools_unsupported"
+// src/components/Canvas.jsx (FEATURES) – props {cv, setCv, toast, copy, onExport(format), draft?} (draft = a ref the
+//   shell reads: the unsaved text, kept as a version when the chat's Canvas is put aside); cv.uid keys the instance
+//   cv.versions[i] = {v, text, at, label}; agent versions labelled „Тед: <label>“; „Преглед“ toggle renders <Md> and
+//   sanitised SVG (src/lib/svg.js: no <script>, <foreignObject>, on* attributes, javascript:/data:/http(s) href or
+//   xlink:href, <image>, <use> to external, <style> with url(); rendered as <img src="data:image/svg+xml;base64,…">,
+//   which runs no script); „Експорт“ → docx/pdf via the agent's create_document only when Real GPT is connected,
+//   otherwise via ted.app.saveFile (.md) as today.
+// src/lib/svg.js:  export function safeSvg(text) -> string|null
+// src/lib/stitch.js: export async function stitch(partBlobs, {logoUrl, onProgress}) -> {blob, ext}
+```
+`agent.css` holds only the styles of these components.
+
+Icons: SHELL adds these names to `Icon.jsx` (24×24 stroke paths like the existing ones); FEATURES may use them and every
+existing name: `clock, library, plug, bot, bulb, telescope, bell, palette, moon, flag, smile, book, eye, film, upload,
+file, sparkle, at, chevL, table, sheet`. An unknown name renders an empty icon (no crash).
+
+Message data (persisted with the chat, no bytes): Real GPT answers get `agent:{mode, steps, files:[FileRef], limited?,
+video?:{jobId, status, fileId?}, email?}` from `agentSnapshot`; pending approvals are never persisted (after a restart
+an unfinished agent answer shows „Прекъснато – възможно е действия да са изпълнени“ like §2 server answers). User
+messages keep `files:[chip]`, where a chip may carry `fileId`.
+
+## 17. Mock bridge (FEATURES, `src/mock/bridge.mock.js`) – every new function and event
+
+Existing flags stay. New URL flags: `consent=all|text|none` (default `none`), `agent=1` (Real GPT answers run a scripted
+agent: steps web_search → read_page → crm properties.search → create_document, one file event, one approval for
+`calendar.create`), `agentFail=tools_unsupported|limit`, `upd=disabled|none|available|downloading|ready|error`
+(default `disabled`), `lib=1` (3 library items: image, pdf, docx – all labelled „Тест“), `sched=1` (2 tasks, one missed),
+`video=ok|noengine` (default `ok`), `browse=0`, `chats=<n>` (n saved chats „Чат номер 1…n“; chats 1–2 the least
+recently active although created last – checks the order of „Вижте всички…“). The scripted agent files the files it
+makes with the asking chat (`chatId`, as MAIN). All fixtures are visibly test data („Тест…“, example.test), never real
+names; no network.
+
+## 18. Tests
+
+- MAIN (vitest, no network): request shape snapshots (namespace tools, echoed items, no forbidden keys), the three
+  corrective resends, gate table over all 108 manifest names (auto / auto-generate / approval / confirm / never),
+  `confirm` stripping and injection only after the dialog, 412 and 400-confirm retry, caps per mode, upload request
+  shape, SSRF table (private/loopback/link-local/IPv6/mapped/single-label/blocked host/ports/redirect to private), DDG
+  parser + rate-limit page fixtures, read_page charset (windows-1251 fixture) + phones/emails/prices, create→read round
+  trip for docx/pdf/xlsx/csv with Cyrillic, library encryption round trip, scheduled next-run calculation (weekdays,
+  monthly end-of-month, DST in Europe/Sofia), updater: disabled in smoke/dev, host filter, state machine on fake events.
+- Renderer (Playwright against the mock): `layout-chatgpt.spec.js` (SHELL: sidebar items and order, top bar toggle,
+  greeting per mode, chips, plus menu, effort pill, settings groups/rows, phone drawer, update banner, no horizontal
+  overflow at 1366×860 and 400×860, zero CSP violations), `agent.spec.js` (FEATURES: consent, steps, approval
+  allow/deny/allow_all, FileCard open/save calls, canvas version from the agent, SVG preview sanitised, video
+  approval/no-engine/progress, tools_unsupported card). Existing specs updated to the new layout keep testing the same
+  behaviour.
+- Smoke (`--smoke-test`): exact new TED_SURFACE, updater `off`, no renderer network, all §6 checks unchanged.
+
+## 19. Honesty additions
+
+- Never show „готово/изпратено/записано“ for a file, e-mail, video or CRM change unless the result says so; a 5xx/network
+  error after sending is „може да е изпълнено – проверете в CRM“.
+- A Real GPT answer that fell back to Тед (сървъра) is labelled „↪ Отговор от Тед (сървъра) вместо Real GPT“.
+- Prices of video are estimates from the server's own price list and are labelled so.
+- Fixtures and mock data are visibly test data; no personal names anywhere (check-bundle rule unchanged).
+
+## 20. Parity table „ChatGPT → Тед за Windows“ (copied, in Bulgarian, into README.md)
+
+| ChatGPT | Тед за Windows 0.1.3 | Honest note |
+|---|---|---|
+| New chat | Нов чат (Ctrl⇧O), sidebar and phone drawer pill „Чат“ | same |
+| Search chats | Търсене в чатовете (Ctrl K) | local chats only |
+| Projects | Проекти = Казуси (CRM): server memory, history, facts; new chats inside a project | lives on Ted's server, also visible on the site |
+| Scheduled (Tasks) | Планирани: local reminders and prompts + CRM calendar (calendar.list) | run only while the program is open; missed runs are shown with „Изпълни сега“ and never run silently; no cloud runner |
+| Library | Библиотека: every image/document/video Ted made or you attached, encrypted on this PC, linked to its chat | not synced between computers |
+| Plugins / connectors | Плъгини: CRM „Имоти Надежда“, ChatGPT план, Интернет, Имейл през CRM, Календар през CRM – real status | Gmail/Slack/Google Calendar connectors of OpenAI are not given to external apps |
+| Agents | Агенти = Умения и роли (Юрист, Секретар, Старши брокер, …) + built-in CRM skills | roles come from Ted's server |
+| Chat / Work toggle | Чат / Работа: same capabilities; Работа has higher limits (20 rounds/100 calls) and shows the plugin list | with Тед (сървър) the server's limits apply |
+| Model picker | „Тед ▾“ / „Real GPT · <model> ▾“ (server models + your ChatGPT plan models) | Real GPT counts against your ChatGPT plan |
+| Effort / Instant / Thinking | Усилие: Стандартно, Мигновено, Ниско, Средно, Високо, Много високо; „+ → Мислене“ | Real GPT only; an unsupported level is dropped with a note |
+| + Add photos & files | any file ≤ 20 MB, 10 per message (Real GPT); server engine: images/PDF + local text of Word/Excel/CSV/TXT | no audio/video input to the model (OpenAI route) |
+| Recent files | „Последни файлове ›“ from the Library | – |
+| Create image (gpt-image) | images.generate through Ted's server (Google Gemini); edit an attached image or a property photo | OpenAI image generation exists only in OpenAI's apps; results are labelled AI visualisation |
+| Web search / browsing | local browsing from your PC: DuckDuckGo results + read_page (text, phones, e-mails, prices, photos as cards); Ted (server) uses Google grounding | Facebook/Instagram need a login and are not read; search may be rate-limited and says so |
+| Deep research | „Задълбочено проучване“: Работа limits, many sites, findings with links | stops at the limit and says so |
+| Canvas | Canvas: model edits as new versions, „Преглед“ (Markdown + sanitised SVG charts), export DOCX/PDF | documents only, no code canvas |
+| Data analysis (Code Interpreter) | read_document: XLSX/CSV/DOCX/PDF tables as rows → the model analyses; results as XLSX/CSV/DOCX/PDF or an SVG chart in Canvas | no Python sandbox (OpenAI Code Interpreter is not offered to external apps; programming excluded) |
+| File creation (docx/pdf/xlsx) | create_document locally: contracts, offers, letters written from scratch; Cyrillic embedded | – |
+| Edit uploaded documents | read_document → create_document returns the edited file | old .doc/.xls must be saved as .docx/.xlsx first |
+| Translate files | documents.translate (server, PDF) or read + create (DOCX) | automatic translation, not certified |
+| Merge / to PDF / split | files.to_pdf, documents.merge, documents.split (server) | – |
+| Save to CRM | files.attach at a client/property after approval | – |
+| Files in chat | FileCard: preview, „Отвори“ (Windows default app), „Запази…“ | PDF first page is not rendered (icon + page count) |
+| Video (Sora) | AI video of a property: walk from listing or attached photos (Kling / Veo / Gemini Omni / Sora 2 through Ted's server), price card, progress, MP4 in chat | Sora app is OpenAI's own; free-text video without photos is not available – Ted offers an AI image first, then a clip; costs agency credits; „no key“ is said plainly |
+| Voice mode | existing voice mode, also for Real GPT answers | speech goes through Ted's server (TTS/STT), not OpenAI voice |
+| Read aloud | „Чуй“ on every answer (both engines) | Ted's server voice |
+| Dictation | microphone dictation | Ted's server transcription |
+| Memory | Ted's memory (server): search automatic, „запомни“ with approval, Settings → Памет | ChatGPT's own memory and history are not given to external apps |
+| Custom instructions | Персонализиране: nick + own instructions (Real GPT); server: „Запомни в паметта на Тед“ | appended after MAIN's rules, never replacing them |
+| Temporary chat | ⏳ Временен чат | Ted's server still logs server chats in its memory (as on the site) |
+| Regenerate | „Отговори пак“ | asks first if the previous answer changed CRM data |
+| Edit & resend | „Редактирай“ on the last message + pencil to composer | – |
+| Continue | „Продължи“ when cut or limited | – |
+| Stop | „Спри“ | server actions may already have run – said in the note |
+| Copy / rename / delete / pin / archive / export | yes (export = Markdown) | – |
+| Share link | omitted | no hosting; export instead |
+| Approvals for actions | approval cards for CRM writes; native Windows dialog for deletes/status changes; e-mail only through its card; paid video with price | the model can never approve its own writes |
+| Settings → Appearance (System/Light/Dark) | Външен вид: only „Имоти Надежда“ | a light/dark pair is not implemented in our palette |
+| Accent colour | only „Бордо и злато“ | – |
+| General / Notifications / Voice / Security / Data controls / Storage / Help / About | same sections with our settings + Обновления, Браузър | – |
+| Cloud browser (Облачен браузър) | Браузър = local browsing settings (on/off, blocked sites, robots.txt) | browsing runs on your PC, no cloud browser |
+| App auto-update | automatic download and install on quit, „Провери сега“, „Рестартирай и обнови“ | 0.1.2 has no updater: install 0.1.3 once by hand; unsigned build: integrity checked with sha512 |
+| Quick window (companion) | ⚡ Ctrl+Shift+Space | – |
+| Sites | omitted | no web hosting in this program |
+| GPTs / Explore GPTs | omitted | no store; roles/agents are our equivalent |
+| Sora (app) | omitted as an app | see Video |
+| Codex / programming | intentionally excluded (owner's decision) | code blocks in answers stay as they are; no code files, sandbox or preview |
+| Upgrade / Subscription / Restore purchases | omitted | plans are bought at OpenAI; we show only „Използване и лимити“ and plan enabled/not |
+| Age / Parental controls | omitted | OpenAI account features |
+| Agent mode (computer use) | omitted | no remote control of a browser or the PC; read-only browsing only |

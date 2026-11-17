@@ -13,7 +13,7 @@ import {
   CALLBACK_TIMEOUT_MS, DYNAMIC_CLIENT_ID, buildAuthorizeUrl, exchangeCode, pkceChallenge, randomToken, refreshTokens,
   revokeToken, startLoopback,
 } from './oauth.js';
-import { RESPONSES_URL, buildRequest, consumeStream, rejectsEffort, resultOf, withoutReasoning } from './responses.js';
+import { EFFORTS, RESPONSES_URL, buildRequest, consumeStream, rejectsEffort, resultOf, withoutReasoning } from './responses.js';
 import { discard, parseJson, readText, requestIdOf } from './wire.js';
 
 const noop = () => {};
@@ -39,6 +39,18 @@ export function bearerRequest(http, token, opts) {
 // Upper bound handed to http for a streaming request; the real guards are the header and idle timers below.
 const STREAM_HTTP_TIMEOUT_MS = 30 * 60 * 1000;
 
+// Text-only requests (no consent for tools): attached file ids are not resolved; the model sees only their count.
+function textMessages(messages) {
+  if (!Array.isArray(messages)) return messages;
+  return messages.map((m) => {
+    if (!m || typeof m !== 'object' || !Array.isArray(m.files) || !m.files.length) {
+      return m && typeof m === 'object' && 'files' in m ? { role: m.role, text: m.text, ...(m.images ? { images: m.images } : {}) } : m;
+    }
+    const note = `[${m.files.length === 1 ? 'Прикачен файл' : `Прикачени файлове: ${m.files.length}`} – в режим „само текст“ Real GPT не чете файлове; ползвай Тед (сървъра) или разреши инструментите.]`;
+    return { role: m.role, text: [m.text, note].filter((x) => x && String(x).trim()).join('\n'), ...(m.images ? { images: m.images } : {}) };
+  });
+}
+
 export function createRealGpt({
   http,
   secureStore,
@@ -48,6 +60,9 @@ export function createRealGpt({
   owner,
   log = { info: noop, warn: noop, error: noop },
   emit = noop,
+  // The tool loop of docs/CONTRACT.md §9 (electron/agent/loop.js). Without it (or without the employee's consent
+  // "all") every request is the text-only request of 0.1.2.
+  agent = null,
   // Test seams; production uses the defaults.
   jwks = remoteJwks(http),
   now = Date.now,
@@ -80,6 +95,59 @@ export function createRealGpt({
 
   async function status() {
     return publicStatus(await load());
+  }
+
+  // ---- consent (CONTRACT §8.2/§8.4): per CRM user and per ChatGPT account, only in MAIN's secure store --------
+
+  const consentName = () => {
+    const slot = creds.slot();
+    return slot ? slot.replace(/^realgpt/, 'realgpt-consent') : null;
+  };
+
+  async function consentState() {
+    const name = consentName();
+    const record = name ? await load() : null;
+    if (!record?.access_token || !record.subject) return { consent: null, account: record?.email };
+    let saved = null;
+    try {
+      saved = await secureStore.read(name);
+    } catch {
+      saved = null;
+    }
+    const value = saved?.bySubject?.[record.subject];
+    return { consent: value === 'all' || value === 'text' ? value : null, account: record.email };
+  }
+
+  async function consent() {
+    const st = await consentState();
+    return { ok: true, consent: st.consent, ...(st.account ? { account: st.account } : {}) };
+  }
+
+  // choice "all" | "text"; null removes the choice for this account (Настройки → Контрол на данните).
+  async function setConsent(choice) {
+    if (choice !== 'all' && choice !== 'text' && choice !== null) return fail('invalid', 'consent');
+    const name = consentName();
+    if (!name) return fail('signed_out');
+    const record = await load();
+    if (!record?.access_token || !record.subject) return fail('not_connected');
+    let saved = null;
+    try {
+      saved = await secureStore.read(name);
+    } catch {
+      saved = null;
+    }
+    const bySubject = { ...(saved?.bySubject || {}) };
+    if (choice === null) delete bySubject[record.subject];
+    else bySubject[record.subject] = choice;
+    let written;
+    try {
+      written = await secureStore.write(name, { v: 1, bySubject });
+    } catch {
+      written = false;
+    }
+    if (written === false) return fail('storage');
+    log.info('realgpt.consent', { consent: choice || 'reset' });
+    return { ok: true, consent: choice };
   }
 
   // ---- sign-in ---------------------------------------------------------------------------------------------
@@ -387,6 +455,63 @@ export function createRealGpt({
     return { res, ok, error };
   }
 
+  // One streamed request of the agent loop: -> {ok:true, outcome} | {ok:false, status, error}. `prefix` is the
+  // text of the earlier rounds, so realgpt:delta always carries the whole answer so far.
+  async function streamOnce(requestId, body, job, prefix = '') {
+    const opened = await openStream(body, job);
+    if (!opened.ok) {
+      const mapped = mapApiError(opened.res.status, opened.error);
+      log.warn('realgpt.round_rejected', {
+        requestId, status: opened.res.status, code: mapped.serverCode, param: mapped.param, serverRequestId: requestIdOf(opened.res),
+      });
+      return { ok: false, status: opened.res.status, error: opened.error };
+    }
+    const sink = deltaSink(requestId);
+    let idle = null;
+    const arm = () => {
+      clearTimeout(idle);
+      idle = setTimeout(() => abortJob(job, 'timeout'), idleTimeoutMs);
+    };
+    arm();
+    let outcome;
+    try {
+      outcome = await consumeStream(opened.res.body, {
+        signal: job.ctl.signal,
+        onActivity: arm,
+        onDelta: (delta, full) => {
+          job.text = prefix + full;
+          sink.push(delta, prefix + full);
+        },
+      });
+    } finally {
+      clearTimeout(idle);
+      sink.flush();
+    }
+    if (outcome.kind !== 'completed' && job.why) throw new RgError('aborted');
+    if (outcome.kind !== 'completed') {
+      log.warn('realgpt.round_unfinished', { requestId, kind: outcome.kind, code: outcome.error?.code, reason: outcome.reason });
+    }
+    return { ok: true, outcome };
+  }
+
+  async function runAgent(requestId, args, job) {
+    await usableRecord();
+    if (typeof args.model !== 'string' || !/^[\w.:-]{1,100}$/.test(args.model)) throw new RgError('invalid', 'model');
+    if (args.effort != null && !EFFORTS.includes(args.effort)) throw new RgError('invalid', 'effort');
+    const model = args.model;
+    const effort = args.effort != null && noEffort.has(model) ? undefined : args.effort;
+    const result = await agent.run({
+      requestId, model, effort, messages: args.messages, mode: args.mode, hints: args.hints, canvas: args.canvas,
+      caseId: args.caseId, role: args.role, custom: args.instructions, nick: args.nick, chatId: args.chatId,
+      temporary: args.temporary, signal: job.ctl.signal,
+      stream: (body, prefix) => streamOnce(requestId, body, job, prefix),
+      emit: (event) => emit('realgpt:event', { requestId, ...event }),
+    });
+    if (result && result.ok && args.effort != null && effort === undefined) result.effortIgnored = true;
+    if (result && !result.ok && job.why) return { ...result, ...fail(job.why === 'cancel' ? 'aborted' : 'timeout') };
+    return result;
+  }
+
   async function runSend(requestId, firstBody, job) {
     await usableRecord();
     let body = firstBody;
@@ -451,9 +576,12 @@ export function createRealGpt({
     if (typeof requestId !== 'string' || !requestId || requestId.length > 128 || active.has(requestId)) {
       return fail('invalid', 'requestId');
     }
+    // MAIN reads the stored consent itself: without "all" the request is exactly the text-only one of 0.1.2.
+    const useAgent = !!agent && (await consentState()).consent === 'all';
     let body;
     try {
-      body = buildRequest(args);
+      // Validates model, effort, instructions and messages the same way in both modes.
+      body = buildRequest({ ...args, messages: textMessages(args.messages) });
     } catch (e) {
       return toFailure(e);
     }
@@ -462,7 +590,8 @@ export function createRealGpt({
     const started = now();
     let result;
     try {
-      result = await runSend(requestId, body, job);
+      result = useAgent ? await runAgent(requestId, args, job) : await runSend(requestId, body, job);
+      if (result && result.ok && agent && !useAgent) result.toolsOff = true;
     } catch (e) {
       const partial = job.text ? { text: job.text } : undefined;
       if (job.why) result = fail(job.why === 'cancel' ? 'aborted' : 'timeout', null, partial);
@@ -480,8 +609,14 @@ export function createRealGpt({
   function cancel(requestId) {
     const job = active.get(requestId);
     if (job) abortJob(job, 'cancel');
+    agent?.cancelApprovals(requestId);
     return { ok: true };
   }
 
-  return { status, signIn, cancelSignIn, signOut, detach, models, send, cancel };
+  function approve(args) {
+    if (!agent) return { ok: false, error: 'Няма активно одобрение.' };
+    return agent.approve(args);
+  }
+
+  return { status, signIn, cancelSignIn, signOut, detach, models, send, cancel, approve, consent, setConsent };
 }

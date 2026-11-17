@@ -2,6 +2,8 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import "./styles/style.css";
 import "./styles/desktop.css";
+import "./styles/layout.css";
+import "./styles/agent.css";
 import { initBridge } from "./bridge.js";
 import App from "./App.jsx";
 

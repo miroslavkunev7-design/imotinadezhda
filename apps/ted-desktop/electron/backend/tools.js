@@ -38,7 +38,10 @@ function errorText(status, json) {
   return `Грешка от сървъра (HTTP ${status})` + (raw ? `: ${raw}` : ".");
 }
 
-export function createTools({ session, log }) {
+// http (optional): the plain allowlisted client, for the public GETs below (no token is ever attached there).
+export function createTools({ session, log, http }) {
+  let manifestCache = null;
+  const rolePrompts = new Map();
   async function call(tool, input) {
     const payload = input == null ? {} : input;
     let size = Infinity;
@@ -62,7 +65,45 @@ export function createTools({ session, log }) {
     if (res.status === 401) return { ok: false, error: "Сесията е изтекла – влезте отново.", status: 401, code: "auth", maybeExecuted: false };
     // CONTRACT §2: a 4xx is a refusal before execution; any 5xx (even with a JSON error, e.g. an SMTP
     // timeout after the message data was sent) leaves the outcome unknown.
-    return { ok: false, error: errorText(res.status, j), status: res.status, code: "http", maybeExecuted: res.status >= 500 };
+    // zod issues (400) are kept for MAIN's gate: an issue at ["confirm"] means "ask the employee first" (§9.3).
+    const issues = res.status === 400 && j && Array.isArray(j.issues)
+      ? j.issues.slice(0, 20).map((i) => ({ path: Array.isArray(i && i.path) ? i.path.slice(0, 6).map(String) : [], message: String((i && i.message) || "").slice(0, 200) }))
+      : undefined;
+    return { ok: false, error: errorText(res.status, j), status: res.status, code: "http", maybeExecuted: res.status >= 500, ...(issues ? { issues } : {}) };
+  }
+
+  // GET /api/tools: [{name, description}] of every server tool (public list, no token). Cached for the run.
+  async function manifest() {
+    if (manifestCache) return manifestCache;
+    if (!http) return null;
+    try {
+      const res = await http.request({ url: SITE + "/api/tools", method: "GET", timeoutMs: 20000 });
+      const list = res.ok && res.json && Array.isArray(res.json.tools) ? res.json.tools : null;
+      if (!list) return null;
+      manifestCache = list
+        .filter((t) => t && TOOL_NAME.test(String(t.name)) && String(t.name).length <= 64)
+        .map((t) => ({ name: String(t.name), description: String(t.description || "").slice(0, 600) }));
+      return manifestCache;
+    } catch (e) {
+      if (log) log.warn("tools.manifest_failed", { code: e && e.code });
+      return null;
+    }
+  }
+
+  // GET /api/tools?mode=<id>: the public role prompt of a server mode ("Умения и роли"). Cached for the run.
+  async function rolePrompt(mode) {
+    const id = String(mode || "");
+    if (!/^[a-z0-9_-]{1,40}$/i.test(id) || !http) return null;
+    if (rolePrompts.has(id)) return rolePrompts.get(id);
+    try {
+      const res = await http.request({ url: `${SITE}/api/tools?mode=${encodeURIComponent(id)}`, method: "GET", timeoutMs: 15000 });
+      const j = res.ok && res.json && res.json.ok ? res.json : null;
+      const out = j && typeof j.prompt === "string" ? { name: String(j.name || id).slice(0, 80), prompt: j.prompt.slice(0, 12000) } : null;
+      rolePrompts.set(id, out);
+      return out;
+    } catch {
+      return null;
+    }
   }
 
   async function read(tool, input) {
@@ -72,5 +113,5 @@ export function createTools({ session, log }) {
     return call(tool, input);
   }
 
-  return { read, call };
+  return { read, call, manifest, rolePrompt };
 }

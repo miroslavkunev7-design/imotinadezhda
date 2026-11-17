@@ -19,9 +19,9 @@ let dir;
 beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), "ted-core-el-")); });
 afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }); });
 
-// The window.ted surface of docs/CONTRACT.md §2.
+// The window.ted surface of docs/CONTRACT.md §2 and §8 (0.1.3).
 const SURFACE = {
-  app: ["info", "setCompact", "getLaunchAtLogin", "setLaunchAtLogin", "openLogs", "openExternal", "copy", "saveFile"],
+  app: ["info", "setCompact", "getLaunchAtLogin", "setLaunchAtLogin", "openLogs", "openExternal", "copy", "saveFile", "storage", "clearTemp", "reportProblem"],
   auth: ["state", "login", "logout", "onChange"],
   api: ["models", "chat", "cancel"],
   crm: ["read"],
@@ -30,9 +30,19 @@ const SURFACE = {
   email: ["confirmSend"],
   voice: ["tts", "transcribe"],
   store: ["getSettings", "setSettings", "loadChats", "saveChats", "clearLocal"],
-  realgpt: ["status", "signIn", "cancelSignIn", "signOut", "models", "send", "cancel", "onDelta"],
+  realgpt: ["status", "signIn", "cancelSignIn", "signOut", "models", "send", "cancel", "onDelta", "consent", "setConsent", "approve", "onEvent"],
+  files: ["add", "read", "extract", "open", "save", "forget"],
+  browse: ["test"],
+  video: ["prepare", "start", "cancel", "finish", "onEvent"],
+  library: ["list", "remove", "clear", "onChange"],
+  scheduled: ["list", "save", "remove", "onDue"],
+  updates: ["state", "check", "setAuto", "download", "install", "onChange"],
 };
-const SUBSCRIPTIONS = { "auth.onChange": "ted:auth.changed", "realgpt.onDelta": "ted:realgpt.delta" };
+const SUBSCRIPTIONS = {
+  "auth.onChange": "ted:auth.changed", "realgpt.onDelta": "ted:realgpt.delta", "realgpt.onEvent": "ted:realgpt.event",
+  "video.onEvent": "ted:video.event", "library.onChange": "ted:library.changed", "scheduled.onDue": "ted:scheduled.due",
+  "updates.onChange": "ted:updates.changed",
+};
 
 // Records calls into fake services; individual tests override what they need.
 function services(over = {}) {
@@ -152,7 +162,7 @@ describe("ipc registration", () => {
 
   it("registers one handler per channel, all named ted:<group>.<fn>", () => {
     const { handlers, channels } = register();
-    expect(channels).toHaveLength(33); // 35 window.ted functions minus the 2 subscriptions
+    expect(channels).toHaveLength(61); // 68 window.ted functions minus the 7 subscriptions
     expect([...handlers.keys()]).toEqual(channels);
     for (const c of channels) expect(c).toMatch(/^ted:[a-z]+\.[A-Za-z]+$/);
   });

@@ -600,7 +600,9 @@ describe('send', () => {
     await env.rg.send({ requestId: 'r1', messages: hello, model: 'model-a', effort: 'high', instructions: 'Отговаряй кратко.' });
     const body = JSON.parse(env.callsTo(RESPONSES_URL)[0].body);
     expect(body.reasoning).toEqual({ effort: 'high' });
-    expect(body.instructions).toBe('Отговаряй кратко.');
+    // CONTRACT §8.2: the employee's instructions follow the default rules, they never replace them.
+    expect(body.instructions.endsWith('\nОтговаряй кратко.')).toBe(true);
+    expect(body.instructions).toMatch(/^Ти си Тед/);
   });
 
   it('effort rejected by the route: one corrected retry without reasoning, remembered for the model', async () => {

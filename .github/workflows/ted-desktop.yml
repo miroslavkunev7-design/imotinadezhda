@@ -191,6 +191,21 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # Automatic updates (electron/updater.js): electron-builder writes latest.yml even with --publish never
+      # (electron-builder.yml has a generic publish config). The program trusts the installer only when its
+      # sha512 matches latest.yml, so the file must describe exactly the installer that was just built.
+      - name: Check latest.yml (automatic updates)
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          f=dist-installer/latest.yml
+          [ -f "$f" ] || { echo "::error::Missing $f (needed for automatic updates)"; exit 1; }
+          cat "$f"
+          grep -qx "version: ${version}" "$f" || { echo "::error::latest.yml does not name version ${version}"; exit 1; }
+          grep -qx "path: Ted-Setup-${version}-x64.exe" "$f" || { echo "::error::latest.yml does not point to Ted-Setup-${version}-x64.exe"; exit 1; }
+          want="$(openssl dgst -sha512 -binary "dist-installer/Ted-Setup-${version}-x64.exe" | base64 -w0)"
+          grep -qx "sha512: ${want}" "$f" || { echo "::error::sha512 in latest.yml does not match the installer"; exit 1; }
+          echo "latest.yml matches Ted-Setup-${version}-x64.exe"
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Ted-za-Windows-${{ github.run_number }}
@@ -198,6 +213,7 @@ jobs:
             apps/ted-desktop/dist-installer/Ted-Setup-*-x64.exe
             apps/ted-desktop/dist-installer/Ted-Setup-x64.exe
             apps/ted-desktop/dist-installer/SHA256SUMS.txt
+            apps/ted-desktop/dist-installer/latest.yml
           if-no-files-found: error
           retention-days: 30
           overwrite: true
@@ -241,13 +257,15 @@ jobs:
               exit 0
             fi
           fi
-          assets=("Ted-Setup-${version}-x64.exe" "Ted-Setup-x64.exe" "SHA256SUMS.txt")
+          # latest.yml: the feed of the automatic updates (releases/latest/download/latest.yml).
+          assets=("Ted-Setup-${version}-x64.exe" "Ted-Setup-x64.exe" "SHA256SUMS.txt" "latest.yml")
           for f in "${assets[@]}"; do
             [ -f "$f" ] || { echo "::error::Missing release asset $f"; exit 1; }
           done
           grep -q "  Ted-Setup-${version}-x64.exe\$" SHA256SUMS.txt
           grep -q "  Ted-Setup-x64.exe\$" SHA256SUMS.txt
           sha256sum --check SHA256SUMS.txt
+          grep -qx "version: ${version}" latest.yml || { echo "::error::latest.yml is not for ${version}"; exit 1; }
           readme="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/${tag}/apps/ted-desktop/README.md"
           {
             echo "Тед за Windows ${version} – неподписан инсталатор за Windows 10/11 (64-битов)."
@@ -260,7 +278,7 @@ jobs:
             echo
             echo "**Проверка на файла** (PowerShell): \`Get-FileHash .\\Ted-Setup-x64.exe -Algorithm SHA256\` – стойността трябва да съвпада с реда в SHA256SUMS.txt (малки/главни букви нямат значение)."
             echo
-            echo "Няма автоматично обновяване: новата версия се инсталира върху старата, настройките и чатовете остават."
+            echo "**Обновяване:** от версия 0.1.3 програмата сама проверява за нова версия, тегли я и я инсталира при затваряне (Настройки → Общи → Обновления). Версия 0.1.2 няма обновяване – 0.1.3 се инсталира веднъж ръчно върху нея; настройките и чатовете остават."
             echo "Пълно ръководство: ${readme}"
             echo
             echo "SHA-256:"

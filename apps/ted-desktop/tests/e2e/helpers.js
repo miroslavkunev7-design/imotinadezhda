@@ -38,7 +38,31 @@ export async function login(page, query = "lat=600") {
   await page.fill("#lg-id", "sluzhitel@example.test");
   await page.fill("#lg-pw", "test");
   await page.click(".login-btn");
-  await expect(page.locator(".home h1")).toContainText("С какво да помогна");
+  await expect(page.locator(".home h1")).toContainText("Готови ли сте?");
+}
+
+// Settings open from the account menu (avatar at the bottom of the sidebar / phone drawer), like in ChatGPT.
+// `row` = the data-pane key of a settings row (e.g. "model"); without it the list (desktop: with „Общи“) is shown.
+export async function openSettings(page, row) {
+  const vp = page.viewportSize();
+  if (vp && vp.width <= 640) { // phone layout (the class follows the viewport after a resize)
+    await expect(page.locator(".shell.phone")).toHaveCount(1);
+    await page.locator(".top.ph").getByRole("button", { name: "Меню" }).click();
+  }
+  await page.getByTestId("me-btn").click();
+  await page.locator(".pop").getByRole("menuitem", { name: "Настройки" }).click();
+  await expect(page.locator(".modal .set-list")).toBeVisible();
+  if (row) {
+    await page.locator(`.modal .set-row[data-row="${row}"]`).click();
+    await expect(page.locator(`.pane[data-pane="${row}"]`)).toBeVisible();
+  }
+}
+
+// The one-time Real GPT question about Ted's tools (a mock without it never asks). Answers it when it appears.
+export async function answerConsent(page, choice = "Само текст") {
+  const btn = page.locator(".modal").getByRole("button", { name: choice, exact: true });
+  await page.locator('.msg.a[data-engine="realgpt"]').last().or(btn).first().waitFor({ timeout: 5000 }).catch(() => {});
+  if (await btn.isVisible()) await btn.click();
 }
 
 export async function send(page, text) {
@@ -66,13 +90,13 @@ export async function noHorizontalScroll(page) {
     for (const el of [document.documentElement, document.body, ...document.querySelectorAll(".shell *")]) {
       const ox = getComputedStyle(el).overflowX;
       const scrollable = el === document.documentElement || el === document.body || ox === "auto" || ox === "scroll";
-      if (!scrollable || el.closest(".rail, .sugcards, .cfiles, .mdt, .cb, .tabs, .side:not(.open)")) continue;
+      if (!scrollable || el.closest(".rail, .sugcards, .home-chips, .cfiles, .mdt, .cb, .tabs, .side:not(.open)")) continue;
       if (el.scrollWidth > el.clientWidth + 1) over.push("scroll " + (String(el.className) || el.tagName) + " " + el.scrollWidth + ">" + el.clientWidth);
     }
     for (const el of document.querySelectorAll(".shell *")) {
       const b = el.getBoundingClientRect();
       if (!b.width || !b.height) continue;
-      if (el.closest(".side:not(.open)") || el.closest(".rail") || el.closest(".sugcards") || el.closest(".cfiles") || el.closest(".mdt") || el.closest(".pop") || el.closest(".tabs")) continue;
+      if (el.closest(".side:not(.open)") || el.closest(".rail") || el.closest(".sugcards") || el.closest(".home-chips") || el.closest(".cfiles") || el.closest(".mdt") || el.closest(".pop") || el.closest(".tabs")) continue;
       if (b.right > vw + 1) over.push((el.className && String(el.className)) || el.tagName);
     }
     return { vw, docW: document.documentElement.scrollWidth, over: over.slice(0, 10) };

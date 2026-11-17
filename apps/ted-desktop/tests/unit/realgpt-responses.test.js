@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { RgError, fail, mapApiError, messageFor, toFailure } from '../../electron/realgpt/errors.js';
 import {
-  ALLOWED_KEYS, DEFAULT_INSTRUCTIONS, FORBIDDEN_KEYS, RESPONSES_URL, assertRequest, buildInput, buildRequest,
+  ALLOWED_KEYS, CUSTOM_HEADING, DEFAULT_INSTRUCTIONS, FORBIDDEN_KEYS, RESPONSES_URL, assertRequest, buildInput, buildRequest,
   consumeStream, createSseParser, outputText, rejectsEffort, resultOf, withoutReasoning,
 } from '../../electron/realgpt/responses.js';
 
@@ -58,7 +58,9 @@ describe('request builder', () => {
       expect(body.store).toBe(false);
       expect(body.stream).toBe(true);
     }
-    expect(ALLOWED_KEYS).toEqual(['model', 'instructions', 'input', 'store', 'stream', 'reasoning']);
+    // CONTRACT §9.1: `tools` is allowed (agent requests only); tool_choice/parallel_tool_calls/include never.
+    expect(ALLOWED_KEYS).toEqual(['model', 'instructions', 'input', 'store', 'stream', 'reasoning', 'tools']);
+    for (const key of ['tool_choice', 'parallel_tool_calls', 'include']) expect(FORBIDDEN_KEYS).toContain(key);
     for (const key of [
       'temperature', 'top_p', 'max_output_tokens', 'max_tool_calls', 'metadata', 'background', 'conversation',
       'moderation', 'prompt', 'prompt_cache_retention', 'safety_identifier', 'top_logprobs', 'truncation', 'user',
@@ -122,8 +124,10 @@ describe('request builder', () => {
     }
   });
 
-  it('uses the caller instructions when passed, the Bulgarian default otherwise', () => {
-    expect(buildRequest({ messages: hello, model: 'm', instructions: '  Отговаряй с една дума.  ' }).instructions).toBe('Отговаряй с една дума.');
+  // CONTRACT §8.2 (CHANGES §2): the employee's text is appended under a heading after the rules, never instead of them.
+  it('appends the caller instructions after the Bulgarian default, never replacing it', () => {
+    expect(buildRequest({ messages: hello, model: 'm', instructions: '  Отговаряй с една дума.  ' }).instructions)
+      .toBe(`${DEFAULT_INSTRUCTIONS}\n\n${CUSTOM_HEADING}\nОтговаряй с една дума.`);
     expect(buildRequest({ messages: hello, model: 'm', instructions: '   ' }).instructions).toBe(DEFAULT_INSTRUCTIONS);
     expect(DEFAULT_INSTRUCTIONS).toMatch(/Тед/);
     expect(DEFAULT_INSTRUCTIONS).toMatch(/български/);

@@ -28,9 +28,22 @@ export function rgHistory(prior, max = 20) {
     if (m.local || m.error || m.streaming || !String(histText(m)).trim()) continue;
     if (m.role === "assistant") { if (m.engine === "realgpt") out.push({ role: "assistant", text: histText(m) }); continue; }
     const next = prior.slice(i + 1).find((x) => x.role === "assistant" && !x.local);
-    if (next && next.engine === "realgpt" && !next.error) out.push({ role: "user", text: histText(m) });
+    if (next && next.engine === "realgpt" && !next.error) {
+      // Files of earlier questions stay reachable by their store id (docs/CONTRACT.md §8.2), never by content.
+      const ids = (m.files || []).map((f) => f && f.fileId).filter((id) => typeof id === "string").slice(0, 10);
+      out.push(ids.length ? { role: "user", text: histText(m), files: ids } : { role: "user", text: histText(m) });
+    }
   }
   return out.slice(-max);
+}
+
+// True when an answer changed CRM data (a successful mutating server action or an approved/finished agent write):
+// regenerating or editing the question above it must ask first, like a retry after an unclear result.
+export function answerChanged(m) {
+  if (!m || m.role !== "assistant") return false;
+  if ((m.actions || []).some((a) => a && a.ok && a.mutating)) return true;
+  const steps = (m.agent && Array.isArray(m.agent.steps)) ? m.agent.steps : [];
+  return steps.some((s) => s && s.mutating && (s.status === "ok" || s.status === "run" || s.status === "wait")) || m.emailState === "sent";
 }
 
 // The assistant message the server will see as the previous one: the same filter as serverHistory().
@@ -174,6 +187,11 @@ export function interruptedFor(userMsg) {
   };
 }
 
+// A Real GPT answer that was still running with Ted's tools (agentOn) may have changed CRM data before it stopped.
+export const interruptedAgent = (m) => ({ ...m, streaming: false, interrupted: true, error: { text: INTERRUPTED_TEXT, code: "interrupted", maybeExecuted: true } });
+// What a still-streaming answer becomes when the chats are saved or loaded.
+export const unfinished = (m) => (m.agentOn ? interruptedAgent(m) : { ...m, streaming: false, stopped: true });
+
 // Normalised chats from the store: drops anything half-written by an older run.
 export function cleanChats(list) {
   return (Array.isArray(list) ? list : []).filter((c) => c && typeof c.id === "string" && Array.isArray(c.messages)).map((c) => {
@@ -183,7 +201,7 @@ export function cleanChats(list) {
       if (m.role === "user" && m.pending) {
         const { pending, ...rest } = m; // eslint-disable-line no-unused-vars
         messages.push(rest, interruptedFor(rest));
-      } else messages.push(m.streaming ? { ...m, streaming: false, stopped: true } : m);
+      } else messages.push(m.streaming ? unfinished(m) : m);
     }
     return { ...c, title: String(c.title || "Чат"), updatedAt: Number(c.updatedAt) || 0, messages };
   });

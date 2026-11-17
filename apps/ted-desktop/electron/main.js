@@ -1,6 +1,6 @@
 // Тед за Windows - MAIN process entry: lifecycle, hardening and wiring of all modules.
 // MAIN is the only place that talks to the network and the only place that holds credentials.
-import { app, BrowserWindow, Menu, clipboard, dialog, ipcMain, net, protocol, safeStorage, screen, session as electronSession, shell as electronShell } from "electron";
+import { app, BrowserWindow, Menu, Notification, clipboard, dialog, ipcMain, nativeImage, net, protocol, safeStorage, screen, session as electronSession, shell as electronShell } from "electron";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,6 +15,18 @@ import { createTools } from "./backend/tools.js";
 import { createEmail } from "./backend/email.js";
 import { createVoice } from "./backend/voice.js";
 import { createRealGpt } from "./realgpt/index.js";
+import { createLibrary } from "./library.js";
+import { createFiles } from "./files.js";
+import { readDocument } from "./docs/read.js";
+import { createBrowser, createSessionGuard } from "./browse/net.js";
+import { webSearch } from "./browse/search.js";
+import { withServerFallback } from "./browse/fallback.js";
+import { createPages } from "./browse/page.js";
+import { createUploads } from "./agent/uploads.js";
+import { createAgent } from "./agent/loop.js";
+import { createVideo } from "./video/flow.js";
+import { createScheduled } from "./scheduled.js";
+import { createUpdater } from "./updater.js";
 import { APP_URL, CSP, META_CSP, SCHEME, registerAppProtocol } from "./protocol.js";
 import { disableSpellChecker, installSecurity } from "./security.js";
 import { createMainWindow, TITLE } from "./window.js";
@@ -22,6 +34,29 @@ import { createAppApi, registerIpc } from "./ipc.js";
 import { SMOKE_TIMEOUT_MS, guardRendererRequests, parseSmokeArgs, prepareSmoke, recordingShell, removeSmokeProfile, runSmoke, writeSmokeReport } from "./smoke.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+
+// Thumbnails in MAIN (nativeImage decodes PNG and JPEG): a ≤ 24 KB data URL for FileRef.thumb.
+function makeThumb(buffer) {
+  const img = nativeImage.createFromBuffer(buffer);
+  if (img.isEmpty()) return null;
+  const { width } = img.getSize();
+  const small = width > 256 ? img.resize({ width: 256, quality: "good" }) : img;
+  for (const q of [72, 55, 40]) {
+    const url = `data:image/jpeg;base64,${small.toJPEG(q).toString("base64")}`;
+    if (url.length <= 24 * 1024 * 1.37) return url;
+  }
+  return null;
+}
+
+// ≤ 512 px JPEG (base64) of a listing photo for the AI route order of the video flow, with the original size.
+function videoThumb(buffer) {
+  const img = nativeImage.createFromBuffer(buffer);
+  if (img.isEmpty()) return null;
+  const { width, height } = img.getSize();
+  const k = Math.min(1, 512 / Math.max(width, height));
+  const small = k < 1 ? img.resize({ width: Math.max(1, Math.round(width * k)), height: Math.max(1, Math.round(height * k)), quality: "good" }) : img;
+  return { data: small.toJPEG(80).toString("base64"), width, height };
+}
 
 // Development only: TED_DEV_URL=http://localhost:5173 loads the Vite dev server instead of app://ted/.
 function devServerUrl() {
@@ -97,18 +132,21 @@ function start() {
     const http = createHttp({ fetchImpl: backendFetch, log, userAgent });
 
     let realgpt = null;
+    let onUserChange = null; // set once the per-user stores exist
     // Every sign-in/sign-out (also expiry) detaches Real GPT from the previous CRM user: running answers and an open
     // ChatGPT sign-in stop, and the decrypted ChatGPT tokens leave memory. The connection belongs to one CRM user.
     const session = createSession({
       http, secureStore, log,
       onChange: (state) => {
         if (realgpt) realgpt.detach();
+        if (onUserChange) onUserChange();
         push("ted:auth.changed", state);
       },
     });
     const crmUserId = () => { const s = session.state(); return s.status === "signedIn" ? s.user.id : null; };
     const assistant = createAssistant({ session, log });
-    const tools = createTools({ session, log });
+    // http: the public GETs of the tool manifest and role prompts (no token is attached there).
+    const tools = createTools({ session, log, http });
     const voice = createVoice({ session });
     const chats = createChats({ secureStore, userId: crmUserId });
 
@@ -124,6 +162,55 @@ function start() {
     }
     const email = createEmail({ tools, confirm });
 
+    // ---- agent: files, internet, documents, video (docs/CONTRACT.md §9–§12) ----
+    const library = createLibrary({ dir: path.join(userData, "library"), secureStore, owner: crmUserId, log });
+    const files = createFiles({
+      library, tempRoot: app.getPath("temp"), shell: electronShell, dialog, getWindow: currentWindow, confirm,
+      makeThumb, log, onChange: () => push("ted:library.changed"), documentsDir: () => app.getPath("documents"), readDoc: readDocument,
+    });
+    files.cleanStaleTemp();
+    app.on("will-quit", () => files.clearTemp());
+
+    // Internet of the agent: a separate in-memory session that never carries a token, cookie or the page origin;
+    // every request and redirect hop is checked against the SSRF rules before it is sent (browse/net.js).
+    const browseSession = electronSession.fromPartition("ted-browse");
+    disableSpellChecker(browseSession);
+    const browseGuard = createSessionGuard({ getSettings: () => settings.get(), log });
+    browseGuard.install(browseSession.webRequest);
+    const chromeUa = String(app.userAgentFallback || "").replace(/\s(Electron|ted-desktop|Ted Imoti Nadezhda|TedImotiNadezhda)\/\S+/gi, "").trim();
+    const browser = createBrowser({
+      fetchImpl: (url, init) => browseSession.fetch(url, { ...init, credentials: "omit", cache: "no-store", redirect: "follow" }),
+      getSettings: () => settings.get(),
+      userAgent: `${chromeUa} TedDesktop/${app.getVersion()}`.trim(),
+      resolveProxy: (url) => browseSession.resolveProxy(url),
+      ipOf: browseGuard.ipOf,
+      resolved: browseGuard.resolved,
+      watch: browseGuard.watch,
+      log,
+    });
+    const pages = createPages({ browser, getSettings: () => settings.get() });
+    const uploads = createUploads({ session, files, log });
+    const video = createVideo({ session, http, tools, files, uploads, thumb: videoThumb, emit: (job) => push("ted:video.event", job), log });
+    const agent = createAgent({
+      tools, files, uploads, pages, video, http, confirm, log,
+      search: withServerFallback((args, opts) => webSearch(browser, args, opts), assistant, { log }),
+      getSettings: () => settings.get(),
+    });
+
+    const notify = (title, body) => {
+      if (smoke || !Notification.isSupported()) return;
+      const n = new Notification({ title: String(title).slice(0, 120), body: String(body || "").slice(0, 300), silent: false });
+      n.on("click", () => { const win = currentWindow(); if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
+      n.show();
+    };
+    const scheduled = createScheduled({ secureStore, owner: crmUserId, notify, emitDue: (d) => push("ted:scheduled.due", d), getSettings: () => settings.get(), log });
+    const updater = createUpdater({
+      loadUpdater: async () => (await import("electron-updater")).default.autoUpdater,
+      getSession: (name) => electronSession.fromPartition(name, { cache: false }),
+      app, settings, log, smoke: !!smoke, platform: process.platform, packaged: app.isPackaged,
+      emit: (state) => push("ted:updates.changed", state),
+    });
+
     // In a smoke run links are only recorded, never opened in the system browser.
     const shell = smoke ? recordingShell() : electronShell;
     const external = smoke ? guardRendererRequests(electronSession.defaultSession.webRequest) : null;
@@ -137,8 +224,18 @@ function start() {
         const r = await security.openExternal(url);
         if (!r.ok) throw new Error(r.error);
       },
-      emit: (event, payload) => { if (event === "realgpt:delta") push("ted:realgpt.delta", payload); },
+      emit: (event, payload) => {
+        if (event === "realgpt:delta") push("ted:realgpt.delta", payload);
+        else if (event === "realgpt:event") push("ted:realgpt.event", payload);
+      },
+      agent,
     });
+    // Files, videos and scheduled tasks belong to the signed-in CRM user, like the chats and Real GPT.
+    onUserChange = () => {
+      files.detach();
+      video.detach();
+      scheduled.ownerChanged();
+    };
 
     const appApi = createAppApi({
       app, shell, clipboard, dialog,
@@ -146,8 +243,10 @@ function start() {
       setCompact: (on) => (ui ? ui.setCompact(on) : { ok: false }),
       openExternal: security.openExternal,
       logDir: log.dir,
+      chatsFile: path.join(userData, "secure", "chats.bin"),
+      files,
     });
-    registerIpc({ ipcMain, isTrusted: security.isApp, log, appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm });
+    registerIpc({ ipcMain, isTrusted: security.isApp, log, appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser });
 
     registerAppProtocol({ protocol, root: path.join(app.getAppPath(), "dist") });
     session.init();
@@ -158,6 +257,13 @@ function start() {
       url: dev ? dev.href : APP_URL,
       packaged: app.isPackaged,
     });
+    if (!smoke) {
+      // Scheduled tasks run only while the program is open; updates are checked 20 s after start, then every 6 h.
+      ui.win.webContents.once("did-finish-load", () => {
+        setTimeout(() => scheduled.start(), 5000).unref?.();
+        updater.start();
+      });
+    }
 
     if (smoke) {
       runSmoke({
@@ -167,6 +273,7 @@ function start() {
         shot: smoke.shot,
         info: {
           userAgent,
+          updater: updater.state().status === "disabled" ? "off" : "on",
           meta: { version: app.getVersion(), packaged: app.isPackaged, platform: process.platform, arch: process.arch, electron: process.versions.electron, chrome: process.versions.chrome },
         },
       }).then(endSmoke, (e) => endSmoke({ ok: false, checks: [{ name: "smoke run completed", ok: false, detail: String(e) }] }));

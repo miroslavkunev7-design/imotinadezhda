@@ -49,11 +49,40 @@ export const SPEAK = [
   { id: "never", name: "Никога – само бутона „Чуй“" },
 ];
 
-// Real GPT reasoning effort. Sent only when the user picks one.
+// Real GPT reasoning effort (the „Усилие ›“ menu, ChatGPT Instant/Thinking style). "" = Стандартно: nothing is sent.
 export const EFFORTS = [
-  { id: "low", name: "Леко" }, { id: "medium", name: "Средно" }, { id: "high", name: "Високо" }, { id: "xhigh", name: "Много високо" },
+  { id: "none", name: "Мигновено" }, { id: "low", name: "Ниско" }, { id: "medium", name: "Средно" }, { id: "high", name: "Високо" }, { id: "xhigh", name: "Много високо" },
 ];
-export const RG_LIMITS = "ChatGPT Work, Agent mode, Codex Cloud, изображения и Code Interpreter от плана не се дават на външни програми.";
+export const effortName = (id) => (EFFORTS.find((e) => e.id === id) || { name: "Стандартно" }).name;
+export const RG_LIMITS = "Рисуването на OpenAI (gpt-image), Code Interpreter, търсенето на OpenAI, Codex и Agent mode на ChatGPT не се дават на външни програми. Тед ги замества със свои инструменти: снимки с Gemini, документи на този компютър, собствено търсене в интернет.";
+
+// Чат | Работа (ChatGPT Chat | Work). Both have every capability; Работа allows longer multi-step work.
+export const MODES = [
+  { id: "chat", name: "Чат", hello: "Готови ли сте?", ph: "Попитайте каквото и да е" },
+  { id: "work", name: "Работа", hello: "Върху какво ще работим?", ph: "Направете каквото и да е" },
+];
+export const modeOf = (id) => MODES.find((m) => m.id === id) || MODES[0];
+
+// Optional hints of the „+“ menu (ChatGPT: Create image, Thinking, Deep research, Web search). Real GPT gets them as
+// `hints`; Тед (сървър) gets the same request as a visible text prefix in the composer.
+export const HINTS = [
+  { id: "image", icon: "image", name: "Създай изображение", prefix: "Създай изображение: " },
+  { id: "thinking", icon: "bulb", name: "Мислене", prefix: "Помисли задълбочено: " },
+  { id: "research", icon: "telescope", name: "Задълбочено проучване", prefix: "Направи задълбочено проучване: " },
+  { id: "search", icon: "globe", name: "Търсене в мрежата", prefix: "Потърси в интернет: " },
+];
+export const hintOf = (id) => HINTS.find((h) => h.id === id) || null;
+
+// „Пиши или редактирай“ on the Home screen: examples that only fill the composer.
+export const WRITE_EX = [
+  { em: "🏠", name: "Описание за обява", ex: "Напиши продаващо описание за обява на " },
+  { em: "✉️", name: "Писмо до клиент", ex: "Напиши учтиво писмо до клиент, че " },
+  { em: "📜", name: "Договор от нулата", ex: "Напиши договор за наем на апартамент между " },
+  { em: "📝", name: "Редактирай текст", ex: "Редактирай текста по-долу да звучи по-професионално:\n" },
+];
+
+// Help centre and privacy (Настройки → За помощ).
+export const README_URL = "https://github.com/miroslavkunev7-design/imotinadezhda/blob/live-site/apps/ted-desktop/README.md";
 // AuthState.remembered === false: MAIN keeps the session in memory only (no Windows encryption).
 export const SESSION_NOTE = "Windows не позволи шифровано запазване на сесията на този компютър. Ще трябва да влизате отново при всяко стартиране на програмата.";
 export const RG_USAGE_URL ="https://chatgpt.com/settings/usage"; // "Manage usage" page of the ChatGPT plan
@@ -73,7 +102,14 @@ export const DEF_SETTINGS = {
   voice: "Charon", style: "calm", speak: "voice",
   big: false, enterSend: true, showActs: true, dictSend: false,
   mini: false, compact: false,
+  // 0.1.3 (docs/CONTRACT.md §8.4). `updates.auto` and the Real GPT consent are kept by MAIN, never here.
+  mode: "chat", nick: "", instructions: "",
+  browse: { enabled: true, robots: true, blocked: [] },
+  notify: { scheduled: true, updates: true },
+  theme: "ted", accent: "ted",
 };
+export const BROWSE_DEF = DEF_SETTINGS.browse;
+export const NOTIFY_DEF = DEF_SETTINGS.notify;
 
 // Same expression as the server's fast path in /api/assistant: a bare "yes" after a prepared e-mail.
 export const AFFIRM = /^\s*(да|да,?\s*(изпрати|прати|изпращай|го изпрати|го прати)(\s+го)?|изпрати(\s+го)?|прати(\s+го)?|ок|окей|потвърждавам|давай|yes)\s*[.!]*\s*$/i;

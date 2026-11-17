@@ -49,8 +49,32 @@ const P = {
   arrowL: "M19 12H5M12 19l-7-7 7-7",
   monitor: "M3 4h18v12H3zM8 20h8M12 16v4",
   info: c(12, 12, 9) + "M12 11v6M12 7.5v.01",
+  // 0.1.3 (docs/CONTRACT.md §16): layout and agent icons
+  clock: c(12, 12, 9) + "M12 7v5l3 2",
+  library: "M4 4h4v16H4zM10 4h4v16h-4zM15.6 5.3l3.8-1 3.9 15.4-3.8 1z",
+  plug: "M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5",
+  bot: "M5 9h14v10H5zM12 5v4M9 13v1M15 13v1M9 16.5h6" + c(12, 4, 1),
+  bulb: "M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z",
+  telescope: "M3 13l13-6 2 4-13 6zM14.5 8l1.8-.9M10 15l-3 6M12 14l2 7M18 6.5l2-1 1.5 3-2 1",
+  bell: "M18 16v-5a6 6 0 0 0-12 0v5l-2 2h16zM10 21h4",
+  palette: "M12 3a9 9 0 1 0 0 18c1 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.4-1.1-.3-.3-.4-.6-.4-1 0-.8.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.4-4-8-9-8z" + c(7.5, 11, 1) + c(10, 7, 1) + c(15, 7.5, 1),
+  moon: "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z",
+  flag: "M5 21V4M5 4h11l-2 4 2 4H5",
+  smile: c(12, 12, 9) + "M8 14a5 5 0 0 0 8 0M9 9.5v.01M15 9.5v.01",
+  book: "M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7",
+  eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" + c(12, 12, 3),
+  film: "M3 4h18v16H3zM7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4",
+  upload: "M12 21V9M7 14l5-5 5 5M5 3h14",
+  file: "M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6",
+  sparkle: "M12 3l1.9 5.6 5.6 1.4-5.6 1.9-1.9 5.6-1.9-5.6-5.6-1.9 5.6-1.4z",
+  at: c(12, 12, 4) + "M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1",
+  chevL: "M15 6l-6 6 6 6",
+  table: "M3 5h18v14H3zM3 10h18M3 15h18M9 5v14",
+  sheet: "M5 3h10l4 4v14H5zM8 11h8M8 15h8M12 11v8",
+  calendar: "M4 5h16v16H4zM4 10h16M8 3v4M16 3v4",
 };
 
 export default function Icon({ n, cls, style, fill }) {
-  return <svg className={"i " + (cls || "")} viewBox="0 0 24 24" style={style} aria-hidden="true"><path d={P[n]} fill={fill || "none"} /></svg>;
+  // An unknown name renders an empty icon (no crash).
+  return <svg className={"i " + (cls || "")} viewBox="0 0 24 24" style={style} aria-hidden="true">{P[n] ? <path d={P[n]} fill={fill || "none"} /> : null}</svg>;
 }

@@ -1,0 +1,101 @@
+/* 0.1.3 · FEATURES: the Real GPT agent cards (Изпълнение, потвърждения, файлове, видео, съгласие) and Canvas
+   „Преглед“/експорт. Only tokens and classes of style.css are reused – no new colours, fonts or backgrounds.
+   Loaded after style.css, desktop.css and layout.css. */
+
+/* ---------- „Изпълнение“ ---------- */
+.agent-steps .ag-st{min-width:0;overflow-wrap:anywhere}
+.agent-steps .steps li[data-status="denied"] .ag-st{color:var(--muted)}
+.agent-steps .ag-more{margin-top:8px;color:var(--ted-wine-2);font-size:13px}
+
+/* ---------- Потвърждение (CRM, важна промяна, платено видео) ---------- */
+.card.approval{border-left:4px solid var(--gold-2)}
+.card.approval.ap-confirm{border-left-color:var(--bad)}
+.card.approval.ap-video{border-left-color:var(--ted-wine-2)}
+.approval h4 svg.i{color:var(--ted-wine-2)}
+.approval .ap-tool{margin-left:auto;font:400 12px ui-monospace,Menlo,monospace;color:var(--muted);background:#f8efe2;border-radius:8px;padding:1px 7px}
+.approval .ap-kv{margin:6px 0 2px}
+.approval .ap-kv dd{overflow-wrap:anywhere;font-weight:700}
+.approval .ap-kv{max-height:320px;overflow:auto}
+.card.approval.ap-web{border-left-color:var(--ted-wine-2)}
+.approval .ap-json{margin:6px 0 2px;font-size:12.5px}
+.approval .ap-json summary{cursor:pointer;color:var(--ted-wine-2);font-weight:700}
+.approval .ap-json pre{margin:6px 0 0;max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:400 12px ui-monospace,Menlo,monospace;background:#f8efe2;border-radius:10px;padding:8px 10px;color:var(--ink)}
+.vchoice{margin-top:8px}
+.vchoice .vc-row{align-items:flex-end}
+.vchoice .fld{margin-bottom:6px}
+.vchoice .vc-kv{margin-top:6px}
+.vchoice .vc-enote{margin-top:2px}
+
+/* ---------- Файл (FileCard) ---------- */
+.card.file.fcard{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0}
+.fcard .fc-main{display:flex;align-items:center;gap:12px;min-width:0}
+.fcard .fx{display:flex;flex-direction:column;gap:1px}
+.fcard .fx .meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fcard .fc-saved{color:var(--ok);white-space:normal}
+.fcard .fc-src{font-size:12px}
+.fcard .fc-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none}
+.fcard .fc-acts .b{min-height:32px;padding:4px 12px;font-size:13px}
+.fc-face{flex:none;position:relative;overflow:hidden;cursor:zoom-in}
+.fc-face.fc-img{width:64px;height:64px;border-radius:12px;border:1.5px solid var(--gold);background:#f8efe2;padding:0}
+.fc-face.fc-img img{width:100%;height:100%;object-fit:cover;display:block}
+.fc-face.ficon{cursor:pointer}
+.fc-face.ficon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.fc-face.ficon svg.i{position:relative;width:20px;height:20px}
+.fcard .fc-video{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.fcard .fc-video video{width:100%;max-height:360px;border-radius:12px;border:1px solid var(--gold-3);background:var(--wine-950)}
+.fcard .fc-video .lnk{color:var(--ted-wine-2);font-size:13px}
+.fcard .fc-err{margin-top:0;color:var(--bad)}
+.fcard.fc-compact{padding:8px 10px}
+.fcard.fc-compact .fc-face.fc-img{width:48px;height:48px}
+.fcard.fc-compact .ficon{width:38px;height:46px;font-size:11px}
+.lib-it .fcard .fc-main{flex-wrap:wrap}
+.lib-it .fcard .fc-acts{width:100%;justify-content:flex-start}
+.shell.phone .fcard .fc-main{flex-wrap:wrap}
+.shell.phone .fcard .fc-acts{width:100%;justify-content:flex-start}
+
+/* ---------- Видео ---------- */
+.video-card h4{flex-wrap:wrap}
+.video-card .vid-src{font-weight:400;margin-left:auto;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vid-prog{display:flex;flex-direction:column;gap:6px;margin:4px 0 6px;padding:8px 10px;border-radius:12px;background:#f8efe2;border:1px solid #e3b25e66}
+.vid-prog b{font:700 14.5px var(--f-text);color:var(--ink-2)}
+.vid-dots{display:flex;flex-wrap:wrap;gap:4px}
+.vid-dots i{width:10px;height:10px;border-radius:50%;background:var(--idle-bg);box-shadow:inset 0 0 0 1px #e3b25e88}
+.vid-dots i.run{background:var(--warn-bg);box-shadow:inset 0 0 0 2px var(--warn)}
+.vid-dots i.ok{background:var(--ok)}
+.vid-dots i.err{background:var(--bad)}
+.vid-parts{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.vid-part{display:flex;align-items:flex-start;gap:8px;font-size:14px}
+.vid-part .vdot{width:10px;height:10px;margin-top:5px;border-radius:50%;flex:none;background:var(--idle-bg);box-shadow:inset 0 0 0 1px #e3b25e88}
+.vid-part .vdot.run{background:var(--warn-bg);box-shadow:inset 0 0 0 2px var(--warn)}
+.vid-part .vdot.ok{background:var(--ok)}
+.vid-part .vdot.err{background:var(--bad)}
+.vid-part small{display:block;color:var(--muted);font-size:12.5px}
+.vid-files{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.video-card .acts .lnk{color:var(--ted-wine-2);font-size:13px;align-self:center}
+
+/* ---------- Инструментите не се приеха ---------- */
+.card.tools-no{border-left:4px solid var(--warn)}
+.card.tools-no h4 svg.i{color:var(--warn)}
+.card.tools-no p{font-size:14.5px}
+
+/* ---------- Съгласие за Real GPT ---------- */
+.consent .consent-q{font:700 16px/1.4 var(--f-text);color:var(--ink)}
+.consent .consent-acc{display:flex;align-items:center;gap:6px;margin:8px 0 0;color:var(--muted);font-size:13.5px}
+.consent .consent-acc svg.i{width:16px;height:16px}
+.consent .consent-ul{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.consent .consent-ul li{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;color:var(--ink)}
+.consent .consent-ul svg.i{width:18px;height:18px;margin-top:1px;color:var(--ted-wine-2)}
+
+/* ---------- Canvas: Редакция | Преглед, експорт ---------- */
+.cv-h .seg.cv-mode{padding:3px;background:#f8efe2;border-color:var(--gold-3);box-shadow:none}
+.cv-h .seg.cv-mode button{min-height:30px;padding:3px 12px;font-size:13.5px;color:var(--ink)}
+.cv-h .seg.cv-mode button.on{background:linear-gradient(180deg,#fff7df,#f1d08a);color:#650c27}
+.cv-exp{position:relative;display:inline-flex}
+.cv-menu{position:absolute;right:0;top:calc(100% + 4px);z-index:30;min-width:200px;display:flex;flex-direction:column;padding:6px;border-radius:14px;background:var(--glass-cream);border:1px solid var(--gold);box-shadow:var(--rim-cream),var(--drop)}
+.cv-menu .it{align-items:center;min-height:38px;padding:7px 10px;font-size:14px;color:var(--ink)}
+.cv-menu .it:hover{background:#f6e2c4}
+.cv-menu .it svg.i{width:18px;height:18px;color:var(--ted-wine-2)}
+.cv-prev{color:var(--ink);font:400 16px/1.6 var(--f-text);overflow-wrap:anywhere}
+.cv-prev .md{white-space:normal}
+.cv-fig{margin:12px 0;display:flex;justify-content:center}
+.cv-svg{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--gold-3);background:#fffdf9}

@@ -23,7 +23,7 @@ const el = vi.hoisted(() => {
       this.sent = [];
       this.focused = false;
       this.minimized = false;
-      this.webContents = { on: () => {}, send: (channel, payload) => this.sent.push([channel, payload]), isDestroyed: () => false };
+      this.webContents = { on: () => {}, once: () => {}, send: (channel, payload) => this.sent.push([channel, payload]), isDestroyed: () => false };
       state.windows.push(this);
     }
     on(event, fn) { this.events[event] = fn; }
@@ -55,7 +55,11 @@ const el = vi.hoisted(() => {
       getAppPath: () => state.appPath,
       getLoginItemSettings: () => ({ openAtLogin: false }),
       setLoginItemSettings: () => {},
+      userAgentFallback: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ted-desktop/0.1.0 Chrome/156.0.0.0 Electron/45.3.3 Safari/537.36",
     },
+    // 0.1.3: Windows notifications (scheduled tasks) and thumbnails in MAIN.
+    Notification: class { static isSupported() { return false; } on() {} show() {} },
+    nativeImage: { createFromBuffer: () => ({ isEmpty: () => true }) },
     BrowserWindow,
     Menu: { setApplicationMenu: (menu) => note("menu", menu), buildFromTemplate: () => ({ popup: () => {} }) },
     clipboard: { writeText: (text) => note("clipboard", text) },
@@ -85,6 +89,10 @@ const el = vi.hoisted(() => {
             fetch: async (url, init) => { state.netFetches.push([name, String(url), init]); throw new Error("network must not be used in this test"); },
             setSpellCheckerLanguages: (l) => state.partitions[name].spell.push(["languages", l]),
             setSpellCheckerEnabled: (on) => state.partitions[name].spell.push(["enabled", on]),
+            // ted-browse (agent internet) and electron-updater install request filters on their own sessions.
+            webRequest: Object.fromEntries(["onBeforeRequest", "onBeforeSendHeaders", "onBeforeRedirect", "onResponseStarted", "onCompleted", "onErrorOccurred"]
+              .map((k) => [k, (fn) => { (state.partitions[name].hooks ||= {})[k] = fn; }])),
+            resolveProxy: async () => "DIRECT",
           };
         }
         return state.partitions[name];
@@ -165,8 +173,13 @@ describe("main.js", () => {
 
     // No spell-checker anywhere (it would download dictionaries from Google at start-up).
     expect(s.calls.filter((c) => c[0] === "defaultSpell")).toEqual([["defaultSpell", "languages", []], ["defaultSpell", "enabled", false]]);
-    expect(Object.keys(s.partitions)).toEqual(["ted-backend"]); // in-memory: no "persist:" prefix
+    // in-memory partitions (no "persist:" prefix): the backend and, separately, the agent's internet (0.1.3)
+    expect(Object.keys(s.partitions)).toEqual(["ted-backend", "ted-browse"]);
     expect(s.partitions["ted-backend"].spell).toEqual([["languages", []], ["enabled", false]]);
+    expect(s.partitions["ted-browse"].spell).toEqual([["languages", []], ["enabled", false]]);
+    // The browse session checks every request (SSRF rules) and strips credentials (electron/browse/net.js).
+    expect(Object.keys(s.partitions["ted-browse"].hooks).sort()).toEqual(["onBeforeRedirect", "onBeforeRequest", "onBeforeSendHeaders", "onCompleted", "onErrorOccurred", "onResponseStarted"]);
+    expect(s.partitions["ted-backend"].hooks).toBeUndefined();
   });
 
   it("sends backend requests through Electron net (partition fetch): no cookies, no cache, no redirects", async () => {
@@ -199,9 +212,9 @@ describe("main.js", () => {
     expect((await s.protocolHandlers.app(new Request("app://ted/..%2F..%2Fpackage.json"))).status).toBe(403);
   });
 
-  it("registers all 33 IPC channels and answers the app's own page only", async () => {
+  it("registers all 61 IPC channels and answers the app's own page only", async () => {
     const s = await boot();
-    expect(s.ipc.size).toBe(33);
+    expect(s.ipc.size).toBe(61); // CONTRACT §2 + §8: 68 window.ted functions minus 7 subscriptions
     expect(await s.ipc.get("ted:app.info")(fromApp)).toEqual({ version: "0.1.0", platform: process.platform, packaged: true });
     expect(await s.ipc.get("ted:auth.state")(fromApp)).toEqual({ status: "signedOut" });
     expect(await s.ipc.get("ted:store.loadChats")(fromApp)).toEqual({ chats: [] });

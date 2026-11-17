@@ -1,4 +1,4 @@
-// Sandboxed preload: exposes the fixed window.ted API of docs/CONTRACT.md §2 and nothing else.
+// Sandboxed preload: exposes the fixed window.ted API of docs/CONTRACT.md §2 and §8 and nothing else.
 // There is no generic invoke and no generic tool call; every function is bound to one channel.
 "use strict";
 const { contextBridge, ipcRenderer } = require("electron");
@@ -23,6 +23,9 @@ contextBridge.exposeInMainWorld("ted", {
     openExternal: (url) => invoke("ted:app.openExternal", url),
     copy: (text) => invoke("ted:app.copy", text),
     saveFile: (args) => invoke("ted:app.saveFile", args),
+    storage: () => invoke("ted:app.storage"),
+    clearTemp: () => invoke("ted:app.clearTemp"),
+    reportProblem: () => invoke("ted:app.reportProblem"),
   },
   auth: {
     state: () => invoke("ted:auth.state"),
@@ -69,5 +72,47 @@ contextBridge.exposeInMainWorld("ted", {
     send: (args) => invoke("ted:realgpt.send", args),
     cancel: (requestId) => invoke("ted:realgpt.cancel", requestId),
     onDelta: (callback) => subscribe("ted:realgpt.delta", callback),
+    consent: () => invoke("ted:realgpt.consent"),
+    setConsent: (choice) => invoke("ted:realgpt.setConsent", choice),
+    approve: (args) => invoke("ted:realgpt.approve", args),
+    onEvent: (callback) => subscribe("ted:realgpt.event", callback),
+  },
+  files: {
+    add: (args) => invoke("ted:files.add", args),
+    read: (args) => invoke("ted:files.read", args),
+    extract: (args) => invoke("ted:files.extract", args),
+    open: (id) => invoke("ted:files.open", id),
+    save: (id) => invoke("ted:files.save", id),
+    forget: (id) => invoke("ted:files.forget", id),
+  },
+  browse: {
+    test: (args) => invoke("ted:browse.test", args),
+  },
+  video: {
+    prepare: (args) => invoke("ted:video.prepare", args),
+    start: (args) => invoke("ted:video.start", args),
+    cancel: (args) => invoke("ted:video.cancel", args),
+    finish: (args) => invoke("ted:video.finish", args),
+    onEvent: (callback) => subscribe("ted:video.event", callback),
+  },
+  library: {
+    list: (args) => invoke("ted:library.list", args),
+    remove: (id) => invoke("ted:library.remove", id),
+    clear: () => invoke("ted:library.clear"),
+    onChange: (callback) => subscribe("ted:library.changed", callback),
+  },
+  scheduled: {
+    list: () => invoke("ted:scheduled.list"),
+    save: (task) => invoke("ted:scheduled.save", task),
+    remove: (id) => invoke("ted:scheduled.remove", id),
+    onDue: (callback) => subscribe("ted:scheduled.due", callback),
+  },
+  updates: {
+    state: () => invoke("ted:updates.state"),
+    check: () => invoke("ted:updates.check"),
+    setAuto: (on) => invoke("ted:updates.setAuto", !!on),
+    download: () => invoke("ted:updates.download"),
+    install: () => invoke("ted:updates.install"),
+    onChange: (callback) => subscribe("ted:updates.changed", callback),
   },
 });

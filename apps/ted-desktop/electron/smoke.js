@@ -12,9 +12,9 @@ import path from "node:path";
 
 export const SMOKE_TIMEOUT_MS = 90000;
 
-// The window.ted surface of docs/CONTRACT.md §2 (also pinned by tests/unit/core-electron.test.js).
+// The window.ted surface of docs/CONTRACT.md §2 + §8 (also pinned by tests/unit/core-electron.test.js).
 export const TED_SURFACE = {
-  app: ["info", "setCompact", "getLaunchAtLogin", "setLaunchAtLogin", "openLogs", "openExternal", "copy", "saveFile"],
+  app: ["info", "setCompact", "getLaunchAtLogin", "setLaunchAtLogin", "openLogs", "openExternal", "copy", "saveFile", "storage", "clearTemp", "reportProblem"],
   auth: ["state", "login", "logout", "onChange"],
   api: ["models", "chat", "cancel"],
   crm: ["read"],
@@ -23,7 +23,13 @@ export const TED_SURFACE = {
   email: ["confirmSend"],
   voice: ["tts", "transcribe"],
   store: ["getSettings", "setSettings", "loadChats", "saveChats", "clearLocal"],
-  realgpt: ["status", "signIn", "cancelSignIn", "signOut", "models", "send", "cancel", "onDelta"],
+  realgpt: ["status", "signIn", "cancelSignIn", "signOut", "models", "send", "cancel", "onDelta", "consent", "setConsent", "approve", "onEvent"],
+  files: ["add", "read", "extract", "open", "save", "forget"],
+  browse: ["test"],
+  video: ["prepare", "start", "cancel", "finish", "onEvent"],
+  library: ["list", "remove", "clear", "onChange"],
+  scheduled: ["list", "save", "remove", "onDue"],
+  updates: ["state", "check", "setAuto", "download", "install", "onChange"],
 };
 
 // null when the program runs normally.
@@ -204,6 +210,8 @@ export async function runSmoke({ win, appUrl, csp, metaCsp, appFetch, backendFet
     const still = wc.getURL() === appUrl && (await js(`typeof window.ted === "object" && !!document.querySelector("#lg-pw")`));
     check("navigation to https://example.com blocked", still && !external.some((u) => u.includes("ted-smoke-navigation")), wc.getURL());
     check("renderer made no external requests", external.length === 0, external);
+    // Automatic updates never run in a smoke test (electron/updater.js: disabled with --smoke-test).
+    check("updater is off in the smoke test", info.updater === "off", info.updater);
 
     // Transport: the production MAIN fetch (Electron net) against a local echo server.
     echo = await startEcho();
@@ -246,6 +254,7 @@ export async function runSmoke({ win, appUrl, csp, metaCsp, appFetch, backendFet
     durationMs: Date.now() - t0,
     ...info.meta,
     transport: "electron net (session.fetch, in-memory partition)",
+    updater: info.updater || "unknown",
     checks,
   };
 }

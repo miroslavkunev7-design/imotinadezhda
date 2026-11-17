@@ -13,15 +13,26 @@ directories:
   output: dist-installer
   buildResources: build # never copied into app.asar
 
-# What goes into app.asar: the built renderer, the main-process sources and package.json.
-# Production dependencies (package.json "dependencies": jose) are collected from node_modules by
-# electron-builder itself; devDependencies (electron, vite, react, ...) never are.
+# What goes into app.asar: the built renderer, the main-process sources, package.json and the font files
+# that MAIN embeds into PDF documents (electron/docs/fonts.js reads them by their source names; Vite hashes
+# the copies in dist/). Production dependencies (package.json "dependencies": jose, electron-updater, docx,
+# pdfkit, write-excel-file, read-excel-file, mammoth, unpdf) are collected from node_modules by
+# electron-builder itself; devDependencies (electron, vite, react, ...) never are. Type declarations and
+# browser-only bundles of those packages are left out (never loaded in MAIN).
 files:
   - dist/**
   - electron/**
   - package.json
+  - src/assets/fonts/*.woff2
+  - src/assets/fonts/LICENSES.md
   - "!**/*.map"
   - "!**/*.test.*"
+  - "!**/node_modules/@types/**"
+  - "!**/node_modules/**/*.d.ts"
+  - "!**/node_modules/**/*.d.cts"
+  - "!**/node_modules/**/*.d.mts"
+  - "!**/node_modules/docx/dist/*.iife.js"
+  - "!**/node_modules/pdfkit/js/pdfkit.standalone.js"
 asar: true
 
 # Licence texts next to the program (the fonts' OFL asks for the notice to travel with every copy).
@@ -61,7 +72,7 @@ nsis:
   # en_US only: bg_BG broke an earlier installer build of the agency.
   installerLanguages:
     - en_US
-  # No auto-update, so no .blockmap next to the installer.
+  # Updates download the whole installer (electron-updater: disableDifferentialDownload), so no .blockmap.
   differentialPackage: false
   # Extra installer steps: temporary files move next to the install folder when the %TEMP% drive is
   # full, a clear refusal when there is no room anywhere, and a completeness check after copying.
@@ -80,5 +91,12 @@ electronFuses:
   grantFileProtocolExtraPrivileges: false
   loadBrowserProcessSpecificV8Snapshot: false
 
-# Nothing is published by electron-builder; the workflow uploads and releases the installer itself.
-publish: null
+# Automatic updates (electron/updater.js, electron-updater). electron-builder never uploads anything here
+# (`--publish never`), but with a publish config it writes dist-installer/latest.yml (version, file name,
+# sha512, size) and resources/app-update.yml. The workflow uploads latest.yml next to the installer to the
+# GitHub release; the program reads <url>/latest.yml. No publisherName: the build is unsigned, so the
+# updater checks the sha512 of latest.yml and skips the Authenticode check.
+publish:
+  - provider: generic
+    url: "https://github.com/miroslavkunev7-design/imotinadezhda/releases/latest/download"
+    useMultipleRangeRequest: false

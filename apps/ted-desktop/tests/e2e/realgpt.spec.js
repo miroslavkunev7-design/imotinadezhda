@@ -1,6 +1,6 @@
 // Real GPT (Sign in with ChatGPT): connect, plan indicator, streamed answer and the result codes.
 import { test, expect } from "@playwright/test";
-import { guard, login, mockCalls, send, shot } from "./helpers.js";
+import { answerConsent, guard, login, mockCalls, send, shot } from "./helpers.js";
 
 const USAGE = "https://chatgpt.com/settings/usage";
 const rgAnswer = (page) => page.locator('.msg.a[data-engine="realgpt"]').last();
@@ -40,6 +40,7 @@ test("Продължи с ChatGPT → plan indicator → streamed answer without
   await pickRgModel(page);
 
   await send(page, "Здравей");
+  await answerConsent(page, "Само текст"); // the 0.1.2 request: no tools, no CRM context
   const a = rgAnswer(page);
   await expect(a.locator(".caret")).toBeVisible();          // streaming: partial text with the caret
   await expect(a).toContainText("Това е тестов отговор");
@@ -59,6 +60,7 @@ test("usage_limit offers the usage page; reauth offers a new sign-in; no automat
   await login(page, "lat=200&rg=1");
   await pickRgModel(page);
   await send(page, "Стигнах ли лимит?");
+  await answerConsent(page, "Само текст");
   const banner = rgAnswer(page).getByTestId("quota-banner");
   await expect(banner).toContainText("Достигнат е лимитът на вашия ChatGPT план");
   await expect(banner.getByRole("button", { name: "Опитай отново" })).toHaveCount(0);

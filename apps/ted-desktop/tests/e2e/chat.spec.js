@@ -1,6 +1,6 @@
 // Sign-in, the chat with Ted's server, real action statuses, errors and the e-mail confirmation flow.
 import { test, expect } from "@playwright/test";
-import { guard, lastAnswer, login, mockCalls, open, send } from "./helpers.js";
+import { guard, lastAnswer, login, mockCalls, open, openSettings, send } from "./helpers.js";
 
 test("wrong password shows the server message; login opens home with the profile", async ({ page }) => {
   const g = guard(page);
@@ -13,7 +13,7 @@ test("wrong password shows the server message; login opens home with the profile
   await expect(page.locator("#lg-pw")).toHaveValue(""); // the password never stays in the form
   await page.fill("#lg-pw", "test");
   await page.click(".login-btn");
-  await expect(page.locator(".home h1")).toContainText("С какво да помогна, Тест?");
+  await expect(page.locator(".home h1")).toHaveText("Здравейте, Тест. Готови ли сте?");
   await expect(page.locator(".me .ini")).toHaveText("ТС");
   await expect(page.locator(".me-txt")).toContainText("Тест Служител");
   await expect(page.getByTestId("conn")).toContainText("Свързан с imotinadezhda.bg");
@@ -25,8 +25,7 @@ test("a session that Windows cannot store says the user must log in on each star
   const g = guard(page);
   await login(page, "lat=300&remembered=0");
   await expect(page.getByTestId("session-note")).toContainText("при всяко стартиране");
-  await page.getByRole("button", { name: "Настройки" }).first().click();
-  await page.getByRole("tab", { name: /Акаунт/ }).click();
+  await openSettings(page, "account");
   await expect(page.getByTestId("session-note-settings")).toBeVisible();
   await g.check();
 });

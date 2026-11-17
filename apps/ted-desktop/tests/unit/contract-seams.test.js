@@ -13,10 +13,17 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 const sortedSurface = (o) => Object.fromEntries(Object.keys(o).sort().map((k) => [k, [...o[k]].sort()]));
 
 describe("window.ted surface", () => {
-  it("CONTRACT.md §2 lists exactly the surface the smoke test checks", () => {
-    const block = read("docs/CONTRACT.md").split("## 2.")[1].split("## 3.")[0];
+  it("CONTRACT.md §2 + §8 list exactly the surface the smoke test checks", () => {
+    const contract = read("docs/CONTRACT.md");
+    const section = (n) => contract.split(new RegExp(`^## ${n}\\.`, "m"))[1].split(/^## \d+\./m)[0];
+    const block = section(2) + section(8);
     const found = {};
-    for (const m of block.matchAll(/^ted\.(\w+)\.(\w+)\(/gm)) (found[m[1]] = found[m[1]] || []).push(m[2]);
+    const add = (g, fn) => { found[g] = found[g] || []; if (!found[g].includes(fn)) found[g].push(fn); };
+    for (const m of block.matchAll(/^ted\.(\w+)\.(\w+)\(/gm)) add(m[1], m[2]);
+    // §8.10 names the new subscriptions: "Subscriptions in preload: `realgpt.onEvent`, `video.onEvent`, …".
+    const subs = /Subscriptions in preload:([\s\S]*?)(\n\n|$)/.exec(block);
+    expect(subs).not.toBeNull();
+    for (const m of subs[1].matchAll(/`(\w+)\.(\w+)`/g)) add(m[1], m[2]);
     expect(sortedSurface(found)).toEqual(sortedSurface(TED_SURFACE));
   });
 
@@ -42,8 +49,99 @@ describe("window.ted surface", () => {
       expect(sortedSurface(shape)).toEqual(sortedSurface(TED_SURFACE));
       for (const group of Object.values(bridge)) for (const fn of Object.values(group)) expect(typeof fn).toBe("function");
     });
+
+    it("every subscription returns an unsubscribe function, like preload", async () => {
+      const { createMockBridge } = await import("../../src/mock/bridge.mock.js");
+      const bridge = createMockBridge();
+      for (const [g, fn] of SUBS) {
+        const un = bridge[g][fn](() => {});
+        expect(typeof un, `${g}.${fn}`).toBe("function");
+        un();
+      }
+    });
+
+    it("handles every URL flag of CONTRACT §17", () => {
+      const mock = read("src/mock/bridge.mock.js");
+      const contract = read("docs/CONTRACT.md");
+      const s17 = contract.split(/^## 17\./m)[1].split(/^## \d+\./m)[0];
+      const flags = [...new Set([...s17.matchAll(/`(\w+)=/g)].map((m) => m[1]))];
+      expect(flags).toEqual(expect.arrayContaining(["consent", "agent", "agentFail", "upd", "lib", "sched", "video", "browse"]));
+      for (const f of flags) expect(mock, f).toContain(`params.get("${f}")`);
+    });
+  });
+
+  // preload.cjs is the real bridge: its groups/functions, the IPC channels they invoke and the push channels they
+  // subscribe to must match TED_SURFACE, the handlers in ipc.js and the channels MAIN pushes (main.js).
+  describe("preload ↔ MAIN", () => {
+    const preload = read("electron/preload.cjs");
+    const ipc = read("electron/ipc.js");
+    const main = read("electron/main.js");
+    const exposed = preload.slice(preload.indexOf('exposeInMainWorld("ted"'));
+
+    it("exposes exactly TED_SURFACE, each function bound to its own ted:<group>.<fn> channel", () => {
+      const shape = {};
+      let group = null;
+      for (const line of exposed.split("\n")) {
+        const g = /^ {2}(\w+): \{$/.exec(line);
+        if (g) { group = g[1]; shape[group] = []; continue; }
+        const f = /^ {4}(\w+): \((\w*)[^)]*\) => (invoke|subscribe)\("ted:(\w+)\.(\w+)"/.exec(line);
+        if (f && group) {
+          shape[group].push(f[1]);
+          if (f[3] === "invoke") expect(`${f[4]}.${f[5]}`, line).toBe(`${group}.${f[1]}`);
+        }
+      }
+      expect(sortedSurface(shape)).toEqual(sortedSurface(TED_SURFACE));
+      // No generic invoke or send is exposed.
+      expect(exposed).not.toMatch(/ipcRenderer\.(send|sendSync|invoke)\(\s*[a-z]+\s*[,)]/);
+    });
+
+    it("every invoked channel has exactly one handler in ipc.js and every handler is reachable", () => {
+      const invoked = [...exposed.matchAll(/invoke\("(ted:[\w.]+)"/g)].map((m) => m[1]).sort();
+      const handled = [...ipc.matchAll(/^ {4}"(ted:\w+\.\w+)": /gm)].map((m) => m[1]).sort();
+      expect(new Set(invoked).size).toBe(invoked.length);
+      expect(handled).toEqual(invoked);
+    });
+
+    it("push channels: preload subscriptions = what main.js pushes = §2 + §8.10", () => {
+      const subscribed = [...exposed.matchAll(/subscribe\("(ted:[\w.]+)"/g)].map((m) => m[1]).sort();
+      const pushed = [...new Set([...main.matchAll(/push\("(ted:[\w.]+)"/g)].map((m) => m[1]))].sort();
+      expect(pushed).toEqual(subscribed);
+      const s810 = read("docs/CONTRACT.md").split(/^### 8\.10/m)[1].split(/^### /m)[0];
+      const listed = [...s810.matchAll(/`(ted:[\w.]+)`/g)].map((m) => m[1]);
+      // 0.1.2 (§2) had auth.changed and realgpt.delta; §8.10 lists the new ones.
+      expect([...listed, "ted:auth.changed", "ted:realgpt.delta"].sort()).toEqual(subscribed);
+      expect(SUBS.map(([g, fn]) => `${g}.${fn}`).sort()).toEqual(
+        Object.entries(TED_SURFACE).flatMap(([g, fns]) => fns.filter((fn) => /^on[A-Z]/.test(fn)).map((fn) => `${g}.${fn}`)).sort());
+    });
+  });
+
+  it("the renderer uses the 0.1.3 surface (no dead functions besides the documented ones)", () => {
+    const files = fs.readdirSync(path.join(root, "src"), { recursive: true })
+      .map(String).filter((f) => /\.(js|jsx)$/.test(f) && !f.startsWith("mock"));
+    const src = files.map((f) => read(path.join("src", f))).join("\n");
+    const unused = Object.entries(TED_SURFACE).flatMap(([g, fns]) => fns.map((fn) => `${g}.${fn}`))
+      .filter((k) => !new RegExp(`\\bted\\.${k.replace(".", "\\.")}\\b`).test(src));
+    // files.forget is called through the ted.files object handed to lib/files.js addFiles().
+    expect(unused).toEqual(["files.forget"]);
+    expect(read("src/lib/files.js")).toMatch(/files\.forget\(/);
+  });
+
+  it("no placeholder seams: FEATURES modules are imported statically", () => {
+    expect(fs.existsSync(path.join(root, "src/components/layout/features.js"))).toBe(false);
+    const app = read("src/App.jsx");
+    for (const c of ["AgentSteps", "ApprovalCard", "ConsentModal", "FileCard", "ToolsUnsupportedCard", "VideoCard"]) {
+      expect(app).toContain(`import ${c} from "./components/agent/${c}.jsx";`);
+    }
+    expect(app).toContain('import { agentSnapshot, useAgentEvents } from "./lib/agent.js";');
+    const main = read("src/main.jsx");
+    const order = ["style.css", "desktop.css", "layout.css", "agent.css"].map((f) => main.indexOf(`./styles/${f}`));
+    expect(order.every((i) => i > 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
 });
+
+// Every subscription of the surface (on* functions).
+const SUBS = [["auth", "onChange"], ["realgpt", "onDelta"], ["realgpt", "onEvent"], ["video", "onEvent"], ["library", "onChange"], ["scheduled", "onDue"], ["updates", "onChange"]];
 
 describe("CSP", () => {
   it("index.html carries META_CSP: the header policy without frame-ancestors", () => {
@@ -51,6 +149,21 @@ describe("CSP", () => {
     expect(meta && meta[1]).toBe(META_CSP);
     expect(META_CSP).toBe(CSP.replace("; frame-ancestors 'none'", ""));
     expect(CSP).toContain("frame-ancestors 'none'");
+  });
+});
+
+describe("README ↔ CONTRACT", () => {
+  const rows = (text) => text.split("\n").filter((l) => /^\| /.test(l) && !/^\|---/.test(l)).length;
+  it("README carries the parity table of CONTRACT §20 (same rows) and the updater facts", () => {
+    const s20 = read("docs/CONTRACT.md").split(/^## 20\./m)[1];
+    const readme = read("README.md");
+    const table = readme.split(/^## ChatGPT → Тед за Windows$/m)[1].split(/^## /m)[0];
+    expect(rows(table)).toBe(rows(s20));
+    expect(rows(s20)).toBeGreaterThan(40);
+    expect(readme).toMatch(/Версия 0\.1\.2 няма обновяване/);
+    expect(readme).toContain("SHA-512");
+    for (const h of ["github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com"]) expect(readme).toContain(h);
+    expect(readme).toContain("latest.yml");
   });
 });
 
@@ -75,7 +188,10 @@ describe("packaging layout", () => {
     expect(read("electron/main.js")).toMatch(/path\.join\(here, "preload\.cjs"\)/);
     expect(read("electron/main.js")).toMatch(/path\.join\(app\.getAppPath\(\), "dist"\)/);
     for (const entry of ["- dist/**", "- electron/**", "- package.json"]) expect(builder).toContain(entry);
-    expect(Object.keys(pkg.dependencies)).toEqual(["jose"]); // packed by electron-builder from node_modules
+    // Packed by electron-builder from node_modules; exact versions (CONTRACT §10.4).
+    expect(Object.keys(pkg.dependencies).sort()).toEqual(["docx", "electron-updater", "jose", "mammoth", "pdfkit", "read-excel-file", "unpdf", "write-excel-file"]);
+    for (const v of Object.values(pkg.dependencies)) expect(v).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(pkg.dependencies).toMatchObject({ "electron-updater": "6.8.11", docx: "9.15.1", pdfkit: "0.20.2", "write-excel-file": "4.1.1", "read-excel-file": "9.3.14", mammoth: "1.13.0", unpdf: "2.1.0" });
   });
 
   it("the workflow uses existing npm scripts and the packaged exe name", () => {

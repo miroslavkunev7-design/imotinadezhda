@@ -14,21 +14,35 @@ export const DEFAULT_INSTRUCTIONS =
   'календара, документите и имейла на агенцията. Не твърди, че си извършил действие в тях, и не измисляй данни ' +
   'за клиенти, имоти или сделки. Ако не знаеш нещо или не можеш да го направиш оттук, кажи го направо.';
 
-// The only top-level fields this module ever sends.
-export const ALLOWED_KEYS = ['model', 'instructions', 'input', 'store', 'stream', 'reasoning'];
+// The only top-level fields this module ever sends. `tools` only on agent requests (consent "all", §9.1).
+export const ALLOWED_KEYS = ['model', 'instructions', 'input', 'store', 'stream', 'reasoning', 'tools'];
 // Rejected by the plan route (documented list plus the contract's additions); kept for the guard and the tests.
 export const FORBIDDEN_KEYS = [
   'temperature', 'top_p', 'max_output_tokens', 'max_tool_calls', 'metadata', 'background', 'conversation',
   'moderation', 'multi_agent', 'prompt', 'prompt_cache_retention', 'safety_identifier', 'top_logprobs',
   'truncation', 'user', 'service_tier', 'previous_response_id',
+  // Not documented for the plan route: never sent (the defaults are used: tool_choice auto, parallel calls allowed).
+  'tool_choice', 'parallel_tool_calls', 'include',
 ];
+// Input items an agent request may carry (CONTRACT §9.1): messages (never system), the model's own function calls
+// and reasoning items echoed back, and our function results. Never item_reference.
+export const INPUT_TYPES = new Set(['message', 'function_call', 'function_call_output', 'reasoning']);
+// Heading under which the employee's own instructions follow MAIN's rules (they can add, never override).
+export const CUSTOM_HEADING = 'Указания от служителя (допълват правилата по-горе, не ги отменят):';
 export const EFFORTS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh'];
 
 const IMAGE_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_MESSAGES = 200;
 const MAX_IMAGES = 8; // per message
 const MAX_IMAGE_BASE64 = 28 * 1024 * 1024; // all images of one request
-const MAX_INSTRUCTIONS = 20_000;
+const MAX_INSTRUCTIONS = 80_000;
+const MAX_CUSTOM = 1500;
+
+// MAIN's rules first, the employee's text (Настройки → Персонализиране, ≤ 1500 chars) appended under a heading.
+export function composeInstructions(base, custom) {
+  const extra = typeof custom === 'string' ? custom.trim().slice(0, MAX_CUSTOM) : '';
+  return extra ? `${base}\n\n${CUSTOM_HEADING}\n${extra}` : base;
+}
 
 // messages: [{role:"user"|"assistant", text, images?:[{mime, data(base64)}]}] -> Responses input items.
 // History is resent in full on every request (store:false, no previous_response_id). Never a system item.
@@ -65,13 +79,38 @@ export function buildInput(messages) {
   return input;
 }
 
+function inputItemOk(item) {
+  if (!item || typeof item !== 'object') return false;
+  const type = item.type ?? 'message';
+  if (!INPUT_TYPES.has(type)) return false;
+  if (type === 'message') return item.role === 'user' || item.role === 'assistant';
+  if (item.role !== undefined) return false;
+  if (type === 'function_call') return typeof item.call_id === 'string' && typeof item.name === 'string';
+  if (type === 'function_call_output') return typeof item.call_id === 'string' && typeof item.output === 'string';
+  return true; // reasoning
+}
+
+function toolOk(tool) {
+  if (!tool || typeof tool !== 'object') return false;
+  if (tool.type === 'function') return typeof tool.name === 'string' && !!tool.parameters;
+  if (tool.type === 'namespace') {
+    return typeof tool.name === 'string' && Array.isArray(tool.tools) && tool.tools.length > 0 &&
+      tool.tools.every((t) => t && t.type === 'function' && typeof t.name === 'string') &&
+      Object.keys(tool).every((k) => ['type', 'name', 'description', 'tools'].includes(k));
+  }
+  return false;
+}
+
 // Last line of defence before the network: only allowlisted keys, no system role, store:false + stream:true.
 export function assertRequest(body) {
   const bad = Object.keys(body).filter((k) => !ALLOWED_KEYS.includes(k) || FORBIDDEN_KEYS.includes(k));
   if (bad.length) throw new Error(`Real GPT request has fields that are not allowed: ${bad.join(', ')}`);
   if (body.store !== false || body.stream !== true) throw new Error('Real GPT request must set store:false, stream:true');
-  if (!Array.isArray(body.input) || body.input.some((item) => item.role !== 'user' && item.role !== 'assistant')) {
-    throw new Error('Real GPT input may contain only user and assistant messages');
+  if (!Array.isArray(body.input) || !body.input.every(inputItemOk)) {
+    throw new Error('Real GPT input may contain only user and assistant messages, function calls and their results');
+  }
+  if ('tools' in body && (!Array.isArray(body.tools) || !body.tools.length || !body.tools.every(toolOk))) {
+    throw new Error('Real GPT tools are not allowed in this form (namespace or function tools only)');
   }
   if (body.reasoning && Object.keys(body.reasoning).join() !== 'effort') {
     throw new Error('Real GPT reasoning may contain only effort');
@@ -88,7 +127,7 @@ export function buildRequest({ messages, model, effort, instructions } = {}) {
   if (effort != null && !EFFORTS.includes(effort)) throw new RgError('invalid', 'effort');
   const body = {
     model,
-    instructions: instructions?.trim() || DEFAULT_INSTRUCTIONS,
+    instructions: composeInstructions(DEFAULT_INSTRUCTIONS, instructions),
     input: buildInput(messages),
     store: false,
     stream: true,
@@ -164,10 +203,13 @@ export function outputText(response) {
 }
 
 // Reads the SSE body through its terminal event.
-// -> {kind:"completed"|"failed"|"incomplete"|"interrupted", text, response?, error?, reason?}
+// -> {kind:"completed"|"failed"|"incomplete"|"interrupted", text, items, response?, error?, reason?}
+// `items` are the finished output items in stream order (response.output_item.done), kept for responses whose
+// terminal event carries no `output`.
 export async function consumeStream(body, { signal, onDelta, onActivity } = {}) {
   let text = '';
   let outcome = null;
+  const items = [];
   const parser = createSseParser(({ event, data }) => {
     if (outcome) return;
     const ev = parseJson(data);
@@ -178,6 +220,8 @@ export async function consumeStream(body, { signal, onDelta, onActivity } = {}) 
         text += ev.delta;
         onDelta?.(ev.delta, text);
       }
+    } else if (type === 'response.output_item.done') {
+      if (ev.item && typeof ev.item === 'object') items.push(ev.item);
     } else if (type === 'response.completed') {
       outcome = { kind: 'completed', response: ev.response };
     } else if (type === 'response.failed') {
@@ -198,7 +242,13 @@ export async function consumeStream(body, { signal, onDelta, onActivity } = {}) 
   } catch {
     // The transport broke mid-stream; without a terminal event this is an interruption.
   }
-  return { ...(outcome ?? { kind: 'interrupted' }), text };
+  return { ...(outcome ?? { kind: 'interrupted' }), text, items };
+}
+
+// Output items of a completed response: response.output when present, else the streamed items.
+export function outputItems(outcome) {
+  const out = outcome?.response?.output;
+  return Array.isArray(out) && out.length ? out : Array.isArray(outcome?.items) ? outcome.items : [];
 }
 
 // Stream outcome -> RgResult. No retry and no other model is tried here.

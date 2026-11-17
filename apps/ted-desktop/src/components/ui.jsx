@@ -23,7 +23,9 @@ export function usePop() {
   return [pop, open, () => setPop(null)];
 }
 
-export function Pop({ pop, onClose, children, align, width }) {
+// side: "below" | "above" keeps a menu on one side of its anchor (sub-levels of the „+“ menu); minTop: never above
+// this y (e.g. the bottom of the top bar); onPlaced(side) reports the side chosen. Without them: below if it fits.
+export function Pop({ pop, onClose, children, align, width, side, minTop, onPlaced }) {
   const ref = useRef(null);
   const [pos, setPos] = useState({ left: -9999, top: -9999 });
   useEffect(() => {
@@ -32,9 +34,20 @@ export function Pop({ pop, onClose, children, align, width }) {
     const w = m.offsetWidth, h = m.offsetHeight;
     let left = align === "right" ? r.right - w : r.left;
     left = Math.max(12, Math.min(left, vw - w - 12));
-    let top = r.bottom + 6;
-    if (top + h > vh - 12) top = Math.max(44, r.top - h - 6); // 44: stay below the window title bar
-    setPos({ left, top });
+    if (!side && minTop == null) {
+      let top = r.bottom + 6;
+      if (top + h > vh - 12) top = Math.max(44, r.top - h - 6); // 44: stay below the window title bar
+      setPos({ left, top });
+      return;
+    }
+    const floor = Math.max(44, minTop || 0);
+    const roomBelow = vh - 12 - (r.bottom + 6), roomAbove = r.top - 6 - floor;
+    const chosen = side || (h <= roomBelow ? "below" : h <= roomAbove ? "above" : roomBelow >= roomAbove ? "below" : "above");
+    const room = Math.max(160, chosen === "below" ? roomBelow : roomAbove);
+    const height = Math.min(h, room);
+    const top = chosen === "below" ? r.bottom + 6 : Math.max(floor, r.top - 6 - height);
+    setPos({ left, top, ...(height < h ? { maxHeight: height } : {}) });
+    if (onPlaced) onPlaced(chosen);
   }, [pop]);
   useEffect(() => {
     const k = (e) => { if (e.key === "Escape") onClose(); };
@@ -42,7 +55,7 @@ export function Pop({ pop, onClose, children, align, width }) {
     document.addEventListener("keydown", k); document.addEventListener("mousedown", d); document.addEventListener("touchstart", d);
     return () => { document.removeEventListener("keydown", k); document.removeEventListener("mousedown", d); document.removeEventListener("touchstart", d); };
   }, [pop]);
-  return <div className="pop" ref={ref} role="menu" style={{ left: pos.left, top: pos.top, width: width || undefined }}>{children}</div>;
+  return <div className="pop" ref={ref} role="menu" style={{ left: pos.left, top: pos.top, width: width || undefined, ...(pos.maxHeight ? { maxHeight: pos.maxHeight } : {}) }}>{children}</div>;
 }
 
 export function It({ icon, em, title, sub, onClick, check, danger, prov, right, disabled }) {

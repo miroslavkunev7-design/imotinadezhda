@@ -1,6 +1,6 @@
 // Window frame, phone layout and the reference screenshots (desktop 1366x860, phone 400x860).
 import { test, expect } from "@playwright/test";
-import { DESKTOP, PHONE, guard, lastAnswer, login, noHorizontalScroll, open, send, shot } from "./helpers.js";
+import { DESKTOP, PHONE, guard, lastAnswer, login, noHorizontalScroll, open, openSettings, send, shot } from "./helpers.js";
 
 for (const [kind, size] of [["desktop", DESKTOP], ["phone", PHONE]]) {
   test(`screenshots and layout · ${kind}`, async ({ page }) => {
@@ -40,14 +40,8 @@ for (const [kind, size] of [["desktop", DESKTOP], ["phone", PHONE]]) {
       await shot(page, `real-${kind}-drawer.png`);
       await page.locator(".scrim").click({ position: { x: 380, y: 400 } });
       await page.getByRole("button", { name: "Опции на разговора" }).first().waitFor();
-      await page.locator(".top.ph").getByRole("button", { name: "Меню" }).click();
-      await page.locator(".me-gear").click();
-      await expect(page.locator(".set-list")).toBeVisible();
-      await page.locator(".set-row", { hasText: "Модел" }).click();
-    } else {
-      await page.getByRole("button", { name: "Настройки" }).first().click();
-      await page.getByRole("tab", { name: /Модел/ }).click();
     }
+    await openSettings(page, "model");
     await expect(page.locator('.pane[data-pane="model"]')).toBeVisible();
     await shot(page, `real-${kind}-settings.png`);
     await g.check();
@@ -72,8 +66,7 @@ test("title bar is the drag region and leaves room for the caption buttons", asy
   await expect(page.locator(".shell.phone .winbar")).toBeVisible();
   await expect(page.locator(".winbar")).toHaveCSS("height", "36px");
   // Modal layers start below the bar so the caption buttons never cover their controls.
-  await page.locator(".top.ph").getByRole("button", { name: "Меню" }).click();
-  await page.locator(".me-gear").click();
+  await openSettings(page);
   const top = await page.locator(".back").evaluate((el) => el.getBoundingClientRect().top);
   expect(top).toBe(36);
   await g.check();

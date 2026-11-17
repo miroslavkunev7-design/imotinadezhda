@@ -2,10 +2,11 @@
 // watermark and the "interrupted" answers. No DOM, no network.
 import { describe, it, expect } from "vitest";
 import {
-  AFFIRM_BLOCK_TEXT, AFFIRM_CASE_TEXT, affirmGuard, cleanChats, emailBlock, lastAssistant, markFromReply, newestEmailId,
-  newestInterrupted, raiseMark, readMark, safeFileName, serverHistory,
+  AFFIRM_BLOCK_TEXT, AFFIRM_CASE_TEXT, affirmGuard, answerChanged, cleanChats, unfinished, emailBlock, lastAssistant, markFromReply, newestEmailId,
+  newestInterrupted, raiseMark, readMark, rgHistory, safeFileName, serverHistory,
 } from "../../src/lib/chat.js";
-import { AFFIRM, AFFIRM_START, INTERRUPTED_TEXT, RG_NEW_ACCOUNT_CODES } from "../../src/lib/consts.js";
+import { AFFIRM, AFFIRM_START, DEF_SETTINGS, EFFORTS, HINTS, INTERRUPTED_TEXT, MODES, RG_NEW_ACCOUNT_CODES, effortName, modeOf } from "../../src/lib/consts.js";
+import { LIMITS, chipOf, composeText, engineProblem, libItem } from "../../src/lib/files.js";
 
 describe("safeFileName", () => {
   it("cuts by code points: an emoji on the 80-character boundary is dropped whole, never left as a lone surrogate", () => {
@@ -158,5 +159,93 @@ describe("interrupted requests", () => {
     expect(c.messages.map((m) => m.id)).toEqual(["u1", "a1", "a2"]);
     expect(c.messages[2]).toMatchObject({ streaming: false, stopped: true });
     expect(newestInterrupted([c])).toBe(0);
+  });
+});
+
+// 0.1.3 shell (docs/CONTRACT.md §8.2, §15): Чат | Работа, effort names, hints, attachments per engine, regenerate/edit checks.
+describe("0.1.3 layout constants", () => {
+  it("Чат | Работа with the ChatGPT greetings and placeholders", () => {
+    expect(MODES.map((m) => [m.id, m.name])).toEqual([["chat", "Чат"], ["work", "Работа"]]);
+    expect(modeOf("work").hello).toBe("Върху какво ще работим?");
+    expect(modeOf("chat").ph).toBe("Попитайте каквото и да е");
+    expect(modeOf("work").ph).toBe("Направете каквото и да е");
+    expect(modeOf("x").id).toBe("chat");
+  });
+  it("effort: Стандартно sends nothing, Мигновено = none, values accepted by MAIN", () => {
+    expect(EFFORTS.map((e) => e.id)).toEqual(["none", "low", "medium", "high", "xhigh"]);
+    expect(effortName("")).toBe("Стандартно");
+    expect(effortName("none")).toBe("Мигновено");
+    expect(effortName("xhigh")).toBe("Много високо");
+  });
+  it("hints of the „+“ menu are the contract words, each with a visible server prefix", () => {
+    expect(HINTS.map((h) => h.id)).toEqual(["image", "thinking", "research", "search"]);
+    for (const h of HINTS) expect(h.prefix).toMatch(/: $/);
+  });
+  it("new settings keys have safe defaults; the consent is never a setting", () => {
+    expect(DEF_SETTINGS).toMatchObject({ mode: "chat", nick: "", instructions: "", browse: { enabled: true, robots: true, blocked: [] }, notify: { scheduled: true, updates: true }, theme: "ted", accent: "ted" });
+    expect(Object.keys(DEF_SETTINGS).some((k) => /consent|updates/i.test(k))).toBe(false);
+  });
+});
+
+describe("attachments per engine", () => {
+  const img = { id: "f1", kind: "image", name: "a.jpg", mime: "image/jpeg", data: "QUJD", size: 3 };
+  const pdf = { id: "f2", kind: "pdf", name: "b.pdf", mime: "application/pdf", data: "QUJD", size: 3 };
+  const doc = { id: "f3", kind: "doc", name: "c.docx", mime: "x", data: "QUJD", size: 3, text: "Текст от Word" };
+  const docNo = { ...doc, id: "f4", text: null };
+  const other = { id: "f5", kind: "other", name: "d.zip", mime: "application/zip", data: "QUJD", size: 3 };
+  const lib = libItem({ id: "lib-1", name: "e.pdf", kind: "pdf", size: 9 });
+  it("Тед (сървър): images/PDF as files, Word as local text; other files and library ids are refused with a reason", () => {
+    expect(engineProblem("server", [img, pdf, doc], false)).toBeNull();
+    expect(engineProblem("server", [other], false)).toMatch(/„d.zip“ не може да се изпрати към Тед \(сървър\)/);
+    expect(engineProblem("server", [docNo], false)).toMatch(/c.docx/);
+    expect(engineProblem("server", [lib], false)).toMatch(/e.pdf/);
+    expect(engineProblem("server", [img, img, img, pdf], false)).toMatch(/до 3/);
+  });
+  it("Real GPT: without the tools only images and text; with them any file up to 10", () => {
+    expect(engineProblem("realgpt", [img, doc], false)).toBeNull();
+    expect(engineProblem("realgpt", [pdf], false)).toMatch(/Настройки → Безопасност/);
+    expect(engineProblem("realgpt", [pdf, other, lib], true)).toBeNull();
+    expect(engineProblem("realgpt", Array.from({ length: LIMITS.rgFiles + 1 }, (_, i) => ({ ...other, id: "o" + i })), true)).toMatch(/10 файла/);
+  });
+  it("Word text is inlined for the server (8000 limit) and left out when Real GPT reads the file itself", () => {
+    expect(composeText("Обобщи", [doc], LIMITS.serverText).text).toBe("Обобщи\n\n[Прикачен файл „c.docx“ – съдържание:]\nТекст от Word");
+    expect(composeText("Обобщи", [doc], 0, false).text).toBe("Обобщи");
+    const long = composeText("x", [{ ...doc, text: "а".repeat(9000) }], LIMITS.serverText);
+    expect(long.cut).toBe(true);
+    expect(long.text.length).toBeLessThanOrEqual(LIMITS.serverText);
+  });
+  it("history chips keep the store id, never the bytes", () => {
+    expect(chipOf({ ...lib, data: "QUJD" })).toEqual({ id: lib.id, name: "e.pdf", size: 9, kind: "lib", fileId: "lib-1" });
+    expect(chipOf(img)).not.toHaveProperty("data");
+  });
+});
+
+describe("Real GPT history and answer changes", () => {
+  it("earlier Real GPT questions keep their file ids (≤ 10), server answers stay out", () => {
+    const prior = [
+      user("u1", "преведи", { files: [{ id: "c1", name: "a.pdf", kind: "pdf", fileId: "file-1" }, { id: "c2", name: "b", kind: "ref" }] }),
+      { id: "a1", role: "assistant", engine: "realgpt", text: "Готово", time: T },
+      user("u2", "справка"), ted("a2", "CRM данни"),
+    ];
+    expect(rgHistory(prior)).toEqual([{ role: "user", text: "преведи", files: ["file-1"] }, { role: "assistant", text: "Готово" }]);
+  });
+  it("regenerate/edit ask first only after a real CRM change", () => {
+    expect(answerChanged(ted("a", "x", { actions: [{ ok: true, mutating: false }] }))).toBe(false);
+    expect(answerChanged(ted("a", "x", { actions: [{ ok: true, mutating: true }] }))).toBe(true);
+    expect(answerChanged(ted("a", "x", { actions: [{ ok: false, mutating: true }] }))).toBe(false);
+    expect(answerChanged({ id: "a", role: "assistant", engine: "realgpt", agent: { steps: [{ id: "s", status: "ok", mutating: true }] } })).toBe(true);
+    expect(answerChanged({ id: "a", role: "assistant", engine: "realgpt", agent: { steps: [{ id: "s", status: "denied", mutating: true }, { id: "t", status: "ok" }] } })).toBe(false);
+    expect(answerChanged(user("u", "x"))).toBe(false);
+  });
+});
+
+describe("an agent answer cut by a restart", () => {
+  it("with Ted's tools it is reported as interrupted (actions may have run); without them as stopped", () => {
+    const run = { id: "a1", role: "assistant", engine: "realgpt", text: "част", streaming: true, retry: "u1", time: T, agentOn: true };
+    const [c] = cleanChats([{ id: "c1", messages: [user("u1", "запиши"), run] }]);
+    expect(c.messages[1]).toMatchObject({ streaming: false, interrupted: true, retry: "u1", error: { text: INTERRUPTED_TEXT, code: "interrupted", maybeExecuted: true } });
+    expect(answerChanged(c.messages[1])).toBe(false);
+    expect(unfinished({ ...run, agentOn: undefined })).toMatchObject({ streaming: false, stopped: true });
+    expect(newestInterrupted([c])).toBe(T);
   });
 });

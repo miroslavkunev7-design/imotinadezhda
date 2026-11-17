@@ -1,6 +1,6 @@
 // Defects found by the end-to-end audit of 0.1.1, pinned so they stay fixed (mock build, no network).
 import { test, expect } from "@playwright/test";
-import { guard, lastAnswer, login, mockCalls, open, send } from "./helpers.js";
+import { guard, lastAnswer, login, mockCalls, open, openSettings, send } from "./helpers.js";
 
 const activeIn = (page) => page.evaluate(() => {
   const a = document.activeElement;
@@ -90,7 +90,7 @@ test("the sign-in card is reachable when the window is shorter than the card (36
 test("Escape closes only the topmost dialog; Tab stays inside an open dialog", async ({ page }) => {
   const g = guard(page);
   await login(page, "lat=200");
-  await page.getByRole("button", { name: "Настройки" }).first().click();
+  await openSettings(page);
   await expect(page.locator(".modal")).toHaveCount(1);
   // Tab never leaves the dialog (the composer behind it would send on Enter).
   for (let i = 0; i < 14; i++) {
@@ -109,7 +109,7 @@ test("Escape closes only the topmost dialog; Tab stays inside an open dialog", a
   await expect(page.locator(".modal")).toHaveCount(1);
 
   // A confirmation over Settings: one Escape closes the confirmation, Settings stays; the next one closes Settings.
-  await page.getByRole("tab", { name: /Данни/ }).click();
+  await page.locator('.modal .set-row[data-row="data"]').click();
   await page.locator(".modal").getByRole("button", { name: "Архивирай" }).click();
   await expect(page.locator(".modal")).toHaveCount(2);
   await page.keyboard.press("Escape");
@@ -123,7 +123,7 @@ test("Escape closes only the topmost dialog; Tab stays inside an open dialog", a
 test("every refused attachment is named, not only the first", async ({ page }) => {
   const g = guard(page);
   await login(page, "lat=200");
-  await page.locator("input.file-in").nth(1).setInputFiles([
+  await page.getByTestId("files-in").setInputFiles([
     { name: "setup.exe", mimeType: "application/octet-stream", buffer: Buffer.from("MZ not a document") },
     { name: "big.pdf", mimeType: "application/pdf", buffer: Buffer.alloc(10 * 1024 * 1024, 1) },
   ]);
