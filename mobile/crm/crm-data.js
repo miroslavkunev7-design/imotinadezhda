@@ -11,6 +11,45 @@
     companies: "nd_companies", deals: "nd_deals", activities: "nd_activities", documents: "nd_documents", leads: "nd_leads", collected: "nd_collected", prefs: "nd_prefs", inquiries: "nd_inquiries", rentals: "nd_rentals", mail: "nd_mail", chats: "nd_chats", chatmsgs: "nd_chat_msgs"
   };
   var sb = null, session = null, readyP = null, snap = {};
+  /* едновременни еднакви четения (напр. Начало: камбанката и страницата искат „events“ в един и същи момент) ползват една
+     заявка към базата; всеки получава свое копие на записите. Само за заявка, тръгнала преди под 1,5 с, без запис в същата
+     таблица оттогава – данните са същите като при отделна заявка. Броячът на записите се вдига и при старта, и при края на
+     записа: четене, тръгнало ПО ВРЕМЕ на записа (може да е без новия ред), не се дава на четене след записа.
+     С opts (напр. {fresh: 1} след запис на сървъра – проверка на пощата) заявката е винаги нова. */
+  var inflight = {}, wseq = {}, SHARE_MS = 1500;
+  function wbump(kind) { wseq[kind] = (wseq[kind] || 0) + 1; }
+  /* подписаните адреси на снимките (имоти и брокери) се пазят в браузъра: един и същ адрес между страниците → снимката идва
+     от кеша, вместо да се сваля наново при всяко отваряне. Снимките се качват винаги с нов път (време в името), затова пазен
+     адрес не може да покаже друга снимка. Подпис за 6 ч, повторно се дава само докато важи още поне 1 ч (колкото и досега).
+     Документите (договори, лични карти…) не се пазят – подписват се всеки път за 1 ч, както досега. */
+  var PIC = /^(properties\/[^\/]+\/photos\/|brokers\/)/, PIC_KEY = "nd-sig-pics", PIC_SEC = 6 * 3600, PIC_LEFT = 3600000;
+  function isPic(p) { return typeof p === "string" && PIC.test(p); }
+  function picOk(c, now) { return !!(c && typeof c.u === "string" && c.e - now >= PIC_LEFT && c.e - now <= PIC_SEC * 1000); }
+  /* прочетеният списък се помни, докато записът в браузъра не се смени (без JSON.parse при всяка снимка) */
+  var picRaw = null, picMap = {};
+  function picGet() {
+    try {
+      var s = localStorage.getItem(PIC_KEY) || "{}";
+      if (s !== picRaw) { var m = JSON.parse(s); picMap = m && typeof m === "object" ? m : {}; picRaw = s; }
+      return picMap;
+    } catch (e) { return {}; }
+  }
+  /* паметта на браузъра (около 5 MB) е обща с входа в CRM и другите настройки – списъкът не расте над ~1 MB:
+     при повече снимки остават вече пазените адреси (после най-новите), другите се подписват наново (както досега) */
+  var PIC_MAX = 1000000;
+  function picPut(add) {
+    var m = Object.assign({}, picGet()), now = Date.now();
+    Object.keys(add).forEach(function (k) { m[k] = add[k]; });
+    Object.keys(m).forEach(function (k) { if (!picOk(m[k], now)) delete m[k]; });
+    var s = JSON.stringify(m);
+    if (s.length > PIC_MAX) {
+      var nw = function (k) { return Object.prototype.hasOwnProperty.call(add, k) ? 1 : 0; };
+      var ks = Object.keys(m).sort(function (a, b) { return nw(a) - nw(b) || m[b].e - m[a].e; }), n = {};
+      ks.slice(0, Math.floor(ks.length * PIC_MAX * 0.7 / s.length)).forEach(function (k) { n[k] = m[k]; });
+      m = n; s = JSON.stringify(m);
+    }
+    try { localStorage.setItem(PIC_KEY, s); picRaw = s; picMap = m; } catch (e) {}
+  }
 
   function lib() {
     if (window.supabase && window.supabase.createClient) return Promise.resolve();
@@ -273,6 +312,7 @@
       return readyP;
     },
     signOut: function () {
+      picRaw = null; picMap = {}; try { localStorage.removeItem(PIC_KEY); } catch (e) {}
       return client().auth.signOut().then(function () { location.reload(); });
     },
     resetPassword: function (email) {
@@ -292,12 +332,21 @@
     },
     /* rows -> page objects ({...data, id}) */
     load: function (kind, opts) {
-      var q = client().from(TABLE[kind]).select("id,data,created_at,updated_at").order("created_at", { ascending: true }).limit(5000);
-      if (opts && opts.client_id) q = q.eq("client_id", opts.client_id);
-      return q.then(function (r) {
-        if (r.error) throw r.error;
-        var list = r.data.map(function (row) {
-          var o = Object.assign({}, row.data, { id: row.id });
+      var f = !opts && inflight[kind], copy = false, rowsP;
+      if (f && Date.now() - f.at < SHARE_MS && f.w === (wseq[kind] || 0)) { rowsP = f.p; copy = true; }
+      else {
+        var q = client().from(TABLE[kind]).select("id,data,created_at,updated_at").order("created_at", { ascending: true }).limit(5000);
+        if (opts && opts.client_id) q = q.eq("client_id", opts.client_id);
+        rowsP = q.then(function (r) { if (r.error) throw r.error; return r.data; });
+        if (!opts) {
+          var me = inflight[kind] = { p: rowsP, at: Date.now(), w: wseq[kind] || 0 };
+          var done = function () { if (inflight[kind] === me) delete inflight[kind]; };
+          rowsP.then(done, done);
+        }
+      }
+      return rowsP.then(function (rows) {
+        var list = rows.map(function (row) {
+          var o = Object.assign({}, copy ? JSON.parse(JSON.stringify(row.data)) : row.data, { id: row.id });
           o._created = row.created_at; o._updated = row.updated_at;
           return o;
         });
@@ -310,15 +359,21 @@
       var data = JSON.parse(clean(obj));
       var row = { data: data };
       if (obj.id) row.id = String(obj.id);
+      wbump(kind);
       return client().from(TABLE[kind]).upsert(row).select("id,created_at").single().then(function (r) {
+        wbump(kind);
         if (r.error) { say("Не е записано: " + r.error.message); throw r.error; }
         obj.id = r.data.id;
         (snap[kind] = snap[kind] || {})[obj.id] = clean(obj);
+        /* сигнал за другите модули (напр. известията: нова задача → напомнянето тръгва веднага) */
+        try { window.dispatchEvent(new CustomEvent("nd-put", { detail: { kind: kind } })); } catch (e) {}
         return obj;
       });
     },
     del: function (kind, id) {
+      wbump(kind);
       return client().from(TABLE[kind]).delete().eq("id", String(id)).then(function (r) {
+        wbump(kind);
         if (r.error) { say("Не е изтрито: " + r.error.message); throw r.error; }
         if (snap[kind]) delete snap[kind][id];
       });
@@ -342,6 +397,14 @@
       });
     },
     fileUrl: function (path) {
+      if (isPic(path)) {
+        var c = picGet()[path], t0 = Date.now();
+        if (picOk(c, t0)) return Promise.resolve(c.u);
+        return client().storage.from("nd-files").createSignedUrl(path, PIC_SEC).then(function (r) {
+          var u = r.data && r.data.signedUrl; if (u) { var a = {}; a[path] = { u: u, e: t0 + PIC_SEC * 1000 }; picPut(a); }
+          return u;
+        });
+      }
       return client().storage.from("nd-files").createSignedUrl(path, 3600).then(function (r) { return r.data && r.data.signedUrl; });
     },
     shareUrls: function (paths, secs) {
@@ -350,9 +413,16 @@
     },
     fileUrls: function (paths) {
       if (!paths.length) return Promise.resolve({});
-      return client().storage.from("nd-files").createSignedUrls(paths, 3600).then(function (r) {
-        var m = {};
-        (r.data || []).forEach(function (x) { if (x.signedUrl) m[x.path] = x.signedUrl; });
+      /* пазените снимки идват направо; подписват се само липсващите (с една заявка). Ако в списъка има и друг файл –
+         всичко липсващо се подписва за 1 ч с една заявка, както досега. */
+      var memo = picGet(), t0 = Date.now(), m = {}, need = [];
+      paths.forEach(function (p) { var c = isPic(p) && memo[p]; if (picOk(c, t0)) m[p] = c.u; else need.push(p); });
+      if (!need.length) return Promise.resolve(m);
+      var pics = need.every(isPic);
+      return client().storage.from("nd-files").createSignedUrls(need, pics ? PIC_SEC : 3600).then(function (r) {
+        var add = {};
+        (r.data || []).forEach(function (x) { if (x.signedUrl) { m[x.path] = x.signedUrl; if (pics) add[x.path] = { u: x.signedUrl, e: t0 + PIC_SEC * 1000 }; } });
+        if (pics) picPut(add);
         return m;
       });
     },

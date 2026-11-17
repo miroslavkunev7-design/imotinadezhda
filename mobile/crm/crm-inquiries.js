@@ -30,12 +30,19 @@
   var MENU = '<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
   var box = null, items = [], site = [], mailN = 0, chatN = 0, loadedAt = 0, loading = null;
 
+  /* за значката на пощата трябват само папка и „прочетено“ – не целите писма (с HTML до 600 KB всяко).
+     В „Поща“ страницата така или иначе зарежда писмата – там се ползва същата заявка. */
+  function mailRows() {
+    if (/crm-poshta\.html$/.test(location.pathname) || !D.sb) return D.load("mail");
+    return D.sb().from("nd_mail").select("id,folder:data->>folder,read:data->read").order("created_at", { ascending: true }).limit(5000).then(function (r) { if (r.error) throw r.error; return r.data || []; });
+  }
+  /* непрочетените в чата идват от балончетата (crm-chatheads.js) и от страницата „Чат“ – те ги опресняват на живо
+     (NDInquiries.chatBadge); отделно сваляне на всички разговори само за значката не е нужно */
   function load(force) {
     if (loading) return loading;
     if (!force && Date.now() - loadedAt < 20000) return Promise.resolve();
-    loading = D.ready().then(function () { return Promise.all([D.load("inquiries").catch(function () { return []; }), D.load("activities").catch(function () { return []; }), D.load("mail").catch(function () { return []; }), D.load("chats").catch(function () { return []; })]); }).then(function (r) {
+    loading = D.ready().then(function () { return Promise.all([D.load("inquiries").catch(function () { return []; }), D.load("activities").catch(function () { return []; }), mailRows().catch(function () { return []; })]); }).then(function (r) {
       mailN = (r[2] || []).filter(function (m) { return m.folder === "in" && !m.read; }).length;
-      chatN = (r[3] || []).reduce(function (a, c) { return a + (+c.unread || 0); }, 0);
       items = r[0].sort(function (a, b) { return String(b.at || b._created).localeCompare(String(a.at || a._created)); });
       site = r[1].filter(function (a) { return a.source === "site" && !a.inquiry_id; }).sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); }).slice(0, 30);
       loadedAt = Date.now(); loading = null; badge();

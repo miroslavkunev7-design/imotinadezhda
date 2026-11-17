@@ -1253,21 +1253,22 @@ html.desk .ocols.reading .od-ph{display:none}
   function badge(){try{if(window.NDInquiries&&NDInquiries.mailBadge)NDInquiries.mailBadge(mails.filter(function(m){return m.folder==='in'&&!m.read}).length)}catch(x){}}
 
   /* ---------- зареждане и проверка за нови писма ---------- */
-  function load(){return ND.ready().then(function(){return ND.load('mail')}).then(function(l){
+  /* fresh: след проверка/изпращане (сървърът току-що е записал писма) – винаги нова заявка, не общата с вече тръгнало четене */
+  function load(fresh){return ND.ready().then(function(){return ND.load('mail',fresh?{fresh:1}:undefined)}).then(function(l){
     mails=l.sort(function(a,b){return String(b.at||'').localeCompare(String(a.at||''))});
     if(sel&&!mails.some(function(m){return m.id===sel}))sel=null;
     var h=(location.hash||'').slice(1);if(h&&mails.some(function(m){return m.id===h})){sel=h;history.replaceState(null,'',location.pathname)}
     renderList();renderDet();badge();
   })}
-  var syncing=false;
+  var syncing=false,syncAt=0;
   function sync(manual){
-    if(syncing)return;syncing=true;if(manual)say('Проверявам за нови писма…');
+    if(syncing)return;syncing=true;syncAt=Date.now();if(manual)say('Проверявам за нови писма…');
     api({action:'mail_sync'}).then(function(r){
       syncing=false;
       if(r.mailbox)MAILBOX=r.mailbox;
       if(!r.ok){note((r.restricted?'<b>Нужна е еднократна настройка.</b> ':'')+esc(r.error||'Грешка'));return}
       note('');if(manual||r.fresh)say(r.fresh?(r.fresh===1?'1 ново писмо':r.fresh+' нови писма'):'Няма нови писма');
-      return load();
+      return load(true);
     });
   }
 
@@ -1317,7 +1318,7 @@ html.desk .ocols.reading .od-ph{display:none}
     api({action:'mail_send',to:to,cc:v('f-cc')||undefined,subject:v('f-subj'),text:$('f-text').value,reply_to_id:ctx&&ctx.kind==='reply'?ctx.m.id:undefined,from_name:(ND.broker&&ND.broker.name)||'',attachments:outFiles}).then(function(r){
       btn.disabled=false;
       if(!r.ok){$('f-err').textContent=r.error||'Писмото не е изпратено.';return}
-      $('f-err').textContent='';say('✔ Изпратено до '+r.to.join(', '));closeF();load();
+      $('f-err').textContent='';say('✔ Изпратено до '+r.to.join(', '));closeF();load(true);
     });
   });
   $('o-new').addEventListener('click',function(){openF('new',null)});
@@ -1338,7 +1339,9 @@ html.desk .ocols.reading .od-ph{display:none}
   ND.busy(1);
   load().then(function(){ND.busy(0);sync(false)}).catch(function(e){ND.busy(0);say('Грешка при зареждане: '+(e&&e.message||e))});
   setInterval(function(){if(!document.hidden)sync(false)},60000);
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)sync(false)});
+  /* връщане в раздела: ако проверката в Resend е от под минута – само се презарежда списъкът от базата (новите писма влизат там
+     веднага през webhook-а), без нова проверка; иначе – пълна проверка, както досега. Таймерът (60 с) остава същият. */
+  document.addEventListener('visibilitychange',function(){if(document.hidden)return;if(Date.now()-syncAt<60000){if(!syncing)load().catch(function(){})}else sync(false)});
 })();
 </script>
 <script>document.documentElement.classList.add("ready")</script>

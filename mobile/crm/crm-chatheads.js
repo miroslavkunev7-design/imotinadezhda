@@ -153,6 +153,8 @@
   }
   function closeWin() {
     if (!win) return; openId = null; win.classList.remove("show");
+    /* затвореният малък прозорец спира да опреснява разговорите; при ново отваряне зарежда веднага */
+    try { if (frame && frame.contentWindow) frame.contentWindow.postMessage({ nch: 1, act: "hide" }, location.origin); } catch (x) {}
     setTimeout(function () { if (!openId) win.hidden = true; }, 220); render();
   }
   addEventListener("message", function (e) {
@@ -163,20 +165,38 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) closeWin(); });
   addEventListener("resize", placeWin);
 
+  /* опресняване: проверка 45 с след последното зареждане (зареждане от realtime го отлага) – пред очите данните са
+     най-много на 45 с, както досега, но без излишна заявка веднага след realtime. Без две заявки наведнъж: промяна
+     по време на заявка → още едно зареждане след нея (заявка, висяща над 30 с, не спира следващата; закъснял стар
+     отговор не замества по-нов). Таймерът се пуска още при тръгване на заявката – и при висяща заявка проверката идва на 45 с.
+     Скрит раздел не тегли – при връщане (и при възстановена връзка) зарежда веднага. */
+  var busy = 0, again = false, lastAt = 0, seq = 0, shown = 0, pollT = 0, POLL = 45000, STUCK = 30000;
+  function live() { return !document.hidden; }
+  function arm() { clearTimeout(pollT); pollT = setTimeout(poll, Math.max(1000, lastAt + POLL - Date.now())); }
+  /* скрит раздел: без заявка, само нова проверка след 45 с (ако браузърът пропусне събитието при връщане, опресняването продължава) */
+  function poll() { if (live()) load(); else pollT = setTimeout(poll, POLL); }
   function load() {
-    return D.sb().from("nd_chats").select("id,platform,data,last_at").order("last_at", { ascending: false, nullsFirst: false }).limit(60).then(function (r) {
-      if (r.error) return; chats = r.data || []; render();
-      var tot = chats.reduce(function (a, c) { return a + (+(c.data || {}).unread || 0); }, 0);
-      try { if (window.NDInquiries && NDInquiries.chatBadge) NDInquiries.chatBadge(tot); } catch (x) {}
-    });
+    if (busy && Date.now() - busy < STUCK) { again = true; return; }
+    var my = ++seq; busy = lastAt = Date.now(); again = false; arm();
+    var fin = function () { if (my !== seq) return; busy = 0; arm(); if (again && live()) load(); };
+    try {
+      D.sb().from("nd_chats").select("id,platform,data,last_at").order("last_at", { ascending: false, nullsFirst: false }).limit(60).then(function (r) {
+        if (!r.error && my > shown) {
+          shown = my; chats = r.data || []; render();
+          var tot = chats.reduce(function (a, c) { return a + (+(c.data || {}).unread || 0); }, 0);
+          try { if (window.NDInquiries && NDInquiries.chatBadge) NDInquiries.chatBadge(tot); } catch (x) {}
+        }
+        fin();
+      }, fin);
+    } catch (x) { fin(); }
   }
   var deb = null;
   D.ready().then(function () {
     load();
     try {
-      D.sb().channel("nd-chatheads").on("postgres_changes", { event: "*", schema: "public", table: "nd_chats" }, function () { clearTimeout(deb); deb = setTimeout(load, 300); }).subscribe();
+      D.sb().channel("nd-chatheads").on("postgres_changes", { event: "*", schema: "public", table: "nd_chats" }, function () { clearTimeout(deb); deb = setTimeout(function () { if (live()) load(); }, 300); }).subscribe();
     } catch (x) {}
-    setInterval(function () { if (!document.hidden) load(); }, 45000);
-    document.addEventListener("visibilitychange", function () { if (!document.hidden) load(); });
+    document.addEventListener("visibilitychange", function () { if (live()) load(); });
+    addEventListener("online", function () { if (live()) load(); });
   }).catch(function () {});
 })();

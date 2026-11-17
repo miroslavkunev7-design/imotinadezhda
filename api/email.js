@@ -134,9 +134,21 @@ async function syncReceived(cfg, rid) {
   } catch (e) { logErr("mail-push", cfg, e); }
   return { id, fresh: true };
 }
+/* кои от писмата вече са записани – с една заявка вместо по една за всяко писмо (до 50); при грешка – както досега, едно по едно */
+async function mailHave(rids) {
+  const ids = rids.map((rid) => "rs_" + String(rid).replace(/[^A-Za-z0-9-]/g, ""));
+  if (!ids.length) return new Set();
+  const r = await fetch(MAIL_T + "?select=id&id=in.(" + ids.map((x) => encodeURIComponent('"' + x + '"')).join(",") + ")", { headers: srH() }).catch(() => null);
+  const j = r && r.ok ? await r.json().catch(() => null) : null;
+  return Array.isArray(j) ? new Set(j.map((x) => x.id)) : null;
+}
 async function syncInbox(cfg) {
   const l = await rs(cfg.pass, "/emails/receiving?limit=50"); let n = 0;
-  for (const e of (l.data || [])) { try { if ((await syncReceived(cfg, e.id)).fresh) n++; } catch (x) { logErr("mail-sync", cfg, x); } }
+  const list = l.data || [], have = await mailHave(list.map((e) => e.id)).catch(() => null);
+  for (const e of list) {
+    if (have && have.has("rs_" + String(e.id).replace(/[^A-Za-z0-9-]/g, ""))) continue;
+    try { if ((await syncReceived(cfg, e.id)).fresh) n++; } catch (x) { logErr("mail-sync", cfg, x); }
+  }
   return n;
 }
 const RESTRICTED = (e) => /restricted|only send|401/i.test(String(e && (e.code + " " + e.message)));
