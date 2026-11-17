@@ -46,7 +46,7 @@ function textMessages(messages) {
     if (!m || typeof m !== 'object' || !Array.isArray(m.files) || !m.files.length) {
       return m && typeof m === 'object' && 'files' in m ? { role: m.role, text: m.text, ...(m.images ? { images: m.images } : {}) } : m;
     }
-    const note = `[${m.files.length === 1 ? 'Прикачен файл' : `Прикачени файлове: ${m.files.length}`} – в режим „само текст“ Real GPT не чете файлове; ползвай Тед (сървъра) или разреши инструментите.]`;
+    const note = `[${m.files.length === 1 ? 'Прикачен файл' : `Прикачени файлове: ${m.files.length}`} – в режим „само текст“ файловете не се четат; служителят може да разреши инструментите от Настройки → Безопасност.]`;
     return { role: m.role, text: [m.text, note].filter((x) => x && String(x).trim()).join('\n'), ...(m.images ? { images: m.images } : {}) };
   });
 }
@@ -577,7 +577,8 @@ export function createRealGpt({
       return fail('invalid', 'requestId');
     }
     // MAIN reads the stored consent itself: without "all" the request is exactly the text-only one of 0.1.2.
-    const useAgent = !!agent && (await consentState()).consent === 'all';
+    // textOnly:true (the „Само текст“ retry after tools_unsupported) can only take the tools away, never add them.
+    const useAgent = !!agent && args?.textOnly !== true && (await consentState()).consent === 'all';
     let body;
     try {
       // Validates model, effort, instructions and messages the same way in both modes.

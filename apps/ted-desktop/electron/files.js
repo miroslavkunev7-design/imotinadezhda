@@ -76,7 +76,7 @@ export function createFiles({
   const changed = () => { try { onChange(); } catch { /* window gone */ } };
 
   // -> {ok:true, file:FileRef} | {ok:false, error, code}
-  function add({ name, mime, data, chatId, temporary = false, origin = "user", sourceUrl, savedTo, crm, pages, sheets, maxBytes = MAX_FILE }) {
+  function add({ name, mime, data, chatId, caseId, caseTitle, temporary = false, origin = "user", sourceUrl, savedTo, crm, pages, sheets, maxBytes = MAX_FILE }) {
     const bytes = Buffer.isBuffer(data) ? data : Buffer.from(data || []);
     const fileName = safeFileName(name);
     if (!bytes.length) return { ok: false, code: "invalid", error: "Файлът е празен." };
@@ -88,6 +88,8 @@ export function createFiles({
       id, name: fileName, mime: sniff.mime, size: bytes.length, kind: sniff.kind,
       origin: ["user", "ted", "web", "crm"].includes(origin) ? origin : "user", createdAt: now().toISOString(),
       ...(chatId ? { chatId: String(chatId).slice(0, 64) } : {}),
+      // 0.1.5 project folders (docs/CONTRACT.md §8.12): the Проект (case) the file belongs to, with its title for display.
+      ...(caseId ? { caseId: String(caseId).slice(0, 64), ...(caseTitle ? { caseTitle: String(caseTitle).slice(0, 160) } : {}) } : {}),
       ...(Number.isFinite(pages) && pages > 0 ? { pages } : {}),
       ...(Number.isFinite(sheets) && sheets > 0 ? { sheets } : {}),
       ...(sourceUrl ? { sourceUrl: String(sourceUrl).slice(0, 2000) } : {}),
@@ -184,6 +186,22 @@ export function createFiles({
     }
   }
 
+  // Project folders (§8.12): puts files into the folder of a Проект (caseId) or takes them out of every folder (null).
+  // Only the local index changes; nothing leaves the computer. -> the updated FileRefs (unknown ids are skipped).
+  function assign(ids, project) {
+    const out = [];
+    const patch = project && project.caseId
+      ? { caseId: String(project.caseId).slice(0, 64), caseTitle: String(project.caseTitle || "").slice(0, 160) || undefined }
+      : { caseId: undefined, caseTitle: undefined };
+    for (const id of Array.isArray(ids) ? ids : []) {
+      if (!ID_RE.test(String(id || "")) || !ref(id)) continue;
+      const r = update(id, patch);
+      if (r) out.push(Object.fromEntries(Object.entries(r).filter(([, v]) => v !== undefined)));
+    }
+    if (out.length) changed();
+    return out;
+  }
+
   // Drops a temporary (not library) file.
   function forget(id) {
     const m = memory.get(id);
@@ -191,7 +209,7 @@ export function createFiles({
     return { ok: true };
   }
 
-  function list({ kind, q, limit = 100 } = {}) {
+  function list({ kind, q, limit = 100, caseId } = {}) {
     const lib = library ? library.list() : [];
     const mem = [...memory.values()].filter((m) => !m.temporary && !m.persisted).map((m) => m.ref);
     let items = [...mem, ...lib].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
@@ -199,6 +217,7 @@ export function createFiles({
       const kinds = kind === "document" ? ["pdf", "docx", "xlsx", "csv", "text", "other"] : [kind];
       items = items.filter((r) => kinds.includes(r.kind));
     }
+    if (caseId) items = items.filter((r) => r.caseId === caseId);
     if (q) {
       const needle = String(q).toLowerCase();
       items = items.filter((r) => String(r.name).toLowerCase().includes(needle) || String(r.savedTo || "").toLowerCase().includes(needle));
@@ -268,5 +287,5 @@ export function createFiles({
     changed();
   }
 
-  return { add, get, ref, update, read, extract, open, save, forget, list, remove, clear, storage, clearTemp, cleanStaleTemp, detach, sessionDir };
+  return { add, get, ref, update, read, extract, open, save, forget, list, assign, remove, clear, storage, clearTemp, cleanStaleTemp, detach, sessionDir };
 }

@@ -4,6 +4,7 @@ import "./styles/style.css";
 import "./styles/desktop.css";
 import "./styles/layout.css";
 import "./styles/agent.css";
+import "./styles/premium.css"; // 0.1.5: premium palette, menus, settings, typography and speed – always last
 import { initBridge } from "./bridge.js";
 import App from "./App.jsx";
 

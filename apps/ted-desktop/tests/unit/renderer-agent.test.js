@@ -61,6 +61,21 @@ describe("agentSnapshot", () => {
     snap.steps[0].status = "fail"; // a copy: the live state is not changed through the snapshot
     expect(s[R].steps[0].status).toBe("ok");
   });
+
+  it("keeps the „Отвори в ChatGPT“ cards (id, kind, prompt only; unknown kind = other; ≤ 10) and persists them", () => {
+    const s = run([
+      ev({ type: "chatgpt", handoff: { id: "cg_1", kind: "image", prompt: "Снимка на къща", url: "https://evil.example", extra: 1 } }),
+      ev({ type: "chatgpt", handoff: { id: "cg_2", kind: "weird", prompt: "x".repeat(5000) } }),
+      ev({ type: "chatgpt", handoff: { id: "cg_3", kind: "video", prompt: "   " } }),
+      ev({ type: "chatgpt", handoff: { kind: "video", prompt: "без id" } }),
+      ...Array.from({ length: 12 }, (_, i) => ev({ type: "chatgpt", handoff: { id: "cg_x" + i, kind: "video", prompt: "видео " + i } })),
+    ]);
+    expect(s[R].chatgpt).toHaveLength(10);
+    expect(s[R].chatgpt[0]).toEqual({ id: "cg_1", kind: "image", prompt: "Снимка на къща" });
+    expect(s[R].chatgpt[1]).toEqual({ id: "cg_2", kind: "other", prompt: "x".repeat(4000) });
+    expect(agentSnapshot(s, R).chatgpt).toEqual(s[R].chatgpt);
+    expect(agentSnapshot(run([step("s1", "ok")]), R)).not.toHaveProperty("chatgpt");
+  });
 });
 
 describe("rgMessages", () => {

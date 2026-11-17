@@ -157,6 +157,20 @@ describe('request builder', () => {
   });
 });
 
+describe('attached PDFs (input_file, docs/CONTRACT.md §9.6)', () => {
+  const pdf = Buffer.from('%PDF-1.4 тест').toString('base64');
+  it('docs become input_file parts after the images; only PDF, base64, a name, ≤ 5 per message', () => {
+    const input = buildInput([{ role: 'user', text: 'Прочети', images: [{ mime: 'image/png', data: 'AAAA' }], docs: [{ name: 'акт.pdf', mime: 'application/pdf', data: pdf }] }]);
+    expect(input[0].content.map((c) => c.type)).toEqual(['input_text', 'input_image', 'input_file']);
+    expect(input[0].content[2]).toEqual({ type: 'input_file', filename: 'акт.pdf', file_data: `data:application/pdf;base64,${pdf}` });
+    for (const docs of [
+      [{ name: 'a.docx', mime: 'application/msword', data: pdf }], [{ name: '', mime: 'application/pdf', data: pdf }],
+      [{ name: 'a.pdf', mime: 'application/pdf', data: 'не е base64!' }], Array(6).fill({ name: 'a.pdf', mime: 'application/pdf', data: pdf }), 'x',
+    ]) expect(() => buildInput([{ role: 'user', text: 'x', docs }])).toThrow(RgError);
+    expect(() => buildInput([{ role: 'user', text: 'x', docs: [{ name: 'a.pdf', mime: 'application/pdf', data: 'A'.repeat(24 * 1024 * 1024 + 4) }] }])).toThrow(RgError);
+  });
+});
+
 describe('SSE parser', () => {
   const collect = (chunks) => {
     const events = [];

@@ -3,7 +3,6 @@
 // Written from the public documentation; contains no OpenAI DevKit code. Public client: no secret anywhere.
 
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { createServer } from 'node:http';
 import { RgError, serverError } from './errors.js';
 import { parseJson, readText, requestIdOf } from './wire.js';
 
@@ -105,6 +104,8 @@ function sendPage(res, status, key) {
 // {code, error, clientId} | {timeout:true} | {cancelled:true}. The browser response of the accepted callback is
 // held until finish(key), so the page reports the real outcome of the token exchange.
 export async function startLoopback({ state, timeoutMs = CALLBACK_TIMEOUT_MS }) {
+  // node:http only when a sign-in starts (0.1.5: not at every start of the program).
+  const { createServer } = await import('node:http');
   let settle;
   const callback = new Promise((resolve) => {
     settle = resolve;

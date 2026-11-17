@@ -3,6 +3,7 @@ import Icon from "../Icon.jsx";
 import { hintOf } from "../../lib/consts.js";
 import { extOf, fmtClock, fmtSize, now } from "../../lib/format.js";
 import { EffortPill } from "./ModelEffortPill.jsx";
+import { useStore } from "../../lib/store.js";
 
 function RecBar({ rec }) {
   const [, tick] = useState(0);
@@ -19,8 +20,12 @@ const fileTag = (f) => (f.kind === "ref" ? "CRM" : (extOf(f.name) || "file").sli
 // ChatGPT composer: tags above the text (armed hints, Проект, Агент), the text, then „+“ · pill „модел · усилие“ ·
 // mic · round button (voice mode when empty, send with text/files, stop while busy).
 export default function Composer(p) {
-  const { phone, S, mode, input, setInput, files, setFiles, taRef, rec, busy, onSend, onStop, onMic, onVoice, onPlus, plusOpen, onDropFiles,
+  const { phone, S, mode, inputStore, files, setFiles, taRef, rec, busy, onSend, onStop, onMic, onVoice, onPlus, plusOpen, onDropFiles,
     hints, dropHint, curCase, dropCase, role, dropRole, pill, disc, home, above, canvasTag } = p;
+  // The text lives in a small store (lib/store.js): typing re-renders only this composer, not the whole window.
+  const input = useStore(inputStore);
+  const setInput = inputStore.set;
+  useEffect(() => { const ta = taRef.current; if (ta) { ta.style.height = "auto"; ta.style.height = Math.min(220, ta.scrollHeight) + "px"; } }, [input, rec]);
   const tags = hints.length || curCase || role || canvasTag;
   return (
     <div className={"dock" + (home ? " in-home" : "")}>
@@ -48,7 +53,7 @@ export default function Composer(p) {
         <div className="crow">
           <button className="cbtn c-plus" onClick={onPlus} aria-label="Добави" aria-expanded={!!plusOpen} title="Добави снимки и файлове, инструменти, проект"><Icon n="plus" /></button>
           <span className="spacer" />
-          <EffortPill label={pill.label} effort={pill.effort} onClick={pill.onClick} open={pill.open} />
+          <EffortPill label={pill.label} effort={pill.effort} onClick={pill.onClick} open={pill.open} engine={pill.engine} />
           <button className={"cbtn c-mic" + (rec ? " rec" : "")} onClick={onMic} disabled={rec === "busy"} aria-label={rec ? "Спри диктовката" : "Диктовка"} title="Диктовка">{rec ? <Icon n="stopsq" fill="currentColor" /> : <Icon n="mic" />}</button>
           {/* The second click of a double-click on "Изпрати" lands here (the button swaps while busy): it must not stop the request. */}
           {busy ? <button className="snd" onClick={(e) => { if (e.detail > 1) return; onStop(); }} aria-label="Спри" title="Спри"><Icon n="stopsq" fill="currentColor" /></button>

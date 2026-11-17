@@ -212,9 +212,9 @@ describe("main.js", () => {
     expect((await s.protocolHandlers.app(new Request("app://ted/..%2F..%2Fpackage.json"))).status).toBe(403);
   });
 
-  it("registers all 61 IPC channels and answers the app's own page only", async () => {
+  it("registers all 67 IPC channels and answers the app's own page only", async () => {
     const s = await boot();
-    expect(s.ipc.size).toBe(61); // CONTRACT §2 + §8: 68 window.ted functions minus 7 subscriptions
+    expect(s.ipc.size).toBe(67); // CONTRACT §2 + §8: 74 window.ted functions minus 7 subscriptions (0.1.5: + browse.image, + 4 projects)
     expect(await s.ipc.get("ted:app.info")(fromApp)).toEqual({ version: "0.1.0", platform: process.platform, packaged: true });
     expect(await s.ipc.get("ted:auth.state")(fromApp)).toEqual({ status: "signedOut" });
     expect(await s.ipc.get("ted:store.loadChats")(fromApp)).toEqual({ chats: [] });

@@ -34,7 +34,8 @@ contextBridge.exposeInMainWorld("ted", {
     onChange: (callback) => subscribe("ted:auth.changed", callback),
   },
   api: {
-    models: () => invoke("ted:api.models"),
+    // {fresh:true}: the connection check asks the server again instead of MAIN's short cache.
+    models: (opts) => invoke("ted:api.models", opts && opts.fresh === true ? { fresh: true } : undefined),
     chat: (args) => invoke("ted:api.chat", args),
     cancel: (requestId) => invoke("ted:api.cancel", requestId),
   },
@@ -76,6 +77,7 @@ contextBridge.exposeInMainWorld("ted", {
     setConsent: (choice) => invoke("ted:realgpt.setConsent", choice),
     approve: (args) => invoke("ted:realgpt.approve", args),
     onEvent: (callback) => subscribe("ted:realgpt.event", callback),
+    openInChatGpt: (args) => invoke("ted:realgpt.openInChatGpt", args),
   },
   files: {
     add: (args) => invoke("ted:files.add", args),
@@ -87,6 +89,7 @@ contextBridge.exposeInMainWorld("ted", {
   },
   browse: {
     test: (args) => invoke("ted:browse.test", args),
+    image: (args) => invoke("ted:browse.image", args),
   },
   video: {
     prepare: (args) => invoke("ted:video.prepare", args),
@@ -100,6 +103,12 @@ contextBridge.exposeInMainWorld("ted", {
     remove: (id) => invoke("ted:library.remove", id),
     clear: () => invoke("ted:library.clear"),
     onChange: (callback) => subscribe("ted:library.changed", callback),
+  },
+  projects: {
+    assign: (args) => invoke("ted:projects.assign", args),
+    saveAnswer: (args) => invoke("ted:projects.saveAnswer", args),
+    exportZip: (args) => invoke("ted:projects.exportZip", args),
+    saveToCrm: (args) => invoke("ted:projects.saveToCrm", args),
   },
   scheduled: {
     list: () => invoke("ted:scheduled.list"),

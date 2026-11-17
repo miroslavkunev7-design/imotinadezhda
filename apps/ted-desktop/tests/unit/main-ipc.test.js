@@ -5,12 +5,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createHandlers, cleanSettingsPatch, createAppApi } from "../../electron/ipc.js";
+import { chatgptUrl, CHATGPT_PROMPT_MAX } from "../../electron/agent/chatgpt-link.js";
 
 function setup(over = {}) {
   const calls = [];
   const rec = (name, result) => (...args) => { calls.push([name, ...args]); return typeof result === "function" ? result(...args) : result; };
   const deps = {
-    appApi: { storage: rec("app.storage", { ok: true }), clearTemp: rec("app.clearTemp", { ok: true }), reportProblem: rec("app.reportProblem", { ok: true }) },
+    appApi: { storage: rec("app.storage", { ok: true }), clearTemp: rec("app.clearTemp", { ok: true }), reportProblem: rec("app.reportProblem", { ok: true }), openExternal: rec("app.openExternal", { ok: true }) },
     settings: { get: rec("settings.get", {}), set: rec("settings.set", (p) => p) },
     realgpt: {
       send: rec("rg.send", { ok: true, text: "т", model: "m" }), consent: rec("rg.consent", { ok: true, consent: "all", account: "a@example.com", token: "LEAK" }),
@@ -25,6 +26,8 @@ function setup(over = {}) {
     scheduled: { list: rec("sched.list", { ok: true, items: [] }), save: rec("sched.save", { ok: true }), remove: rec("sched.remove", { ok: true }) },
     updater: { state: rec("upd.state", { status: "disabled" }), check: rec("upd.check", {}), setAuto: rec("upd.setAuto", {}), download: rec("upd.download", { ok: false }), install: rec("upd.install", { ok: false }) },
     browser: { get: rec("browser.get", { status: 200, buffer: Buffer.from("<html><title> Обяви  за имоти </title></html>") }) },
+    // Every picture address counts as a tool result here; the provenance rule itself: tests/unit/review-015.test.js.
+    imageProvenance: { has: () => true, fromChats() {} },
     ...over,
   };
   const h = createHandlers(deps);
@@ -154,5 +157,106 @@ describe("app additions", () => {
     fs.rmSync(path.dirname(logDir), { recursive: true, force: true });
     expect(ext[1]).toMatch(/^mailto:\?subject=/);
     expect(decodeURIComponent(ext[1])).toContain("Тед за Windows 0.1.3 – проблем");
+  });
+});
+
+// 0.1.5 (docs/CONTRACT.md §8.4, §16): the bytes of a picture shown inside an answer – through the SSRF-guarded
+// fetch_image of the browse session only; https, ≤ 8 MB, an image by its magic bytes. Never any other path.
+describe("browse.image", () => {
+  const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(40, 1)]);
+  const pagesWith = (result, seen = []) => ({ fetchImage: async (a) => { seen.push(a); return typeof result === "function" ? result(a) : result; } });
+
+  it("returns the image bytes as an ArrayBuffer with its mime and size", async () => {
+    const seen = [];
+    const { h } = setup({ pages: pagesWith({ ok: true, file: { buffer: PNG, mime: "image/png", name: "a.png", sourceUrl: "https://img.example.com/a.png" } }, seen) });
+    const r = await h["ted:browse.image"]({ url: "https://img.example.com/a.png" });
+    expect(r.ok).toBe(true);
+    expect(r.mime).toBe("image/png");
+    expect(r.size).toBe(PNG.length);
+    expect(r.data).toBeInstanceOf(ArrayBuffer);
+    expect(Buffer.from(r.data).equals(PNG)).toBe(true);
+    expect(Object.keys(r).sort()).toEqual(["data", "mime", "ok", "size"]);
+    expect(seen).toEqual([{ url: "https://img.example.com/a.png" }]);
+  });
+
+  it("refuses anything but one https address before any request", async () => {
+    const seen = [];
+    const { h } = setup({ pages: pagesWith({ ok: true, file: { buffer: PNG, mime: "image/png" } }, seen) });
+    for (const a of [undefined, "https://img.example.com/a.png", {}, { url: 5 }, { url: "http://img.example.com/a.png" }, { url: "file:///C:/a.png" },
+      { url: "data:image/png;base64,AAAA" }, { url: "javascript:alert(1)" }, { url: "https://user:pw@img.example.com/a.png" }, { url: "https://x" + "a".repeat(2048) + ".com/" }, { url: "не е адрес" }]) {
+      expect(await h["ted:browse.image"](a), JSON.stringify(a)).toMatchObject({ ok: false, code: "invalid" });
+    }
+    expect(seen).toEqual([]);
+  });
+
+  it("browsing switched off in Настройки → Браузър: nothing is fetched", async () => {
+    const seen = [];
+    const { h } = setup({ settings: { get: () => ({ browse: { enabled: false } }), set: () => ({}) }, pages: pagesWith({ ok: true }, seen) });
+    expect(await h["ted:browse.image"]({ url: "https://img.example.com/a.png" })).toEqual({ ok: false, code: "off", error: "Интернетът е изключен в Настройки → Браузър." });
+    expect(seen).toEqual([]);
+  });
+
+  it("passes the guard's refusal on and rejects PDFs, oversized or empty bodies", async () => {
+    const priv = setup({ pages: pagesWith({ ok: false, code: "private", error: "Адреси от локалната мрежа и на този компютър не се отварят." }) });
+    expect(await priv.h["ted:browse.image"]({ url: "https://intranet.example.com/a.png" })).toEqual({ ok: false, code: "private", error: "Адреси от локалната мрежа и на този компютър не се отварят." });
+    const pdf = setup({ pages: pagesWith({ ok: true, file: { buffer: Buffer.from("%PDF-1.4 xxxxxxxx"), mime: "application/pdf" } }) });
+    expect(await pdf.h["ted:browse.image"]({ url: "https://img.example.com/a.pdf" })).toMatchObject({ ok: false, code: "not_image" });
+    const big = setup({ pages: pagesWith({ ok: true, file: { buffer: Buffer.alloc(8 * 1024 * 1024 + 1), mime: "image/png" } }) });
+    expect(await big.h["ted:browse.image"]({ url: "https://img.example.com/big.png" })).toMatchObject({ ok: false, code: "too_large" });
+    const empty = setup({ pages: pagesWith({ ok: true, file: { buffer: Buffer.alloc(0), mime: "image/png" } }) });
+    expect(await empty.h["ted:browse.image"]({ url: "https://img.example.com/e.png" })).toMatchObject({ ok: false, code: "too_large" });
+    const none = setup();
+    expect(await none.h["ted:browse.image"]({ url: "https://img.example.com/a.png" })).toMatchObject({ ok: false, code: "unavailable" });
+  });
+});
+
+// docs/CONTRACT.md §9.6: „Отвори в ChatGPT“ – MAIN builds the link itself, only https://chatgpt.com/?q=<prompt>.
+describe("realgpt.openInChatGpt", () => {
+  it("opens exactly https://chatgpt.com/?q=<encoded prompt> through the https-only gate", async () => {
+    const { h, calls } = setup();
+    const prompt = "Снимка на къща & басейн? #вечер /q=x\r\nстил: реалистичен";
+    expect(await h["ted:realgpt.openInChatGpt"]({ prompt })).toEqual({ ok: true });
+    const url = calls.find((c) => c[0] === "app.openExternal")[1];
+    const u = new URL(url);
+    expect(u.protocol).toBe("https:");
+    expect(u.hostname).toBe("chatgpt.com");
+    expect(u.pathname).toBe("/");
+    expect([...u.searchParams.keys()]).toEqual(["q"]);
+    expect(u.searchParams.get("q")).toBe("Снимка на къща & басейн? #вечер /q=x\nстил: реалистичен");
+    expect(u.hash).toBe("");
+    expect(url).toBe(`https://chatgpt.com/?q=${encodeURIComponent("Снимка на къща & басейн? #вечер /q=x\nстил: реалистичен")}`);
+  });
+
+  it("refuses empty, too long and non-string prompts and anything that is not {prompt}; nothing is opened", async () => {
+    const { h, calls } = setup();
+    for (const a of [undefined, null, "https://evil.example", { prompt: "" }, { prompt: "   \n " }, { prompt: 5 }, { prompt: "x".repeat(CHATGPT_PROMPT_MAX + 1) }, { url: "https://evil.example" }]) {
+      expect(await h["ted:realgpt.openInChatGpt"](a), JSON.stringify(a)).toMatchObject({ ok: false, code: "invalid" });
+    }
+    expect(calls.filter((c) => c[0] === "app.openExternal")).toEqual([]);
+    expect(await h["ted:realgpt.openInChatGpt"]({ prompt: "x".repeat(CHATGPT_PROMPT_MAX) })).toEqual({ ok: true });
+  });
+
+  it("the link builder cannot be steered to another host, path or parameter", () => {
+    for (const p of ["@evil.example", "x/../../evil", "\\\\evil.example", "?q=1&next=https://evil.example", "#frag", "javascript:alert(1)", "\u0000\u0007ok"]) {
+      const u = new URL(chatgptUrl(p));
+      expect(u.origin).toBe("https://chatgpt.com");
+      expect([...u.searchParams.keys()]).toEqual(["q"]);
+      expect(u.hash).toBe("");
+    }
+    expect(chatgptUrl("\u0000\u0007ok")).toBe("https://chatgpt.com/?q=ok");
+    expect(chatgptUrl("")).toBeNull();
+    expect(chatgptUrl("x".repeat(CHATGPT_PROMPT_MAX + 1))).toBeNull();
+    expect(chatgptUrl("\ud800")).toBeNull(); // a lone surrogate cannot be encoded
+    expect(chatgptUrl(42)).toBeNull();
+  });
+
+  it("realgpt.send: textOnly is a boolean passed through; tools_unsupported carries only the plain refusal fields", async () => {
+    const ok = setup();
+    await ok.h["ted:realgpt.send"]({ requestId: "r", model: "m", messages: [user("x")], textOnly: true });
+    expect(ok.calls.find((c) => c[0] === "rg.send")[1]).toMatchObject({ textOnly: true });
+    expect(await ok.h["ted:realgpt.send"]({ requestId: "r", model: "m", messages: [user("x")], textOnly: "yes" })).toMatchObject({ ok: false, code: "invalid" });
+    const fail = setup({ realgpt: { send: async () => ({ ok: false, error: "x", code: "tools_unsupported", refused: { status: 400, code: "c".repeat(100), param: "tools", message: "m".repeat(400), html: "<b>", token: "LEAK" } }) } });
+    const r = await fail.h["ted:realgpt.send"]({ requestId: "r", model: "m", messages: [user("x")] });
+    expect(r).toEqual({ ok: false, error: "x", code: "tools_unsupported", refused: { status: 400, code: "c".repeat(80), param: "tools", message: "m".repeat(300) } });
   });
 });

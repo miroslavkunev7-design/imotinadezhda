@@ -1,76 +1,171 @@
-import React, { Fragment } from "react";
+import React, { createContext, Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import Icon from "./Icon.jsx";
 import { ted } from "../bridge.js";
+import { domainOf, parseBlocks, safeHref } from "../lib/md.js";
+import { loadFileImage, loadWebImage } from "../lib/images.js";
 
-// Safe Markdown: builds React nodes only, never HTML. Links are limited to https: and mailto:
-// and always leave through the main process (system browser / mail program).
-const LINK_OK = /^(https:\/\/|mailto:)/i;
+// Markdown like ChatGPT (docs/CONTRACT.md §16 „Markdown“). Safe: src/lib/md.js builds a plain tree and this file turns
+// it into React nodes – never HTML. Links are limited to https: and mailto: and always leave through the main process
+// (system browser / mail program) with the REAL address; a link shows its text, a source shows a domain chip.
+// Pictures: shown inline only when the exact address came from a tool result of the same answer (`media`, built by
+// lib/agent.js answerMedia) – any other picture is a chip „Снимка: domain ›“ that loads only after a click.
 
-export function ExtLink({ href, children, className }) {
-  const go = (e) => { e.preventDefault(); if (LINK_OK.test(href)) Promise.resolve(ted.app.openExternal(href)).catch(() => {}); };
-  return <a className={className} href={href} rel="noopener noreferrer" onClick={go} onAuxClick={go}>{children}</a>;
+const open = (href) => { if (safeHref(href)) Promise.resolve(ted.app.openExternal(href)).catch(() => {}); };
+
+export function ExtLink({ href, children, className, title }) {
+  const go = (e) => { e.preventDefault(); open(href); };
+  return <a className={className} href={href} title={title} rel="noopener noreferrer" onClick={go} onAuxClick={go}>{children}</a>;
 }
 
-function inlineMd(s, kp) {
-  const out = []; let k = 0; let last = 0; let m;
-  const re = /(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(\*[^*\s\n][^*\n]*\*)|(\[[^\]\n]+\]\(((?:https:\/\/|mailto:)[^\s)]+)\))|(https:\/\/[^\s<>"')\]]+)/g;
-  while ((m = re.exec(s))) {
-    if (m.index > last) out.push(s.slice(last, m.index));
-    let t = m[0];
-    if (m[1]) out.push(<code key={kp + "c" + k++} className="ic">{t.slice(1, -1)}</code>);
-    else if (m[2]) out.push(<b key={kp + "b" + k++}>{inlineMd(t.slice(2, -2), kp + "bb" + k)}</b>);
-    else if (m[3]) out.push(<i key={kp + "i" + k++}>{t.slice(1, -1)}</i>);
-    else if (m[4]) out.push(<ExtLink key={kp + "a" + k++} href={m[5]}>{t.slice(1, t.indexOf("]("))}</ExtLink>);
-    else {
-      // Bare address: sentence punctuation right after it is not part of the link.
-      const url = t.replace(/[.,;:!?]+$/, "");
-      re.lastIndex -= t.length - url.length; t = url;
-      out.push(<ExtLink key={kp + "u" + k++} href={url}>{url.replace(/^https:\/\//, "").slice(0, 70) + (url.length > 78 ? "…" : "")}</ExtLink>);
-    }
-    last = m.index + t.length;
+// A ChatGPT source pill: the domain, the full address on hover; one click opens the real address.
+export function SourceChip({ href, label }) {
+  return (
+    <ExtLink className="src-chip" href={href} title={href}>
+      <span className="src-d">{label || domainOf(href)}</span><span className="src-arr" aria-hidden="true">›</span>
+    </ExtLink>
+  );
+}
+
+const Media = createContext(null);
+
+// The focus goes into the dialog („Затвори“) and back to the picture that opened it (review).
+function Lightbox({ src, alt, href, onClose }) {
+  const closeRef = useRef(null);
+  useEffect(() => {
+    const back = document.activeElement;
+    if (closeRef.current) closeRef.current.focus();
+    const k = (e) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } };
+    document.addEventListener("keydown", k, true);
+    return () => {
+      document.removeEventListener("keydown", k, true);
+      if (back && typeof back.focus === "function" && document.contains(back)) back.focus();
+    };
+  }, []);
+  return createPortal(
+    <div className="lb" onClick={onClose} role="dialog" aria-label="Преглед на снимката" data-testid="md-lightbox">
+      <img src={src} alt={alt} onClick={(e) => e.stopPropagation()} />
+      <div className="r">
+        {alt ? <span>{alt}</span> : null}
+        {href ? <button className="b" onClick={(e) => { e.stopPropagation(); open(href); }}><Icon n="external" />Отвори източника</button> : null}
+        <button className="b" ref={closeRef} onClick={onClose}><Icon n="x" />Затвори</button>
+      </div>
+    </div>, document.body);
+}
+
+// One picture of an answer. state: "chip" (not from a tool result: loads only after a click) | "load" | "ok" | "err".
+function MdImg({ src, alt, small }) {
+  const media = useContext(Media);
+  const isFile = src.startsWith("file:");
+  const fileId = isFile ? src.slice(5) : media && media.bySource ? media.bySource.get(src) : undefined;
+  const ownFile = !!(fileId && media && media.ids && media.ids.has(fileId));
+  const allowed = isFile ? ownFile : !!(media && media.allowed && media.allowed.has(src));
+  const [state, setState] = useState(allowed ? "load" : "chip");
+  const [url, setUrl] = useState(null);
+  const [err, setErr] = useState("");
+  const [zoom, setZoom] = useState(false);
+  const [clicked, setClicked] = useState(false);
+  useEffect(() => { if (allowed && state === "chip") setState("load"); }, [allowed]);
+  useEffect(() => {
+    if (state !== "load") return undefined;
+    let off = false;
+    const p = ownFile ? loadFileImage(fileId) : isFile ? Promise.resolve({ ok: false, error: "Файлът не е от този отговор." }) : loadWebImage(src, { clicked });
+    p.then((r) => {
+      if (off) return;
+      if (r && r.ok) { setUrl(r.url); setState("ok"); } else { setErr((r && r.error) || "Снимката не можа да се зареди."); setState("err"); }
+    });
+    return () => { off = true; };
+  }, [state]);
+  const dom = isFile ? "файл" : domainOf(src);
+  if (state === "chip") {
+    return (
+      <button type="button" className="src-chip img-chip" data-testid="img-chip" data-src={src} title={"Зареди снимката от " + src} onClick={() => { setClicked(true); setState("load"); }}>
+        <Icon n="image" /><span className="src-d">Снимка: {dom}</span><span className="src-arr" aria-hidden="true">›</span>
+      </button>
+    );
   }
-  if (last < s.length) out.push(s.slice(last));
-  return out;
+  if (state === "err") {
+    return isFile
+      ? <span className="src-chip img-chip bad" data-testid="img-err" title={err}><Icon n="image" /><span className="src-d">Снимката не е налична</span></span>
+      : <ExtLink className="src-chip img-chip bad" href={src} title={err + " – " + src}><Icon n="image" /><span className="src-d" data-testid="img-err">Снимката не се зареди · {dom}</span><span className="src-arr" aria-hidden="true">›</span></ExtLink>;
+  }
+  return (
+    <>
+      <button type="button" className={"md-img" + (small ? " sm" : "") + (state === "load" ? " sk" : "")} data-testid="md-img" data-src={src} data-state={state}
+        onClick={() => url && setZoom(true)} aria-label={alt ? "Преглед: " + alt : "Преглед на снимката"} disabled={!url}>
+        {url ? <img src={url} alt={alt || ""} draggable={false} /> : <i className="spin" />}
+      </button>
+      {zoom && url ? <Lightbox src={url} alt={alt} href={isFile ? null : src} onClose={() => setZoom(false)} /> : null}
+    </>
+  );
 }
 
-const LI_RE = /^\s*([-*•]|\d+[.)])\s+/;
-
-export default function Md({ text, onCanvas, copy }) {
-  const parts = String(text || "").split("```");
-  const nodes = [];
-  parts.forEach((p, idx) => {
-    if (idx % 2 === 1) {
-      const nl = p.indexOf("\n"); const lang = nl > 0 ? p.slice(0, nl).trim() : "";
-      const code = (nl >= 0 ? p.slice(nl + 1) : p).replace(/\n$/, "");
-      nodes.push(<CodeBlock key={"c" + idx} lang={lang} code={code} onCanvas={onCanvas} copy={copy} />); return;
-    }
-    const lines = p.split("\n"); let j = 0;
-    while (j < lines.length) {
-      const L = lines[j]; const key = idx + "-" + j;
-      if (!L.trim()) { j++; continue; }
-      const h = L.match(/^(#{1,4})\s+(.*)/);
-      if (h) { nodes.push(React.createElement("h" + Math.min(6, h[1].length + 2), { key, className: "mdh" }, inlineMd(h[2], key))); j++; continue; }
-      if (/^\s*(---|\*\*\*|___)\s*$/.test(L)) { nodes.push(<hr key={key} />); j++; continue; }
-      if (/^\s*\|.*\|\s*$/.test(L) && j + 1 < lines.length && /^\s*\|?\s*:?-{2,}/.test(lines[j + 1])) {
-        const row = (x) => x.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
-        const head = row(L); j += 2; const body = [];
-        while (j < lines.length && /^\s*\|.*\|\s*$/.test(lines[j])) { body.push(row(lines[j])); j++; }
-        nodes.push(<div key={key} className="mdt"><table><thead><tr>{head.map((c, q) => <th key={q}>{inlineMd(c, key + "h" + q)}</th>)}</tr></thead><tbody>{body.map((r, q) => <tr key={q}>{r.map((c, w) => <td key={w}>{inlineMd(c, key + "d" + q + w)}</td>)}</tr>)}</tbody></table></div>);
-        continue;
-      }
-      if (LI_RE.test(L)) {
-        const ordered = /^\s*\d+[.)]/.test(L); const items = [];
-        while (j < lines.length && LI_RE.test(lines[j])) { items.push(lines[j].replace(LI_RE, "")); j++; }
-        nodes.push(React.createElement(ordered ? "ol" : "ul", { key }, items.map((it, q) => <li key={q}>{inlineMd(it, key + "l" + q)}</li>)));
-        continue;
-      }
-      if (/^>\s?/.test(L)) { const q = []; while (j < lines.length && /^>\s?/.test(lines[j])) { q.push(lines[j].replace(/^>\s?/, "")); j++; } nodes.push(<blockquote key={key}>{inlineMd(q.join(" "), key)}</blockquote>); continue; }
-      const para = [];
-      while (j < lines.length && lines[j].trim() && !(/^#{1,4}\s/.test(lines[j]) || LI_RE.test(lines[j]) || /^>/.test(lines[j]) || /^\s*\|.*\|\s*$/.test(lines[j]))) { para.push(lines[j]); j++; }
-      if (!para.length) { para.push(L); j++; }
-      nodes.push(<p key={key}>{para.map((x, q) => <Fragment key={q}>{q ? <br /> : null}{inlineMd(x, key + "p" + q)}</Fragment>)}</p>);
+function inline(nodes, kp, ctx = {}) {
+  return nodes.map((n, k) => {
+    const key = kp + "." + k;
+    switch (n.t) {
+      case "text": return <Fragment key={key}>{n.v}</Fragment>;
+      case "br": return <br key={key} />;
+      case "code": return <code key={key} className="ic">{n.v}</code>;
+      case "b": return <b key={key}>{inline(n.c, key, ctx)}</b>;
+      case "i": return <i key={key}>{inline(n.c, key, ctx)}</i>;
+      case "s": return <s key={key}>{inline(n.c, key, ctx)}</s>;
+      // The real domain is always shown with the link text (review F1): text alone can never disguise the destination.
+      case "a": return <ExtLink key={key} className="md-a" href={n.href} title={n.href}>{inline(n.c, key, ctx)}{n.dom ? <small className="md-a-dom" data-testid="link-domain">{n.dom}</small> : null}</ExtLink>;
+      case "chip": return <SourceChip key={key} href={n.href} label={n.label} />;
+      case "nolink": return <span key={key} className="md-nolink" title="Адреси с http:// не се отварят от програмата – само https://">{inline(n.c, key, ctx)} <small>({n.href})</small></span>;
+      case "img": return <MdImg key={key} src={n.src} alt={n.alt} small={!!ctx.cell} />;
+      default: return null;
     }
   });
-  return <div className="md">{nodes}</div>;
+}
+
+// A tight list item shows its first paragraph as plain text (no gap), like ChatGPT.
+function itemBody(item, loose, kp, extra) {
+  const bl = item.c;
+  if (!loose && item.tight && bl.length && bl[0].t === "p") return <>{inline(bl[0].c, kp + "p")}{blocks(bl.slice(1), kp + "r", extra)}</>;
+  return blocks(bl, kp, extra);
+}
+
+function blocks(list, kp, extra) {
+  return list.map((n, k) => {
+    const key = kp + "-" + k;
+    switch (n.t) {
+      case "p": return <p key={key}>{inline(n.c, key)}</p>;
+      case "h": return React.createElement("h" + (n.level + 2), { key, className: "mdh l" + n.level }, inline(n.c, key));
+      case "hr": return <hr key={key} />;
+      case "code": return <CodeBlock key={key} lang={n.lang} code={n.code} onCanvas={extra && extra.onCanvas} copy={extra && extra.copy} />;
+      case "quote": return <blockquote key={key}>{blocks(n.c, key, extra)}</blockquote>;
+      case "gallery": return <div key={key} className={"md-gallery n" + Math.min(4, n.c.length)} data-testid="md-gallery">{n.c.map((im, q) => <MdImg key={q} src={im.src} alt={im.alt} />)}</div>;
+      case "list": {
+        const items = n.items.map((it, q) => (
+          <li key={q} className={it.task == null ? undefined : "task"}>
+            {it.task == null ? null : <span className={"md-task" + (it.task ? " on" : "")} role="img" aria-label={it.task ? "изпълнено" : "неизпълнено"}>{it.task ? <Icon n="check" /> : null}</span>}
+            {itemBody(it, n.loose, key + "i" + q, extra)}
+          </li>
+        ));
+        return n.ordered ? <ol key={key} start={n.start !== 1 ? n.start : undefined}>{items}</ol> : <ul key={key}>{items}</ul>;
+      }
+      case "table": {
+        const al = (q) => (n.align[q] ? "al-" + n.align[q] : undefined);
+        return (
+          <div key={key} className="mdt" role="region" aria-label="Таблица" tabIndex={0} data-testid="md-table">
+            <table>
+              <thead><tr>{n.head.map((c, q) => <th key={q} className={al(q)}>{inline(c, key + "h" + q, { cell: true })}</th>)}</tr></thead>
+              <tbody>{n.rows.map((r, q) => <tr key={q}>{r.map((c, w) => <td key={w} className={al(w)}>{inline(c, key + "d" + q + "_" + w, { cell: true })}</td>)}</tr>)}</tbody>
+            </table>
+          </div>
+        );
+      }
+      default: return null;
+    }
+  });
+}
+
+// media = {allowed:Set<url>, bySource:Map<url,fileId>, ids:Set<fileId>} (lib/agent.js answerMedia) or nothing.
+export default function Md({ text, onCanvas, copy, media }) {
+  const tree = useMemo(() => parseBlocks(String(text || "")), [text]);
+  return <Media.Provider value={media || null}><div className="md">{blocks(tree, "b", { onCanvas, copy })}</div></Media.Provider>;
 }
 
 function CodeBlock({ lang, code, onCanvas, copy }) {

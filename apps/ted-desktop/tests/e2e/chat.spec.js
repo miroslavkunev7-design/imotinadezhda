@@ -1,6 +1,6 @@
 // Sign-in, the chat with Ted's server, real action statuses, errors and the e-mail confirmation flow.
 import { test, expect } from "@playwright/test";
-import { guard, lastAnswer, login, mockCalls, open, openSettings, send } from "./helpers.js";
+import { guard, lastAnswer, openActivity, login, mockCalls, open, openSettings, send } from "./helpers.js";
 
 test("wrong password shows the server message; login opens home with the profile", async ({ page }) => {
   const g = guard(page);
@@ -35,10 +35,14 @@ test("send → live waiting timer → answer with the server's step statuses", a
   await login(page, "lat=2300");
   await send(page, "Намери имоти и запиши оглед");
   await expect(page.getByTestId("waiting")).toBeVisible();
-  await expect(page.getByTestId("wait-clock")).toHaveText(/^0:0[1-9]$/); // the clock really runs
+  await expect(page.getByTestId("wait-clock")).toHaveText(/^[1-9] с$/); // the clock really runs (same format as Real GPT's line)
   const a1 = lastAnswer(page);
   await expect(a1.getByTestId("actions-card")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("waiting")).toHaveCount(0);
+  // 0.1.5: one collapsed line like ChatGPT; the statuses are one click away.
+  await expect(a1.getByTestId("activity-text")).toHaveText("Тед изпълни 2 действия · 1 неуспешно");
+  await expect(a1.getByTestId("activity-body")).toHaveCount(0);
+  await openActivity(a1);
   await expect(a1.locator(".run-h .status")).toHaveText("Частично изпълнено");
   await expect(a1.locator(".ribbon")).toHaveText("промени в CRM");
   await expect(a1.locator(".steps li")).toHaveCount(3);
@@ -47,11 +51,14 @@ test("send → live waiting timer → answer with the server's step statuses", a
 
   await send(page, "Дай ми справка за месеца");
   await expect(page.locator(".msg.a[data-engine=server]")).toHaveCount(2, { timeout: 15000 });
+  await openActivity(lastAnswer(page));
   await expect(lastAnswer(page).locator(".run-h .status")).toHaveText("Изпълнено");
   await expect(lastAnswer(page).locator(".ribbon")).toHaveCount(0);
 
   await send(page, "Тест за неуспех");
   await expect(page.locator(".msg.a[data-engine=server]")).toHaveCount(3, { timeout: 15000 });
+  await expect(lastAnswer(page).getByTestId("activity-text")).toContainText("Нищо не е изпълнено");
+  await openActivity(lastAnswer(page));
   await expect(lastAnswer(page).locator(".run-h .status")).toHaveText("Неуспешно");
 
   const calls = await mockCalls(page);
@@ -91,6 +98,7 @@ test("e-mail card: one confirmation call, follow-up built only from the result",
   const follow = page.locator(".msg.a[data-engine=server]").last();
   await expect(follow).toContainText("✔ Изпратено до Тестов Клиент А <klient-a@example.test> от agent@example.test");
   await expect(follow).toContainText("Резултат от сървъра · email.send");
+  await openActivity(follow);
   await expect(follow.locator(".run-h .status")).toHaveText("Изпълнено");
   await expect(card.getByRole("button", { name: /Да, изпрати/ })).toHaveCount(0);
   await expect(card).toContainText("Изпратено.");
@@ -195,6 +203,7 @@ test("ok:true without result.sent (mail not set up) is not shown as sent", async
   await expect(follow).toContainText("Няма настроена поща за изпращане (тест).");
   await expect(follow.getByTestId("panel-card")).toBeVisible();
   await expect(follow).not.toContainText("✔ Изпратено");
+  await openActivity(follow);
   await expect(follow.locator(".run-h .status")).toHaveText("Неуспешно");
   await g.check();
 });

@@ -16,9 +16,12 @@
 // Magic phrases in a chat message: "квота" -> quota error · "имейл" -> e-mail preview card ·
 //   "справка" -> all steps succeeded · "неуспех" -> all steps failed · "сървърна грешка" -> HTTP 502 ·
 //   "дълъг" -> a long answer (TTS chunking). Real GPT: "лимит" -> usage_limit · "повторен вход" -> reauth.
-// Scripted agent (?agent=1, consent "all"): "видео"/"клип" -> paid video approval · "снимк"/"изображение" ->
-//   images.generate · "обяв" -> internet listings with phones and photo cards · "договор"/"canvas" -> Canvas
+// Scripted agent (?agent=1, consent "all"): "видео"/"клип" or the video hint -> „Отвори в ChatGPT“ card (kind video) ·
+//   "снимк"/"изображение" or the image hint -> „Отвори в ChatGPT“ card (kind image) – Real GPT makes no picture or
+//   video itself (§9.6) · "обяв" -> internet listings (0.1.5, below) · "договор"/"canvas" -> Canvas
 //   version with an SVG chart · "имейл" -> e-mail draft card · attached files -> read_document + reworked .docx ·
+//   0.1.5: "обяв" -> a ChatGPT-style listings table with real links and inline photos (`images` events) ·
+//   "изтегли" -> fetch_image FileCards + the same photos inline · "чужда" -> a picture NOT from a tool result (chip) ·
 //   anything else -> web_search → read_page → CRM properties.search → create_document + approval calendar.create.
 
 const params = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
@@ -43,6 +46,8 @@ const OPT = {
   video: ["ok", "noengine", "fail"].includes(params.get("video")) ? params.get("video") : "ok",
   browse: params.get("browse") !== "0",
   chats: Math.max(0, Math.min(200, num(params.get("chats"), 0))),
+  // 0.1.5 speed checks: two saved chats „Дълъг чат А/Б“ with <n> question/answer pairs each (Markdown answers).
+  long: Math.max(0, Math.min(400, num(params.get("long"), 0))),
 };
 
 const iso = (daysAgo) => new Date(Date.now() - daysAgo * 86400000).toISOString();
@@ -203,6 +208,20 @@ function chatInvalid(messages) {
 const LONG = Array.from({ length: 14 }, (_, i) => `Изречение ${i + 1} от дългия тестов отговор, който проверява четенето на части и не съдържа реални данни.`).join(" ") +
   "\n\n" + Array.from({ length: 14 }, (_, i) => `Второ изречение ${i + 1}: още измислен текст за проверка на разделянето на гласа на части до деветстотин знака.`).join(" ");
 
+// 0.1.5: the realistic Real GPT listings answer of the mock (fictional data on example.test only).
+const LISTINGS_ANSWER = "Намерих 2 тестови обяви за двустаен в Тестоград (измислени данни) и една, която не се отвори.\n\n" +
+  "| № | Обява | Цена | Населено място | Разстояние | Телефон | Източник |\n" +
+  "|---:|---|---:|---|---|---|:---:|\n" +
+  "| 1 | [Тестов двустаен апартамент, Център](https://example.test/obiava-101) | 99 000 € | Тестоград, Център | неуточнено | +359 00 000 0001 | [example.test](https://example.test/obiava-101) |\n" +
+  "| 2 | [Тестов двустаен с тераса](https://example.test/obiava-102?ref=test&id=102) | 87 500 € | Тестоград, Изток | 3 км | скрит | [example.test](https://example.test/obiava-102?ref=test&id=102) |\n\n" +
+  "### Снимки\n\n**1. Тестов двустаен апартамент, Център**\n\n" +
+  "![Обява 101 – снимка 1](https://example.test/img/obiava-101-1.png) ![Обява 101 – снимка 2](https://example.test/img/obiava-101-2.png) ![Обява 101 – снимка 3](https://example.test/img/obiava-101-3.png)\n\n" +
+  "**2. Тестов двустаен с тераса**\n\n" +
+  "![Обява 102 – снимка 1](https://example.test/img/obiava-102-1.png) ![Обява 102 – снимка 2](https://example.test/img/obiava-102-2.png)\n\n" +
+  "### Недостъпни\n\n- Тестова обява 103 – страницата върна грешка 404.\n\n" +
+  "**Следващи стъпки:**\n1. Мога да проверя кои обяви са от собственици.\n2. Мога да запиша избраните в CRM (с вашето разрешение).\n\n" +
+  "Търсене: https://example.test/tarsene/dvustaen-testograd?sort=price&page=1&filter=nov-stroitelstvo-tuhla-etazh-2-5-nov-stroitelstvo-tuhla-etazh-2-5-nov-stroitelstvo-tuhla-etazh-2-5-nov-stroitelstvo-tuhla-etazh-2-5-nov-stroitelstvo-tuhla-etazh-2-5-nov-stroitelstvo-tuhla-etazh-2-5-end\n\n*Данните от интернет са непроверени.*";
+
 const CANVAS_TEXT = "# Тестов договор за наем\n\n**Наемодател:** Тестов Клиент А  \n**Наемател:** Тестов Клиент Б\n\n" +
   "1. Предмет: измислен двустаен апартамент ТЕСТ-101, гр. Тестоград.\n2. Наем: 450 € месечно.\n3. Срок: 12 месеца.\n\n" +
   "```svg\n<svg viewBox=\"0 0 240 120\"><script>alert(1)</script><rect x=\"20\" y=\"40\" width=\"60\" height=\"60\" fill=\"#850F2D\" onclick=\"alert(2)\"/>" +
@@ -211,13 +230,27 @@ const CANVAS_TEXT = "# Тестов договор за наем\n\n**Наемо
 
 export function createMockBridge() {
   let signedIn = OPT.signedIn;
-  let settings = OPT.browse ? {} : { browse: { enabled: false, robots: true, blocked: [] } };
+  // ?eng=rg: the settings saved by an earlier run chose Real GPT (start with that engine and its first model).
+  let settings = { ...(OPT.browse ? {} : { browse: { enabled: false, robots: true, blocked: [] } }), ...(params.get("eng") === "rg" ? { engine: "realgpt", rgModel: RG_MODELS[0].slug } : {}) };
   // ?chats=n: fictional saved chats. Created newest-first (array order) while chat 1 is the least recently active.
   let chats = Array.from({ length: OPT.chats }, (_, k) => {
     const n = OPT.chats - k;
     return { id: "c_test" + String(n).padStart(4, "0"), title: "Чат номер " + n, caseId: null, updatedAt: Date.now() - (OPT.chats - n + 1) * 3600000 * (n <= 2 ? 100 : 1),
       archived: false, pinned: false, temporary: false, messages: [{ id: "m_t" + n, role: "user", text: "Тестов въпрос " + n, time: Date.now() - 86400000 }] };
   });
+  // ?long=n: two long chats (the newest activity), every answer with a heading, a list and a table (speed checks).
+  const longAnswer = (k) => "### Тестов отговор " + k + "\n\nИзмислени данни за проверка на скоростта на дълъг чат.\n\n" +
+    "1. Първа точка с **удебелен** текст и [линк](https://example.test/obiava-" + k + ")\n2. Втора точка\n3. Трета точка\n\n" +
+    "| Код | Имот | Цена |\n|---|---|---:|\n| ТЕСТ-" + k + " | Измислен двустаен | 99 000 € |\n| ТЕСТ-" + (k + 1) + " | Измислена къща | 185 000 € |";
+  const longChat = (tag, base) => {
+    const messages = [];
+    for (let k = 1; k <= OPT.long; k++) {
+      messages.push({ id: "m_l" + tag + "u" + k, role: "user", text: "Тестов въпрос " + k + " в дълъг чат " + tag, time: base + k * 2000 });
+      messages.push({ id: "m_l" + tag + "a" + k, role: "assistant", engine: "server", text: longAnswer(k), time: base + k * 2000 + 1000, actions: [] });
+    }
+    return { id: "c_long" + tag, title: "Дълъг чат " + tag, caseId: null, updatedAt: base + OPT.long * 2000 + 2000, archived: false, pinned: false, temporary: false, messages };
+  };
+  if (OPT.long) chats = [longChat("А", Date.now() - 3600000), longChat("Б", Date.now() - 7200000), ...chats];
   let rg = OPT.rgConnected ? { connected: true, email: "chatgpt.test@example.test", planEnabled: OPT.rgPlan } : { connected: false };
   const consentOf = { "chatgpt.test@example.test": OPT.consent }; // per ChatGPT account, like MAIN's secure store
   let confirmAnswer = true;
@@ -235,12 +268,16 @@ export function createMockBridge() {
   const updSubs = new Set();
   const pending = new Map(); // requestId -> abort()
   const approvals = new Map(); // approvalId -> {requestId, resolve}
+  const emittedImages = new Set(); // picture addresses the mock agent emitted as `images` (MAIN's provenance)
   const calls = {
-    chat: [], confirmSend: 0, tts: [], transcribe: 0, openExternal: [], copy: [], saveFile: [], rgSend: [], rgSignIn: [], casesCreate: [], remember: [], forget: [], read: [],
-    consent: [], approve: [], filesAdd: [], filesRead: [], filesOpen: [], filesSave: [], filesExtract: [], filesForget: [], browseTest: [],
+    chat: [], confirmSend: 0, tts: [], transcribe: 0, openExternal: [], openInChatGpt: [], browseImageClicked: [], copy: [], saveFile: [], rgSend: [], rgSignIn: [], casesCreate: [], remember: [], forget: [], read: [],
+    consent: [], approve: [], filesAdd: [], projAssign: [], projAnswer: [], projZip: [], projCrm: [], filesRead: [], filesOpen: [], filesSave: [], filesExtract: [], filesForget: [], browseTest: [], browseImage: [],
     videoPrepare: [], videoStart: [], videoCancel: [], videoFinish: [], libRemove: [], libClear: 0, schedSave: [], schedRemove: [],
     updCheck: 0, updAuto: [], updDownload: 0, updInstall: 0, storage: 0, clearTemp: 0, reportProblem: 0,
+    // Every call that MAIN would turn into a request to imotinadezhda.bg or its Supabase host (speed/load checks).
+    site: [],
   };
+  const site = (fn) => { calls.site.push({ fn, at: Date.now() }); };
 
   const authState = () => (signedIn ? { status: "signedIn", user: { ...USER }, remembered: OPT.remembered } : { status: "signedOut" });
   const emitAuth = () => { const s = authState(); authSubs.forEach((cb) => cb(s)); };
@@ -264,7 +301,7 @@ export function createMockBridge() {
   /* ======================= files + library (§8.1, §8.6, §11) ======================= */
   const files = new Map(); // id -> {ref, bytes, temporary}
   const libChanged = () => libSubs.forEach((cb) => { try { cb(); } catch { /* listener */ } });
-  function storeFile({ name, mime, bytes, chatId, temporary = false, origin = "user", savedTo, sourceUrl, pages, sheets, crm, thumb, maxBytes = 20 * MB }) {
+  function storeFile({ name, mime, bytes, chatId, caseId, caseTitle, temporary = false, origin = "user", savedTo, sourceUrl, pages, sheets, crm, thumb, maxBytes = 20 * MB }) {
     const fileName = String(name || "файл").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").slice(0, 180) || "файл";
     if (!bytes || !bytes.length) return { ok: false, code: "invalid", error: "Файлът е празен." };
     if (bytes.length > maxBytes) return { ok: false, code: "too_large", error: `Файлът „${fileName}“ е по-голям от ${Math.round(maxBytes / MB)} MB.` };
@@ -272,6 +309,7 @@ export function createMockBridge() {
     const sn = sniff(fileName, mime, bytes);
     const ref = { id: nid("f_test"), name: fileName, mime: sn.mime, size: bytes.length, kind: sn.kind, origin, createdAt: new Date().toISOString() };
     if (chatId) ref.chatId = String(chatId).slice(0, 64);
+    if (caseId && !temporary) { ref.caseId = String(caseId).slice(0, 64); if (caseTitle) ref.caseTitle = String(caseTitle).slice(0, 160); }
     if (sn.kind === "image" && thumb) ref.thumb = thumb;
     else if (sn.kind === "image" && bytes.length <= 24 * 1024 && /jpeg|png/.test(sn.mime)) ref.thumb = "data:" + sn.mime + ";base64," + bytesToB64(bytes);
     if (sn.kind === "pdf") ref.pages = pages || 1;
@@ -432,6 +470,7 @@ export function createMockBridge() {
     const a = args || {};
     const messages = Array.isArray(a.messages) ? a.messages : [];
     const last = messages.length ? String(messages[messages.length - 1].text || "") : "";
+    site("api.chat");
     calls.chat.push({ count: messages.length, model: a.model, mode: a.mode, caseId: a.caseId, last, maxLen: Math.max(0, ...messages.map((m) => String((m && m.text) || "").length)) });
     const bad = chatInvalid(messages);
     if (bad) return { ok: false, error: bad, code: "invalid", maybeExecuted: false };
@@ -479,6 +518,7 @@ export function createMockBridge() {
   async function read(tool, input) {
     const i = input && typeof input === "object" ? input : {};
     calls.read.push(tool);
+    if (READ_ONLY.has(tool)) site("crm.read " + tool);
     if (!READ_ONLY.has(tool)) return { ok: false, error: "Този инструмент не е разрешен за четене от програмата.", code: "forbidden" };
     await sleep(120);
     if (tool === "cases.list") return { ok: true, result: { cases: clone(CASES.filter((c) => !i.status || c.status === i.status)) } };
@@ -541,7 +581,9 @@ export function createMockBridge() {
     };
     const addFile = (spec, st) => {
       // As MAIN: files Ted makes are filed with the asking chat (never kept for a temporary chat).
-      const r = storeFile({ ...spec, chatId: typeof args.chatId === "string" ? args.chatId : null, ...(args.temporary ? { temporary: true } : {}) });
+      // As MAIN (0.1.5): in a chat of a Проект the file also goes into the project's folder.
+      const proj = typeof args.caseId === "string" && args.caseId && !args.temporary ? { caseId: args.caseId, caseTitle: (CASES.find((c) => c.id === args.caseId) || {}).title || "" } : {};
+      const r = storeFile({ ...spec, chatId: typeof args.chatId === "string" ? args.chatId : null, ...(args.temporary ? { temporary: true } : {}), ...proj });
       if (r.ok) { made.push(r.file); ev({ type: "file", file: r.file, stepId: st.id }); }
       return r;
     };
@@ -585,6 +627,69 @@ export function createMockBridge() {
         return out(s2.text, { limited: { rounds: 8, calls: 40 } });
       }
 
+      // 0.1.5 property upload (CONTRACT §9.5): the data from the text and the photos GPT looked at itself → one card for
+      // properties.create → the code → a card for images.download with the chat photos ("file:<id>") → the gallery.
+      if (/кач\S*[^\n]{0,40}имот|нов имот|качване на имот/.test(low)) {
+        if (!/\d/.test(last)) return finishText("За да кача имота, ми трябват още: **сделка** (продажба или наем), **вид**, **цена**, **площ** и **град**. Напишете ги и прикачете снимките (тест).");
+        const photos = attached.filter((f) => f.ref.kind === "image");
+        const fields = { title: "Тестов двустаен апартамент, Център", deal: "sale", type: "Апартамент", price: 99000, area: 65, rooms: 2, floor: "3 от 6", city: "Тестоград", hood: "Център",
+          desc: "Тестово описание, написано от GPT: светъл двустаен апартамент в центъра на Тестоград с южно изложение и две тераси (измислени данни)." };
+        const s1 = mkStep("crm", "CRM: имоти.създаване", { tool: "properties.create", mutating: true });
+        const d1 = await ask({ kind: "crm_write", title: "ChatGPT иска да създаде: имоти", tool: "properties.create", allowAll: true,
+          lines: [["Заглавие", fields.title], ["Сделка", "продажба"], ["Вид", fields.type], ["Цена", "99 000 €"], ["Площ (м²)", "65 м²"], ["Стаи", "2"], ["Етаж", fields.floor], ["Град", fields.city], ["Квартал", fields.hood], ["Описание", fields.desc]],
+          json: JSON.stringify(fields, null, 2) }, s1);
+        if (ctl.aborted) return stopped();
+        if (d1.decision === "deny") { s1.denied(); return finishText("Имотът не е създаден – отказахте. Нищо не е записано в CRM (тест)."); }
+        if (await pause()) return stopped();
+        s1.ok("P-1042 (тест)");
+        let photoLine = "Няма прикачени снимки – прикачете ги и кажете „добави снимките към P-1042“.";
+        if (photos.length) {
+          // As MAIN (review F4): photos of this computer always get their own card – „Разреши всички“ never covers them.
+          const s2 = mkStep("image", "Добавям снимки в галерията", { tool: "images.download", mutating: true });
+          const shown = photos.map((f) => "„" + f.ref.name + "“");
+          const d2 = await ask({ kind: "crm_write", title: "ChatGPT иска да добави " + (photos.length === 1 ? "1 снимка" : photos.length + " снимки") + " в галерията на имот P-1042", tool: "images.download", allowAll: false,
+            lines: [["Имот", "P-1042"], ["Снимки", shown.join(", ")], ["Най-много", String(photos.length)]], json: JSON.stringify({ urls: photos.map((f) => "file:" + f.ref.id), property_code: "P-1042", max: photos.length }, null, 2) }, s2);
+          if (ctl.aborted) return stopped();
+          if (d2.decision === "deny") { s2.denied(); photoLine = "Снимките не са записани – отказахте."; }
+          else {
+            for (const f of photos) { const u = mkStep("upload", "Качвам „" + f.ref.name + "“ в хранилището на CRM"); if (await pause()) return stopped(); u.ok(); }
+            if (await pause()) return stopped();
+            s2.ok(photos.length + " снимки в галерията на P-1042 (тест)");
+            photoLine = "Снимките (" + photos.length + ") са в галерията на имота, с логото на агенцията (тест).";
+          }
+        }
+        return finishText("Създадох имот **P-1042** (статус „Чернова“) с тези данни (тестови):\n\n| Поле | Стойност |\n|---|---|\n| Заглавие | " + fields.title + " |\n| Сделка | продажба |\n| Вид | Апартамент |\n| Цена | 99 000 € |\n| Площ | 65 м² |\n| Град | Тестоград, Център |\n\n" + photoLine);
+      }
+
+      // 0.1.5 project folders (§8.12): „събирай … в папка“ → a card for cases.create, then what Ted makes goes into the folder;
+      // „zip“ → export_zip as a FileCard (only „Запази…“).
+      if (/папка|папката/.test(low)) {
+        const cid = typeof args.caseId === "string" && args.caseId ? args.caseId : null;
+        if (/zip|архив|изтегли/.test(low)) {
+          const kase = CASES.find((c) => c.id === cid) || CASES[0];
+          const s = mkStep("folder", "Папка „" + kase.title + "“: правя ZIP");
+          if (await pause()) return stopped();
+          const n = libraryItems().filter((f) => f.caseId === kase.id).length;
+          if (!n) { s.fail("папката е празна"); return finishText("Папката на „" + kase.title + "“ е празна – няма какво да архивирам (тест)."); }
+          const r = addFile({ name: kase.title + ".zip", bytes: zipLike("zip " + n), origin: "ted" }, s);
+          if (r.ok) s.ok(n + " файла"); else s.fail(r.error);
+          return finishText("Направих ZIP на папката „" + kase.title + "“ (" + n + " файла). Запазете го от картата по-долу с „Запази…“ (тест).");
+        }
+        const s1 = mkStep("crm", "CRM: проекти.създаване", { tool: "cases.create", mutating: true });
+        const d1 = await ask({ kind: "crm_write", title: "ChatGPT иска да създаде проект „Тестов клиент В · папка“", tool: "cases.create", allowAll: true,
+          lines: [["Заглавие", "Тестов клиент В · папка"], ["Клиент", "Тестов Клиент В"]], json: JSON.stringify({ title: "Тестов клиент В · папка", client_name: "Тестов Клиент В" }, null, 2) }, s1);
+        if (ctl.aborted) return stopped();
+        if (d1.decision === "deny") { s1.denied(); return finishText("Проектът не е създаден – отказахте (тест)."); }
+        const id = "case-test-" + ++caseSeq;
+        CASES.unshift({ id, title: "Тестов клиент В · папка", client: "Тестов Клиент В", status: "open", updated_at: new Date().toISOString(), summary: "" });
+        s1.ok();
+        const s2 = mkStep("doc", "Правя документ: Тестово досие на клиента.docx");
+        if (await pause()) return stopped();
+        const r = storeFile({ name: "Тестово досие на клиента.docx", bytes: zipLike("word/document.xml"), origin: "ted", chatId: args.chatId, caseId: id, caseTitle: "Тестов клиент В · папка" });
+        if (r.ok) { made.push(r.file); ev({ type: "file", file: r.file, stepId: s2.id }); s2.ok(); } else s2.fail(r.error);
+        return finishText("Създадох проекта „Тестов клиент В · папка“ и сложих досието в папката му. Вижте Проекти → Папка (тест).");
+      }
+
       // Attached files: read locally, then a reworked version.
       if (attached.length) {
         for (const f of attached) {
@@ -601,45 +706,24 @@ export function createMockBridge() {
         return finishText("Прочетох „" + attached[0].ref.name + "“ и направих преработена версия като Word файл (тестови данни). Прегледайте я, преди да я изпратите.");
       }
 
-      // Paid AI video: prepare → approval card with engines and price → start (or nothing).
-      if (/видео|клип/.test(low)) {
-        const s = mkStep("video", "Видео на имот");
+      // Pictures and video: Real GPT has no image/video engine of its own and uses no other AI (§9.6) – it shows a
+      // card with the prompt for the employee's ChatGPT app; nothing is opened or created here.
+      const hintsNow = Array.isArray(args.hints) ? args.hints : [];
+      const wantsVideo = /видео|клип/.test(low) || hintsNow.includes("video");
+      if ((wantsVideo || /снимк|изображение|картин/.test(low) || hintsNow.includes("image")) && !/изтегли|чужда/.test(low)) {
+        const kind = wantsVideo ? "video" : "image";
+        const s = mkStep("chatgpt", "Заявка за ChatGPT: " + (kind === "video" ? "видео" : "снимка"));
         if (await pause()) return stopped();
-        const prep = videoPrepare({ code: "ТЕСТ-101" });
-        if (!prep.ok) {
-          if (prep.job) ev({ type: "video", job: prep.job });
-          s.fail(prep.error);
-          return finishText("Видео не може да се направи: на сървъра няма настроен ключ за AI видео. Мога първо да направя AI снимка на имота.");
-        }
-        const job = prep.job;
-        ev({ type: "video", job });
-        const d = await ask({
-          kind: "video", title: "Платено AI видео", allowAll: false,
-          lines: [["Имот", job.source.code + " · " + job.source.title], ["Части", String(job.parts.length)], ["Формат", job.aspect]],
-          video: { engines: job.engines, gateway: job.gateway, parts: job.parts.length, aspect: job.aspect, defaults: job.defaults },
-        }, s);
-        if (ctl.aborted) return stopped();
-        if (d.decision === "deny") {
-          videoCancel({ jobId: job.id });
-          s.denied();
-          return finishText("Видеото не е започнато – отказахте.");
-        }
-        const st = videoStart({ jobId: job.id, engine: d.options && d.options.engine, duration: d.options && d.options.duration });
-        if (!st.ok) { s.fail(st.error); return finishText("Видеото не започна: " + st.error); }
-        s.ok("започна");
-        return finishText("Видеото започна на сървъра (тест): " + job.parts.length + " части. Ще се появи в картата на видеото, когато е готово – не е готово още.");
+        const prompt = kind === "video"
+          ? "Кратко видео (10 s, 16:9) – бавна разходка с камерата из тестов светъл двустаен апартамент, дневна с голям прозорец, реалистично, без надписи."
+          : "Фотореалистична снимка (16:9) на тестова дневна в стил минимализъм: светли дървени подове, бял диван, голям прозорец, дневна светлина, без хора и надписи.";
+        ev({ type: "chatgpt", handoff: { id: nid("cg_test"), kind, prompt } });
+        s.ok("картата е показана – нищо не е отворено");
+        return finishText("Оттук не мога да създам " + (kind === "video" ? "видео" : "снимка") + " – това става в приложението ChatGPT с вашия план. Подготвих заявката по-долу: прегледайте я и натиснете „Отвори в ChatGPT“ (тестови данни).");
       }
 
-      // AI image through Ted's images.generate.
-      if (/снимк|изображение|картин/.test(low)) {
-        const s = mkStep("image", "Генерирам снимка", { tool: "images.generate" });
-        if (await pause()) return stopped();
-        const r = addFile({ name: "AI визуализация (тест).png", bytes: pngBytes("AI визуализация · тест", 480, 300), thumb: thumbOf("AI · тест"), origin: "crm", savedTo: "папка „Тед“" }, s);
-        if (r.ok) s.ok(); else s.fail(r.error);
-        return finishText("Генерирах тестова AI визуализация. Записана е в папка „Тед“ на сървъра и в Библиотеката.");
-      }
-
-      // Internet listings: findings directly in the answer + photo cards.
+      // Internet listings like ChatGPT (0.1.5): a table with the REAL listing links, photos inline (their addresses came
+      // from read_page – `images` events), unreachable pages listed apart, a short summary with a source chip.
       if (/обяв|собственици/.test(low)) {
         if (!browseOn) {
           const s = mkStep("listings", "Интернетът е изключен");
@@ -649,18 +733,39 @@ export function createMockBridge() {
         const s1 = mkStep("web_search", "Търся в интернет: тестови обяви двустаен Тестоград");
         if (await pause()) return stopped();
         s1.ok("8 резултата (тест)");
-        const s2 = mkStep("read_page", "Чета страница: example.test/obiava-101");
+        const pagesRead = [
+          { path: "obiava-101", imgs: [1, 2, 3] },
+          { path: "obiava-102", imgs: [1, 2] },
+        ];
+        for (const pg of pagesRead) {
+          const s = mkStep("read_page", "Чета страница: example.test/" + pg.path);
+          if (await pause()) return stopped();
+          s.ok("1 телефон, " + pg.imgs.length + " снимки");
+          { const urls = pg.imgs.map((k) => "https://example.test/img/" + pg.path + "-" + k + ".png"); urls.forEach((x) => emittedImages.add(x)); ev({ type: "images", urls }); }
+        }
+        const s3 = mkStep("read_page", "Чета страница: example.test/obiava-103");
         if (await pause()) return stopped();
-        s2.ok("1 телефон, 2 снимки");
+        s3.fail("Страницата върна грешка 404.");
+        return finishText(LISTINGS_ANSWER);
+      }
+
+      // Photos of a listing fetched into the store (fetch_image): FileCards, and the same addresses inline.
+      if (/изтегли/.test(low)) {
         for (let k = 1; k <= 2; k++) {
           const s = mkStep("fetch_image", "Изтеглям снимка: example.test/img/obiava-101-" + k + ".png");
           if (await pause()) return stopped();
           const r = addFile({ name: "obiava-101-" + k + ".png", bytes: pngBytes("Обява 101 · снимка " + k), thumb: thumbOf("Обява 101 · " + k), origin: "web", sourceUrl: "https://example.test/img/obiava-101-" + k + ".png" }, s);
           if (r.ok) s.ok(); else s.fail(r.error);
         }
-        return finishText("Намерих 1 тестова обява (измислени данни):\n\n" +
-          "1. **Тестов двустаен апартамент** – 99 000 € – Тестоград, Център – тел. +359 00 000 0001 – https://example.test/obiava-101\n\n" +
-          "Снимките от обявата са по-долу. Данните от интернет са непроверени.");
+        return finishText("Изтеглих 2 тестови снимки от обявата (измислени данни):\n\n![Обява 101 – снимка 1](https://example.test/img/obiava-101-1.png) ![Обява 101 – снимка 2](https://example.test/img/obiava-101-2.png)\n\nФайловете са и в Библиотеката.");
+      }
+
+      // A picture whose address did NOT come from a tool result: only a chip that loads after a click.
+      if (/чужда/.test(low)) {
+        const s = mkStep("web_search", "Търся в интернет: тестова снимка");
+        if (await pause()) return stopped();
+        s.ok("1 резултат (тест)");
+        return finishText("Ето тестова снимка от друг сайт:\n\n![Тестова снимка от друг сайт](https://foreign.example.test/photo-1.png)\n\nИзточник: https://foreign.example.test/galeriya/testova-snimka?ref=chat");
       }
 
       // A document written from scratch into Canvas (a NEW version), with an SVG chart.
@@ -718,6 +823,7 @@ export function createMockBridge() {
     const lastFiles = messages.length && Array.isArray(messages[messages.length - 1].files) ? messages[messages.length - 1].files : [];
     calls.rgSend.push({
       count: messages.length, model: args.model, effort: args.effort, instructions: args.instructions, roles: messages.map((m) => m.role), last,
+      ...(args.textOnly ? { textOnly: true } : {}),
       mode: args.mode, hints: args.hints, caseId: args.caseId, role: args.role, files: lastFiles, consent: consentNow(),
       ...(args.canvas ? { canvas: { title: args.canvas.title, version: args.canvas.version, len: String(args.canvas.text || "").length } } : {}),
     });
@@ -730,11 +836,17 @@ export function createMockBridge() {
       await delay(200, args.requestId);
       return { ok: false, error: "Достигнат е лимитът на вашия ChatGPT план. Опитайте по-късно.", code: "usage_limit" };
     }
-    if (/повторен вход/i.test(last)) return { ok: false, error: "Входът с ChatGPT е изтекъл – влезте отново.", code: "reauth" };
-    const tools = consentNow() === "all";
+    // As MAIN: a terminal refresh failure clears the saved tokens, so the status reads „не е свързан“ afterwards.
+    if (/повторен вход/i.test(last)) { rg = { connected: false }; return { ok: false, error: "Входът с ChatGPT е изтекъл – влезте отново.", code: "reauth" }; }
+    if (args.textOnly != null && typeof args.textOnly !== "boolean") return { ok: false, error: "Невалидна заявка.", code: "invalid" };
+    // textOnly (the „Само текст“ retry) only takes the tools away for this answer, as MAIN.
+    const tools = consentNow() === "all" && args.textOnly !== true;
     if (tools && OPT.agentFail === "tools_unsupported") {
       if (await delay(250, args.requestId)) return { ok: false, error: "Спряно от вас.", code: "aborted" };
-      return { ok: false, error: "Вашият ChatGPT план не прие заявката с инструментите на Тед (тест).", code: "tools_unsupported" };
+      return {
+        ok: false, error: "ChatGPT планът не прие инструментите на Тед за този модел (тест).", code: "tools_unsupported",
+        refused: { status: 400, code: "subscription_sharing_unsupported_capability", param: "tools[0]", message: "Function tools are not supported for this test model." },
+      };
     }
     if (tools && (OPT.agent || OPT.agentFail === "limit")) return agentRun(args, last);
     const full = tools
@@ -786,7 +898,7 @@ export function createMockBridge() {
       onChange: (cb) => sub(authSubs, cb),
     },
     api: {
-      models: async () => { await sleep(80); return { ok: true, models: clone(MODELS), modes: clone(MODES) }; },
+      models: async () => { site("api.models"); await sleep(80); return { ok: true, models: clone(MODELS), modes: clone(MODES) }; },
       chat,
       cancel: async (requestId) => abort(requestId),
     },
@@ -794,7 +906,7 @@ export function createMockBridge() {
     cases: {
       create: async (args) => {
         const a = args || {};
-        calls.casesCreate.push(a);
+        calls.casesCreate.push(a); site("cases.create");
         if (!String(a.title || "").trim()) return { ok: false, error: "Въведете заглавие на казуса (до 160 знака)." };
         await sleep(150);
         const id = "case-test-" + ++caseSeq;
@@ -805,7 +917,7 @@ export function createMockBridge() {
     memory: {
       remember: async (args) => {
         const a = args || {};
-        calls.remember.push(a);
+        calls.remember.push(a); site("memory.remember");
         const id = "mem-test-" + ++memSeq;
         MEMORY.unshift({ id, kind: "fact", role: "user", at: new Date().toISOString(), text: String(a.text || ""), ...(a.caseId ? { case_id: a.caseId } : {}) });
         return { ok: true, result: { id, saved: true } };
@@ -823,7 +935,7 @@ export function createMockBridge() {
       // Stands in for the native confirmation dialog in MAIN plus the email.send tool call.
       confirmSend: async (args) => {
         const a = args || {};
-        calls.confirmSend += 1;
+        calls.confirmSend += 1; site("email.send");
         await sleep(150);
         if (!confirmAnswer) return { ok: false, canceled: true };
         const to = a.to && typeof a.to === "object" ? a.to : { email: String(a.to || "") };
@@ -835,12 +947,12 @@ export function createMockBridge() {
     voice: {
       tts: async (args) => {
         const text = String((args && args.text) || "");
-        calls.tts.push(text.length);
+        calls.tts.push(text.length); site("voice.tts");
         if (!text || text.length > 1200) return { ok: false, error: "Текстът за четене е празен или над 1200 знака.", code: "invalid" };
         await sleep(40);
         return { ok: true, wav: wav() };
       },
-      transcribe: async () => { calls.transcribe += 1; await sleep(120); return { ok: true, text: "Тестова диктовка" }; },
+      transcribe: async () => { calls.transcribe += 1; site("voice.transcribe"); await sleep(120); return { ok: true, text: "Тестова диктовка" }; },
     },
     store: {
       getSettings: async () => clone(settings),
@@ -899,17 +1011,29 @@ export function createMockBridge() {
         return { ok: true };
       },
       onEvent: (cb) => sub(eventSubs, cb),
+      // As MAIN (ipc.js + agent/chatgpt-link.js): only https://chatgpt.com/?q=<prompt>, ≤ 4000 chars and a link ≤ 8000; recorded, never opened.
+      // {bare:true} opens https://chatgpt.com/ itself; a prompt whose LINK is over 8000 chars → code "too_long" (as MAIN).
+      openInChatGpt: async (args) => {
+        if (args && args.bare === true) { calls.openInChatGpt.push({ prompt: "", url: "https://chatgpt.com/" }); return { ok: true }; }
+        const raw = args && typeof args.prompt === "string" ? args.prompt : "";
+        const prompt = raw.replace(/\r\n?/g, "\n").replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, "").trim();
+        if (!prompt || prompt.length > 4000) return { ok: false, code: "invalid", error: "Заявката е празна или твърде дълга." };
+        const url = "https://chatgpt.com/?q=" + encodeURIComponent(prompt);
+        if (url.length > 8000) return { ok: false, code: "too_long", error: "Заявката е твърде дълга за линк (кирилицата заема повече място) – копирайте я и я поставете в ChatGPT." };
+        calls.openInChatGpt.push({ prompt, url });
+        return { ok: true };
+      },
     },
     files: {
       add: async (args) => {
         const a = args || {};
-        calls.filesAdd.push({ name: a.name, mime: a.mime, chatId: a.chatId || null, temporary: !!a.temporary });
+        calls.filesAdd.push({ name: a.name, mime: a.mime, chatId: a.chatId || null, temporary: !!a.temporary, caseId: a.caseId || null });
         if (typeof a.name !== "string" || !a.name || a.name.length > 180 || typeof a.data !== "string" || a.data.length > 28 * MB || (a.mime != null && String(a.mime).length > 120)) {
           return { ok: false, code: "invalid", error: "Невалиден файл." };
         }
         let bytes;
         try { bytes = b64ToBytes(a.data); } catch { return { ok: false, code: "invalid", error: "Файлът не можа да се прочете." }; }
-        return storeFile({ name: a.name, mime: a.mime || "", bytes, chatId: a.chatId, temporary: !!a.temporary, origin: "user" });
+        return storeFile({ name: a.name, mime: a.mime || "", bytes, chatId: a.chatId, temporary: !!a.temporary, origin: "user", caseId: a.caseId, caseTitle: a.caseTitle });
       },
       read: async (args) => {
         const a = args || {};
@@ -953,6 +1077,23 @@ export function createMockBridge() {
       },
     },
     browse: {
+      // As MAIN (ipc.js browse.image): one https picture, ≤ 8 MB, image/* – the mock draws a test picture, no network.
+      image: async (args) => {
+        const a = args || {};
+        calls.browseImage.push(a.url);
+        if (a.clicked === true) calls.browseImageClicked.push(a.url);
+        let u;
+        try { u = new URL(String(a.url || "")); } catch { return { ok: false, code: "invalid", error: "Невалиден адрес на снимка." }; }
+        if (u.protocol !== "https:" || String(a.url).length > 2048) return { ok: false, code: "invalid", error: "Снимките се зареждат само по https." };
+        if (settings.browse && settings.browse.enabled === false) return { ok: false, code: "off", error: "Интернетът е изключен в Настройки → Браузър." };
+        // As MAIN (browse/provenance.js): without a click only addresses the agent emitted as `images`.
+        if (a.clicked !== true && !emittedImages.has(String(a.url))) return { ok: false, code: "not_allowed", error: "Снимката не е от резултат на инструмент – заредете я с клик." };
+        await sleep(60);
+        if (/missing/.test(u.pathname)) return { ok: false, code: "http", error: "Адресът върна грешка 404." };
+        const label = decodeURIComponent(u.pathname.split("/").pop() || u.hostname).replace(/\.[a-z]+$/i, "");
+        const bytes = pngBytes("Тест · " + label, 480, 360);
+        return { ok: true, mime: "image/png", size: bytes.length, data: bytes.slice().buffer };
+      },
       test: async (args) => {
         const a = args || {};
         calls.browseTest.push(a.url);
@@ -997,7 +1138,7 @@ export function createMockBridge() {
         await sleep(60);
         const q = String(a.q || "").toLowerCase().slice(0, 200);
         const all = libraryItems();
-        const items = all.filter((f) => (!a.kind || f.kind === a.kind) && (!q || f.name.toLowerCase().includes(q))).slice(0, Math.min(500, Number(a.limit) || 500));
+        const items = all.filter((f) => (!a.kind || f.kind === a.kind) && (!q || f.name.toLowerCase().includes(q)) && (!a.caseId || f.caseId === a.caseId)).slice(0, Math.min(500, Number(a.limit) || 500));
         return { ok: true, items: clone(items), totalBytes: all.reduce((n, f) => n + f.size, 0), count: all.length };
       },
       remove: async (id) => {
@@ -1014,6 +1155,58 @@ export function createMockBridge() {
         return { ok: true };
       },
       onChange: (cb) => sub(libSubs, cb),
+    },
+    // Project folders (§8.12): the same checks as MAIN; ZIP and „Запази в сайта“ are recorded, nothing leaves the page.
+    projects: {
+      assign: async (args) => {
+        const a = args || {};
+        calls.projAssign.push({ caseId: a.caseId === undefined ? undefined : a.caseId, fileIds: a.fileIds });
+        if (!Array.isArray(a.fileIds) || !a.fileIds.length || a.fileIds.length > 50 || !a.fileIds.every(isId)) return { ok: false, code: "invalid", error: "Невалидни данни." };
+        const out = [];
+        for (const id of a.fileIds) {
+          const f = files.get(id);
+          if (!f) continue;
+          const { caseId: _c, caseTitle: _t, ...rest } = f.ref;
+          f.ref = a.caseId ? { ...rest, caseId: a.caseId, ...(a.caseTitle ? { caseTitle: a.caseTitle } : {}) } : rest;
+          out.push({ ...f.ref });
+        }
+        if (out.length) libChanged();
+        return out.length ? { ok: true, files: out } : { ok: false, code: "not_found", error: "Файловете не са намерени." };
+      },
+      saveAnswer: async (args) => {
+        const a = args || {};
+        calls.projAnswer.push({ caseId: a.caseId, title: a.title });
+        if (typeof a.caseId !== "string" || !a.caseId || typeof a.text !== "string" || !a.text) return { ok: false, code: "invalid", error: "Невалидни данни." };
+        return storeFile({ name: String(a.title || "Отговор на Тед").slice(0, 100) + ".md", mime: "text/markdown", bytes: enc(a.text), origin: "ted", chatId: a.chatId, caseId: a.caseId, caseTitle: a.caseTitle });
+      },
+      exportZip: async (args) => {
+        const a = args || {};
+        const items = libraryItems().filter((f) => f.caseId === a.caseId);
+        calls.projZip.push({ caseId: a.caseId, title: a.title, names: items.map((f) => f.name) });
+        if (!items.length) return { ok: false, code: "empty", error: "Папката на проекта е празна – няма какво да се изтегли." };
+        if (!confirmAnswer) return { ok: false, canceled: true };
+        await sleep(80);
+        return { ok: true, path: "C:\\Users\\Test\\Documents\\" + String(a.title || "Проект") + ".zip", count: items.length, bytes: items.reduce((n, f) => n + f.size, 0) };
+      },
+      saveToCrm: async (args) => {
+        const a = args || {};
+        const t = a.target || {};
+        calls.projCrm.push({ caseId: a.caseId, fileIds: a.fileIds, target: clone(t) });
+        const items = libraryItems().filter((f) => f.caseId === a.caseId && (!Array.isArray(a.fileIds) || !a.fileIds.length || a.fileIds.includes(f.id)));
+        if (!items.length) return { ok: false, code: "empty", error: "Папката на проекта е празна." };
+        if (!t.propertyCode && !t.clientName && !t.clientId) return { ok: false, code: "invalid", error: "Изберете клиент или имот, при който да се запишат файловете." };
+        if (!confirmAnswer) return { ok: false, canceled: true }; // the native Windows confirmation of MAIN
+        site("files.attach ×" + items.length);
+        await sleep(120);
+        const label = t.propertyCode ? "имот " + t.propertyCode : "клиент " + (t.clientName || t.clientId);
+        const results = items.map((f) => {
+          const where = t.propertyCode && f.kind === "image" ? label + " (снимки)" : label;
+          const x = files.get(f.id); if (x) x.ref = { ...x.ref, savedTo: "CRM: " + where };
+          return { id: f.id, name: f.name, ok: true, savedTo: where };
+        });
+        libChanged();
+        return { ok: true, results, saved: results.length, failed: 0, target: label };
+      },
     },
     scheduled: {
       list: async () => { await sleep(60); return { ok: true, items: clone(tasks) }; },

@@ -6,7 +6,10 @@ import { extOf, fmtSize } from "../../lib/format.js";
 
 const call = async (fn) => { try { return await fn(); } catch { return { ok: false, error: "Вътрешна грешка в програмата." }; } };
 const KIND = { image: "Снимка", pdf: "PDF", docx: "Word", xlsx: "Excel", csv: "CSV", text: "Текст", video: "Видео", other: "Файл" };
-const ORIGIN = { user: "прикачен от вас", ted: "направен от Тед", web: "от интернет", crm: "от сървъра на Тед" };
+// "ted" = made by this program on this computer (a document of Real GPT's create_document, a ZIP, a saved answer…);
+// madeBy names who asked for it where that is known (a Real GPT answer: „ChatGPT“) – review (c).
+const ORIGIN = { user: "прикачен от вас", ted: "направен на този компютър", web: "от интернет", crm: "от сървъра на Тед" };
+const originOf = (o, madeBy) => (o === "ted" && madeBy ? `направен от ${madeBy} на този компютър` : ORIGIN[o] || "");
 const EXT_KIND = { jpg: "image", jpeg: "image", png: "image", webp: "image", gif: "image", pdf: "pdf", docx: "docx", xlsx: "xlsx", csv: "csv", txt: "text", md: "text", json: "text", html: "text", mp4: "video", webm: "video" };
 const kindOf = (f) => (KIND[f.kind] ? f.kind : EXT_KIND[extOf(f.name)] || "other");
 const MAX_PREVIEW = { image: 25 * 1048576, video: 150 * 1048576 };
@@ -35,7 +38,7 @@ export const openable = (f) => !!f && (OPENABLE.test(String(f.name || "")) || (f
 // picture, video player from a blob, PDF/Word/Excel as an icon with pages/sheets), „Отвори“ (a copy in the
 // program's own temporary folder, opened by Windows) and „Запази…“ (native save dialog). Nothing is claimed that
 // the FileRef does not say: `savedTo` is copied verbatim from the server's result.
-export default function FileCard({ file, compact, onToast }) {
+export default function FileCard({ file, compact, onToast, madeBy }) {
   const f = file && typeof file === "object" ? file : null;
   const [url, load] = useBlobUrl();
   const [view, setView] = useState(null);     // null | "image" (lightbox) | "video" (inline player)
@@ -58,7 +61,7 @@ export default function FileCard({ file, compact, onToast }) {
     f.size > 0 ? fmtSize(f.size) : "",
     f.pages ? f.pages + " стр." : "",
     Array.isArray(f.sheets) && f.sheets.length ? f.sheets.length + (f.sheets.length === 1 ? " лист" : " листа") : "",
-    !compact ? ORIGIN[f.origin] || "" : "",
+    !compact ? originOf(f.origin, madeBy) : "",
   ].filter(Boolean).join(" · ");
 
   async function preview() {

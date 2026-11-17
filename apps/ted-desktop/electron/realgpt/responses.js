@@ -12,7 +12,9 @@ export const DEFAULT_INSTRUCTIONS =
   'Ти си Тед – AI асистент на агенция за недвижими имоти „Имоти Надежда“. Отговаряй на български, кратко, ясно ' +
   'и по същество. В този режим работиш през ChatGPT плана на служителя и нямаш достъп до CRM системата, ' +
   'календара, документите и имейла на агенцията. Не твърди, че си извършил действие в тях, и не измисляй данни ' +
-  'за клиенти, имоти или сделки. Ако не знаеш нещо или не можеш да го направиш оттук, кажи го направо.';
+  'за клиенти, имоти или сделки. Ако не знаеш нещо или не можеш да го направиш оттук, кажи го направо. ' +
+  'Подреждай отговора като в ChatGPT (Markdown): кратко изречение в началото, после номериран списък или таблица, ' +
+  'накрая кратко резюме; линковете като [текст](https://адрес) с точния адрес, без HTML.';
 
 // The only top-level fields this module ever sends. `tools` only on agent requests (consent "all", §9.1).
 export const ALLOWED_KEYS = ['model', 'instructions', 'input', 'store', 'stream', 'reasoning', 'tools'];
@@ -35,6 +37,9 @@ const IMAGE_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif
 const MAX_MESSAGES = 200;
 const MAX_IMAGES = 8; // per message
 const MAX_IMAGE_BASE64 = 28 * 1024 * 1024; // all images of one request
+// PDFs the agent attaches itself from the file store (input_file, CONTRACT §9.6): GPT reads them directly.
+export const MAX_DOCS = 5; // per message
+export const MAX_DOC_BASE64 = 24 * 1024 * 1024; // all PDFs of one request
 const MAX_INSTRUCTIONS = 80_000;
 const MAX_CUSTOM = 1500;
 
@@ -44,7 +49,8 @@ export function composeInstructions(base, custom) {
   return extra ? `${base}\n\n${CUSTOM_HEADING}\n${extra}` : base;
 }
 
-// messages: [{role:"user"|"assistant", text, images?:[{mime, data(base64)}]}] -> Responses input items.
+// messages: [{role:"user"|"assistant", text, images?:[{mime, data(base64)}], docs?:[{name, mime:"application/pdf",
+// data(base64)}]}] -> Responses input items (docs only from MAIN's agent, never from the renderer).
 // History is resent in full on every request (store:false, no previous_response_id). Never a system item.
 export function buildInput(messages) {
   if (!Array.isArray(messages) || !messages.length || messages.length > MAX_MESSAGES) {
@@ -52,6 +58,7 @@ export function buildInput(messages) {
   }
   const input = [];
   let imageChars = 0;
+  let docChars = 0;
   for (const m of messages) {
     const text = m?.text ?? '';
     if (!m || typeof m !== 'object' || typeof text !== 'string') throw new RgError('invalid', 'messages');
@@ -71,10 +78,20 @@ export function buildInput(messages) {
       imageChars += img.data.length;
       content.push({ type: 'input_image', image_url: `data:${img.mime};base64,${img.data}` });
     }
+    const docs = m.docs ?? [];
+    if (!Array.isArray(docs) || docs.length > MAX_DOCS) throw new RgError('invalid', 'docs');
+    for (const d of docs) {
+      const ok = d && d.mime === 'application/pdf' && typeof d.data === 'string' && /^[A-Za-z0-9+/]+={0,2}$/.test(d.data) &&
+        typeof d.name === 'string' && d.name.length > 0 && d.name.length <= 180;
+      if (!ok) throw new RgError('invalid', 'docs');
+      docChars += d.data.length;
+      content.push({ type: 'input_file', filename: d.name, file_data: `data:application/pdf;base64,${d.data}` });
+    }
     if (!content.length) throw new RgError('invalid', 'messages');
     input.push({ type: 'message', role: 'user', content });
   }
   if (imageChars > MAX_IMAGE_BASE64) throw new RgError('invalid', 'images');
+  if (docChars > MAX_DOC_BASE64) throw new RgError('invalid', 'docs');
   if (input.at(-1)?.role !== 'user') throw new RgError('invalid', 'messages');
   return input;
 }

@@ -189,9 +189,10 @@ describe("packaging layout", () => {
     expect(read("electron/main.js")).toMatch(/path\.join\(app\.getAppPath\(\), "dist"\)/);
     for (const entry of ["- dist/**", "- electron/**", "- package.json"]) expect(builder).toContain(entry);
     // Packed by electron-builder from node_modules; exact versions (CONTRACT §10.4).
-    expect(Object.keys(pkg.dependencies).sort()).toEqual(["docx", "electron-updater", "jose", "mammoth", "pdfkit", "read-excel-file", "unpdf", "write-excel-file"]);
+    // fflate 0.8.3 (MIT, 2026-05-16): the ZIP of a project folder (0.1.5, CONTRACT §8.12); already used inside docx/pdfkit.
+    expect(Object.keys(pkg.dependencies).sort()).toEqual(["docx", "electron-updater", "fflate", "jose", "mammoth", "pdfkit", "read-excel-file", "unpdf", "write-excel-file"]);
     for (const v of Object.values(pkg.dependencies)) expect(v).toMatch(/^\d+\.\d+\.\d+$/);
-    expect(pkg.dependencies).toMatchObject({ "electron-updater": "6.8.11", docx: "9.15.1", pdfkit: "0.20.2", "write-excel-file": "4.1.1", "read-excel-file": "9.3.14", mammoth: "1.13.0", unpdf: "2.1.0" });
+    expect(pkg.dependencies).toMatchObject({ "electron-updater": "6.8.11", docx: "9.15.1", pdfkit: "0.20.2", "write-excel-file": "4.1.1", "read-excel-file": "9.3.14", mammoth: "1.13.0", unpdf: "2.1.0", fflate: "0.8.3" });
   });
 
   it("the workflow uses existing npm scripts and the packaged exe name", () => {

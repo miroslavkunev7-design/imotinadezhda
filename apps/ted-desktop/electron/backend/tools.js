@@ -39,8 +39,13 @@ function errorText(status, json) {
 }
 
 // http (optional): the plain allowlisted client, for the public GETs below (no token is ever attached there).
-export function createTools({ session, log, http }) {
+// A failed public GET (manifest, role prompt) is not repeated for 5 minutes: no identical requests in a loop.
+export const RETRY_AFTER_MS = 5 * 60_000;
+
+export function createTools({ session, log, http, now = Date.now }) {
   let manifestCache = null;
+  let manifestFailedAt = -Infinity;
+  let manifestLoading = null;
   const rolePrompts = new Map();
   async function call(tool, input) {
     const payload = input == null ? {} : input;
@@ -75,26 +80,39 @@ export function createTools({ session, log, http }) {
   // GET /api/tools: [{name, description}] of every server tool (public list, no token). Cached for the run.
   async function manifest() {
     if (manifestCache) return manifestCache;
-    if (!http) return null;
-    try {
-      const res = await http.request({ url: SITE + "/api/tools", method: "GET", timeoutMs: 20000 });
-      const list = res.ok && res.json && Array.isArray(res.json.tools) ? res.json.tools : null;
-      if (!list) return null;
-      manifestCache = list
-        .filter((t) => t && TOOL_NAME.test(String(t.name)) && String(t.name).length <= 64)
-        .map((t) => ({ name: String(t.name), description: String(t.description || "").slice(0, 600) }));
-      return manifestCache;
-    } catch (e) {
-      if (log) log.warn("tools.manifest_failed", { code: e && e.code });
-      return null;
+    if (!http || now() - manifestFailedAt < RETRY_AFTER_MS) return null;
+    // Two calls at once (the agent asks twice per answer) share one request.
+    if (!manifestLoading) {
+      manifestLoading = (async () => {
+        try {
+          const res = await http.request({ url: SITE + "/api/tools", method: "GET", timeoutMs: 20000 });
+          const list = res.ok && res.json && Array.isArray(res.json.tools) ? res.json.tools : null;
+          if (!list) { manifestFailedAt = now(); return null; }
+          manifestCache = list
+            .filter((t) => t && TOOL_NAME.test(String(t.name)) && String(t.name).length <= 64)
+            .map((t) => ({ name: String(t.name), description: String(t.description || "").slice(0, 600) }));
+          return manifestCache;
+        } catch (e) {
+          manifestFailedAt = now();
+          if (log) log.warn("tools.manifest_failed", { code: e && e.code });
+          return null;
+        } finally {
+          manifestLoading = null;
+        }
+      })();
     }
+    return manifestLoading;
   }
 
   // GET /api/tools?mode=<id>: the public role prompt of a server mode ("Умения и роли"). Cached for the run.
   async function rolePrompt(mode) {
     const id = String(mode || "");
     if (!/^[a-z0-9_-]{1,40}$/i.test(id) || !http) return null;
-    if (rolePrompts.has(id)) return rolePrompts.get(id);
+    if (rolePrompts.has(id)) {
+      const hit = rolePrompts.get(id);
+      if (!(hit && hit.failedAt)) return hit;
+      if (now() - hit.failedAt < RETRY_AFTER_MS) return null;
+    }
     try {
       const res = await http.request({ url: `${SITE}/api/tools?mode=${encodeURIComponent(id)}`, method: "GET", timeoutMs: 15000 });
       const j = res.ok && res.json && res.json.ok ? res.json : null;
@@ -102,6 +120,7 @@ export function createTools({ session, log, http }) {
       rolePrompts.set(id, out);
       return out;
     } catch {
+      rolePrompts.set(id, { failedAt: now() });
       return null;
     }
   }

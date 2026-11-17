@@ -104,9 +104,11 @@ function PersonalPane({ S, patch, set, toast }) {
 function ConsentBlock({ rg, consent, setConsent }) {
   if (!rg.connected) return <div className="info">Свържете Real GPT, за да изберете дали да ползва инструментите на Тед.</div>;
   return <>
-    <Opt title="Инструментите на Тед за Real GPT" sub={consent === "all" ? "Разрешени: Real GPT ползва CRM, интернет и файловете, които прикачите, през вашия ChatGPT акаунт." : consent === "text" ? "Само текст: без CRM, интернет и четене на файлове." : "Още не е избрано – ще ви попитаме при първия въпрос."}>
-      <span className="hrow"><button className={"b" + (consent === "all" ? " wine" : "")} onClick={() => setConsent("all")} disabled={consent === "all"}>Разреши</button>
-        <button className={"b" + (consent === "text" ? " wine" : "")} onClick={() => setConsent("text")} disabled={consent === "text"}>Само текст</button></span></Opt>
+    <Opt title="Инструментите на Тед за Real GPT" sub={consent === "all" ? "Разрешени: Real GPT ползва само вашия ChatGPT план; Тед дава достъп до CRM, интернет и файловете на този компютър – друг изкуствен интелект не се ползва." : consent === "text" ? "Само текст: само вашият ChatGPT, без CRM, интернет и четене на файлове." : "Още не е избрано – ще ви попитаме при първия въпрос."}>
+      {/* A segmented choice (review): the chosen option is full-colour wine with a check, never a greyed-out button. */}
+      <span className="seg consent-seg" role="group" aria-label="Инструментите на Тед за Real GPT">
+        <button className={consent === "all" ? "on" : ""} aria-pressed={consent === "all"} onClick={() => { if (consent !== "all") setConsent("all"); }}>{consent === "all" ? <Icon n="check" cls="sm14" /> : null}Разреши</button>
+        <button className={consent === "text" ? "on" : ""} aria-pressed={consent === "text"} onClick={() => { if (consent !== "text") setConsent("text"); }}>{consent === "text" ? <Icon n="check" cls="sm14" /> : null}Само текст</button></span></Opt>
   </>;
 }
 
@@ -258,7 +260,8 @@ export default function SettingsView(p) {
       {tab === "usage" && <>
         <H k="usage" lead="Лимитите на Real GPT са тези на вашия ChatGPT план." />
         <Opt title="Използване на ChatGPT плана" sub="Страницата за лимити в ChatGPT (отваря се в браузъра)"><button className="b" onClick={manageUsage}><Icon n="external" />Управление на лимита</button></Opt>
-        <div className="info">Снимките и видеото се правят от сървъра на Тед (Gemini, AI видео) и се плащат от агенцията, не от ChatGPT плана. Видеото винаги иска потвърждение с цената преди старт. Тед (сървър) има свои лимити – когато свършат, програмата го казва.</div>
+        <div className="info"><b>Real GPT</b> ползва само вашия ChatGPT план – и за мислене, и за анализ, превод и текстове. Снимки и видео с плана се правят в приложението ChatGPT: Тед подготвя заявката и вие я отваряте с „Отвори в ChatGPT“.</div>
+        <div className="info"><b>Тед (сървър)</b> прави снимки и AI видео на сървъра на Тед (Gemini, AI видео) – плащат се от агенцията, не от ChatGPT плана; видеото винаги иска потвърждение с цената преди старт. Сървърът има свои лимити – когато свършат, програмата го казва.</div>
       </>}
       {tab === "model" && <>
         <H k="model" lead="Списъкът идва от сървъра на Тед. Под всеки отговор пише реално използваният модел." />
@@ -313,20 +316,20 @@ export default function SettingsView(p) {
         <div className="sec-h">Кога да говори</div>
         {SPEAK.map((v) => <button key={v.id} className={"radio" + (S.speak === v.id ? " on" : "")} onClick={() => set("speak", v.id)}><span className="rd" /><span className="tx"><b>{v.name}</b></span></button>)}
         <button className="b wine" onClick={testVoice}><Icon n={speaking ? "stopsq" : "speaker"} />{speaking ? "Спри" : "Пробвай гласа"}</button>
-        <div className="info">Гласът се създава от сървъра на Тед. Текстът на отговора се изпраща там, за да бъде прочетен.</div>
+        <div className="info" data-testid="voice-ai-note">Гласът се създава от сървъра на Тед с Google Gemini – друг изкуствен интелект, не вашият ChatGPT план. С Тед на сървъра текстът отива там при „Чуй“ или според „Кога да говори“. С Real GPT отговорите не се четат сами, а „Чуй“, диктовката и гласовият режим питат веднъж (до затваряне на програмата), преди текстът или записът да отидат там.</div>
       </>}
       {tab === "dict" && <>
         <H k="dict" lead="Гласовите съобщения се превръщат в текст." />
         <Opt title="Изпращай гласовия въпрос веднага" sub="Без преглед на разпознатия текст"><Sw id="sw-ds" on={S.dictSend} set={(v) => set("dictSend", v)} /></Opt>
-        <div className="info"><b>Бележки.</b> Микрофонът се включва само когато натиснете бутона и докато записвате. Записът (до 2 минути) се изпраща към сървъра на Тед за разпознаване. Ако Windows не разрешава микрофона, програмата го казва.</div>
+        <div className="info"><b>Бележки.</b> Микрофонът се включва само когато натиснете бутона и докато записвате. Записът (до 2 минути) се изпраща към сървъра на Тед за разпознаване (Google Gemini – друг изкуствен интелект; с Real GPT програмата пита първо). Ако Windows не разрешава микрофона, програмата го казва.</div>
       </>}
       {tab === "safety" && <>
         <H k="safety" lead="Какво Тед прави сам и за какво пита." />
         <ul className="set-ul">
-          <li><b>Сам:</b> търси и чете (CRM, интернет, вашите файлове), смята, пише текстове и документи, прави снимки в папка „Тед“.</li>
+          <li><b>Сам:</b> търси и чете (CRM, интернет, вашите файлове), смята, пише текстове и документи; Тед (сървър) прави и снимки в папка „Тед“, а Real GPT подготвя заявка за снимка или видео, която вие отваряте в ChatGPT.</li>
           <li><b>С карта „Разреши“:</b> всяка промяна в CRM – клиент, имот, събитие, бележка, файл към клиент или имот, памет.</li>
           <li><b>С прозорец на Windows:</b> изтриване, смяна на статус, публикуване и изпращане на имейл.</li>
-          <li><b>С цена:</b> AI видеото показва двигателя, дължината и приблизителната цена преди старт.</li>
+          <li><b>С цена (само Тед на сървъра):</b> AI видеото показва двигателя, дължината и приблизителната цена преди старт.</li>
         </ul>
         <div className="sec-h mt">Real GPT</div>
         <ConsentBlock rg={rg} consent={consent} setConsent={setConsent} />

@@ -3,6 +3,8 @@
 // Tokens and passwords never travel back: handlers return only the shapes of docs/CONTRACT.md §2.
 import fs from "node:fs";
 import path from "node:path";
+import { CHATGPT_PROMPT_MAX, chatgptUrl, cleanPrompt, CHATGPT_HOME, fitsLink } from "./agent/chatgpt-link.js";
+import { createImageProvenance } from "./browse/provenance.js";
 
 const KB = 1024;
 const MB = 1024 * KB;
@@ -139,6 +141,8 @@ function rgExtras(a) {
   if (a.role != null) { if (!isStr(a.role, 40, 1) || !/^[a-z0-9_-]+$/i.test(a.role) || a.role === "auto") return null; out.role = a.role; }
   if (a.chatId != null) { if (!isStr(a.chatId, 64, 1)) return null; out.chatId = a.chatId; }
   if (a.temporary != null) { if (typeof a.temporary !== "boolean") return null; if (a.temporary) out.temporary = true; }
+  // „Само текст“: this answer without tools (it can only take capabilities away).
+  if (a.textOnly != null) { if (typeof a.textOnly !== "boolean") return null; if (a.textOnly) out.textOnly = true; }
   return out;
 }
 
@@ -168,8 +172,13 @@ function decodeBase64(data, maxChars) {
 }
 
 const rgStep = (s) => (isObj(s) ? { ...s } : s);
+// browse.image (§8.4): the address of one picture and its size cap (= fetch_image, browse/page.js IMAGE_MAX_BYTES).
+export const IMAGE_URL_MAX = 2048;
+export const IMAGE_MAX = 8 * MB;
 
-export function createHandlers({ appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser }) {
+export function createHandlers({ appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance }) {
+  // Pictures MAIN itself handed to the window (browse/provenance.js); without one nothing loads without a click.
+  const imgProv = imageProvenance || createImageProvenance();
   const chatInvalid = (error) => ({ ok: false, error, code: "invalid", maybeExecuted: false });
   // {ok:true, result} | {ok:false, error} for the dedicated write channels.
   const written = (r) => (r.ok ? { ok: true, result: r.result } : { ok: false, error: r.error, ...(r.maybeExecuted ? { maybeExecuted: true } : {}) });
@@ -193,7 +202,8 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
       : bad("Въведете телефон или имейл и парола.")),
     "ted:auth.logout": () => session.logout(),
 
-    "ted:api.models": () => assistant.models(),
+    // {fresh:true} (0.1.5): „Проверка на връзката“ – bypasses MAIN's short cache of the model list.
+    "ted:api.models": (opts) => (opts != null && (!isObj(opts) || (opts.fresh != null && typeof opts.fresh !== "boolean")) ? bad() : assistant.models({ fresh: !!(opts && opts.fresh) })),
     "ted:api.chat": (args) => {
       if (!isObj(args) || size(args) > 6 * MB) return chatInvalid("Заявката е невалидна или твърде голяма.");
       return assistant.chat({ requestId: args.requestId, messages: args.messages, model: args.model, mode: args.mode, caseId: args.caseId });
@@ -236,7 +246,12 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
 
     "ted:store.getSettings": () => settings.get(),
     "ted:store.setSettings": (patch) => (isObj(patch) && size(patch) <= 64 * KB ? settings.set(cleanSettingsPatch(patch)) : settings.get()),
-    "ted:store.loadChats": () => chats.load(),
+    // The saved answers' picture provenance is known to MAIN again after a restart (browse.image, review F13).
+    "ted:store.loadChats": async () => {
+      const r = await chats.load();
+      try { imgProv.fromChats(r && r.chats); } catch { /* a broken entry only means: chips instead of pictures */ }
+      return r;
+    },
     "ted:store.saveChats": (list) => (Array.isArray(list) && list.length <= 2000 && list.every(isObj) && size(list) <= 30 * MB
       ? chats.save(list)
       : bad("Чатовете не могат да бъдат записани (твърде много данни).")),
@@ -296,7 +311,31 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
           ...agentFields(r),
         };
       }
-      return rgError(r, { ...(r && typeof r.text === "string" && r.text ? { text: r.text } : {}), ...(r ? agentFields(r) : {}) });
+      // tools_unsupported: what OpenAI refused (plain text fields only, cut) – shown on the card, never acted upon.
+      const refused = r && isObj(r.refused) ? {
+        status: Number(r.refused.status) || 0,
+        ...(typeof r.refused.code === "string" ? { code: r.refused.code.slice(0, 80) } : {}),
+        ...(typeof r.refused.param === "string" ? { param: r.refused.param.slice(0, 80) } : {}),
+        ...(typeof r.refused.message === "string" ? { message: r.refused.message.slice(0, 300) } : {}),
+      } : null;
+      return rgError(r, { ...(r && typeof r.text === "string" && r.text ? { text: r.text } : {}), ...(r ? agentFields(r) : {}), ...(refused ? { refused } : {}) });
+    },
+    // „Отвори в ChatGPT“ on an open_in_chatgpt card – only ever from the employee's click. MAIN builds the link
+    // itself: https, exactly chatgpt.com, the prompt as ?q= (≤ 4000 chars); nothing else can be opened here.
+    // {bare:true}: chatgpt.com itself without a prompt (the card copied a prompt that is too long for a link).
+    "ted:realgpt.openInChatGpt": async (args) => {
+      if (isObj(args) && args.bare === true) {
+        const r0 = await appApi.openExternal(CHATGPT_HOME);
+        return r0 && r0.ok ? { ok: true } : { ok: false, error: (r0 && r0.error) || "ChatGPT не можа да се отвори." };
+      }
+      if (!isObj(args) || !isStr(args.prompt, CHATGPT_PROMPT_MAX * 2, 1)) return bad("Заявката е празна или твърде дълга.");
+      const prompt = cleanPrompt(args.prompt);
+      if (prompt.length > CHATGPT_PROMPT_MAX) return bad(`Заявката е над ${CHATGPT_PROMPT_MAX} знака – съкратете я.`);
+      if (prompt && !fitsLink(prompt)) return { ok: false, code: "too_long", error: "Заявката е твърде дълга за линк (кирилицата заема повече място) – копирайте я и я поставете в ChatGPT." };
+      const url = chatgptUrl(prompt);
+      if (!url) return bad("Заявката е празна или твърде дълга.");
+      const r = await appApi.openExternal(url);
+      return r && r.ok ? { ok: true } : { ok: false, error: (r && r.error) || "ChatGPT не можа да се отвори." };
     },
     "ted:realgpt.consent": async () => {
       const r = await realgpt.consent();
@@ -324,10 +363,13 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
 
     // ---- files (§8.1) ----
     "ted:files.add": (args) => {
-      if (!isObj(args) || !isStr(args.name, 180, 1) || !optStr(args.mime, 120) || !optStr(args.chatId, 64) || (args.temporary != null && typeof args.temporary !== "boolean")) return bad();
+      if (!isObj(args) || !isStr(args.name, 180, 1) || !optStr(args.mime, 120) || !optStr(args.chatId, 64) || (args.temporary != null && typeof args.temporary !== "boolean")
+        || !optStr(args.caseId, 64) || !optStr(args.caseTitle, 160)) return bad();
       const data = decodeBase64(args.data, 28 * MB);
       if (!data) return bad("Файлът е празен, повреден или по-голям от 20 MB.");
-      const r = files.add({ name: args.name, mime: args.mime || "", data, chatId: args.chatId || undefined, temporary: !!args.temporary, origin: "user" });
+      // caseId (0.1.5): an attachment of a chat in a Проект goes into the project's folder (§8.12); never for a temporary file.
+      const project = args.caseId && !args.temporary ? { caseId: args.caseId, caseTitle: args.caseTitle || undefined } : {};
+      const r = files.add({ name: args.name, mime: args.mime || "", data, chatId: args.chatId || undefined, temporary: !!args.temporary, origin: "user", ...project });
       return r.ok ? { ok: true, file: r.file } : { ok: false, error: r.error, code: r.code };
     },
     "ted:files.read": (args) => {
@@ -339,7 +381,34 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
     "ted:files.save": (id) => (isId(id) ? files.save(id) : bad()),
     "ted:files.forget": (id) => (isId(id) ? files.forget(id) : bad()),
 
-    // ---- browse (§8.4): the settings check only; browsing itself runs inside the agent ----
+    // ---- browse (§8.4): the settings check and the pictures of answers; browsing itself runs inside the agent ----
+    // browse.image (0.1.5): the bytes of ONE picture shown in an answer, through the same SSRF-guarded session as
+    // fetch_image (no token, no cookie). https only, ≤ 8 MB, an image by its magic bytes (JPEG/PNG/WEBP/GIF).
+    // Which pictures load without a click: the renderer's rule (provenance, §16) AND MAIN's own (review F13) – an
+    // address MAIN emitted as a tool result (`images` of read_page, a fetch_image source, a saved answer's), else only
+    // {clicked:true} from the employee's click on the chip. The final address after redirects must be https too (F7).
+    "ted:browse.image": async (args) => {
+      if (!isObj(args) || !isStr(args.url, IMAGE_URL_MAX, 12)) return bad("Невалиден адрес на снимка.");
+      if (args.clicked !== undefined && typeof args.clicked !== "boolean") return bad("Невалиден адрес на снимка.");
+      let u;
+      try { u = new URL(args.url); } catch { return bad("Невалиден адрес на снимка."); }
+      if (u.protocol !== "https:" || u.username || u.password) return bad("Снимките се зареждат само по https.");
+      const s = (settings && typeof settings.get === "function" ? settings.get() : null) || {};
+      if (s.browse && s.browse.enabled === false) return { ok: false, code: "off", error: "Интернетът е изключен в Настройки → Браузър." };
+      if (args.clicked !== true && !imgProv.has(args.url) && !imgProv.has(u.href)) {
+        return { ok: false, code: "not_allowed", error: "Снимката не е от резултат на инструмент – заредете я с клик." };
+      }
+      if (!pages || typeof pages.fetchImage !== "function") return { ok: false, code: "unavailable", error: "Снимките от интернет не са достъпни." };
+      const r = await pages.fetchImage({ url: u.href });
+      if (!r || !r.ok) return { ok: false, code: (r && r.code) || "network", error: (r && r.error) || "Снимката не можа да се зареди." };
+      let final = null;
+      try { final = new URL(String((r.file && r.file.sourceUrl) || u.href)); } catch { final = null; }
+      if (!final || final.protocol !== "https:") return { ok: false, code: "insecure", error: "Снимката се пренасочва към незащитен адрес (http) и не се показва." };
+      const buf = r.file && r.file.buffer;
+      if (!buf || !buf.length || buf.length > IMAGE_MAX) return { ok: false, code: "too_large", error: "Снимката е празна или по-голяма от 8 MB." };
+      if (!/^image\/(jpeg|png|webp|gif)$/.test(String(r.file.mime))) return { ok: false, code: "not_image", error: "Това не е снимка (JPEG, PNG, WEBP, GIF)." };
+      return { ok: true, mime: r.file.mime, size: buf.length, data: buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.length) };
+    },
     "ted:browse.test": async (args) => {
       if (!isObj(args) || !isStr(args.url, 2000, 1)) return bad("Невалиден адрес.");
       try {
@@ -365,11 +434,35 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
     // ---- library (§8.6) ----
     "ted:library.list": (args) => {
       const a = args == null ? {} : args;
-      if (!isObj(a) || !optStr(a.kind, 20) || !optStr(a.q, 200) || (a.limit != null && !Number.isFinite(a.limit))) return bad();
-      return files.list({ kind: a.kind || undefined, q: a.q || undefined, limit: a.limit });
+      if (!isObj(a) || !optStr(a.kind, 20) || !optStr(a.q, 200) || (a.limit != null && !Number.isFinite(a.limit)) || !optStr(a.caseId, 64)) return bad();
+      return files.list({ kind: a.kind || undefined, q: a.q || undefined, limit: a.limit, caseId: a.caseId || undefined });
     },
     "ted:library.remove": (id) => (isId(id) ? files.remove(id) : bad()),
     "ted:library.clear": () => files.clear(),
+
+    // ---- projects (§8.12, 0.1.5): the folder of a Проект – local index, ZIP, „Запази в сайта“ ----
+    "ted:projects.assign": (args) => {
+      if (!isObj(args) || !Array.isArray(args.fileIds) || !args.fileIds.length || args.fileIds.length > 50 || !args.fileIds.every(isId)
+        || (args.caseId !== null && !isStr(args.caseId, 64, 1)) || !optStr(args.caseTitle, 160)) return bad();
+      const out = files.assign(args.fileIds, args.caseId ? { caseId: args.caseId, caseTitle: args.caseTitle || "" } : null);
+      return out.length ? { ok: true, files: out } : { ok: false, code: "not_found", error: "Файловете не са намерени." };
+    },
+    "ted:projects.saveAnswer": (args) => {
+      if (!isObj(args) || !isStr(args.caseId, 64, 1) || !optStr(args.caseTitle, 160) || !optStr(args.chatId, 64) || !optStr(args.title, 200) || !isStr(args.text, 400000, 1)) return bad();
+      const r = projects.saveAnswer({ caseId: args.caseId, caseTitle: args.caseTitle || "", chatId: args.chatId || undefined, title: args.title || "", text: args.text });
+      return r.ok ? { ok: true, file: r.file } : { ok: false, error: r.error, code: r.code };
+    },
+    "ted:projects.exportZip": (args) => {
+      if (!isObj(args) || !isStr(args.caseId, 64, 1) || !optStr(args.title, 160) || !optStr(args.client, 160)) return bad();
+      return projects.exportZip({ caseId: args.caseId, title: args.title || "", client: args.client || "" });
+    },
+    "ted:projects.saveToCrm": (args) => {
+      if (!isObj(args) || !isStr(args.caseId, 64, 1) || !optStr(args.caseTitle, 160) || !isObj(args.target)) return bad();
+      if (args.fileIds != null && (!Array.isArray(args.fileIds) || args.fileIds.length > 50 || !args.fileIds.every(isId))) return bad();
+      const t = args.target;
+      if (!optStr(t.clientId, 80) || !optStr(t.clientName, 120) || !optStr(t.propertyCode, 40)) return bad();
+      return projects.saveToCrm({ caseId: args.caseId, caseTitle: args.caseTitle || "", fileIds: args.fileIds || null, target: { clientId: t.clientId || "", clientName: t.clientName || "", propertyCode: t.propertyCode || "" } });
+    },
 
     // ---- scheduled (§8.7) ----
     "ted:scheduled.list": () => scheduled.list(),

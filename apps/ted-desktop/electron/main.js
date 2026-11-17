@@ -17,13 +17,15 @@ import { createVoice } from "./backend/voice.js";
 import { createRealGpt } from "./realgpt/index.js";
 import { createLibrary } from "./library.js";
 import { createFiles } from "./files.js";
+import { createProjects } from "./projects.js";
 import { readDocument } from "./docs/read.js";
 import { createBrowser, createSessionGuard } from "./browse/net.js";
 import { webSearch } from "./browse/search.js";
-import { withServerFallback } from "./browse/fallback.js";
 import { createPages } from "./browse/page.js";
+import { createImageProvenance } from "./browse/provenance.js";
 import { createUploads } from "./agent/uploads.js";
 import { createAgent } from "./agent/loop.js";
+import { guardTools } from "./agent/gate.js";
 import { createVideo } from "./video/flow.js";
 import { createScheduled } from "./scheduled.js";
 import { createUpdater } from "./updater.js";
@@ -189,11 +191,20 @@ function start() {
       log,
     });
     const pages = createPages({ browser, getSettings: () => settings.get() });
+    // Picture addresses MAIN handed to the window as tool results (browse.image loads only these without a click).
+    const imageProvenance = createImageProvenance();
     const uploads = createUploads({ session, files, log });
+    // Project folders (§8.12): ZIP on this computer, „Запази в сайта“ only after the employee's approval.
+    const projects = createProjects({
+      files, uploads, tools: guardTools(tools), session, dialog, getWindow: currentWindow, confirm,
+      documentsDir: () => app.getPath("documents"), log,
+    });
     const video = createVideo({ session, http, tools, files, uploads, thumb: videoThumb, emit: (job) => push("ted:video.event", job), log });
+    // Real GPT uses ONLY the employee's ChatGPT plan (docs/CONTRACT.md §9.6): the agent gets no Ted server chat engine,
+    // no server search fallback, no AI video, and a CRM transport that refuses every tool running another AI.
     const agent = createAgent({
-      tools, files, uploads, pages, video, http, confirm, log,
-      search: withServerFallback((args, opts) => webSearch(browser, args, opts), assistant, { log }),
+      tools: guardTools(tools), files, uploads, pages, http, confirm, log, projects,
+      search: (args, opts) => webSearch(browser, args, opts),
       getSettings: () => settings.get(),
     });
 
@@ -226,12 +237,13 @@ function start() {
       },
       emit: (event, payload) => {
         if (event === "realgpt:delta") push("ted:realgpt.delta", payload);
-        else if (event === "realgpt:event") push("ted:realgpt.event", payload);
+        else if (event === "realgpt:event") { imageProvenance.observe(payload); push("ted:realgpt.event", payload); }
       },
       agent,
     });
     // Files, videos and scheduled tasks belong to the signed-in CRM user, like the chats and Real GPT.
     onUserChange = () => {
+      imageProvenance.clear();
       files.detach();
       video.detach();
       scheduled.ownerChanged();
@@ -246,7 +258,7 @@ function start() {
       chatsFile: path.join(userData, "secure", "chats.bin"),
       files,
     });
-    registerIpc({ ipcMain, isTrusted: security.isApp, log, appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser });
+    registerIpc({ ipcMain, isTrusted: security.isApp, log, appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance });
 
     registerAppProtocol({ protocol, root: path.join(app.getAppPath(), "dist") });
     session.init();

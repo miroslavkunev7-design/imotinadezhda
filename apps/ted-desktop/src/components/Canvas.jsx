@@ -16,7 +16,7 @@ export function CanvasPreview({ text, copy }) {
         if (p.type === "md") return <Md key={i} text={p.text} copy={copy} />;
         const clean = safeSvg(p.text);
         return clean
-          ? <figure className="cv-fig" key={i}><img className="cv-svg" src={svgDataUrl(clean)} alt="Диаграма от Тед" /></figure>
+          ? <figure className="cv-fig" key={i}><img className="cv-svg" src={svgDataUrl(clean)} alt="Диаграма" /></figure>
           : <div className="note" key={i}>Тази графика не е показана: съдържа елементи, които програмата не изпълнява.</div>;
       })}
     </div>
@@ -26,7 +26,7 @@ export function CanvasPreview({ text, copy }) {
 const EXPORTS = [["docx", "Word (.docx)"], ["pdf", "PDF (.pdf)"], ["md", "Markdown (.md)"]];
 
 // Side document with versions (docs/CONTRACT.md §15, §16). The employee's edits and Тед's edits (update_canvas →
-// a NEW version „Тед: <label>“) never overwrite each other: the version selector keeps every one.
+// a NEW version „ChatGPT: <label>“) never overwrite each other: the version selector keeps every one.
 // Props: {cv, setCv, toast, copy, onExport(format)}; cv = {title, kind, versions:[{v, text, at, label}], cur}.
 // draft (a ref from the shell): the unsaved text, so the shell keeps it as a version when this chat's Canvas is put aside.
 export default function Canvas({ cv, setCv, toast, copy, onExport, draft }) {
@@ -39,7 +39,7 @@ export default function Canvas({ cv, setCv, toast, copy, onExport, draft }) {
   const dirty = txt !== base.current.text;
   useEffect(() => { if (draft) draft.current = dirty ? txt : null; });
   useEffect(() => () => { if (draft) draft.current = null; }, []);
-  const agentMade = cv.versions.some((v) => /^Тед:/.test(v.label || ""));
+  const agentMade = cv.versions.some((v) => /^(ChatGPT|Тед):/.test(v.label || ""));
 
   // A different version on screen (the selector, or Тед added one). Unsaved typing is kept as its own version.
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function Canvas({ cv, setCv, toast, copy, onExport, draft }) {
         const v = Math.max(...c.versions.map((x) => x.v)) + 1;
         return { ...c, versions: [...c.versions, { v, text: mine, at: Date.now(), label: "ваша незапазена редакция" }] };
       });
-      toast((/^Тед:/.test(cur.label || "") ? "Тед добави нова версия. " : "") + "Вашите незапазени промени са запазени като отделна версия.");
+      toast((/^(ChatGPT|Тед):/.test(cur.label || "") ? "ChatGPT добави нова версия. " : "") + "Вашите незапазени промени са запазени като отделна версия.");
     }
     base.current = { v: cur.v, text: cur.text };
     setTxt(cur.text);
@@ -115,7 +115,7 @@ export default function Canvas({ cv, setCv, toast, copy, onExport, draft }) {
           ? <CanvasPreview text={txt} copy={copy} />
           : <textarea id="cv-txt" className={cv.kind === "code" ? "code" : ""} value={txt} onChange={(e) => setTxt(e.target.value)} spellCheck={false} />}
       </div>
-      <div className="cv-foot">{dirty ? "Незапазени промени – ✓ ги пази като нова версия. " : ""}{agentMade ? "Тед добавя нови версии и не презаписва старите. " : ""}Работен текст на този компютър; версиите се пазят, докато панелът е отворен.</div>
+      <div className="cv-foot">{dirty ? "Незапазени промени – ✓ ги пази като нова версия. " : ""}{agentMade ? "ChatGPT добавя нови версии и не презаписва старите. " : ""}Работен текст на този компютър; версиите се пазят, докато панелът е отворен.</div>
     </section>
   );
 }

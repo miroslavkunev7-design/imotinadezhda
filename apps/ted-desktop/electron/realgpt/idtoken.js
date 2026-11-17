@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MIT
 // ID token verification with jose: signature (issuer JWKS), issuer, audience, expiry and the attempt's nonce.
 
-import { createRemoteJWKSet, customFetch, errors, jwtVerify } from 'jose';
 import { RgError } from './errors.js';
 import { ISSUER, JWKS_URL, safeEqual } from './oauth.js';
 import { parseJson, readText } from './wire.js';
 
+// jose is loaded only when an ID token is verified (sign-in), not at every start of the program (0.1.5 speed).
+let joseLib = null;
+const jose = () => (joseLib ??= import('jose'));
+
 // Remote key set whose downloads go through the injected http (host allowlist, no Origin). jose caches the keys
-// and reloads them when an unknown `kid` appears.
+// and reloads them when an unknown `kid` appears. The set itself is made on the first use.
 export function remoteJwks(http) {
   const viaHttp = async (url) => {
     const res = await http.request({
@@ -27,11 +30,19 @@ export function remoteJwks(http) {
       },
     };
   };
-  return createRemoteJWKSet(new URL(JWKS_URL), { [customFetch]: viaHttp });
+  let set = null;
+  return async (header, token) => {
+    if (!set) {
+      const { createRemoteJWKSet, customFetch } = await jose();
+      set = createRemoteJWKSet(new URL(JWKS_URL), { [customFetch]: viaHttp });
+    }
+    return set(header, token);
+  };
 }
 
 // -> {subject, email}. `clientId` is the issued client id, `nonce` the value sent with this attempt.
 export async function verifyIdToken(idToken, { jwks, clientId, nonce }) {
+  const { errors, jwtVerify } = await jose();
   let payload;
   try {
     ({ payload } = await jwtVerify(idToken, jwks, {

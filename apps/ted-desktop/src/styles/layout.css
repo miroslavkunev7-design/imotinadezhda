@@ -149,3 +149,147 @@
 .home-disc .disc{margin-top:2px}
 /* Phone settings: the modal header already names the open page – no second title above it */
 .set-ph .pane>h3:first-child{display:none}
+
+/* ---------- Which engine answers (docs/CONTRACT.md §9.6) ---------- */
+.pop .grp-note{padding:0 10px 6px 24px;font:400 12.5px/1.35 var(--f-text);opacity:.8}
+.cpill.effort-pill .eng-tag{flex:none;padding:1px 7px;border-radius:10px;border:1px solid var(--gold-3);font:700 11.5px/1.5 var(--f-text);letter-spacing:.02em;color:var(--ted-wine-2);background:#fff7e6}
+.cpill.effort-pill.eng-rg .eng-tag{color:var(--ink);border-color:var(--ted-wine-2);background:#fffdf9}
+
+/* ---------- 0.1.5 · Разговорът като в ChatGPT (docs/CONTRACT.md §15 „Conversation“) ----------
+   The answers of Тед have NO bubble: the thread column is ONE readable cream panel over the photo (the panel style of
+   .home-plugins / the composer, without blur – nothing heavy in the scrolling list). The employee's messages stay
+   sapphire bubbles on the right. Text, headings and tables use the existing tokens and fonts. */
+.thread.cg-thread{padding:14px 0 6px}
+.col.cg-col{width:calc(100% - 32px);max-width:860px;margin:0 auto 10px;padding:24px 28px 18px;gap:24px;border-radius:26px;
+  background:var(--noise),linear-gradient(180deg,rgba(255,253,249,.96),rgba(250,239,224,.93));border:1px solid rgba(255,214,130,.85);
+  box-shadow:var(--rim-cream),0 0 0 4px rgba(255,214,130,.08),0 24px 50px -20px rgba(8,0,4,.8)}
+.cg-col .msg .mav{display:none}
+.cg-col .msg.a .mbody{max-width:100%;width:100%;gap:4px}
+.cg-col .msg.u .mbody{max-width:min(78%,620px)}
+.cg-col .msg.a{animation:none}
+.ans{min-width:0;display:flex;flex-direction:column;gap:10px;color:var(--ink);font:400 17px/1.65 var(--f-text);overflow-wrap:anywhere}
+.ans>.cards{margin-top:2px}
+.ans .err{margin-top:2px}
+.ans .note{margin-top:0}
+.ans .caret{margin:-6px 0 0}
+.ans .foot-tags{margin-top:0;padding-top:8px;border-top:1px solid rgba(227,178,94,.35)}
+.ans .demo{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:12px;background:linear-gradient(180deg,#fdf0d8,#f6dfb5);color:#6e4a12;font:700 12px var(--f-text);letter-spacing:.04em;white-space:normal;box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(226,180,90,.45)}
+.ans .demo.live{background:linear-gradient(180deg,#e6f8ee,#d2f1df);color:#0f6a3c;box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(23,128,75,.3)}
+.ans .demo.sel{background:linear-gradient(180deg,#eef2ff,#dfe6ff);color:#1d3a9a;box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(47,102,242,.3)}
+/* The action rows sit on the cream panel now: ink icons instead of the light ones for the dark background. */
+.cg-col .macts,.cg-col .uacts{color:#8a5a4c;padding-left:0}
+.cg-col .macts .ibtn:hover,.cg-col .uacts .ibtn:hover{background:rgba(133,15,45,.08);color:var(--ink);box-shadow:none}
+.cg-col .macts .ibtn.on{color:#c4123f;filter:none}
+.cg-col .macts .mdl{color:#7a1023;background:#fff7e6;border-color:rgba(216,180,106,.75);box-shadow:none}
+.cg-col .macts .mdl:hover{background:#f6e2c4;box-shadow:none}
+.cg-col .macts .b.macts-b{background:#fff7e6}
+
+/* ---------- Markdown of an answer: headings h1–h4, lists, quotes, tables, links, sources ---------- */
+.ans .md{font:400 17px/1.66 var(--f-text);color:var(--ink);letter-spacing:.003em}
+.big .ans .md{font-size:19px}
+.ans .md p{margin:0 0 12px}
+.ans .md>:last-child,.ans .md li>:last-child{margin-bottom:0}
+.ans .md .mdh{margin:22px 0 8px;font-family:var(--f-title);font-weight:700;color:#5a0a1d;line-height:1.25;letter-spacing:.004em}
+.ans .md .mdh:first-child{margin-top:2px}
+.ans .md .mdh.l1{font-size:26px}
+.ans .md .mdh.l2{font-size:22px;padding-bottom:5px;background:linear-gradient(90deg,#e2b45a,rgba(255,42,95,.3) 45%,transparent) left bottom/100% 1px no-repeat}
+.ans .md .mdh.l3{font-size:19px}
+.ans .md .mdh.l4{font-size:17px;color:#7a1023}
+.ans .md b{font-weight:700;color:#4e0912}
+.ans .md s{opacity:.7}
+.ans .md ul,.ans .md ol{margin:4px 0 12px;padding-left:28px}
+.ans .md li{margin:5px 0;padding-left:3px}
+.ans .md li>ul,.ans .md li>ol{margin:5px 0 6px}
+.ans .md li>p{margin:0 0 6px}
+.ans .md ol>li::marker{color:var(--ted-wine-2);font-weight:700;font-variant-numeric:tabular-nums}
+.ans .md ul>li::marker{color:#c9963e;font-size:1.05em}
+.ans .md ul ul{list-style-type:circle}
+.ans .md ul ul ul{list-style-type:square}
+.ans .md li.task{list-style:none;display:flex;align-items:flex-start;gap:8px;margin-left:-22px}
+.md-task{width:18px;height:18px;margin-top:4px;flex:none;border-radius:5px;border:1.5px solid #c9963e;background:#fffdf9;display:grid;place-items:center}
+.md-task.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.md-task svg.i{width:12px;height:12px;stroke-width:3}
+.ans .md blockquote{margin:8px 0 12px;padding:8px 14px;border-left:3px solid #e2b45a;border-radius:0 12px 12px 0;background:linear-gradient(90deg,rgba(255,226,166,.42),rgba(255,226,166,.08));color:#6b2a33}
+.ans .md blockquote>:last-child{margin-bottom:0}
+.ans .md hr{border:0;height:1px;margin:18px 0;background:linear-gradient(90deg,transparent,#e2b45a,rgba(255,42,95,.45),transparent)}
+.ans .md .ic{font-size:.88em}
+.md a.md-a{color:#a3213a;font-weight:700;text-decoration:underline;text-decoration-color:rgba(163,33,58,.35);text-underline-offset:3px;overflow-wrap:anywhere;cursor:pointer}
+.md a.md-a:hover{text-decoration-color:currentColor}
+.md-nolink small{color:var(--muted);font-weight:400;overflow-wrap:anywhere}
+/* Source chip (ChatGPT: „olx.bg ›“): domain only, the full address on hover, long addresses never widen the page. */
+.src-chip{display:inline-flex;align-items:center;gap:4px;max-width:min(100%,280px);margin:0 2px;padding:0 9px 0 10px;vertical-align:1px;border-radius:999px;
+  background:#f6e9d6;border:1px solid rgba(216,180,106,.8);color:#6a0b27;font:700 12.5px/1.75 var(--f-text);letter-spacing:.01em;text-decoration:none;white-space:nowrap;cursor:pointer}
+.src-chip:hover{background:#f3d79f;border-color:#c9963e;color:#4e0912}
+.src-chip .src-d{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.src-chip .src-arr{font-weight:400;opacity:.65}
+/* Tables: header, zebra rows in our palette, alignment, horizontal scroll INSIDE the answer on narrow windows. */
+.ans .md .mdt{margin:10px 0 14px;max-width:100%;overflow-x:auto;border-radius:14px;border:1px solid rgba(216,180,106,.85);background:#fffdf9;box-shadow:0 8px 18px -12px rgba(88,13,34,.4)}
+.ans .md .mdt:focus-visible{outline:2px solid #c4123f;outline-offset:2px}
+.ans .md .mdt table{border-collapse:separate;border-spacing:0;width:100%;font:400 14.5px/1.45 var(--f-text);font-variant-numeric:tabular-nums}
+.ans .md .mdt th{padding:9px 12px;text-align:left;font-weight:700;color:#5a0a1d;white-space:nowrap;background:linear-gradient(180deg,#f9ead2,#f2dcbc);border-bottom:1px solid #e3b25e}
+.ans .md .mdt td{padding:8px 12px;vertical-align:top;min-width:80px;max-width:340px;border-bottom:1px solid #f0dfc4;overflow-wrap:break-word;word-break:normal}
+.ans .md .mdt td a.md-a{overflow-wrap:break-word}
+.ans .md .mdt tbody tr:nth-child(even) td{background:#fbf2e4}
+.ans .md .mdt tbody tr:hover td{background:#f7e6cb}
+.ans .md .mdt tbody tr:last-child td{border-bottom:0}
+.ans .md .mdt .al-center{text-align:center}
+.ans .md .mdt .al-right{text-align:right}
+.ans .md .mdt .src-chip{margin:0}
+.shell.phone .ans .md .mdt table{min-width:560px}
+.shell.phone .ans .md .mdt td{white-space:normal}
+
+/* Phone: the panel goes almost edge to edge. */
+.shell.phone .col.cg-col{width:calc(100% - 16px);margin:0 auto 8px;padding:14px 12px 12px;gap:18px;border-radius:20px}
+.shell.phone .ans,.shell.phone .ans .md{font-size:16px}
+.shell.phone .ans .md .mdh.l1{font-size:22px}
+.shell.phone .ans .md .mdh.l2{font-size:19px}
+
+/* ---------- 0.1.5 · Цветни икони (ColorIcon.jsx): „+“ менюто, лявата лента, чекмеджето и менюто на профила ----------
+   Same size and place as the monochrome icons they replace (labels, order and spacing unchanged). */
+svg.ci{width:20px;height:20px;flex:none;display:block;overflow:visible}
+.nav svg.ci{filter:drop-shadow(0 1px 1.5px rgba(8,0,4,.45))}
+.row svg.ci{width:18px;height:18px;filter:drop-shadow(0 1px 1px rgba(8,0,4,.4))}
+.side-head .ibtn svg.ci,.drawer-search svg.ci{width:20px;height:20px;filter:drop-shadow(0 1px 1.5px rgba(8,0,4,.45))}
+.drawer-new svg.ci{width:20px;height:20px}
+.pop .it .em.ci-tile{display:grid;place-items:center}
+.pop .it .em.ci-tile svg.ci{width:21px;height:21px;filter:drop-shadow(0 1px 1px rgba(8,0,4,.35))}
+.pop .it:has(>.chk) .em.ci-tile{background:linear-gradient(145deg,rgba(255,244,220,.95),rgba(255,226,166,.85))}
+
+/* ---- 0.1.5 review fixes ---- */
+/* Home „+“ menu: single-line rows like ChatGPT, so every root item is visible between the top bar and the window edge
+   at 1366×768 and 1280×720 (the subtitles stay as tooltips; the thread's menu keeps them). */
+.pop.pop-compact{padding:6px}
+.pop.pop-compact>.hd{display:none}
+.pop.pop-compact .it{min-height:34px;padding:4px 10px 4px 6px;align-items:center}
+.pop.pop-compact .it small{display:none}
+.pop.pop-compact .it .em,.pop.pop-compact .it>svg.i:not(.chk){width:26px;height:26px;border-radius:8px}
+.pop.pop-compact .it .em.ci-tile svg.ci{width:18px;height:18px}
+.pop.pop-compact .sep{margin:4px 8px}
+/* Real GPT chosen but ChatGPT is not connected: the banner over the composer (the engine never changes by itself). */
+.rg-off{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 8px}
+.rg-off>span:first-child{flex:1 1 260px}
+.rg-off-b{display:flex;flex-wrap:wrap;gap:8px}
+/* „Отвори в CRM“ only as a small link with its reason where one part of a skill stays on the site. */
+.crm-why{font-size:13px;color:var(--ink-2)}
+.skill-crm{margin:10px 0 0}
+/* A link always shows its real domain (review F1): a small pill after the link text, like ChatGPT's citations. */
+.md a.md-a .md-a-dom{display:inline-block;margin-left:.35em;padding:0 .45em;border-radius:999px;font-size:.74em;font-weight:600;line-height:1.55;vertical-align:.08em;
+  color:#5b4a3a;background:rgba(160,120,60,.12);box-shadow:inset 0 0 0 1px rgba(160,120,60,.25);text-decoration:none;white-space:nowrap}
+/* The open_in_chatgpt card when the prompt is too long for a link. */
+.cg-meta.over small{color:#8a3a0a;font-weight:600}
+/* The tools-refused card: the plug icon stays on the heading's line on the phone too. */
+.card.tools-no h4{flex-wrap:nowrap;align-items:flex-start}
+.card.tools-no h4>svg{flex:none;margin-top:2px}
+/* Small print stays readable (review: the library's meta line was 10.4 px). */
+.lib-meta small,.pf-meta small{font-size:12px}
+/* „Свързано“ and the other success pills: WCAG AA on their pale green (review: 4.37:1 → ≥ 5:1). */
+.status.st-succeeded,.st-succeeded{color:#17603a}
+.case-tabs button{white-space:nowrap}
+/* Settings → the Real GPT tools choice: a segmented control (the chosen side wine with a check, never greyed out);
+   on a phone the buttons sit under the explanation instead of squeezing it into a narrow column. */
+.consent-seg{flex:none}
+.consent-seg button{display:inline-flex;align-items:center;gap:5px}
+@media (max-width:640px){
+  .opt:has(>.consent-seg){flex-direction:column;align-items:stretch;gap:10px}
+  .opt>.consent-seg{align-self:flex-start}
+}

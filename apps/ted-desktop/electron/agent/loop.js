@@ -1,22 +1,46 @@
-// The Real GPT agent (docs/CONTRACT.md §9): the GPT model of the employee's ChatGPT plan is the brain, Ted's own
-// tools are the hands. One answer = up to N rounds of POST /v1/responses (stateless: the whole input is resent),
+// The Real GPT agent (docs/CONTRACT.md §9): the GPT model of the employee's ChatGPT plan is the brain – and the only
+// AI: no tool here calls another AI (§9.6: no Ted server chat, no Gemini/AI Gateway tools, no server search, no
+// AI video). Ted's own tools are the hands. One answer = up to N rounds of POST /v1/responses (stateless: the whole input is resent),
 // each round's function calls executed here one by one through the gate, their results appended as
-// function_call_output items. Steps, files, approvals, canvas versions, e-mail drafts and video jobs are pushed to
-// the renderer as AgentEvents; statuses come only from real results.
+// function_call_output items. Steps, files, approvals, canvas versions, e-mail drafts and „Отвори в ChatGPT“ cards are
+// pushed to the renderer as AgentEvents; statuses come only from real results.
 import { apiFailure, fail, RgError, serverError, toFailure } from "../realgpt/errors.js";
 import { assertRequest, buildInput, EFFORTS, outputItems, outputText } from "../realgpt/responses.js";
-import { approvalJson, approvalTitle, asksConfirm, classify, inputLines, NEVER, normalizeInput, stripConfirm, toolLabel } from "./gate.js";
+import { aiOff, aiRefusal, approvalJson, approvalTitle, asksConfirm, classify, inputLines, NEVER, normalizeInput, stripConfirm, toolLabel } from "./gate.js";
+import { CHATGPT_PROMPT_MAX, HANDOFF_KINDS, cleanPrompt, fitsLink } from "./chatgpt-link.js";
 import { buildInstructions } from "./instructions.js";
 import { buildTools, callName, crmTools } from "./tools-spec.js";
 import { FILE_REF } from "./uploads.js";
+import { PHOTO_MAX, PHOTO_MIN_BYTES } from "../projects.js";
 import { createDocument } from "../docs/create.js";
 
-// Step names of the server tools that make files (images, translations, PDFs) – the rest read „CRM: <tool>“.
+// Step names of the server tools that make files (PDFs, downloaded photos; none runs an AI) – the rest read „CRM: <tool>“.
 const GEN_LABEL = {
-  "images.generate": ["image", "Генерирам снимка"], "images.download": ["image", "Тегля снимки"],
-  "documents.translate": ["doc", "Превеждам документ"], "documents.merge": ["doc", "Обединявам документи"],
+  // images.download WITHOUT a CRM target: the server downloads web photos into Ted's folder „Тед“ (with a target the
+  // step is „Добавям снимки в галерията“ – genLabel below).
+  "images.download": ["fetch_image", "Сървърът тегли снимки в папка „Тед“"], "documents.merge": ["doc", "Обединявам документи"],
   "documents.split": ["doc", "Разделям документ"], "documents.create_pdf": ["doc", "Правя PDF"], "files.to_pdf": ["doc", "Правя PDF от файловете"],
 };
+// open_in_chatgpt cards per answer (each is only a card; nothing opens without a click).
+export const HANDOFF_MAX = 6;
+// project_folder export_zip: ZIP files kept per answer (each a full copy of the folder, up to 500 MB).
+export const ZIP_PER_ANSWER = 2;
+// The site's gallery (api/_ted-skills.js images.download): photos of 15 000 bytes or less are skipped, 30 at most.
+export { PHOTO_MAX, PHOTO_MIN_BYTES };
+const photoCount = (input) => (Array.isArray(input && input.urls) ? input.urls.filter((u) => FILE_REF.test(String(u))).length : 0);
+// The „Файлове“ line of a folder card: whole names only, never cut mid-name; the rest is counted (review F6).
+export function fileListLine(list, max = 600) {
+  const names = [];
+  let len = 0;
+  for (const f of list) {
+    const n = `„${f.name}“`;
+    if (names.length && len + n.length + 2 > max) break;
+    names.push(n); len += n.length + 2;
+  }
+  const rest = list.length - names.length;
+  return `${list.length}: ${names.join(", ")}${rest ? ` …и още ${rest} – вижте „Точните данни“` : ""}`;
+}
+const HANDOFF_BG = { image: "снимка", video: "видео", research: "проучване", other: "заявка" };
 
 export const LIMITS = {
   chat: { rounds: 8, calls: 40, wallMs: 6 * 60_000, read_page: 20, fetch_image: 12 },
@@ -36,18 +60,62 @@ export function capOutput(value, cap = OUTPUT_CAP) {
   return s.length > cap ? s.slice(0, cap - CUT.length) + CUT : s;
 }
 
-// Messages from the renderer -> model messages: attached files become text lines, the open Canvas goes with the
-// last user message.
-export function prepareMessages(messages, { files, canvas } = {}) {
-  const out = messages.map((m) => {
+// What the model SEES of attached files (CONTRACT §9.6): images as input_image and PDFs as input_file, read by GPT
+// itself – no server analysis. Newest messages first within these budgets (raw bytes; base64 adds a third); a file
+// over a budget stays a text line and the model reads it with read_document.
+export const MEDIA = { images: 8, imageBytes: 20 * 1048576, oneImage: 8 * 1048576, docs: 5, docBytes: 16 * 1048576, onePdf: 10 * 1048576 };
+const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
+// Messages from the renderer -> model messages: attached files become text lines (+ the image/PDF itself when it
+// fits), the open Canvas goes with the last user message. media:false = text lines only.
+export function prepareMessages(messages, { files, canvas, media = true } = {}) {
+  // Pass 1, newest message first: which files go along as input_image / input_file.
+  const attach = new Map(); // `${messageIndex}:${fileId}` -> "image" | "doc" | "over"
+  const left = { images: MEDIA.images, imageBytes: MEDIA.imageBytes, docs: MEDIA.docs, docBytes: MEDIA.docBytes };
+  for (let i = messages.length - 1; i >= 0 && media && files; i--) {
+    const m = messages[i];
+    if (!m || m.role !== "user" || !Array.isArray(m.files)) continue;
+    let perImages = Array.isArray(m.images) ? m.images.length : 0;
+    let perDocs = 0;
+    for (const id of m.files) {
+      const ref = files.ref(id);
+      if (!ref) continue;
+      const isImage = ref.kind === "image" && IMAGE_MIMES.has(ref.mime);
+      const isPdf = ref.kind === "pdf" && ref.mime === "application/pdf";
+      if (!isImage && !isPdf) continue;
+      const size = Number(ref.size) || 0;
+      const fits = isImage
+        ? size > 0 && size <= MEDIA.oneImage && size <= left.imageBytes && left.images > 0 && perImages < MEDIA.images
+        : size > 0 && size <= MEDIA.onePdf && size <= left.docBytes && left.docs > 0 && perDocs < MEDIA.docs;
+      const entry = fits && typeof files.get === "function" ? files.get(id) : null;
+      if (!entry || !entry.bytes || !entry.bytes.length) { attach.set(`${i}:${id}`, "over"); continue; }
+      if (isImage) { left.images--; left.imageBytes -= entry.bytes.length; perImages++; attach.set(`${i}:${id}`, "image"); }
+      else { left.docs--; left.docBytes -= entry.bytes.length; perDocs++; attach.set(`${i}:${id}`, "doc"); }
+    }
+  }
+  const out = messages.map((m, i) => {
     if (m.role !== "user" || !Array.isArray(m.files) || !m.files.length) return { role: m.role, text: m.text, ...(m.images ? { images: m.images } : {}) };
+    const images = Array.isArray(m.images) ? [...m.images] : [];
+    const docs = [];
     const lines = m.files.map((id) => {
       const ref = files && files.ref(id);
-      return ref
-        ? `[Прикачен файл: ${ref.name} · ${KIND_BG[ref.kind] || "файл"} · ${humanSize(ref.size)} · file:${ref.id}${ref.note ? ` · ${ref.note}` : ""}]`
-        : `[Прикачен файл: file:${id} · не е намерен на този компютър]`;
+      if (!ref) return `[Прикачен файл: file:${id} · не е намерен на този компютър]`;
+      const how = attach.get(`${i}:${id}`);
+      let tail = "";
+      if (how === "image" || how === "doc") {
+        const entry = files.get(id);
+        const data = Buffer.from(entry.bytes).toString("base64");
+        if (how === "image") { images.push({ mime: ref.mime, data }); tail = " · снимката е приложена към съобщението"; }
+        else { docs.push({ name: String(ref.name || "документ.pdf").slice(0, 180), mime: "application/pdf", data }); tail = " · PDF-ът е приложен към съобщението"; }
+      } else if (how === "over") {
+        tail = ref.kind === "pdf" ? " · не е приложен (над лимита за размер или брой) – прочети го с read_document" : " · не е приложена (над лимита за размер или брой)";
+      }
+      return `[Прикачен файл: ${ref.name} · ${KIND_BG[ref.kind] || "файл"} · ${humanSize(ref.size)} · file:${ref.id}${ref.note ? ` · ${ref.note}` : ""}${tail}]`;
     });
-    return { role: "user", text: [m.text, ...lines].filter((x) => x && String(x).trim()).join("\n"), ...(m.images ? { images: m.images } : {}) };
+    return {
+      role: "user", text: [m.text, ...lines].filter((x) => x && String(x).trim()).join("\n"),
+      ...(images.length ? { images } : {}), ...(docs.length ? { docs } : {}),
+    };
   });
   if (canvas && typeof canvas.text === "string" && canvas.text.trim()) {
     const last = out.map((m) => m.role).lastIndexOf("user");
@@ -56,6 +124,27 @@ export function prepareMessages(messages, { files, canvas } = {}) {
       out[last] = { ...out[last], text: `${out[last].text}\n\n[Отворен Canvas „${String(canvas.title || "Без заглавие").slice(0, 120)}“ · версия ${Number(canvas.version) || 1}]\n${body}\n[/Canvas]` };
     }
   }
+  return out;
+}
+
+// The corrected resend when the plan route refuses input_file: every attached PDF becomes a note (read_document).
+export function withoutDocs(items) {
+  return items.map((it) => {
+    if (!it || it.type !== "message" || !Array.isArray(it.content) || !it.content.some((c) => c && c.type === "input_file")) return it;
+    return { ...it, content: it.content.map((c) => (c && c.type === "input_file" ? { type: "input_text", text: `[PDF „${String(c.filename || "").slice(0, 180)}“ не се прие като файл от плана – прочети го с read_document по file:<id> от реда за прикачения файл.]` } : c)) };
+  });
+}
+const hasDocs = (items) => items.some((it) => it && Array.isArray(it.content) && it.content.some((c) => c && c.type === "input_file"));
+
+// What OpenAI refused, for the employee (plain text, no markup): status, server code, the named parameter, message.
+export function refusalOf(status, body) {
+  const e = body && typeof body === "object" && body.error && typeof body.error === "object" ? body.error : (body && typeof body === "object" ? body : {});
+  const clean = (v, n) => (typeof v === "string" ? v.replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, n) : "");
+  const out = { status: Number(status) || 0 };
+  const code = clean(e.code, 80); const param = clean(e.param, 80); const message = clean(e.message || body?.detail, 300);
+  if (code) out.code = code;
+  if (param) out.param = param;
+  if (message) out.message = message;
   return out;
 }
 
@@ -104,18 +193,26 @@ export function personalTokens(query) {
 }
 
 // Every function call kind -> step kind (§8.3)
-const TAINTING = new Set(["crm", "read_document", "listings_find", "video_walk"]);
-const STEP_KIND = { web_search: "web_search", read_page: "read_page", fetch_image: "fetch_image", create_document: "doc", read_document: "read_doc", update_canvas: "canvas", video_walk: "video", listings_find: "listings" };
+const TAINTING = new Set(["crm", "read_document"]);
+const STEP_KIND = { web_search: "web_search", read_page: "read_page", fetch_image: "fetch_image", create_document: "doc", read_document: "read_doc", update_canvas: "canvas", open_in_chatgpt: "chatgpt", project_folder: "folder" };
+// project_folder (0.1.5, CONTRACT §8.12): the folder of a Проект on this computer.
+export const FOLDER_ACTIONS = ["create", "add", "list", "export_zip", "save_to_crm"];
+export const FOLDER_ADD_MAX = 50;
+// cases.get of the selected Проект is read again only after this time or after a CRM change (no identical requests).
+export const CASE_TTL_MS = 90_000;
 
+// tools = the guarded CRM transport (gate.js guardTools); search = the local DuckDuckGo search only – there is no
+// server fallback and no other AI behind any of these (CONTRACT §9.6).
 export function createAgent({
-  tools, files, uploads, pages = null, search = null, video = null, http, confirm, getSettings = () => ({}), log,
+  tools, files, uploads, pages = null, search = null, http, confirm, getSettings = () => ({}), log, projects = null,
   now = Date.now, approvalTimeoutMs = APPROVAL_TIMEOUT_MS, newId = () => Math.random().toString(16).slice(2, 10),
 }) {
   const pending = new Map(); // requestId -> Map(approvalId -> {resolve, approval})
   const remembered = new Map(); // model -> {noEffort, flat, noIds}
+  const caseCache = new Map(); // caseId -> {at, value}: cases.get of the selected Проект (CASE_TTL_MS)
 
   function memo(model) {
-    if (!remembered.has(model)) remembered.set(model, { noEffort: false, flat: false, noIds: false });
+    if (!remembered.has(model)) remembered.set(model, { noEffort: false, flat: false, noIds: false, noDocs: false });
     return remembered.get(model);
   }
 
@@ -125,16 +222,8 @@ export function createAgent({
     if (!entry) return { ok: false, error: "Това одобрение вече не е активно." };
     if (!["allow", "deny", "allow_all"].includes(decision)) return { ok: false, error: "Невалиден избор." };
     if (decision === "allow_all" && !entry.approval.allowAll) return { ok: false, error: "„Разреши всички“ не важи за това действие." };
-    let opts;
-    if (entry.approval.kind === "video" && decision !== "deny") {
-      const v = entry.approval.video || {};
-      const engine = (v.engines || []).find((e) => e.id === (options && options.engine));
-      const duration = Number(options && options.duration);
-      if (!engine || !(engine.durs || []).includes(duration)) return { ok: false, error: "Изберете двигател и дължина от списъка." };
-      opts = { engine: engine.id, duration };
-    }
     p.delete(approvalId);
-    entry.resolve({ decision, options: opts });
+    entry.resolve({ decision });
     return { ok: true };
   }
 
@@ -170,8 +259,9 @@ export function createAgent({
     const fullText = () => texts.filter((t) => t && t.trim()).join("\n\n");
     const partial = () => ({ ...(fullText() ? { text: fullText() } : {}), steps: [...steps.values()].map((s) => ({ ...s })), files: made.map((f) => ({ ...f })) });
     shared.partial = partial;
-    const state = { allowAll: false, allowWeb: false, canvasVersion: Number(req.canvas && req.canvas.version) || 0, calls: 0, read_page: 0, fetch_image: 0, limitHit: false };
+    const state = { allowAll: false, allowWeb: false, canvasVersion: Number(req.canvas && req.canvas.version) || 0, calls: 0, read_page: 0, fetch_image: 0, handoffs: 0, limitHit: false, zips: new Map() };
     const send = (ev) => { try { emit(ev); } catch { /* window gone */ } };
+    // caseId/caseTitle: files made in a chat of a Проект go into its folder (set once the case is read below).
     const fileOpts = { chatId: req.chatId, temporary: !!req.temporary };
     // URL provenance: known URLs and whether private data is already in the context (see URL_MAX above).
     const known = new Set();
@@ -200,8 +290,9 @@ export function createAgent({
       const s = step({ kind: "upload", label });
       return { done: (ok, detail) => (ok ? s.ok(detail) : s.fail(detail)) };
     };
-    function addFile(spec, stepId) {
-      const r = files.add({ ...spec, ...fileOpts });
+    function addFile(spec, stepId, { project = true } = {}) {
+      const opts = project ? fileOpts : { chatId: fileOpts.chatId, temporary: fileOpts.temporary };
+      const r = files.add({ ...spec, ...opts });
       if (!r.ok) return r;
       made.push(r.file);
       send({ type: "file", file: { ...r.file }, stepId });
@@ -274,38 +365,108 @@ export function createAgent({
     // ---- function execution ----------------------------------------------------------------------------
     const crmAllowed = new Set(crmTools(await tools.manifest().catch(() => null)).map((t) => t.name));
 
+    // A copy of an input for the approval card: "file:<id>" -> „<name>“ (the id stays in „Точните данни“).
+    function namedRefs(v, depth = 0) {
+      if (depth > 6) return v;
+      if (typeof v === "string") {
+        const m = FILE_REF.exec(v);
+        const ref = m && files.ref(m[1]);
+        return ref ? `„${ref.name}“` : v;
+      }
+      if (Array.isArray(v)) return v.map((x) => namedRefs(x, depth + 1));
+      if (!v || typeof v !== "object") return v;
+      return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, namedRefs(x, depth + 1)]));
+    }
+    // ["file:<id>" | https…] -> the same list with every file of this program as a signed link of its CRM copy.
+    async function signedFileUrls(urls) {
+      const paths = new Map();
+      for (const u of urls) {
+        const m = FILE_REF.exec(String(u));
+        if (m && !paths.has(u)) paths.set(u, (await uploads.ensure(m[1], subStep)).path);
+      }
+      if (!projects || typeof projects.signed !== "function") throw new Error("Снимките от чата не могат да се подготвят за CRM.");
+      const links = await projects.signed([...new Set(paths.values())]);
+      return urls.map((u) => (paths.has(u) ? links.get(paths.get(u)) : u)).filter((u) => typeof u === "string" && /^https?:\/\//.test(u));
+    }
+
     async function runCrm(args) {
       const tool = String((args && args.tool) || "");
       let input = args && args.input && typeof args.input === "object" && !Array.isArray(args.input) ? args.input : {};
+      // Another AI on Ted's server (any spelling of the name): refused before anything else, with what to do instead.
+      const ai = aiRefusal(tool, {});
+      if (ai) return ai;
       if (!crmAllowed.has(tool)) {
         if (tool === "email.send") return { ok: false, error: "email.send не е достъпен: подготви писмото с email.preview – служителят го изпраща от картата в програмата." };
-        if (NEVER.has(tool)) return { ok: false, error: tool === "video.create" ? "За видео ползвай video_walk." : "Този инструмент не е достъпен от програмата." };
+        if (NEVER.has(tool)) return { ok: false, error: "Този инструмент не е достъпен от програмата." };
         return { ok: false, error: `Непознат инструмент на CRM: ${tool.slice(0, 60)}` };
       }
-      input = normalizeInput(stripConfirm(input));
+      // The AI switches of plain tools (documents.inspect classify, files.to_pdf group_by_type) are always off.
+      input = aiOff(tool, normalizeInput(stripConfirm(input)));
+      // Photos of this program for a property's gallery: the site skips photos of 15 KB or less and takes at most 30
+      // at once (api/_ted-skills.js images.download) – such photos are left out BEFORE the card, so the card shows
+      // exactly what is sent and the model hears which were skipped (review F12).
+      let skippedPhotos = [];
+      if (tool === "images.download" && Array.isArray(input.urls) && input.urls.some((u) => FILE_REF.test(String(u)))) {
+        const keep = [];
+        for (const u of input.urls) {
+          const m = FILE_REF.exec(String(u));
+          const ref = m && files.ref(m[1]);
+          if (ref && (ref.size || 0) <= PHOTO_MIN_BYTES) skippedPhotos.push({ name: ref.name, why: "15 KB или по-малка – сайтът не приема толкова малки снимки в галерията" });
+          else if (keep.length >= PHOTO_MAX) skippedPhotos.push({ name: ref ? ref.name : String(u), why: `над ${PHOTO_MAX} снимки наведнъж – изпрати ги с второ извикване` });
+          else keep.push(u);
+        }
+        if (!keep.length) return { ok: false, error: "Няма снимки за галерията.", skipped: skippedPhotos };
+        input = { ...input, urls: keep, max: keep.length };
+      }
       const cls = classify(tool, input);
-      // Plain step names for the server's file makers (CONTRACT §8.3: „Генерирам снимка“); every other tool: „CRM: …“.
-      const own = GEN_LABEL[tool];
+      // Files of THIS computer going to a CRM record (photos into a gallery, files.attach of a chat file): always their
+      // own card, never covered by an earlier „Разреши всички“ (review F4).
+      const localToCrm = cls === "approval" && uploads.hasRefs(input);
+      // Plain step names for the server's file makers (CONTRACT §8.3: „Правя PDF“); every other tool: „CRM: …“.
+      const own = tool === "images.download" && cls === "approval"
+        ? ["image", `Добавям снимки в галерията${input.property_code ? ` на имот ${String(input.property_code).slice(0, 40)}` : ""}`]
+        : GEN_LABEL[tool];
       const s = step({ kind: own ? own[0] : "crm", label: own ? own[1] : `CRM: ${toolLabel(tool)}`, tool, mutating: cls !== "auto" });
       let confirmed = false;
 
+      // The card names files of this program by their names („снимка.jpg“), not by "file:<id>".
+      const shown = namedRefs(input);
       async function askConfirm(kind) {
-        const d = await ask({ kind, title: approvalTitle(tool), tool, lines: inputLines(input), json: approvalJson(input), allowAll: false }, s);
+        const d = await ask({ kind, title: approvalTitle(tool), tool, lines: inputLines(shown), json: approvalJson(input), allowAll: false }, s);
         if (d.decision === "deny") return false;
         const yes = await confirm(`${approvalTitle(tool)}`, `Инструмент: ${tool}\n\n${approvalJson(input, 3000)}\n\nДействието е важно и може да не може да бъде отменено.`, { okLabel: "Потвърждавам", cancelLabel: "Отказ" });
         return !!yes;
       }
 
-      if (cls === "approval" && !state.allowAll) {
-        const d = await ask({ kind: "crm_write", title: approvalTitle(tool), tool, lines: inputLines(input), json: approvalJson(input), allowAll: true }, s);
+      // The server fetches web addresses of images.download itself: an address the model built in a context with CRM
+      // data needs the same „web“ card as read_page/fetch_image (CONTRACT §9.3 rule 8, review F10).
+      if (tool === "images.download") {
+        const web = [...(Array.isArray(input.urls) ? input.urls : []), input.page_url].filter((u) => typeof u === "string" && /^https?:\/\//i.test(u));
+        const foreign = state.tainted ? web.filter((u) => { const n = normUrl(u); return !n || !known.has(n); }) : [];
+        if (foreign.length) {
+          const allowed = await askWeb(s, "ChatGPT иска сървърът на Тед да изтегли адрес, който сам е съставил", [
+            ["Адрес", foreign.slice(0, 5).join("\n") + (foreign.length > 5 ? `\n…и още ${foreign.length - 5}` : "")],
+            ["Защо питаме", "Адресът не е от вашите съобщения, от търсенето или от прочетена страница, а в разговора има данни от CRM или файлове. Сървърът на Тед ще го отвори."]]);
+          if (!allowed) return { ok: false, error: "Служителят не разреши този адрес. Ползвай адреси от търсенето или от прочетените страници." };
+        }
+      }
+
+      if (cls === "approval" && (!state.allowAll || localToCrm)) {
+        const d = await ask({ kind: "crm_write", title: approvalTitle(tool, input, { photos: photoCount(input) }), tool, lines: inputLines(shown), json: approvalJson(input), allowAll: !localToCrm }, s);
         if (d.decision === "deny") { s.denied(); return { ok: false, error: d.timeout ? "Няма отговор от служителя 10 минути – действието не е изпълнено." : "Служителят отказа." }; }
-        if (d.decision === "allow_all") state.allowAll = true;
+        if (d.decision === "allow_all" && !localToCrm) state.allowAll = true;
       } else if (cls === "confirm") {
         if (!(await askConfirm("confirm"))) { s.denied(); return { ok: false, error: "Служителят отказа." }; }
         confirmed = true;
       }
       let sendInput = confirmed ? { ...input, confirm: true } : input;
       try {
+        // Photos of the chat into a property's gallery (0.1.5): images.download takes web links, so every "file:<id>"
+        // in `urls` is uploaded to the CRM storage and replaced with a 15-minute signed link of that copy. The server
+        // downloads it like any photo (no AI) and adds it to the gallery with the agency's logo.
+        if (tool === "images.download" && Array.isArray(sendInput.urls) && sendInput.urls.some((u) => FILE_REF.test(String(u)))) {
+          sendInput = { ...sendInput, urls: await signedFileUrls(sendInput.urls) };
+        }
         if (uploads.hasRefs(sendInput)) sendInput = await uploads.resolve(sendInput, subStep);
       } catch (e) {
         s.fail(e.message);
@@ -325,11 +486,18 @@ export function createAgent({
         s.fail(r.error);
         return { ok: false, error: r.error, ...(r.status ? { status: r.status } : {}) };
       }
+      // A CRM change may change the selected Проект (facts, summary): read it again next time.
+      if (cls !== "auto") caseCache.clear();
       const result = r.result && typeof r.result === "object" ? structuredClone(r.result) : r.result;
       if (tool === "email.preview" && result && typeof result === "object") send({ type: "email", email: result });
       if (result && typeof result === "object") await materialize(result, s);
-      s.ok();
-      return { ok: true, result };
+      // Photos into a gallery: the step says how many the server really stored (it may skip some).
+      if (tool === "images.download" && cls === "approval" && result && Number.isFinite(Number(result.downloaded))) {
+        const n = Number(result.downloaded);
+        const sent = Array.isArray(input.urls) ? input.urls.length : n;
+        if (n < sent) s.fail(`записани ${n} от ${sent} снимки – проверете галерията в CRM`); else s.ok(`${n} ${n === 1 ? "снимка" : "снимки"} в галерията`);
+      } else s.ok();
+      return { ok: true, result, ...(skippedPhotos.length ? { skipped: skippedPhotos } : {}) };
     }
 
     // A „web“ card: the employee sees the full address (or query) before it leaves the PC. -> true when allowed.
@@ -346,7 +514,7 @@ export function createAgent({
       if (raw.length > URL_MAX) { s.fail("адресът е твърде дълъг"); return { ok: false, error: `Адресът е над ${URL_MAX} знака и не се отваря.` }; }
       const n = normUrl(raw);
       if (!n || known.has(n) || !state.tainted) return null;
-      const allowed = await askWeb(s, "Тед иска да отвори адрес, който сам е съставил", [["Адрес", raw], ["Защо питаме", "Адресът не е от вашите съобщения, от търсенето или от прочетена страница, а в разговора има данни от CRM или файлове."]]);
+      const allowed = await askWeb(s, "ChatGPT иска да отвори адрес, който сам е съставил", [["Адрес", raw], ["Защо питаме", "Адресът не е от вашите съобщения, от търсенето или от прочетена страница, а в разговора има данни от CRM или файлове."]]);
       return allowed ? null : { ok: false, error: "Служителят не разреши този адрес. Ползвай адреси от търсенето или от прочетените страници." };
     }
     async function runLocal(name, args) {
@@ -358,7 +526,7 @@ export function createAgent({
         // After private data entered the context, a query with phones/e-mails/ЕГН that the employee did not type
         // goes out only after a card.
         const foreign = state.tainted ? personalTokens(q).filter((t) => !(t.includes("@") ? userLower.includes(t.toLowerCase()) : userDigits.includes(t.replace(/\D/g, "")))) : [];
-        if (foreign.length && !(await askWeb(s, "Тед иска да търси в интернет с лични данни", [["Търсене", q], ["Лични данни", foreign.join(", ")]]))) {
+        if (foreign.length && !(await askWeb(s, "ChatGPT иска да търси в интернет с лични данни", [["Търсене", q], ["Лични данни", foreign.join(", ")]]))) {
           return { ok: false, error: "Служителят не разреши търсене с тези данни." };
         }
         const r = await search({ query: q, n: args && args.n }, { signal });
@@ -384,6 +552,10 @@ export function createAgent({
         s.ok(r.title ? r.title.slice(0, 80) : undefined);
         // The text is cut so the whole result fits the output limit of this function.
         const page = { ok: true, url: r.url, title: r.title, phones: r.phones, emails: r.emails, prices: r.prices, images: r.images.slice(0, 40), links: r.links.slice(0, 80) };
+        // Provenance for pictures in the answer (CONTRACT §8.3 `images`): only these exact https addresses (from the
+        // page, not from the model) are shown inline by the renderer; any other picture stays a chip until a click.
+        const shown = page.images.filter((u) => typeof u === "string" && /^https:\/\//i.test(u) && u.length <= 2048);
+        if (shown.length) send({ type: "images", urls: shown });
         const room = Math.max(1000, maxChars + 8000 - JSON.stringify(page).length - 200);
         return web({ ...page, text: r.text.slice(0, Math.min(maxChars, room)), truncated: r.truncated || r.text.length > Math.min(maxChars, room) });
       }
@@ -426,7 +598,7 @@ export function createAgent({
         if (!ref) return { ok: false, error: "Файлът не е намерен. Подай го като \"file:<id>\"." };
         const s = step({ kind: "read_doc", label: `Чета файла: ${ref.name}` });
         const r = await files.extract(ref.id);
-        if (!r.ok) { s.fail(r.error); return { ok: false, error: r.error, ...(ref.kind === "image" ? { note: "За снимки ползвай crm analyze_image с path \"file:<id>\"." } : {}) }; }
+        if (!r.ok) { s.fail(r.error); return { ok: false, error: r.error, ...(ref.kind === "image" ? { note: "Снимките не се четат като текст: прикачените снимки са приложени към съобщението – разгледай ги директно." } : {}) }; }
         s.ok(r.doc.pages ? `${r.doc.pages} стр.` : undefined);
         const d = r.doc;
         return { ok: true, name: d.name, kind: d.kind, ...(d.pages ? { pages: d.pages } : {}), ...(d.sheets ? { sheets: d.sheets.map((x) => ({ name: x.name, rows: x.rows.length })) } : {}), text: d.text, truncated: d.truncated, ...(d.note ? { note: d.note.replace("file:<id>", `file:${ref.id}`) } : {}) };
@@ -441,50 +613,156 @@ export function createAgent({
         s.ok();
         return { ok: true, version: state.canvasVersion };
       }
-      if (name === "video_walk") {
-        if (!video) return { ok: false, error: "Видео не е достъпно в тази версия." };
-        const s = step({ kind: "video", label: "Видео на имот" });
-        const fileIds = (Array.isArray(args && args.files) ? args.files : []).map((x) => (FILE_REF.exec(String(x)) || [])[1]).filter(Boolean);
-        const prep = await video.prepare({ code: args && args.code, fileIds, prompt: args && args.prompt, chatId: req.chatId, temporary: !!req.temporary });
-        if (!prep.ok) {
-          if (prep.job) send({ type: "video", job: prep.job });
-          s.fail(prep.error);
-          return { ok: false, status: prep.code, error: prep.error, ...(prep.candidates ? { candidates: prep.candidates } : {}) };
-        }
-        const job = prep.job;
-        send({ type: "video", job });
-        const d = await ask({
-          kind: "video", title: "Платено AI видео", allowAll: false,
-          lines: [["Имот", job.source.title || job.source.code || "прикачени снимки"], ["Части", String(job.parts.length)], ["Формат", job.aspect]],
-          video: { engines: job.engines, gateway: job.gateway, parts: job.parts.length, aspect: job.aspect, defaults: job.defaults },
-        }, s);
-        if (d.decision === "deny") {
-          await video.cancel({ jobId: job.id });
-          s.denied();
-          return { ok: false, status: "denied", error: d.timeout ? "Няма отговор от служителя – видеото не е започнато." : "Служителят отказа видеото." };
-        }
-        const st = await video.start({ jobId: job.id, engine: d.options.engine, duration: d.options.duration });
-        if (!st.ok) { s.fail(st.error); return { ok: false, status: st.code || "failed", error: st.error }; }
-        s.ok("започна");
-        const cur = video.get(job.id) || job;
-        return { ok: true, status: "started", parts: cur.parts.length, est: cur.est, note: "Видеото се прави на сървъра и се показва в картата на видеото; не твърди, че е готово." };
+      if (name === "open_in_chatgpt") {
+        // Only a card: the employee reads (and may edit) the prompt and opens chatgpt.com with a click. Nothing is
+        // created here and nothing opens by itself.
+        const kind = HANDOFF_KINDS.includes(args && args.kind) ? args.kind : "other";
+        const prompt = cleanPrompt(args && args.prompt);
+        if (!prompt) return { ok: false, error: "Липсва заявката (prompt)." };
+        if (prompt.length > CHATGPT_PROMPT_MAX) return { ok: false, error: `Заявката е над ${CHATGPT_PROMPT_MAX} знака – съкрати я.` };
+        if (state.handoffs >= HANDOFF_MAX) return { ok: false, error: `Най-много ${HANDOFF_MAX} заявки за ChatGPT в един отговор.` };
+        state.handoffs++;
+        const s = step({ kind: "chatgpt", label: `Заявка за ChatGPT: ${HANDOFF_BG[kind]}` });
+        send({ type: "chatgpt", handoff: { id: `cg_${newId()}`, kind, prompt } });
+        s.ok("картата е показана – нищо не е отворено");
+        const link = fitsLink(prompt);
+        return {
+          ok: true, shown: true, opened: false, ...(link ? {} : { tooLongForLink: true }),
+          note: link
+            ? "Служителят вижда карта с тази заявка и бутон „Отвори в ChatGPT“. Нищо не е създадено и нищо не е отворено – не твърди, че има снимка или видео; кажи му да натисне бутона и да продължи в ChatGPT."
+            : "Заявката е твърде дълга за директен линк: картата предлага „Копирай и отвори ChatGPT“ – служителят я поставя там сам. Нищо не е създадено и нищо не е отворено. Следващия път пиши по-кратка заявка (до около 1300 знака на кирилица).",
+        };
       }
-      if (name === "listings_find") {
-        const a = args && typeof args === "object" ? args : {};
-        const tool = a.url || a.text ? "listings.collect_page" : "listings.find_owners";
-        const input = Object.fromEntries(Object.entries(a).filter(([k, v]) => ["place", "region", "site", "url", "text"].includes(k) && v != null && v !== "").map(([k, v]) => [k, String(v).slice(0, k === "text" ? 20000 : 300)]));
-        const s = step({ kind: "listings", label: tool === "listings.collect_page" ? "Събирам обяви в „Събрани“" : `Търся собственици: ${input.place || input.region || ""}`, tool, mutating: true });
-        if (!state.allowAll) {
-          const d = await ask({ kind: "crm_write", title: approvalTitle(tool), tool, lines: inputLines(input), json: approvalJson(input), allowAll: true }, s);
-          if (d.decision === "deny") { s.denied(); return { ok: false, error: "Служителят отказа." }; }
-          if (d.decision === "allow_all") state.allowAll = true;
-        }
-        const r = await tools.call(tool, input);
-        if (!r.ok) { s.fail(r.maybeExecuted ? "може да е изпълнено – проверете в CRM" : r.error); return { ok: false, error: r.error, ...(r.maybeExecuted ? { maybeExecuted: true } : {}) }; }
-        s.ok();
-        return { ok: true, result: r.result };
-      }
+      if (name === "project_folder") return runFolder(args || {});
       return { ok: false, error: "Непознат инструмент" };
+    }
+
+    // ---- project_folder (CONTRACT §8.12): the folder of a Проект on this computer ----------------------------------
+    // create = cases.create through the gate (card); add/list/export_zip = local only; save_to_crm = card, then upload
+    // and the plain server tools (files.attach / images.download). Nothing leaves the PC without the employee's card.
+    const seenProjects = new Map(); // id -> {id, title, client}
+    async function resolveProject(ref) {
+      const key = String(ref || "").trim().slice(0, 160);
+      const own = req.caseId ? { id: req.caseId, title: (kase && kase.kase && kase.kase.title) || "", client: (kase && kase.kase && kase.kase.client) || "", clientId: (kase && kase.kase && kase.kase.client_id) || "" } : null;
+      if (!key) {
+        if (own) return { ok: true, project: own };
+        if (state.project) return { ok: true, project: state.project };
+        return { ok: false, error: "Кой проект? Подай project (id или заглавие) – или създай нов с action:\"create\"." };
+      }
+      if (own && (key === own.id || key.toLowerCase() === String(own.title).toLowerCase())) return { ok: true, project: own };
+      if (seenProjects.has(key)) return { ok: true, project: seenProjects.get(key) };
+      const r = await runCrm({ tool: "cases.list", input: { status: "all", query: key.slice(0, 120) } });
+      const list = r.ok && r.result && Array.isArray(r.result.cases) ? r.result.cases : [];
+      const byId = list.find((c) => c && c.id === key);
+      const exact = list.filter((c) => c && String(c.title || "").toLowerCase() === key.toLowerCase());
+      const hit = byId || (exact.length === 1 ? exact[0] : list.length === 1 ? list[0] : null);
+      if (!hit) {
+        if (!r.ok) return r;
+        return list.length
+          ? { ok: false, error: "Няколко проекта отговарят – попитай служителя кой и подай id.", candidates: list.slice(0, 8).map((c) => ({ id: c.id, title: c.title, client: c.client })) }
+          : { ok: false, error: `Няма проект „${key}“. Създай го с action:"create" (служителят одобрява).` };
+      }
+      const p = { id: String(hit.id), title: String(hit.title || ""), client: String(hit.client || "") };
+      seenProjects.set(p.id, p);
+      return { ok: true, project: p };
+    }
+    const fileIdsOf = (list) => (Array.isArray(list) ? list : []).map((x) => FILE_REF.exec(String(x || ""))).filter(Boolean).map((m) => m[1]);
+
+    async function runFolder(args) {
+      const action = String(args.action || "");
+      if (!FOLDER_ACTIONS.includes(action)) return { ok: false, error: `Непознато действие на папката. Позволени: ${FOLDER_ACTIONS.join(", ")}.` };
+      if (!projects) return { ok: false, error: "Папките на проектите не са достъпни в тази програма." };
+      if (req.temporary && action !== "list") return { ok: false, error: "Във временен чат файловете не се пазят – папка не може да се попълни. Помоли служителя да продължи в обикновен чат." };
+      if (action === "create") {
+        const title = String(args.project || args.title || "").trim().slice(0, 160);
+        if (!title) return { ok: false, error: "Липсва заглавието на новия проект (project)." };
+        const input = { title };
+        if (args.client_id) input.client_id = String(args.client_id).slice(0, 80);
+        if (args.client_name) input.client_name = String(args.client_name).slice(0, 120);
+        if (args.description) input.description = String(args.description).slice(0, 4000);
+        const r = await runCrm({ tool: "cases.create", input }); // a CRM write: the employee's card (gate rule 3)
+        if (!r.ok) return r;
+        const made = { id: String((r.result && r.result.id) || ""), title: String((r.result && r.result.title) || title), client: input.client_name || "" };
+        if (!made.id) return { ok: false, error: "Сървърът не върна id на проекта." };
+        seenProjects.set(made.id, made);
+        // A chat outside any Проект: what Ted makes from now on in this answer goes into the new folder.
+        if (!req.caseId) { state.project = made; fileOpts.caseId = made.id; fileOpts.caseTitle = made.title; }
+        return { ok: true, project: made, note: req.caseId ? "Проектът е създаден в CRM. Добави файлове в папката му с action:\"add\" и project:<id>." : "Проектът е създаден в CRM. Файловете, които направиш оттук нататък в този отговор, отиват в папката му; по-ранни добави с action:\"add\"." };
+      }
+      const pr = await resolveProject(args.project);
+      if (!pr.ok) return pr;
+      const p = pr.project;
+      const label = (what) => `Папка „${String(p.title || "проект").slice(0, 60)}“: ${what}`;
+      if (action === "add") {
+        const ids = fileIdsOf(args.files).slice(0, FOLDER_ADD_MAX);
+        if (!ids.length) return { ok: false, error: "Подай файловете като files:[\"file:<id>\", …]." };
+        const s = step({ kind: "folder", label: label(`добавям ${ids.length === 1 ? "1 файл" : `${ids.length} файла`}`) });
+        const out = files.assign(ids, { caseId: p.id, caseTitle: p.title });
+        if (!out.length) { s.fail("файловете не са намерени"); return { ok: false, error: "Файловете не са намерени на този компютър." }; }
+        s.ok(`${out.length} в папката`);
+        return { ok: true, project: { id: p.id, title: p.title }, added: out.map((f) => f.name), missing: ids.length - out.length, folder_count: files.list({ caseId: p.id, limit: 500 }).count };
+      }
+      if (action === "list") {
+        const s = step({ kind: "folder", label: label("преглед") });
+        const l = files.list({ caseId: p.id, limit: 100 });
+        s.ok(`${l.count} ${l.count === 1 ? "файл" : "файла"}`);
+        return { ok: true, project: { id: p.id, title: p.title, client: p.client || undefined }, count: l.count, total: humanSize(l.totalBytes || 0),
+          files: l.items.map((f) => ({ file: `file:${f.id}`, name: f.name, kind: f.kind, size: humanSize(f.size || 0), createdAt: f.createdAt, origin: f.origin, ...(f.savedTo ? { savedTo: f.savedTo } : {}) })) };
+      }
+      if (action === "export_zip") {
+        // One ZIP per folder state and at most ZIP_PER_ANSWER per answer (review F9): a looping model cannot fill
+        // the disk with copies of a 500 MB folder.
+        const now0 = files.list({ caseId: p.id, limit: 500 });
+        const key = `${p.id}|${now0.count}|${now0.totalBytes || 0}`;
+        const prev = state.zips.get(key);
+        if (prev) return { ok: true, file: `file:${prev.id}`, name: prev.name, count: prev.count, reused: true, note: "Този ZIP вече е направен в този отговор и папката не се е променила – картата му е показана." };
+        if (state.zips.size >= ZIP_PER_ANSWER) return { ok: false, error: `Най-много ${ZIP_PER_ANSWER} ZIP файла в един отговор – служителят може да изтегли папката от страницата на проекта („Изтегли папката“).` };
+        const s = step({ kind: "folder", label: label("правя ZIP") });
+        const z = await projects.zip({ caseId: p.id, title: p.title, client: p.client || "" });
+        if (!z.ok) { s.fail(z.error); return { ok: false, error: z.error }; }
+        // The ZIP itself is not put into the folder (no archive inside the archive next time).
+        const f = addFile({ name: z.name, mime: "application/zip", data: z.buffer, origin: "ted", maxBytes: 520 * 1048576 }, s.id, { project: false });
+        if (!f.ok) { s.fail(f.error); return { ok: false, error: f.error }; }
+        state.zips.set(key, { id: f.file.id, name: f.file.name, count: z.count });
+        s.ok(`${z.count} файла · ${humanSize(f.file.size)}`);
+        return { ok: true, file: `file:${f.file.id}`, name: f.file.name, count: z.count, note: "Служителят вижда карта на ZIP файла с „Запази…“ – записва го там, където избере. Нищо не е изпратено." };
+      }
+      // save_to_crm: the folder (or the named files) into the CRM at a client or a property – only after the card.
+      const all = files.list({ caseId: p.id, limit: 500 }).items;
+      const wanted = fileIdsOf(args.files);
+      const chosen = wanted.length ? all.filter((f) => wanted.includes(f.id)) : all;
+      if (!chosen.length) return { ok: false, error: wanted.length ? "Тези файлове не са в папката на проекта – добави ги първо с action:\"add\"." : "Папката на проекта е празна." };
+      if (chosen.length > 50) return { ok: false, error: "Най-много 50 файла наведнъж – подай files с част от тях." };
+      // A client given by id is named on the card by the CRM's own record, never by a name the model wrote (review F3).
+      let target = args.property_code ? { propertyCode: String(args.property_code) } : null;
+      if (!target && args.client_id) {
+        const id = String(args.client_id).slice(0, 80);
+        const got = await runCrm({ tool: "clients.get", input: { id } });
+        const crmName = got.ok && got.result && got.result.client && typeof got.result.client.name === "string" ? got.result.client.name.trim().slice(0, 120) : "";
+        target = { clientId: id, clientName: crmName };
+      }
+      // The project's own client comes from the CRM (cases.get / cases.list), so its name is the CRM's.
+      if (!target) target = args.client_name ? { clientName: String(args.client_name) } : p.clientId ? { clientId: p.clientId, clientName: p.client || "" } : p.client ? { clientName: p.client } : null;
+      const t = projects.targetOf(target);
+      if (!t) return { ok: false, error: "При кой клиент или имот да се запишат файловете? Подай client_name, client_id или property_code." };
+      const s = step({ kind: "crm", label: `CRM: папка „${String(p.title || "").slice(0, 50)}“ → ${t.label}`, tool: "files.attach", mutating: true });
+      // Always its own card with every file and the target – an earlier „Разреши всички“ never covers an upload of
+      // this computer's files (review F4); the card itself offers no „Разреши всички“.
+      {
+        const d = await ask({
+          kind: "crm_write", title: `ChatGPT иска да запише папката „${String(p.title || "").slice(0, 80)}“ в CRM`, tool: "files.attach", allowAll: false,
+          lines: [["Проект", p.title || p.id], ["Къде", t.kind === "property" ? `${t.label} – снимките в галерията, другите файлове в документите` : `${t.label} – в документите, папка „Проект: ${p.title}“`],
+            ["Файлове", fileListLine(chosen)]],
+          json: approvalJson({ project: { id: p.id, title: p.title }, target: t.input, files: chosen.map((f) => ({ file: `file:${f.id}`, name: f.name, size: f.size })) }),
+        }, s);
+        if (d.decision === "deny") { s.denied(); return { ok: false, error: d.timeout ? "Няма отговор от служителя 10 минути – нищо не е записано." : "Служителят отказа – нищо не е записано." }; }
+      }
+      const r = await projects.upload({ fileIds: chosen.map((f) => f.id), target, folderName: `Проект: ${p.title}`.slice(0, 80), onStep: subStep });
+      if (!r.results) { s.fail(r.error); return { ok: false, error: r.error }; }
+      const maybe = r.results.some((x) => x.maybeExecuted);
+      if (r.failed) s.fail(`${r.saved} записани, ${r.failed} неуспешни${maybe ? " – може да е изпълнено, проверете в CRM" : ""}`); else s.ok(`${r.saved} записани при ${t.label}`);
+      if (r.saved) caseCache.clear();
+      return { ok: r.saved > 0, saved: r.saved, failed: r.failed, target: t.label, results: r.results.map((x) => ({ name: x.name, ok: x.ok, ...(x.savedTo ? { savedTo: x.savedTo } : {}), ...(x.error ? { error: x.error } : {}), ...(x.maybeExecuted ? { maybeExecuted: true } : {}) })) };
     }
 
     async function execute(call) {
@@ -513,8 +791,14 @@ export function createAgent({
     let kase = null;
     if (req.caseId) {
       const s = step({ kind: "crm", label: "CRM: казуси.преглед", tool: "cases.get" });
-      const r = await tools.call("cases.get", { id: req.caseId });
-      if (r.ok) { kase = r.result; s.ok(); state.tainted = true; } else s.fail(r.error);
+      const hit = caseCache.get(req.caseId);
+      const r = hit && now() - hit.at < CASE_TTL_MS ? { ok: true, result: structuredClone(hit.value) } : await tools.call("cases.get", { id: req.caseId });
+      if (r.ok) {
+        kase = r.result; s.ok(); state.tainted = true;
+        if (!hit || now() - hit.at >= CASE_TTL_MS) { caseCache.set(req.caseId, { at: now(), value: structuredClone(r.result) }); if (caseCache.size > 20) caseCache.delete(caseCache.keys().next().value); }
+      } else s.fail(r.error);
+      // Files Ted makes in a chat of this Проект go into its folder (never in a temporary chat: those are not kept).
+      if (!req.temporary) { fileOpts.caseId = String(req.caseId).slice(0, 64); fileOpts.caseTitle = String((kase && kase.kase && kase.kase.title) || "").slice(0, 160); }
     }
     const role = req.role ? await tools.rolePrompt(req.role).catch(() => null) : null;
 
@@ -539,7 +823,7 @@ export function createAgent({
 
     // ---- rounds --------------------------------------------------------------------------------------------
     const m = memo(model);
-    const tried = { effort: false, flat: false, ids: false };
+    const tried = { effort: false, flat: false, ids: false, docs: false };
     let effortIgnored = false;
 
     function bodyFor() {
@@ -547,6 +831,7 @@ export function createAgent({
       if (m.noEffort && b.reasoning) { delete b.reasoning; effortIgnored = true; }
       if (m.flat) b.tools = flattenTools(b.tools);
       if (m.noIds) b.input = stripIds(b.input);
+      if (m.noDocs) b.input = withoutDocs(b.input);
       return assertRequest(b);
     }
 
@@ -565,6 +850,9 @@ export function createAgent({
           if (!m.flat && !tried.flat) { tried.flat = true; m.flat = true; continue; }
           return { ok: false, toolsUnsupported: true, status: 400, error: r.error };
         }
+        // An attached PDF (input_file) the route does not take: once without it – GPT then reads it with read_document.
+        const filesIssue = (p.startsWith("input") || /input_file|file_data|\bfile/i.test(message)) && hasDocs(body.input);
+        if (filesIssue && !tried.docs && !m.noDocs) { tried.docs = true; m.noDocs = true; continue; }
         if (p.startsWith("input") && !tried.ids && !m.noIds) { tried.ids = true; m.noIds = true; continue; }
         return r;
       }
@@ -577,8 +865,10 @@ export function createAgent({
       const r = await roundTrip();
       if (!r.ok) {
         if (r.toolsUnsupported) {
-          if (log) log.warn("agent.tools_unsupported", { model });
-          return fail("tools_unsupported", null, partial());
+          // No switch to any other engine: the employee sees what OpenAI refused and may retry without tools.
+          const refused = refusalOf(r.status, r.error);
+          if (log) log.warn("agent.tools_unsupported", { model, code: refused.code, param: refused.param });
+          return fail("tools_unsupported", null, { ...partial(), refused });
         }
         return apiFailure(r.status, r.error, partial());
       }

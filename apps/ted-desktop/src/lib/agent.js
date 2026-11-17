@@ -10,7 +10,28 @@ export const AGENT_INIT = {};
 const STEP_STATUS = ["run", "ok", "fail", "wait", "denied"];
 const MAX_STEPS = 200;
 const MAX_FILES = 100;
-const EMPTY = Object.freeze({ steps: [], files: [], approvals: [], limited: null, video: null, email: null, canvas: 0 });
+const EMPTY = Object.freeze({ steps: [], files: [], approvals: [], limited: null, video: null, email: null, canvas: 0, chatgpt: [], images: [] });
+const MAX_HANDOFFS = 10;
+const HANDOFF_KINDS = ["image", "video", "research", "other"];
+// Image addresses that came from a tool result of the answer (read_page images, §8.3 `images`): only these are shown
+// inline without a click (docs/CONTRACT.md §16 „Images in answers“). Plain https addresses, deduplicated, capped.
+export const MAX_IMAGES = 400;
+const IMG_URL = /^https:\/\/[^\s"'<>\\]{4,2040}$/i;
+export function cleanImageUrls(list) {
+  const out = [];
+  for (const u of Array.isArray(list) ? list : []) {
+    if (typeof u !== "string" || !IMG_URL.test(u) || out.includes(u)) continue;
+    out.push(u);
+    if (out.length >= MAX_IMAGES) break;
+  }
+  return out;
+}
+
+// One open_in_chatgpt card (§9.6) as MAIN sends it: id, kind and the prompt text only.
+function cleanHandoff(h) {
+  if (!isObj(h) || typeof h.id !== "string" || !h.id || typeof h.prompt !== "string" || !h.prompt.trim()) return null;
+  return { id: h.id.slice(0, 40), kind: HANDOFF_KINDS.includes(h.kind) ? h.kind : "other", prompt: h.prompt.slice(0, 4000) };
+}
 
 const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
 const str = (v, n) => (typeof v === "string" ? v.slice(0, n) : "");
@@ -85,6 +106,19 @@ export function agentReduce(state, ev) {
       if (!isObj(ev.canvas)) return s;
       next = { ...cur, canvas: (cur.canvas || 0) + 1 };
       break;
+    case "chatgpt": {
+      const h = cleanHandoff(ev.handoff);
+      if (!h) return s;
+      next = { ...cur, chatgpt: upsert(cur.chatgpt || [], h, MAX_HANDOFFS) };
+      break;
+    }
+    case "images": {
+      const have = new Set(cur.images || []);
+      const add = cleanImageUrls(ev.urls).filter((u) => !have.has(u));
+      if (!add.length) return s;
+      next = { ...cur, images: [...(cur.images || []), ...add].slice(0, MAX_IMAGES) };
+      break;
+    }
     default:
       return s;
   }
@@ -103,7 +137,24 @@ export function agentSnapshot(state, requestId) {
     ...(a.limited ? { limited: { ...a.limited } } : {}),
     ...(a.video ? { video: { ...a.video } } : {}),
     ...(a.email ? { email: a.email } : {}),
+    ...(a.chatgpt && a.chatgpt.length ? { chatgpt: a.chatgpt.map((h) => ({ ...h })) } : {}),
+    ...(a.images && a.images.length ? { images: [...a.images] } : {}),
   };
+}
+
+// What an answer may show inline (no click needed): image addresses from its tool results, the source addresses of
+// pictures fetched into the store (fetch_image) and the ids of its own image files. Everything else is a chip.
+export function answerMedia(agent) {
+  const a = isObj(agent) ? agent : {};
+  const allowed = new Set(cleanImageUrls(a.images));
+  const bySource = new Map();
+  const ids = new Set();
+  for (const f of Array.isArray(a.files) ? a.files : []) {
+    if (!isObj(f) || typeof f.id !== "string" || f.kind !== "image") continue;
+    ids.add(f.id);
+    if (typeof f.sourceUrl === "string" && IMG_URL.test(f.sourceUrl)) { allowed.add(f.sourceUrl); bySource.set(f.sourceUrl, f.id); }
+  }
+  return { allowed, bySource, ids };
 }
 
 // The messages array of ted.realgpt.send (§8.2): earlier Real GPT exchanges (rgHistory) + the current question.
@@ -182,6 +233,96 @@ export function stepsSummary(steps, live) {
   if (ok === list.length) return { status: "succeeded", label: "Изпълнено", changed };
   if (!ok) return { status: "failed", label: n("denied") === list.length ? "Отказано" : "Неуспешно", changed };
   return { status: "partially_succeeded", label: "Частично изпълнено", changed };
+}
+
+/* ---------- The ChatGPT-style activity line (docs/CONTRACT.md §16 „Activity“) ----------
+   While an answer runs: ONE line with the current step and the elapsed time. When it is done: ONE collapsed line that
+   counts the real steps („Претърси интернет 6 пъти и прочете 4 страници · 1 неуспешна · 1 мин 26 с“). Only steps
+   with status "ok" are counted as done; failures, refusals and cut-off steps are counted separately. */
+const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
+export function fmtDur(ms) {
+  const sec = Math.max(0, Math.round((Number(ms) || 0) / 1000));
+  if (sec < 1) return "< 1 с";
+  if (sec < 60) return sec + " с";
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return m + " мин" + (s ? " " + s + " с" : "");
+}
+// Wall time of the steps: first start → last end (finished steps only), or "".
+export function stepsSpan(steps) {
+  let a = Infinity, b = -Infinity;
+  for (const s of Array.isArray(steps) ? steps : []) {
+    const x = Date.parse(s && s.startedAt), y = Date.parse(s && s.endedAt);
+    if (Number.isFinite(x)) a = Math.min(a, x);
+    if (Number.isFinite(y)) b = Math.max(b, y);
+  }
+  return Number.isFinite(a) && Number.isFinite(b) && b >= a ? b - a : null;
+}
+export function firstStart(steps) {
+  let a = Infinity;
+  for (const s of Array.isArray(steps) ? steps : []) { const x = Date.parse(s && s.startedAt); if (Number.isFinite(x)) a = Math.min(a, x); }
+  return Number.isFinite(a) ? a : null;
+}
+// The step on screen while the answer runs: the newest one waiting for the employee or still running.
+export function currentStep(steps) {
+  const list = Array.isArray(steps) ? steps : [];
+  for (let i = list.length - 1; i >= 0; i--) if (list[i] && list[i].status === "wait") return list[i];
+  for (let i = list.length - 1; i >= 0; i--) if (list[i] && list[i].status === "run") return list[i];
+  return null;
+}
+const ACT_KIND = {
+  web_search: (n) => (n === 1 ? "претърси интернет" : "претърси интернет " + n + " пъти"),
+  read_page: (n) => "прочете " + plural(n, "страница", "страници"),
+  fetch_image: (n) => "изтегли " + plural(n, "снимка", "снимки"),
+  crm: (n) => "изпълни " + plural(n, "действие", "действия") + " в CRM",
+  doc: (n) => "направи " + plural(n, "документ", "документа"),
+  // images.download into a CRM record (0.1.5 review): photos go INTO the gallery; the number is the photos the server
+  // reported in the step's detail („2 снимки в галерията…“), never the number of steps.
+  image: (n, x) => (x && x.photos ? "добави " + plural(x.photos, "снимка", "снимки") + " в галерията" : "добави снимки в галерията"),
+  folder_add: (n, x) => "добави " + plural(x && x.files ? x.files : n, "файл", "файла") + " в папката на проекта",
+  folder_zip: (n) => (n === 1 ? "направи ZIP на папката" : "направи " + n + " ZIP файла на папката"),
+  folder_list: () => "прегледа папката на проекта",
+  read_doc: (n) => "прочете " + plural(n, "файл", "файла"),
+  upload: (n) => "качи " + plural(n, "файл", "файла") + " в CRM",
+  canvas: () => "обнови Canvas",
+  chatgpt: (n) => "подготви " + (n === 1 ? "заявка" : n + " заявки") + " за ChatGPT",
+  memory: (n) => plural(n, "стъпка", "стъпки") + " с паметта",
+};
+const ACT_ORDER = ["web_search", "read_page", "fetch_image", "read_doc", "crm", "image", "upload", "folder_add", "folder_list", "folder_zip", "doc", "canvas", "chatgpt", "memory"];
+// A project_folder step (kind "folder") by what it did: its label says „добавям …“, „правя ZIP“ or „преглед“.
+const folderKind = (s) => (/ZIP/i.test(s.label || "") ? "folder_zip" : /добавям/i.test(s.label || "") ? "folder_add" : "folder_list");
+const leadingNumber = (t) => { const m = /^(\d+)\s/.exec(String(t || "")); return m ? Number(m[1]) : 0; };
+const joinBg = (parts) => (parts.length < 2 ? parts.join("") : parts.slice(0, -1).join(", ") + " и " + parts[parts.length - 1]);
+// -> {text, done, failed, denied, cut, waiting, changed, ms}. live: the answer still runs (a "run" step is not cut off).
+export function activitySummary(steps, live) {
+  const list = (Array.isArray(steps) ? steps : []).filter((s) => s && typeof s === "object");
+  const ok = {};
+  const extra = { image: { photos: 0 }, folder_add: { files: 0 } };
+  let other = 0, failed = 0, denied = 0, cut = 0, waiting = 0;
+  for (const s of list) {
+    if (s.status === "ok") {
+      const k = s.kind === "folder" ? folderKind(s) : ACT_KIND[s.kind] ? s.kind : "";
+      if (k) ok[k] = (ok[k] || 0) + 1; else other++;
+      if (k === "image") extra.image.photos += leadingNumber(s.detail);
+      if (k === "folder_add") extra.folder_add.files += leadingNumber(s.detail);
+    } else if (s.status === "fail") failed++;
+    else if (s.status === "denied") denied++;
+    else if (s.status === "wait") waiting++;
+    else if (s.status === "run" && !live) cut++;
+  }
+  const parts = ACT_ORDER.filter((k) => ok[k]).map((k) => ACT_KIND[k](ok[k], extra[k]));
+  if (other) parts.push(plural(other, "друга стъпка", "други стъпки"));
+  let head = parts.length ? joinBg(parts) : list.length ? "нищо не е изпълнено" : "";
+  head = head ? head[0].toUpperCase() + head.slice(1) : "";
+  const tail = [
+    failed ? plural(failed, "неуспешна", "неуспешни") : "",
+    denied ? plural(denied, "отказана", "отказани") : "",
+    cut ? plural(cut, "прекъсната", "прекъснати") : "",
+    waiting ? "чака вашето решение" : "",
+  ].filter(Boolean);
+  const ms = stepsSpan(list);
+  const changed = list.some((x) => x.mutating && x.status === "ok");
+  const done = Object.values(ok).reduce((a, b) => a + b, 0) + other;
+  return { text: [head, ...tail].filter(Boolean).join(" · "), head, tail, done, failed, denied, cut, waiting, changed, ms };
 }
 
 // Seconds between two ISO times, or "".

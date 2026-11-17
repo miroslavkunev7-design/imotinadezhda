@@ -3,9 +3,8 @@
    Loaded after style.css, desktop.css and layout.css. */
 
 /* ---------- „Изпълнение“ ---------- */
-.agent-steps .ag-st{min-width:0;overflow-wrap:anywhere}
-.agent-steps .steps li[data-status="denied"] .ag-st{color:var(--muted)}
-.agent-steps .ag-more{margin-top:8px;color:var(--ted-wine-2);font-size:13px}
+.act-body .ag-st{min-width:0;overflow-wrap:anywhere}
+.act-body .steps li[data-status="denied"] .ag-st{color:var(--muted)}
 
 /* ---------- Потвърждение (CRM, важна промяна, платено видео) ---------- */
 .card.approval{border-left:4px solid var(--gold-2)}
@@ -77,6 +76,17 @@
 .card.tools-no{border-left:4px solid var(--warn)}
 .card.tools-no h4 svg.i{color:var(--warn)}
 .card.tools-no p{font-size:14.5px}
+.card.tools-no .refused{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--warn-bg);font-size:13.5px;color:var(--ink);overflow-wrap:anywhere}
+.card.tools-no .refused-m{margin-top:4px;color:var(--muted);font-style:italic}
+
+/* ---------- Отвори в ChatGPT (open_in_chatgpt) ---------- */
+.card.cg-card{border-left:4px solid var(--ted-wine-2)}
+.card.cg-card h4 svg.i{color:var(--ted-wine-2)}
+.card.cg-card p{font-size:14.5px}
+.cg-card .cg-l{display:block;margin-top:8px;font:700 12.5px var(--f-text);color:var(--muted);letter-spacing:.02em}
+.cg-card .cg-ta{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:9px 11px;min-height:84px;max-height:260px;resize:vertical;border-radius:12px;border:1px solid var(--gold-3);background:#fffdf9;color:var(--ink);font:400 14.5px/1.5 var(--f-text)}
+.cg-card .cg-ta:focus{outline:2px solid var(--gold);outline-offset:1px}
+.cg-card .cg-meta{display:flex;justify-content:flex-end;color:var(--muted);font-size:12px;margin-top:2px}
 
 /* ---------- Съгласие за Real GPT ---------- */
 .consent .consent-q{font:700 16px/1.4 var(--f-text);color:var(--ink)}
@@ -99,3 +109,79 @@
 .cv-prev .md{white-space:normal}
 .cv-fig{margin:12px 0;display:flex;justify-content:center}
 .cv-svg{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--gold-3);background:#fffdf9}
+
+/* ---------- 0.1.5 · Активност като в ChatGPT (AgentSteps, ActionsCard, Waiting) ----------
+   One quiet line: while running the current step with a soft gold shimmer and the elapsed time; when done the
+   counted summary with › – a click opens the full list (the 0.1.4 steps) and closes it again. */
+.act{display:flex;flex-direction:column;gap:6px;min-width:0;align-self:stretch}
+.act-line{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%;align-self:flex-start;margin-left:-8px;padding:5px 10px 5px 8px;border:0;border-radius:12px;
+  background:none;color:#7d5646;font:400 15px/1.35 var(--f-text);text-align:left;cursor:pointer}
+.act-line:hover:not(:disabled):not(.static){background:rgba(133,15,45,.07);color:var(--ink)}
+.act-line:focus-visible{outline:2px solid #c4123f;outline-offset:1px}
+.act-line:disabled,.act-line.static{cursor:default}
+.act-ic{width:18px;height:18px;flex:none;display:grid;place-items:center}
+.act-ic svg.i{width:16px;height:16px;stroke-width:2.4}
+.act-ic.ai-check{color:var(--ok)}
+.act-ic.ai-info{color:var(--warn)}
+.act-ic.ai-x{color:var(--bad)}
+.act-t{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act.done .act-t{color:#6b4a40}
+.act-line:hover .act-t{color:var(--ink)}
+.act-t.shimmer{color:transparent;background:linear-gradient(100deg,#7d5646 0%,#7d5646 38%,#d9a24a 48%,#9a0f3b 54%,#7d5646 64%,#7d5646 100%);background-size:260% 100%;
+  -webkit-background-clip:text;background-clip:text;animation:actShim 2.4s linear infinite}
+@keyframes actShim{from{background-position:100% 0}to{background-position:0 0}}
+.act-orb{display:block;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3cf,#ffcf5c 45%,#c9963e);box-shadow:0 0 0 3px rgba(255,207,92,.25),0 0 10px rgba(255,190,90,.6);animation:actPulse 1.4s ease-in-out infinite}
+@keyframes actPulse{50%{transform:scale(.72);box-shadow:0 0 0 5px rgba(255,207,92,.12),0 0 14px rgba(255,42,95,.35)}}
+.act-time{flex:none;color:#8a6a5c;font-size:13.5px;font-variant-numeric:tabular-nums}
+.act-time::before{content:"·";margin-right:7px;opacity:.6}
+.act-tag{flex:none;font:700 11px var(--f-text);letter-spacing:.06em;color:#7a4b12;background:#f6e2c4;border-radius:8px;padding:1px 7px}
+.act-chev{width:15px!important;height:15px!important;flex:none;opacity:.65;transition:transform .18s ease}
+.act.open .act-chev{transform:rotate(90deg)}
+.act.warn .act-t{color:#7a4b12}
+.act-body{margin:0 0 4px 1px;padding:10px 14px 12px 16px;border-left:2px solid rgba(216,180,106,.8);border-radius:0 14px 14px 0;background:rgba(251,242,228,.75);animation:actOpen .18s ease-out}
+@keyframes actOpen{from{opacity:0;transform:translateY(-4px)}}
+.act-body .run-h .run-t{font-size:14px}
+.act-body .steps{margin-top:8px}
+.act-body .verify{margin-top:10px}
+.act-note{margin:0;padding:6px 10px;border-radius:10px;background:var(--warn-bg);color:var(--warn);font-weight:700}
+.act.srv-wait{gap:6px}
+.act.srv-wait .act-line{align-self:stretch;flex-wrap:nowrap}
+.act.srv-wait .lw-n{font-size:12.5px;margin-left:6px}
+.act.srv-wait .stop-b{flex:none;margin-left:auto;min-height:30px;padding:3px 12px;font-size:13px}
+.act.srv-wait .lw-bar{max-width:460px;margin-left:26px;height:3px}
+.ap-stack{display:flex;flex-direction:column;gap:10px}
+.shell.phone .act-line{font-size:14.5px}
+.shell.phone .act-tag{display:none}
+
+/* ---------- Снимки в отговора (само от резултатите на същия отговор; другите – чип) ---------- */
+.md-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,196px));gap:8px;margin:6px 0 14px}
+.md-gallery.n1{grid-template-columns:minmax(0,360px)}
+.md-img{position:relative;display:inline-grid;place-items:center;width:100%;aspect-ratio:4/3;padding:0;overflow:hidden;vertical-align:middle;cursor:zoom-in;
+  border:1px solid rgba(216,180,106,.75);border-radius:14px;background:linear-gradient(135deg,#f6e9d6,#efdcc0);box-shadow:0 6px 14px -10px rgba(88,13,34,.45)}
+.md-img img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s ease}
+.md-img:hover img{transform:scale(1.035)}
+.md-img:focus-visible{outline:2px solid #c4123f;outline-offset:2px}
+.md-img.sk{cursor:progress;color:#c9963e}
+.md-img.sm{width:76px;height:57px;aspect-ratio:auto;border-radius:10px;margin:2px 4px 2px 0}
+.md p .md-img:not(.sm){width:220px;margin:4px 6px 4px 0}
+.img-chip{border-style:dashed;background:#fbf3e6}
+.img-chip svg.i{width:14px;height:14px;flex:none;color:var(--ted-wine-2)}
+.img-chip.bad{border-style:solid;background:var(--bad-bg);border-color:rgba(163,17,47,.35);color:var(--bad)}
+.shell.phone .md-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
+.shell.phone .md-gallery.n1{grid-template-columns:minmax(0,1fr)}
+.shell.phone .md-gallery.n3,.shell.phone .md-gallery.n4{grid-template-columns:repeat(3,minmax(0,1fr))}
+.md-gallery .src-chip{justify-self:start;align-self:start;max-width:100%}
+/* 0.1.5 review: the failure count of the collapsed activity line is never cut on a narrow window. */
+.act-t.split{display:flex;min-width:0;overflow:visible}
+.act-t.split .act-h{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:pre}
+.act-t.split .act-tail{flex:none;white-space:pre;font-weight:600}
+/* 0.1.5 review: a long file name never pushes the card's row past its border (phone project folder). The phone rule
+   `.card.file{flex-wrap:wrap}` made this COLUMN card multi-line, so its line took the name's full width: one line again;
+   the name ends with „…“ (the whole name is its tooltip) and the buttons wrap under it. */
+.shell.phone .card.file.fcard,.card.file.fcard{flex-wrap:nowrap}
+.fcard .fx{min-width:0;flex:1 1 auto}
+.fcard .fc-main{flex-wrap:wrap}
+.fcard .fc-main>.fc-acts{margin-left:auto}
+/* The server's waiting line looks like Real GPT's (review): one label, the same time, a hairline progress. */
+.act.srv-wait .lw-bar.subtle{height:2px;opacity:.55;background:transparent}
+.act.srv-wait .lw-bar.subtle i{background:linear-gradient(90deg,rgba(154,15,59,.55),rgba(217,162,74,.7))}

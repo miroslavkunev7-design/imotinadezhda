@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ted } from "./bridge.js";
 import Icon from "./components/Icon.jsx";
 import { Avatar, It, Modal, Pop, usePhone, usePop } from "./components/ui.jsx";
@@ -25,17 +25,22 @@ import AgentsPage from "./components/layout/AgentsPage.jsx";
 import UpdateBanner from "./components/layout/UpdateBanner.jsx";
 import VideoWizard from "./components/layout/VideoWizard.jsx";
 import AgentSteps from "./components/agent/AgentSteps.jsx";
+import { ThinkingLine } from "./components/agent/AgentSteps.jsx";
 import ApprovalCard from "./components/agent/ApprovalCard.jsx";
 import ConsentModal from "./components/agent/ConsentModal.jsx";
 import FileCard from "./components/agent/FileCard.jsx";
 import ToolsUnsupportedCard from "./components/agent/ToolsUnsupportedCard.jsx";
+import OpenInChatGptCard from "./components/agent/OpenInChatGptCard.jsx";
 import VideoCard from "./components/agent/VideoCard.jsx";
 import { agentSnapshot, useAgentEvents } from "./lib/agent.js";
+import { answerMedia, fmtDur } from "./lib/agent.js";
 import { DEF_SETTINGS, GROUPS, NOTIFY_DEF, RG_SIGNIN_CODES, RG_USAGE_URL, ROLES, SESSION_NOTE, WRITE_EX, effortName, hintOf, modeOf, roleOf } from "./lib/consts.js";
-import { dayGroup, extOf, firstName, fmtClock, fmtDate, fmtSize, initials, now, uid } from "./lib/format.js";
+import { dayGroup, extOf, firstName, fmtDate, fmtSize, initials, now, uid } from "./lib/format.js";
 import { LIMITS, addFiles, chipOf, composeText, engineProblem, libItem } from "./lib/files.js";
 import { affirmGuard, answerChanged, chatMarkdown, cleanChats, unfinished, emailBlock, emailResult, histText, markFromReply, newestEmailId, newestInterrupted, raiseMark, readMark, rgHistory, safeFileName, serverHistory } from "./lib/chat.js";
 import { createSpeaker, startRecorder } from "./lib/voice.js";
+import { createStore } from "./lib/store.js";
+import ProjectFolder, { SaveToCrmModal } from "./components/layout/ProjectFolder.jsx";
 import avatar from "./assets/avatar.webp";
 
 const STOP_NOTE = "Спряно изчакването. Ако Тед вече е започнал действие на сървъра, то може да бъде довършено – проверете в CRM.";
@@ -108,22 +113,162 @@ export default function Root() {
 // The server answers in one piece (up to ~2 min). Only the elapsed time is real; the line under it is a
 // hint chosen by time, never a claimed step.
 const WAIT_LIMIT_MS = 120000;
-const waitHint = (ms) => (ms < 4000 ? "Тед мисли…" : ms < 30000 ? "Тед работи – може да ползва CRM, интернет и документи."
+const waitHint = (ms) => (ms < 4000 ? "Тед работи на сървъра…" : ms < 30000 ? "Тед работи – може да ползва CRM, интернет и документи."
   : ms < 90000 ? "Сложна задача – обикновено до 1–2 минути." : "Почти до лимита от 2 минути…");
 
+// ONE activity line like ChatGPT and like Real GPT's (review: one label, the same „1 с / 1 мин 5 с“ time): the label
+// is „Тед работи на сървъра…“ and after 4 s a hint chosen by time (marked as such, never a claimed step), then „Спри“.
 function Waiting({ t0, onStop }) {
   const [, tick] = useState(0);
   useEffect(() => { const t = setInterval(() => tick((x) => x + 1), 500); return () => clearInterval(t); }, []);
   const ms = now() - t0;
+  const label = ms < 4000 ? "Тед работи на сървъра…" : waitHint(ms);
   return (
-    <div className="msg a"><span className="mav"><img src={avatar} alt="" /></span><div className="mbody"><div className="bub lw">
-      <span className="wait" data-testid="waiting"><span className="dots"><i /><i /><i /></span> Тед работи… <b className="clock" data-testid="wait-clock">{fmtClock(ms)}</b></span>
-      <div className="lw-bar" aria-hidden="true"><i style={{ width: Math.min(100, (ms / WAIT_LIMIT_MS) * 100) + "%" }} /></div>
-      <small className="lw-n">{waitHint(ms)} <i>(подсказка според времето)</i></small>
-      <button className="b stop-b" onClick={onStop}><Icon n="stopsq" />Спри</button>
+    <div className="msg a"><span className="mav"><img src={avatar} alt="" /></span><div className="mbody"><div className="ans">
+      <div className="act live srv-wait">
+        <div className="act-line static">
+          <span className="act-ic" aria-hidden="true"><i className="act-orb" /></span>
+          <span className="act-t shimmer" data-testid="waiting" title={ms < 4000 ? undefined : "подсказка според времето, не реална стъпка"}>{label}</span>
+          <span className="act-time" data-testid="wait-clock">{fmtDur(ms)}</span>
+          <button className="b stop-b" onClick={onStop}><Icon n="stopsq" />Спри</button>
+        </div>
+        <div className="lw-bar subtle" aria-hidden="true"><i style={{ width: Math.min(100, (ms / WAIT_LIMIT_MS) * 100) + "%" }} /></div>
+      </div>
     </div></div></div>
   );
 }
+
+// Old answers are not drawn again while a new one streams (the tree of each answer is parsed once).
+const AnswerMd = React.memo(Md, (a, b) => a.text === b.text && a.media === b.media);
+
+// Streamed Real GPT text: drawn in batches every DELTA_MS (one Markdown parse per batch, not per delta).
+const DELTA_MS = 60;
+
+// Long chats (0.1.5 speed): the newest THREAD_WINDOW messages are drawn; scrolling up adds THREAD_STEP more.
+const THREAD_WINDOW = 40;
+const THREAD_STEP = 40;
+const NONE = [];
+
+// One question of the employee. Memoised: typing, menus and toasts never draw it again. act.current = App's handlers.
+const UserRow = React.memo(function UserRow({ m, act, busy, isLast, editing }) {
+  const a = () => act.current;
+  const editOpen = editing != null;
+  return (
+    <div className="msg u">
+      <div className="mbody">
+        {m.files && m.files.length ? <div className="ufiles">{m.files.map((f) => (f.thumb ? <img key={f.id} src={f.thumb} alt={f.name} onClick={() => a().setLb({ src: f.thumb, cap: f.name })} /> : <div key={f.id} className="card file ufile"><span className={"ficon " + (f.kind === "ref" ? "ref" : extOf(f.name))}>{f.kind === "ref" ? "CRM" : (extOf(f.name) || "file").slice(0, 4).toUpperCase()}</span><div className="fx"><b>{f.name}</b><span className="meta">{f.kind === "ref" ? "препратка към CRM" : fmtSize(f.size)}</span></div></div>))}</div> : null}
+        {m.hints && m.hints.length ? <div className="ctags uhints">{m.hints.map((h) => <span className="ctag" key={h}>{(hintOf(h) || { name: h }).name}</span>)}</div> : null}
+        {editOpen ? (
+          <div className="edit-box" data-testid="edit-box">
+            <textarea id="edit-q" autoFocus value={editing} maxLength={20000} onChange={(e) => a().setEditing({ id: m.id, text: e.target.value })} onKeyDown={(e) => { if (e.key === "Escape") a().setEditing(null); }} />
+            {m.files && m.files.some((f) => f.kind !== "ref") ? <small className="meta">Прикачените файлове не се изпращат отново – прикачете ги, ако трябват.</small> : null}
+            <div className="r"><button className="b" onClick={() => a().setEditing(null)}>Отказ</button><button className="b wine" onClick={() => a().resendEdited(m, editing)} disabled={busy}>Изпрати</button></div>
+          </div>
+        ) : m.text ? <div className="bub">{m.voice ? "🎤 " : ""}{m.text}</div> : null}
+        {!editOpen ? <div className="uacts">
+          <button className="ibtn" onClick={() => a().copy(m.text)} aria-label="Копирай"><Icon n="copy" /></button>
+          <button className="ibtn" onClick={() => { a().setInput(m.text); a().focusComposer(); }} aria-label="Постави в полето за писане" title="Постави в полето за писане"><Icon n="upload" /></button>
+          {isLast && !m.local ? <button className="ibtn" onClick={() => a().setEditing({ id: m.id, text: m.text || "" })} disabled={busy} aria-label="Редактирай" title="Редактирай и изпрати пак"><Icon n="pencil" /></button> : null}
+        </div> : null}
+      </div>
+    </div>
+  );
+});
+
+// One answer (Тед на сървъра or Real GPT), laid out like ChatGPT: the activity line and the approvals that wait for the
+// employee ABOVE the text (never folded away), the answer, then its results (cards), errors and notes. Memoised.
+const AnswerRow = React.memo(function AnswerRow({ m, act, busy, isLast, speaking, showActs, agent, pending, approvalBusy, videoJob, media, emailBusy, emailBlockText, inProject, rgOn }) {
+  const a = () => act.current;
+  const rgA = agent;
+  const acts = m.actions || [];
+  const showActsNow = acts.length && (showActs || acts.some((x) => !x.ok || x.mutating));
+  const steps = (rgA && rgA.steps) || [];
+  const running = !!m.streaming && !!m.agentOn;
+  const top = (rgA || (m.engine === "realgpt" && m.streaming && m.agentOn)) && (steps.length || pending.length || running) ? <>
+    {steps.length || running ? <AgentSteps steps={steps} live={!!m.streaming} since={m.time} writing={!!m.text} /> : null}
+    {pending.length ? <div className="ap-stack">{pending.map((ap) => <ApprovalCard key={ap.id} approval={ap} busy={approvalBusy === ap.id} onDecide={(d, opt) => a().decide(m.requestId, ap, d, opt)} />)}</div> : null}
+  </> : null;
+  const fl = (rgA && rgA.files) || [];
+  const handoffs = (rgA && rgA.chatgpt) || [];
+  const ag = rgA && (fl.length || videoJob || handoffs.length) ? <>
+    {handoffs.map((h) => <OpenInChatGptCard key={h.id} handoff={h} onToast={(t) => a().toast(t)} />)}
+    {fl.map((f) => <FileCard key={f.id} file={f} madeBy={m.engine === "realgpt" ? "ChatGPT" : null} onToast={(t) => a().toast(t)} />)}
+    {videoJob ? <VideoCard job={videoJob} onToast={(t) => a().toast(t)} /> : null}
+  </> : null;
+  const below = ag || m.email || m.panel || m.video || m.listings;
+  const e = m.error;
+  let errorBox = null;
+  if (e) {
+    const rgLimit = m.engine === "realgpt" && e.code === "usage_limit";
+    const rgSignIn = m.engine === "realgpt" && RG_SIGNIN_CODES.includes(e.code);
+    const toolsNo = m.engine === "realgpt" && e.code === "tools_unsupported";
+    const canRetry = !!m.retry && e.code !== "invalid" && e.code !== "auth" && !rgLimit && !rgSignIn && !toolsNo;
+    const quota = e.code === "quota" || rgLimit;
+    errorBox = (
+      <div className={"err" + (quota ? " quota" : "")} role="alert" data-testid={quota ? "quota-banner" : "error-banner"}>
+        <span>{quota ? "⏳ " : "⚠️ "}{e.text}</span>
+        {e.code === "quota" ? <span className="err-w" data-testid="maybe-note">{QUOTA_NOTE}</span>
+          : e.maybeExecuted ? <span className="err-w" data-testid="maybe-note">{MAYBE_NOTE}</span> : null}
+        {rgLimit ? <button className="b wine" onClick={() => a().manageUsage()}><Icon n="external" />Управление на лимита</button> : null}
+        {rgSignIn ? <button className="b wine" onClick={() => a().openRealGpt()}><Icon n="external" />Продължи с ChatGPT</button> : null}
+        {canRetry ? <button className="b" onClick={() => a().retry(m)} disabled={busy}><Icon n="refresh" />Опитай отново</button> : null}
+        {e.code === "quota" ? <button className="b" onClick={(ev) => a().openPop("model", ev)}>Избери друг модел</button> : null}
+      </div>
+    );
+  }
+  return (
+    <div className="msg a" data-engine={m.engine || "local"}>
+      <span className="mav"><img src={avatar} alt="" /></span>
+      <div className="mbody">
+        <div className="ans">
+          {top}
+          {showActsNow ? <ActionsCard actions={acts} /> : null}
+          {m.text ? <AnswerMd text={m.text} onCanvas={(b) => a().openCanvas(b)} copy={(t) => a().copy(t)} media={media} />
+            : m.streaming && !(m.engine === "realgpt" && m.agentOn) ? <ThinkingLine since={m.time} /> : null}
+          {m.streaming && m.text ? <span className="caret" /> : null}
+          {below ? (
+            <div className="cards">
+              {ag}
+              {m.email ? <EmailCard m={m} block={emailBlockText} busy={emailBusy} onSend={() => a().confirmEmail(m.id)} onEdit={() => { a().setInput("Промени имейла: "); a().focusComposer(); }} /> : null}
+              {m.listings ? <ListingCards items={m.listings} onAttach={(p) => a().attachRefs([propFile(p)])} /> : null}
+              {m.panel || m.video ? <PanelCard panel={m.panel} video={m.video} rgOn={rgOn} onUpload={() => a().uploadHere()} onVideo={() => a().openVideo()} onCollect={() => a().collectHere()} /> : null}
+            </div>
+          ) : null}
+          {e && e.code === "tools_unsupported" && m.retry ? <ToolsUnsupportedCard refused={e.refused} onTextOnly={() => a().textOnly(m)} /> : null}
+          {/* The card already explains a tools refusal: no second red line under it (review). */}
+          {e && e.code === "tools_unsupported" && m.retry ? null : errorBox}
+          {m.stopped ? <div className="note stop-note" data-testid="stop-note">⏹ {m.engine === "realgpt" ? (m.agentOn ? "Спряно от вас. Стъпките, завършени преди спирането, остават изпълнени – вижте „Изпълнение“ и проверете в CRM." : "Спряно от вас.") : STOP_NOTE}{m.retry ? <> <button className="lnk" onClick={() => a().retry(m)} disabled={busy}>Опитай отново</button></> : null}</div> : null}
+          {m.incomplete ? <div className="note">✂️ Отговорът е прекъснат по дължина – натиснете „Продължи“.</div> : null}
+          {m.agent && m.agent.limited ? <div className="note" data-testid="limit-note">Търсенето спря на лимита: {m.agent.limited.rounds} кръга / {m.agent.limited.calls} извиквания. Натиснете „Продължи“ или напишете „продължи“, за да продължа.</div> : null}
+          {m.local || m.mode || m.fallback || m.effortIgnored || m.fromEmail || m.rgFallback || m.toolsOff ? (
+            <div className="foot-tags">
+              {m.local ? <span className="demo">ℹ️ Съобщение от програмата – не е изпратено към Тед</span> : null}
+              {/* Chats saved by 0.1.4 and earlier may hold such answers; 0.1.5 never sends a Real GPT question to the server. */}
+              {m.rgFallback ? <span className="demo fb" data-testid="rg-fallback">↪ Отговор от Тед (сървъра) вместо Real GPT</span> : null}
+              {m.fromEmail ? <span className="demo live">Резултат от сървъра · email.send</span> : null}
+              {m.mode && roleOf(m.mode) ? <span className="demo">{roleOf(m.mode).em} {roleOf(m.mode).short}</span> : null}
+              {m.toolsOff ? <span className="demo">без инструменти</span> : null}
+              {m.fallback ? <span className="demo fb">↪ {m.fallback}</span> : null}
+              {m.effortIgnored ? <span className="demo fb">Нивото на мислене не се поддържа от този модел и не е приложено</span> : null}
+            </div>
+          ) : null}
+        </div>
+        {m.text && !m.streaming ? (
+          <div className="macts">
+            <button className="ibtn" onClick={() => a().copy(m.text)} aria-label="Копирай" title="Копирай"><Icon n="copy" /></button>
+            <button className={"ibtn" + (speaking ? " on" : "")} onClick={() => a().toggleSpeak(m.text, m.id)} aria-label={speaking ? "Спри четенето" : "Чуй"} title={speaking ? "Спри четенето" : "Чуй"}><Icon n={speaking ? "stopsq" : "speaker"} /></button>
+            <button className="ibtn" onClick={() => a().openCanvas({ title: "Отговор на Тед", kind: "doc", text: m.text })} aria-label="Отвори в Canvas" title="Отвори в Canvas"><Icon n="pencil" /></button>
+            {inProject && !m.local ? <button className="ibtn" onClick={() => a().saveToFolder(m)} aria-label="Запази в папката на проекта" title="Запази отговора в папката на проекта" data-testid="save-to-folder"><Icon n="folderPlus" /></button> : null}
+            {isLast && !m.local && !m.fromEmail ? <button className="ibtn" onClick={() => a().regenerate(m)} disabled={busy} aria-label="Отговори пак" title="Отговори пак"><Icon n="refresh" /></button> : null}
+            {isLast && (m.incomplete || (m.agent && m.agent.limited)) ? <button className="b macts-b" onClick={() => a().send("Продължи", {})} disabled={busy}><Icon n="chevR" />Продължи</button> : null}
+            {/* ONE model label per answer, like ChatGPT (review: the second, blue pill above is gone): engine · model. */}
+            {m.modelName ? <span className="mdl" data-testid="model-chip" title={"Отговори: " + (m.engine === "realgpt" ? "Real GPT (вашият ChatGPT план) · " : m.engine === "server" ? "Тед на сървъра · " : "") + m.modelName}>{(m.engine === "realgpt" ? "Real GPT · " : m.engine === "server" ? "Сървър · " : "") + (m.modelName.length > 34 ? m.modelName.slice(0, 32) + "…" : m.modelName)}</span> : null}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+});
 
 /* ---------- Application ---------- */
 function App({ user, remembered, onLogout }) {
@@ -134,6 +279,7 @@ function App({ user, remembered, onLogout }) {
   const [models, setModels] = useState([]);
   const [modelsErr, setModelsErr] = useState("");
   const [rg, setRg] = useState({ connected: false });
+  const [rgKnown, setRgKnown] = useState(false); // the first status read has finished (no banner flash at start)
   const [rgModels, setRgModels] = useState([]);
   const [rgErr, setRgErr] = useState("");
   const [rgConsent, setRgConsent] = useState(null); // "all" | "text" | null (not chosen yet; MAIN keeps the real choice)
@@ -152,7 +298,9 @@ function App({ user, remembered, onLogout }) {
   const [voice, setVoice] = useState(false);
   const [lb, setLb] = useState(null);
   const [toastMsg, setToastMsg] = useState(null);
-  const [input, setInput] = useState(() => drafts.get(user.id) || "");
+  // The composer text: a small store, so typing re-renders only the composer (lib/store.js, 0.1.5 speed).
+  const inputStore = useMemo(() => createStore(drafts.get(user.id) || ""), []);
+  const setInput = inputStore.set;
   const [files, setFiles] = useState([]);
   const [hints, setHints] = useState([]);
   const [busy, setBusy] = useState(null);
@@ -178,6 +326,8 @@ function App({ user, remembered, onLogout }) {
   const [missed, setMissed] = useState([]);            // scheduled tasks missed while the program was closed
   const [cal, setCal] = useState({ status: "idle" });   // last calendar.list check (Плъгини)
   const [recent, setRecent] = useState({ status: "idle", items: [] });
+  const [win, setWin] = useState({ id: null, n: THREAD_WINDOW }); // how many messages of a long chat are drawn
+  const [crmSave, setCrmSave] = useState(null);         // „Запази в сайта“ card of a project folder
   const phone = usePhone();
   const [agentState, resetAgent] = useAgentEvents();
 
@@ -193,7 +343,6 @@ function App({ user, remembered, onLogout }) {
   const chatsRef = useRef(chats); chatsRef.current = chats;
   const SRef = useRef(S); SRef.current = S;
   const filesRef = useRef(files); filesRef.current = files;
-  const inputRef = useRef(input); inputRef.current = input;
   const busyRef = useRef(busy); busyRef.current = busy;
   const agentRef = useRef(agentState); agentRef.current = agentState;
   const canvasRef = useRef(canvas); canvasRef.current = canvas;
@@ -202,6 +351,9 @@ function App({ user, remembered, onLogout }) {
   const canvasDraft = useRef(null);      // unsaved typing in the open Canvas (kept as a version when it is put aside)
   const reqChat = useRef(new Map());     // Real GPT requestId -> chatId (agent canvas versions go to their own chat)
   const consentRef = useRef(rgConsent); consentRef.current = rgConsent;
+  const mediaCache = useRef(new WeakMap()); // agent snapshot -> pictures allowed inline (see mediaOf)
+  const act = useRef({});                    // handlers of the memoised message rows (read at call time)
+  const keepBottom = useRef(null);           // distance from the bottom kept while earlier messages are added
 
   const toast = useCallback((m) => {
     setToastMsg(m); clearTimeout(toastTimer.current);
@@ -264,14 +416,28 @@ function App({ user, remembered, onLogout }) {
 
   useEffect(() => {
     if (!loaded) return undefined;
-    refreshModels(); refreshCases(); refreshRg();
+    refreshCases(); refreshRg(); // the server's model list: only when needed (below)
     if (!remembered) toast(SESSION_NOTE);
     const offs = [];
+    // Streamed text is drawn at most every DELTA_MS: one render (and one Markdown parse of the answer) per batch of
+    // deltas instead of one per delta – a long answer stays smooth on an older laptop (0.1.5 review F2).
+    const q = { requestId: null, text: null, add: "", timer: null };
+    const flush = () => {
+      q.timer = null;
+      const s = stream.current;
+      if (!s || s.requestId !== q.requestId) { q.text = null; q.add = ""; return; }
+      const { text, add } = q;
+      q.text = null; q.add = "";
+      updMsg(s.cid, s.mid, (m) => ({ ...m, text: text != null ? text + add : (m.text || "") + add }));
+    };
     offs.push(ted.realgpt.onDelta((d) => {
       const s = stream.current;
       if (!s || !d || d.requestId !== s.requestId) return;
-      updMsg(s.cid, s.mid, (m) => ({ ...m, text: typeof d.text === "string" ? d.text : (m.text || "") + (d.delta || "") }));
+      if (q.requestId !== d.requestId) { q.requestId = d.requestId; q.text = null; q.add = ""; }
+      if (typeof d.text === "string") { q.text = d.text; q.add = ""; } else q.add += d.delta || "";
+      if (!q.timer) q.timer = setTimeout(flush, DELTA_MS);
     }));
+    offs.push(() => clearTimeout(q.timer));
     // Agent events the shell acts on itself (steps and files go to the FEATURES reducer of useAgentEvents).
     offs.push(ted.realgpt.onEvent((ev) => live.current.onAgentEvent(ev)));
     offs.push(ted.video.onEvent((job) => { if (job && job.id) setVideoJobs((j) => ({ ...j, [job.id]: job })); }));
@@ -294,7 +460,7 @@ function App({ user, remembered, onLogout }) {
   }, [chats, loaded]);
 
   useEffect(() => () => {
-    drafts.set(user.id, inputRef.current);
+    drafts.set(user.id, inputStore.get());
     if (speaker.current) speaker.current.stop();
     if (recorder.current) recorder.current.cancel();
     clearTimeout(toastTimer.current);
@@ -302,7 +468,12 @@ function App({ user, remembered, onLogout }) {
 
   useEffect(() => { const el = threadRef.current; if (el && atBottom) el.scrollTop = el.scrollHeight; }, [active, chats, busy, agentState, approvals]);
   useEffect(() => { setAtBottom(true); }, [active]);
-  useEffect(() => { if (taRef.current) { taRef.current.style.height = "auto"; taRef.current.style.height = Math.min(220, taRef.current.scrollHeight) + "px"; } }, [input, rec]);
+  // Earlier messages were added above: the view stays where the employee was reading.
+  useLayoutEffect(() => {
+    const el = threadRef.current; const d = keepBottom.current;
+    keepBottom.current = null;
+    if (el && d != null) el.scrollTop = Math.max(0, el.scrollHeight - d);
+  }, [win]);
   useEffect(() => {
     if (loaded && models.length && S.model && !models.some((m) => m.id === S.model)) { patch({ model: "" }); toast("Избраният модел вече не е наличен – върнато е „По подразбиране“."); }
   }, [models, loaded]);
@@ -325,6 +496,16 @@ function App({ user, remembered, onLogout }) {
     document.addEventListener("keydown", k); window.addEventListener("dragover", stopDrop); window.addEventListener("drop", stopDrop);
     return () => { document.removeEventListener("keydown", k); window.removeEventListener("dragover", stopDrop); window.removeEventListener("drop", stopDrop); };
   }, []);
+
+  // The server's model list (/api/assistant {action:"models"}, no AI on the server) is read only when it is needed:
+  // the Ted server engine is active, or a model menu / Settings opens. With Real GPT nothing goes to /api/assistant
+  // at start (0.1.5 review).
+  const modelsAsked = useRef(false);
+  useEffect(() => {
+    if (!loaded || modelsAsked.current) return;
+    const want = S.engine !== "realgpt" || (pop && (pop.id === "model" || pop.id === "adv")) || modal === "settings";
+    if (want) { modelsAsked.current = true; refreshModels(); }
+  }, [loaded, S.engine, pop, modal]);
 
   /* ---- Server data ---- */
   async function refreshModels() {
@@ -368,13 +549,18 @@ function App({ user, remembered, onLogout }) {
   function applyRg(st) {
     const s = st && st.connected ? st : { connected: false };
     setRg(s);
-    if (s.connected && s.planEnabled !== false) loadRgModels(); else setRgModels([]);
+    // Disconnected: the last list stays, so the chosen model keeps its name next to the „ChatGPT не е свързан“ banner
+    // (the menu offers only „Продължи с ChatGPT“ until the next sign-in reloads it).
+    if (s.connected && s.planEnabled !== false) loadRgModels();
     if (s.connected) loadConsent(); else setRgConsent(null);
-    if (!s.connected && SRef.current.engine === "realgpt") patch({ engine: "server" });
+    // 0.1.5 (owner: nothing may silently switch to another AI): a lost ChatGPT connection never changes the engine.
+    // Sending stays blocked with „Продължи с ChatGPT“ (the composer banner) until the employee signs in again or
+    // picks „Тед Асистент · Сървър“ himself from the model menu.
   }
   async function refreshRg() {
     let st; try { st = await ted.realgpt.status(); } catch { st = null; }
     applyRg(st);
+    setRgKnown(true);
   }
   async function rgSignOut() {
     let r; try { r = await ted.realgpt.signOut(); } catch { r = { ok: false, error: "Вътрешна грешка в програмата." }; }
@@ -393,8 +579,8 @@ function App({ user, remembered, onLogout }) {
     setConfirm({ title: "Изход от CRM и ChatGPT?", text: "Сесията в CRM и връзката с ChatGPT ще бъдат прекратени на този компютър. Запазените тук чатове остават за следващото ви влизане.",
       ok: async () => { if (rg.connected) { const ok = await rgSignOut(); if (!ok) return; } setModal(null); onLogout(); } });
   }
-  async function openCase(id) {
-    setView("case"); setDrawer(false); closeAll(); setCaseTab("history");
+  async function openCase(id, tab) {
+    setView("case"); setDrawer(false); closeAll(); setCaseTab(tab === "folder" || tab === "facts" || tab === "chats" ? tab : "history");
     setCaseView({ id, status: "loading" });
     const r = await read("cases.get", { id });
     setCaseView((cv) => (cv && cv.id === id ? (r.ok ? { id, status: "ok", data: r.result || {} } : { id, status: "error", error: r.error || "Казусът не се зареди." }) : cv));
@@ -502,7 +688,7 @@ function App({ user, remembered, onLogout }) {
   // chatId = the chat of the request that made the version: shown if that chat's Canvas is on screen, else kept aside.
   function addCanvasVersion(c, chatId) {
     const text = String((c && c.text) || "");
-    const label = "Тед: " + String((c && c.label) || "нова версия").slice(0, 60);
+    const label = "ChatGPT: " + String((c && c.label) || "нова версия").slice(0, 60); // Real GPT's update_canvas
     const grow = (cv) => {
       if (!cv) return { uid: uid("cv_"), title: (c && c.title) || "Документ", kind: "doc", versions: [{ v: 1, text, at: now(), label }], cur: 1, chatId: chatId || null };
       const v = Math.max(...cv.versions.map((x) => x.v)) + 1;
@@ -572,6 +758,20 @@ function App({ user, remembered, onLogout }) {
   }
 
   /* ---- Voice ---- */
+  // The voice („Чуй“, диктовка, гласов режим) runs on Ted's server with Google Gemini – another AI. With Real GPT it is
+  // used only after the employee says yes once per session; Real GPT answers are never read aloud by themselves
+  // (0.1.5 review: the owner's rule „no other AI in Real GPT“; the voice is the one disclosed exception).
+  const voiceOk = useRef(false);
+  function voiceGate(run) {
+    if (SRef.current.engine !== "realgpt" || voiceOk.current) return run();
+    setConfirm({
+      title: "Гласът не е от вашия ChatGPT план",
+      text: "„Чуй“, диктовката и гласовият режим ползват гласа на сървъра на Тед (Google Gemini) – друг изкуствен интелект, не ChatGPT. Текстът на отговора или записът от микрофона отиват там. Да ги ползвам ли до затваряне на програмата?",
+      okLabel: "Да, ползвай гласа",
+      ok: () => { voiceOk.current = true; run(); },
+    });
+    return undefined;
+  }
   function getSpeaker() { if (!speaker.current) speaker.current = createSpeaker(); return speaker.current; }
   function stopSpeak() { if (speaker.current) speaker.current.stop(); setSpeaking(null); }
   // Reads a text aloud; resolves when it ends. id marks which button shows "stop".
@@ -584,11 +784,14 @@ function App({ user, remembered, onLogout }) {
   }
   async function toggleSpeak(text, id) {
     if (speaking === id) { stopSpeak(); return; }
-    const r = await speak(text, id);
-    if (r && !r.ok) toast(r.error);
+    voiceGate(async () => {
+      const r = await speak(text, id);
+      if (r && !r.ok) toast(r.error);
+    });
   }
   async function toggleRec() {
     if (rec === "busy") return;
+    if (!rec && SRef.current.engine === "realgpt" && !voiceOk.current) { voiceGate(() => live.current.toggleRec()); return; }
     if (rec) {
       const r = recorder.current; recorder.current = null;
       if (!r) { setRec(null); return; }
@@ -613,8 +816,9 @@ function App({ user, remembered, onLogout }) {
     updChat(cid, (c) => ({ ...c, updatedAt: now(), messages: [...c.messages, userMsg, { id: uid("m_"), role: "assistant", local: true, text, time: now() }] }));
   }
   // The request as it goes to one engine (also used again by a manual retry, which may switch the engine).
-  function prepare(engine, text, items) {
-    const tools = engine === "realgpt" && consentRef.current === "all";
+  // textOnly: the „Само текст“ retry of one Real GPT answer (images inline, no tools, no file reads).
+  function prepare(engine, text, items, textOnly) {
+    const tools = engine === "realgpt" && consentRef.current === "all" && !textOnly;
     const problem = engineProblem(engine, items, tools);
     if (problem) return { ok: false, error: problem };
     if (engine === "realgpt") {
@@ -631,7 +835,7 @@ function App({ user, remembered, onLogout }) {
   function send(textArg, opts) {
     const o = opts || {};
     const fromInput = textArg == null;
-    const typed = (fromInput ? input : String(textArg)).trim();
+    const typed = (fromInput ? inputStore.get() : String(textArg)).trim();
     const useFiles = fromInput ? files : [];
     const useHints = fromInput ? hints : (o.hints || []);
     if (!typed && !useFiles.length) return;
@@ -697,6 +901,7 @@ function App({ user, remembered, onLogout }) {
     }
 
     addUser([userMsg]);
+    if (engine !== "realgpt" || consentRef.current !== "all") { if (sendCase && !(o.fresh ? false : (cur ? cur.temporary : temp))) intoFolder(useFiles, cid, sendCase); }
     run(cid, prior, userMsg, { engine, caseId: sendCase, onDone: o.onDone, voice: !!o.voice, hints: useHints, temporary: o.fresh ? false : (cur ? !!cur.temporary : temp) });
   }
 
@@ -706,9 +911,11 @@ function App({ user, remembered, onLogout }) {
     const payload = payloads.current.get(userMsg.id) || { text: histText(userMsg), items: fallbackItems };
     const requestId = uid("r_");
     const s = SRef.current;
+    // Automatic reading aloud uses the server's voice (Gemini): never for a Real GPT answer (the employee can still
+    // press „Чуй“, which asks first).
     const finish = (text, mid) => {
       if (o.onDone) o.onDone(text || "");
-      else if (text && (s.speak === "always" || (s.speak === "voice" && o.voice))) speak(text, mid).then((r) => { if (r && !r.ok) toast(r.error); });
+      else if (text && o.engine !== "realgpt" && (s.speak === "always" || (s.speak === "voice" && o.voice))) speak(text, mid).then((r) => { if (r && !r.ok) toast(r.error); });
     };
 
     if (o.engine === "realgpt") {
@@ -716,7 +923,7 @@ function App({ user, remembered, onLogout }) {
       const label = (rgModels.find((m) => m.slug === s.rgModel) || {}).displayName || s.rgModel;
       const hintsNow = o.hints || userMsg.hints || [];
       const agentMode = hintsNow.includes("research") || s.mode === "work" ? "work" : "chat";
-      const tools = consentRef.current === "all";
+      const tools = consentRef.current === "all" && !o.textOnly;
       const t0 = now(); // the answer's time: its e-mail draft (if any) is dated by it, like a server reply by its arrival
       stream.current = { requestId, cid, mid };
       reqChat.current.set(requestId, cid);
@@ -728,13 +935,13 @@ function App({ user, remembered, onLogout }) {
         updMsg(cid, mid, (m) => ({ ...m, streaming: false, retry: userMsg.id, error: { text: error, code } }));
         finish("");
       };
-      const prep = prepare("realgpt", payload.text, payload.items);
+      const prep = prepare("realgpt", payload.text, payload.items, !!o.textOnly);
       if (!prep.ok) { fail(prep.error, "invalid"); return; }
       // Attached files go to MAIN's store once (the model reads them with read_document); the id is reused on a retry.
       const ids = [];
       for (const f of prep.uploads) {
         if (f.fileId) { ids.push(f.fileId); continue; }
-        let a; try { a = await ted.files.add({ name: f.name, mime: f.mime, data: f.data, chatId: cid, ...(o.temporary ? { temporary: true } : {}) }); } catch { a = null; }
+        let a; try { a = await ted.files.add({ name: f.name, mime: f.mime, data: f.data, chatId: cid, ...(o.temporary ? { temporary: true } : o.caseId ? { caseId: o.caseId, caseTitle: caseTitleOf(o.caseId) } : {}) }); } catch { a = null; }
         if (!a || !a.ok || !a.file) { fail("Файлът „" + f.name + "“ не можа да се подготви: " + ((a && a.error) || "грешка") + ". Нищо не е изпратено.", "invalid"); return; }
         f.fileId = a.file.id; ids.push(a.file.id);
       }
@@ -745,7 +952,7 @@ function App({ user, remembered, onLogout }) {
       if (ids.length) curMsg.files = ids.slice(0, 10);
       messages.push(curMsg);
       // chatId/temporary: files Ted makes are filed with this chat in the Библиотека (never for a temporary chat).
-      const args = { requestId, messages, model: s.rgModel, chatId: cid, ...(o.temporary ? { temporary: true } : {}) };
+      const args = { requestId, messages, model: s.rgModel, chatId: cid, ...(o.temporary ? { temporary: true } : {}), ...(o.textOnly ? { textOnly: true } : {}) };
       // „Мислене“ from the „+“ menu raises a lower explicit effort (Мигновено/none … medium) to high for this question.
       const effort = hintsNow.includes("thinking") && (!s.rgEffort || ["none", "minimal", "low", "medium"].includes(s.rgEffort)) ? "high" : s.rgEffort || "";
       if (effort) args.effort = effort;
@@ -769,7 +976,8 @@ function App({ user, remembered, onLogout }) {
       const allFiles = [...rFiles, ...(snap.files || []).filter((f) => !rFiles.some((x) => x.id === f.id))];
       const steps = Array.isArray(r && r.steps) ? r.steps : (snap.steps || []);
       const limited = (r && r.limited) || snap.limited;
-      const agent = tools || steps.length || allFiles.length ? { mode: agentMode, steps, files: allFiles, ...(limited ? { limited } : {}), ...(snap.video ? { video: snap.video } : {}), ...(snap.email ? { email: snap.email } : {}) } : null;
+      const handoffs = snap.chatgpt || [];
+      const agent = tools || steps.length || allFiles.length || handoffs.length ? { mode: agentMode, steps, files: allFiles, ...(limited ? { limited } : {}), ...(snap.video ? { video: snap.video } : {}), ...(snap.email ? { email: snap.email } : {}), ...(handoffs.length ? { chatgpt: handoffs } : {}), ...(snap.images && snap.images.length ? { images: snap.images } : {}) } : null;
       resetAgent(requestId);
       setApprovals((a) => { if (!a[requestId]) return a; const n = { ...a }; delete n[requestId]; return n; });
       const extra = { ...(agent ? { agent } : {}), ...(agent && agent.email ? { email: agent.email } : {}) };
@@ -781,14 +989,15 @@ function App({ user, remembered, onLogout }) {
         finish(r.text, mid);
       } else {
         const stopped = !!r && r.code === "aborted";
-        updMsg(cid, mid, (m) => ({ ...m, text: (r && r.text) || m.text || "", streaming: false, retry: userMsg.id, ...extra, ...(stopped ? { stopped: true } : { error: { text: (r && r.error) || "Грешка в Real GPT.", code: (r && r.code) || "error" } }) }));
+        const refused = r && r.code === "tools_unsupported" && r.refused && typeof r.refused === "object" ? { refused: r.refused } : {};
+        updMsg(cid, mid, (m) => ({ ...m, text: (r && r.text) || m.text || "", streaming: false, retry: userMsg.id, ...extra, ...(stopped ? { stopped: true } : { error: { text: (r && r.error) || "Грешка в Real GPT.", code: (r && r.code) || "error", ...refused } }) }));
         if (r && ["reauth", "not_connected", "plan_disabled"].includes(r.code)) refreshRg();
         finish("");
       }
       return;
     }
 
-    // A question asked with „+“ hints and sent to the server again (fallback/retry) gets the same visible prefixes.
+    // A question asked with „+“ hints and sent to the server again (retry, regenerate) gets the same visible prefixes.
     const sText = (userMsg.hints || []).map((h) => (hintOf(h) || {}).prefix || "").filter((x) => x && !payload.text.startsWith(x)).join("") + payload.text;
     const prep = prepare("server", sText, payload.items);
     if (!prep.ok) {
@@ -818,7 +1027,6 @@ function App({ user, remembered, onLogout }) {
         id: mid, role: "assistant", engine: "server", text: r.text || "", time: at, actions: Array.isArray(r.actions) ? r.actions : [],
         ...(r.email ? { email: r.email } : {}), ...(r.mode ? { mode: r.mode } : {}), ...(r.modelName ? { modelName: r.modelName } : {}), ...(r.fallback ? { fallback: r.fallback } : {}),
         ...(r.uiPanel ? { panel: r.uiPanel } : {}), ...(r.video ? { video: true } : {}), ...(r.listings && r.listings.length ? { listings: r.listings } : {}),
-        ...(o.fromRg ? { rgFallback: true } : {}),
       };
       // Ted on the server sent the latest draft itself (email.send in this reply): its card is no longer sendable.
       const sentBy = am.actions.some((a) => a.ok && a.tool === "email.send") ? newestEmailId(chatsRef.current) : null;
@@ -828,7 +1036,7 @@ function App({ user, remembered, onLogout }) {
       finish(am.text, mid);
     } else {
       const code = (r && r.code) || "error";
-      const am = { id: mid, role: "assistant", engine: "server", text: "", time: at, retry: userMsg.id, ...(o.fromRg ? { rgFallback: true } : {}),
+      const am = { id: mid, role: "assistant", engine: "server", text: "", time: at, retry: userMsg.id,
         ...(code === "aborted" ? { stopped: true } : { error: { text: (r && r.error) || "Грешка при връзката със сървъра.", code, maybeExecuted: !!(r && r.maybeExecuted) } }) };
       updChat(cid, (c) => ({ ...c, updatedAt: now(), messages: [...unpend(c.messages), am] }));
       finish("");
@@ -854,23 +1062,25 @@ function App({ user, remembered, onLogout }) {
     return { idx, u, userMsg };
   }
 
-  // Manual "try again" for a failed or stopped answer; engine can be switched to Ted's server.
-  function retry(m, engine) {
+  // Manual "try again" for a failed or stopped answer, always with the same engine: a Real GPT answer is never sent
+  // to Ted's server instead (docs/CONTRACT.md §9.6). extra.textOnly = the „Само текст“ retry.
+  function retry(m, engine, extra) {
     if (busyRef.current || !chat) return;
     const q = questionOf(m);
     if (!q) return;
     const eng = engine || m.engine || S.engine;
     const go = () => {
       updChat(chat.id, (c) => ({ ...c, messages: c.messages.filter((x) => x.id !== m.id) }));
-      run(chat.id, chat.messages.slice(0, q.u), q.userMsg, { engine: eng, caseId: chat.caseId, temporary: !!chat.temporary, fromRg: eng === "server" && m.engine === "realgpt" });
+      run(chat.id, chat.messages.slice(0, q.u), q.userMsg, { engine: eng, caseId: chat.caseId, temporary: !!chat.temporary, ...(extra && extra.textOnly ? { textOnly: true } : {}) });
     };
     const unknown = m.stopped ? m.engine !== "realgpt" || !!m.agentOn || answerChanged(m) : !!(m.error && (m.error.maybeExecuted || m.error.code === "quota")) || answerChanged(m);
     if (unknown) setConfirm({ title: "Да опитам ли отново?", text: "Сигурни ли сте? Проверете в CRM дали действието не е изпълнено. Ако вече е изпълнено, повторното изпращане може да го извърши втори път.", ok: go });
     else go();
   }
-  // „Само текст“ after the plan route refused the tools: Real GPT answers without tools from now on (changeable in Настройки).
-  async function textOnly(m) {
-    if (await setConsent("text")) { toast("Real GPT вече отговаря само с текст. Инструментите се връщат от Настройки → Безопасност."); retry(m, "realgpt"); }
+  // „Само текст“ after the plan route refused the tools: the same question again to Real GPT, this answer without tools.
+  // The stored choice is not changed (Настройки → Безопасност has „Само текст“ for good).
+  function textOnly(m) {
+    retry(m, "realgpt", { textOnly: true });
   }
   // „Отговори пак“ (ChatGPT regenerate) for the newest answer; asks first when that answer changed CRM data.
   function regenerate(m) {
@@ -923,6 +1133,58 @@ function App({ user, remembered, onLogout }) {
       messages: [...ch.messages.map((x) => (x.id === mid ? { ...x, emailState: out.state } : x)),
         { id: uid("m_"), role: "assistant", engine: "server", text: out.text, time: now(), actions: step, fromEmail: true, ...(out.panel ? { panel: out.panel } : {}) }],
     }));
+  }
+
+  /* ---- Project folders (docs/CONTRACT.md §8.12) ---- */
+  const caseTitleOf = (id) => ((cases.items.find((c) => c.id === id) || {}).title || (chatsRef.current.find((c) => c.caseId === id && c.caseTitle) || {}).caseTitle || "");
+  // „Запази в папката“ under an answer: the answer as a Markdown file in the folder of the chat's Проект.
+  async function saveToFolder(m) {
+    const c = chatsRef.current.find((x) => x.messages.some((y) => y.id === m.id));
+    if (!c || !c.caseId) return;
+    const title = "Отговор на Тед – " + Array.from(String(c.title || "чат")).slice(0, 60).join("") + " – " + fmtDate(m.time || now()).replace(/[/:]/g, ".");
+    let r; try { r = await ted.projects.saveAnswer({ caseId: c.caseId, caseTitle: caseTitleOf(c.caseId), chatId: c.id, title, text: String(m.text || "") }); } catch { r = null; }
+    toast(r && r.ok ? "📁 Отговорът е в папката на проекта." : (r && r.error) || "Отговорът не беше запазен в папката.");
+  }
+  // Attachments of a chat in a Проект go into its folder too (Тед на сървъра reads them inline, so they are not stored
+  // otherwise). Real GPT stores them itself with the caseId (run()). Local only, never for a temporary chat.
+  function intoFolder(items, cid, caseId) {
+    if (!caseId) return;
+    const caseTitle = caseTitleOf(caseId);
+    for (const f of items) {
+      if (f.kind === "ref" || f.kind === "text" || !f.data || f.fileId) continue;
+      Promise.resolve(ted.files.add({ name: f.name, mime: f.mime || "", data: f.data, chatId: cid, caseId, caseTitle })).catch(() => {});
+    }
+  }
+  // „Качи имота тук“ (the site's „АИ Качване на имот“ panel): the guided property upload in this program.
+  function startPropertyUpload() {
+    closeAll(); setModal(null);
+    newChat();
+    setInput("Качи нов имот в CRM: ");
+    toast(rg.connected && consentRef.current === "all"
+      ? "Опишете имота (сделка, вид, цена, площ, град, адрес) и прикачете снимките – Тед пита за липсващото, показва резюме и записва имота след вашето „Разреши“."
+      : "Опишете имота и прикачете снимките. С Real GPT (с разрешени инструменти) Тед записва имота и снимките в CRM след вашето „Разреши“; Тед на сървъра също може да създаде имота.");
+  }
+  // „Видео на имот“ from a skill or a panel card. Тед на сървъра: the server video wizard (paid, with a card).
+  // Real GPT: never the server AI video – a new chat with the „Видео“ hint, so GPT prepares a prompt for the ChatGPT
+  // app (open_in_chatgpt), exactly like „+ → Още → Видео“.
+  function openVideo() {
+    if (SRef.current.engine !== "realgpt") { closeAll(); setModal("video"); return; }
+    closeAll(); setModal(null);
+    newChat();
+    setHints(["video"]);
+    setInput("Видео на имот: ");
+    toast("С Real GPT видеото се прави в приложението ChatGPT с вашия план: опишете видеото и Тед ще подготви заявката.");
+  }
+  // „Потърси обяви тук“: owners' listings are searched in this program (Real GPT reads the sites itself).
+  function collectHere() {
+    closeAll(); setModal(null);
+    newChat();
+    setInput("Намери частни обяви без посредник (от собственици) за ");
+  }
+  async function exportFolder(cs) {
+    let r; try { r = await ted.projects.exportZip({ caseId: cs.id, title: String(cs.title || "Проект").slice(0, 160), client: String(cs.client || "").slice(0, 160) }); } catch { r = null; }
+    if (r && r.ok) toast("✅ Папката е изтеглена: " + r.path + " (" + r.count + " файла)");
+    else if (r && !r.canceled) toast((r && r.error) || "ZIP файлът не беше направен.");
   }
 
   /* ---- Agent events and approvals (Real GPT) ---- */
@@ -997,8 +1259,8 @@ function App({ user, remembered, onLogout }) {
   const fillExample = (ex) => { closeAll(); setInput(ex); focusComposer(); };
   const disc = rgOn
     ? rgTools
-      ? phone ? "С CRM, интернет и вашите файлове. Може да греши." : "Real GPT работи през вашия ChatGPT план с CRM, интернет и прикачените файлове; за промени пита. Може да греши – проверявайте важното."
-      : phone ? "Без достъп до CRM. Може да греши." : "Real GPT отговаря през вашия ChatGPT план, без достъп до CRM, казусите и паметта на Тед. Може да греши – проверявайте важното."
+      ? phone ? "Само вашият ChatGPT план, с CRM, интернет и файлове. Може да греши." : "Real GPT работи само през вашия ChatGPT план (без друг AI) с CRM, интернет и файловете на този компютър; за промени пита. Може да греши – проверявайте важното."
+      : phone ? "Само ChatGPT, без CRM. Може да греши." : "Real GPT отговаря само през вашия ChatGPT план, без достъп до CRM, казусите и паметта на Тед. Може да греши – проверявайте важното."
     : phone ? "Тед може да греши. Проверявайте важното." : "Тед работи с реалните данни в CRM според правата на вашия акаунт. Може да греши – проверявайте важното.";
   const discEl = <div className="disc">{rgOn ? <span className="rg-ind-d" data-testid="rg-ind-narrow">Използва вашия ChatGPT план · <button className="lnk" onClick={manageUsage}>Управление на лимита</button> · </span> : null}{disc}</div>;
   const chips = {
@@ -1008,133 +1270,75 @@ function App({ user, remembered, onLogout }) {
   };
   const homeChips = <HomeChips c={chips} phone={phone} />;
   const homePlugins = S.mode === "work" ? <HomePlugins rows={pluginRows(pl)} /> : null;
+  // Real GPT chosen but the ChatGPT connection is gone: say so and block sending. The engine never changes by itself.
+  const rgOff = rgOn && rgKnown && (!rg.connected || rg.planEnabled === false);
+  const rgBanner = rgOff ? (
+    <div className="err rg-off" role="alert" data-testid="rg-off">
+      <span>🔌 {rg.connected ? "Използването на ChatGPT плана не е разрешено." : "ChatGPT не е свързан."} Real GPT не отговаря, докато не влезете отново – Тед не превключва сам към друг AI.</span>
+      <span className="rg-off-b">
+        <button className="b wine" onClick={() => setModal("realgpt")}><Icon n="external" />Продължи с ChatGPT</button>
+        <button className="b" data-testid="rg-off-server" onClick={() => { patch({ engine: "server" }); toast("Двигател: Тед Асистент · Сървър (избран от вас)."); }}>Премини към Тед (сървър)</button>
+      </span>
+    </div>
+  ) : null;
   const composerEl = (home) => (
-    <Composer phone={phone} S={S} mode={mode} input={input} setInput={setInput} files={files} setFiles={setFiles} taRef={taRef} rec={rec} busy={busy}
-      onSend={() => send()} onStop={stop} onMic={toggleRec} onVoice={() => setVoice(true)} onPlus={(e) => { setSub(null); openPop("plus", e); }} plusOpen={pop && pop.id === "plus"} onDropFiles={attach}
+    <Composer phone={phone} S={S} mode={mode} inputStore={inputStore} files={files} setFiles={setFiles} taRef={taRef} rec={rec} busy={busy}
+      onSend={() => send()} onStop={stop} onMic={toggleRec} onVoice={() => voiceGate(() => setVoice(true))} onPlus={(e) => { setSub(null); openPop("plus", e); }} plusOpen={pop && pop.id === "plus"} onDropFiles={attach}
       hints={hints} dropHint={(h) => setHints((x) => x.filter((y) => y !== h))} curCase={curCase} dropCase={!chat ? () => setDraftCase(null) : null}
       role={S.role !== "auto" ? role : null} dropRole={() => set("role", "auto")}
-      pill={{ label: rgOn ? rgLabel || "Real GPT" : serverModel ? serverModel.name : "Тед Асистент", effort: rgOn ? effortName(S.rgEffort) : "сървър", open: pop && pop.id === "adv", onClick: (e) => { setSub(null); openPop("adv", e); } }}
+      pill={{ label: rgOn ? rgLabel || "Real GPT" : serverModel ? serverModel.name : "Тед Асистент", effort: rgOn ? effortName(S.rgEffort) : "сървър", engine: rgOn ? "realgpt" : "server", open: pop && pop.id === "adv", onClick: (e) => { setSub(null); openPop("adv", e); } }}
       canvasTag={canvas && rgTools && (!canvas.chatId || canvas.chatId === active) ? { title: String(canvas.title || "Документ").slice(0, 40), drop: () => setCanvas(null) } : null}
-      disc={home && !phone ? null : discEl} home={home} above={home ? null : !chat && phone ? <>{homePlugins}{homeChips}</> : null} />
+      disc={home && !phone ? null : discEl} home={home} above={home ? rgBanner : !chat && phone ? <>{rgBanner}{homePlugins}{homeChips}</> : rgBanner} />
   );
 
-  // Never retried automatically. Real GPT codes get their own next step (usage page / new sign-in / server fallback).
-  const errorBox = (m) => {
-    const e = m.error;
-    const rgLimit = m.engine === "realgpt" && e.code === "usage_limit";
-    const rgSignIn = m.engine === "realgpt" && RG_SIGNIN_CODES.includes(e.code);
-    const toolsNo = m.engine === "realgpt" && e.code === "tools_unsupported";
-    const canRetry = !!m.retry && e.code !== "invalid" && e.code !== "auth" && !rgLimit && !rgSignIn && !toolsNo;
-    const quota = e.code === "quota" || rgLimit;
-    return (
-      <div className={"err" + (quota ? " quota" : "")} role="alert" data-testid={quota ? "quota-banner" : "error-banner"}>
-        <span>{quota ? "⏳ " : "⚠️ "}{e.text}</span>
-        {e.code === "quota" ? <span className="err-w" data-testid="maybe-note">{QUOTA_NOTE}</span>
-          : e.maybeExecuted ? <span className="err-w" data-testid="maybe-note">{MAYBE_NOTE}</span> : null}
-        {rgLimit ? <button className="b wine" onClick={manageUsage}><Icon n="external" />Управление на лимита</button> : null}
-        {rgSignIn ? <button className="b wine" onClick={() => setModal("realgpt")}><Icon n="external" />Продължи с ChatGPT</button> : null}
-        {canRetry ? <button className="b" onClick={() => retry(m)} disabled={!!busy}><Icon n="refresh" />Опитай отново</button> : null}
-        {e.code === "quota" ? <button className="b" onClick={(ev) => openPop("model", ev)}>Избери друг модел</button> : null}
-        {!toolsNo && m.engine === "realgpt" && m.retry ? <button className="b" onClick={() => retry(m, "server")} disabled={!!busy}>Отговори с Тед (сървъра)</button> : null}
-      </div>
-    );
+  // Pictures an answer may show without a click (tool results of the same answer), cached per agent object so the
+  // memoised rows of old answers are not drawn again.
+  const mediaOf = (a) => {
+    if (!a || typeof a !== "object") return null;
+    let v = mediaCache.current.get(a);
+    if (!v) { v = answerMedia(a); mediaCache.current.set(a, v); }
+    return v;
   };
 
-  // The Real GPT agent part of an answer: „Изпълнение“ steps, approvals, files, video, e-mail (docs/CONTRACT.md §16).
-  const agentCards = (m) => {
-    const liveSnap = m.streaming && m.requestId ? (agentSnapshot(agentState, m.requestId) || {}) : null;
-    const a = liveSnap || m.agent || null;
-    const pending = m.streaming && m.requestId ? (approvals[m.requestId] || []) : [];
-    const steps = (a && a.steps) || [];
-    const fl = (a && a.files) || [];
-    const vid = a && a.video ? (videoJobs[a.video.jobId] || null) : null;
-    if (!steps.length && !fl.length && !pending.length && !vid && !(m.agent && m.agent.limited)) return null;
-    return <>
-      {steps.length ? <AgentSteps steps={steps} live={!!m.streaming} /> : null}
-      {pending.map((ap) => <ApprovalCard key={ap.id} approval={ap} busy={approvalBusy === ap.id} onDecide={(d, opt) => decide(m.requestId, ap, d, opt)} />)}
-      {fl.map((f) => <FileCard key={f.id} file={f} onToast={toast} />)}
-      {vid ? <VideoCard job={vid} onToast={toast} /> : null}
-    </>;
+  // Every handler a message row may call, read at call time: the rows are memoised (0.1.5 speed) and get this one
+  // stable object instead of new functions on every render.
+  act.current = {
+    copy, setInput, focusComposer, setEditing, resendEdited, setLb, toggleSpeak, openCanvas, regenerate, retry, textOnly, toast, manageUsage,
+    send: (t, o) => send(t, o), confirmEmail: (mid) => chat && confirmEmail(chat.id, mid), decide, attachRefs, openPop, openRealGpt: () => setModal("realgpt"),
+    saveToFolder, openVideo: () => openVideo(), uploadHere: startPropertyUpload, collectHere,
   };
 
   const lastA = chat ? [...chat.messages].reverse().find((x) => x.role === "assistant") : null;
   const lastU = chat ? [...chat.messages].reverse().find((x) => x.role === "user") : null;
+  // Long chats: only the newest messages are drawn; earlier ones come in steps while scrolling up (or by the button).
+  const shownN = chat ? (win.id === chat.id ? win.n : THREAD_WINDOW) : THREAD_WINDOW;
+  const hiddenN = chat ? Math.max(0, chat.messages.length - shownN) : 0;
+  function showEarlier() {
+    const el = threadRef.current;
+    keepBottom.current = el ? el.scrollHeight - el.scrollTop : null;
+    // An interruptible render: scrolling stays smooth while the earlier messages are drawn.
+    const next = { id: chat.id, n: shownN + THREAD_STEP };
+    startTransition(() => setWin(next));
+  }
   const Thread = chat ? (
-    <div className="thread" ref={threadRef} onScroll={(e) => { const el = e.currentTarget; const b2 = el.scrollHeight - el.scrollTop - el.clientHeight < 90; if (b2 !== atBottom) setAtBottom(b2); }}>
-      <div className="col">
-        {chat.messages.map((m) => (m.role === "user" ? (
-          <div className="msg u" key={m.id}>
-            <div className="mbody">
-              {m.files && m.files.length ? <div className="ufiles">{m.files.map((f) => (f.thumb ? <img key={f.id} src={f.thumb} alt={f.name} onClick={() => setLb({ src: f.thumb, cap: f.name })} /> : <div key={f.id} className="card file ufile"><span className={"ficon " + (f.kind === "ref" ? "ref" : extOf(f.name))}>{f.kind === "ref" ? "CRM" : (extOf(f.name) || "file").slice(0, 4).toUpperCase()}</span><div className="fx"><b>{f.name}</b><span className="meta">{f.kind === "ref" ? "препратка към CRM" : fmtSize(f.size)}</span></div></div>))}</div> : null}
-              {m.hints && m.hints.length ? <div className="ctags uhints">{m.hints.map((h) => <span className="ctag" key={h}>{(hintOf(h) || { name: h }).name}</span>)}</div> : null}
-              {editing && editing.id === m.id ? (
-                <div className="edit-box" data-testid="edit-box">
-                  <textarea id="edit-q" autoFocus value={editing.text} maxLength={20000} onChange={(e) => setEditing({ id: m.id, text: e.target.value })} onKeyDown={(e) => { if (e.key === "Escape") setEditing(null); }} />
-                  {m.files && m.files.some((f) => f.kind !== "ref") ? <small className="meta">Прикачените файлове не се изпращат отново – прикачете ги, ако трябват.</small> : null}
-                  <div className="r"><button className="b" onClick={() => setEditing(null)}>Отказ</button><button className="b wine" onClick={() => resendEdited(m, editing.text)} disabled={!!busy}>Изпрати</button></div>
-                </div>
-              ) : m.text ? <div className="bub">{m.voice ? "🎤 " : ""}{m.text}</div> : null}
-              {!(editing && editing.id === m.id) ? <div className="uacts">
-                <button className="ibtn" onClick={() => copy(m.text)} aria-label="Копирай"><Icon n="copy" /></button>
-                <button className="ibtn" onClick={() => { setInput(m.text); focusComposer(); }} aria-label="Постави в полето за писане" title="Постави в полето за писане"><Icon n="upload" /></button>
-                {lastU && lastU.id === m.id && !m.local ? <button className="ibtn" onClick={() => setEditing({ id: m.id, text: m.text || "" })} disabled={!!busy} aria-label="Редактирай" title="Редактирай и изпрати пак"><Icon n="pencil" /></button> : null}
-              </div> : null}
-            </div>
-          </div>
-        ) : (
-          <div className="msg a" key={m.id} data-engine={m.engine || "local"}>
-            <span className="mav"><img src={avatar} alt="" /></span>
-            <div className="mbody">
-              <div className="bub lv">
-                {m.text ? <Md text={m.text} onCanvas={openCanvas} copy={copy} /> : m.streaming ? <span className="wait">💭 Мисля… <span className="dots"><i /><i /><i /></span></span> : null}
-                {m.streaming && m.text ? <span className="caret" /> : null}
-                {(() => {
-                  const acts = m.actions || [];
-                  const showActs = acts.length && (S.showActs || acts.some((a) => !a.ok || a.mutating));
-                  const ag = m.engine === "realgpt" ? agentCards(m) : null;
-                  if (!showActs && !m.email && !m.panel && !m.video && !m.listings && !ag) return null;
-                  return (
-                    <div className="cards">
-                      {ag}
-                      {showActs ? <ActionsCard actions={acts} /> : null}
-                      {m.email ? <EmailCard m={m} block={emailBlock(m, newestEmail, Date.now(), mark)} busy={emailBusy === m.id} onSend={() => confirmEmail(chat.id, m.id)} onEdit={() => { setInput("Промени имейла: "); focusComposer(); }} /> : null}
-                      {m.listings ? <ListingCards items={m.listings} onAttach={(p) => attachRefs([propFile(p)])} /> : null}
-                      {m.panel || m.video ? <PanelCard panel={m.panel} video={m.video} /> : null}
-                    </div>
-                  );
-                })()}
-                {m.error && m.error.code === "tools_unsupported" && m.retry ? <ToolsUnsupportedCard onServer={() => retry(m, "server")} onTextOnly={() => textOnly(m)} /> : null}
-                {m.error ? errorBox(m) : null}
-                {m.stopped ? <div className="note stop-note" data-testid="stop-note">⏹ {m.engine === "realgpt" ? (m.agentOn ? "Спряно от вас. Стъпките, завършени преди спирането, остават изпълнени – вижте „Изпълнение“ и проверете в CRM." : "Спряно от вас.") : STOP_NOTE}{m.retry ? <> <button className="lnk" onClick={() => retry(m)} disabled={!!busy}>Опитай отново</button></> : null}</div> : null}
-                {m.incomplete ? <div className="note">✂️ Отговорът е прекъснат по дължина – натиснете „Продължи“.</div> : null}
-                {m.agent && m.agent.limited ? <div className="note" data-testid="limit-note">Търсенето спря на лимита: {m.agent.limited.rounds} кръга / {m.agent.limited.calls} извиквания. Натиснете „Продължи“ или напишете „продължи“, за да продължа.</div> : null}
-                {m.local || m.mode || m.modelName || m.fallback || m.effortIgnored || m.fromEmail || m.rgFallback || m.toolsOff ? (
-                  <div className="foot-tags">
-                    {m.local ? <span className="demo">ℹ️ Съобщение от програмата – не е изпратено към Тед</span> : null}
-                    {m.rgFallback ? <span className="demo fb" data-testid="rg-fallback">↪ Отговор от Тед (сървъра) вместо Real GPT</span> : null}
-                    {m.fromEmail ? <span className="demo live">Резултат от сървъра · email.send</span> : null}
-                    {m.mode && roleOf(m.mode) ? <span className="demo">{roleOf(m.mode).em} {roleOf(m.mode).short}</span> : null}
-                    {m.engine === "server" && m.modelName ? <span className="demo live" data-testid="model-chip">Сървър · {m.modelName}</span> : null}
-                    {m.engine === "realgpt" ? <span className="demo sel" data-testid="model-chip">Real GPT · {m.modelName}</span> : null}
-                    {m.toolsOff ? <span className="demo">без инструменти</span> : null}
-                    {m.fallback ? <span className="demo fb">↪ {m.fallback}</span> : null}
-                    {m.effortIgnored ? <span className="demo fb">Нивото на мислене не се поддържа от този модел и не е приложено</span> : null}
-                  </div>
-                ) : null}
-              </div>
-              {m.text && !m.streaming ? (
-                <div className="macts">
-                  <button className="ibtn" onClick={() => copy(m.text)} aria-label="Копирай" title="Копирай"><Icon n="copy" /></button>
-                  <button className={"ibtn" + (speaking === m.id ? " on" : "")} onClick={() => toggleSpeak(m.text, m.id)} aria-label={speaking === m.id ? "Спри четенето" : "Чуй"} title={speaking === m.id ? "Спри четенето" : "Чуй"}><Icon n={speaking === m.id ? "stopsq" : "speaker"} /></button>
-                  <button className="ibtn" onClick={() => openCanvas({ title: "Отговор на Тед", kind: "doc", text: m.text })} aria-label="Отвори в Canvas" title="Отвори в Canvas"><Icon n="pencil" /></button>
-                  {lastA && lastA.id === m.id && !m.local && !m.fromEmail ? <button className="ibtn" onClick={() => regenerate(m)} disabled={!!busy} aria-label="Отговори пак" title="Отговори пак"><Icon n="refresh" /></button> : null}
-                  {lastA && lastA.id === m.id && (m.incomplete || (m.agent && m.agent.limited)) ? <button className="b macts-b" onClick={() => send("Продължи", {})} disabled={!!busy}><Icon n="chevR" />Продължи</button> : null}
-                  {m.modelName ? <span className="mdl" title="Модел, отговорил на това съобщение">{m.modelName.length > 34 ? m.modelName.slice(0, 32) + "…" : m.modelName}</span> : null}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        )))}
+    <div className="thread cg-thread" ref={threadRef} onScroll={(e) => {
+      const el = e.currentTarget; const b2 = el.scrollHeight - el.scrollTop - el.clientHeight < 90; if (b2 !== atBottom) setAtBottom(b2);
+      if (hiddenN && el.scrollTop < 160 && keepBottom.current == null) showEarlier();
+    }}>
+      <div className="col cg-col">
+        {hiddenN ? <button className="b earlier" data-testid="show-earlier" onClick={showEarlier}><Icon n="chev" cls="sm16 up" />По-ранни съобщения ({hiddenN})</button> : null}
+        {chat.messages.slice(-shownN).map((m) => (m.role === "user" ? (
+          <UserRow key={m.id} m={m} act={act} busy={!!busy} isLast={!!lastU && lastU.id === m.id} editing={editing && editing.id === m.id ? editing.text : null} />
+        ) : (() => {
+          const live = !!(m.streaming && m.requestId);
+          const rgA = m.engine === "realgpt" ? (live ? (agentSnapshot(agentState, m.requestId) || {}) : m.agent || null) : null;
+          return (
+            <AnswerRow key={m.id} m={m} act={act} busy={!!busy} isLast={!!lastA && lastA.id === m.id} speaking={speaking === m.id} showActs={!!S.showActs}
+              agent={rgA} pending={live ? (approvals[m.requestId] || NONE) : NONE} approvalBusy={live ? approvalBusy : null}
+              videoJob={rgA && rgA.video ? (videoJobs[rgA.video.jobId] || null) : null} media={rgA ? mediaOf(rgA) : null}
+              emailBusy={emailBusy === m.id} emailBlockText={m.email ? emailBlock(m, newestEmail, Date.now(), mark) : null} inProject={!!chat.caseId && !chat.temporary} rgOn={rgOn && !!(m.panel || m.video)} />
+          );
+        })()))}
         {busy && busy.chatId === chat.id && busy.engine === "server" ? <Waiting t0={busy.t0} onStop={stop} /> : null}
       </div>
     </div>
@@ -1159,7 +1363,7 @@ function App({ user, remembered, onLogout }) {
       <div className="case-h"><span className="fi"><Icon n="folder" /></span><div className="case-tx"><div className="page-h"><h1>{kase.title || "Казус"}</h1></div><span className="case-sub">{[kase.client, kase.status === "closed" ? "затворен" : kase.status === "open" ? "отворен" : "", kase.updated_at ? "обновен " + fmtDate(kase.updated_at) : ""].filter(Boolean).join(" · ") || "Казус с памет на сървъра на Тед"}</span></div>
         <button className="ibtn case-ref" onClick={() => openCase(cv.id)} aria-label="Обнови" title="Обнови"><Icon n="refresh" /></button></div>
       <button className="b wine self-start" onClick={() => newChat(cv.id)}><Icon n="newchat" />Нов чат в този казус</button>
-      <div className="seg self-start">{[["history", "История"], ["facts", "Факти"], ["chats", "Чатове тук"]].map(([k, l]) => <button key={k} className={caseTab === k ? "on" : ""} onClick={() => setCaseTab(k)}>{l}</button>)}</div>
+      <div className="seg self-start case-tabs">{[["history", "История"], ["facts", "Факти"], ["chats", phone ? "Чатове" : "Чатове тук"], ["folder", "Папка"]].map(([k, l]) => <button key={k} className={caseTab === k ? "on" : ""} onClick={() => setCaseTab(k)} data-testid={"case-tab-" + k}>{k === "folder" ? <Icon n="folder" cls="sm16" /> : null}{l}</button>)}</div>
       <div className="sheet">
         {cv.status === "loading" ? <div className="empty"><i className="spin" /> Зареждам казуса от сървъра…</div> : null}
         {cv.status === "error" ? <div className="err" role="alert">⚠️ {cv.error} <button className="b" onClick={() => openCase(cv.id)}><Icon n="refresh" />Опитай отново</button></div> : null}
@@ -1173,6 +1377,8 @@ function App({ user, remembered, onLogout }) {
           {(cv.data.facts || []).map((f, i) => <div className="mem" key={i}><Icon n="bookmark" /><div className="tx">{String(f)}</div></div>)}
           {!(cv.data.facts || []).length ? <div className="empty">Няма запомнени факти по казуса. Кажете на Тед „запомни …“ в чат по казуса.</div> : null}
         </> : null}
+        {caseTab === "folder" ? <ProjectFolder kase={{ id: cv.id, title: kase.title || "Казус", client: kase.client || "", client_id: kase.client_id || "" }} chats={chats} openChat={openChat} toast={toast}
+          onExport={exportFolder} onSaveCrm={(k, items) => setCrmSave({ kase: k, files: items })} /> : null}
         {cv.status === "ok" && caseTab === "chats" ? (
           <div className="clist">{caseChats.map((c) => <button key={c.id} onClick={() => openChat(c.id)}><Icon n="chat" /><b>{c.title}</b><small>{dayGroup(c.updatedAt)}</small></button>)}
             {!caseChats.length ? <div className="empty">На този компютър няма чатове по казуса.</div> : null}</div>
@@ -1198,7 +1404,7 @@ function App({ user, remembered, onLogout }) {
     );
     if (id === "adv") return <AdvancedPop key={sub || "root"} pop={pop} onClose={closeAll} sub={sub} setSub={setSub} m={modelBag} rgOn={rgOn} modelLabel={modelLabel} />;
     if (id === "plus") return (
-      <PlusMenu pop={pop} onClose={closeAll} phone={phone} sub={sub} setSub={(x) => { if (x === "recent") loadRecent(); setSub(x); }} hints={hints} onHint={toggleHint} rgOn={rgOn}
+      <PlusMenu pop={pop} onClose={closeAll} phone={phone} compact={!chat} sub={sub} setSub={(x) => { if (x === "recent") loadRecent(); setSub(x); }} hints={hints} onHint={toggleHint} rgOn={rgOn}
         recent={recent} onRecent={pickRecent} cases={cases} curCase={curCase} onCase={pickCase}
         a={{
           files: () => { closeAll(); filesInRef.current.click(); },
@@ -1229,11 +1435,11 @@ function App({ user, remembered, onLogout }) {
       <Pop pop={pop} onClose={closeAll} width={280}>
         <div className="hd">{user.name || "Профил"}<small className="hd-sub">{user.email || user.phoneMasked || ""}</small></div>
         <div className="sep" />
-        <It icon="gear" title="Настройки" onClick={() => openSettings("general")} />
-        <It icon="help" title="Помощ" sub="клавишни комбинации" onClick={() => { closeAll(); setDrawer(false); setModal("help"); }} />
-        <It icon="monitor" title={S.compact ? "Пълен прозорец" : "Компактен прозорец"} sub="тесен прозорец с подредба като на телефон" onClick={toggleCompact} />
+        <It ci="gear" title="Настройки" onClick={() => openSettings("general")} />
+        <It ci="help" title="Помощ" sub="клавишни комбинации" onClick={() => { closeAll(); setDrawer(false); setModal("help"); }} />
+        <It ci="monitor" title={S.compact ? "Пълен прозорец" : "Компактен прозорец"} sub="тесен прозорец с подредба като на телефон" onClick={toggleCompact} />
         <div className="sep" />
-        <It icon="logout" title="Изход" onClick={() => { closeAll(); onLogout(); }} />
+        <It ci="logout" title="Изход" onClick={() => { closeAll(); onLogout(); }} />
       </Pop>
     );
     if (id.startsWith("chat-")) {
@@ -1304,7 +1510,9 @@ function App({ user, remembered, onLogout }) {
     );
     if (modal === "attachProp") return <AttachProp close={close} read={read} onAttach={(ps) => { attachRefs(ps.map(propFile)); toast("🏠 Към съобщението е добавена препратка към имота."); }} />;
     if (modal === "docs") return <DocsModal close={close} read={read} onAttach={(f) => { attachRefs([f]); toast("📄 Към съобщението е добавена препратка към документа."); }} />;
-    if (modal === "video") return <VideoWizard close={close} read={read} jobs={videoJobs} onJob={(j) => setVideoJobs((x) => ({ ...x, [j.id]: j }))} toast={toast} />;
+    // The server AI video wizard (Kling/Veo/Gemini via /api/video) belongs to the Ted server engine only: with Real GPT
+    // it never opens, whatever opened the modal (docs/CONTRACT.md §9.6).
+    if (modal === "video" && !rgOn) return <VideoWizard close={close} read={read} jobs={videoJobs} onJob={(j) => setVideoJobs((x) => ({ ...x, [j.id]: j }))} toast={toast} />;
     if (modal === "help") return (
       <Modal title="Помощ" onClose={close} size="sm">
         <div className="mb">
@@ -1321,7 +1529,7 @@ function App({ user, remembered, onLogout }) {
       </Modal>
     );
     if (modal === "realgpt") return <RealGptConnect close={close} rg={rg} onStatus={applyRg} onSignOut={rgSignOut} onManage={manageUsage} />;
-    if (typeof modal === "string" && modal.startsWith("skill-")) return <SkillPanel id={modal.slice(6)} close={close} />;
+    if (typeof modal === "string" && modal.startsWith("skill-")) return <SkillPanel id={modal.slice(6)} close={close} rgOn={rgOn} onStart={(sid) => (sid === "upload" ? startPropertyUpload() : sid === "video" ? openVideo() : collectHere())} />;
     return null;
   }
 
@@ -1338,7 +1546,7 @@ function App({ user, remembered, onLogout }) {
   const bodyMain = view === "agents" ? <AgentsPage S={S} setRole={(r) => { set("role", r.id); toast("Роля: " + r.name); }} openSkill={(sid) => setModal("skill-" + sid)} />
     : view === "projects" ? <ProjectsPage cases={cases} chats={chats} openCase={openCase} newCase={() => setModal("newCase")} newChatIn={(id) => newChat(id)} refreshCases={refreshCases} />
       : view === "scheduled" ? <ScheduledPage read={read} toast={toast} missed={missed} onRunNow={(t) => { setMissed((x) => x.filter((y) => y.id !== t.id)); runTask(t); }} onDismissMissed={(tid) => setMissed((x) => x.filter((y) => y.id !== tid))} rgReady={rg.connected && rg.planEnabled !== false} />
-        : view === "library" ? <LibraryPage chats={chats} openChat={openChat} toast={toast} />
+        : view === "library" ? <LibraryPage chats={chats} openChat={openChat} toast={toast} cases={cases} />
           : view === "plugins" ? <PluginsPage pl={pl} />
             : view === "case" ? CasePage : (chat ? Thread : HomeView);
   const notify = { ...NOTIFY_DEF, ...(S.notify && typeof S.notify === "object" ? S.notify : {}) };
@@ -1363,8 +1571,9 @@ function App({ user, remembered, onLogout }) {
         {popContent()}
         {modalContent()}
         {consentAsk ? <ConsentModal account={rg.email || ""} onDecide={consentDecide} /> : null}
+        {crmSave ? <SaveToCrmModal kase={crmSave.kase} files={crmSave.files} onClose={() => setCrmSave(null)} toast={toast} /> : null}
         {confirm ? (
-          <Modal title={confirm.title} onClose={() => setConfirm(null)} size="sm" foot={<><button className="b" onClick={() => setConfirm(null)}>Отказ</button><button className="b wine" onClick={() => { const ok = confirm.ok; setConfirm(null); ok(); }}>Потвърди</button></>}>
+          <Modal title={confirm.title} onClose={() => setConfirm(null)} size="sm" foot={<><button className="b" onClick={() => setConfirm(null)}>Отказ</button><button className="b wine" data-testid="confirm-ok" onClick={() => { const ok = confirm.ok; setConfirm(null); ok(); }}>{confirm.okLabel || "Потвърди"}</button></>}>
             <div className="mb"><p className="p0">{confirm.text}</p></div>
           </Modal>
         ) : null}

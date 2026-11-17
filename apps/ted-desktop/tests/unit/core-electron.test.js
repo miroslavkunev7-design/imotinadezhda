@@ -30,11 +30,12 @@ const SURFACE = {
   email: ["confirmSend"],
   voice: ["tts", "transcribe"],
   store: ["getSettings", "setSettings", "loadChats", "saveChats", "clearLocal"],
-  realgpt: ["status", "signIn", "cancelSignIn", "signOut", "models", "send", "cancel", "onDelta", "consent", "setConsent", "approve", "onEvent"],
+  realgpt: ["status", "signIn", "cancelSignIn", "signOut", "models", "send", "cancel", "onDelta", "consent", "setConsent", "approve", "onEvent", "openInChatGpt"],
   files: ["add", "read", "extract", "open", "save", "forget"],
-  browse: ["test"],
+  browse: ["test", "image"],
   video: ["prepare", "start", "cancel", "finish", "onEvent"],
   library: ["list", "remove", "clear", "onChange"],
+  projects: ["assign", "saveAnswer", "exportZip", "saveToCrm"],
   scheduled: ["list", "save", "remove", "onDue"],
   updates: ["state", "check", "setAuto", "download", "install", "onChange"],
 };
@@ -162,7 +163,7 @@ describe("ipc registration", () => {
 
   it("registers one handler per channel, all named ted:<group>.<fn>", () => {
     const { handlers, channels } = register();
-    expect(channels).toHaveLength(61); // 68 window.ted functions minus the 7 subscriptions
+    expect(channels).toHaveLength(67); // 74 window.ted functions minus the 7 subscriptions (0.1.5: + browse.image, + 4 projects)
     expect([...handlers.keys()]).toEqual(channels);
     for (const c of channels) expect(c).toMatch(/^ted:[a-z]+\.[A-Za-z]+$/);
   });

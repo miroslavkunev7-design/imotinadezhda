@@ -86,7 +86,7 @@ export async function readDocument({ buffer, kind, name = "файл", mime = "" 
     const joined = pages.map((p, i) => (pages.length > 1 ? `--- стр. ${i + 1} ---\n${p}` : p)).join("\n\n");
     const doc = { ...base, pages: totalPages };
     if (!joined.replace(/---\s*стр\.\s*\d+\s*---/g, "").trim()) {
-      doc.note = "Сканиран PDF без текст – за разпознаване ползвай crm analyze_document с file:<id>";
+      doc.note = "Сканиран PDF без текстов слой – ако е приложен към съобщението, прочети страниците директно; иначе помоли служителя да прикачи страниците като снимки (file:<id>).";
     }
     try { await pdf.destroy(); } catch { /* nothing to free */ }
     return finish(doc, joined);

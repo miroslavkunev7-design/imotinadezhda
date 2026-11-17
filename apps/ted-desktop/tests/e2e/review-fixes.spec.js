@@ -93,7 +93,7 @@ test("the Canvas belongs to its chat: not shown or sent in another chat, back wi
 
   await first.click();
   await expect(page.getByTestId("canvas")).toBeVisible();
-  await expect(page.locator("#cv-ver option")).toContainText(["Тед: първа чернова"]);
+  await expect(page.locator("#cv-ver option")).toContainText(["ChatGPT: първа чернова"]);
   await expect(page.locator("#cv-ver option")).toContainText(["ваша незапазена редакция"]);
   // Removing the tag closes the Canvas: nothing goes with the next question.
   await page.getByTestId("canvas-pill").getByRole("button", { name: "Затвори Canvas" }).click();
@@ -181,7 +181,7 @@ test("light sheets: the unselected „Въпрос към Тед“ is readable;
   await page.getByRole("button", { name: /Нова задача/ }).click();
   const off = page.locator(".sched-form .seg button", { hasText: "Въпрос към Тед" });
   const color = await off.evaluate((el) => getComputedStyle(el).color);
-  expect(color).toBe("rgb(88, 13, 34)"); // --ink, not the cream text of the dark bar
+  expect(color).toBe("rgb(58, 21, 32)"); // --ink (0.1.5 premium.css: #3a1520), not the cream text of the dark bar
 
   await page.setViewportSize(PHONE);
   await page.locator(".burger").first().click();

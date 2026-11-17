@@ -148,7 +148,7 @@ export function engineProblem(engine, list, tools) {
   if (engine === "realgpt") {
     if (up.length > LIMITS.rgFiles) return `Най-много ${LIMITS.rgFiles} файла на съобщение.`;
     if (!tools && up.some((f) => f.kind !== "image" && f.kind !== "text" && !(f.kind === "doc" && f.text != null))) {
-      return "Real GPT приема само снимки и текст без инструментите на Тед. Разрешете ги (Настройки → Безопасност), за да чете PDF и други файлове – или за PDF изберете модел на Тед (сървър).";
+      return "Без инструментите на Тед Real GPT вижда само снимки и текст. За PDF и други файлове разрешете инструментите (Настройки → Безопасност) или махнете файла.";
     }
     return null;
   }

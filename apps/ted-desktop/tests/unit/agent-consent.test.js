@@ -84,7 +84,8 @@ describe("consent", () => {
     const r = await rg.send({ requestId: "r1", model: "m", messages: hello });
     expect(r).toMatchObject({ ok: true, text: "Здравейте", toolsOff: true });
     expect(Object.keys(bodies[0]).sort()).toEqual(["input", "instructions", "model", "store", "stream"]);
-    expect(bodies[0].input[0].content[0].text).toMatch(/в режим „само текст“ Real GPT не чете файлове/);
+    expect(bodies[0].input[0].content[0].text).toMatch(/в режим „само текст“ файловете не се четат; служителят може да разреши инструментите от Настройки → Безопасност/);
+    expect(bodies[0].input[0].content[0].text).not.toMatch(/Тед \(сървъра\)/);
     await rg.setConsent("text");
     const r2 = await rg.send({ requestId: "r2", model: "m", messages: hello });
     expect(r2.toolsOff).toBe(true);
@@ -111,6 +112,20 @@ describe("consent", () => {
     const agentEvents = events.filter(([e]) => e === "realgpt:event").map(([, p]) => p);
     expect(agentEvents.every((p) => p.requestId === "r1")).toBe(true);
     expect(events.filter(([e]) => e === "realgpt:delta").at(-1)[1].text).toBe("Няма клиент „Тест“.");
+  });
+
+  it("textOnly:true (the „Само текст“ retry) sends the text-only request even with consent 'all'; it never adds tools", async () => {
+    const { rg, bodies, toolCalls } = setup();
+    await rg.setConsent("all");
+    const r = await rg.send({ requestId: "r1", model: "m", messages: [{ role: "user", text: "x" }], textOnly: true });
+    expect(r).toMatchObject({ ok: true, text: "Здравейте", toolsOff: true });
+    expect(bodies[0]).not.toHaveProperty("tools");
+    expect(toolCalls).toEqual([]);
+    expect((await rg.consent()).consent).toBe("all"); // the stored choice is not changed by the retry
+    await rg.setConsent("text");
+    const r2 = await rg.send({ requestId: "r2", model: "m", messages: [{ role: "user", text: "x" }], textOnly: false });
+    expect(r2.toolsOff).toBe(true);
+    expect(bodies[1]).not.toHaveProperty("tools");
   });
 
   it("without an agent (unit use of the module) nothing changes", async () => {

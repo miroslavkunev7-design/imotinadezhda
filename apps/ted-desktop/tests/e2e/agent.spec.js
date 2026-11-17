@@ -1,10 +1,11 @@
 // 0.1.3 FEATURES: the Real GPT agent in the renderer (docs/CONTRACT.md §8, §16, §17) – consent, live „Изпълнение“
 // steps, approvals (allow / deny / allow_all), FileCards (preview, Отвори, Запази…), internet results, documents,
-// reworked attachments, Canvas versions from the agent with a sanitised SVG preview, paid video (approval →
-// progress → stitched clip), the tools_unsupported fallback, the step limit, the library, scheduled tasks and the
+// reworked attachments, Canvas versions from the agent with a sanitised SVG preview, „Отвори в ChatGPT“ cards for
+// pictures and video (Real GPT uses only the ChatGPT plan, §9.6), paid video of Ted's server (approval → progress →
+// stitched clip), tools_unsupported without any other engine, the step limit, the library, scheduled tasks and the
 // updater states. Mock build only (src/mock/bridge.mock.js); every value is fictional; no network.
 import { test, expect } from "@playwright/test";
-import { PHONE, guard, login, mockCalls, noHorizontalScroll, openSettings, send, shot } from "./helpers.js";
+import { PHONE, guard, login, mockCalls, noHorizontalScroll, openActivity, openSettings, send, shot } from "./helpers.js";
 
 const rgAnswer = (page) => page.locator('.msg.a[data-engine="realgpt"]').last();
 const AGENT = "lat=200&rg=1&consent=all&agent=1&rgStep=12&agentStep=120";
@@ -22,15 +23,18 @@ test("consent: asked once per ChatGPT account; „Разбирам“ turns Ted'
   await pickRgModel(page);
   await send(page, "Здравей");
   const modal = page.getByTestId("consent-modal");
-  await expect(modal).toContainText("Real GPT ще ползва CRM, интернет и файловете, които прикачите, през вашия ChatGPT акаунт.");
+  await expect(modal.locator(".consent-q")).toHaveText("Real GPT ползва само вашия ChatGPT план. Тед дава достъп до CRM, интернет и файловете на този компютър; друг изкуствен интелект не се ползва.");
   await expect(modal).toContainText("chatgpt.test@example.test");
-  await expect(modal).toContainText("Промени в CRM, имейл и платено видео винаги искат вашето потвърждение");
+  await expect(modal).toContainText("промени, записи и имейл в CRM винаги искат вашето потвърждение");
+  await expect(modal).toContainText("Снимки и видео се правят в приложението ChatGPT с вашия план");
+  await expect(page.locator(".modal").getByRole("button", { name: "Разбирам", exact: true })).toBeVisible();
+  await expect(page.locator(".modal").getByRole("button", { name: "Само текст", exact: true })).toBeVisible();
   expect((await mockCalls(page)).rgSend).toHaveLength(0); // nothing is sent before the answer
   await shot(page, "agent-consent.png");
   await page.locator(".modal").getByRole("button", { name: "Разбирам", exact: true }).click();
   await expect(rgAnswer(page)).toContainText("с разрешени инструменти");
   await finished(rgAnswer(page));
-  await expect(rgAnswer(page).locator(".foot-tags")).not.toContainText("без инструменти");
+  await expect(rgAnswer(page)).not.toContainText("без инструменти");
   await send(page, "Още един въпрос");
   await expect(page.locator('.msg.a[data-engine="realgpt"]')).toHaveCount(2);
   await expect(page.getByTestId("consent-modal")).toHaveCount(0); // once per account
@@ -63,6 +67,10 @@ test("agent: live steps, a CRM write waits for „Разреши“, the documen
   await send(page, "Намери имоти и запиши оглед");
   const a = rgAnswer(page);
   const steps = a.getByTestId("agent-steps");
+  // 0.1.5: while running ONE line with the current step and the time; the full list opens with a click.
+  await expect(steps).toHaveAttribute("data-state", "running");
+  await expect(a.getByTestId("activity-time")).toBeVisible();
+  await openActivity(a);
   await expect(steps).toContainText("Търся в интернет: Намери имоти и запиши оглед");
   await expect(steps).toContainText("Чета страница: example.test/pazar-test");
   await expect(steps).toContainText("CRM: имоти.търсене");
@@ -78,6 +86,7 @@ test("agent: live steps, a CRM write waits for „Разреши“, the documen
   await expect(json.locator("pre")).toContainText('"client_name": "Тестов Клиент А"');
   await expect(steps.getByTestId("steps-status")).toHaveText("Чака вашето решение");
   await expect(steps.locator('li[data-status="wait"]')).toContainText("CRM: календар.ново събитие");
+  await expect(a.getByTestId("activity-text")).toHaveText("Чака вашето решение: CRM: календар.ново събитие");
   await expect(a.getByTestId("file-card")).toContainText("Тестова справка.docx"); // shown as soon as it exists
   await shot(page, "agent-approval.png");
 
@@ -85,13 +94,16 @@ test("agent: live steps, a CRM write waits for „Разреши“, the documen
   await expect(a.getByTestId("approval-card")).toHaveCount(0);
   await expect(a).toContainText("Записах тестовия оглед в календара.");
   await finished(a);
+  await expect(steps).toHaveAttribute("data-state", "done");
+  await expect(a.getByTestId("activity-text")).toHaveText("Претърси интернет, прочете 1 страница, изпълни 2 действия в CRM и направи 1 документ");
+  await openActivity(a);
   await expect(steps.getByTestId("steps-status")).toHaveText("Изпълнено");
   await expect(steps.locator(".ribbon")).toHaveText("промени в CRM");
   await expect(steps.locator('li[data-status="ok"]')).toHaveCount(5);
 
   const card = a.getByTestId("file-card");
   await expect(card).toHaveAttribute("data-kind", "docx");
-  await expect(card).toContainText("направен от Тед");
+  await expect(card).toContainText("направен от ChatGPT на този компютър");
   await card.getByRole("button", { name: "Отвори" }).click();
   await card.getByRole("button", { name: "Запази…" }).click();
   await expect(page.locator(".toast")).toContainText("Запазено: C:\\Users\\Test\\Documents\\Тестова справка.docx");
@@ -112,6 +124,8 @@ test("agent: „Откажи“ leaves CRM unchanged; „Разреши всич
   await a.getByTestId("approval-card").getByRole("button", { name: "Откажи" }).click();
   await expect(a).toContainText("Огледът не е записан – отказахте.");
   await finished(a);
+  await expect(a.getByTestId("activity-text")).toContainText("· 1 отказана");
+  await openActivity(a);
   await expect(a.locator('li[data-status="denied"]')).toContainText("CRM: календар.ново събитие");
   await expect(a.getByTestId("steps-status")).toHaveText("Частично изпълнено");
   await expect(a.getByTestId("agent-steps").locator(".ribbon")).toHaveCount(0); // nothing changed in CRM
@@ -126,21 +140,31 @@ test("agent: „Откажи“ leaves CRM unchanged; „Разреши всич
   await g.check();
 });
 
-test("internet: listings with price, place, phone and link directly in the answer; photos as FileCards", async ({ page }) => {
+test("internet: listings as a table with the real links; photos inline; fetched photos are FileCards", async ({ page }) => {
   const g = guard(page);
   await login(page, AGENT);
   await pickRgModel(page);
   await send(page, "Намери обяви за двустаен в Тестоград");
-  const a = rgAnswer(page);
+  let a = rgAnswer(page);
   await finished(a);
+  await openActivity(a);
   const steps = a.getByTestId("agent-steps");
   await expect(steps).toContainText("Търся в интернет: тестови обяви двустаен Тестоград");
   await expect(steps).toContainText("Чета страница: example.test/obiava-101");
-  await expect(steps).toContainText("Изтеглям снимка: example.test/img/obiava-101-1.png");
-  await expect(a.locator(".md")).toContainText("Тестов двустаен апартамент");
-  await expect(a.locator(".md")).toContainText("99 000 €");
-  await expect(a.locator(".md")).toContainText("+359 00 000 0001");
-  await expect(a.locator(".md a")).toContainText("example.test/obiava-101");
+  await expect(a.locator(".md table")).toContainText("Тестов двустаен апартамент");
+  await expect(a.locator(".md table")).toContainText("99 000 €");
+  await expect(a.locator(".md table")).toContainText("+359 00 000 0001");
+  await expect(a.locator(".md a.md-a").first()).toHaveAttribute("href", "https://example.test/obiava-101");
+  await expect(a.getByTestId("md-img")).toHaveCount(5);
+  await expect(a.getByTestId("file-card")).toHaveCount(0); // nothing downloaded into the store for showing
+
+  // Downloading the photos as files (fetch_image): FileCards with preview, and the same photos inline from the store.
+  await send(page, "Изтегли снимките от първия линк");
+  await expect(page.locator('.msg.a[data-engine="realgpt"]')).toHaveCount(2);
+  a = rgAnswer(page);
+  await finished(a);
+  await openActivity(a);
+  await expect(a.getByTestId("agent-steps")).toContainText("Изтеглям снимка: example.test/img/obiava-101-1.png");
   const photos = a.locator('[data-testid="file-card"][data-kind="image"]');
   await expect(photos).toHaveCount(2);
   await expect(photos.first()).toContainText("от интернет");
@@ -163,25 +187,80 @@ test("browsing off (Настройки → Браузър): the agent says so an
   await send(page, "Намери обяви");
   const a = rgAnswer(page);
   await expect(a).toContainText("Интернетът е изключен в Настройки → Браузър");
+  await finished(a);
+  await openActivity(a);
   await expect(a.getByTestId("agent-steps")).not.toContainText("Търся в интернет");
   await g.check();
 });
 
-test("AI image: images.generate step, the picture as a FileCard with the server's own „Записано“ text", async ({ page }) => {
+test("picture with Real GPT: a „Отвори в ChatGPT“ card with the exact prompt – nothing opens until the click", async ({ page }) => {
   const g = guard(page);
   await login(page, AGENT);
   await pickRgModel(page);
   await send(page, "Създай снимка на хол в стил минимализъм");
   const a = rgAnswer(page);
   await finished(a);
-  await expect(a.getByTestId("agent-steps")).toContainText("Генерирам снимка");
-  const card = a.locator('[data-testid="file-card"][data-kind="image"]');
-  await expect(card).toContainText("AI визуализация (тест).png");
-  await expect(card.getByTestId("file-saved")).toHaveText("Записано: папка „Тед“");
-  await card.getByRole("button", { name: "Преглед", exact: true }).click();
-  await expect(page.getByTestId("file-lightbox").locator("img")).toHaveAttribute("src", /^blob:/);
-  await page.getByTestId("file-lightbox").getByRole("button", { name: "Затвори" }).click();
-  await expect(page.getByTestId("file-lightbox")).toHaveCount(0);
+  await expect(a.getByTestId("activity-text")).toContainText("Подготви заявка за ChatGPT");
+  await openActivity(a);
+  await expect(a.getByTestId("agent-steps")).toContainText("Заявка за ChatGPT: снимка");
+  await expect(a.getByTestId("agent-steps")).not.toContainText("Генерирам снимка");
+  await expect(a).toContainText("Оттук не мога да създам снимка");
+  const card = a.getByTestId("chatgpt-card");
+  await expect(card).toHaveAttribute("data-kind", "image");
+  await expect(card).toContainText("Създаването на снимки и видео с вашия ChatGPT план става в приложението ChatGPT");
+  const ta = card.getByTestId("chatgpt-prompt");
+  await expect(ta).toHaveValue(/^Фотореалистична снимка \(16:9\) на тестова дневна/);
+  await expect(a.getByTestId("file-card")).toHaveCount(0); // no picture is claimed or made
+  let calls = await mockCalls(page);
+  expect(calls.openInChatGpt).toEqual([]);                   // never opened by itself
+  expect(calls.openExternal).toEqual([]);
+  await shot(page, "agent-open-in-chatgpt.png");
+  await card.getByTestId("chatgpt-copy").click();
+  await expect(page.locator(".toast")).toContainText("Заявката е копирана");
+  await ta.fill("Снимка на хол, топли цветове & дървен под #2");   // the employee may edit the prompt
+  await card.getByTestId("chatgpt-open").click();
+  await expect(page.locator(".toast")).toContainText("Отворих ChatGPT в браузъра");
+  calls = await mockCalls(page);
+  expect(calls.copy.at(-1)).toMatch(/^Фотореалистична снимка/);
+  expect(calls.openInChatGpt).toEqual([{ prompt: "Снимка на хол, топли цветове & дървен под #2", url: "https://chatgpt.com/?q=" + encodeURIComponent("Снимка на хол, топли цветове & дървен под #2") }]);
+  expect(calls.openExternal).toEqual([]);                    // the page never builds or opens a link itself
+  expect(calls.chat).toHaveLength(0);                        // Ted's server engine is never asked
+  await ta.fill("   ");
+  await expect(card.getByTestId("chatgpt-open")).toBeDisabled();
+  await g.check();
+});
+
+test("„+“ with Real GPT: „Създай изображение“ and „Още › Видео“ are hints for a ChatGPT card; the engine is named", async ({ page }) => {
+  const g = guard(page);
+  await login(page, AGENT);
+  await pickRgModel(page);
+  await expect(page.getByTestId("engine-tag")).toHaveText("ChatGPT");
+  await page.locator(".c-plus").click();
+  await expect(page.locator(".pop").getByRole("menuitem", { name: /^Създай изображение/ })).toContainText("в приложението ChatGPT с вашия план");
+  await page.locator(".pop").getByRole("menuitem", { name: /^Създай изображение/ }).click();
+  await expect(page.getByTestId("hint-image")).toBeVisible();
+  await page.locator(".c-plus").click();
+  await page.locator(".pop").getByRole("menuitem", { name: /^Още/ }).click();
+  await expect(page.locator(".pop").getByRole("menuitem", { name: /^Видео на имот/ })).toHaveCount(0); // no AI video of the server here
+  await page.locator(".pop").getByRole("menuitem", { name: /^Видео/ }).click();
+  await expect(page.getByTestId("hint-video")).toBeVisible();
+  await expect(page.locator(".modal")).toHaveCount(0);
+  await send(page, "Разходка из тестовия апартамент");
+  const a = rgAnswer(page);
+  await finished(a);
+  await expect(a.getByTestId("chatgpt-card")).toHaveAttribute("data-kind", "video");
+  const calls = await mockCalls(page);
+  expect(calls.rgSend.at(-1)).toMatchObject({ hints: ["image", "video"], consent: "all" });
+  expect(calls.videoPrepare || []).toHaveLength(0);
+  // The model menu says what each engine uses; the server engine keeps its own AI video.
+  await page.getByTestId("model-btn").click();
+  await expect(page.getByTestId("engine-note-realgpt")).toHaveText("само вашият ChatGPT план – без друг изкуствен интелект");
+  await expect(page.getByTestId("engine-note-server")).toContainText("Тед на сървъра");
+  await page.locator(".pop").getByRole("menuitem", { name: /По подразбиране/ }).click();
+  await expect(page.getByTestId("engine-tag")).toHaveText("Тед");
+  await page.locator(".c-plus").click();
+  await page.locator(".pop").getByRole("menuitem", { name: /^Още/ }).click();
+  await expect(page.locator(".pop").getByRole("menuitem", { name: /^Видео на имот/ })).toBeVisible();
   await g.check();
 });
 
@@ -194,6 +273,7 @@ test("attached Word file: read on this computer, a reworked .docx comes back", a
   await send(page, "Преработи договора с по-кратки изречения");
   const a = rgAnswer(page);
   await finished(a);
+  await openActivity(a);
   await expect(a.getByTestId("agent-steps")).toContainText("Чета файла: тестов-договор.docx");
   await expect(a.getByTestId("agent-steps")).toContainText("Правя документ: Преработен – тестов-договор.docx");
   await expect(a.getByTestId("file-card")).toContainText("Преработен – тестов-договор.docx");
@@ -214,6 +294,7 @@ test("e-mail from the agent is only a draft shown with the existing card; nothin
   await expect(a).toContainText("нищо не е изпратено");
   const mail = a.getByTestId("email-card");
   await expect(mail).toContainText("Тестова оферта за ТЕСТ-101");
+  await openActivity(a);
   await expect(a.getByTestId("agent-steps")).toContainText("CRM: имейл.чернова");
   expect((await mockCalls(page)).confirmSend).toBe(0);
   await g.check();
@@ -248,7 +329,7 @@ test("Canvas: the agent adds a NEW version, „Преглед“ shows Markdown 
   const a = rgAnswer(page);
   await finished(a);
   const cv = page.getByTestId("canvas");
-  await expect(cv.locator("#cv-ver option")).toHaveText(["Версия 1", "Версия 2 · ръчна редакция", "Версия 3 · Тед: първа чернова"]);
+  await expect(cv.locator("#cv-ver option")).toHaveText(["Версия 1", "Версия 2 · ръчна редакция", "Версия 3 · ChatGPT: първа чернова"]);
   await expect(cv.locator("#cv-ver")).toHaveValue("3");
   await expect(cv.locator("#cv-txt")).toHaveValue(/^# Тестов договор за наем/);
   expect((await mockCalls(page)).rgSend.at(-1).canvas).toMatchObject({ title: "Нов документ", version: 2 }); // the open document went along
@@ -295,63 +376,68 @@ test("Canvas: unsaved typing is kept as its own version when Тед adds one", a
   await send(page, "Напиши договор в Canvas");
   await finished(rgAnswer(page));
   const opts = page.locator("#cv-ver option");
-  await expect(opts).toHaveText(["Версия 1", "Версия 2 · Тед: първа чернова", "Версия 3 · ваша незапазена редакция"]);
+  await expect(opts).toHaveText(["Версия 1", "Версия 2 · ChatGPT: първа чернова", "Версия 3 · ваша незапазена редакция"]);
   await page.locator("#cv-ver").selectOption("3");
   await expect(page.locator("#cv-txt")).toHaveValue("Незапазен тестов текст");
   await g.check();
 });
 
-test("video: approval with engine, length and price → progress → the stitched clip as a FileCard", async ({ page }) => {
+test("video with Real GPT: a ChatGPT card for Sora – no paid server video, no approval, nothing started", async ({ page }) => {
   const g = guard(page);
   await login(page, AGENT);
   await pickRgModel(page);
   await send(page, "Направи видео разходка на ТЕСТ-101");
   const a = rgAnswer(page);
-  const ap = a.locator('[data-testid="approval-card"][data-kind="video"]');
-  await expect(ap).toContainText("Платено AI видео");
-  await expect(ap).toContainText("ТЕСТ-101 · Измислен двустаен апартамент");
-  await expect(ap.getByTestId("video-cost")).toHaveText("$2,55"); // 3 parts × 5 s × $0.17
-  await expect(ap).toContainText("Баланс на сървъра");
-  await expect(ap.getByRole("button", { name: "Разреши всички в този отговор" })).toHaveCount(0); // never allow_all
-  const vc = a.getByTestId("video-card");
+  await finished(a);
+  await expect(a.getByTestId("chatgpt-card")).toHaveAttribute("data-kind", "video");
+  await expect(a.getByTestId("approval-card")).toHaveCount(0);
+  await expect(a.getByTestId("video-card")).toHaveCount(0);
+  await expect(a).toContainText("Оттук не мога да създам видео");
+  const calls = await mockCalls(page);
+  expect(calls.videoStart).toHaveLength(0);
+  expect(calls.openInChatGpt).toEqual([]);
+  await g.check();
+});
+
+test("video of Ted's server („+ › Още › Видео на имот“): engine, length and price → progress → the stitched clip as a FileCard", async ({ page }) => {
+  const g = guard(page);
+  await login(page, "lat=200");
+  await page.locator(".c-plus").click();
+  await page.locator(".pop").getByRole("menuitem", { name: /^Още/ }).click();
+  await page.locator(".pop").getByRole("menuitem", { name: /^Видео на имот/ }).click();
+  await page.fill("#vw-q", "ТЕСТ-101");
+  await page.locator(".modal").getByRole("button", { name: "Търси" }).click();
+  await page.locator(".modal .clist button", { hasText: "Измислен двустаен апартамент" }).click();
+  const vc = page.locator(".modal").getByTestId("video-card");
   await expect(vc).toHaveAttribute("data-status", "approval");
-  await expect(vc.getByTestId("video-wait-approval")).toBeVisible(); // no second start button on the job card
-  await expect(vc.getByRole("button", { name: /Започни/ })).toHaveCount(0);
-  await ap.locator("select").first().selectOption("veo");
-  await ap.locator("select").nth(1).selectOption("6");
-  await expect(ap.getByTestId("video-cost")).toHaveText("$1,80"); // 3 × 6 s × $0.10
-  await shot(page, "agent-video-approval.png");
-  await ap.getByRole("button", { name: "Започни (платено)" }).click();
-  await expect(a).toContainText("Видеото започна на сървъра");
-  await expect(a).toContainText("не е готово още");
+  await expect(vc.getByTestId("video-cost")).toHaveText("$2,55"); // 3 parts × 5 s × $0.17
+  await vc.getByRole("button", { name: "Започни (платено)" }).click();
   await expect(vc).toHaveAttribute("data-status", /running|stitch|done/);
   await expect(vc).toHaveAttribute("data-status", "done", { timeout: 40000 });
-  const fc = vc.getByTestId("file-card");
-  await expect(fc).toContainText("AI видео ТЕСТ-101");
+  const fc = vc.getByTestId("file-card").filter({ hasText: "AI видео ТЕСТ-101" });
   await expect(fc).toHaveAttribute("data-kind", "video");
   await fc.getByRole("button", { name: "Преглед", exact: true }).click();
   await expect(fc.getByTestId("file-video")).toHaveAttribute("src", /^blob:/);
   await shot(page, "agent-video-done.png");
   const calls = await mockCalls(page);
-  expect(calls.approve.at(-1)).toMatchObject({ decision: "allow", options: { engine: "veo", duration: 6 } });
-  expect(calls.videoStart).toEqual([{ jobId: expect.stringMatching(/^v_test/), engine: "veo", duration: 6 }]);
+  expect(calls.videoStart).toEqual([{ jobId: expect.stringMatching(/^v_test/), engine: "kling", duration: 5 }]);
   expect(calls.videoFinish).toHaveLength(1);                         // stitched once, in this window
   const made = (await page.evaluate(() => window.__tedMock.files())).find((f) => f.id === calls.videoFinish[0].fileId);
   expect(made).toMatchObject({ kind: "video" });
   await g.check();
 });
 
-test("video: no engine on the server is said plainly; nothing is offered for payment", async ({ page }) => {
+test("video of Ted's server: no engine on the server is said plainly; nothing is offered for payment", async ({ page }) => {
   const g = guard(page);
-  await login(page, AGENT + "&video=noengine");
-  await pickRgModel(page);
-  await send(page, "Направи клип на имота");
-  const a = rgAnswer(page);
-  await finished(a);
-  await expect(a.getByTestId("video-card")).toContainText("На сървъра няма настроен ключ за AI видео");
-  await expect(a.getByTestId("approval-card")).toHaveCount(0);
-  await expect(a.locator('li[data-status="fail"]')).toContainText("Видео на имот");
-  await expect(a).toContainText("Мога първо да направя AI снимка");
+  await login(page, "lat=200&video=noengine");
+  await page.locator(".c-plus").click();
+  await page.locator(".pop").getByRole("menuitem", { name: /^Още/ }).click();
+  await page.locator(".pop").getByRole("menuitem", { name: /^Видео на имот/ }).click();
+  await page.fill("#vw-q", "ТЕСТ-101");
+  await page.locator(".modal").getByRole("button", { name: "Търси" }).click();
+  await page.locator(".modal .clist button", { hasText: "Измислен двустаен апартамент" }).click();
+  await expect(page.locator(".modal")).toContainText("На сървъра няма настроен ключ за AI видео");
+  await expect(page.locator(".modal").getByRole("button", { name: /Започни/ })).toHaveCount(0);
   expect((await mockCalls(page)).videoStart).toHaveLength(0);
   await g.check();
 });
@@ -378,27 +464,29 @@ test("video from the „+“ menu: the job card itself asks, starts on the paid 
   await g.check();
 });
 
-test("tools_unsupported: the card offers Ted's server or text only – never a silent switch", async ({ page }) => {
+test("tools_unsupported: what OpenAI refused, only „Само текст“ – never Ted's server, never a silent switch", async ({ page }) => {
   const g = guard(page);
   await login(page, "lat=150&rg=1&consent=all&agentFail=tools_unsupported&rgStep=12");
   await pickRgModel(page);
   await send(page, "Намери обяви за наем");
-  let card = rgAnswer(page).getByTestId("tools-unsupported");
+  const card = rgAnswer(page).getByTestId("tools-unsupported");
   await expect(card).toContainText("Планът на ChatGPT не прие инструментите на Тед");
-  await expect(card).toContainText("нищо не е превключено без вас");
-  expect((await mockCalls(page)).chat).toHaveLength(0);
+  await expect(card).toContainText("нищо не е превключено към друг изкуствен интелект");
+  await expect(card.getByTestId("tools-refused")).toContainText("параметър „tools[0]“ · код subscription_sharing_unsupported_capability · HTTP 400");
+  await expect(card.getByTestId("tools-refused")).toContainText("Function tools are not supported for this test model.");
+  await expect(card.getByRole("button")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /Отговори с Тед/ })).toHaveCount(0);
+  await expect(page.getByTestId("rg-fallback")).toHaveCount(0);
   await shot(page, "agent-tools-unsupported.png");
-  await card.getByRole("button", { name: "Отговори с Тед (сървъра)" }).click();
-  await expect(page.getByTestId("rg-fallback")).toHaveText("↪ Отговор от Тед (сървъра) вместо Real GPT");
-  expect((await mockCalls(page)).chat.at(-1)).toMatchObject({ last: "Намери обяви за наем" });
-
-  await send(page, "Още обяви");
-  card = rgAnswer(page).getByTestId("tools-unsupported");
   await card.getByRole("button", { name: "Само текст" }).click();
-  await expect(rgAnswer(page).locator(".foot-tags")).toContainText("без инструменти");
+  const a = rgAnswer(page);
+  await expect(a.locator(".foot-tags")).toContainText("без инструменти");
+  await expect(a).toContainText("няма достъп до CRM");
   const calls = await mockCalls(page);
-  expect(calls.consent).toEqual(["text"]);
-  expect(calls.rgSend.at(-1)).toMatchObject({ consent: "text", last: "Още обяви" });
+  expect(calls.consent).toEqual([]);                                 // the stored choice is not changed
+  expect(calls.rgSend.at(-1)).toMatchObject({ consent: "all", textOnly: true, last: "Намери обяви за наем" });
+  expect(calls.rgSend.at(-1).mode).toBeUndefined();                   // no agent arguments in the text-only retry
+  expect(calls.chat).toHaveLength(0);                                 // Ted's server was never asked
   await g.check();
 });
 
@@ -410,6 +498,8 @@ test("step limit: said plainly, „Продължи“ continues the work", asyn
   const a = rgAnswer(page);
   await finished(a);
   await expect(a.getByTestId("limit-note")).toContainText("8 кръга / 40 извиквания");
+  await expect(a.getByTestId("activity-text")).toHaveText("Претърси интернет 3 пъти");
+  await openActivity(a);
   await expect(a.getByTestId("agent-steps").locator("li")).toHaveCount(3);
   await a.locator(".macts").getByRole("button", { name: "Продължи" }).click();
   await expect.poll(async () => (await mockCalls(page)).rgSend.length).toBe(2);

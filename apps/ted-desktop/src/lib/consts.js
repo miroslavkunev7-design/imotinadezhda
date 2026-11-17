@@ -54,7 +54,13 @@ export const EFFORTS = [
   { id: "none", name: "Мигновено" }, { id: "low", name: "Ниско" }, { id: "medium", name: "Средно" }, { id: "high", name: "Високо" }, { id: "xhigh", name: "Много високо" },
 ];
 export const effortName = (id) => (EFFORTS.find((e) => e.id === id) || { name: "Стандартно" }).name;
-export const RG_LIMITS = "Рисуването на OpenAI (gpt-image), Code Interpreter, търсенето на OpenAI, Codex и Agent mode на ChatGPT не се дават на външни програми. Тед ги замества със свои инструменти: снимки със сървъра на Тед (Gemini, а при изчерпан лимит – GPT Image 2 през Vercel AI Gateway), документи на този компютър, собствено търсене в интернет.";
+// Real GPT = only the employee's ChatGPT plan (docs/CONTRACT.md §9.6). No other AI is used in this engine.
+export const RG_LIMITS = "Real GPT ползва само вашия ChatGPT план – никакъв друг изкуствен интелект (Gemini, Тед на сървъра, AI видео). Рисуването и видеото на ChatGPT (gpt-image, Sora), Code Interpreter, търсенето на OpenAI и Agent mode не се дават на външни програми: снимки и видео Тед подготвя като заявка, която отваряте в приложението ChatGPT; документите се правят на този компютър; търсенето в интернет е от този компютър. Единственото изключение е гласът („Чуй“, диктовка, гласов режим): той е на сървъра на Тед (Google Gemini), тръгва само когато го пуснете и програмата пита първо – отговорите на Real GPT не се четат на глас сами.";
+// The two engines, as the model menu and the composer name them.
+export const ENGINE_NOTE = {
+  server: "Тед на сървъра – моделите на сървъра (Gemini и др.), снимки и AI видео от сървъра",
+  realgpt: "само вашият ChatGPT план – без друг изкуствен интелект",
+};
 
 // Чат | Работа (ChatGPT Chat | Work). Both have every capability; Работа allows longer multi-step work.
 export const MODES = [
@@ -71,7 +77,11 @@ export const HINTS = [
   { id: "research", icon: "telescope", name: "Задълбочено проучване", prefix: "Направи задълбочено проучване: " },
   { id: "search", icon: "globe", name: "Търсене в мрежата", prefix: "Потърси в интернет: " },
 ];
-export const hintOf = (id) => HINTS.find((h) => h.id === id) || null;
+// Hints armed from elsewhere (not in the root „+“ list): „Още › Видео“ with Real GPT.
+export const EXTRA_HINTS = [
+  { id: "video", icon: "film", name: "Видео", prefix: "Направи видео: " },
+];
+export const hintOf = (id) => HINTS.find((h) => h.id === id) || EXTRA_HINTS.find((h) => h.id === id) || null;
 
 // „Пиши или редактирай“ on the Home screen: examples that only fill the composer.
 export const WRITE_EX = [

@@ -1,10 +1,11 @@
 // Function tools of the Real GPT agent (docs/CONTRACT.md §9.2): one namespace "ted" holding the CRM gateway and
 // the local functions. Official form: developers.openai.com/api/docs/guides/tools (namespace tool). No
 // defer_loading (tool_search is not supported on the plan route). strict:false – MAIN validates every argument.
-import { NEVER } from "./gate.js";
+import { AI_OFF_INPUT, NEVER, isServerAi } from "./gate.js";
+import { CHATGPT_PROMPT_MAX } from "./chatgpt-link.js";
 
 export const NAMESPACE = "ted";
-export const NAMESPACE_DESCRIPTION = "Ръцете на Тед: CRM „Имоти Надежда“, интернет, документи, снимки, видео";
+export const NAMESPACE_DESCRIPTION = "Ръцете на Тед (без друг изкуствен интелект): CRM „Имоти Надежда“, интернет и файловете на този компютър";
 
 // The server's STAFF_TOOLS (api/assistant.js, incl. _ted-skills and new-construction tools) as of 0.1.3. The
 // agent offers only names that are both here and in the live GET /api/tools manifest; this list is also the
@@ -30,10 +31,13 @@ export const STAFF_TOOLS = [
 ];
 const STAFF = new Set(STAFF_TOOLS);
 
-// manifest: [{name, description}] | null -> CRM tools the model may name.
+// manifest: [{name, description}] | null -> CRM tools the model may name: the server's staff tools minus the ones only
+// MAIN may call (NEVER) and minus every tool that runs another AI on Ted's server (SERVER_AI, CONTRACT §9.6).
 export function crmTools(manifest) {
   const list = Array.isArray(manifest) && manifest.length ? manifest : STAFF_TOOLS.map((name) => ({ name, description: "" }));
-  return list.filter((t) => STAFF.has(t.name) && !NEVER.has(t.name));
+  return list
+    .filter((t) => t && STAFF.has(t.name) && !NEVER.has(t.name) && !isServerAi(t.name))
+    .map((t) => (AI_OFF_INPUT[t.name] ? { ...t, description: `${t.description || ""} В Real GPT без ${Object.keys(AI_OFF_INPUT[t.name]).join(", ")} (AI на сървъра не се ползва).`.trim() } : t));
 }
 
 const FILE_REF = 'Файл от програмата като "file:<id>" (от прикачен файл или от резултат на друг инструмент).';
@@ -44,10 +48,13 @@ function crmFunction(tools) {
     type: "function",
     name: "crm",
     description:
-      "Извиква инструмент на CRM „Имоти Надежда“ през сървъра на Тед (същите инструменти като в чата на сайта). " +
-      "Четенията минават веднага; всеки запис (създаване, промяна, изтриване, запис на файл в CRM) служителят одобрява " +
-      "с карта – не питай отделно в текста. Където входът иска path на файл, подай \"file:<id>\" – програмата сама го " +
-      "качва в хранилището на CRM. email.send не е достъпен: email.preview подготвя писмото, а служителят го праща от картата.\n" +
+      "Извиква инструмент на CRM „Имоти Надежда“ (данните на агенцията: клиенти, имоти, календар, сделки, документи, наеми, " +
+      "памет, казуси). Тук са само инструментите без изкуствен интелект на сървъра – анализа, превода, описанията и " +
+      "текстовете правиш ти. Четенията минават веднага; всеки запис (създаване, промяна, изтриване, запис на файл в CRM) " +
+      "служителят одобрява с карта – не питай отделно в текста. Където входът иска path на файл, подай \"file:<id>\" – " +
+      "програмата сама го качва в хранилището на CRM. Снимки от чата в галерията на имот: images.download " +
+      "{urls:[\"file:<id>\", …], property_code} (програмата ги качва и подава временна връзка). email.send не е достъпен: " +
+      "email.preview подготвя писмото, а служителят го праща от картата.\n" +
       "Инструменти:\n" + lines.join("\n"),
     strict: false,
     parameters: {
@@ -82,11 +89,11 @@ export function localFunctions({ browse = true } = {}) {
         query: { type: "string", description: "Какво да търся (до 300 знака)" },
         n: { type: "integer", minimum: 1, maximum: 10, description: "Брой резултати (по подразбиране 8)" },
       }, ["query"]),
-      fn("read_page", "Чете публична уеб страница: заглавие, текст, линкове, снимки, телефони, имейли и цени. Facebook/Instagram не се четат. PDF се връща като файл.", {
+      fn("read_page", "Чете публична уеб страница: заглавие, текст, линкове, снимки (images – адресите им можеш да покажеш в отговора като ![..](адрес)), телефони, имейли и цени. Facebook/Instagram не се четат. PDF се връща като файл.", {
         url: { type: "string", description: "http(s) адрес" },
         maxChars: { type: "integer", minimum: 1000, maximum: 40000, description: "Най-много знаци текст (по подразбиране 20000)" },
       }, ["url"]),
-      fn("fetch_image", "Изтегля снимка (JPEG, PNG, WEBP, GIF) или PDF от интернет като файл – служителят го вижда като карта в чата. Ползвай го за снимките на обявите, които показваш.", {
+      fn("fetch_image", "Изтегля снимка (JPEG, PNG, WEBP, GIF) или PDF от интернет като файл – служителят го вижда като карта в чата и в Библиотеката. Ползвай го, когато трябва самият файл (запис в CRM, документ); за показване в отговора стигат адресите от read_page.", {
         url: { type: "string", description: "http(s) адрес на снимката" },
       }, ["url"]),
     );
@@ -106,7 +113,7 @@ export function localFunctions({ browse = true } = {}) {
       },
       letterhead: { type: "boolean", description: "Горен ред „Недвижими Имоти Надежда · дата“ (само ако служителят го иска)" },
     }, ["format", "title", "content"]),
-    fn("read_document", "Прочита прикачен файл (Word, Excel, PDF, CSV, текст) локално: текст и таблици по редове – за анализ, превод или преработка.", {
+    fn("read_document", "Прочита файл на този компютър (Word, Excel, PDF, CSV, текст) без друг AI: текст и таблици по редове – за анализ, превод или преработка, които правиш ти. Прикачените снимки и PDF обикновено вече са приложени към съобщението – виж ги директно.", {
       file: { type: "string", description: FILE_REF },
     }, ["file"]),
     fn("update_canvas", "Записва нова версия на текста в Canvas (страничния панел за документи). Старите версии остават.", {
@@ -114,20 +121,24 @@ export function localFunctions({ browse = true } = {}) {
       text: { type: "string", description: "Целият нов текст (Markdown; диаграми като <svg> са позволени)" },
       label: { type: "string", description: "Кратко описание на промяната" },
     }, ["text", "label"]),
-    fn("video_walk", "AI видео „разходка“ из имот от снимките на обява от CRM или от прикачени снимки (платено – служителят избира двигател и потвърждава цената с карта).", {
-      code: { type: "string", description: "Код или номер на обявата в CRM" },
-      files: { type: "array", items: { type: "string" }, description: "Прикачени снимки като \"file:<id>\" (поне 2, или 1 с prompt)" },
-      prompt: { type: "string", description: "Описание на движението на камерата (по желание)" },
-    }),
-    fn("listings_find", "Търси собственици на имоти в обявите (imot.bg и др.) чрез сървъра на Тед и ги записва в „Събрани“ (иска одобрение).", {
-      place: { type: "string" }, region: { type: "string" }, site: { type: "string" },
-      url: { type: "string", description: "Страница с обяви за събиране" }, text: { type: "string", description: "Текст на обяви за събиране" },
-    }),
+    fn("project_folder", "Папка на проект (казус от CRM) на този компютър – всичко за един клиент или сделка на едно място: прикачени файлове, документите, които правиш, снимки, запазени отговори. create – нов проект (казус в CRM; служителят одобрява с карта); add – слага файлове \"file:<id>\" в папката (само на компютъра); list – какво има в папката; export_zip – един ZIP на папката (карта с „Запази…“); save_to_crm – записва файловете в CRM при клиента на проекта или при имот (служителят одобрява с карта; снимките към имот отиват в галерията му). Без project се ползва проектът на този чат.", {
+      action: { type: "string", enum: ["create", "add", "list", "export_zip", "save_to_crm"] },
+      project: { type: "string", description: "id или точното заглавие на проекта (create: заглавието на новия проект)" },
+      files: { type: "array", items: { type: "string" }, description: "add: файловете като \"file:<id>\"; save_to_crm: по избор само тези файлове (иначе цялата папка)" },
+      client_name: { type: "string", description: "create: клиент на новия проект; save_to_crm: клиент в CRM (по подразбиране клиентът на проекта)" },
+      client_id: { type: "string", description: "id на клиент в CRM (по избор)" },
+      property_code: { type: "string", description: "save_to_crm: код на имот (P-…) – снимките в галерията му, другите файлове в документите му" },
+      description: { type: "string", description: "create: кратко начално описание на проекта" },
+    }, ["action"]),
+    fn("open_in_chatgpt", "Показва на служителя карта със заявка за приложението ChatGPT (неговия план): снимки, видео (Sora) и всичко друго, което не може да се направи оттук. Нищо не се отваря и нищо не се създава автоматично – служителят преглежда заявката и сам натиска „Отвори в ChatGPT“.", {
+      prompt: { type: "string", description: `Точната заявка, която ще се постави в ChatGPT, на езика на служителя. За директен линк – до около 1300 знака на кирилица (или 4000 на латиница); по-дълга се копира ръчно. Най-много ${CHATGPT_PROMPT_MAX} знака.` },
+      kind: { type: "string", enum: ["image", "video", "research", "other"], description: "Какво ще се прави в ChatGPT" },
+    }, ["prompt", "kind"]),
   );
   return list;
 }
 
-export const LOCAL_NAMES = ["web_search", "read_page", "fetch_image", "create_document", "read_document", "update_canvas", "video_walk", "listings_find"];
+export const LOCAL_NAMES = ["web_search", "read_page", "fetch_image", "create_document", "read_document", "update_canvas", "open_in_chatgpt", "project_folder"];
 
 // -> the `tools` array of a request. flat:true = the corrected resend with top-level function tools (§9.1 b).
 export function buildTools({ manifest, browse = true, flat = false } = {}) {

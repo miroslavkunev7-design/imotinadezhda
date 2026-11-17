@@ -138,21 +138,28 @@ function thrownResult(e) {
   return { ok: false, error: THROWN[code], code, maybeExecuted: code !== "auth" && e.sent !== false };
 }
 
-export function createAssistant({ session, log }) {
+// The model list of the server changes rarely: one request per 10 minutes and CRM user is enough (0.1.5, „no load on the
+// site“); the connection check passes {fresh:true}. A failed manifest is not asked again for 5 minutes.
+export const MODELS_TTL_MS = 10 * 60_000;
+export const RETRY_AFTER_MS = 5 * 60_000;
+
+export function createAssistant({ session, log, now = Date.now }) {
   const inflight = new Map(); // requestId -> AbortController
   let manifest = null;        // Set of live tool names, loaded lazily
   let manifestLoading = null;
+  let manifestFailedAt = -Infinity;
+  let modelsCache = null;     // {user, at, value}
 
   // Live tools manifest (public GET). Best effort: until it arrives the built-in names are used.
   function loadManifest() {
-    if (manifest || manifestLoading) return;
+    if (manifest || manifestLoading || now() - manifestFailedAt < RETRY_AFTER_MS) return;
     manifestLoading = session.authed({ url: SITE + "/api/tools", timeoutMs: 10000 })
       .then((res) => {
         const tools = res.ok && res.json && Array.isArray(res.json.tools) ? res.json.tools : null;
         const names = tools ? tools.map((t) => t && t.name).filter((n) => typeof n === "string") : [];
-        if (names.length) manifest = new Set(names);
+        if (names.length) manifest = new Set(names); else manifestFailedAt = now();
       })
-      .catch(() => {})
+      .catch(() => { manifestFailedAt = now(); })
       .finally(() => { manifestLoading = null; });
   }
 
@@ -206,7 +213,16 @@ export function createAssistant({ session, log }) {
     return { ok: true };
   }
 
-  async function models() {
+  const userOf = () => { try { const st = session.state(); return st && st.status === "signedIn" && st.user ? String(st.user.id) : null; } catch { return null; } };
+  async function models({ fresh = false } = {}) {
+    const user = userOf();
+    if (!fresh && modelsCache && modelsCache.user === user && now() - modelsCache.at < MODELS_TTL_MS) return structuredClone(modelsCache.value);
+    const out = await loadModels();
+    if (out.ok) modelsCache = { user, at: now(), value: structuredClone(out) };
+    return out;
+  }
+
+  async function loadModels() {
     let res;
     try {
       res = await session.authed({ url: SITE + "/api/assistant", method: "POST", json: { action: "models" }, timeoutMs: 20000 });

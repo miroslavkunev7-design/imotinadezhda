@@ -1,17 +1,19 @@
 import React from "react";
 import Icon from "../Icon.jsx";
 import { It, Pop } from "../ui.jsx";
-import { EFFORTS, RG_LIMITS, effortName, provEm } from "../../lib/consts.js";
+import { EFFORTS, ENGINE_NOTE, RG_LIMITS, effortName, provEm } from "../../lib/consts.js";
 
 // The model list: shared by the top-bar model button („Тед ▾“ / „Real GPT · … ▾“) and „Разширени → Модел ›“.
 export function ModelItems({ m, close }) {
   const { S, patch, models, modelsErr, refreshModels, rg, rgModels, rgErr, loadRgModels, openRealGpt, rgSignOut, manageUsage } = m;
   return <>
     <div className="grp">Тед Асистент · Сървър</div>
+    <div className="grp-note" data-testid="engine-note-server">{ENGINE_NOTE.server}</div>
     <It em="🤖" title="По подразбиране" sub="моделът, който сървърът на Тед избира сам" check={S.engine === "server" && !S.model} onClick={() => { patch({ engine: "server", model: "" }); close(); }} />
     {models.map((x) => <It key={x.id} em={provEm(x.provider)} title={x.name} sub={[x.note, x.vision ? "снимки" : "", x.pdf ? "PDF" : ""].filter(Boolean).join(" · ")} prov={x.provider} check={S.engine === "server" && S.model === x.id} onClick={() => { patch({ engine: "server", model: x.id }); close(); }} />)}
     {modelsErr ? <div className="info pop-info">Списъкът с модели не се зареди: {modelsErr} <button className="lnk" onClick={refreshModels}>Опитай отново</button></div> : null}
     <div className="grp">🔗 Real GPT · вашият ChatGPT план</div>
+    <div className="grp-note" data-testid="engine-note-realgpt">{ENGINE_NOTE.realgpt}</div>
     {!rg.connected ? <It em="🔗" title="Продължи с ChatGPT" sub="вход с вашия ChatGPT акаунт в браузъра" prov="ChatGPT план" onClick={() => { close(); openRealGpt(); }} /> : <>
       <div className="seg-l">{rg.email || "ChatGPT акаунт"} · модели от вашия акаунт</div>
       {rg.planEnabled === false ? <div className="info pop-info">Използването на ChatGPT плана не е разрешено. <button className="lnk" onClick={() => { close(); openRealGpt(); }}>Продължи с ChatGPT</button> и го разрешете.</div>
@@ -33,10 +35,14 @@ export function EffortItems({ S, set, rgOn, close }) {
   </>;
 }
 
-// The composer pill „<модел> · <усилие> ▾“ (ChatGPT „5.6 Terra Medium ▾“).
-export function EffortPill({ label, effort, onClick, open }) {
+// The composer pill „<двигател> <модел> · <усилие> ▾“ (ChatGPT „5.6 Terra Medium ▾“). The engine tag says plainly which
+// engine answers: „ChatGPT“ (only the employee's plan) or „Тед“ (Ted's server and its models).
+export function EffortPill({ label, effort, onClick, open, engine }) {
+  const rg = engine === "realgpt";
   return (
-    <button className="cpill effort-pill" data-testid="effort-pill" onClick={onClick} aria-haspopup="menu" aria-expanded={!!open} title="Модел и усилие (Разширени)">
+    <button className={"cpill effort-pill" + (rg ? " eng-rg" : "")} data-testid="effort-pill" data-engine={rg ? "realgpt" : "server"} onClick={onClick} aria-haspopup="menu" aria-expanded={!!open}
+      title={(rg ? "Real GPT – " + ENGINE_NOTE.realgpt : "Тед Асистент – " + ENGINE_NOTE.server) + ". Модел и усилие (Разширени)"}>
+      <span className="eng-tag" data-testid="engine-tag">{rg ? "ChatGPT" : "Тед"}</span>
       <span><b>{label}</b>{effort ? " · " + effort : ""}</span><Icon n="chev" cls="sm14" />
     </button>
   );

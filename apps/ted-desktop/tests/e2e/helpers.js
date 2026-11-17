@@ -70,6 +70,15 @@ export async function send(page, text) {
   await page.keyboard.press("Enter");
 }
 
+// 0.1.5: the activity of an answer is ONE collapsed line like in ChatGPT; a click shows every step with its status.
+export async function openActivity(scope) {
+  const line = scope.getByTestId("activity-line").first();
+  await expect(line).toBeVisible();
+  await expect(line).toBeEnabled();
+  if ((await line.getAttribute("aria-expanded")) !== "true") await line.click();
+  await expect(scope.getByTestId("activity-body").first()).toBeVisible();
+}
+
 // The newest assistant message (server engine) once it has arrived.
 export const lastAnswer = (page) => page.locator('.msg.a[data-engine="server"]').last();
 
