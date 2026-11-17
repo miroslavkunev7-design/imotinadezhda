@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-mock/
+dist-installer/
+test-results/
+playwright-report/
+*.log
+.env*

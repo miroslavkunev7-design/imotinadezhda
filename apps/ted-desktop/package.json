@@ -1,0 +1,33 @@
+{
+  "name": "ted-desktop",
+  "productName": "Ted Imoti Nadezhda",
+  "version": "0.1.0",
+  "description": "Ted - the AI assistant of Imoti Nadezhda as a Windows desktop program",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.js",
+  "author": "Imoti Nadezhda",
+  "scripts": {
+    "dev": "vite --mode mock",
+    "build:renderer": "vite build && node scripts/check-bundle.mjs",
+    "build:mock": "vite build --mode mock --outDir dist-mock",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "start": "electron .",
+    "dist:win": "npm run build:renderer && electron-builder --win nsis --x64 --publish never && node scripts/sha256.mjs"
+  },
+  "dependencies": {
+    "jose": "6.2.17"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@vitejs/plugin-react": "6.3.0",
+    "electron": "45.3.3",
+    "electron-builder": "26.18.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}
