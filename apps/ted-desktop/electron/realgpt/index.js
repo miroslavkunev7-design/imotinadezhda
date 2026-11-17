@@ -140,11 +140,7 @@ export function createRealGpt({
       alive();
 
       const record = buildRecord({ tokens, identity, clientId, hostId: host, nowMs: now() });
-      try {
-        await creds.save(record);
-      } catch {
-        throw new RgError('storage');
-      }
+      await creds.save(record);
       pageKey = 'done';
       log.info('realgpt.signin_done', { planEnabled: planEnabled(record) });
       return { ok: true, status: publicStatus(record) };

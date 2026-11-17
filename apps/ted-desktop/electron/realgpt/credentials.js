@@ -2,6 +2,7 @@
 // Credential record of the connected ChatGPT account (documented field names). It lives only in MAIN, inside the
 // encrypted secure store under the name "realgpt"; the renderer receives nothing but publicStatus().
 
+import { RgError } from './errors.js';
 import { DYNAMIC_CLIENT_ID, ISSUER, PLAN_SCOPE } from './oauth.js';
 
 export const STORE_NAME = 'realgpt';
@@ -103,8 +104,15 @@ export function createCredentials(secureStore) {
       }
       return cached;
     },
+    // The secure store reports "encryption unavailable" by returning false; nothing is ever kept unencrypted.
     async save(record) {
-      await secureStore.write(STORE_NAME, record);
+      let written;
+      try {
+        written = await secureStore.write(STORE_NAME, record);
+      } catch {
+        written = false;
+      }
+      if (written === false) throw new RgError('storage');
       cached = record;
       loaded = true;
     },
