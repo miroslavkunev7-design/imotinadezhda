@@ -25,8 +25,11 @@ module.exports = async (req, res) => {
   /* глас и стил от настройките на чата (Gemini TTS гласове) */
   const VOICES = ["Charon", "Achernar", "Despina", "Puck", "Kore", "Aoede", "Leda", "Zephyr", "Enceladus", "Callirrhoe"];
   const voice = VOICES.includes(String(b.voice || "")) ? String(b.voice) : "Charon";
-  const STYLE = { calm: "Прочети на български с топъл, спокоен и ясен глас, с естествено темпо:", brief: "Прочети на български делово, ясно и малко по-бързо, без излишни паузи:", slow: "Прочети на български бавно, отчетливо и ясно, с малки паузи между изреченията:" };
-  const style = STYLE[String(b.style || "")] || STYLE.calm;
+  /* стилът е системна инструкция, а не част от текста: така моделът не го прочита на глас („Прочети на български…“).
+     Модел, който не приема системна инструкция, чете текста направо без стил. */
+  const STYLE = { calm: "Говори на български с топъл, спокоен и ясен глас, с естествено темпо.", brief: "Говори на български делово, ясно и малко по-бързо, без излишни паузи.", slow: "Говори на български бавно, отчетливо и ясно, с малки паузи между изреченията." };
+  const style = (STYLE[String(b.style || "")] || STYLE.calm) + " Прочети на глас само текста на потребителя, дума по дума, без да казваш тази инструкция и без да добавяш нищо.";
+  const noSys = new Set(); /* модели, които отказаха системната инструкция в тази заявка */
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!key) return fail(500, "Няма ключ");
   /* гласовите модели се откриват автоматично от Google (_gem.js): най-новият Flash TTS първо; при лимит/404 – следващият */
@@ -49,13 +52,15 @@ module.exports = async (req, res) => {
     try {
       const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + encodeURIComponent(key), {
         method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(Math.max(3000, END - Date.now())),
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: style + "\n" + text }] }],
+        body: JSON.stringify(Object.assign(noSys.has(model) ? {} : { systemInstruction: { parts: [{ text: style }] } }, {
+          contents: [{ role: "user", parts: [{ text }] }],
           generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } }
-        })
+        }))
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
+        /* моделът не приема системна инструкция → същият модел веднага без нея (преди classify, за да не се маркира като негоден) */
+        if (r.status === 400 && !noSys.has(model) && /system.?instruction|developer instruction/i.test(JSON.stringify(j))) { noSys.add(model); attempt--; continue; }
         const cl = GEM.classify(model, r.status, j); last = cl.msg;
         if (cl.kind === "quota" && !cl.daily && attempt === 0 && cl.wait > 0 && cl.wait <= 6 && END - Date.now() > cl.wait * 1000 + 5000) { await new Promise((ok) => setTimeout(ok, cl.wait * 1000 + 250)); continue; }
         errs.push(model + ": " + (cl.kind === "quota" ? "лимитът е изчерпан" + (cl.daily ? " за днес" : "") : last.split("\n")[0].slice(0, 160))); break;
