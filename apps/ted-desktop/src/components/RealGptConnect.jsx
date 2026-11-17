@@ -41,7 +41,7 @@ export default function RealGptConnect({ close, rg, onStatus, onSignOut, onManag
     <Modal title={title} onClose={close} size="sm" foot={foot}>
       <div className="mb">
         {step === "intro" && <>
-          <p className="p0">Използвайте платения си ChatGPT абонамент в Тед. Входът става на страницата на OpenAI в браузъра ви. Тед не вижда паролата ви.</p>
+          <p className="p0">Използвайте платения си ChatGPT абонамент в Тед. Входът става на страницата на OpenAI в браузъра ви – с Google, Apple, Microsoft или имейл, както влизате в ChatGPT. Тед не вижда паролата ви.</p>
           {error ? <div className="err" role="alert">⚠️ {error}</div> : null}
           {fixable ? otherAccount("Вход с друг ChatGPT акаунт или нова регистрация") : null}
           <div className="mem"><Icon n="check" /><div className="tx"><b>Какво получава Тед</b><small>име, имейл и право да ползва плана ви за отговори</small></div></div>
@@ -50,7 +50,7 @@ export default function RealGptConnect({ close, rg, onStatus, onSignOut, onManag
           <div className="mem"><Icon n="shield" /><div className="tx"><b>Лимит</b><small>отговорите се броят от лимита на абонамента ви; при изчерпване спират</small></div></div>
           <div className="info">{RG_LIMITS} Входът с ChatGPT за външни програми е в предварителна версия на OpenAI и може да се промени.</div>
         </>}
-        {step === "wait" && <div className="rg-wait"><i className="spin" /><div><b>Чакаме входа в браузъра…</b><div className="meta">Страницата за вход на OpenAI е отворена в браузъра ви. Програмата чака до 5 минути.</div></div></div>}
+        {step === "wait" && <div className="rg-wait"><i className="spin" /><div><b>Чакаме входа в браузъра…</b><div className="meta">Страницата за вход на OpenAI е отворена в браузъра ви – изберете „Continue with Google“, „Continue with Apple“ или друг начин, както обикновено. Програмата чака до 5 минути.</div></div></div>}
         {step === "done" && <>
           {error ? <div className="err" role="alert">⚠️ {error}</div> : null}
           {planOff
