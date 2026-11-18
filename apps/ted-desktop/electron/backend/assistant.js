@@ -87,8 +87,21 @@ export function buildBody({ messages, model, mode, caseId } = {}) {
   return body;
 }
 
+// 0.1.7 „ChatGPT панел“: the picture prompt of an image tool, when the server sends the action as an object with its
+// input ({tool, ok, input:{prompt}}); today's server sends strings only, then the renderer takes the employee's message.
+const IMAGE_TOOL = /^images?\.(generate|edit|create)$/;
+function promptOf(raw, tool) {
+  const p = raw && typeof raw === "object" && raw.input && typeof raw.input === "object" ? raw.input.prompt : null;
+  return IMAGE_TOOL.test(tool) && typeof p === "string" && p.trim() ? p.trim().slice(0, 4000) : null;
+}
+
 // One server action string -> Action. A trailing " ✗" marks a failed step.
 function parseAction(raw, names) {
+  if (raw && typeof raw === "object" && typeof raw.tool === "string") {
+    const a = parseAction(raw.tool.slice(0, 200) + (raw.ok === false ? " ✗" : ""), names);
+    const prompt = a.kind === "tool" ? promptOf(raw, a.tool) : null;
+    return prompt ? { ...a, prompt } : a;
+  }
   const s = String(raw);
   const failed = /\s✗$/.test(s);
   const name = failed ? s.replace(/\s✗$/, "") : s;

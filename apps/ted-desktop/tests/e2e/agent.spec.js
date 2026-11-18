@@ -207,7 +207,7 @@ test("picture with Real GPT: a „Отвори в ChatGPT“ card with the exact
   await expect(a).toContainText("Оттук не мога да създам снимка");
   const card = a.getByTestId("chatgpt-card");
   await expect(card).toHaveAttribute("data-kind", "image");
-  await expect(card).toContainText("Създаването на снимки и видео с вашия ChatGPT план става в приложението ChatGPT");
+  await expect(card).toContainText("Създаването на снимки и видео с вашия ChatGPT план става в ChatGPT – в панела ChatGPT тук, в Тед");
   const ta = card.getByTestId("chatgpt-prompt");
   await expect(ta).toHaveValue(/^Фотореалистична снимка \(16:9\) на тестова дневна/);
   await expect(a.getByTestId("file-card")).toHaveCount(0); // no picture is claimed or made
@@ -218,11 +218,19 @@ test("picture with Real GPT: a „Отвори в ChatGPT“ card with the exact
   await card.getByTestId("chatgpt-copy").click();
   await expect(page.locator(".toast")).toContainText("Заявката е копирана");
   await ta.fill("Снимка на хол, топли цветове & дървен под #2");   // the employee may edit the prompt
+  // 0.1.7: the main button opens the ChatGPT panel in Ted (MAIN builds the address); the browser is the secondary link.
   await card.getByTestId("chatgpt-open").click();
-  await expect(page.locator(".toast")).toContainText("Отворих ChatGPT в браузъра");
+  await expect(page.locator(".toast")).toContainText("ChatGPT е отворен в панела");
+  await expect(page.getByTestId("chatgpt-panel")).toBeVisible();
   calls = await mockCalls(page);
   expect(calls.copy.at(-1)).toMatch(/^Фотореалистична снимка/);
-  expect(calls.openInChatGpt).toEqual([{ prompt: "Снимка на хол, топли цветове & дървен под #2", url: "https://chatgpt.com/?q=" + encodeURIComponent("Снимка на хол, топли цветове & дървен под #2") }]);
+  const want = { prompt: "Снимка на хол, топли цветове & дървен под #2", url: "https://chatgpt.com/?q=" + encodeURIComponent("Снимка на хол, топли цветове & дървен под #2") };
+  expect(calls.chatgptOpen).toEqual([want]);
+  expect(calls.openInChatGpt).toEqual([]);
+  await card.getByTestId("chatgpt-open-browser").click();
+  await expect(page.locator(".toast")).toContainText("Отворих ChatGPT в браузъра");
+  calls = await mockCalls(page);
+  expect(calls.openInChatGpt).toEqual([want]);
   expect(calls.openExternal).toEqual([]);                    // the page never builds or opens a link itself
   expect(calls.chat).toHaveLength(0);                        // Ted's server engine is never asked
   await ta.fill("   ");
@@ -236,7 +244,7 @@ test("„+“ with Real GPT: „Създай изображение“ and „О
   await pickRgModel(page);
   await expect(page.getByTestId("engine-tag")).toHaveText("ChatGPT");
   await page.locator(".c-plus").click();
-  await expect(page.locator(".pop").getByRole("menuitem", { name: /^Създай изображение/ })).toContainText("в приложението ChatGPT с вашия план");
+  await expect(page.locator(".pop").getByRole("menuitem", { name: /^Създай изображение/ })).toContainText("в панела ChatGPT с вашия план");
   await page.locator(".pop").getByRole("menuitem", { name: /^Създай изображение/ }).click();
   await expect(page.getByTestId("hint-image")).toBeVisible();
   await page.locator(".c-plus").click();

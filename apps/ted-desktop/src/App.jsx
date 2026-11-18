@@ -6,6 +6,7 @@ import Md from "./components/Md.jsx";
 import { ActionsCard, EmailCard, ListingCards, PanelCard, SkillPanel, openCrm } from "./components/Cards.jsx";
 import Login from "./components/Login.jsx";
 import Canvas from "./components/Canvas.jsx";
+import ChatGptPanel, { usePanelNarrow } from "./components/ChatGptPanel.jsx";
 import VoiceMode from "./components/VoiceMode.jsx";
 import RealGptConnect from "./components/RealGptConnect.jsx";
 import { AttachProp, DocsModal, propFile } from "./components/Attach.jsx";
@@ -42,6 +43,7 @@ import { createSpeaker, startRecorder } from "./lib/voice.js";
 import { createStore } from "./lib/store.js";
 import ProjectFolder, { SaveToCrmModal } from "./components/layout/ProjectFolder.jsx";
 import { createMiniGuard } from "./bubble/gesture.js";
+import { clipFile, localImageHandoff, serverImageHandoff } from "./lib/panel.js";
 import avatar from "./assets/avatar.webp";
 
 const STOP_NOTE = "Спряно изчакването. Ако Тед вече е започнал действие на сървъра, то може да бъде довършено – проверете в CRM.";
@@ -279,12 +281,14 @@ const AnswerRow = React.memo(function AnswerRow({ m, act, busy, isLast, speaking
   </> : null;
   const fl = (rgA && rgA.files) || [];
   const handoffs = (rgA && rgA.chatgpt) || [];
+  // 0.1.7: a picture Ted's server could not make (images.generate failed) -> „Направи снимката в ChatGPT“ (§23).
+  const srvCards = m.engine === "server" && Array.isArray(m.chatgpt) ? m.chatgpt : NONE;
   const ag = rgA && (fl.length || videoJob || handoffs.length) ? <>
-    {handoffs.map((h) => <OpenInChatGptCard key={h.id} handoff={h} onToast={(t) => a().toast(t)} />)}
+    {handoffs.map((h) => <OpenInChatGptCard key={h.id} handoff={h} onToast={(t) => a().toast(t)} onPanel={(args) => a().openPanel(args)} />)}
     {fl.map((f) => <FileCard key={f.id} file={f} madeBy={m.engine === "realgpt" ? "ChatGPT" : null} onToast={(t) => a().toast(t)} />)}
     {videoJob ? <VideoCard job={videoJob} onToast={(t) => a().toast(t)} /> : null}
   </> : null;
-  const below = ag || m.email || m.panel || m.video || m.listings;
+  const below = ag || srvCards.length || m.email || m.panel || m.video || m.listings;
   const e = m.error;
   let errorBox = null;
   if (e) {
@@ -318,6 +322,7 @@ const AnswerRow = React.memo(function AnswerRow({ m, act, busy, isLast, speaking
           {below ? (
             <div className="cards">
               {ag}
+              {srvCards.map((h) => <OpenInChatGptCard key={h.id} handoff={h} onToast={(t) => a().toast(t)} onPanel={(args) => a().openPanel(args)} />)}
               {m.email ? <EmailCard m={m} block={emailBlockText} busy={emailBusy} onSend={() => a().confirmEmail(m.id)} onEdit={() => { a().setInput("Промени имейла: "); a().focusComposer(); }} /> : null}
               {m.listings ? <ListingCards items={m.listings} onAttach={(p) => a().attachRefs([propFile(p)])} /> : null}
               {m.panel || m.video ? <PanelCard panel={m.panel} video={m.video} rgOn={rgOn} onUpload={() => a().uploadHere()} onVideo={() => a().openVideo()} onCollect={() => a().collectHere()} /> : null}
@@ -417,7 +422,14 @@ function App({ user, remembered, onLogout }) {
   const [recent, setRecent] = useState({ status: "idle", items: [] });
   const [win, setWin] = useState({ id: null, n: THREAD_WINDOW }); // how many messages of a long chat are drawn
   const [crmSave, setCrmSave] = useState(null);         // „Запази в сайта“ card of a project folder
+  // 0.1.7 „ChatGPT панел“ (§23): open = the employee opened it; cgpSt = what MAIN reports about the page.
+  const [cgp, setCgp] = useState(false);
+  const [cgpSt, setCgpSt] = useState({ open: false, visible: false, loading: false, host: null, error: null, blocked: null });
+  const [cgpAdding, setCgpAdding] = useState(false);
+  const cgpRect = useRef(null); // the placeholder's last rectangle (the toast moves into the chat column meanwhile)
   const phone = usePhone();
+  // 0.1.7: the ChatGPT panel's narrow layout (≤ 899 px, its CSS breakpoint) – it then covers the whole content area.
+  const cgpNarrow = usePanelNarrow();
   const winMode = useWinMode(); // 0.1.6 „Балонче“: "normal" | "bubble" | "mini"
   useMiniGuard(); // the second click of a double click on the bubble never presses anything in the mini chat
   const [agentState, resetAgent] = useAgentEvents();
@@ -442,6 +454,8 @@ function App({ user, remembered, onLogout }) {
   const canvasDraft = useRef(null);      // unsaved typing in the open Canvas (kept as a version when it is put aside)
   const reqChat = useRef(new Map());     // Real GPT requestId -> chatId (agent canvas versions go to their own chat)
   const consentRef = useRef(rgConsent); consentRef.current = rgConsent;
+  const cgpRef = useRef(cgp); cgpRef.current = cgp;
+  const narrowRef = useRef(cgpNarrow); narrowRef.current = cgpNarrow;
   const mediaCache = useRef(new WeakMap()); // agent snapshot -> pictures allowed inline (see mediaOf)
   const act = useRef({});                    // handlers of the memoised message rows (read at call time)
   const keepBottom = useRef(null);           // distance from the bottom kept while earlier messages are added
@@ -533,6 +547,7 @@ function App({ user, remembered, onLogout }) {
     offs.push(ted.realgpt.onEvent((ev) => live.current.onAgentEvent(ev)));
     offs.push(ted.video.onEvent((job) => { if (job && job.id) setVideoJobs((j) => ({ ...j, [job.id]: job })); }));
     offs.push(ted.scheduled.onDue((d) => live.current.onDue(d)));
+    offs.push(ted.chatgpt.onState((st) => { if (st && typeof st === "object") { setCgpSt(st); if (st.open === false && cgpRef.current) setCgp(false); } }));
     Promise.resolve(ted.updates.state()).then((u) => { if (u && typeof u === "object") setUpd(u); }).catch(() => {});
     offs.push(ted.updates.onChange((u) => { if (u && typeof u === "object") { setUpd(u); if (u.status === "ready") setUpdHidden(false); } }));
     return () => { offs.forEach((un) => { if (typeof un === "function") un(); }); };
@@ -754,7 +769,7 @@ function App({ user, remembered, onLogout }) {
     if (canvasRef.current && canvasRef.current.chatId === id) { canvasRef.current = null; setCanvas(null); }
   }
   function askDelete(c) { setConfirm({ title: "Изтриване на чата?", text: "„" + c.title + "“ ще бъде изтрит от този компютър. Данните в CRM и паметта на Тед на сървъра не се променят.", ok: () => delChat(c.id) }); }
-  function openCanvas(b) { const txt = String(b.text || ""); setCanvas({ uid: uid("cv_"), title: b.title || "Документ", kind: b.kind || "doc", versions: [{ v: 1, text: txt, at: now() }], cur: 1, chatId: activeRef.current || null }); }
+  function openCanvas(b) { if (cgpRef.current) closePanel(); const txt = String(b.text || ""); setCanvas({ uid: uid("cv_"), title: b.title || "Документ", kind: b.kind || "doc", versions: [{ v: 1, text: txt, at: now() }], cur: 1, chatId: activeRef.current || null }); }
   function openSettings(tab) { closeAll(); setDrawer(false); setSetTab(tab || "general"); setModal("settings"); }
 
   async function copy(text) {
@@ -776,6 +791,37 @@ function App({ user, remembered, onLogout }) {
     let r; try { r = await ted.app.setCompact(on); } catch { r = null; }
     if (r && r.ok) set("compact", on); else toast("Размерът на прозореца не можа да се смени.");
     closeAll();
+  }
+
+  /* ---- „ChatGPT панел“ (0.1.7, §23): chatgpt.com in the main window – opened only by the employee's click ---- */
+  // args: {prompt} (a card: MAIN builds https://chatgpt.com/?q=<prompt>), {bare:true} or {} (as it was).
+  async function openPanel(args) {
+    let r; try { r = await ted.chatgpt.open(args || {}); } catch { r = { ok: false, error: "Панелът ChatGPT не можа да се отвори." }; }
+    if (r && r.ok) {
+      closeAll(); setDrawer(false); setCgp(true);
+      if (live.current.winMode === "mini") toNormal(); // no panel in the mini chat: the normal window shows it (§22)
+    }
+    return r || { ok: false, error: "Панелът ChatGPT не можа да се отвори." };
+  }
+  function closePanel() {
+    setCgp(false);
+    Promise.resolve(ted.chatgpt.close()).catch(() => {});
+  }
+  // „📋 Добави снимката в чата“: MAIN reads the clipboard's picture (only now) and it is attached like a picked file.
+  async function addPanelImage() {
+    if (cgpAdding) return;
+    setCgpAdding(true);
+    let r; try { r = await ted.chatgpt.clipboardImage(); } catch { r = null; }
+    setCgpAdding(false);
+    const file = clipFile(r);
+    if (!file) { toast((r && r.error) || "В клипборда няма снимка."); return; }
+    if (view !== "chat") setView("chat");
+    const added = await attach([file]); // the same limits as a picked file (count, size, engine)
+    if (added && added.items && added.items.length && !added.errors.length) {
+      // Narrow layout (≤ 899 px): the panel covers the composer – back to the chat, where the picture now waits in it.
+      if (narrowRef.current) closePanel();
+      toast("📋 Снимката от ChatGPT е добавена към съобщението – напишете въпроса и изпратете.");
+    }
   }
 
   /* ---- Canvas: the open document goes with the next Real GPT question; the agent adds new versions ---- */
@@ -820,6 +866,7 @@ function App({ user, remembered, onLogout }) {
     if (r.items.length) setFiles((fs) => [...fs, ...r.items]);
     if (r.errors.length) toast(r.errors.join(" ")); // every refused file is named, not only the first
     focusComposer();
+    return r;
   }
   function attachRefs(refs, text) {
     const room = Math.max(0, 6 - filesRef.current.filter((f) => f.kind === "ref").length);
@@ -1076,7 +1123,11 @@ function App({ user, remembered, onLogout }) {
       const allFiles = [...rFiles, ...(snap.files || []).filter((f) => !rFiles.some((x) => x.id === f.id))];
       const steps = Array.isArray(r && r.steps) ? r.steps : (snap.steps || []);
       const limited = (r && r.limited) || snap.limited;
-      const handoffs = snap.chatgpt || [];
+      const handoffs = [...(snap.chatgpt || [])];
+      // 0.1.7: a picture was asked for („+ → Създай изображение“) but GPT cannot make it and gave no card (text only, or
+      // answered without one): the same card with the employee's question, so the ChatGPT panel is one click away.
+      const ownCard = r && r.ok ? localImageHandoff(hintsNow, handoffs, payload.text) : null;
+      if (ownCard) handoffs.push(ownCard);
       const agent = tools || steps.length || allFiles.length || handoffs.length ? { mode: agentMode, steps, files: allFiles, ...(limited ? { limited } : {}), ...(snap.video ? { video: snap.video } : {}), ...(snap.email ? { email: snap.email } : {}), ...(handoffs.length ? { chatgpt: handoffs } : {}), ...(snap.images && snap.images.length ? { images: snap.images } : {}) } : null;
       resetAgent(requestId);
       setApprovals((a) => { if (!a[requestId]) return a; const n = { ...a }; delete n[requestId]; return n; });
@@ -1123,8 +1174,10 @@ function App({ user, remembered, onLogout }) {
     const at = now();
     bumpMark(markFromReply(r, at));
     if (r && r.ok) {
+      // 0.1.7: the server's picture tool failed (free limit, no credits, any error) -> the card „Направи снимката в ChatGPT“.
+      const imgCard = serverImageHandoff(r.actions, payload.text);
       const am = {
-        id: mid, role: "assistant", engine: "server", text: r.text || "", time: at, actions: Array.isArray(r.actions) ? r.actions : [],
+        id: mid, role: "assistant", engine: "server", text: r.text || "", time: at, actions: Array.isArray(r.actions) ? r.actions : [], ...(imgCard ? { chatgpt: imgCard } : {}),
         ...(r.email ? { email: r.email } : {}), ...(r.mode ? { mode: r.mode } : {}), ...(r.modelName ? { modelName: r.modelName } : {}), ...(r.fallback ? { fallback: r.fallback } : {}),
         ...(r.uiPanel ? { panel: r.uiPanel } : {}), ...(r.video ? { video: true } : {}), ...(r.listings && r.listings.length ? { listings: r.listings } : {}),
       };
@@ -1290,7 +1343,11 @@ function App({ user, remembered, onLogout }) {
   /* ---- Agent events and approvals (Real GPT) ---- */
   function onAgentEvent(ev) {
     if (!ev || typeof ev !== "object") return;
-    if (ev.type === "approval" && ev.approval && ev.requestId) setApprovals((a) => ({ ...a, [ev.requestId]: [...(a[ev.requestId] || []).filter((x) => x.id !== ev.approval.id), ev.approval] }));
+    if (ev.type === "approval" && ev.approval && ev.requestId) {
+      setApprovals((a) => ({ ...a, [ev.requestId]: [...(a[ev.requestId] || []).filter((x) => x.id !== ev.approval.id), ev.approval] }));
+      // In the narrow layout (≤ 899 px) the ChatGPT panel covers the thread: an approval card must never wait behind it.
+      if (cgpRef.current && narrowRef.current) { closePanel(); toast("ChatGPT е скрит – Тед чака вашето решение в чата."); }
+    }
     else if (ev.type === "canvas" && ev.canvas) addCanvasVersion(ev.canvas, reqChat.current.get(ev.requestId));
     else if (ev.type === "video" && ev.job && ev.job.id) setVideoJobs((j) => ({ ...j, [ev.job.id]: ev.job }));
   }
@@ -1406,7 +1463,7 @@ function App({ user, remembered, onLogout }) {
   act.current = {
     copy, setInput, focusComposer, setEditing, resendEdited, setLb, toggleSpeak, openCanvas, regenerate, retry, textOnly, toast, manageUsage,
     send: (t, o) => send(t, o), confirmEmail: (mid) => chat && confirmEmail(chat.id, mid), decide, attachRefs, openPop, openRealGpt: () => setModal("realgpt"),
-    saveToFolder, openVideo: () => openVideo(), uploadHere: startPropertyUpload, collectHere,
+    saveToFolder, openVideo: () => openVideo(), uploadHere: startPropertyUpload, collectHere, openPanel,
   };
 
   const lastA = chat ? [...chat.messages].reverse().find((x) => x.role === "assistant") : null;
@@ -1654,6 +1711,11 @@ function App({ user, remembered, onLogout }) {
           : view === "plugins" ? <PluginsPage pl={pl} />
             : view === "case" ? CasePage : (chat ? Thread : HomeView);
   const notify = { ...NOTIFY_DEF, ...(S.notify && typeof S.notify === "object" ? S.notify : {}) };
+  // The ChatGPT panel: never in the bubble or the mini chat (§22) – it comes back with the normal window.
+  const cgpShown = cgp && winMode === "normal";
+  // A toast is centred in the chat column while the panel's native view takes the right side (it would cover it).
+  const cr = cgpShown && !cgpNarrow ? cgpRect.current : null;
+  const toastAt = cr && cr.visible && cr.x > 200 ? { left: Math.round(cr.x / 2) + "px", maxWidth: Math.max(160, cr.x - 32) + "px" } : undefined;
   return (
     <Shell phone={phone} conn={conn} onQuick={() => setQuick(true)} onBubble={toBubble}>
       <div className={"app cg-app" + (S.big ? " big" : "")}>
@@ -1668,7 +1730,9 @@ function App({ user, remembered, onLogout }) {
               {view === "chat" ? ToBottom : null}
               {view === "chat" && (chat || phone) ? composerEl(false) : null}
             </div>
-            {canvas ? <Canvas key={canvas.uid || "cv"} draft={canvasDraft} cv={canvas} setCv={setCanvas} toast={toast} copy={copy} onExport={exportCanvas} /> : null}
+            {/* While the ChatGPT panel is on screen the Canvas stays mounted but hidden (its unsaved typing is kept). */}
+            {canvas ? <div className="cv-slot" style={{ display: cgpShown ? "none" : "contents" }}><Canvas key={canvas.uid || "cv"} draft={canvasDraft} cv={canvas} setCv={setCanvas} toast={toast} copy={copy} onExport={exportCanvas} /></div> : null}
+            {cgpShown ? <ChatGptPanel phone={cgpNarrow} st={cgpSt} onClose={closePanel} onAddImage={addPanelImage} adding={cgpAdding} onRect={(b) => { cgpRect.current = b; }} toast={toast} notice={cgpNarrow ? toastMsg : null} /> : null}
           </div>
         </main>
         <input ref={filesInRef} className="file-in" data-testid="files-in" type="file" multiple onChange={(e) => { attach(Array.from(e.target.files)); e.target.value = ""; }} />
@@ -1695,7 +1759,7 @@ function App({ user, remembered, onLogout }) {
             <div className="r"><span>{lb.cap}</span><button className="b" onClick={() => setLb(null)}><Icon n="x" />Затвори</button></div>
           </div>
         ) : null}
-        {toastMsg ? <div className="toast" role="status">{toastMsg}</div> : null}
+        {toastMsg && !(cgpShown && cgpNarrow) ? <div className="toast" role="status" style={toastAt}>{toastMsg}</div> : null}
       </div>
     </Shell>
   );

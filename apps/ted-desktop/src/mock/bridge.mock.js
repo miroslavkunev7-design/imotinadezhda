@@ -12,6 +12,12 @@
 //              ?agentStep=<ms> (pause between agent steps, default 160) · ?chats=<n> (n saved chats „Чат номер 1…n“,
 //              chat 1 the OLDEST by last activity but created last – checks the order of „Вижте всички…“)
 // 0.1.6 (§22): ?win=normal|bubble|mini (the window mode MAIN reports at start; ted.window.* change it and emit onMode)
+// 0.1.7 (§23): ?clip=1|big (the fake clipboard already holds a test picture / one over 8 MB). ted.chatgpt.* drive a FAKE
+//              ChatGPT panel: a placeholder page (#mock-chatgpt-view) drawn above everything over the rectangle the
+//              renderer reports, like MAIN's native view – no network. Its „Изпрати“ draws a test picture whose
+//              „Копирай изображението“ fills the fake clipboard. Server chat: „Създай изображение: …“ -> the server's
+//              images.generate fails (free limit / no credits, test) -> the card „Направи снимката в ChatGPT“.
+//              __tedMock.panelBlocked({host, external, canOpen}) = MAIN's note about a page outside the panel's list.
 // Test hooks:  window.__tedMock = {calls, setConfirm(bool), setEmailOutcome("sent"|"setup"|"unknown"), expire(),
 //              setUpd(status), fireDue(id, missed), job(id), files(), setWinMode(mode)}
 // Magic phrases in a chat message: "квота" -> quota error · "имейл" -> e-mail preview card ·
@@ -287,6 +293,8 @@ export function createMockBridge() {
     videoPrepare: [], videoStart: [], videoCancel: [], videoFinish: [], libRemove: [], libClear: 0, schedSave: [], schedRemove: [],
     updCheck: 0, updAuto: [], updDownload: 0, updInstall: 0, storage: 0, clearTemp: 0, reportProblem: 0,
     window: [], // 0.1.6: "bubble" | "miniChat" | "restore", in order
+    // 0.1.7 „ChatGPT панел“: open {prompt, url}, every reported rectangle, and the other calls.
+    chatgptOpen: [], chatgptBounds: [], chatgptClose: 0, chatgptReload: 0, chatgptBrowser: 0, chatgptBrowserBlocked: 0, chatgptClip: 0,
     // Every call that MAIN would turn into a request to imotinadezhda.bg or its Supabase host (speed/load checks).
     site: [],
   };
@@ -310,6 +318,95 @@ export function createMockBridge() {
     ok: true, text, transcript: null, actions: [], mode: null, model: null, modelName: null, fallback: null,
     email: null, listings: null, video: null, uiPanel: null, durationMs: 0, ...extra,
   });
+
+  /* ======================= „ChatGPT панел“ (§23, 0.1.7) – a fake panel, no network ======================= */
+  const panelSubs = new Set();
+  const panel = { open: false, url: null, prompt: "", bounds: null, visible: false, loading: false, clip: params.get("clip") === "big" ? "big" : params.get("clip") === "1", el: null, sent: false, blocked: null };
+  const panelState = () => ({ open: panel.open, visible: panel.visible, loading: panel.loading, host: panel.open ? "chatgpt.com" : null, error: null, blocked: panel.open ? panel.blocked : null });
+  const emitPanel = () => emit(panelSubs, panelState());
+  function panelLoading() {
+    panel.loading = true; emitPanel();
+    setTimeout(() => { panel.loading = false; emitPanel(); }, 120);
+  }
+  // The fake page: what MAIN's native view would show – here a DOM element above everything (built with the DOM, the
+  // CSP allows no inline styles in markup).
+  function panelEl() {
+    if (panel.el || typeof document === "undefined" || !document.body) return panel.el;
+    const el = document.createElement("div");
+    el.id = "mock-chatgpt-view";
+    el.setAttribute("data-testid", "mock-chatgpt-view");
+    Object.assign(el.style, { position: "fixed", zIndex: "2147483000", background: "#ffffff", color: "#202123", font: "15px/1.5 system-ui, sans-serif", display: "none", overflow: "auto", boxSizing: "border-box", padding: "18px" });
+    const h = document.createElement("div");
+    h.textContent = "chatgpt.com · тестова страница (без мрежа)";
+    Object.assign(h.style, { fontWeight: "700", marginBottom: "10px" });
+    const lab = document.createElement("div");
+    lab.textContent = "Попълнена заявка (не е изпратена):";
+    const ta = document.createElement("textarea");
+    ta.readOnly = true; ta.rows = 4; ta.setAttribute("data-testid", "mock-chatgpt-prompt");
+    Object.assign(ta.style, { width: "100%", boxSizing: "border-box", margin: "6px 0 10px", font: "14px/1.4 system-ui, sans-serif" });
+    const btn = (b) => Object.assign(b.style, { border: "1px solid #c9c9d1", borderRadius: "16px", padding: "6px 14px", background: "#f4f4f6", color: "#202123", font: "600 14px system-ui, sans-serif", cursor: "pointer" });
+    const send = document.createElement("button");
+    send.textContent = "Изпрати"; send.setAttribute("data-testid", "mock-chatgpt-send"); btn(send);
+    const pic = document.createElement("div");
+    pic.setAttribute("data-testid", "mock-chatgpt-picture");
+    Object.assign(pic.style, { display: "none", marginTop: "12px" });
+    const cv = drawTest("Тестова снимка от ChatGPT", 320, 200);
+    Object.assign(cv.style, { display: "block", maxWidth: "100%", borderRadius: "10px" });
+    const copy = document.createElement("button");
+    copy.textContent = "Копирай изображението"; copy.setAttribute("data-testid", "mock-chatgpt-copy"); btn(copy);
+    Object.assign(copy.style, { marginTop: "8px" });
+    copy.addEventListener("click", () => { panel.clip = true; copy.textContent = "Копирано ✓"; });
+    send.addEventListener("click", () => { panel.sent = true; pic.style.display = "block"; });
+    pic.append(cv, copy);
+    el.append(h, lab, ta, send, pic);
+    document.body.appendChild(el);
+    panel.el = el;
+    panel.ta = ta;
+    panel.pic = pic;
+    return el;
+  }
+  function panelPaint() {
+    const el = panelEl();
+    const b = panel.bounds;
+    const show = panel.open && winMode === "normal" && !!b && b.visible && b.width >= 40 && b.height >= 40;
+    if (el) {
+      if (show) Object.assign(el.style, { left: b.x + "px", top: Math.max(36, b.y) + "px", width: b.width + "px", height: (b.height - Math.max(0, 36 - b.y)) + "px", display: "block" });
+      else el.style.display = "none";
+      if (panel.ta) panel.ta.value = panel.prompt;
+    }
+    if (panel.visible !== show) { panel.visible = show; emitPanel(); }
+  }
+  async function panelOpen(args) {
+    const a = args == null ? {} : args;
+    if (typeof a !== "object" || Array.isArray(a) || (a.bare != null && typeof a.bare !== "boolean")) return { ok: false, code: "invalid", error: "Невалидни данни." };
+    let url = null;
+    let prompt = "";
+    if (a.bare === true) url = "https://chatgpt.com/";
+    else if (a.prompt != null) {
+      if (typeof a.prompt !== "string" || !a.prompt || a.prompt.length > 8000) return { ok: false, code: "invalid", error: "Заявката е празна или твърде дълга." };
+      prompt = a.prompt.replace(/\r\n?/g, "\n").replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, "").trim();
+      if (!prompt || prompt.length > 4000) return { ok: false, code: "invalid", error: "Заявката е празна или твърде дълга." };
+      url = "https://chatgpt.com/?q=" + encodeURIComponent(prompt);
+      if (url.length > 8000) return { ok: false, code: "too_long", error: "Заявката е твърде дълга за линк (кирилицата заема повече място) – копирайте я и я поставете в ChatGPT." };
+    }
+    if (!signedIn) return { ok: false, code: "signed_out", error: "Влезте в CRM, за да отворите ChatGPT." };
+    calls.chatgptOpen.push({ prompt, url });
+    panel.open = true;
+    if (url || !panel.url) { panel.url = url || "https://chatgpt.com/"; panel.prompt = prompt; panel.sent = false; if (panel.pic) panel.pic.style.display = "none"; panelLoading(); }
+    panelPaint();
+    emitPanel();
+    return { ok: true };
+  }
+  function panelBounds(rect) {
+    const r = rect && typeof rect === "object" ? rect : null;
+    const num = (v) => typeof v === "number" && Number.isFinite(v);
+    if (!r || ![r.x, r.y, r.width, r.height].every(num) || typeof r.visible !== "boolean") return { ok: false, code: "invalid", error: "Невалидни данни." };
+    const b = { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height), visible: r.visible };
+    calls.chatgptBounds.push(b);
+    panel.bounds = b;
+    panelPaint();
+    return { ok: true };
+  }
 
   /* ======================= files + library (§8.1, §8.6, §11) ======================= */
   const files = new Map(); // id -> {ref, bytes, temporary}
@@ -514,6 +611,12 @@ export function createMockBridge() {
       });
     }
     if (low.includes("дълъг")) return result(LONG + inCase, { ...base, actions: [] });
+    // 0.1.7: the server's picture tool fails like on the live site (free limit used up, no gateway credits).
+    if (/^създай изображение/.test(low.trim())) {
+      return result("Снимката не е генерирана: безплатният лимит за снимки е изчерпан за днес; резервният модел: няма кредити във Vercel AI Gateway (тест)." + inCase, {
+        ...base, actions: [step("images.generate", "Генериране на снимка", false, true)],
+      });
+    }
     return result(
       "**Тестов отговор** (измислени данни)\n\nНамерих 2 имота и записах оглед в календара. Документът не беше намерен.\n\n" +
       "| Код | Имот | Цена |\n|---|---|---|\n| ТЕСТ-101 | Измислен двустаен | 99 000 € |\n| ТЕСТ-102 | Измислена къща | 185 000 € |" + inCase,
@@ -1332,6 +1435,31 @@ export function createMockBridge() {
       },
       onChange: (cb) => sub(updSubs, cb),
     },
+    // 0.1.7 „ChatGPT панел“ (§23): a FAKE panel (placeholder page, no network), the same checks as MAIN.
+    chatgpt: {
+      open: async (args) => panelOpen(args),
+      setBounds: async (rect) => panelBounds(rect),
+      reload: async () => { calls.chatgptReload += 1; if (!panel.open) return { ok: false, code: "closed" }; panelLoading(); return { ok: true }; },
+      openInBrowser: async (args) => {
+        if (args && args.blocked === true) {
+          calls.chatgptBrowserBlocked += 1;
+          if (!panel.blocked || !panel.blocked.canOpen) return { ok: false, code: "none", error: "Няма връзка за отваряне – натиснете я отново в ChatGPT." };
+          panel.blocked = { ...panel.blocked, external: true, canOpen: false }; emitPanel();
+          return { ok: true };
+        }
+        calls.chatgptBrowser += 1; return { ok: true };
+      },
+      close: async () => { calls.chatgptClose += 1; panel.open = false; panel.bounds = null; panel.blocked = null; panelPaint(); emitPanel(); return { ok: true }; },
+      clipboardImage: async () => {
+        calls.chatgptClip += 1;
+        if (panel.clip === "big") return { ok: false, code: "too_large", error: "Снимката в клипборда е твърде голяма (над 8 MB като PNG) – копирайте по-малка или я запазете и я прикачете като файл." };
+        if (!panel.clip) return { ok: false, code: "empty", error: "В клипборда няма снимка. В ChatGPT: десен бутон върху снимката → „Копирай изображението“ (или бутона за копиране под нея), после натиснете „📋 Добави снимката в чата“." };
+        const bytes = pngBytes("Снимка от ChatGPT (тест)", 640, 400);
+        const data = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length);
+        return { ok: true, name: "Снимка от ChatGPT 2026-11-18 10.30.png", mime: "image/png", size: bytes.length, width: 640, height: 400, data };
+      },
+      onState: (cb) => sub(panelSubs, cb),
+    },
     // 0.1.6 „Балонче“ (§22): the window modes, as MAIN answers them.
     window: {
       bubble: async () => setWin("bubble", "bubble"),
@@ -1343,7 +1471,7 @@ export function createMockBridge() {
   };
   function setWin(fn, mode) {
     calls.window.push(fn);
-    if (winMode !== mode) { winMode = mode; emit(modeSubs, { mode }); }
+    if (winMode !== mode) { winMode = mode; panelPaint(); emit(modeSubs, { mode }); }
     return { ok: true, mode };
   }
 
@@ -1356,7 +1484,12 @@ export function createMockBridge() {
     fireDue: (id, missed = false) => { const t = tasks.find((x) => x.id === id); if (t) emit(dueSubs, { task: t, missed: !!missed }); },
     job: (id) => (jobs.has(id) ? publicJob(jobs.get(id)) : null),
     files: () => [...files.values()].map((f) => ({ ...f.ref, temporary: f.temporary })),
-    setWinMode: (mode) => { if (["normal", "bubble", "mini"].includes(mode) && mode !== winMode) { winMode = mode; emit(modeSubs, { mode }); } },
+    setWinMode: (mode) => { if (["normal", "bubble", "mini"].includes(mode) && mode !== winMode) { winMode = mode; panelPaint(); emit(modeSubs, { mode }); } },
+    panel: () => ({ open: panel.open, url: panel.url, prompt: panel.prompt, clip: panel.clip, visible: panel.visible, bounds: panel.bounds ? { ...panel.bounds } : null }),
+    setClip: (v) => { panel.clip = v; },
+    // What MAIN reports when the page went to a site outside the panel's list (a script, a frame, a link nobody clicked):
+    // {host, external, canOpen[, download]}; null clears it (the employee moved on in ChatGPT).
+    panelBlocked: (b) => { panel.blocked = b && typeof b === "object" ? { host: String(b.host || ""), external: !!b.external, canOpen: !!b.canOpen, ...(b.download ? { download: true } : {}) } : null; emitPanel(); },
   };
   return bridge;
 }

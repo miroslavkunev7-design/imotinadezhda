@@ -3,7 +3,7 @@
 // Tokens and passwords never travel back: handlers return only the shapes of docs/CONTRACT.md §2.
 import fs from "node:fs";
 import path from "node:path";
-import { CHATGPT_PROMPT_MAX, chatgptUrl, cleanPrompt, CHATGPT_HOME, fitsLink } from "./agent/chatgpt-link.js";
+import { CHATGPT_PROMPT_MAX, chatgptUrl, cleanPrompt, CHATGPT_HOME, fitsLink, panelLink } from "./agent/chatgpt-link.js";
 import { createImageProvenance } from "./browse/provenance.js";
 
 const KB = 1024;
@@ -181,10 +181,16 @@ const NO_WINDOW = { bubble: () => ({ ok: false, mode: "normal" }), miniChat: () 
 const MODES = ["normal", "bubble", "mini"];
 const winResult = (r) => ({ ok: !!(r && r.ok), mode: r && MODES.includes(r.mode) ? r.mode : "normal" });
 
-export function createHandlers({ appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance, windowApi }) {
+// „ChatGPT панел“ (0.1.7, electron/chatgpt-panel.js, docs/CONTRACT.md §23). Without a controller (unit tests) nothing opens.
+const NO_PANEL_ERR = { ok: false, code: "unavailable", error: "Панелът ChatGPT не е наличен." };
+const NO_PANEL = { open: () => NO_PANEL_ERR, setBounds: () => ({ ok: false, code: "unavailable" }), reload: () => NO_PANEL_ERR, openInBrowser: () => NO_PANEL_ERR, close: () => ({ ok: true }), clipboardImage: () => NO_PANEL_ERR };
+const panelResult = (r) => (r && r.ok ? { ok: true } : { ok: false, code: String((r && r.code) || "error"), ...(r && r.error ? { error: String(r.error) } : {}) });
+
+export function createHandlers({ appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance, windowApi, chatgptPanel }) {
   // Pictures MAIN itself handed to the window (browse/provenance.js); without one nothing loads without a click.
   const imgProv = imageProvenance || createImageProvenance();
   const win = windowApi || NO_WINDOW;
+  const panel = chatgptPanel || NO_PANEL;
   const chatInvalid = (error) => ({ ok: false, error, code: "invalid", maybeExecuted: false });
   // {ok:true, result} | {ok:false, error} for the dedicated write channels.
   const written = (r) => (r.ok ? { ok: true, result: r.result } : { ok: false, error: r.error, ...(r.maybeExecuted ? { maybeExecuted: true } : {}) });
@@ -487,6 +493,35 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
     "ted:window.miniChat": async () => winResult(await win.miniChat()),
     "ted:window.restore": async () => winResult(await win.restore()),
     "ted:window.state": () => ({ mode: winResult({ ok: true, mode: win.state().mode }).mode }),
+
+    // ---- chatgpt (§23, 0.1.7): chatgpt.com in a panel of the main window, in its own partition ----
+    // open: only on the employee's click (a card, the „+“ menu path). MAIN builds the address itself: {prompt} ->
+    // https://chatgpt.com/?q=<prompt> with the limits of openInChatGpt, {bare:true} -> chatgpt.com, {} -> as it was.
+    "ted:chatgpt.open": async (args) => {
+      const link = panelLink(args);
+      if (!link.ok) return link;
+      return panelResult(await panel.open({ url: link.url }));
+    },
+    // The placeholder's rectangle (CSS px) and whether nothing of the window covers it; numbers only.
+    "ted:chatgpt.setBounds": (rect) => {
+      if (!isObj(rect) || size(rect) > 512) return bad();
+      const r = panel.setBounds({ x: rect.x, y: rect.y, width: rect.width, height: rect.height, visible: rect.visible });
+      return r && r.ok ? { ok: true } : bad();
+    },
+    "ted:chatgpt.reload": async () => panelResult(await panel.reload()),
+    // {} -> the panel's chatgpt.com page; {blocked:true} -> the address of the panel's note (MAIN keeps it), on that click.
+    "ted:chatgpt.openInBrowser": async (args) => {
+      if (args != null && (!isObj(args) || Object.keys(args).some((k) => k !== "blocked") || (args.blocked != null && typeof args.blocked !== "boolean"))) return bad();
+      return panelResult(await panel.openInBrowser(args && args.blocked === true ? { blocked: true } : undefined));
+    },
+    "ted:chatgpt.close": async () => panelResult(await panel.close()),
+    // „📋 Добави снимката в чата“: the clipboard's picture as a PNG (≤ 8 MB) for the composer – read only on that click.
+    "ted:chatgpt.clipboardImage": async () => {
+      const r = await panel.clipboardImage();
+      if (!r || !r.ok) return { ok: false, code: String((r && r.code) || "empty"), error: String((r && r.error) || "В клипборда няма снимка.") };
+      if (!(r.data instanceof ArrayBuffer) || !r.data.byteLength || r.data.byteLength > 8 * MB) return { ok: false, code: "too_large", error: "Снимката е празна или по-голяма от 8 MB." };
+      return { ok: true, name: String(r.name || "Снимка от ChatGPT.png").slice(0, 120), mime: "image/png", size: r.data.byteLength, width: Number(r.width) || 0, height: Number(r.height) || 0, data: r.data };
+    },
   };
 }
 

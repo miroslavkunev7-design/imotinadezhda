@@ -13,16 +13,16 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 const sortedSurface = (o) => Object.fromEntries(Object.keys(o).sort().map((k) => [k, [...o[k]].sort()]));
 
 describe("window.ted surface", () => {
-  it("CONTRACT.md §2 + §8 + §22 list exactly the surface the smoke test checks", () => {
+  it("CONTRACT.md §2 + §8 + §22 + §23 list exactly the surface the smoke test checks", () => {
     const contract = read("docs/CONTRACT.md");
     const section = (n) => contract.split(new RegExp(`^## ${n}\\.`, "m"))[1].split(/^## \d+\./m)[0];
-    const block = section(2) + section(8) + section(22);
+    const block = section(2) + section(8) + section(22) + section(23);
     const found = {};
     const add = (g, fn) => { found[g] = found[g] || []; if (!found[g].includes(fn)) found[g].push(fn); };
     for (const m of block.matchAll(/^ted\.(\w+)\.(\w+)\(/gm)) add(m[1], m[2]);
-    // §8.10 and §22 name the new subscriptions: "Subscriptions in preload: `realgpt.onEvent`, `video.onEvent`, …".
+    // §8.10, §22 and §23 name the new subscriptions: "Subscriptions in preload: `realgpt.onEvent`, `video.onEvent`, …".
     const subs = [...block.matchAll(/Subscriptions in preload:([\s\S]*?)(\n\n|$)/g)];
-    expect(subs).toHaveLength(2);
+    expect(subs).toHaveLength(3);
     for (const sub of subs) for (const m of sub[1].matchAll(/`(\w+)\.(\w+)`/g)) add(m[1], m[2]);
     expect(sortedSurface(found)).toEqual(sortedSurface(TED_SURFACE));
   });
@@ -108,13 +108,17 @@ describe("window.ted surface", () => {
       expect(pushed).toEqual(subscribed);
       const s810 = read("docs/CONTRACT.md").split(/^### 8\.10/m)[1].split(/^### /m)[0];
       const listed = [...s810.matchAll(/`(ted:[\w.]+)`/g)].map((m) => m[1]);
-      // §22 (0.1.6): "Subscriptions in preload: `window.onMode` (channel `ted:window.mode`)."
-      const s22 = read("docs/CONTRACT.md").split(/^## 22\./m)[1];
-      const sub22 = /Subscriptions in preload:([^\n]*)/.exec(s22)[1];
-      const listed22 = [...sub22.matchAll(/`(ted:[\w.]+)`/g)].map((m) => m[1]);
+      // §22 (0.1.6): "Subscriptions in preload: `window.onMode` (channel `ted:window.mode`)." – §23 (0.1.7) likewise.
+      const subsOf = (n) => {
+        const sec = read("docs/CONTRACT.md").split(new RegExp(`^## ${n}\\.`, "m"))[1].split(/^## \d+\./m)[0];
+        return [...(/Subscriptions in preload:([^\n]*)/.exec(sec)[1]).matchAll(/`(ted:[\w.]+)`/g)].map((m) => m[1]);
+      };
+      const listed22 = subsOf(22);
+      const listed23 = subsOf(23);
       expect(listed22).toEqual(["ted:window.mode"]);
-      // 0.1.2 (§2) had auth.changed and realgpt.delta; §8.10 lists the 0.1.3 ones, §22 the 0.1.6 one.
-      expect([...listed, ...listed22, "ted:auth.changed", "ted:realgpt.delta"].sort()).toEqual(subscribed);
+      expect(listed23).toEqual(["ted:chatgpt.state"]);
+      // 0.1.2 (§2) had auth.changed and realgpt.delta; §8.10 lists the 0.1.3 ones, §22 the 0.1.6 one, §23 the 0.1.7 one.
+      expect([...listed, ...listed22, ...listed23, "ted:auth.changed", "ted:realgpt.delta"].sort()).toEqual(subscribed);
       expect(SUBS.map(([g, fn]) => `${g}.${fn}`).sort()).toEqual(
         Object.entries(TED_SURFACE).flatMap(([g, fns]) => fns.filter((fn) => /^on[A-Z]/.test(fn)).map((fn) => `${g}.${fn}`)).sort());
     });
@@ -147,7 +151,7 @@ describe("window.ted surface", () => {
 });
 
 // Every subscription of the surface (on* functions).
-const SUBS = [["auth", "onChange"], ["realgpt", "onDelta"], ["realgpt", "onEvent"], ["video", "onEvent"], ["library", "onChange"], ["scheduled", "onDue"], ["updates", "onChange"], ["window", "onMode"]];
+const SUBS = [["auth", "onChange"], ["realgpt", "onDelta"], ["realgpt", "onEvent"], ["video", "onEvent"], ["library", "onChange"], ["scheduled", "onDue"], ["updates", "onChange"], ["window", "onMode"], ["chatgpt", "onState"]];
 
 // 0.1.6 „Балонче“ (§22): the bubble window has its own preload and channels, documented in the contract.
 describe("bubble window bridge", () => {
@@ -244,5 +248,58 @@ describe("packaging layout", () => {
     expect(workflow).toContain(`win-unpacked\\${exe}.exe`);
     expect(workflow).toContain("--smoke-test");
     expect(workflow).toContain("--smoke-report=");
+  });
+});
+
+// 0.1.7 „ChatGPT панел“ (§23): the one documented exception to the MAIN-only network rule, wired where the contract says.
+describe("ChatGPT panel seams", () => {
+  const panel = read("electron/chatgpt-panel.js");
+  const main = read("electron/main.js");
+  const contract = read("docs/CONTRACT.md");
+  const s23 = contract.split(/^## 23\./m)[1] || "";
+
+  it("the panel module imports no Electron and nothing of the app's tokens, sessions or IPC; its view has no preload", async () => {
+    expect(panel).not.toMatch(/from "electron"/);
+    expect(panel).not.toMatch(/ipcMain|ipcRenderer|preload\s*:|backend\/|realgpt\/|ted-backend|ted-browse|secureStore|secure-file|getAccessToken/);
+    const { panelWebPreferences } = await import("../../electron/chatgpt-panel.js");
+    expect(panelWebPreferences({ packaged: true })).not.toHaveProperty("preload");
+  });
+
+  it("main.js hands the panel to security.js as a delegate, detaches it on a CRM user change, hides it in the bubble, checks it in the smoke run", () => {
+    expect(main).toMatch(/delegate: \{ owns: \(contents\) => !!panel && panel\.owns\(contents\), harden: \(contents\) => panel\.harden\(contents\) \}/);
+    expect(main).toMatch(/onUserChange = \(\) => \{\s*\n\s*if \(panel\) panel\.detach\(\);/);
+    expect(main).toMatch(/panel\.setWindowMode\(mode\)/);
+    expect(main).toMatch(/panelMade: \(\) => panel\.created\(\)/);
+    expect(main).toMatch(/userAgent: chromeUserAgent\(app\.userAgentFallback\)/);
+    // Fixer (review): sign-in windows of a fixed shape need BrowserWindow; Accept-Language from the program's locale.
+    expect(main).toMatch(/panel = createChatGptPanel\(\{\s*\n\s*WebContentsView, BrowserWindow, fromPartition/);
+    expect(main).toMatch(/locale: app\.getLocale\(\), platform: process\.platform/);
+    expect(read("electron/smoke.js")).toMatch(/the ChatGPT panel was not opened/);
+  });
+
+  it("the contract names the exception, the hosts and the permission exactly as the code has them", async () => {
+    const m = await import("../../electron/chatgpt-panel.js");
+    expect(contract).toMatch(/The ONE documented exception/);
+    for (const h of [...m.SIGNIN_HOSTS, ...m.PANEL_DOMAINS, "auth.openai.com"]) expect(s23, h).toContain("`" + h + "`");
+    expect(s23).toContain("`clipboard-sanitized-write`");
+    expect(m.PANEL_PERMISSIONS).toEqual(["clipboard-sanitized-write"]);
+    const readme = read("README.md");
+    expect(readme).toMatch(/^## ChatGPT панел \(от 0\.1\.7\)$/m);
+    for (const h of m.SIGNIN_HOSTS) expect(readme, h).toContain(h);
+    expect(read("CHANGES.md")).toMatch(/^## 0\.1\.7/m);
+  });
+
+  it("the contract states the panel's limits and the download allowlist exactly as the code has them", async () => {
+    const m = await import("../../electron/chatgpt-panel.js");
+    expect(s23).toContain("`GESTURE_MS` = " + m.GESTURE_MS / 1000 + " s");
+    expect(s23).toContain("`MAX_CHILDREN` = " + m.MAX_CHILDREN);
+    expect(s23).toContain("`BLANK_CHILD_MS` = " + m.BLANK_CHILD_MS / 1000 + " s");
+    for (const d of m.DOWNLOAD_DOMAINS) expect(s23, d).toContain("`" + d + "`");
+    const types = /\\.\((.*)\)\$/.exec(m.DOWNLOADABLE.source)[1].replace("jpe?g", "jpg|jpeg").split("|");
+    const listed = /`DOWNLOADABLE`: ([^)]*)\)/.exec(s23.replace(/\s+/g, " "))[1].replace("jpg/jpeg", "jpg, jpeg").split(/,\s*/);
+    expect(listed.sort()).toEqual(types.sort());
+    const readme = read("README.md");
+    for (const t of types) expect(readme, t).toContain(t.toUpperCase());
+    expect(s23).toContain("ted.chatgpt.openInBrowser({blocked:true}?)");
   });
 });

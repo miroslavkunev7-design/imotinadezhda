@@ -124,9 +124,14 @@ test("F5: a prompt too long for a link is copied and chatgpt.com opens without i
   await expect(card.getByTestId("chatgpt-len")).toContainText("Твърде дълга за линк");
   await expect(card.getByTestId("chatgpt-open")).toHaveText(/Копирай и отвори ChatGPT/);
   await card.getByTestId("chatgpt-open").click();
-  await expect(page.locator(".toast")).toContainText("Заявката е копирана и ChatGPT е отворен");
-  const calls = await mockCalls(page);
+  await expect(page.locator(".toast")).toContainText("Заявката е копирана и ChatGPT е отворен в панела");
+  let calls = await mockCalls(page);
   expect(calls.copy.at(-1)).toBe(long);
+  expect(calls.chatgptOpen).toEqual([{ prompt: "", url: "https://chatgpt.com/" }]); // 0.1.7: the panel, without the prompt
+  expect(calls.openInChatGpt).toEqual([]);
+  await card.getByTestId("chatgpt-open-browser").click(); // the browser keeps the 0.1.5 way
+  await expect(page.locator(".toast")).toContainText("Заявката е копирана и ChatGPT е отворен в браузъра");
+  calls = await mockCalls(page);
   expect(calls.openInChatGpt).toEqual([{ prompt: "", url: "https://chatgpt.com/" }]);
   await ta.fill("Кратка заявка");
   await expect(card.getByTestId("chatgpt-open")).toHaveText(/Отвори в ChatGPT/);

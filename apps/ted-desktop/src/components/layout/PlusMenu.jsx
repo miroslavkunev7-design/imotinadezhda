@@ -54,7 +54,7 @@ export default function PlusMenu({ pop, onClose, phone, sub, setSub, hints, onHi
       <It ci="clip" title="Добави снимки и файлове" sub={rgOn ? "Real GPT: всякакви документи до 20 MB, до 10 файла" : "снимки и PDF (до 3), Word, Excel и текст"} onClick={a.files} />
       <It ci="recent" title="Последни файлове" right={<Icon n="chevR" />} onClick={() => setSub("recent")} />
       <div className="sep" />
-      {HINTS.map((h) => <It key={h.id} ci={h.icon} title={h.name} sub={rgOn ? (h.id === "image" ? "в приложението ChatGPT с вашия план – Тед подготвя заявката" : undefined) : "добавя се като начало на въпроса"} check={hints.includes(h.id)} onClick={() => onHint(h.id)} />)}
+      {HINTS.map((h) => <It key={h.id} ci={h.icon} title={h.name} sub={rgOn ? (h.id === "image" ? "в панела ChatGPT с вашия план – Тед подготвя заявката" : undefined) : "добавя се като начало на въпроса"} check={hints.includes(h.id)} onClick={() => onHint(h.id)} />)}
       <It ci="more" title="Още" right={<Icon n="chevR" />} onClick={() => setSub("more")} />
       <div className="sep" />
       <It ci="folder" title="Проекти" sub={curCase ? "Казус: " + curCase.title : "Общ разговор"} right={<Icon n="chevR" />} onClick={() => setSub("projects")} />

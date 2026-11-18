@@ -19,7 +19,7 @@ let dir;
 beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), "ted-core-el-")); });
 afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }); });
 
-// The window.ted surface of docs/CONTRACT.md §2 and §8 (0.1.3) and §22 (0.1.6 „Балонче“).
+// The window.ted surface of docs/CONTRACT.md §2 and §8 (0.1.3), §22 (0.1.6 „Балонче“) and §23 (0.1.7 „ChatGPT панел“).
 const SURFACE = {
   app: ["info", "setCompact", "getLaunchAtLogin", "setLaunchAtLogin", "openLogs", "openExternal", "copy", "saveFile", "storage", "clearTemp", "reportProblem"],
   auth: ["state", "login", "logout", "onChange"],
@@ -39,11 +39,12 @@ const SURFACE = {
   scheduled: ["list", "save", "remove", "onDue"],
   updates: ["state", "check", "setAuto", "download", "install", "onChange"],
   window: ["bubble", "miniChat", "restore", "state", "onMode"],
+  chatgpt: ["open", "setBounds", "reload", "openInBrowser", "close", "clipboardImage", "onState"],
 };
 const SUBSCRIPTIONS = {
   "auth.onChange": "ted:auth.changed", "realgpt.onDelta": "ted:realgpt.delta", "realgpt.onEvent": "ted:realgpt.event",
   "video.onEvent": "ted:video.event", "library.onChange": "ted:library.changed", "scheduled.onDue": "ted:scheduled.due",
-  "updates.onChange": "ted:updates.changed", "window.onMode": "ted:window.mode",
+  "updates.onChange": "ted:updates.changed", "window.onMode": "ted:window.mode", "chatgpt.onState": "ted:chatgpt.state",
 };
 
 // Records calls into fake services; individual tests override what they need.
@@ -164,7 +165,7 @@ describe("ipc registration", () => {
 
   it("registers one handler per channel, all named ted:<group>.<fn>", () => {
     const { handlers, channels } = register();
-    expect(channels).toHaveLength(71); // 79 window.ted functions minus the 8 subscriptions (0.1.5: + browse.image, + 4 projects; 0.1.6: + 4 window)
+    expect(channels).toHaveLength(77); // 86 window.ted functions minus the 9 subscriptions (0.1.5: + browse.image, + 4 projects; 0.1.6: + 4 window; 0.1.7: + 6 chatgpt)
     expect([...handlers.keys()]).toEqual(channels);
     for (const c of channels) expect(c).toMatch(/^ted:[a-z]+\.[A-Za-z]+$/);
   });

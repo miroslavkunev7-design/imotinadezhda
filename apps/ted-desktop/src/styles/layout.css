@@ -293,3 +293,43 @@ svg.ci{width:20px;height:20px;flex:none;display:block;overflow:visible}
   .opt:has(>.consent-seg){flex-direction:column;align-items:stretch;gap:10px}
   .opt>.consent-seg{align-self:flex-start}
 }
+
+/* ---------- 0.1.7 „ChatGPT панел“ (src/components/ChatGptPanel.jsx, CONTRACT §23) ----------
+   A side panel like Canvas (same width, sheet and gold edge). The page itself is MAIN's native view, placed exactly over
+   .cgp-view; the placeholder text shows only while it loads or is hidden under a menu/dialog. */
+.cgp{width:min(50%,760px);flex:none;display:flex;flex-direction:column;min-height:0;position:relative;color:var(--ink);container-type:inline-size;
+  background:linear-gradient(180deg,rgba(255,251,246,.97),rgba(247,230,211,.96));border-left:1px solid rgba(255,214,130,.95);
+  box-shadow:inset 1px 0 0 rgba(255,255,255,.7),-1px 0 0 rgba(255,42,95,.3),-18px 0 40px -12px rgba(8,0,4,.65)}
+.cgp-h{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #e3b25e88}
+.cgp-ttl{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;line-height:1.2;overflow:hidden}
+.cgp-ttl b{font:700 17px var(--f-title);color:#650c27;white-space:nowrap}
+.cgp-ttl small{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cgp-h .ibtn{color:var(--ink);width:36px;height:36px}
+.cgp-h .ibtn:hover{background:#f6e2c4}
+.cgp-h .b{min-height:34px;padding:5px 11px;font-size:13px}
+.cgp-short{display:none}
+/* A narrow panel (a smaller window, the phone layout): shorter labels, one row. */
+@container (max-width:500px){.cgp-bt{display:none}.cgp-h .cgp-br{padding:5px 9px}}
+@container (max-width:620px){.cgp-ttl small{display:none}}
+@container (max-width:420px){.cgp-long{display:none}.cgp-short{display:inline}}
+.cgp-h .b svg.i{width:17px;height:17px}
+.cgp-add[disabled]{opacity:.65;cursor:progress}
+.cgp-note{padding:7px 14px;font-size:13px;line-height:1.4;background:var(--warn-bg);color:var(--warn);border-bottom:1px solid #e3b25e66}
+.cgp-note.signin{background:#fbf3e6;color:var(--ink)}
+.cgp-note .cgp-nb{min-height:28px;padding:3px 10px;font-size:12.5px;margin-left:4px;vertical-align:middle}
+.cgp-note .cgp-nb svg.i{width:15px;height:15px}
+.cgp-view{flex:1;min-height:0;position:relative;background:#fffdf9}
+.cgp-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;color:var(--muted);font-size:15px}
+.cgp-ph small{font-size:12.5px;max-width:320px}
+.cgp-logo{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#850F2D,#370714);color:var(--gold-4);border:1px solid var(--gold)}
+.cgp-logo svg.i{width:22px;height:22px}
+.cgp-foot{padding:8px 14px;border-top:1px solid #e3b25e66;color:var(--muted);font-size:12.5px;line-height:1.4}
+.cgp-foot.notice{background:#370714;color:#fff2d9;font-size:13.5px;border-top-color:var(--gold)}
+.cg-card .acts .cg-br{align-self:center;margin-left:4px;font-size:13.5px;color:var(--ted-wine-2)}
+/* Phone width (as Canvas): the panel takes the whole content area under the title bar, with „Назад“. */
+@media (max-width:899px){
+  .cgp{position:fixed;inset:0;top:36px;z-index:70;width:auto;border-left:0;box-shadow:none}
+  .cgp-h{gap:6px;padding:8px 10px}
+  .cgp-h .b{padding:5px 10px}
+  .cgp-foot{font-size:12px;padding:6px 10px}
+}

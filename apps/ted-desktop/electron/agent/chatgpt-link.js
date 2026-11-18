@@ -39,3 +39,22 @@ export function chatgptUrl(prompt) {
       url.pathname !== "/" || url.hash || [...url.searchParams.keys()].join() !== "q" || url.searchParams.get("q") !== p) return null;
   return href;
 }
+
+// 0.1.7 „ChatGPT панел“ (docs/CONTRACT.md §23): the address the panel opens for ted.chatgpt.open – {prompt} -> exactly
+// chatgptUrl(prompt) with the same limits as openInChatGpt, {bare:true} -> https://chatgpt.com/, {} -> null (the panel
+// as it was). -> {ok:true, url} | {ok:false, code:"invalid"|"too_long", error}.
+export function panelLink(args) {
+  const a = args == null ? {} : args;
+  const bad = (error = "Заявката е празна или твърде дълга.") => ({ ok: false, code: "invalid", error });
+  if (typeof a !== "object" || Array.isArray(a)) return bad("Невалидни данни.");
+  if (a.bare != null && typeof a.bare !== "boolean") return bad("Невалидни данни.");
+  if (a.bare === true) return { ok: true, url: CHATGPT_HOME };
+  if (a.prompt == null) return { ok: true, url: null };
+  if (typeof a.prompt !== "string" || !a.prompt || a.prompt.length > CHATGPT_PROMPT_MAX * 2) return bad();
+  const prompt = cleanPrompt(a.prompt);
+  if (prompt.length > CHATGPT_PROMPT_MAX) return bad(`Заявката е над ${CHATGPT_PROMPT_MAX} знака – съкратете я.`);
+  try { encodeURIComponent(prompt); } catch { return bad(); } // a lone surrogate cannot be an address
+  if (prompt && !fitsLink(prompt)) return { ok: false, code: "too_long", error: "Заявката е твърде дълга за линк (кирилицата заема повече място) – копирайте я и я поставете в ChatGPT." };
+  const url = chatgptUrl(prompt);
+  return url ? { ok: true, url } : bad();
+}

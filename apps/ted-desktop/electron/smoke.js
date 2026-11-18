@@ -12,7 +12,7 @@ import path from "node:path";
 
 export const SMOKE_TIMEOUT_MS = 90000;
 
-// The window.ted surface of docs/CONTRACT.md §2 + §8 + §22 (also pinned by tests/unit/core-electron.test.js).
+// The window.ted surface of docs/CONTRACT.md §2 + §8 + §22 + §23 (also pinned by tests/unit/core-electron.test.js).
 export const TED_SURFACE = {
   app: ["info", "setCompact", "getLaunchAtLogin", "setLaunchAtLogin", "openLogs", "openExternal", "copy", "saveFile", "storage", "clearTemp", "reportProblem"],
   auth: ["state", "login", "logout", "onChange"],
@@ -32,6 +32,7 @@ export const TED_SURFACE = {
   scheduled: ["list", "save", "remove", "onDue"],
   updates: ["state", "check", "setAuto", "download", "install", "onChange"],
   window: ["bubble", "miniChat", "restore", "state", "onMode"], // 0.1.6 „Балонче“ (§22)
+  chatgpt: ["open", "setBounds", "reload", "openInBrowser", "close", "clipboardImage", "onState"], // 0.1.7 „ChatGPT панел“ (§23)
 };
 
 // null when the program runs normally.
@@ -133,7 +134,7 @@ async function freePort() {
 const sorted = (o) => Object.fromEntries(Object.keys(o).sort().map((k) => [k, [...o[k]].sort()]));
 
 // Runs every check and returns the report. Never throws: a crash becomes a failed check.
-export async function runSmoke({ win, appUrl, csp, metaCsp, appFetch, backendFetch, createHttp, shell, external, windowCount, bubbleOpen, info, shot }) {
+export async function runSmoke({ win, appUrl, csp, metaCsp, appFetch, backendFetch, createHttp, shell, external, windowCount, bubbleOpen, panelMade, info, shot }) {
   const t0 = Date.now();
   const checks = [];
   const consoleErrors = [];
@@ -214,6 +215,8 @@ export async function runSmoke({ win, appUrl, csp, metaCsp, appFetch, backendFet
     check("renderer made no external requests", external.length === 0, external);
     // „Балонче“ (0.1.6): the bubble window is made only when the employee asks for it – never by a smoke run.
     check("no bubble window was opened (only the main window exists)", windowCount() === 1 && !(bubbleOpen && bubbleOpen()), { windows: windowCount() });
+    // „ChatGPT панел“ (0.1.7): the panel is made only on the employee's click – a smoke run never opens it or loads chatgpt.com.
+    check("the ChatGPT panel was not opened (no view, nothing loaded from chatgpt.com)", !(panelMade && panelMade()) && !external.some((u) => /chatgpt\.com|openai\.com/i.test(u)), { made: panelMade ? panelMade() : 0 });
     // Automatic updates never run in a smoke test (electron/updater.js: disabled with --smoke-test).
     check("updater is off in the smoke test", info.updater === "off", info.updater);
 

@@ -7,6 +7,10 @@ signature here without updating every side.
 - `electron/realgpt/**` – "Real GPT" module (MIT, local only, Sign in with ChatGPT).
 - `src/**` – renderer (React 18 + Vite). No network, no Node. Talks only to `window.ted`.
 
+Network rule: only MAIN talks to the network, and only to allowlisted hosts (§1, §10.1, §14). The ONE documented exception
+(0.1.7, §23): the „ChatGPT панел“ – the official chatgpt.com in a WebContentsView of its own sandboxed, persistent partition
+(no preload, no IPC, no app files, no CRM or OpenAI token), whose page loads what chatgpt.com loads.
+
 Runtime: Electron 45, ESM in main (`"type":"module"`), sandboxed CommonJS preload (`electron/preload.cjs`).
 The renderer is served from the custom scheme `app://ted/` (never `file://`). Every response carries the CSP
 `protocol.js CSP`; `index.html` carries `META_CSP` (the same policy without `frame-ancestors`, which a `<meta>`
@@ -114,7 +118,9 @@ ChatResult = {ok:true, text, transcript, actions:Action[], mode, model, modelNam
               email|null, listings|null, video|null, uiPanel|null, durationMs}
            | {ok:false, error, code:"quota"|"http"|"timeout"|"network"|"aborted"|"auth"|"invalid",
               status?, maybeExecuted:boolean}
-Action     = {raw, kind:"tool"|"info", tool?, label, ok:boolean, mutating:boolean}
+Action     = {raw, kind:"tool"|"info", tool?, label, ok:boolean, mutating:boolean, prompt?}
+             // prompt (0.1.7, §23): the picture prompt of an image tool when the server sends the action as an object
+             //   {tool, ok, input:{prompt}} (today's server sends strings – then the renderer takes the employee's question)
 RgStatus   = {connected:boolean, email?:string, planEnabled?:boolean}
 RgResult   = {ok:true, text, model, incomplete?:boolean, effortIgnored?:boolean}   // effort dropped by the route
            | {ok:false, error, code, text?}      // text = partial answer already streamed, if any
@@ -181,6 +187,16 @@ electron/realgpt/index.js  createRealGpt({http, secureStore, dataDir, openExtern
 electron/protocol.js       CSP, META_CSP, SCHEME, APP_URL, createAppHandler({root}), registerAppProtocol({protocol, root})
 electron/security.js       installSecurity({app, session, shell, log, devOrigin}) -> {openExternal(url), isApp(url)}
                            disableSpellChecker(session)   // languages [] first, then off: no dictionary downloads
+electron/security.js       (0.1.7) installSecurity({…, delegate}) – delegate {owns(contents), harden(contents)}: the panel's contents
+                           get the panel's rules instead of the app's (§23)
+electron/chatgpt-panel.js  (0.1.7, §23) createChatGptPanel({WebContentsView, BrowserWindow, fromPartition, getWindow, windowFor, Menu,
+                             clipboard, nativeImage, openExternal, owner, userAgent, locale, platform, packaged, documentsDir, emit,
+                             log, onShortcut, now, setTimer, writeFile}) ->
+                             {owns, harden, open({url}), setBounds(rect), close(), reload(), openInBrowser({blocked}?),
+                              setWindowMode(mode), detach(), clipboardImage(), state(), created(), children()}
+                           pageUrl, frameUrlAllowed, popupKind, panelPartition, panelWebPreferences, panelPermission, cleanBounds,
+                           bootstrapUrl, readClipboardImage, chromeUserAgent, acceptLanguages, clientHints, withClientHints,
+                           childShape, downloadSource, downloadAllowed
 electron/smoke.js          parseSmokeArgs(argv), prepareSmoke(app, smoke), recordingShell(), guardRendererRequests(webRequest),
                            runSmoke({...}) -> report, writeSmokeReport(smoke, report) -> exit code, TED_SURFACE (§2 keys)
 
@@ -223,7 +239,8 @@ and `<meta>`, eval blocked, `window.ted` has exactly the §2 keys (all functions
 the system browser, navigation to https://example.com blocked, no external renderer requests, and through the
 production transport against a local 127.0.0.1 echo server: no Origin/Referer, body/Content-Type/User-Agent as sent,
 no cookies, timeout -> `timeout`, refused -> `network` with `sent:false`, foreign host -> `host`; no renderer console
-errors. Exit 0 when every check passes, else 1 (also after 90 s). It never contacts production, Supabase or OpenAI.
+errors; 0.1.7: no ChatGPT panel view was made and nothing was loaded from chatgpt.com/openai.com. Exit 0 when every check
+passes, else 1 (also after 90 s). It never contacts production, Supabase or OpenAI.
 Linux: Chromium refuses to start sandboxed children as root (`app.enableSandbox()` ignores `--no-sandbox` for them),
 so run it as a normal user.
 
@@ -1243,7 +1260,8 @@ table with the real links, „Снимки“ galleries whose addresses come fro
 chip; „изтегли“ → fetch_image FileCards + the same photos inline from the store; „чужда“ → a picture NOT from a tool
 result (chip); `ted.browse.image` draws a test picture and is recorded in `calls.browseImage`), `agentFail=tools_unsupported|limit`, `upd=disabled|none|available|downloading|ready|error`
 (default `disabled`), `lib=1` (3 library items: image, pdf, docx – all labelled „Тест“), `sched=1` (2 tasks, one missed),
-`video=ok|noengine` (default `ok`), `browse=0`, `chats=<n>` (n saved chats „Чат номер 1…n“; chats 1–2 the least
+`video=ok|noengine` (default `ok`), `browse=0`, 0.1.7 (§23): `clip=1|big` (the fake clipboard holds a test picture / one over
+8 MB), `chats=<n>` (n saved chats „Чат номер 1…n“; chats 1–2 the least
 recently active although created last – checks the order of „Вижте всички…“), 0.1.5: `long=<n>` (two saved chats „Дълъг
 чат А/Б“ with n question/answer pairs, Markdown answers with a table – the speed checks). 0.1.5 agent phrases: „качи …
 имот“ (with a number: a card for properties.create → P-1042 → a card for images.download with the attached photos →
@@ -1357,7 +1375,7 @@ names; no network.
 | Effort / Instant / Thinking | Усилие: Стандартно, Мигновено, Ниско, Средно, Високо, Много високо; „+ → Мислене“ | Real GPT only; an unsupported level is dropped with a note |
 | + Add photos & files | any file ≤ 20 MB, 10 per message (Real GPT); server engine: images/PDF + local text of Word/Excel/CSV/TXT | no audio/video input to the model (OpenAI route) |
 | Recent files | „Последни файлове ›“ from the Library | – |
-| Create image (gpt-image) | Real GPT (0.1.5): „Отвори в ChatGPT“ card with the exact prompt – the picture is made in the ChatGPT app with the employee's plan. Ted server engine: images.generate (Gemini; GPT Image 2 / FLUX through Vercel AI Gateway when the free quota is used up) | gpt-image is not given to external programs; Real GPT uses no other AI and never claims it made a picture |
+| Create image (gpt-image) | Real GPT (0.1.5): „Отвори в ChatGPT“ card with the exact prompt – the picture is made in ChatGPT with the employee's plan, from 0.1.7 in the ChatGPT panel inside Ted („📋 Добави снимката в чата“, §23). Ted server engine: images.generate (Gemini; GPT Image 2 / FLUX through Vercel AI Gateway when the free quota is used up); a failed one -> the card „Направи снимката в ChatGPT“ | gpt-image is not given to external programs; Real GPT uses no other AI and never claims it made a picture |
 | Web search / browsing | local browsing from your PC: DuckDuckGo results + read_page (text, phones, e-mails, prices, photos); listings as a table with the real links and photos inline (0.1.5); when DuckDuckGo refuses, the listing sites' own pages are read directly; Ted (server) uses Google grounding | Facebook/Instagram need a login and are not read; search may be rate-limited and says so; no server search fallback in Real GPT |
 | Deep research | „Задълбочено проучване“: Работа limits, many sites, findings with links | stops at the limit and says so |
 | Canvas | Canvas: model edits as new versions, „Преглед“ (Markdown + sanitised SVG charts), export DOCX/PDF | documents only, no code canvas |
@@ -1580,3 +1598,203 @@ click, a slower double click; the mini chat fresh from the bubble: a click on �
 after the guard sends at once; the header is no drag region meanwhile and a press there, a lost press's release and a
 click before the `mini` push are the double click; a touch double tap released after the guard sends nothing). The smoke test keeps checking the exact surface (now with `window`) and that no bubble
 window was opened.
+
+
+## 23. „ChatGPT панел“ – chatgpt.com inside Ted (0.1.7)
+
+Why: OpenAI gives image generation to no external program on the Sign-in-with-ChatGPT route (§9.6), and Ted's server
+(images.generate: Gemini, then Vercel AI Gateway) can run out of its free quota and credits. The owner pays for ChatGPT and
+wants pictures made with HIS plan, but inside Ted. Decision (owner): an in-app ChatGPT panel. Version after this work:
+`0.1.7` (bumped by the integrator).
+
+**Layout (renderer, `src/components/ChatGptPanel.jsx`, styles in `layout.css`)**: a side panel in `.body` next to `.center`,
+exactly like Canvas (same width `min(50%, 760px)` – Canvas has no width handle, so neither has the panel –, sheet and gold
+edge). Header in our styling: „ChatGPT“ (+ „вашият ChatGPT план“ when there is room), **„📋 Добави снимката в чата“**
+(`chatgpt-add`, `.b.wine`), ↻ (`chatgpt-reload`), „Отвори в браузъра“ (`chatgpt-browser`), × (`chatgpt-close`); a note row
+while a sign-in provider's page is shown (`chatgpt-host`) or when MAIN refused an address (`chatgpt-blocked`: „„host“ не се
+отваря в панела“ + – when MAIN keeps a refused https address for it – the button „Отвори в браузъра“
+(`chatgpt-blocked-open` → `openInBrowser({blocked:true})`); „…отворих го във вашия браузър“ after an open; a refused
+download: „Изтеглянето от „host“ е спряно…“); the placeholder `.cgp-view` (`chatgpt-view`) and a footer hint. Narrow
+width (≤ 899 px, as Canvas – e.g. Ted snapped to half a 1366–1600 px screen, and the phone layout): the panel takes the
+whole content area under the title bar, „Назад“ (`chatgpt-back`) instead of ×, the current toast is shown in its footer
+(`chatgpt-notice`; a floating one would lie under the page) and a successful „Добави в чата“ returns to the chat. Every
+narrow behaviour follows the panel's own CSS breakpoint (`lib/panel.js PANEL_NARROW` = `(max-width:899px)`,
+`ChatGptPanel.jsx usePanelNarrow`), never the phone breakpoint (≤ 640 px) – at 641–899 px nothing may wait behind the page. While the
+panel is on screen Canvas stays mounted but hidden (`display:none`, its unsaved typing kept); opening Canvas closes the
+panel. A toast on the desktop is centred in the chat column. Not in the bubble or the mini chat (§22): not rendered there,
+MAIN hides the view (`setWindowMode`), the normal window brings it back; a card clicked in the mini chat restores the
+normal window first.
+
+**The page is MAIN's native view**: the renderer reports the placeholder's rectangle (`getBoundingClientRect`, CSS px of
+the main window, whole pixels) on every change – ResizeObserver (the placeholder, the document), window resize, a
+MutationObserver of the document (class/style/hidden/children: a menu or dialog appears) and every 0,5 s – and only when it
+changed. `visible:false` while an overlay overlaps it (`src/lib/panel.js OVERLAYS`: `.back` (every dialog, Settings, the
+consent and confirmation modals), `.pop` (menus), `.lb` (picture preview), `.quick-back`, `.voice`, `.scrim`, `.side.open`,
+`.cv-menu`): a native view is always above the page. A menu beside the panel (the „+“ menu at the composer) does not hide it.
+An approval card arriving while the panel covers the thread (narrow layout, ≤ 899 px) closes the panel with a toast. MAIN multiplies the
+rectangle by the main window's zoom factor, never places it over the 36 px title bar, and hides the view when it is under
+40 px, the panel is closed or the window mode is not `normal`.
+
+**Bridge** (`window.ted`, same rules as §2; MAIN builds every address and reads the clipboard itself):
+
+```
+ted.chatgpt.open({prompt} | {bare:true} | {}) -> {ok:true} | {ok:false, error, code:"invalid"|"too_long"|"signed_out"|"unavailable"}
+                                    // {prompt}: https://chatgpt.com/?q=<prompt> exactly as chatgpt-link.js builds it (1–4000
+                                    //   chars, link ≤ 8000 – else "too_long"); {bare:true}: https://chatgpt.com/; {}: as it was
+ted.chatgpt.setBounds({x, y, width, height, visible}) -> {ok:true} | {ok:false, code:"invalid"}   // numbers + boolean only
+ted.chatgpt.reload()                -> {ok:true} | {ok:false, code:"closed"}
+ted.chatgpt.openInBrowser({blocked:true}?) -> {ok:true} | {ok:false, error, code?:"none"|"invalid"}
+                                    // (): the panel's chatgpt.com page without ?q=/prompt, else chatgpt.com;
+                                    // {blocked:true}: the https address of the note (MAIN keeps it, the renderer never
+                                    //   sees it), once, only on that click; nothing kept -> "none"
+ted.chatgpt.close()                 -> {ok:true}                        // hides and detaches the view; the page is kept for the next open
+ted.chatgpt.clipboardImage()        -> {ok:true, name, mime:"image/png", size, width, height, data:ArrayBuffer} | {ok:false, error, code:"empty"|"too_large"}
+ted.chatgpt.onState(cb(PanelState)) -> unsubscribe                     // push ted:chatgpt.state
+PanelState = {open, visible, loading, host:string|null, error:string|null,
+              blocked:{host, external:boolean, canOpen:boolean, download?:true}|null}
+              // external: MAIN opened it in the browser; canOpen: the note's button would open it; download: a refused download
+```
+
+Subscriptions in preload: `chatgpt.onState` (channel `ted:chatgpt.state`).
+
+IPC (`ipc.js`): `ted:chatgpt.open` validates with `chatgpt-link.js panelLink` (the `openInChatGpt` limits; a lone surrogate =
+invalid) and hands only the built address to the controller; `setBounds` passes only x/y/width/height/visible (≤ 512 bytes);
+`clipboardImage` copies the answer field by field (data must be an ArrayBuffer of 1 byte – 8 MB); `openInBrowser`
+accepts nothing, `{}` or `{blocked:boolean}` only (never an address; anything else = invalid, before the controller). Every channel requires the
+app's own top frame in the main window (`isTrusted` + `isMainSender`, §22) – the ChatGPT page and its pop-ups have no preload
+and could not call them anyway. Without a controller every channel answers `unavailable`.
+
+**MAIN (`electron/chatgpt-panel.js`, wired in `main.js`)**:
+- **Partition**: `persist:chatgpt-<first 16 hex of sha256(CRM user id)>` – persistent (the ChatGPT sign-in is remembered), one
+  per CRM user (like the Real GPT connection, §2), never the app's default session, `ted-backend`, `ted-browse` or
+  `electron-updater`. A CRM sign-in/sign-out (`onUserChange`) destroys the view and its pop-ups (`detach`); the partition
+  stays on disk for that employee. Spell-checker off (no dictionary downloads).
+- **View**: `new WebContentsView({webPreferences})` with NO `preload` key, `contextIsolation`, `sandbox`, no `nodeIntegration`
+  (also workers/sub-frames), `webSecurity`, no insecure content, `webviewTag:false`, no navigate-on-drop, no spellcheck,
+  `safeDialogs`, `devTools: !packaged`. Made lazily on the first `open` (never at start, never in a smoke run), attached with
+  `win.contentView.addChildView`, invisible until a rectangle arrives; destroyed with the main window.
+- **User agent**: `chromeUserAgent(app.userAgentFallback)` – the Chromium UA without „Electron/…“ and the program's tokens,
+  with Chrome's reduced version `Chrome/<major>.0.0.0` (User-Agent Reduction – desktop Chrome never sends the full build;
+  Google refuses sign-in from embedded agents otherwise), on the session and the view. The session's Accept-Language is
+  `acceptLanguages(app.getLocale())` (`bg` → `bg`, `en-US` → `en-US,en`, sent as `en-US,en;q=0.9` – Electron adds the
+  q-values itself; a list with q-values gave `bg;q=0.9;q=0.9` on the wire): the same locale Electron gives
+  `navigator.languages`, so the page's language follows the Windows language like in a browser. Every https request of
+  the partition gets the low-entropy client hints Chrome sends (`webRequest.onBeforeSendHeaders`, never overwriting one
+  Chromium sent): `sec-ch-ua` with the brands the page's JS sees in `navigator.userAgentData` (Chromium's GREASE order:
+  `"Not:A-Brand";v="8", "Chromium";v="156"` for Electron 45), `sec-ch-ua-mobile: ?0`, `sec-ch-ua-platform: "Windows"`
+  (`clientHints`). Still different from Google Chrome: no „Google Chrome“ brand and an empty `window.chrome` (no script is
+  ever put into the page) – if Google refuses, Apple / e-mail sign-in or the browser remain (README).
+- **Top-level pages** (`pageUrl`, every `will-navigate` and main-frame `will-redirect` of every panel contents): https only,
+  no user/password, no port, host `chatgpt.com` / `openai.com` or a subdomain of them, or exactly one of `SIGNIN_HOSTS`:
+  `accounts.google.com`, `accounts.google.bg`, `accounts.youtube.com` (Google sign-in and its cookie hops), `appleid.apple.com`,
+  `idmsa.apple.com`, `login.microsoftonline.com`, `login.live.com`, `login.microsoft.com`, `account.live.com`. The WHATWG
+  parser decides the host (look-alikes, `chatgpt.com.evil…`, `…@evil`, `\@`, `%2e`, trailing dot, IDN homographs → refused).
+  A refused navigation goes to the system browser (security.js `openExternal`, https only, never an address with a user
+  part, at most one per 1,5 s) ONLY when it is the employee's own: a real click or key in a panel page (`input-event`
+  mouseDown/mouseUp/keyDown/tap – script, timers and `executeJavaScript` give none) within `GESTURE_MS` = 2 s, one
+  address per click, and the navigation's `initiator` is a top frame on an allowed page (not a frame of another site).
+  Otherwise – a script, a timer, a third-party frame, a redirect – nothing leaves: the note names the host and, for an
+  https address, offers „Отвори в браузъра“ (MAIN keeps that address in `pending`, never in the state). The note (and the
+  kept address) goes away on the next main-frame navigation of the view (`did-navigate`, or `did-navigate-in-page` to
+  another address than the one it appeared on), ↻, ×, a new open or a CRM change. Anything else → dropped.
+  Frames inside a page (`will-frame-navigate`, sub-frame redirects): https (no user part), `about:blank`, `about:srcdoc`,
+  `blob:`, `data:` – Cloudflare's check, sign-in and payment widgets, like the page's pictures and scripts; never `file:`,
+  `http:`, `chrome:`, `app:`. `<webview>` never.
+- **Pop-ups** (`setWindowOpenHandler`): `about:blank` and https pages of `POPUP_HOSTS` (= `SIGNIN_HOSTS` + `auth.openai.com`) open
+  as a sign-in window: `{action:"allow", overrideBrowserWindowOptions:{webPreferences}, createWindow}` – `createWindow`
+  (needs the injected `BrowserWindow`; without it nothing opens) wraps Chromium's new contents in a BrowserWindow of the
+  FIXED shape `childShape` (520×720, centred, child of the main window, frame, opaque, not always on top, in the taskbar,
+  closable/movable/focusable, no kiosk/fullscreen; the page's `window.open` features – frame=no, transparent, alwaysOnTop,
+  x/y, opacity, focusable=no … – are never used), with the panel's hardened preferences, no preload, in the panel's
+  partition. At most `MAX_CHILDREN` = 2 at a time; none while the panel is closed. A blank one (`""`/`about:blank`) is
+  created hidden and shown only when its main frame reaches an allowed page (`did-navigate`); sent anywhere else (a
+  refused navigation or redirect) or still blank after `BLANK_CHILD_MS` = 15 s it is destroyed – so a document.write
+  into it is never seen. Sign-in windows hide with the panel in the bubble / mini chat, come back with it, close themselves
+  when the sign-in is done and are destroyed by × (`close`) and `detach`. Every other https pop-up follows the link rule
+  above, with the opener named by `details.referrer.url` (it must be an allowed page – a third-party frame or a
+  noreferrer pop-up gets the note only); a form (POST) is never re-sent as a plain address (note without the button); the
+  rest → nothing.
+- **chatgpt.com/?q=**: loaded as a navigation from a blank local page (`bootstrapUrl`: a `data:` page with only
+  `<meta name="referrer" content="no-referrer">` and `<meta http-equiv="refresh" content="0;url=<the exact address>">`), i.e. the
+  way a link from another site arrives (`Sec-Fetch-Site: cross-site`): chatgpt.com then only fills the prompt in and does not
+  send it (OpenAI's own rule since 2025 – verify on the owner's PC with the real site). Every other address is loaded
+  directly. No auto-sending, no script in the page, nothing read from it.
+- **Permissions** (request + check handler of the partition): only `clipboard-sanitized-write` (ChatGPT's copy button) for an
+  allowed page; everything else refused (media, notifications, geolocation, clipboard-read, fullscreen – it would stretch the
+  main window around the view –, openExternal, HID/serial/USB, local network …); device permission handler → false.
+- **Downloads** (`will-download` of the partition): only from `DOWNLOAD_DOMAINS` (`chatgpt.com`, `openai.com`,
+  `oaiusercontent.com` and their subdomains; https without user part or port, or a `blob:` made by such a page), only with
+  the employee's click (`item.hasUserGesture()`) or the panel's own „Запази изображението като…“ (which may also save a
+  `data:` picture), only an allowlist of types (`DOWNLOADABLE`: png, jpg/jpeg, webp, gif, pdf, docx, xlsx, pptx, csv, txt,
+  md, json, mp3, mp4, wav) that neither files.js `RUNNABLE` (the app's Windows list: disk images, macro documents, chm, xll,
+  settingcontent-ms …) nor the panel's own list matches. Refused → `chatgpt_panel.download_refused {why:"source"|"gesture"|
+  "type"|"saved_type"}` and the note. Otherwise only the save dialog (`setSaveDialogOptions`: „Запази файла от <host>“,
+  Documents folder, a filter of the file's own type, no `setSavePath`) – nothing is written without the employee's choice;
+  a path whose type the employee changed to a refused one is cancelled (`updated`); a finished download on Windows gets
+  `<file>:Zone.Identifier` = files.js `MOTW` + `HostUrl=<origin>/` (blob/data: `about:internet`) – SmartScreen and Office
+  Protected View treat it as downloaded, like the app's own exports.
+- **Right-click menu** of the page (Electron has none): „Копирай изображението“ (`copyImageAt`), „Запази изображението
+  като…“ (`downloadURL` of an https/blob/data picture → the download rules above → the save dialog), Изрежи/Копирай/Постави/Избери всичко in a field,
+  „Копирай“ for a selection, „Отвори връзката в браузъра“ / „Копирай адреса на връзката“ for an https link.
+- **Keys**: Ctrl+Shift+B in the page = „Балонче“ (§22).
+- **Clipboard** (`readClipboardImage`, only on `ted:chatgpt.clipboardImage`): Electron 45's `clipboard.read()` – the first
+  item with `image/png` (or JPEG/WEBP/GIF/BMP, turned into PNG with `nativeImage`; an entry over 64 MB is not read); older
+  Electron `clipboard.readImage()`. Empty → `empty`; over 50 megapixels or a PNG over 8 MB → `too_large`; else the PNG bytes
+  as an ArrayBuffer named „Снимка от ChatGPT <дата> <час>.png“.
+  The renderer turns it into a `File` (`lib/panel.js clipFile`) and adds it with the same `attach()` as a picked or dropped
+  file (lib/files.js limits per engine: ≤ 1400 px JPEG for the model, 3 files / 3,8 MB to the server, 10 files / 60 MB with
+  Real GPT). No network. Ctrl+V of a picture into the composer uses the same path (Composer `onPaste`).
+- **Security exception, stated once**: the panel's traffic is the one documented exception to the MAIN-only allowlist (it is
+  the official site in its own sandboxed partition). It carries no Ted token and no Ted cookie; the app's own webContents
+  keep the app-only rules (security.js: a main window can never navigate to chatgpt.com); security.js gives the panel's rules
+  to every web contents of a panel partition (`delegate.owns` by session / storage path) at creation – a failing delegate
+  leaves the app's rules on it.
+
+**Opening it** (only on the employee's click; nothing opens by itself):
+- (a) `OpenInChatGptCard` (Real GPT `open_in_chatgpt`, §9.6): the main button „Отвори в ChatGPT“ (`chatgpt-open`) →
+  `ted.chatgpt.open({prompt})` (too long for a link: the prompt is copied and `{bare:true}`); „Отвори в браузъра“
+  (`chatgpt-open-browser`, a secondary link) keeps the 0.1.5 way (`ted.realgpt.openInChatGpt`).
+- (b) Ted server engine: an answer whose image tool (`images.generate|edit|create`) is `ok:false` gets
+  `m.chatgpt = [{id, kind:"image", prompt, from:"server"}]` (`lib/panel.js serverImageHandoff`; prompt = `Action.prompt` when
+  the server sends one, else the employee's question without the „Създай изображение: “ prefix) → the same card titled
+  „Направи снимката в ChatGPT“ (`data-from="server"`), persisted with the answer.
+- (c) „+ → Създай изображение“ works as before in both engines; when the engine cannot make the picture – Real GPT text only,
+  or a Real GPT answer to the image hint without any card of its own – the answer gets the card with the question
+  (`localImageHandoff`, `from:"local"`). The „+“ item's subtitle with Real GPT: „в панела ChatGPT с вашия план – Тед подготвя
+  заявката“.
+
+**Mock** (`src/mock/bridge.mock.js`): `ted.chatgpt.*` drive a FAKE panel – `#mock-chatgpt-view` (`data-testid="mock-chatgpt-view"`),
+a placeholder page drawn with the DOM above everything over the reported rectangle (like the native view; hidden for
+`visible:false`, a closed panel or the bubble/mini mode) with the filled-in prompt (`mock-chatgpt-prompt`), a fake „Изпрати“
+(`mock-chatgpt-send`) that draws a test picture and its „Копирай изображението“ (`mock-chatgpt-copy`) that fills the fake
+clipboard; no network. `?clip=1|big`. `__tedMock.panelBlocked({host, external, canOpen, download?} | null)` = MAIN's note;
+`openInBrowser({blocked:true})` is recorded in `calls.chatgptBrowserBlocked`. Server chat: a message starting with „Създай изображение“ → `images.generate ✗` (free
+limit / no credits, test). Recorded: `calls.chatgptOpen` ({prompt, url} as MAIN builds it), `chatgptBounds`, `chatgptClose`,
+`chatgptReload`, `chatgptBrowser`, `chatgptClip`; `__tedMock.panel()`, `__tedMock.setClip(v)`.
+
+**Seams**: TED_SURFACE (`electron/smoke.js`) gains `chatgpt`; `ipc.js` 77 channels (+ 6); push `ted:chatgpt.state` from
+`main.js`; `contract-seams.test.js` reads §2 + §8 + §22 + §23. The smoke test checks that no panel view was made and nothing
+was loaded from chatgpt.com/openai.com.
+
+**Tests**: `tests/unit/chatgpt-panel.test.js` (partition per user, preferences without preload, UA with the reduced
+version, client hints, Accept-Language, the address table – userinfo, ports, look-alikes, `javascript:`/`data:`/`file:`,
+IDN, trailing dot –, frames, the system browser only after a click on an allowed page (scripts, late clicks, third-party
+frames, noreferrer, POST), the note and its button, the note clearing, sign-in windows of the fixed shape (the page's
+features ignored), at most two, blank ones hidden until an allowed page / destroyed when sent elsewhere or left blank,
+closed with ×, hidden in the bubble, redirects, permissions, downloads (source, click, type allowlist + files.js RUNNABLE,
+dialog title and filter, a changed type cancelled, Mark-of-the-Web on Windows only), the right-click menu, Ctrl+Shift+B, bounds × zoom and the
+title bar, window modes, close/detach, `?q=` through the blank page, `openInBrowser` without the prompt, state, `owns`, the
+security.js delegate, clipboard limits), `tests/unit/chatgpt-panel-ipc.test.js` (exact addresses, refusals before the
+controller, field-by-field answers, every sender but the main window's app page refused), `tests/unit/renderer-panel.test.js`
+(the overlay rule, the rectangle, the two cards – no server card when a retry of the image tool succeeded –, the narrow
+breakpoint), `tests/e2e/chatgpt-panel.spec.js` (the card opens the panel with the
+prompt filled in and not sent, bounds follow resize and the sidebar, the failed server picture card, „Добави снимката в
+чата“ – empty, too large, added like a file and sent –, Ctrl+V, overlays hide it / a menu beside it does not, phone
+400×860, 800×820 (narrow: „Назад“, the footer instead of a toast, back to the chat after a picture, an approval closes
+it), the note with „Отвори в браузъра“ and the download note, bubble/mini, Real GPT text only, an approval in the phone
+layout, Canvas), the updated `agent.spec.js` /
+`review-015.spec.js` card tests; the real Electron run against a local fake https chatgpt.com (never the real one): also
+the fixed shape of sign-in windows, a blank pop-up with spoofing features + document.write staying invisible and going
+away, the cap of two, a third-party frame's pop-ups and download, scripted vs clicked links, the note's button, refused and
+allowed downloads with the dialog's title, the client hints against `navigator.userAgentData` and Accept-Language against
+`navigator.languages`.

@@ -61,6 +61,7 @@ const el = vi.hoisted(() => {
       getVersion: () => "0.1.0",
       getPath: (name) => (name === "userData" ? state.userData : state.userData + "-" + name),
       getAppPath: () => state.appPath,
+      getLocale: () => "bg", // 0.1.7: the ChatGPT panel's Accept-Language follows the program's locale
       getLoginItemSettings: () => ({ openAtLogin: false }),
       setLoginItemSettings: () => {},
       userAgentFallback: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ted-desktop/0.1.0 Chrome/156.0.0.0 Electron/45.3.3 Safari/537.36",
@@ -69,6 +70,8 @@ const el = vi.hoisted(() => {
     Notification: class { static isSupported() { return false; } on() {} show() {} },
     nativeImage: { createFromBuffer: () => ({ isEmpty: () => true }) },
     BrowserWindow,
+    // 0.1.7 „ChatGPT панел“: the view is made only when the employee opens the panel (never at start).
+    WebContentsView: class { constructor(options) { state.calls.push(["webContentsView", options]); this.webContents = { on() {}, setWindowOpenHandler() {}, loadURL: async () => {}, isDestroyed: () => false }; } setVisible() {} setBounds() {} setBackgroundColor() {} },
     Menu: { setApplicationMenu: (menu) => note("menu", menu), buildFromTemplate: () => ({ popup: () => {} }) },
     clipboard: { writeText: (text) => note("clipboard", text) },
     dialog: {
@@ -221,12 +224,12 @@ describe("main.js", () => {
     expect((await s.protocolHandlers.app(new Request("app://ted/..%2F..%2Fpackage.json"))).status).toBe(403);
   });
 
-  it("registers all 71 IPC channels + the 7 bubble channels and answers the app's own page only", async () => {
+  it("registers all 77 IPC channels + the 7 bubble channels and answers the app's own page only", async () => {
     const s = await boot();
-    // CONTRACT §2 + §8 + §22: 79 window.ted functions minus 8 subscriptions (0.1.5: + browse.image, + 4 projects; 0.1.6: + 4 window)
-    expect([...s.ipc.keys()].filter((c) => c.startsWith("ted:"))).toHaveLength(71);
+    // CONTRACT §2 + §8 + §22 + §23: 86 window.ted functions minus 9 subscriptions (0.1.5: + browse.image, + 4 projects; 0.1.6: + 4 window; 0.1.7: + 6 chatgpt)
+    expect([...s.ipc.keys()].filter((c) => c.startsWith("ted:"))).toHaveLength(77);
     expect([...s.ipc.keys()].filter((c) => c.startsWith("ted-bubble:")).sort()).toEqual(["ted-bubble:click", "ted-bubble:dragEnd", "ted-bubble:dragMove", "ted-bubble:dragStart", "ted-bubble:menu", "ted-bubble:openNormal", "ted-bubble:ready"]);
-    expect(s.ipc.size).toBe(78);
+    expect(s.ipc.size).toBe(84);
     expect(await s.ipc.get("ted:app.info")(fromApp)).toEqual({ version: "0.1.0", platform: process.platform, packaged: true });
     expect(await s.ipc.get("ted:auth.state")(fromApp)).toEqual({ status: "signedOut" });
     expect(await s.ipc.get("ted:store.loadChats")(fromApp)).toEqual({ chats: [] });

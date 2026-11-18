@@ -29,7 +29,9 @@ export function disableSpellChecker(session) {
   } catch { /* not supported on this platform: nothing to download either */ }
 }
 
-export function installSecurity({ app, session, shell, log, devOrigin }) {
+// delegate (0.1.7, electron/chatgpt-panel.js): {owns(contents), harden(contents)} – the web contents of the ChatGPT
+// panel's own partition (the view and its sign-in pop-ups) get the panel's rules instead of the app's (app://ted only).
+export function installSecurity({ app, session, shell, log, devOrigin, delegate }) {
   const isApp = createOriginCheck(devOrigin);
 
   async function openExternal(value) {
@@ -44,6 +46,11 @@ export function installSecurity({ app, session, shell, log, devOrigin }) {
   }
 
   app.on("web-contents-created", (_event, contents) => {
+    let panel = false;
+    try { panel = !!(delegate && delegate.owns(contents)); } catch { panel = false; }
+    if (panel) {
+      try { delegate.harden(contents); return; } catch (e) { if (log) log.error("security.panel_rules_failed", { message: String((e && e.message) || e) }); }
+    } // a failure leaves the app's own rules (app://ted only) on it
     const guard = (event, url) => {
       const target = (event && event.url) || url;
       if (!isApp(target)) {

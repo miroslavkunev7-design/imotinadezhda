@@ -132,4 +132,14 @@ contextBridge.exposeInMainWorld("ted", {
     state: () => invoke("ted:window.state"),
     onMode: (callback) => subscribe("ted:window.mode", callback),
   },
+  // 0.1.7 „ChatGPT панел“ (docs/CONTRACT.md §23): MAIN builds every address and reads the clipboard itself.
+  chatgpt: {
+    open: (args) => invoke("ted:chatgpt.open", args),
+    setBounds: (rect) => invoke("ted:chatgpt.setBounds", rect),
+    reload: () => invoke("ted:chatgpt.reload"),
+    openInBrowser: (args) => invoke("ted:chatgpt.openInBrowser", args),
+    close: () => invoke("ted:chatgpt.close"),
+    clipboardImage: () => invoke("ted:chatgpt.clipboardImage"),
+    onState: (callback) => subscribe("ted:chatgpt.state", callback),
+  },
 });
