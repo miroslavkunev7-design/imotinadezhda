@@ -84,9 +84,9 @@
           (fp ? "Свързана: " + esc(fp.name) : fbCfg && fbCfg.appId ? "Не е свързана – натиснете „Свържи Facebook“" : "За автоматично публикуване е нужно Facebook приложение (App ID) – пишете на администратора") + "</small></span>" +
           (fbDone ? '<a class="st ok" href="' + esc(fbDone.link || "#") + '" target="_blank" rel="noopener">Публикуван</a>' : fp && fbCfg.via === "n8n" ? '<span class="st no">Не е</span>' : fp ? '<button type="button" class="ndp-b alt" data-fbx>Прекъсни</button>' : '<button type="button" class="ndp-b fb" data-fbc' + (fbCfg && fbCfg.appId ? "" : " disabled") + ">Свържи Facebook</button>") + "</div>" +
         PORTALS.map(function (x, i) {
-          var d = p.portals[x[0]];
+          var draft = p.portals[x[0]], d = draft && draft.link ? draft : null;
           var con = CONN && CONN[x[0]];
-          return '<div class="ndp-r' + (d ? " on" : "") + (con ? " conn" : "") + '" style="--ph:url(' + U.img("nd/ph" + ("0" + ((i * 3) % 20 + 1)).slice(-2) + ".jpg") + ')"><input type="checkbox" data-pc="' + x[0] + '"' + (con && !d ? " checked" : "") + "><span><b>" + esc(x[1]) + "</b><small>" + (d ? "Публикувана на " + esc(U.bgDate(d.at)) : con ? "Свързан профил · при публикуване се отваря формата за нова обява с готовия текст" : "Не е свързан – натиснете „Свържи“, влезте в профила си и той остава свързан") + "</small></span>" +
+          return '<div class="ndp-r' + (d ? " on" : "") + (con ? " conn" : "") + '" style="--ph:url(' + U.img("nd/ph" + ("0" + ((i * 3) % 20 + 1)).slice(-2) + ".jpg") + ')"><input type="checkbox" data-pc="' + x[0] + '"' + (con && !d ? " checked" : "") + "><span><b>" + esc(x[1]) + "</b><small>" + (d ? "Публикувана на " + esc(U.bgDate(d.at)) : con ? "Достъп до формата · публикуването се потвърждава с линк към реалната обява" : "Отворете входа към портала, след публикуване добавете линк към обявата") + "</small></span>" +
             '<span class="ndp-ac">' + (con ? '<button type="button" class="ndp-b alt sm" data-pdx="' + x[0] + '">Изключи</button>' : '<button type="button" class="ndp-b sm" data-pcn="' + x[0] + '">Свържи</button>') + (d ? '<span class="st ok">Публикуван</span>' : '<span class="st no">Не е</span>') + "</span>" +
             '<div class="lk"><input type="url" data-pl="' + x[0] + '" placeholder="линк към обявата в ' + esc(x[1]) + '" value="' + esc((d && d.link) || "") + '"></div></div>';
         }).join("") + "</div>";
@@ -100,7 +100,7 @@
         ctx.body.addEventListener("click", function (e) {
           if (e.target.closest("[data-fbc]")) { e.preventDefault(); connectFb(function () { ctx.q("ndp-box").innerHTML = rowsHtml(); if (ctx.refit) ctx.refit(); }); }
           var cn = e.target.closest("[data-pcn]"), dx = e.target.closest("[data-pdx]");
-          if (cn) { e.preventDefault(); var k = cn.getAttribute("data-pcn"), px = PORTALS.filter(function (x) { return x[0] === k; })[0]; window.open(px[3] || px[2], "_blank", "noopener"); CONN[k] = { at: new Date().toISOString() }; saveConn(); ctx.q("ndp-box").innerHTML = rowsHtml(); if (ctx.refit) ctx.refit(); D.say("Влезте в профила си в " + px[1] + " – остава свързан"); return; }
+          if (cn) { e.preventDefault(); var k = cn.getAttribute("data-pcn"), px = PORTALS.filter(function (x) { return x[0] === k; })[0]; window.open(px[3] || px[2], "_blank", "noopener"); CONN[k] = { at: new Date().toISOString() }; saveConn(); ctx.q("ndp-box").innerHTML = rowsHtml(); if (ctx.refit) ctx.refit(); D.say("Отворен е входът за " + px[1] + " – въведете линк към публикуваната обява за потвърждение"); return; }
           if (dx) { e.preventDefault(); delete CONN[dx.getAttribute("data-pdx")]; saveConn(); ctx.q("ndp-box").innerHTML = rowsHtml(); if (ctx.refit) ctx.refit(); return; }
           if (e.target.closest("[data-fbx]")) { e.preventDefault(); fb({ action: "disconnect" }).then(function () { fbCfg.page = null; ctx.q("ndp-box").innerHTML = rowsHtml(); D.say("Facebook страницата е изключена"); }); }
         });
@@ -111,7 +111,7 @@
         var jobs = Promise.resolve(), text = adText(p), opened = 0;
         if (chk("site")) { var w = window.open("", "_blank"); jobs = jobs.then(function () { return h.publishSite ? h.publishSite() : null; }).then(function () { if (w) w.location = siteUrl(p); }, function (e) { if (w) w.close(); throw e; }); }
         if (chk("facebook")) jobs = jobs.then(function () { return fb({ action: "post", id: p.id }).then(function (r) { if (r.ok) { p.portals.facebook = { at: new Date().toISOString(), link: r.link }; D.say("Публикувано във Facebook (" + r.photos + " снимки)"); } else D.say(r.error || "Facebook: грешка"); }); });
-        PORTALS.forEach(function (x) { if (chk(x[0])) { opened++; try { navigator.clipboard.writeText(text); } catch (e) {} window.open(x[2], "_blank"); if (!p.portals[x[0]]) p.portals[x[0]] = { at: new Date().toISOString(), link: "" }; } });
+        PORTALS.forEach(function (x) { if (chk(x[0])) { opened++; try { navigator.clipboard.writeText(text); } catch (e) {} window.open(x[2], "_blank"); /* Opened external form is not confirmed publication. */ } });
         if (opened) D.say("Текстът на обявата е копиран – поставете го в отворените страници");
         return jobs.then(function () { return h.save ? h.save({ portals: p.portals }) : null; });
       } });

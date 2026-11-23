@@ -40,5 +40,15 @@
     for (var r in REGION) { var o = REGION[r] || {}; if ([].concat(o.towns || [], o.resorts || [], o.villages || []).indexOf(k) >= 0) return r; }
     return k;
   }
-  window.NDPlaces = { REGION: REGION, PLACES: PLACES, cities: Object.keys(PLACES), city: city, hood: hood, key: key, regionOf: regionOf };
+
+  /* Exact province+settlement matching; unknown distances remain unranked. */
+  var NOVI_PAZAR_VILLAGES=["Беджене","Войвода","Енево","Жилино","Зайчино ореше","Избул","Мировци","Памукчии","Писарево","Правенци","Преселка","Сечище","Стан","Стоян Михайловски","Тръница"];
+  function byProximity(names,slug){var d=window.REGION_KM||{},prefix=String(slug||"")+"|";return (names||[]).slice().sort(function(a,b){var da=Object.prototype.hasOwnProperty.call(d,prefix+a)?Number(d[prefix+a]):Infinity,db=Object.prototype.hasOwnProperty.call(d,prefix+b)?Number(d[prefix+b]):Infinity;return da-db||0;});}
+  function placeRegion(s){return ({shumen:"Шумен",varna:"Варна",burgas:"Бургас","novi-pazar":"Шумен"})[s]||"";}
+  function matchesSettlement(p,n,s){if(!p||key(p.place||p.city)!==key(n))return false;var r=key(p.region||regionOf(p.city));if(r==="нови пазар")r="шумен";return !!r&&r===key(placeRegion(s));}
+  function matchesCityQuarter(p,c,q){if(!p||key(p.city)!==key(c)||key(p.place||p.city)!==key(c))return false;return q==="Всички"||(key(p.hood)!==""&&key(p.hood)===key(q));}
+  function settlementFromRoute(r){var m=String(r||"").match(/^\/settlement\/(shumen|varna|burgas)\/(.+)$/);if(!m)return null;try{return{region:m[1],name:decodeURIComponent(m[2])};}catch(e){return null;}}
+  function placePrefix(n,r){var reg=placeRegion(r)||regionOf(r)||r,cat=REGION[reg]||{towns:[],resorts:[],villages:[]};if(cat.villages.indexOf(n)!==-1||NOVI_PAZAR_VILLAGES.indexOf(n)!==-1)return"с. ";if(cat.towns.indexOf(n)!==-1||PLACES[n])return"гр. ";return"н. м. ";}
+  function locationTitle(route,q,city){var s=settlementFromRoute(route);return s?placePrefix(s.name,s.region)+s.name+", област "+placeRegion(s.region):String(q||"Всички")+", гр. "+city;}
+  window.NDPlaces = { REGION: REGION, PLACES: PLACES, cities: Object.keys(PLACES), city: city, hood: hood, key: key, regionOf: regionOf, NOVI_PAZAR_VILLAGES: NOVI_PAZAR_VILLAGES, byProximity: byProximity, matchesSettlement: matchesSettlement, matchesCityQuarter: matchesCityQuarter, settlementFromRoute: settlementFromRoute, placePrefix: placePrefix, locationTitle: locationTitle };
 })();
