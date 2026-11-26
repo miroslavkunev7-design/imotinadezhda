@@ -57,7 +57,7 @@
     ".nda-x:hover{transform:rotate(90deg);box-shadow:inset 0 -2px 4px rgba(150,85,10,.25),inset 0 1px 2px #fff,0 0 18px rgba(255,214,150,.9)}.nda-gear:hover{box-shadow:inset 0 1px 1px rgba(255,255,255,.3),0 0 18px rgba(243,207,134,.8)}" +
     ".nda-menu{position:absolute;left:72px;top:80px;z-index:3;min-width:260px;max-width:calc(100% - 84px);padding:8px;border-radius:20px;border:1.5px solid transparent;background:linear-gradient(180deg,rgba(255,252,247,.97),rgba(251,238,224,.96)) padding-box,linear-gradient(140deg,#ffe9a3,#e3b25e 40%,#a12139) border-box;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 0 22px rgba(227,178,94,.5),0 18px 36px -10px rgba(40,4,12,.45);animation:ndaPop .22s ease-out}" +
     ".nda-menu[hidden]{display:none}.nda-menu .g{font:700 12px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#8a6a3a;padding:8px 12px 4px;text-transform:uppercase;letter-spacing:.04em}.nda-menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:12px;background:transparent;color:#4e0912;font:700 16px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;cursor:pointer}" +
-    ".nda-menu button small{display:block;font-weight:400;font-size:12.5px;color:#6b4a40;margin-top:2px}.nda-menu button:hover,.nda-case-i:hover{background:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(227,178,94,.45)}.nda-menu button.on{background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1px rgba(227,178,94,.7),0 0 10px rgba(255,214,150,.6)}" +
+    ".nda-menu button small{display:block;font-weight:400;font-size:12.5px;color:#6b4a40;margin-top:2px}.nda-menu button:hover,.nda-case-i:hover{background:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(227,178,94,.45)}.nda-menu button.on{background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1px rgba(227,178,94,.7),0 0 10px rgba(255,214,150,.6)}/* 3-те агента: заглавие + лимит/изразходвани (горе лимит, черта, долу изразходвани) */.nda-menu .nda-ag{display:flex;align-items:center;gap:10px;margin:3px 0;border:1.5px solid transparent;background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(251,238,224,.7)) padding-box,linear-gradient(140deg,#ffe9a3,#e3b25e 45%,rgba(161,33,57,.55)) border-box;box-shadow:0 0 12px rgba(255,214,150,.35)}.nda-menu .nda-ag .t{flex:1;min-width:0}.nda-menu .nda-ag.on{background:linear-gradient(180deg,#fffdf9,#fbefe5) padding-box,linear-gradient(140deg,#ffe9a3,#e3b25e 40%,#a12139) border-box;box-shadow:0 0 16px rgba(255,214,150,.75)}.nda-menu .nda-ag .cv{display:inline-flex;width:18px;height:18px;color:#8a6a3a;transition:transform .2s}.nda-menu .nda-ag .cv svg{width:18px;height:18px}.nda-menu .nda-ag.open .cv{transform:rotate(180deg)}.nda-frac{display:inline-flex;flex-direction:column;align-items:center;min-width:46px;padding:3px 7px;border-radius:10px;background:rgba(255,255,255,.75);box-shadow:inset 0 0 0 1px rgba(227,178,94,.55),0 0 8px rgba(255,214,150,.45);font:800 14px/1.05 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#4e0912;font-variant-numeric:tabular-nums}.nda-frac i{display:block;width:100%;height:1.5px;margin:2px 0;background:linear-gradient(90deg,transparent,#a12139,transparent)}.nda-frac b:last-child{color:#a12139}.nda-frac.off{opacity:.55}.nda-frac.full b:last-child{color:#c0392b}.nda-menu .nda-agl{margin:0 0 4px 14px;padding-left:8px;border-left:2px solid rgba(227,178,94,.55)}.nda-menu .nda-agl button{padding:8px 10px;font-size:15px}.nda-menu .nda-agn{padding:2px 12px 6px;font:400 11.5px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#8a6a3a;text-align:right}" +
     ".nda-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 18px;display:flex;flex-direction:column;gap:12px;background:radial-gradient(80% 45% at 0% 0%,rgba(243,207,134,.16),rgba(243,207,134,0) 70%),radial-gradient(70% 40% at 100% 100%,rgba(161,33,57,.07),rgba(161,33,57,0) 70%);scrollbar-width:thin;scrollbar-color:rgba(201,138,34,.55) transparent}" +
     ".nda-list::-webkit-scrollbar,.nda-sb::-webkit-scrollbar,.nda-case-pop::-webkit-scrollbar{width:8px}.nda-list::-webkit-scrollbar-thumb,.nda-sb::-webkit-scrollbar-thumb,.nda-case-pop::-webkit-scrollbar-thumb{border-radius:8px;border:2px solid transparent;background:linear-gradient(180deg,#f3cf86,#c98a22) padding-box}.nda-sb,.nda-case-pop{scrollbar-width:thin;scrollbar-color:rgba(201,138,34,.55) transparent}" +
     ".nda-m{position:relative;max-width:86%;padding:11px 14px;border-radius:20px;font:400 15px/1.45 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#3a0c12;white-space:pre-line;word-wrap:break-word;animation:ndaMsg .38s cubic-bezier(.2,.8,.2,1)}" +
@@ -220,7 +220,7 @@
       var winA = '<a class="nda-opt nda-pc" href="' + PC_SETUP_URL + '" target="_blank" rel="noopener"><span class="d">Инсталирай за Windows<small>Ted-Setup-x64.exe · Windows 10/11</small></span><em>.exe</em></a>';
       var macA = '<a class="nda-opt nda-pc" href="' + MAC_SETUP_URL + '" target="_blank" rel="noopener"><span class="d">Инсталирай за Mac<small>Ted-Mac.dmg · Intel и Apple Silicon · macOS 13 Ventura и по-нови</small></span><em>.dmg</em></a>';
       var winP = "<p>При първо стартиране Windows може да покаже „Windows защити компютъра ви“ – изберете „Повече информация“ → „Изпълни въпреки това“.</p>";
-      var macP = "<p>Mac: отворете файла и плъзнете Тед в Applications. Първия път: десен клик върху програмата → „Open“ (на macOS 15 и по-нови: System Settings → Privacy &amp; Security → „Open Anyway“). На Mac програмата е бяла с червени елементи.</p>";
+      var macP = "<p>Mac: отворете файла и плъзнете Ted Imoti Nadezhda в Applications (не я пускайте от прозореца на диска). Първия път Mac казва „Apple cannot check it for malicious software“ – натиснете OK, после в Applications десен клик върху програмата → „Open“ → „Open“. Ако пак не тръгва: System Settings → Privacy &amp; Security → „Open Anyway“. После се отваря нормално. На Mac програмата е бяла с червени елементи.</p>";
       html += '<div class="nda-sec"><h4>💻 Тед за компютър – пълна версия</h4><p>Отделна програма за Windows и Mac. Влизате със същия имейл или телефон и парола като в CRM и работите със същите клиенти, имоти, договори и документи според вашите права.</p>' +
         (isMac ? macA + macP + winA : isWin ? winA + winP + macA : "<p><b>Програмата е за компютър (Windows или Mac).</b> Отворете CRM на компютъра и изберете ⚙ → „Пълна версия“, за да я изтеглите.</p>" + winA + macA) + "</div>";
     } else {
@@ -512,8 +512,42 @@
       .then(function (j) { clearTimeout(timer); return j; });
   }
   function ask(history, extra) {
-    if (modelId === "n8n" || (skill && skill.id === "n8n")) return askN8n(history, extra);
-    return askSite(history, extra);
+    var p = modelId === "n8n" || (skill && skill.id === "n8n") ? askN8n(history, extra) : askSite(history, extra);
+    /* лимит / изразходвани: всяка изпълнена задача се брои на агента, който е отговорил (n8n или безплатните) */
+    return p.then(function (j) { if (j && j.ok && inCrmPath()) agentUse(j.model === "n8n" ? "n8n" : "free"); return j; });
+  }
+  /* ---- агентите в CRM: „Безплатни агенти“, „Real ChatGPT“, „Агенти n8n“ – лимит / изразходвани (nd_agent_stats / nd_agent_use) ---- */
+  var AGS = null;
+  function agentSb() { try { return window.ND && window.ND.sb && window.ND.user ? window.ND.sb() : null; } catch (e) { return null; } }
+  function agentStats() {
+    var c = agentSb(); if (!c) return Promise.resolve(AGS);
+    return Promise.resolve(c.rpc("nd_agent_stats")).then(function (r) { if (r && r.data && typeof r.data === "object" && r.data.free) AGS = r.data; return AGS; }, function () { return AGS; });
+  }
+  function agentUse(k) {
+    var c = agentSb(); if (!c) return;
+    Promise.resolve(c.rpc("nd_agent_use", { p_agent: k })).then(function (r) { if (r && r.data && r.data.free) { AGS = r.data; if (menu && !menu.hidden) renderMenu(); } }, function () {});
+  }
+  function agentFrac(k) {
+    var a = AGS && AGS[k]; if (!a) return '<span class="nda-frac off" title="Лимит / изразходвани"><b>…</b><i></i><b>…</b></span>';
+    var lim = +a.limit > 0 ? String(a.limit) : "∞", per = a.per === "day" ? "днес" : "този месец", full = +a.limit > 0 && +a.used >= +a.limit;
+    return '<span class="nda-frac' + (full ? " full" : "") + '" title="Лимит: ' + (+a.limit > 0 ? a.limit + (a.per === "day" ? " на ден" : " на месец") : "без лимит") + " · изразходвани " + per + ": " + a.used + '"><b>' + lim + "</b><i></i><b>" + (+a.used || 0) + "</b></span>";
+  }
+  function freeModels() { return (models || []).filter(function (m) { return m.id !== "n8n" && /^(gemini|openrouter|ollama)$/.test(m.provider); }); }
+  function shortName(m) { var n = String((m && m.name) || ""), x = /\(([^)]+)\)\s*$/.exec(n); return x ? x[1] : n.replace(/\s*[–-].*$/, ""); }
+  /* Real ChatGPT: собственият ChatGPT акаунт на служителя – chatgpt.com с попълнена заявка, в прозорец до CRM (на телефон – нов раздел) */
+  var GPT_MAX = 8000;
+  function gptUrl(text) { var q = encodeURIComponent(String(text || "").replace(/\r\n?/g, "\n").trim()).replace(/\(/g, "%28").replace(/\)/g, "%29"); return q ? "https://chatgpt.com/?q=" + q : "https://chatgpt.com/"; }
+  function openGpt(text) {
+    var u = gptUrl(text), long = u.length > GPT_MAX, w = null;
+    if (long) { u = "https://chatgpt.com/"; try { navigator.clipboard.writeText(String(text)); } catch (e) {} }
+    var phone = innerWidth < 700 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    try {
+      if (phone) w = window.open(u, "_blank");
+      else { var sw = screen.availWidth || innerWidth, sh = screen.availHeight || innerHeight, W = Math.min(560, sw - 40), H = Math.min(900, sh - 60);
+        w = window.open(u, "nd-real-chatgpt", "popup=yes,width=" + W + ",height=" + H + ",left=" + ((screen.availLeft || 0) + sw - W - 24) + ",top=" + ((screen.availTop || 0) + Math.max(10, Math.round((sh - H) / 2)))); }
+      if (w) { try { w.opener = null; w.focus(); } catch (x) {} }
+    } catch (e) { w = null; }
+    return { ok: !!w, url: u, long: long };
   }
   function askSite(history, extra) {
     extra = extra || {};
@@ -919,6 +953,16 @@
       function retryHtml() { return '<div><button type="button" data-retry>Опитай отново</button></div>'; }
       function go(voice) {
         var text = ta.value.trim(); if ((!text && !files.length && !voice) || busy) return;
+        if (me.id === "chatgpt") {
+          if (voice) { api.add("a", "Real ChatGPT приема текст оттук. За гласов разговор натиснете микрофона в самия ChatGPT."); return; }
+          var gf = files; ta.value = ""; ta.style.height = ""; files = []; showFiles();
+          api.add("u", fmt(text || "Прикачени файлове") + (gf.length ? "\n📎 " + gf.map(function (f) { return esc(f.name); }).join(", ") : ""));
+          if (!text) { var g0 = openGpt(""); api.add("a", "Файловете се прикачват направо в ChatGPT (кламерът там). " + (g0.ok ? "Отворих chatgpt.com." : '<a class="nda-dl" href="https://chatgpt.com/" target="_blank" rel="noopener">🔗 Отвори ChatGPT</a>')); return; }
+          var g = openGpt(text); agentUse("chatgpt");
+          api.add("a", (g.ok ? (g.long ? "Заявката е дълга – копирах я. Отворих ChatGPT: поставете я там (Ctrl+V / ⌘V)." : "Отворих Real ChatGPT със заявката – отговорът е там.") : "Браузърът спря прозореца.") +
+            (gf.length ? "\nФайловете прикачете в ChatGPT (кламерът там)." : "") + '\n<a class="nda-dl" href="' + esc(g.url) + '" target="_blank" rel="noopener">🔗 Отвори в ChatGPT</a>');
+          return;
+        }
         lastTry = voice ? { voice: voice, files: [], text: "" } : { voice: null, files: files.slice(), text: text };
         busy = true; ta.value = ""; ta.style.height = ""; var fs = files; files = []; showFiles();
         var ub = api.add("u", voice ? "🎤 Гласово съобщение (" + voice.dur + ")" : fmt(text || "Прикачени файлове") + (fs.length ? "\n📎 " + fs.map(function (f) { return esc(f.name); }).join(", ") : ""));
@@ -1029,6 +1073,12 @@
     else api.add("a", "Здравейте! Аз съм <b>Тед.</b>\nВашият асистент в Имоти Надежда.\nПомагам с клиенти, имоти, огледи, документи и преводи.\nИзпратете текст, снимка, PDF или гласово съобщение.");
   };
   skills.push(n8nSkill);
+  /* „Real ChatGPT“ (само в CRM): собственият ChatGPT акаунт на служителя – като ChatGPT панела в пълната версия на Тед.
+     Написаното отива в chatgpt.com като попълнена заявка; снимки, видео и файлове се правят направо там. */
+  var gptSkill = Object.create(chatSkill);
+  gptSkill.id = "chatgpt"; gptSkill.name = "Real ChatGPT"; gptSkill.sub = "Вашият ChatGPT акаунт"; gptSkill.placeholder = "Задача за ChatGPT…"; gptSkill.crmOnly = true;
+  gptSkill.intro = function (api) { api.add("a", "<b>Real ChatGPT</b> – вашият собствен ChatGPT акаунт.\nНапишете задачата и натиснете ➤ – отваря се chatgpt.com с нея до CRM (първия път влизате с профила си). Снимки, видео, файлове и гласов режим се правят направо в ChatGPT.\nЗа клиенти, имоти и документи от CRM изберете горе „Безплатни агенти“ или „Агенти n8n“."); };
+  skills.push(gptSkill);
   /* експертните роли са вградени в „Чат с Тед“ (бутон „Роля“ до казуса); без избор Тед разпознава ролята от въпроса (api/_ted-modes.js) */
   var MODES = [
     ["lawyer", "Юрист – правен помощник", "Казуси, договори, рискове, документи", "⚖️ <b>Юрист</b>. Опишете казуса (факти, хора, имот, документи, срокове) – ще дам правна квалификация, рисковете, вариантите и готови проекти на документи. Работя по българското право и помня казуса, ако го отворите от 📁.", "⚖️"],
@@ -1120,8 +1170,8 @@
   }
   var api = { add: function (r, h, c) { return add(r, h, c); }, esc: esc, list: function () { return list; } };
   function inCrmPath() { return /\/mobile\/crm\//.test(location.pathname); }
-  function homeSkill() { return inCrmPath() && prefs.crmEngine === "n8n" ? n8nSkill : chatSkill; } /* основен е Тед на CRM (сайта); агентът в n8n е избор от менюто и се помни */
-  function skillLabel(s) { return s === n8nSkill && inCrmPath() ? "n8n · " + n8nModelName() : s === chatSkill && inCrmPath() ? "Тед Асистент" : s.name; }
+  function homeSkill() { return inCrmPath() && prefs.crmEngine === "n8n" ? n8nSkill : inCrmPath() && prefs.crmEngine === "chatgpt" ? gptSkill : chatSkill; } /* основен е Тед на CRM (сайта); агентът в n8n е избор от менюто и се помни */
+  function skillLabel(s) { return s === n8nSkill && inCrmPath() ? "n8n · " + n8nModelName() : s === gptSkill ? "Real ChatGPT" : s === chatSkill && inCrmPath() ? (curModel() && models && models.length ? "Безплатни · " + shortName(curModel()) : "Тед Асистент") : s.name; }
   function pickN8nModel(id) {
     prefs.n8nModel = id; prefs.crmEngine = "n8n"; savePrefs();
     if (!win) return;
@@ -1136,12 +1186,22 @@
   }
   function renderMenu() {
     var inCrm = inCrmPath();
-    var item = function (s, i) { if (s.crmOnly && !inCrm) return ""; if (inCrm && (s === chatSkill || s === n8nSkill)) return ""; return '<button type="button" role="option" data-i="' + i + '" class="' + (s === skill ? "on" : "") + '">' + esc(s.name) + "<small>" + esc(s.sub || "") + "</small></button>"; };
+    var item = function (s, i) { if (s.crmOnly && !inCrm) return ""; if (inCrm && (s === chatSkill || s === n8nSkill || s === gptSkill)) return ""; return '<button type="button" role="option" data-i="' + i + '" class="' + (s === skill ? "on" : "") + '">' + esc(s.name) + "<small>" + esc(s.sub || "") + "</small></button>"; };
     if (!inCrm) { menu.innerHTML = skills.map(item).join(""); return; }
-    /* в CRM: горе петте модела (еднакви инструменти), отдолу останалите умения (AI Видео на имот…) */
-    var rest = skills.map(item).join("");
-    menu.innerHTML = '<div class="g">Основен</div><button type="button" role="option" data-cs="1" class="' + (skill === chatSkill ? "on" : "") + '">Тед Асистент<small>CRM чатът · ⚙ → Модел за избор на модел</small></button>' +
-      '<div class="g">Агент n8n</div>' + N8N_MODELS.map(function (m) { return '<button type="button" role="option" data-nm="' + m[0] + '" class="' + (skill === n8nSkill && n8nModelId() === m[0] ? "on" : "") + '">' + esc(m[1]) + "<small>" + esc(m[2]) + "</small></button>"; }).join("") + (rest ? '<div class="g">Умения</div>' + rest : "");
+    /* в CRM: само 3 агента – „Безплатни агенти“ ▾, „Real ChatGPT“, „Агенти n8n“ ▾ – всеки с лимит / изразходвани; отдолу умения (AI Видео на имот…) */
+    var rest = skills.map(item).join(""), cm = curModel(), fm = freeModels();
+    if (!menu._open) menu._open = skill === n8nSkill ? "n8n" : skill === gptSkill ? "" : "free";
+    var head = function (k, title, sub, on, drop) { return '<button type="button" class="nda-ag' + (on ? " on" : "") + (drop && menu._open === k ? " open" : "") + '" data-ag="' + k + '"' + (drop ? ' aria-expanded="' + (menu._open === k) + '"' : ' role="option"') + '><span class="t">' + title + "<small>" + sub + "</small></span>" + agentFrac(k) + (drop ? '<span class="cv">' + I.chev + "</span>" : "") + "</button>"; };
+    var freeList = (fm.length ? fm : [{ id: "", name: "Тед – личен безплатен агент (Gemini Flash Lite)", note: "клиенти, имоти, календар, качване" }]).map(function (m) {
+      var on = skill === chatSkill && ((cm && cm.id === m.id) || (!cm && !m.id));
+      return '<button type="button" role="option" data-fm="' + esc(m.id) + '" class="' + (on ? "on" : "") + '">' + esc(m.name) + "<small>" + esc(m.note || "") + "</small></button>";
+    }).join("");
+    menu.innerHTML = '<div class="g">Агенти</div>' +
+      head("free", "Безплатни агенти", skill === chatSkill && cm ? esc(shortName(cm)) : "Тед · Gemini", skill === chatSkill, true) + (menu._open === "free" ? '<div class="nda-agl">' + freeList + "</div>" : "") +
+      head("chatgpt", "Real ChatGPT", "вашият ChatGPT акаунт · chatgpt.com", skill === gptSkill, false) +
+      head("n8n", "Агенти n8n", skill === n8nSkill ? esc(n8nModelName()) : N8N_MODELS.length + " модела · инструментите в n8n", skill === n8nSkill, true) +
+      (menu._open === "n8n" ? '<div class="nda-agl">' + N8N_MODELS.map(function (m) { return '<button type="button" role="option" data-nm="' + m[0] + '" class="' + (skill === n8nSkill && n8nModelId() === m[0] ? "on" : "") + '">' + esc(m[1]) + "<small>" + esc(m[2]) + "</small></button>"; }).join("") + "</div>" : "") +
+      '<div class="nda-agn">горе – лимит, долу – изразходвани</div>' + (rest ? '<div class="g">Умения</div>' + rest : "");
   }
   function boot() {
     if (booted) return; booted = true;
@@ -1160,8 +1220,15 @@
     list.addEventListener('click',function(e){if(!e.target.matches('.ted-chat-img'))return;var view=document.createElement('div');view.className='ted-image-view';var img=document.createElement('img');img.src=e.target.src;img.alt=e.target.alt;var close=document.createElement('button');close.type='button';close.className='nda-x';close.setAttribute('aria-label','Затвори снимката');close.textContent='×';close.onclick=function(){view.remove();};view.appendChild(img);view.appendChild(close);win.appendChild(view);});
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) { var vw = win.querySelector(".nda-view,.ted-panel,.ted-image-view"); if (vw) { vw.remove();e.stopImmediatePropagation(); } } });
     var sk = win.querySelector(".nda-skill"), gear = win.querySelector(".nda-gear"), setBox = win.querySelector(".nda-set");
-    sk.onclick = function (e) { e.stopPropagation(); renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden)); };
-    menu.onclick = function (e) { if (e.target.closest("[data-cs]")) { menu.hidden = true; prefs.crmEngine = "site"; savePrefs(); if (skill !== chatSkill) setSkill(chatSkill); return; } var nm = e.target.closest("[data-nm]"); if (nm) { menu.hidden = true; pickN8nModel(nm.getAttribute("data-nm")); return; } var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
+    sk.onclick = function (e) { e.stopPropagation(); menu._open = ""; renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden));
+      if (!menu.hidden && inCrmPath()) Promise.all([loadModels(), agentStats()]).then(function () { if (!menu.hidden) renderMenu(); }); };
+    menu.onclick = function (e) {
+      var ag = e.target.closest("[data-ag]"), fmb = e.target.closest("[data-fm]");
+      if (ag) { e.stopPropagation(); var k = ag.getAttribute("data-ag");
+        if (k === "chatgpt") { menu.hidden = true; prefs.crmEngine = "chatgpt"; savePrefs(); if (skill !== gptSkill) setSkill(gptSkill); return; }
+        menu._open = menu._open === k ? "" : k; renderMenu(); return; }
+      if (fmb) { menu.hidden = true; prefs.crmEngine = "site"; setModel(fmb.getAttribute("data-fm"), true); if (skill !== chatSkill) setSkill(chatSkill); else win.querySelector(".nda-skill span").textContent = skillLabel(skill); return; }
+      if (e.target.closest("[data-cs]")) { menu.hidden = true; prefs.crmEngine = "site"; savePrefs(); if (skill !== chatSkill) setSkill(chatSkill); return; } var nm = e.target.closest("[data-nm]"); if (nm) { menu.hidden = true; pickN8nModel(nm.getAttribute("data-nm")); return; } var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
     win.addEventListener("click", function (e) {
       if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target)) menu.hidden = true;
       var pop = foot.querySelector(".nda-case-pop"); if (pop && !pop.hidden && !pop.contains(e.target) && !e.target.closest(".nda-case-btn,.att")) pop.hidden = true;

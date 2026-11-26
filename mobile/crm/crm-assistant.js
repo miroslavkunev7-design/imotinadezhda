@@ -44,8 +44,11 @@
     var wait = api.add("a", "Анализирам", "wait"); lock(true);
     var timer = setTimeout(function () { lock(false); }, 120000);
     deps().then(function () {
+      var started = false, failed = false;
       window.NDScan.folder(files, {
         manual: function () {},
+        started: function () { started = true; },
+        failed: function (msg) { failed = true; clearTimeout(timer); lock(false); if (wait.isConnected) { wait.classList.remove("wait"); wait.textContent = msg; } },
         scanned: function (f, file, bundle) {
           clearTimeout(timer); lock(false); wait.remove();
           var PL = window.NDPlaces;
@@ -65,8 +68,10 @@
       });
       var seen = false, t0 = Date.now(), poll = setInterval(function () {
         if (!wait.isConnected) return clearInterval(poll);
-        if (document.querySelector(".nds-ov:not([hidden])")) { seen = true; return; }
-        if (seen || Date.now() - t0 > 6000) { clearInterval(poll); clearTimeout(timer); lock(false); wait.classList.remove("wait"); wait.textContent = seen ? "Анализът е прекъснат. Опитайте отново." : "Не открих снимки или опис в избраното. Опитайте отново."; }
+        if (failed) return clearInterval(poll);
+        if (started || document.querySelector(".nds-ov:not([hidden])")) { seen = true; if (document.querySelector(".nds-ov:not([hidden])")) return; }
+        /* архив (.zip) и много снимки се подготвят по-дълго – чака се до 90 s, преди да се покаже, че нищо не е намерено */
+        if (seen || Date.now() - t0 > 90000) { clearInterval(poll); clearTimeout(timer); lock(false); wait.classList.remove("wait"); wait.textContent = seen ? "Анализът е прекъснат. Опитайте отново." : "Не открих снимки или опис в избраното. Опитайте отново."; }
       }, 700);
     }).catch(function (e) { clearTimeout(timer); lock(false); wait.classList.remove("wait"); wait.textContent = "Грешка: " + ((e && e.message) || e); });
   }

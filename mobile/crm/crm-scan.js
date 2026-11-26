@@ -248,14 +248,26 @@
     }).catch(function () { return ""; });
   }
   function folderScan(files) {
-    expandZips(files).then(folderScan2).catch(function (e) { D.say("Не успях да отворя архива: " + ((e && e.message) || e)); });
+    expandZips(files).then(folderScan2).catch(function (e) { folderFail("Не успях да отворя архива: " + ((e && e.message) || e)); });
+  }
+  /* съобщение към чата („АИ Качване на имот“), иначе към долния ред на страницата */
+  function folderFail(msg) { if (handlers && handlers.failed) { try { handlers.failed(msg); } catch (e) {} } else D.say(msg); }
+  /* снимка за анализа: само ако браузърът я е прочел и смалил (HEIC в Chrome/Windows не се чете – суровият файл е твърде голям) */
+  function sampleOk(x) { return x && x.data && x.mime === "image/jpeg" && x.data.length < 1500000; }
+  /* Vercel приема до 4,5 MB на заявка: първо пада PDF-ът (текстът и снимките остават), после снимки отзад напред */
+  function fitBody(body) {
+    var lim = 4000000, len = function () { return JSON.stringify(body).length; };
+    if (len() > lim && body.data) { delete body.data; delete body.mime; delete body.name; }
+    while (len() > lim && body.images.length) body.images.pop();
+    if (len() > lim) body.text = String(body.text || "").slice(0, 20000);
+    return body;
   }
   function folderScan2(files) {
     files = files.filter(function (f) { return !/(^|\/)\./.test(f.webkitRelativePath || f.name); });
     files.sort(function (a, b) { return (a.webkitRelativePath || a.name).localeCompare(b.webkitRelativePath || b.name, "bg", { numeric: true }); });
     var rel = (files[0] && files[0].webkitRelativePath) || "", folder = rel.indexOf("/") > 0 ? rel.split("/")[0] : "";
     var allImgs = files.filter(isImg), imgs = allImgs.slice(0, 100), allVids = files.filter(isVid), vids = allVids.slice(0, 10), docs = files.filter(function (f) { return !isImg(f) && !isVid(f) && isDoc(f); });
-    if (!imgs.length && !docs.length) { D.say("В папката няма снимки или опис"); return; }
+    if (!imgs.length && !docs.length) { folderFail("В папката няма снимки или опис."); return; }
     var price = priceFromName(folder) || (docs[0] && priceFromName(docs[0].name)) || null;
     var cancelled = false, pdf = null;
     var texts = docs.map(function (f) {
@@ -265,15 +277,22 @@
       return f.text().then(function (t) { return /\.rtf$/i.test(f.name) ? t.replace(/\\par[d]?/g, "\n").replace(/\{\*?\\[^{}]+}|[{}]|\\[a-z]+-?\d* ?/gi, "") : t; }).catch(function () { return ""; });
     });
     var opisImgs = imgs.filter(function (f) { return /опис|opis|описание|notes?|бележк/i.test(f.name); });
-    var samples = opisImgs.concat(imgs.filter(function (f) { return opisImgs.indexOf(f) < 0; })).slice(0, docs.length ? 3 : 4).map(function (f) { return prepare(f, 1200).catch(function () { return null; }); });
+    /* до 8 кандидата → първите 3–4, които браузърът е успял да смали (JPG/PNG/WEBP и HEIC в Safari) */
+    var samples = opisImgs.concat(imgs.filter(function (f) { return opisImgs.indexOf(f) < 0; })).slice(0, 8).map(function (f) { return prepare(f, 1200).catch(function () { return null; }); });
     Promise.all([Promise.all(texts), Promise.all(samples), pdf ? prepare(pdf) : null]).then(function (r) {
-      var text = r[0].filter(Boolean).join("\n\n").trim().slice(0, 30000), pics = r[1].filter(Boolean), pdfPrep = r[2];
+      var text = r[0].filter(Boolean).join("\n\n").trim().slice(0, 30000), pics = r[1].filter(sampleOk).slice(0, docs.length ? 3 : 4), pdfPrep = r[2];
       showOverlay(pics[0] || { preview: null }, folder || (docs[0] && docs[0].name) || "Папка на имот", "folder").then(function () { cancelled = true; hideOverlay(); });
+      if (handlers && handlers.started) { try { handlers.started(); } catch (e) {} }
       var body = { kind: "folder", folder: folder, text: text, images: pics.map(function (x) { return { mime: x.mime, data: x.data }; }) };
       if (pdfPrep) { body.mime = pdfPrep.mime; body.data = pdfPrep.data; body.name = pdf.name; }
+      fitBody(body);
+      if (!body.text && !body.data && !body.images.length) body.text = "(в папката има само снимки, които браузърът не може да прочете – попълнете от снимките)";
       return D.token().then(function (tok) {
         return fetch("/api/scan", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify(body) });
-      }).then(function (x) { return x.json(); }).then(function (j) {
+      }).then(function (x) {
+        /* отговор, който не е JSON (413 – твърде голямо, 504 – изтекло време…), не спира качването: картата се отваря за ръчно попълване */
+        return x.text().then(function (t) { try { return JSON.parse(t); } catch (e) { return { ok: false, error: x.status === 413 ? "Файловете са твърде големи за анализа" : x.status === 504 ? "Анализът се забави твърде много" : "Анализът не успя (HTTP " + x.status + ")" }; } });
+      }, function (e) { return { ok: false, error: "Няма връзка за анализа (" + ((e && e.message) || e) + ")" }; }).then(function (j) {
         if (cancelled) return;
         hideOverlay();
         var f = (j && j.ok && j.fields) || {};
@@ -291,7 +310,7 @@
           (allImgs.length > 100 ? " · взети първите 100 снимки" : "") + (allVids.length > 10 ? " · взети първите 10 видеа" : ""));
         handlers.scanned(out, null, { pics: imgs, videos: vids, docs: docs, folder: folder });
       });
-    }).catch(function (e) { hideOverlay(); if (!cancelled) D.say("Грешка при папката: " + ((e && e.message) || e)); });
+    }).catch(function (e) { hideOverlay(); if (!cancelled) folderFail("Грешка при папката: " + ((e && e.message) || e)); });
   }
 
   /* Всяка нова снимка на имот: 1) агентът търси чужди логота/стикери/надписи и ги премахва (Gemini; при неуспех – изрязва ръба
