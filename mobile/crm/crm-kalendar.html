@@ -907,7 +907,7 @@ html.desk .ewin .mscroll{overflow:hidden}
 <link rel="stylesheet" href="crm-blend.css"/>
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#4f0716"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="Надежда CRM"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png">
 <link rel="stylesheet" href="crm-info.css"/>
-<link rel="stylesheet" href="crm-v3-kalendar.css"/><link rel="stylesheet" href="crm-v3-head.css"/>
+<link rel="stylesheet" href="crm-v3-kalendar.css"/><link rel="stylesheet" href="crm-v3-head.css"/><link rel="stylesheet" href="crm-kal-planner.css"/>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1052,7 +1052,8 @@ html.desk .ewin .mscroll{overflow:hidden}
       <div class="rings" aria-hidden="true"></div>
       <div class="kpage" id="kpage">
       <header class="nb-head">
-        <span class="nb-t"><svg class="i"><use href="#calendar-days"/></svg>ДНЕВЕН ГРАФИК</span>
+        <span class="nb-t"><span class="nb-tt">СЕДМИЧЕН ГРАФИК</span><span class="nb-y"><i></i><b id="k-year">2026</b><i></i></span></span>
+        <span class="nb-r" aria-hidden="true"><span>ВАШИЯТ ПРОФЕСИОНАЛЕН<br>ПЛАН ЗА УСПЕХ</span></span>
         <img class="nb-logo" src="assets/logo.png" alt="">
         <span class="nb-orn l" aria-hidden="true"></span><span class="nb-orn r" aria-hidden="true"></span>
         <span class="nb-m"><svg class="i"><use href="#calendar-days"/></svg><span id="k-month">Ноември 2026</span></span>
@@ -1108,7 +1109,7 @@ html.desk .ewin .mscroll{overflow:hidden}
         <div class="ev-left">
           <h3 class="v3-st"><svg class="i"><use href="#pencil"/></svg>Детайли</h3>
           <div class="ef ef-type"><span class="el"><svg class="i"><use href="#calendar-days"/></svg>Тип събитие / задача *</span></div>
-          <div class="ef"><label class="el" for="ev-name"><svg class="i"><use href="#pencil"/></svg>Заглавие *</label><input class="in" id="ev-name" placeholder="Въведи заглавие…" maxlength="80"></div>
+          <div class="ef"><label class="el" for="ev-name"><svg class="i"><use href="#pencil"/></svg>Заглавие *</label><input class="in" id="ev-name" placeholder="Въведи заглавие…" maxlength="240"></div>
           <div class="ef"><label class="el" for="ev-date"><svg class="i"><use href="#calendar-days"/></svg>Дата *</label><input class="in" id="ev-date" type="date"></div>
           <div class="ef row"><label class="el" for="ev-from"><svg class="i"><use href="#clock"/></svg>Час от *</label><span class="selw sm"><select class="in" id="ev-from"></select><svg class="i"><use href="#chev-d"/></svg></span></div>
           <div class="ef row"><label class="el" for="ev-to"><svg class="i"><use href="#clock"/></svg>Час до *</label><span class="selw sm"><select class="in" id="ev-to"></select><svg class="i"><use href="#chev-d"/></svg></span></div>
@@ -1119,13 +1120,14 @@ html.desk .ewin .mscroll{overflow:hidden}
         </div>
         <div class="ev-right">
           <h3 class="v3-st"><svg class="i"><use href="#calendar-days"/></svg>Тип събитие *</h3>
-          <button type="button" class="tsel" id="ev-tsel" aria-haspopup="listbox" aria-expanded="true"><span id="ev-tlabel">Избери тип…</span><svg class="i"><use href="#chev-d"/></svg></button>
+          <button type="button" class="tsel" id="ev-tsel" aria-haspopup="listbox" aria-expanded="true"><span id="ev-tlabel">Избери ангажимент…</span><svg class="i"><use href="#chev-d"/></svg></button>
           <ul class="tlist" id="ev-tlist" role="listbox" aria-label="Тип събитие"></ul>
           <div class="tcard" id="ev-tcard" hidden>
             <div class="tc-ph" id="ev-tc-ph"></div>
             <p class="tc-h"><span id="ev-tc-emo"></span><b id="ev-tc-name"></b></p>
             <p class="tc-help" id="ev-tc-help"></p>
             <div class="ef"><label class="el" for="ev-extra" id="ev-extra-l">Място / адрес</label><input class="in" id="ev-extra"></div>
+            <div class="ev-dyn" id="ev-dyn"></div>
           </div>
         </div>
       </div>
@@ -1184,6 +1186,7 @@ html.desk .ewin .mscroll{overflow:hidden}
 <script src="crm-inquiries.js"></script>
 <script src="crm-chatheads.js"></script>
 <script src="crm-dictate.js"></script>
+<script src="crm-kal-types.js"></script>
 <script src="/mobile/ash.js"></script>
 <script src="crm-assistant.js"></script>
 <script src="crm-collect.js"></script>
@@ -1201,19 +1204,11 @@ html.desk .ewin .mscroll{overflow:hidden}
   function say(s){t.textContent=s;t.classList.add('show');clearTimeout(timer);timer=setTimeout(function(){t.classList.remove('show')},2400)}
 
   /* ---------- event types ---------- */
-  var TYPES=[
-    {id:'meeting',label:'Среща с клиент',emo:'🤝',color:'blue',icon:'users',photo:'card-clients.jpg',help:'Клиент, адрес, цел и резултат от срещата.',extra:'Място / адрес'},
-    {id:'viewing',label:'Оглед на имот',emo:'🏡',color:'orange',icon:'house',photo:'nd/ph12.jpg',help:'Имот, клиент, адрес и брокер, който води огледа.',extra:'Квартал / адрес на имота'},
-    {id:'documents',label:'Подготовка на документи',emo:'📝',color:'yellow',icon:'file-text',photo:'nd/ph20.jpg',help:'Вид документ, срок и досие.',extra:'Вид документ'},
-    {id:'deal',label:'Сделка / Подписване',emo:'🔑',color:'rose',icon:'handshake',photo:'card-deals.jpg',help:'Сделка, нотариус и страна по сделката.',extra:'Нотариус'},
-    {id:'bank',label:'Среща в банка / Кредит',emo:'🏦',color:'purple',icon:'landmark',photo:'co-bank.jpg',help:'Банка, клон, клиент и служител.',extra:'Банка / клон'},
-    {id:'team',label:'Екипна среща',emo:'👥',color:'blue',icon:'users',photo:'nd/ph06.jpg',help:'Участници и дневен ред.',extra:'Участници'},
-    {id:'task',label:'Задача / Действие',emo:'📋',color:'green',icon:'chart',photo:'card-viewings.jpg',help:'Отговорник, приоритет и статус.',extra:'Отговорник'},
-    {id:'call',label:'Телефонен разговор',emo:'📞',color:'rose',icon:'phone',photo:'nd/ph02.jpg',help:'Номер, клиент и цел на разговора.',extra:'Телефон'},
-    {id:'video',label:'Онлайн среща (Видео)',emo:'💻',color:'blue',icon:'users',photo:'nd/ph03.jpg',help:'Линк, платформа и участници.',extra:'Линк към срещата'},
-    {id:'other',label:'Друго',emo:'📣',color:'yellow',icon:'calendar-days',photo:'nd/ph01.jpg',help:'Персонализирано събитие.',extra:'Бележка'}
-  ];
-  var typeOf=function(id){return TYPES.filter(function(x){return x.id===id})[0]||TYPES[9]};
+  /* всички видове ангажименти и графите им – crm-kal-types.js */
+  var TYPES=window.NDKT.types.map(function(t){return Object.assign({color:t.mk,icon:'calendar-days'},t)});
+  var FIELDS=window.NDKT.fields;
+  var typeOf=function(id){return TYPES.filter(function(x){return x.id===id})[0]||TYPES.filter(function(x){return x.id==='other'})[0]};
+  var EMO=function(t){return '<span class="kemo" aria-hidden="true">'+t.emo+'</span>'};
   var CLIENTS=[];
   var PROPS=[];
   var BROKERS=[];
@@ -1291,21 +1286,16 @@ html.desk .ewin .mscroll{overflow:hidden}
       for(var c=0;c<5;c++)h+='<div class="kg-c'+(iso(dates[c])===iso(today)?' today':'')+'" data-date="'+iso(dates[c])+'" data-h="'+pad(8+r)+':00" role="gridcell" aria-label="'+DAYS[c]+' '+pad(8+r)+':00 – добави събитие"></div>'}
     g.innerHTML=h;
     var m0=MONTHS[dates[0].getMonth()],m4=MONTHS[dates[4].getMonth()];
-    $('k-month').textContent=(m0===m4?m0:m0.slice(0,3)+' – '+m4.slice(0,3))+' '+dates[4].getFullYear();
-    /* events */
-    var headH=desk?54:50,colW=(g.clientWidth-86)/5;
-    events.forEach(function(e){
-      if(!kMatch(e))return;
+    $('k-month').textContent=(m0===m4?m0:m0.slice(0,3)+' – '+m4.slice(0,3))+' '+dates[4].getFullYear();$('k-year').textContent=dates[4].getFullYear();
+    /* задачите – в клетката на началния час; редът се разширява надолу колкото е дълъг текстът */
+    events.filter(kMatch).slice().sort(function(a,b){return mins(a.from)-mins(b.from)}).forEach(function(e){
       var di=dates.map(iso).indexOf(e.date);if(di<0)return;
-      var s=mins(e.from)-480;if(s<0||s>=660)return;
-      var ty=typeOf(e.type),dur=Math.max(30,Math.min(mins(e.to)-mins(e.from),90));
-      var b=document.createElement('button');b.type='button';b.className='kev '+ty.color;b.dataset.id=e.id;
-      b.style.left=(86+di*colW+6)+'px';b.style.width=(colW-12)+'px';
-      b.style.top=(headH+s/60*rowH+3)+'px';b.style.height=Math.max(rowH*1.45,dur/60*rowH*1.45)+'px';b.style.right='auto';
-      b.title=e.from+'–'+e.to+' · '+e.title;
-      b.setAttribute('aria-label',DAYS[di]+' '+e.from+'–'+e.to+': '+e.title);
-      b.dataset.type=e.type;b.style.setProperty('--ph','url('+img(ty.photo)+')');
-      b.innerHTML=ic(ty.icon)+'<span>'+esc(e.title)+'</span>';g.appendChild(b)});
+      var hr=Math.max(8,Math.min(18,Math.floor(mins(e.from)/60)));
+      var cell=g.querySelector('.kg-c[data-date="'+e.date+'"][data-h="'+pad(hr)+':00"]');if(!cell)return;
+      var ty=typeOf(e.type),b=document.createElement('button');b.type='button';b.className='kev mk-'+(ty.mk||'teal');b.dataset.id=e.id;b.dataset.type=e.type;
+      b.title=e.from+'–'+e.to+' · '+e.title;b.setAttribute('aria-label',DAYS[di]+' '+e.from+'–'+e.to+': '+e.title);
+      b.innerHTML=EMO(ty)+'<span class="kt"><b>'+esc(e.title)+'</b><small>'+esc(e.from+' – '+e.to)+(e.client?' · '+esc(e.client):'')+'</small></span>';
+      cell.appendChild(b)});
     upcoming();
   }
   /* прелистване: листът се хваща отдолу, обръща се нагоре около спиралата и минава зад календара */
@@ -1353,7 +1343,7 @@ html.desk .ewin .mscroll{overflow:hidden}
     $('k-up').innerHTML=list.length?list.slice(0,desk?7:4).map(function(e){var d=parse(e.date),ty=typeOf(e.type);
       var when=e.date===nowIso?'днес':(d-today)/864e5===1?'утре':(d-today)/864e5<7?(DAYS[(d.getDay()+6)%7]||pad(d.getDate())+'.'+pad(d.getMonth()+1)):pad(d.getDate())+'.'+pad(d.getMonth()+1);
       var place=e.type==='viewing'?(e.extra||e.title.replace(/^Оглед\s*[–-]?\s*/i,'')):e.title;
-      return '<button class="ku" data-id="'+e.id+'">'+ic(ty.icon)+'<b>'+e.from+'</b><span>'+esc(place)+'</span><small>'+esc(when)+'</small></button>'}).join('')
+      return '<button class="ku" data-id="'+e.id+'">'+EMO(ty)+'<b>'+e.from+'</b><span>'+esc(place)+'</span><small>'+esc(when)+'</small></button>'}).join('')
       :'<p class="ku none">Няма предстоящи събития за избрания период.</p>';
   }
   $('k-up').addEventListener('click',function(e){var b=e.target.closest('.ku[data-id]');if(b)openE(b.dataset.id,null,b)});
@@ -1370,7 +1360,7 @@ html.desk .ewin .mscroll{overflow:hidden}
   document.querySelectorAll('[data-new]').forEach(function(b){b.addEventListener('click',function(){openE(null,{type:b.getAttribute('data-new')},b)})});
 
   /* ---------- event window ---------- */
-  var ewin=$('ewin'),eback=$('eback'),evcv=$('evcv'),escroll=$('escroll'),efull=false,elast=null,editId=null,selType=null;
+  var ewin=$('ewin'),eback=$('eback'),evcv=$('evcv'),escroll=$('escroll'),efull=false,elast=null,editId=null,selType=null,pendingVals=null;
   var times=[];for(var hh=7;hh<=21;hh++){times.push(pad(hh)+':00');times.push(pad(hh)+':30')}
   $('ev-from').innerHTML=times.map(function(x){return '<option>'+x+'</option>'}).join('');
   $('ev-to').innerHTML=times.map(function(x){return '<option>'+x+'</option>'}).join('');
@@ -1379,13 +1369,39 @@ html.desk .ewin .mscroll{overflow:hidden}
   function fillBrokers(){$('ev-broker').innerHTML='<option value="">Избери брокер…</option>'+BROKERS.map(function(c){return '<option>'+esc(c)+'</option>'}).join('')}
   fillBrokers();
   $('ev-tlist').innerHTML=TYPES.map(function(x){return '<li role="option" tabindex="0" data-t="'+x.id+'"><span class="e">'+x.emo+'</span><span>'+esc(x.label)+'</span><i style="background-image:url('+img(x.photo)+')"></i></li>'}).join('');
-  function listOpen(o){$('ev-tlist').hidden=!o;$('ev-tsel').setAttribute('aria-expanded',o);$('ev-tcard').hidden=o||!selType}
+  /* избор на ангажимент: голям прозорец с всички видове и емотиконки върху снимка (вместо падащия списък) */
+  var tpick=document.createElement('div');tpick.className='tpick';tpick.id='tpick';tpick.hidden=true;tpick.setAttribute('role','dialog');tpick.setAttribute('aria-modal','true');tpick.setAttribute('aria-label','Избери ангажимент');
+  tpick.innerHTML='<div class="tp-win"><header class="tp-h"><h3>Избери ангажимент</h3><label class="tp-s"><svg class="i"><use href="#search"/></svg><input type="search" placeholder="Търси…" aria-label="Търси ангажимент"></label><button type="button" class="tp-x" aria-label="Затвори"><svg class="i"><use href="#x"/></svg></button></header>'+
+    '<div class="tp-grid" role="listbox">'+TYPES.map(function(x){return '<button type="button" role="option" class="tp-o" data-t="'+x.id+'"><span class="kemo">'+x.emo+'</span><span>'+esc(x.label)+'</span></button>'}).join('')+'</div></div>';
+  document.body.appendChild(tpick);
+  var tpS=tpick.querySelector('.tp-s input');
+  tpS.addEventListener('input',function(){var q=this.value.trim().toLowerCase();[].forEach.call(tpick.querySelectorAll('.tp-o'),function(o){o.hidden=!!q&&o.textContent.toLowerCase().indexOf(q)<0})});
+  tpick.addEventListener('click',function(e){var o=e.target.closest('.tp-o');if(o){pickType(o.dataset.t);if(!$('ev-name').value)$('ev-name').focus();return}
+    if(e.target===tpick||e.target.closest('.tp-x'))listOpen(false)});
+  function listOpen(o){$('ev-tlist').hidden=true;tpick.hidden=!o;$('ev-tsel').setAttribute('aria-expanded',o);$('ev-tcard').hidden=!selType;
+    if(o){tpS.value='';tpS.dispatchEvent(new Event('input'));[].forEach.call(tpick.querySelectorAll('.tp-o'),function(x){x.classList.toggle('on',x.dataset.t===selType)});
+      setTimeout(function(){var on=tpick.querySelector('.tp-o.on')||tpick.querySelector('.tp-o');if(on)on.focus({preventScroll:true})},40)}}
+  /* графите според вида задача */
+  function dynHtml(ty,vals){vals=vals||{};return ty.fields.slice(1).map(function(k){var f=FIELDS[k];if(!f)return '';var id='evf-'+k,v=vals[k]==null?'':String(vals[k]),t=f[1],inp;
+      if(/^sel:/.test(t))inp='<span class="selw"><select class="in" id="'+id+'" data-f="'+k+'"><option value="">—</option>'+t.slice(4).split('|').map(function(o){return '<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select><svg class="i"><use href="#chev-d"/></svg></span>';
+      else if(t==='area')inp='<textarea class="in ta" id="'+id+'" data-f="'+k+'" placeholder="'+esc(f[2]||'')+'">'+esc(v)+'</textarea>';
+      else inp='<input class="in" id="'+id+'" data-f="'+k+'" value="'+esc(v)+'" placeholder="'+esc(f[2]||'')+'" type="'+(t==='tel'?'tel':t==='date'?'date':'text')+'"'+(t==='money'||t==='num'?' inputmode="decimal"':'')+(t==='tel'?' inputmode="tel" autocomplete="off"':'')+'>';
+      return '<div class="ef"><label class="el" for="'+id+'">'+esc(f[0])+'</label>'+inp+'</div>'}).join('')}
+  function dynVals(){var o={};var x=$('ev-extra').value.trim();if(selType){var k0=typeOf(selType).fields[0];if(k0&&x)o[k0]=x}
+    [].forEach.call($('ev-dyn').querySelectorAll('[data-f]'),function(el){var v=el.value.trim();if(v)o[el.dataset.f]=v});return o}
+  /* избран имот / клиент → попълва празните графи (цена, собственик, телефони, адрес) */
+  var PMAP={},CMAP={},BUID={};
+  function fillDyn(map){var k0=selType?typeOf(selType).fields[0]:'';Object.keys(map).forEach(function(k){var v=map[k];if(v==null||v==='')return;
+    var el=k===k0?$('ev-extra'):$('ev-dyn').querySelector('[data-f="'+k+'"]');if(el&&!el.value)el.value=String(v)})}
+  $('ev-prop').addEventListener('change',function(){var p=PMAP[this.value];if(!p)return;fillDyn({price:p.ownerPrice||p.price,client_price:p.price,owner_name:p.client||p.owner,owner_phone:p.ownerPhone,address:[p.address,p.hood,p.city].filter(Boolean).join(', '),area_m2:p.area,rooms:p.rooms?p.rooms+' стаи':'',listing_code:p.code,rent:p.deal==='rent'?p.price:''})});
+  $('ev-client').addEventListener('change',function(){var c=CMAP[this.value];if(!c)return;fillDyn({client_phone:c.phone,phone:c.phone,budget:c.budget,tenant:c.cat==='rent'?c.name:'',tenant_phone:c.cat==='rent'?c.phone:'',buyer:c.cat!=='rent'?c.name:'',investor:''})});
   function pickType(id){
     selType=id;var ty=typeOf(id);
     $('ev-tlabel').innerHTML='<span style="font-family:\'Apple Color Emoji\',\'Segoe UI Emoji\',\'Noto Color Emoji\'">'+ty.emo+'</span>&nbsp; '+esc(ty.label);
     [].forEach.call($('ev-tlist').children,function(li){var on=li.dataset.t===id;li.classList.toggle('on',on);li.setAttribute('aria-selected',on)});
     $('ev-tc-ph').style.backgroundImage='url('+img(ty.photo)+')';$('ev-tc-emo').textContent=ty.emo;$('ev-tc-name').textContent=ty.label;$('ev-tc-help').textContent=ty.help;
-    $('ev-extra-l').textContent=ty.extra;
+    $('ev-extra-l').textContent=ty.extra;var keep=dynVals();$('ev-dyn').innerHTML=dynHtml(ty,Object.assign({},pendingVals||{},keep));pendingVals=null;
+    setTimeout(fitE,0);var f0=FIELDS[ty.fields[0]];$('ev-extra').type=f0&&f0[1]==='tel'?'tel':f0&&f0[1]==='date'?'date':'text';$('ev-extra').placeholder=f0&&f0[2]||'';
     $('ev-tsel').classList.remove('bad');listOpen(false);
   }
   $('ev-tsel').addEventListener('click',function(){listOpen($('ev-tlist').hidden)});
@@ -1397,19 +1413,20 @@ html.desk .ewin .mscroll{overflow:hidden}
     $('ev-title').textContent=e?'Редакция на събитие':'Ново събитие / Задача';
     $('ev-del').hidden=!e;$('ev-err').textContent='';
     [].forEach.call(evcv.querySelectorAll('.bad'),function(x){x.classList.remove('bad')});
-    $('ev-name').value=e?e.title:'';$('ev-desc').value=e?e.desc:'';$('ev-extra').value=e?e.extra:'';
+    $('ev-name').value=e?e.title:'';$('ev-desc').value=e?e.desc:'';$('ev-extra').value=e?(e.fields&&e.fields[typeOf(e.type).fields[0]])||e.extra||'':'';$('ev-dyn').innerHTML='';selType=null;pendingVals=e&&e.fields||null;
     $('ev-date').value=e?e.date:(preset.date||iso(today));
     $('ev-from').value=e?e.from:(preset.from||'10:00');
     var fi=times.indexOf($('ev-from').value);$('ev-to').value=e?e.to:times[Math.min(fi+2,times.length-1)];
     $('ev-client').value=e?e.client:'';$('ev-prop').value=e?e.prop:'';$('ev-broker').value=e&&e.broker||'';
     var ty=e?e.type:preset.type;
-    if(ty)pickType(ty);else{selType=null;$('ev-tlabel').textContent='Избери тип…';[].forEach.call($('ev-tlist').children,function(li){li.classList.remove('on')});listOpen(true)}
+    if(ty)pickType(ty);else{selType=null;$('ev-tlabel').textContent='Избери ангажимент…';[].forEach.call($('ev-tlist').children,function(li){li.classList.remove('on')});$('ev-tcard').hidden=true;setTimeout(function(){listOpen(true)},120)}
     eback.hidden=false;ewin.hidden=false;root.classList.add('locked');
     fitE();escroll.scrollTop=0;
     requestAnimationFrame(function(){eback.classList.add('show');ewin.classList.add('show')});
-    setTimeout(function(){(ty?$('ev-name'):$('ev-tsel')).focus({preventScroll:true})},80);
+    if(ty)setTimeout(function(){$('ev-name').focus({preventScroll:true})},80);
   }
   function closeE(){
+    tpick.hidden=true;
     ewin.classList.remove('show');eback.classList.remove('show');root.classList.remove('locked');
     setTimeout(function(){ewin.hidden=true;eback.hidden=true;setEFull(false)},230);
     if(elast&&elast.focus&&document.contains(elast))elast.focus({preventScroll:true});
@@ -1420,7 +1437,7 @@ html.desk .ewin .mscroll{overflow:hidden}
     if(ewin.hidden)return;
     if(desk){
       var vw=(root.clientWidth-(window.NDRAIL||0)),dh=parseFloat(getComputedStyle(root).getPropertyValue('--dockH'))||(window.NDRAIL?0:100),ah=innerHeight-dh-14;
-      var H=evcv.offsetHeight||1100,aw=efull?vw-16:(window.NDRAIL?vw*.9:vw*.7),av=efull?ah-8:(window.NDRAIL?ah-10:ah*.94),z=Math.min(aw/1024,av/H),w=1024*z,h=H*z;
+      var H=Math.min(evcv.offsetHeight||1100,1180),aw=efull?vw-16:(window.NDRAIL?vw*.9:vw*.7),av=efull?ah-8:(window.NDRAIL?ah-10:ah*.94),z=Math.min(aw/1024,av/H),w=1024*z,h=H*z;
       ewin.style.width=w+'px';ewin.style.height=h+'px';ewin.style.left=((vw-w)/2)+'px';ewin.style.top=Math.max(6,(ah-h)/2)+'px';evcv.style.zoom=z;
     }else{ewin.style.width=ewin.style.height=ewin.style.left=ewin.style.top='';var zz=ewin.clientWidth/1024;evcv.style.zoom=zz;ewin.style.setProperty('--ez',zz)}
   }
@@ -1432,8 +1449,12 @@ html.desk .ewin .mscroll{overflow:hidden}
     if(!$('ev-date').value){errs.push('изберете дата');$('ev-date').classList.add('bad')}
     if(mins($('ev-to').value)<=mins($('ev-from').value)){errs.push('крайният час трябва да е след началния');$('ev-to').classList.add('bad')}
     if(errs.length){$('ev-err').textContent='Моля, '+errs.join(', ')+'.';return}
-    var rec={id:editId||('e'+Date.now()),type:selType,title:$('ev-name').value.trim(),date:$('ev-date').value,from:$('ev-from').value,to:$('ev-to').value,
-      client:$('ev-client').value,prop:$('ev-prop').value,broker:$('ev-broker').value,desc:$('ev-desc').value.trim(),extra:$('ev-extra').value.trim()};
+    var old=editId?events.filter(function(x){return x.id===editId})[0]||{}:{},fv=dynVals(),bk=$('ev-broker').value,me=window.ND&&ND.user&&ND.user.id;
+    /* всички останали полета на събитието (напр. възложено на брокер от Тед) се пазят */
+    var rec=Object.assign({},old,{id:editId||('e'+Date.now()),type:selType,title:$('ev-name').value.trim(),date:$('ev-date').value,from:$('ev-from').value,to:$('ev-to').value,
+      client:$('ev-client').value,prop:$('ev-prop').value,broker:bk,desc:$('ev-desc').value.trim(),extra:$('ev-extra').value.trim(),fields:fv});
+    /* избран друг брокер → задачата се възлага на него и я вижда и той (иначе я вижда само авторът) */
+    if(bk&&BUID[bk]&&BUID[bk]!==me){rec.assignee=BUID[bk];rec.assignee_name=bk}else if(!bk||BUID[bk]===me){delete rec.assignee;delete rec.assignee_name}
     if(editId){events=events.map(function(x){return x.id===editId?rec:x})}else events.push(rec);
     persist();
     var d=parse(rec.date);if(d<cur||d>=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+7))cur=monday(d);
@@ -1448,8 +1469,8 @@ html.desk .ewin .mscroll{overflow:hidden}
   $('ev-close').addEventListener('click',closeE);eback.addEventListener('click',closeE);
   document.addEventListener('keydown',function(e){
     if(ewin.hidden)return;
-    if(e.key==='Escape'){e.preventDefault();if(!$('ev-tlist').hidden&&selType){listOpen(false);return}closeE();return}
-    if(e.key==='Tab'){var f=[].slice.call(ewin.querySelectorAll('button,input,select,textarea,li[tabindex]')).filter(function(x){return x.offsetParent!==null&&!x.disabled});if(!f.length)return;
+    if(e.key==='Escape'){e.preventDefault();if(!tpick.hidden){listOpen(false);return}closeE();return}
+    if(e.key==='Tab'&&tpick.hidden){var f=[].slice.call(ewin.querySelectorAll('button,input,select,textarea,li[tabindex]')).filter(function(x){return x.offsetParent!==null&&!x.disabled});if(!f.length)return;
       var a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
   });
 
@@ -1466,9 +1487,9 @@ html.desk .ewin .mscroll{overflow:hidden}
   ND.ready().then(function(){return Promise.all([ND.load('events'),ND.load('clients'),ND.load('properties'),ND.load('brokers').catch(function(){return []})])}).then(function(r){
     ND.busy(0);events=r[0];
     var hm=/^#d=(\d{4}-\d\d-\d\d)$/.exec(location.hash||'');if(hm){var dd=new Date(hm[1]+'T00:00');if(!isNaN(dd))cur=monday(dd)}
-    CLIENTS.length=0;r[1].forEach(function(c){if(c.name)CLIENTS.push(c.name)});
-    PROPS.length=0;r[2].forEach(function(p){PROPS.push((p.code||p.id)+' · '+(p.title||'')+(p.city?', '+p.city:''))});
-    BROKERS.length=0;(r[3]||[]).forEach(function(b){if(b.name)BROKERS.push(b.name)});fillBrokers();kFill();
+    CLIENTS.length=0;r[1].forEach(function(c){if(c.name){CLIENTS.push(c.name);CMAP[c.name]=c}});
+    PROPS.length=0;r[2].forEach(function(p){var l=(p.code||p.id)+' · '+(p.title||'')+(p.city?', '+p.city:'');PROPS.push(l);PMAP[l]=p});
+    BROKERS.length=0;(r[3]||[]).forEach(function(b){if(b.name){BROKERS.push(b.name);if(b.user_id)BUID[b.name]=b.user_id}});fillBrokers();kFill();
     /* списъците „Свързан клиент“ / „Свързан имот“ се попълват след зареждането на данните */
     $('ev-client').innerHTML='<option value="">Избери клиент…</option>'+CLIENTS.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');
     $('ev-prop').innerHTML='<option value="">Избери имот…</option>'+PROPS.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');

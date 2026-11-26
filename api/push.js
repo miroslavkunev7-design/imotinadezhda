@@ -124,10 +124,11 @@ async function tick() {
     if (r1 && r1.sent_at && !r1.acked_at && !has(ev.id, who, "esc") && now - new Date(r1.sent_at).getTime() >= ESCALATE_MIN * 60000 && diff > -30 * 60000) {
       const others = (await staffIds()).filter((u) => u !== who);
       const nm = names[who] || "Брокерът";
-      const payload = { title: "⚠️ " + nm + " не потвърди: " + t.kind + " в " + fmtTime(start), body: t.title + (t.where ? " · " + t.where : "") + ". Моля, свържете се с него или поемете задачата.", url, tag: "esc-" + ev.id };
+      /* задачите в календара са лични: на екипа отива само, че има непотвърдена задача – без вида, заглавието и мястото, и без линк към нея */
+      const payload = { title: "⚠️ " + nm + " не потвърди задача в " + fmtTime(start), body: "Моля, свържете се с " + nm + ".", url: "/mobile/crm/crm-brokeri.html", tag: "esc-" + ev.id };
       const rid = id(); await q("nd_reminders", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: rid, event_id: ev.id, user_id: who, kind: "esc", due_at: start.toISOString(), sent_at: new Date().toISOString(), payload }) });
       const r = others.length ? await pushTo(others, Object.assign({ rid, ack: ackToken(rid) }, payload)) : { devices: 0, ok: 0 };
-      await q("nd_activities", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: id(), data: { icon: "bell", text: "Без потвърждение: " + nm + " – " + t.kind + " в " + fmtTime(start) + " (" + t.title + "). Екипът е уведомен.", client: d.client || "", at: new Date().toISOString() } }) }).catch(() => null);
+      await q("nd_activities", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ id: id(), data: { icon: "bell", text: "Без потвърждение: " + nm + " – задача в " + fmtTime(start) + ". Екипът е уведомен.", client: d.client || "", at: new Date().toISOString() } }) }).catch(() => null);
       out.escalated.push({ event: ev.id, to: others.length, delivered: r.ok });
     }
   }

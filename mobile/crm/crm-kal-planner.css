@@ -1,0 +1,128 @@
+/* ============================================================
+   Календар – „настолен планер“: златни спирални халки, винена корица-лента с логото,
+   лист със снимка, задачи като маркер с емотиконка, редовете растат с текста,
+   избор на ангажимент в голям прозорец. Зарежда се след crm-v3-kalendar.css.
+   ============================================================ */
+
+/* ---------- халки: златна спирала, всяка минава през дупка в лентата ---------- */
+html .rings{left:26px;right:26px;top:-40px;height:88px;z-index:4;filter:drop-shadow(0 4px 3px rgba(40,6,10,.5)) drop-shadow(0 0 6px rgba(255,214,150,.35));
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='78' viewBox='0 0 44 78'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%236e400e'/%3E%3Cstop offset='.22' stop-color='%23f7d98a'/%3E%3Cstop offset='.4' stop-color='%23fff4c9'/%3E%3Cstop offset='.58' stop-color='%23c98f2e'/%3E%3Cstop offset='.8' stop-color='%23f3cf7c'/%3E%3Cstop offset='1' stop-color='%237a4a12'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0' x2='1'%3E%3Cstop offset='0' stop-color='%234a2a08'/%3E%3Cstop offset='.5' stop-color='%23a8742a'/%3E%3Cstop offset='1' stop-color='%234a2a08'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cellipse cx='22' cy='67' rx='8.5' ry='4.6' fill='%23170204' opacity='.9'/%3E%3Cellipse cx='22' cy='66' rx='8.5' ry='4.6' fill='none' stroke='%23e9c27a' stroke-opacity='.45' stroke-width='1'/%3E%3Cpath d='M26 66 C33 64 33 52 33 40 C33 20 30 8 22 7' fill='none' stroke='url(%23b)' stroke-width='4.2' stroke-linecap='round'/%3E%3Cpath d='M18 67 C10 65 10 52 10 38 C10 17 14 4 22 4 C30 4 34 16 34.5 34' fill='none' stroke='url(%23g)' stroke-width='5.4' stroke-linecap='round'/%3E%3Cpath d='M13.5 36 C13.5 20 16 10 21 8' fill='none' stroke='%23fffbe6' stroke-width='1.5' stroke-linecap='round' opacity='.85'/%3E%3C/svg%3E") 0 0/50px 88px repeat-x}
+
+/* ---------- корица-лента на седмицата: винено, логото в средата върху разкъсан лист ---------- */
+html .nb-head,html.desk .nb-head{height:200px;overflow:visible;border-radius:32px 32px 0 0;color:#fff3dc;isolation:isolate;
+  background:radial-gradient(120% 140% at 50% -20%,rgba(255,170,150,.18),transparent 55%),
+    repeating-linear-gradient(115deg,rgba(255,255,255,.018) 0 3px,rgba(0,0,0,.025) 3px 7px),
+    linear-gradient(180deg,#7a1226 0%,#5a0918 55%,#460613 100%);
+  box-shadow:inset 0 2px 3px rgba(255,170,180,.35),inset 0 -2px 0 rgba(230,184,102,.95),0 3px 0 rgba(120,70,20,.25)}
+html .nb-head::after,html.desk .nb-head::after{display:none}
+/* разкъсаният бял лист зад логото */
+html .nb-head::before,html.desk .nb-head::before{content:"";position:absolute;left:50%;top:12px;width:380px;height:176px;margin-left:-190px;right:auto;bottom:auto;z-index:0;opacity:1;filter:drop-shadow(0 4px 8px rgba(30,0,6,.45));
+  background:radial-gradient(70% 80% at 50% 45%,#fffdf8 0,#fbf3e6 70%,#f2e3cc 100%);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 380 176' preserveAspectRatio='none'%3E%3Cpath d='M30 26 L58 10 L72 22 L96 6 L118 18 L146 4 L170 16 L196 2 L222 14 L248 4 L272 18 L298 6 L318 22 L344 12 L352 34 L372 48 L360 70 L378 90 L362 110 L374 132 L350 142 L340 166 L312 156 L290 172 L262 160 L238 174 L212 162 L188 174 L162 160 L138 172 L112 158 L88 170 L66 154 L40 164 L32 140 L8 128 L22 106 L4 86 L20 66 L6 44 Z' fill='black'/%3E%3C/svg%3E") center/100% 100% no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 380 176' preserveAspectRatio='none'%3E%3Cpath d='M30 26 L58 10 L72 22 L96 6 L118 18 L146 4 L170 16 L196 2 L222 14 L248 4 L272 18 L298 6 L318 22 L344 12 L352 34 L372 48 L360 70 L378 90 L362 110 L374 132 L350 142 L340 166 L312 156 L290 172 L262 160 L238 174 L212 162 L188 174 L162 160 L138 172 L112 158 L88 170 L66 154 L40 164 L32 140 L8 128 L22 106 L4 86 L20 66 L6 44 Z' fill='black'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+html .nb-logo,html.desk .nb-logo{display:block;position:absolute;left:50%;top:36px;width:250px;margin-left:-125px;z-index:1;filter:none}
+html .nb-orn{display:none}
+/* вляво: СЕДМИЧЕН ГРАФИК + година със златни орнаменти */
+html .nb-t,html.desk .nb-t{left:40px;top:44px;height:auto;display:grid;gap:10px;justify-items:start;color:#fff3dc;text-shadow:0 2px 3px rgba(30,0,8,.6)}
+html .nb-tt,html.desk .nb-tt{font:700 30px/1 var(--serif,Georgia,serif);letter-spacing:1px}
+html .nb-y{display:flex;align-items:center;gap:14px}
+html .nb-y b{font:700 54px/1 var(--serif,Georgia,serif);background:linear-gradient(180deg,#fff2c4,#e9bb5c 60%,#c58a2c);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 2px 2px rgba(30,0,8,.5))}
+html .nb-y i{display:block;width:120px;height:2px;background:linear-gradient(90deg,rgba(243,207,134,0),#f3cf86 60%,#fff3c8)}
+html .nb-y i:last-child{width:70px;background:linear-gradient(90deg,#fff3c8,#f3cf86 40%,rgba(243,207,134,0))}
+html .nb-t svg.i{display:none}
+/* вдясно: мотото + месецът със стрелките */
+html .nb-r{position:absolute;right:30px;top:30px;width:330px;text-align:center;font:700 22px/1.28 var(--serif,Georgia,serif);letter-spacing:.6px;color:#fff3dc;text-shadow:0 2px 3px rgba(30,0,8,.6)}
+html .nb-m,html.desk .nb-m{right:92px;top:118px;height:48px;padding:0 20px 0 16px;gap:10px;border-radius:24px;font:800 24px/1 var(--cond);color:#fff3dc;
+  background:linear-gradient(180deg,rgba(255,240,210,.16),rgba(255,214,150,.06));box-shadow:0 0 0 1.5px rgba(243,207,134,.85),0 0 14px rgba(246,212,142,.35)}
+html .nb-m svg.i{color:#f3cf86}
+html .nb-a,html.desk .nb-a{top:118px;width:48px;height:48px}
+html #k-prev{right:auto;left:auto}
+html #k-prev{right:356px}html #k-next{right:32px}
+html.desk #k-prev{right:356px}html.desk #k-next{right:32px}
+
+/* ---------- листът: снимка, прелята в кремаво, като тетрадка ---------- */
+html .sheet,html.desk .sheet{background:linear-gradient(180deg,rgba(255,252,246,.94) 0%,rgba(255,250,242,.86) 45%,rgba(255,247,236,.62) 100%),url(/desktop-home-assets/city-shumen.webp) 50% 78%/cover no-repeat;
+  box-shadow:inset 0 0 0 1.5px rgba(214,163,92,.5),0 4px 12px -6px rgba(60,10,10,.35)}
+/* редовете растат надолу колкото е дълъг текстът на задачата */
+html .kgrid,html.desk .kgrid{grid-template-rows:58px repeat(11,minmax(var(--rh,30px),auto))!important;align-items:stretch}
+html .kg-h,html.desk .kg-h{flex-direction:row;gap:10px;color:#fff3dc;font:700 22px/1 var(--serif,Georgia,serif);letter-spacing:.6px;text-transform:uppercase;
+  background:linear-gradient(180deg,#6f0f20,#4a0714);border-right:1.5px solid rgba(243,207,134,.35);box-shadow:inset 0 -2px 0 rgba(230,184,102,.75)}
+html .kg-h small{font:700 18px/1 var(--cond);color:#f3cf86;text-transform:none;margin:0}
+html .kg-h:not(.c0)::before{content:"";flex:none;width:24px;height:24px;background:#f3cf86;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4M7 14h2M11 14h2M15 14h2M7 17h2M11 17h2'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4M7 14h2M11 14h2M15 14h2M7 17h2M11 17h2'/%3E%3C/svg%3E") center/contain no-repeat}
+html .kg-h.c0{color:#7b1020;background:linear-gradient(180deg,#fbeee0,#f2dcc6);font-family:var(--cond)}
+html .kg-h.today{background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 2.5px #e6bf5b,0 0 18px rgba(230,191,91,.55)}
+html .kg-t{background:rgba(251,239,226,.7);border-top:1px solid rgba(190,140,80,.38)}
+html .kg-c{display:flex;flex-direction:column;gap:5px;padding:5px 6px;min-width:0;background:transparent;border-top:1px solid rgba(190,140,80,.32);border-left:1px solid rgba(190,140,80,.32)}
+html .kg-c.today{background:rgba(246,212,142,.12)}
+html .kg-c:hover{background:rgba(246,212,142,.2)}
+
+/* ---------- задачата: маркер с емотиконка, целият текст се вижда ---------- */
+html .kev,html.desk .kev{position:relative!important;left:auto!important;right:auto!important;top:auto!important;width:auto!important;height:auto!important;
+  display:flex;align-items:flex-start;gap:8px;margin:0;padding:7px 10px 7px 8px;border:0;border-radius:0;background:none!important;box-shadow:none!important;
+  text-align:left;color:#2a0a0e;font:800 17px/1.15 var(--cond);overflow:visible;isolation:isolate;z-index:1;cursor:pointer}
+html .kev::after{display:none!important}
+html .kev::before{content:"";position:absolute;inset:-1px -3px;z-index:-1;background:linear-gradient(176deg,rgba(255,255,255,.28),transparent 45%,rgba(0,0,0,.06)),var(--mk,#f9c7d6);opacity:.82;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60' preserveAspectRatio='none'%3E%3Cpath d='M7 9 C40 3 88 7 136 3 C162 1 184 4 196 8 C199 18 195 28 199 38 C197 49 190 56 172 55 C124 58 74 54 32 57 C16 58 6 55 3 46 C1 36 6 27 2 18 C2 13 3 10 7 9 Z' fill='black'/%3E%3C/svg%3E") center/100% 100% no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60' preserveAspectRatio='none'%3E%3Cpath d='M7 9 C40 3 88 7 136 3 C162 1 184 4 196 8 C199 18 195 28 199 38 C197 49 190 56 172 55 C124 58 74 54 32 57 C16 58 6 55 3 46 C1 36 6 27 2 18 C2 13 3 10 7 9 Z' fill='black'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+html .kev.mk-pink{--mk:#f6a6c1}html .kev.mk-blue{--mk:#9ccdf2}html .kev.mk-yellow{--mk:#ffe46b}html .kev.mk-green{--mk:#b6e47e}
+html .kev.mk-purple{--mk:#cfb0f2}html .kev.mk-orange{--mk:#ffc77a}html .kev.mk-rose{--mk:#f7aab5}html .kev.mk-teal{--mk:#9be1d6}
+html .kev .kemo{flex:none;font-size:24px;line-height:1.1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;filter:drop-shadow(0 1px 1px rgba(60,10,10,.25))}
+html .kev .kt{display:block;min-width:0}
+html .kev .kt b{display:block;font-weight:800;white-space:normal;overflow-wrap:anywhere;text-shadow:0 0 6px rgba(255,255,255,.6)}
+html .kev .kt small{display:block;margin-top:2px;font:700 14px/1.2 var(--cond);color:#5a1a1e;white-space:normal;overflow-wrap:anywhere}
+html .kev span{display:block;-webkit-line-clamp:unset;overflow:visible;text-shadow:none}
+html .kev:hover{transform:translateY(-1px);filter:saturate(1.15)}
+html .kev:hover::before{opacity:.95}
+html.desk .kev{font-size:21px;padding:8px 12px 8px 10px}html.desk .kev .kemo{font-size:28px}html.desk .kev .kt small{font-size:16px}
+.ku .kemo{flex:none;width:34px;text-align:center;font-size:28px;line-height:1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+
+/* ---------- избор на ангажимент ---------- */
+.tpick{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:16px;background:rgba(30,4,10,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:tpIn .18s ease-out}
+.tpick[hidden]{display:none}
+@keyframes tpIn{from{opacity:0}to{opacity:1}}
+.tp-win{width:min(1180px,100%);max-height:min(860px,calc(100vh - 32px));display:flex;flex-direction:column;overflow:hidden;border-radius:28px;border:1.5px solid transparent;
+  background:linear-gradient(#fffaf3,#fffaf3) padding-box,linear-gradient(140deg,#ffe9a3,#d6a650 42%,#a12139 75%,#f3d58f) border-box;
+  box-shadow:0 0 30px rgba(246,213,142,.45),0 26px 60px rgba(20,2,6,.55)}
+.tp-h{display:flex;align-items:center;gap:14px;padding:16px 18px 16px 26px;color:#fff3dc;
+  background:linear-gradient(100deg,#55071a 0%,#8d1530 60%,#a3213a 100%);box-shadow:inset 0 2px 3px rgba(255,170,180,.4),inset 0 -2px 0 #e6b866}
+.tp-h h3{margin:0;flex:none;font:700 21px/1 var(--cond,'Roboto Condensed',sans-serif);letter-spacing:2.5px;text-transform:uppercase;text-shadow:0 2px 3px rgba(30,0,8,.6)}
+.tp-s{flex:1;display:flex;align-items:center;gap:8px;max-width:340px;margin-left:auto;padding:0 14px;height:42px;border-radius:21px;background:rgba(255,240,210,.14);box-shadow:inset 0 0 0 1.5px rgba(243,207,134,.75),0 0 12px rgba(246,212,142,.25)}
+.tp-s svg.i{width:18px;height:18px;color:#f3cf86;flex:none}
+.tp-s input{flex:1;min-width:0;border:0;background:none;color:#fff3dc;font:600 16px var(--cond,'Roboto Condensed',sans-serif);outline:0}
+.tp-s input::placeholder{color:#e8cc96}
+.tp-x{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:50%;color:#fff3dc;background:rgba(80,6,20,.6);box-shadow:0 0 0 2px #e6bf5b,0 0 14px rgba(246,212,142,.5);cursor:pointer}
+.tp-x svg.i{width:20px;height:20px}
+.tp-grid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px 8px;padding:16px 18px 20px;
+  background:linear-gradient(180deg,rgba(255,252,246,.93),rgba(255,248,238,.84) 60%,rgba(255,244,230,.74)),url(assets/nd/ph12.jpg) center/cover no-repeat}
+.tp-o{display:flex;align-items:center;gap:12px;min-height:62px;padding:8px 10px;border:0;border-radius:16px;background:none;text-align:left;cursor:pointer;
+  font:800 15px/1.15 var(--cond,'Roboto Condensed',sans-serif);text-transform:uppercase;color:#2a0a0e;letter-spacing:.2px;transition:background .15s,box-shadow .15s,transform .15s}
+.tp-o[hidden]{display:none}
+.tp-o .kemo{flex:none;width:36px;text-align:center;font-size:30px;line-height:1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;filter:drop-shadow(0 2px 2px rgba(60,10,10,.25))}
+.tp-o:hover,.tp-o:focus-visible{outline:0;background:rgba(255,255,255,.78);box-shadow:inset 0 0 0 1.5px rgba(214,163,92,.7),0 0 16px rgba(246,212,142,.55);transform:translateY(-1px)}
+.tp-o.on{color:#fff3dc;background:linear-gradient(135deg,#a3213a,#5e0716);box-shadow:inset 0 0 0 2px #e6bf5b,0 0 16px rgba(230,191,91,.55)}
+@media(max-width:1100px){.tp-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:760px){.tp-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.tp-h{flex-wrap:wrap;padding:14px 16px}.tp-s{order:3;flex-basis:100%;max-width:none;margin:0}.tp-x{margin-left:auto}}
+@media(max-width:520px){.tp-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.tp-o{min-height:56px;font-size:13.5px;gap:8px}.tp-o .kemo{font-size:26px;width:30px}}
+/* графите според вида – в картата на типа */
+.ev-dyn{display:block}
+.tsel #ev-tlabel{font-family:inherit}
+html.desk .ewin .mscroll{overflow-y:auto!important;scrollbar-width:thin;scrollbar-color:#c99a5a transparent}
+/* ---------- телефон (листът е 1024 точки широк): лентата е на три реда, заглавията на дните – по-кратки ---------- */
+html:not(.desk) .nb-head{height:300px}
+html:not(.desk) .nb-head::before{top:10px;width:330px;height:150px;margin-left:-165px}
+html:not(.desk) .nb-logo{top:30px;width:220px;margin-left:-110px}
+html:not(.desk) .nb-t{left:34px;top:178px;display:flex;align-items:center;gap:16px}
+html:not(.desk) .nb-tt{font-size:28px}
+html:not(.desk) .nb-y b{font-size:40px}
+html:not(.desk) .nb-y i{width:40px}html:not(.desk) .nb-y i:last-child{display:none}
+html:not(.desk) .nb-r{right:30px;top:172px;width:400px;font-size:20px;text-align:right}
+html:not(.desk) .nb-m{right:50%;margin-right:-130px;top:236px;width:260px;justify-content:center}
+html:not(.desk) .nb-a{top:236px}
+html:not(.desk) #k-prev{right:auto;left:calc(50% - 200px)}
+html:not(.desk) #k-next{right:calc(50% - 200px)}
+html:not(.desk) .kg-h{flex-direction:column;gap:2px;font-size:19px;letter-spacing:.2px}
+html:not(.desk) .kg-h:not(.c0)::before{display:none}
+html:not(.desk) .kg-h small{font-size:17px}
+html:not(.desk) .kgrid{grid-template-rows:60px repeat(11,minmax(var(--rh,30px),auto))!important}
