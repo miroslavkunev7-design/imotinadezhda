@@ -268,6 +268,9 @@
       }).then(checkStaff).then(function (s) {
         ND.user = s && s.user;
         try { localStorage.setItem("nd-staff-device", "1"); } catch (e) {} /* публичният сайт не брои посещенията от това устройство */
+        /* и от друг браузър на същото устройство и мрежа (напр. Safari до приложението CRM): отпечатъкът IP + устройство се пази
+           (nd_staff_seen) и вече записаните посещения от него се махат. Най-много веднъж на 20 мин. */
+        try { var ls = +localStorage.getItem("nd-staff-seen") || 0; if (s && Date.now() - ls > 1200000) { localStorage.setItem("nd-staff-seen", String(Date.now())); Promise.resolve(client().rpc("nd_staff_seen")).catch(function () {}); } } catch (e) {}
         return s;
       });
       readyP.catch(function (e) { say(e.message || "Грешка при връзка с базата"); });
