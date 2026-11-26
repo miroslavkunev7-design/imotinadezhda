@@ -16,7 +16,7 @@
 <script>/* снимка от външен сървър не се зарежда -> наша снимка на града */document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='IMG'||t.dataset.ndfb||!/screenshottocode\.com/.test(t.currentSrc||t.src))return;t.dataset.ndfb='1';var m=/\/(?:city|neighborhood|property\/[^/]+)\/(burgas|varna|shumen|novi-pazar)/.exec(location.hash),c=m?m[1]:'burgas';t.src='/desktop-home-assets/city-'+c+'.webp'},true)</script>
 <script src="/mobile/vendor/react-18.0.0.production.min.js" defer></script>
 <script src="/mobile/vendor/react-dom-18.0.0.production.min.js" defer></script>
-<link rel="stylesheet" href="/mobile/ilj-tw.css?v=4af8aa7874"/>
+<link rel="stylesheet" href="/mobile/ilj-tw.css?v=953f927d46"/>
 <link rel="stylesheet" href="/mobile/nd-gold-ribbon.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/></noscript>
 <style>
@@ -255,6 +255,13 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)go()
 ['touchstart','pointerdown'].forEach(function(e){window.addEventListener(e,go,{passive:true})});window.addEventListener('scroll',go,{passive:true,once:true});})();</script>
 </head>
 <body><div id="root"></div>
+<style id="nd-cards-count">/* 26.11: броят имоти във всяка карта (квартал, село, град) – с едри цифри и букви */
+.neighborhood-meta .nd-cntw{display:inline-flex;align-items:baseline;gap:6px;font-size:19px;font-weight:700;color:#50191c;overflow:visible!important}
+.neighborhood-meta .nd-cntw .icon{align-self:center;width:20px;height:22px;flex:none}
+.neighborhood-meta .nd-cnt{font-size:30px;line-height:1;font-weight:700;color:#7a1023;letter-spacing:-.5px}
+@media(max-width:1050px){.neighborhood-meta .nd-cntw{font-size:16px}.neighborhood-meta .nd-cnt{font-size:25px}.neighborhood-meta .nd-cntw .icon{width:17px;height:19px}}
+@media(max-width:768px){.neighborhood-meta .nd-cntw{font-size:15px;gap:5px}.neighborhood-meta .nd-cnt{font-size:24px}}
+</style>
 <script src="/mobile/places.js"></script>
 <script src="/mobile/nd-visit.js" defer></script>
 <script src="/mobile/site-data.js"></script>
@@ -264,5 +271,5 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)go()
 <script src="/mobile/nd-hscroll.js" defer></script>
 <script src="/mobile/nd-gold-ribbon.js" defer></script>
 <script src="/mobile/nc-nav.js" defer></script>
-<script src="/mobile/ilj-app.js?v=nc1112" defer></script>
+<script src="/mobile/ilj-app.js?v=1cf1a0a897?v=nc1112" defer></script>
 </body></html>
