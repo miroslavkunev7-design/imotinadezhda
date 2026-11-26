@@ -673,7 +673,7 @@
     }
     function render(q) {
       var list = box.querySelector(".ndm-l"); list.innerHTML = ""; items = []; hl = -1;
-      var ql = (q || "").toLowerCase(), groups = sel.querySelectorAll("optgroup"), any = false;
+      var ql = (q || "").toLowerCase(), groups = sel.querySelectorAll("optgroup"), any = false, subs = {};
       function add(o) {
         if (o.hidden) return;
         var t = o.textContent.trim();
@@ -682,15 +682,32 @@
         if (o.disabled) b.disabled = true;
         if (o.selected) b.classList.add("on");
         b.setAttribute("data-i", items.length); b.setAttribute("role", "option");
-        items.push(o); list.appendChild(b); any = true;
+        /* опция с data-sub: стои в подменю, което пада при натискане на реда-родител (data-label = името вътре в подменюто) */
+        var sub = !ql && o.getAttribute("data-sub"), host = list;
+        if (sub) {
+          if (!subs[sub]) {
+            var pb = document.createElement("button"); pb.type = "button"; pb.className = "ndm-p"; pb.textContent = sub; pb.setAttribute("aria-expanded", "false");
+            var sb = document.createElement("div"); sb.className = "ndm-s"; sb.hidden = true; list.appendChild(pb); list.appendChild(sb); subs[sub] = { p: pb, s: sb };
+          }
+          host = subs[sub].s; b.textContent = o.getAttribute("data-label") || t;
+          if (o.selected) { subs[sub].s.hidden = false; subs[sub].p.classList.add("open", "has"); subs[sub].p.setAttribute("aria-expanded", "true"); }
+        }
+        items.push(o); host.appendChild(b); any = true;
       }
       if (groups.length) { [].forEach.call(sel.children, function (c) { if (c.tagName === "OPTGROUP") { var g = document.createElement("div"); g.className = "ndm-g"; g.textContent = c.label; list.appendChild(g); [].forEach.call(c.children, add); } else add(c); }); }
       else [].forEach.call(sel.options, add);
-      if (!any) { var e = document.createElement("div"); e.className = "ndm-g"; e.textContent = "Няма съвпадения"; list.appendChild(e); }
-      var on = list.querySelector("button.on"); if (on) hl = +on.getAttribute("data-i");
+      /* select с data-free: написаното в търсачката може да се използва направо (напр. име на клиент, който не е в списъка) */
+      var fq = (q || "").trim();
+      if (sel.dataset.free != null && fq) { var fb = document.createElement("button"); fb.type = "button"; fb.className = "ndm-free"; fb.textContent = "Напиши: " + fq; fb.setAttribute("data-free", fq); list.appendChild(fb); }
+      else if (!any) { var e = document.createElement("div"); e.className = "ndm-g"; e.textContent = "Няма съвпадения"; list.appendChild(e); }
+      var on = list.querySelector("button.on"); if (on) hl = btns().indexOf(on);
     }
+    function btns() { return [].filter.call(box.querySelectorAll("button[data-i],button.ndm-p,button.ndm-free"), function (b) { return b.offsetParent !== null; }); }
+    function toggleSub(pb) { var sb = pb.nextElementSibling; if (!sb) return; sb.hidden = !sb.hidden; pb.classList.toggle("open", !sb.hidden); pb.setAttribute("aria-expanded", sb.hidden ? "false" : "true"); if (anchor) place(anchor); }
+    function freeText(t) { var s0 = sel; t = String(t || "").trim(); if (!s0 || !t) return; closeMenu(); s0.dispatchEvent(new CustomEvent("nd-free", { bubbles: true, detail: { text: t } })); }
+    function act(b) { if (!b) return; if (b.classList.contains("ndm-p")) toggleSub(b); else if (b.classList.contains("ndm-free")) freeText(b.getAttribute("data-free")); else pick(+b.getAttribute("data-i")); }
     function mark(n) {
-      var bs = box.querySelectorAll("button[data-i]"); if (!bs.length) return;
+      var bs = btns(); if (!bs.length) return;
       n = Math.max(0, Math.min(bs.length - 1, n));
       [].forEach.call(bs, function (b) { b.classList.remove("hl"); });
       bs[n].classList.add("hl"); hl = n;
@@ -704,7 +721,7 @@
       var typing = e.target && e.target.closest && e.target.closest(".ndm-q");
       if (typing && k !== "ArrowDown" && k !== "ArrowUp" && k !== "Enter" && k !== "Escape" && k !== "Home" && k !== "End") return;
       if (k !== "ArrowDown" && k !== "ArrowUp" && k !== "Enter" && k !== "Escape" && k !== "Home" && k !== "End") return;
-      var bs = box.querySelectorAll("button[data-i]"); if (!bs.length && k !== "Escape") return;
+      var bs = btns(); if (!bs.length && k !== "Escape") return;
       e.preventDefault(); e.stopPropagation();
       if (k === "Escape") { e.stopImmediatePropagation(); var s0 = sel; closeMenu(); if (s0) s0.focus(); return; }
       var cur = hl; if (cur < 0) cur = [].findIndex.call(bs, function (b) { return b.classList.contains("on"); }); if (cur < 0) cur = 0;
@@ -712,20 +729,20 @@
       else if (k === "ArrowUp") mark(cur - 1);
       else if (k === "Home") mark(0);
       else if (k === "End") mark(bs.length - 1);
-      else if (k === "Enter") pick(+bs[Math.max(0, cur)].getAttribute("data-i"));
+      else if (k === "Enter") act(bs[Math.max(0, cur)]);
     }
     function openMenu(s, a) {
       closeMenu(); sel = s; sel.classList.add("ndm-open"); anchor = a;
       box = document.createElement("div"); box.className = "ndmenu"; box.setAttribute("role", "listbox"); box.tabIndex = -1;
-      var many = sel.options.length > 8;
-      box.innerHTML = (many ? '<div class="ndm-q"><input type="text" placeholder="Търси…" aria-label="Търси в списъка"></div>' : "") + '<div class="ndm-l"></div>';
+      var free = sel.dataset.free != null, many = (sel.options.length > 8 && sel.dataset.nosearch == null) || free;
+      box.innerHTML = (many ? '<div class="ndm-q"><input type="text" placeholder="' + esc(free && sel.dataset.free ? sel.dataset.free : "Търси…") + '" aria-label="Търси в списъка"></div>' : "") + '<div class="ndm-l"></div>';
       document.body.appendChild(box); render("");
-      box.addEventListener("click", function (e) { var b = e.target.closest("button[data-i]"); if (b) pick(+b.getAttribute("data-i")); });
+      box.addEventListener("click", function (e) { var b = e.target.closest("button[data-i],button.ndm-p,button.ndm-free"); if (b) act(b); });
       box.addEventListener("wheel", function (e) { e.stopPropagation(); }, { passive: true });
       box.addEventListener("touchmove", function (e) { e.stopPropagation(); }, { passive: true });
       var qi = box.querySelector(".ndm-q input"); if (qi) { qi.addEventListener("input", function () { render(qi.value); mark(hl >= 0 ? hl : 0); }); }
       place(anchor);
-      var on = box.querySelector("button.on"); if (on) { hl = +on.getAttribute("data-i"); on.classList.add("hl"); on.scrollIntoView({ block: "center" }); }
+      var on = box.querySelector("button.on"); if (on) { hl = btns().indexOf(on); on.classList.add("hl"); on.scrollIntoView({ block: "center" }); }
       setTimeout(function () {
         var focusEl = qi || box.querySelector("button.hl, button.on, button");
         if (focusEl) try { focusEl.focus({ preventScroll: true }); } catch (err) { try { box.focus(); } catch (e2) {} }

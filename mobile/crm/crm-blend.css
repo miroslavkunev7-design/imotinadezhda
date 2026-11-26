@@ -117,6 +117,15 @@ html.rail .nda-fab{display:none}
 .ndmenu button.on::after{content:"✓";margin-left:auto;font-weight:700;color:#f5d58f}
 .ndmenu .ndm-g{padding:10px 14px 4px;font:700 13px/1 var(--cond,Arial);letter-spacing:.8px;text-transform:uppercase;color:#9a6a3a}
 .ndmenu button[disabled]{opacity:.45;cursor:default}
+/* подменю в падащия списък (опции с data-sub) + ред „Напиши: …“ за свободно писане (select с data-free) */
+.ndmenu button.ndm-p::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2px solid #7b1020;border-bottom:2px solid #7b1020;transform:rotate(-45deg);transition:transform .2s;flex:none}
+.ndmenu button.ndm-p.open::after{transform:rotate(45deg)}
+.ndmenu button.ndm-p.has{font-weight:700;color:#5a0a18}
+.ndmenu .ndm-s{margin:2px 0 6px 14px;padding:2px 0 2px 10px;border-left:1.5px solid rgba(214,163,92,.7)}
+.ndmenu .ndm-s[hidden]{display:none}
+.ndmenu .ndm-s button{min-height:40px;font-size:17px}
+.ndmenu button.ndm-free{margin-top:4px;font-weight:700;color:#5a0a18;border:1.5px dashed rgba(214,163,92,.9)}
+.ndmenu button.ndm-free::before{content:"✎";color:#7b1020;font-weight:700}
 
 /* ===== Кръг 3 (06.11.2026) ===== */
 /* 1. Десктоп: скролът работи, лентата е скрита – навсякъде */

@@ -41,7 +41,7 @@ function schema(spec) {
 const S = (type, o) => Object.assign({ type }, o || {});
 
 /* ---------- storage / db helpers (user token, RLS) ---------- */
-const T = { clients: "nd_clients", properties: "nd_properties", documents: "nd_documents", companies: "nd_companies", activities: "nd_activities", audit: "nd_audit", rentals: "nd_rentals", inquiries: "nd_inquiries", collected: "nd_collected", prefs: "nd_prefs", brokers: "nd_brokers", deals: "nd_deals" };
+const T = { contracts: "nd_contracts", clients: "nd_clients", properties: "nd_properties", documents: "nd_documents", companies: "nd_companies", activities: "nd_activities", audit: "nd_audit", rentals: "nd_rentals", inquiries: "nd_inquiries", collected: "nd_collected", prefs: "nd_prefs", brokers: "nd_brokers", deals: "nd_deals" };
 async function rows(ctx, kind, filter) {
   let q = ctx.sb.from(T[kind]).select("id,data,created_at,updated_at").order("updated_at", { ascending: false }).limit(2000);
   if (filter) q = filter(q);
@@ -933,21 +933,34 @@ const tools = {
     }
   },
   "contracts.generate": {
-    description: "Изготвя договор от CRM данните (kind: pre = предварителен договор, broker-seller, broker-buyer, rent, deposit = разписка за капаро, viewing = протокол за оглед, power = пълномощно) и го връща като PDF при клиента. fields: {price, deposit, deadline(YYYY-MM-DD), handover, notary, payment, commission, term, extra …}. Не е заверен документ – за преглед.",
-    input: schema({ kind: S("string", { required: true, enum: ["pre", "broker-seller", "broker-buyer", "rent", "deposit", "viewing", "power"] }), client_id: S("string"), client_name: S("string", { max: 120 }), property_id: S("string"), property_code: S("string", { max: 30 }), seller_client_id: S("string"), fields: S("object", { default: {} }) }),
+    description: "Изготвя договор от CRM данните и го връща като PDF при клиента. kind: pre = предварителен договор за покупко-продажба (шаблон на агенцията; fields.variant \"1\" = с авансово плащане, \"2\" = цената е платена изцяло), rent = договор за наем, rent-mgmt = договор за управление на наем (и двата по шаблона на агенцията, с такса управление), exclusive = ексклузивен договор, broker-seller, broker-buyer = посредничество, deposit = разписка за капаро при покупко-продажба, deposit-rent = разписка за депозит при наем, viewing = договор за оглед при покупко-продажба, viewing-rent = договор за оглед при наем, power = пълномощно. " +
+      "fields: {price, deposit, payment, deadline(YYYY-MM-DD), handover, handoverNote, propAddr, propParts, deed, propState, propDesc, fee (такса управление €), term (години), payFrom, payTo, iban, ibanName, inventory, commission, seller2, client2, extra (всеки ред е отделна подточка)…}. Данните на страните (ЕГН, л.к. №, издадена на/от, адрес) се взимат от картите им. Текстът на шаблоните не се променя – попълват се само празните места. Не е заверен документ – за преглед.",
+    input: schema({ kind: S("string", { required: true, enum: ["pre", "rent", "rent-mgmt", "exclusive", "broker-seller", "broker-buyer", "deposit", "deposit-rent", "viewing", "viewing-rent", "power"] }), client_id: S("string"), client_name: S("string", { max: 120 }), property_id: S("string"), property_code: S("string", { max: 30 }), seller_client_id: S("string"), fields: S("object", { default: {} }) }),
     run: async (ctx, i) => {
       const CT = require("../mobile/crm/crm-contracts.js");
       const c = await clientOf(ctx, i.client_id, i.client_name); if (!c) throw new ToolError("Посочете клиент");
       let p = null;
       if (i.property_id) p = await row(ctx, "properties", i.property_id); else if (i.property_code) { const all = await rows(ctx, "properties"); p = all.filter((x) => String(x.code || "").toLowerCase() === i.property_code.toLowerCase())[0] || null; if (!p) throw new ToolError("Няма имот с код " + i.property_code, 404); }
       const s = i.seller_client_id ? await row(ctx, "clients", i.seller_client_id) : null;
-      const f = Object.assign({ date: new Date().toISOString().slice(0, 10), place: "гр. Шумен", commission: 3, copies: 3 }, i.fields || {}); if (!f.price && p && p.price) f.price = p.price;
+      const f = Object.assign({ date: new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Sofia" }), place: "гр. Шумен", commission: /^viewing-rent$/.test(i.kind) ? 50 : 3, copies: 3 }, i.fields || {});
       const r = CT.render(i.kind, f, c, s, p);
       const blocks = htmlToBlocks(r.html);
       const buf = await textPdf(blocks, { footer: "Недвижими Имоти Надежда · " + r.title }), name = safeName(r.title) + ".pdf", path0 = artPath(c, name);
       await upload(ctx, path0, buf, "application/pdf");
-      const missing = (r.html.match(/…{3,}/g) || []).length;
-      return Object.assign({ kind: i.kind, title: r.title, pages: (await loadPdf(buf)).getPageCount(), blanks_to_fill: missing, note: "Образец за преглед от служител/адвокат, не е подписан документ." }, await registerArtifact(ctx, c, name, path0, buf.length, "application/pdf", "Договори", "Тед изготви: " + r.title));
+      const missing = (r.html.match(/[…]{3,}|\.{6,}/g) || []).length, pages = (await loadPdf(buf)).getPageCount();
+      const art = await registerArtifact(ctx, c, name, path0, buf.length, "application/pdf", "Договори", "Тед изготви: " + r.title);
+      /* регистър на договорите (nd_contracts): връзка договор ↔ клиент ↔ имот */
+      await put(ctx, "contracts", { kind: i.kind, title: r.title, client_id: c.id, client: c.name || "", seller_id: s ? s.id : "", seller: s ? s.name || "" : (p && p.client) || "", prop_id: p ? p.id : "", prop_code: p ? p.code || "" : "", prop: p ? p.title || "" : "", date: f.date, pages, fields: i.fields || {}, path: path0, document_id: art.document_id, at: new Date().toISOString(), by: "ted" }).catch(() => null);
+      return Object.assign({ kind: i.kind, title: r.title, pages, blanks_to_fill: missing, note: "Образец за преглед от служител/адвокат, не е подписан документ." }, art);
+    }
+  },
+  "contracts.list": {
+    description: "Регистър на изготвените договори (от страница „Договори“ и от Тед): вид, заглавие, клиент, продавач/наемодател, имот, дата. Филтри: kind, client_id, property_id, text.",
+    input: schema({ kind: S("string", { max: 30 }), client_id: S("string"), property_id: S("string"), text: S("string", { max: 120 }) }),
+    run: async (ctx, i) => {
+      const q = (i.text || "").toLocaleLowerCase("bg");
+      const all = (await rows(ctx, "contracts")).filter((x) => (!i.kind || x.kind === i.kind) && (!i.client_id || x.client_id === i.client_id || x.seller_id === i.client_id) && (!i.property_id || x.prop_id === i.property_id) && (!q || [x.title, x.client, x.seller, x.prop, x.prop_code].join(" ").toLocaleLowerCase("bg").includes(q)));
+      return { count: all.length, contracts: all.slice(0, 50).map((x) => ({ id: x.id, kind: x.kind, title: x.title, client: x.client || null, client_id: x.client_id || null, seller: x.seller || null, property: x.prop || null, property_code: x.prop_code || null, property_id: x.prop_id || null, date: x.date || null, pages: x.pages || null, document_id: x.document_id || null, by: x.by || null })) };
     }
   },
   "video.create": {

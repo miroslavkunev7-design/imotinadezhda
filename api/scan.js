@@ -122,6 +122,42 @@ module.exports = async (req, res) => {
     } catch (e) { last = String(e.message || e); }
     return send(res, 200, { ok: true, fields: null, note: last });
   }
+  if (b.kind === "idcard") {
+    /* Лична карта от документите на клиента (до 3 файла – лице, гръб) → данните за страна по договор */
+    const OKM = /^(image\/(jpeg|png|webp|heic|heif)|application\/pdf)$/;
+    const imgs = (Array.isArray(b.images) ? b.images : b.data ? [{ mime: b.mime, data: b.data }] : []).filter((x) => x && x.data && OKM.test(String(x.mime || ""))).slice(0, 3);
+    if (!imgs.length) return send(res, 400, { ok: false, error: "Нужна е снимка или PDF на личната карта" });
+    if (!(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY)) return send(res, 200, { ok: true, fields: null, note: "no key" });
+    const prompt = "Прикачените изображения са българска лична карта (лице и/или гръб) или друг документ за самоличност на клиент на агенция за недвижими имоти" + (b.name ? " (клиент: " + String(b.name).slice(0, 80) + ")" : "") +
+      ". Извлечи САМО това, което реално се чете – не измисляй и не допълвай. Върни JSON: {\"isId\": true/false (дали е документ за самоличност), \"name\": трите имена на кирилица, \"egn\": ЕГН (10 цифри), " +
+      "\"idNo\": номер на документа, \"idDate\": дата на издаване във формат YYYY-MM-DD, \"idIssuer\": издаден от, във вида „МВР-Шумен“, \"address\": постоянен адрес както е написан (обл., общ., гр./с., ул., №, бл., вх., ет., ап.)}. Липсващите полета са празен низ.";
+    try {
+      const g = await GEM.generate({ parts: [{ text: prompt }].concat(imgs.map((x) => ({ inline_data: { mime_type: String(x.mime), data: x.data } }))), json: true, temperature: 0, budgetMs: 45000 });
+      let f = g.data; if (Array.isArray(f)) f = f[0] || {}; f = f || {};
+      if (f.isId === false) return send(res, 200, { ok: true, fields: null, note: "not an id" });
+      const t = (v, n) => String(v == null ? "" : v).trim().slice(0, n);
+      const egn = t(f.egn, 12).replace(/\D/g, ""), date = t(f.idDate, 10);
+      return send(res, 200, { ok: true, model: g.model, fields: { name: t(f.name, 120), egn: egn.length === 10 ? egn : "", idNo: t(f.idNo, 20).replace(/\s+/g, ""), idDate: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : "", idIssuer: t(f.idIssuer, 60), address: t(f.address, 200) } });
+    } catch (e) { return send(res, 200, { ok: true, fields: null, note: String(e.message || e).slice(0, 200) }); }
+  }
+  if (b.kind === "clause") {
+    /* „Дописване на асистента“: диктуваното от брокера → една подточка за договора (без нови факти) */
+    const raw = String(b.text || "").replace(/\s+/g, " ").trim().slice(0, 2000);
+    if (!raw) return send(res, 400, { ok: false, error: "Няма текст" });
+    const plain = raw.charAt(0).toLocaleUpperCase("bg") + raw.slice(1) + (/[.!?…]$/.test(raw) ? "" : ".");
+    if (!(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY)) return send(res, 200, { ok: true, text: plain, note: "no key" });
+    const prev = (Array.isArray(b.existing) ? b.existing : []).slice(-8).map((x) => "- " + String(x).slice(0, 400)).join("\n");
+    const prompt = "Ти си асистент на агенция за недвижими имоти в България и дописваш особено условие в договор („" + String(b.contract || "договор").slice(0, 120) + "“). " +
+      "Брокерът е издиктувал условието със свои думи. Оформи го като ЕДНА подточка за договора: ясен официален договорен стил на български, едно до три изречения, с правилна пунктуация. " +
+      "Запази точно смисъла, имената, сумите, датите и сроковете – не добавяй нищо, което не е казано, не давай съвети и не пиши номерация или заглавие. Страните се назовават както в договора (Продавач/Купувач, Наемодател/Наемател)." +
+      (prev ? "\nВече вписани подточки (не ги повтаряй):\n" + prev : "") + "\n\nДиктувано: „" + raw + "“\n\nВърни JSON: {\"text\": \"подточката\"}.";
+    try {
+      const g = await GEM.generate({ parts: [{ text: prompt }], json: true, temperature: 0.2, budgetMs: 30000 });
+      let f = g.data; if (Array.isArray(f)) f = f[0] || {};
+      const out = String((f && f.text) || "").replace(/\s+/g, " ").replace(/^\s*(?:\d+[.)]|[-–•*])\s*/, "").trim().slice(0, 1500);
+      return send(res, 200, { ok: true, text: out || plain, model: g.model });
+    } catch (e) { return send(res, 200, { ok: true, text: plain, note: String(e.message || e).slice(0, 200) }); }
+  }
   if (b.kind === "logos" || b.kind === "clean") {
     if (!b.data || !/^image\/(jpeg|png|webp)$/.test(String(b.mime || ""))) return send(res, 400, { ok: false, error: "Нужна е снимка" });
     const k = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
