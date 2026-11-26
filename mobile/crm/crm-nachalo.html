@@ -541,6 +541,10 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
     var won=dl.filter(function(d){return d.stage==='Приключена'}).length,lost=dl.filter(function(d){return d.stage==='Отказана'}).length;
     var vals=[pr.filter(function(p){return ['Архивиран','Продаден'].indexOf(p.status)<0}).length,cl.length,dl.length,won+lost?Math.round(won*100/(won+lost))+'%':'—'];
     mets.forEach(function(b,i){b.textContent=typeof vals[i]==='number'?new Intl.NumberFormat('fr-FR').format(vals[i]).replace(/\u202f|\u00a0/g,' '):vals[i]});
+    /* „Посещения“: реални уникални посетители на публичния сайт (nd_site_visits) – един човек се брои веднъж, брокерите не се броят */
+    ND.sb().rpc('nd_visit_stats').then(function(x){var v=x&&x.data;if(!v||typeof v.total!=='number'||!mets[2])return;var m=mets[2].parentNode;
+      mets[2].textContent=new Intl.NumberFormat('fr-FR').format(v.total).replace(/\u202f|\u00a0/g,' ');m.querySelector('span').textContent='Посещения';var u=m.querySelector('use');if(u)u.setAttribute('href','#globe');
+      m.title='Посетители на публичния сайт: днес '+v.today+', последните 7 дни '+v.week+', общо '+v.total;m.setAttribute('data-visits','1')},function(){});
     /* today, otherwise the next upcoming events */
     var t=iso(),list=ev.filter(function(e){return e.date===t});var label='';
     if(!list.length){list=ev.filter(function(e){return e.date>t});label='next'}

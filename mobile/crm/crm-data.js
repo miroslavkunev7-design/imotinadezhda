@@ -267,6 +267,7 @@
         return session || waitLogin();
       }).then(checkStaff).then(function (s) {
         ND.user = s && s.user;
+        try { localStorage.setItem("nd-staff-device", "1"); } catch (e) {} /* публичният сайт не брои посещенията от това устройство */
         return s;
       });
       readyP.catch(function (e) { say(e.message || "Грешка при връзка с базата"); });

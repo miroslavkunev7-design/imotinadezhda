@@ -532,6 +532,7 @@ html.leaving #stage{opacity:0;transform:translateY(-6px);transition:opacity .17s
   background:rgba(25,18,22,.78);color:#fff;font:700 36px/1 var(--cond);box-shadow:0 0 0 1.5px rgba(255,255,255,.4)}
 .pm-cnt svg.i{font-size:40px;stroke-width:2.2}
 .pm-thumbs{display:flex;gap:18px;padding:0 24px;margin-top:20px;height:132px}
+.pm-views{display:flex;padding:0 24px;margin-top:16px}.pm-views[hidden]{display:none}.pm-views .pchip b{font-weight:800}html.desk .pm-views{padding:0;margin-top:14px}
 .pm-th{flex:1 1 0;min-width:0;border-radius:22px;overflow:hidden;background:#d8c3ae center/cover;cursor:pointer;
   box-shadow:0 0 0 3px #fff8ec,0 4px 10px rgba(90,30,20,.25)}
 .pm-th.on{box-shadow:0 0 0 4px #e3b25e,0 0 14px rgba(255,200,120,.85)}
@@ -821,6 +822,7 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
           <span class="pm-cnt" id="pm-cnt"><svg class="i"><use href="#camera"/></svg><span>1 / 12</span></span>
         </div>
         <div class="pm-thumbs" id="pm-thumbs"></div>
+        <div class="pm-views" id="pm-views" hidden></div>
         </div>
         <div class="pm-tt">
           <div class="pm-chips" id="pm-chips"></div>
@@ -1200,6 +1202,9 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
     /* миниатюри: телефон – 4 + „+N“; компютър – до 6 (5 + „+N“, ако снимките са повече) */
     var th=d.gallery.slice(0,6).map(function(g,i){return '<button class="pm-th" data-i="'+i+'" aria-label="Снимка '+(i+1)+'" style="background-image:url('+img(g)+')"></button>'}).join('');
     var more=p.photos-Math.min(4,d.gallery.length),more6=p.photos>6?p.photos-5:0;
+    /* реални разглеждания на имота в публичния сайт (без брокерите; един човек се брои веднъж) */
+    (function(){var v=$('pm-views'),n=VIS?Number(VIS.props[p.id])||0:null,w=VIS&&VIS.props_week?Number(VIS.props_week[p.id])||0:0;if(!v)return;v.hidden=n===null;
+      if(n!==null)v.innerHTML='<span class="pchip lite" title="Уникални посетители, отворили обявата в публичния сайт">'+ic('globe')+'<b>'+money(n)+'</b>&nbsp;'+(n===1?'разглеждане':'разглеждания')+' в сайта'+(w?' · '+money(w)+' за 7 дни':'')+'</span>'})();
     $('pm-thumbs').innerHTML=th+(more>0?'<button class="pm-more'+(more6?'':' no6')+'" data-more aria-label="Всички '+p.photos+' снимки"><span class="m4">+'+more+'</span><span class="m6">+'+more6+'</span></button>':'');
     /* компютър: чипове тип/статус, подзаглавие на цената и плочки с данни в информационната карта */
     var stv=p.stage||p.status,dot=p.stage==='Продаден'?'r':(p.stage||p.status==='Резервиран')?'y':(p.status==='Чернова'||p.status==='Архивиран')?'g':'';
@@ -1343,7 +1348,9 @@ html.desk .pm-right .pm-tabhost{margin-top:68px;padding:0 0 16px}
   });
   var ARCH=location.hash==='#archive';if(ARCH)setView('Архивиран');render(ARCH?{only:'Архивиран'}:null);fit();
   function refreshFilters(){fill(sel.region,'region',uniq(props.map(function(p){return p.region}).filter(Boolean)));cities();hoods();['region','city','hood'].forEach(function(k){show(sel[k])})}
+  var VIS=null;
   function loadAll(){
+    ND.sb().rpc('nd_visit_stats').then(function(x){var v=x&&x.data;if(v&&v.props){VIS=v;if(cur&&!pwin.hidden&&$('pm-views')){var n=Number(v.props[cur.id])||0;$('pm-views').hidden=false;$('pm-views').innerHTML='<span class="pchip lite">'+ic('globe')+'<b>'+money(n)+'</b>&nbsp;'+(n===1?'разглеждане':'разглеждания')+' в сайта</span>'}}},function(){});
     return Promise.all([ND.load('properties'),ND.load('clients')]).then(function(r){
       CL={};r[1].forEach(function(c){if(c.name)CL[c.name]=c});window.__ndClientNames=Object.keys(CL);
       var paths=[];r[0].forEach(function(p){(p.pics||[]).forEach(function(x){paths.push(x)})});
