@@ -18,6 +18,8 @@ const H = (ct) => Object.assign({ apikey: SR(), Authorization: "Bearer " + SR() 
 const hits = new Map();
 function limited(ip) { const a = hits.get(ip) || { n: 0, t: Date.now() }; if (Date.now() - a.t > 15 * 60000) { a.n = 0; a.t = Date.now(); } a.n++; hits.set(ip, a); return a.n > 60; }
 const appId = (s) => String(s || "").replace(/[^a-z0-9]/gi, "").slice(0, 32) || null;
+/* „Февруари 2026“ – за съобщението за сгрешен месец */
+const mcap = (ym) => { const t = mbg(ym); return t.charAt(0).toUpperCase() + t.slice(1); };
 const mbg = (ym) => { const m = String(ym || "").match(/^(\d{4})-(\d{2})$/); return m ? BG_M[+m[2] - 1] + " " + m[1] : String(ym || ""); };
 /* моделът се избира автоматично (_gem.js): най-новият жив Gemini Flash, при лимит/404 – следващият */
 async function gem(parts) { return (await GEM.generate({ parts, json: true, temperature: 0, budgetMs: 45000 })).data; }
@@ -40,7 +42,7 @@ async function check(b) {
   if (month) {
     const inPeriod = r.period_from && r.period_to && String(r.period_from).slice(0, 7) <= month && String(r.period_to).slice(0, 7) >= month;
     if (!(type === "bank_statement" || type === "payslip" || type === "income_certificate")) { match = false; why = "Това изглежда като " + TYPES[type] + ", а тук се очаква " + (kind === "payslip" ? "фиш за заплата" : "банково извлечение") + " за " + mbg(month) + "."; }
-    else if (!(months.includes(month) || inPeriod)) { match = false; why = "Грешен месец: документът е за " + (months.length ? months.map(mbg).join(", ") : (r.period_from ? r.period_from + " – " + r.period_to : "неясен период")) + ", а тук се очаква " + mbg(month) + "."; }
+    else if (!(months.includes(month) || inPeriod)) { match = false; why = months.length || r.period_from ? "Прикачили сте документ за " + (months.length ? months.map(mcap).join(", ") : r.period_from + " – " + r.period_to) + " в графата за " + mcap(month) + "!" : "Не личи за кой месец е документът – тук се очаква " + mcap(month) + "."; }
   } else if (EXPECT[kind] && !EXPECT[kind].includes(type)) { match = false; why = "Това изглежда като " + TYPES[type] + ", а тук се очаква " + (slot.label || kind) + "."; }
   const ext = f.mime === "application/pdf" ? "pdf" : f.mime === "image/png" ? "png" : f.mime === "image/webp" ? "webp" : "jpg";
   const path = "inquiries/" + app + "/" + key + "-" + Date.now() + "." + ext;
