@@ -395,7 +395,7 @@
     function defaults() { /* стойности по подразбиране за договора за наем */
       if (kind === "rent" || kind === "rent-mgmt") {
         var st = String(f.handover || f.date || ""), d = +st.slice(8, 10) || 0;
-        if (!has(f.payFrom) && d) { f.payFrom = d; f.payTo = Math.min(d + 5, 28 > d + 5 ? d + 5 : 31); }
+        if (!has(f.payFrom) && d) { f.payFrom = Math.min(d, 23); f.payTo = f.payFrom + 5; } /* срокът за плащане е 5 дни и не минава 28-о число */
         if (!has(f.ibanName) && has(PT.seller.name)) f.ibanName = PT.seller.name;
       }
       if (kind === "viewing-rent" && Number(f.commission) === 3) f.commission = 50;
