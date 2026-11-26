@@ -497,6 +497,8 @@ table.rt tr.on td{background:rgba(246,217,147,.5);font-weight:700}
 "use strict";
 /* ---------- данни: точно по чертежите ---------- */
 var PPM=1550;
+/* 26.11: към светлата площ се добавят 12 % общи части; цената се смята върху цялата квадратура (светла площ × 1,12 × цена на м²) */
+var COMMON=12;function withCommon(a){return Math.round(a*(100+COMMON))/100;}
 var ROOMS={
   A:[["Входно предверие / коридор",9.83],["Помощно помещение",1.83],["Лоджия",3.46],["Спалня 1",13.52],["Спалня 2",12.71],["Санитарен възел",4.21],["Дневен тракт",21.52],["Балкон",5.43]],
   B:[["Входно предверие / коридор",8.33],["Помощно помещение",1.96],["Дневен тракт",20.79],["Балкон",4.85],["Спалня 1",12.69],["Спалня 2",11.95],["Санитарен възел",3.48]]
@@ -512,7 +514,7 @@ var FLOORS=[
   {id:0,label:"Партер",kota:"±0,00",plan:"/mobile/nc-shumen/plan-0.png",sheet:"/mobile/nc-shumen/sheet-0.png",units:[]}
 ];
 var UNITS={};
-[1,2,3,4,5,6].forEach(function(n){var t=n%2?"A":"B";UNITS[n]={n:n,type:t,floor:Math.ceil(n/2),status:"free",area:TYPES[t].area,ppm:PPM,total:Math.round(TYPES[t].area*PPM*100)/100};});
+[1,2,3,4,5,6].forEach(function(n){var t=n%2?"A":"B";var at=withCommon(TYPES[t].area);UNITS[n]={n:n,type:t,floor:Math.ceil(n/2),status:"free",area:TYPES[t].area,areaT:at,areaC:Math.round((at-TYPES[t].area)*100)/100,ppm:PPM,total:Math.round(at*PPM*100)/100};});
 function ptxt(u){return u.total==null?"—":eur(u.total);}
 function ALLU(){return [1,2,3,4,5,6].map(function(n){return UNITS[n];});}
 var GROUND=[
@@ -562,13 +564,15 @@ function selPanel(compact){
   var h='<div class="pn"><div class="sel-h"><h3 class="h3">'+ic("home")+'Избран апартамент — № '+u.n+'</h3>'+badge(u.status)+'</div>'+
     '<div class="kv2"><div><div class="l">'+ic("area")+'Площ по проекта</div><div class="v">'+num(u.area)+' <small>м²</small></div></div>'+
     '<div><div class="l">'+ic("coins")+'Цена на м²</div><div class="v">'+(u.total==null||u.ppm==null?'—':num(u.ppm,u.ppm%1?2:0)+' <small>€</small>')+'</div></div></div>'+
+    '<div class="kv2"><div><div class="l">'+ic("layers")+'Общи части '+COMMON+' %</div><div class="v">'+num(u.areaC)+' <small>м²</small></div></div>'+
+    '<div><div class="l">'+ic("area")+'Обща площ</div><div class="v">'+num(u.areaT)+' <small>м²</small></div></div></div>'+
     '<div class="total">'+ic("coins")+(u.total==null?'<b>'+(u.status==="sold"?'Продаден':'Цена по запитване')+'</b>':'Обща цена: <b>'+eur(u.total)+'</b>')+'</div>';
   if(compact){
     h+='<p class="note">'+f.label+' · кота '+f.kota+' · '+t.name+' · '+t.rooms+' стаи</p>'+
        '<div class="cta3" style="grid-template-columns:1fr"><button class="btn wine" data-act="tab" data-tab="plan">'+ic("plan")+'Виж разпределение '+ic("right")+'</button></div></div>';
     return h;
   }
-  h+='<p class="note">Сбор от светлите площи на помещенията, лоджията и балкона. Стени и общи части не са включени.</p>'+
+  h+='<p class="note">Площта по проекта е сбор от светлите площи на помещенията, лоджията и балкона. Към нея се добавят '+COMMON+' % общи части; цената се смята върху общата площ.</p>'+
     '<details class="rooms" open><summary>Помещения и точни площи по проекта</summary><table class="rt"><tr><th>№</th><th>Помещение</th><th>Площ</th></tr>';
   var sum=0;ROOMS[u.type].forEach(function(r,i){sum+=r[1];h+='<tr data-act="room" data-i="'+i+'" data-r class="'+(S.room===i?'on':'')+'"><td>'+(i+1)+'</td><td>'+r[0]+'</td><td>'+m2(r[1])+'</td></tr>';});
   h+='<tr class="sum"><td colspan="2">Сбор по таблицата</td><td>'+m2(Math.round(sum*100)/100)+'</td></tr></table>'+
@@ -919,12 +923,12 @@ V.overview=function(){
 V.apartments=function(q){
   var list=[1,2,3,4,5,6].map(function(n){return UNITS[n];});
   if(q)list=list.filter(function(u){var f=floorOf(u.floor);return ("ап. "+u.n+" апартамент "+u.n+" "+f.label+" "+TYPES[u.type].name+" "+num(u.area)).toLowerCase().indexOf(q)>-1;});
-  var h='<div class="pn"><h3>'+ic("grid")+'Апартаменти</h3><div class="tblw"><table class="ut"><tr><th>Апартамент</th><th>Етаж</th><th>Кота</th><th>Тип</th><th>Площ по проекта</th><th>Стаи</th><th>Балкон / лоджия</th><th>Цена на м²</th><th>Обща цена</th><th>Статус</th><th></th></tr>';
+  var h='<div class="pn"><h3>'+ic("grid")+'Апартаменти</h3><div class="tblw"><table class="ut"><tr><th>Апартамент</th><th>Етаж</th><th>Кота</th><th>Тип</th><th>Площ по проекта</th><th>С общи части</th><th>Стаи</th><th>Балкон / лоджия</th><th>Цена на м²</th><th>Обща цена</th><th>Статус</th><th></th></tr>';
   list.forEach(function(u){var f=floorOf(u.floor),t=TYPES[u.type];
-    h+='<tr data-act="unit" data-u="'+u.n+'" class="'+(u.n===S.unit?'on':'')+'"><td><b>Ап. '+u.n+'</b></td><td>'+f.label+'</td><td>'+f.kota+'</td><td>'+t.name+'</td><td>'+m2(u.area)+'</td><td>'+t.rooms+'</td><td>'+t.out+'</td><td>'+(u.total==null||u.ppm==null?'—':eur(u.ppm))+'</td><td><b>'+ptxt(u)+'</b></td><td>'+badge(u.status)+'</td><td><button class="pill wine" data-act="open" data-u="'+u.n+'">'+ic("plan")+'Разпределение</button></td></tr>';});
+    h+='<tr data-act="unit" data-u="'+u.n+'" class="'+(u.n===S.unit?'on':'')+'"><td><b>Ап. '+u.n+'</b></td><td>'+f.label+'</td><td>'+f.kota+'</td><td>'+t.name+'</td><td>'+m2(u.area)+'</td><td><b>'+m2(u.areaT)+'</b></td><td>'+t.rooms+'</td><td>'+t.out+'</td><td>'+(u.total==null||u.ppm==null?'—':eur(u.ppm))+'</td><td><b>'+ptxt(u)+'</b></td><td>'+badge(u.status)+'</td><td><button class="pill wine" data-act="open" data-u="'+u.n+'">'+ic("plan")+'Разпределение</button></td></tr>';});
   h+='</table></div><div class="cards">';
   list.forEach(function(u){var f=floorOf(u.floor),t=TYPES[u.type];
-    h+='<button class="ucard'+(u.n===S.unit?' on':'')+'" data-act="open" data-u="'+u.n+'"><h4>Ап. '+u.n+' · '+t.name+'</h4><span class="p">'+ptxt(u)+'</span><small>'+f.label+' · кота '+f.kota+' · '+m2(u.area)+' · '+t.rooms+' стаи</small><span style="text-align:right">'+badge(u.status)+'</span></button>';});
+    h+='<button class="ucard'+(u.n===S.unit?' on':'')+'" data-act="open" data-u="'+u.n+'"><h4>Ап. '+u.n+' · '+t.name+'</h4><span class="p">'+ptxt(u)+'</span><small>'+f.label+' · кота '+f.kota+' · '+m2(u.areaT)+' с общи части · '+t.rooms+' стаи</small><span style="text-align:right">'+badge(u.status)+'</span></button>';});
   h+='</div>'+(list.length?'':'<p class="muted" style="margin-top:8px">Няма апартамент по това търсене.</p>')+
     '<p class="sub4">Други обекти в сградата (партер)</p><table class="kt">';
   GROUND.forEach(function(g){h+='<tr><td>'+g.full+'</td><td>'+m2(g.area)+'</td></tr>';});
@@ -939,12 +943,12 @@ function mzPanel(){
   var rows=MZ.map(function(m){var a=UNITS[m.lo],b=UNITS[m.hi],t=TYPES[a.type];
     var tot=a.total==null||b.total==null?null:Math.round((a.total+b.total)*100)/100;
     var st=rank[b.status]>rank[a.status]?b.status:a.status;
-    return {m:m,a:a,b:b,t:t,area:Math.round((a.area+b.area)*100)/100,tot:tot,st:st};});
+    return {m:m,a:a,b:b,t:t,area:Math.round((a.area+b.area)*100)/100,areaT:Math.round((a.areaT+b.areaT)*100)/100,tot:tot,st:st};});
   var btn=function(f,lbl){return '<button class="pill wine" data-act="lb" data-src="'+f.sheet+'" data-cap="Оригинален чертеж · Разпределение на кота '+f.kota+'">'+ic("file")+lbl+'</button>';};
   var h='<div class="pn" style="margin-top:14px"><h3>'+ic("layers")+'Мезонети на етажи 2–3 · отделен вариант</h3>'+
-    '<p class="note">Всеки мезонет обединява двата апартамента един над друг, точно по оригиналните чертежи: ниво 1 е етаж 2 (кота '+f2.kota+'), ниво 2 е етаж 3 (кота '+f3.kota+'). Площта и цената са сбор от двата апартамента.</p>'+
-    '<div class="tblw"><table class="ut"><tr><th>Мезонет</th><th>Ниво 1 · етаж 2</th><th>Ниво 2 · етаж 3</th><th>Тип</th><th>Площ по проекта</th><th>Стаи</th><th>Цена на м²</th><th>Обща цена</th><th>Статус</th><th></th></tr>';
-  rows.forEach(function(r){h+='<tr><td><b>Мезонет '+r.m.n+'</b></td><td>Ап. '+r.a.n+' · '+m2(r.a.area)+'</td><td>Ап. '+r.b.n+' · '+m2(r.b.area)+'</td><td>2 × '+r.t.name+'</td><td>'+m2(r.area)+'</td><td>'+(2*r.t.rooms)+'</td><td>'+(r.tot==null||r.a.ppm==null?'—':eur(r.a.ppm))+'</td><td><b>'+(r.tot==null?'По запитване':eur(r.tot))+'</b></td><td>'+badge(r.st)+'</td><td><span style="display:flex;gap:6px;flex-wrap:wrap">'+btn(f2,'Ниво 1')+btn(f3,'Ниво 2')+'</span></td></tr>';});
+    '<p class="note">Всеки мезонет обединява двата апартамента един над друг, точно по оригиналните чертежи: ниво 1 е етаж 2 (кота '+f2.kota+'), ниво 2 е етаж 3 (кота '+f3.kota+'). Площта и цената са сбор от двата апартамента; цената е върху площта с '+COMMON+' % общи части.</p>'+
+    '<div class="tblw"><table class="ut"><tr><th>Мезонет</th><th>Ниво 1 · етаж 2</th><th>Ниво 2 · етаж 3</th><th>Тип</th><th>Площ по проекта</th><th>С общи части</th><th>Стаи</th><th>Цена на м²</th><th>Обща цена</th><th>Статус</th><th></th></tr>';
+  rows.forEach(function(r){h+='<tr><td><b>Мезонет '+r.m.n+'</b></td><td>Ап. '+r.a.n+' · '+m2(r.a.area)+'</td><td>Ап. '+r.b.n+' · '+m2(r.b.area)+'</td><td>2 × '+r.t.name+'</td><td>'+m2(r.area)+'</td><td><b>'+m2(r.areaT)+'</b></td><td>'+(2*r.t.rooms)+'</td><td>'+(r.tot==null||r.a.ppm==null?'—':eur(r.a.ppm))+'</td><td><b>'+(r.tot==null?'По запитване':eur(r.tot))+'</b></td><td>'+badge(r.st)+'</td><td><span style="display:flex;gap:6px;flex-wrap:wrap">'+btn(f2,'Ниво 1')+btn(f3,'Ниво 2')+'</span></td></tr>';});
   h+='</table></div><div class="cards">';
   rows.forEach(function(r){h+='<div class="ucard"><h4>Мезонет '+r.m.n+' · Ап. '+r.a.n+' + Ап. '+r.b.n+'</h4><span class="p">'+(r.tot==null?'По запитване':eur(r.tot))+'</span><small>Етажи 2–3 · кота '+f2.kota+' / '+f3.kota+' · '+m2(r.area)+' · '+(2*r.t.rooms)+' стаи</small><span style="text-align:right">'+badge(r.st)+'</span>'+
     '<span style="display:flex;gap:6px;flex-wrap:wrap;grid-column:1/-1;margin-top:6px">'+btn(f2,'Ниво 1 · етаж 2')+btn(f3,'Ниво 2 · етаж 3')+'</span></div>';});
@@ -1067,10 +1071,10 @@ function live(){
   }).catch(function(){});
 }
 function compare(){
-  var h='<div class="dlg wide"><h3 class="h3">'+ic("scale")+'Сравни апартаменти</h3><div class="tblw"><table class="ut" style="display:table;min-width:560px"><tr><th>Апартамент</th><th>Етаж</th><th>Площ</th><th>Дневен тракт</th><th>Спални</th><th>Балкон / лоджия</th><th>Обща цена</th></tr>';
+  var h='<div class="dlg wide"><h3 class="h3">'+ic("scale")+'Сравни апартаменти</h3><div class="tblw"><table class="ut" style="display:table;min-width:560px"><tr><th>Апартамент</th><th>Етаж</th><th>Площ</th><th>С общи части</th><th>Дневен тракт</th><th>Спални</th><th>Балкон / лоджия</th><th>Обща цена</th></tr>';
   [1,2,3,4,5,6].forEach(function(n){var u=UNITS[n],t=TYPES[u.type],r=ROOMS[u.type];
     var day=r.filter(function(x){return x[0]==="Дневен тракт";})[0][1],sp=r.filter(function(x){return x[0].indexOf("Спалня")===0;}).map(function(x){return num(x[1]);}).join(" + ");
-    h+='<tr class="'+(n===S.unit?'on':'')+'" data-act="open" data-u="'+n+'"><td><b>Ап. '+n+'</b> · '+t.name+'</td><td>'+floorOf(u.floor).label+'</td><td>'+m2(u.area)+'</td><td>'+m2(day)+'</td><td>'+sp+' м²</td><td>'+t.out+'</td><td><b>'+ptxt(u)+'</b></td></tr>';});
+    h+='<tr class="'+(n===S.unit?'on':'')+'" data-act="open" data-u="'+n+'"><td><b>Ап. '+n+'</b> · '+t.name+'</td><td>'+floorOf(u.floor).label+'</td><td>'+m2(u.area)+'</td><td><b>'+m2(u.areaT)+'</b></td><td>'+m2(day)+'</td><td>'+sp+' м²</td><td>'+t.out+'</td><td><b>'+ptxt(u)+'</b></td></tr>';});
   h+='</table></div><div class="acts2"><button class="btn wine" data-act="close">Затвори</button></div></div>';
   var o=$("#ov");o.innerHTML=h;o.classList.add("show");
 }
