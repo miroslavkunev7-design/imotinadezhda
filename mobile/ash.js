@@ -187,6 +187,7 @@
   }
   var setTab = "voice";
   var PC_SETUP_URL = "https://github.com/miroslavkunev7-design/imotinadezhda/releases/latest/download/Ted-Setup-x64.exe";
+  var MAC_SETUP_URL = "https://github.com/miroslavkunev7-design/imotinadezhda/releases/latest/download/Ted-Mac.dmg"; /* 0.1.8: Тед за Mac */
   function renderSettings() {
     var sb = win.querySelector(".nda-set"), PROV = { gemini: "Google", openai: "OpenAI", anthropic: "Anthropic", openrouter: "OpenRouter", ollama: "Ollama", n8n: "n8n" };
     var TABS = [["voice", "Глас", I.spk], ["model", "Модел", "🧠"], ["chat", "Чат", "💬"], ["dict", "Диктовка", "🎤"]];
@@ -214,12 +215,14 @@
       html += '<div class="nda-sec"><h4>Чат</h4>' + sw("big", "По-едри букви", "по-четливо на телефон") + sw("enterSend", "Enter изпраща", "Shift+Enter – нов ред") + sw("showActions", "Показвай какво е направил", "списък с изпълнените действия под отговора") + sw("keepHist", "Помни разговора между страниците", "историята се пази за сесията") + "</div>" +
         '<div class="nda-sec"><h4>История</h4><button type="button" class="nda-opt" data-clear><i></i><span class="d">Изчисти разговора<small>започва на чисто</small></span></button></div>';
     } else if (setTab === "pc") {
-      /* „Тед за Windows“ – отделна програма; влиза се със същия акаунт като в CRM. Връзката сочи към последната издадена версия. */
-      var isWin = /Windows/i.test(navigator.userAgent);
-      html += '<div class="nda-sec"><h4>💻 Тед за компютър – пълна версия</h4><p>Отделна програма за Windows. Влизате със същия имейл или телефон и парола като в CRM и работите със същите клиенти, имоти, договори и документи според вашите права.</p>' +
-        (isWin ? '<a class="nda-opt nda-pc" href="' + PC_SETUP_URL + '" target="_blank" rel="noopener"><span class="d">Инсталирай пълна версия<small>Ted-Setup-x64.exe · Windows 10/11</small></span><em>.exe</em></a>' +
-          "<p>При първо стартиране Windows може да покаже „Windows защити компютъра ви“ – изберете „Повече информация“ → „Изпълни въпреки това“.</p>"
-          : "<p><b>Програмата е за компютър с Windows.</b> Отворете CRM на компютъра и изберете ⚙ → „Пълна версия“, за да я изтеглите.</p>") + "</div>";
+      /* „Тед за Windows“ и (0.1.8) „Тед за Mac“ – отделна програма; влиза се със същия акаунт като в CRM. Връзките сочат към последната издадена версия. */
+      var ua = navigator.userAgent, isWin = /Windows/i.test(ua), isMac = /Macintosh|Mac OS X/i.test(ua) && !(navigator.maxTouchPoints > 1);
+      var winA = '<a class="nda-opt nda-pc" href="' + PC_SETUP_URL + '" target="_blank" rel="noopener"><span class="d">Инсталирай за Windows<small>Ted-Setup-x64.exe · Windows 10/11</small></span><em>.exe</em></a>';
+      var macA = '<a class="nda-opt nda-pc" href="' + MAC_SETUP_URL + '" target="_blank" rel="noopener"><span class="d">Инсталирай за Mac<small>Ted-Mac.dmg · Intel и Apple Silicon · macOS 13 Ventura и по-нови</small></span><em>.dmg</em></a>';
+      var winP = "<p>При първо стартиране Windows може да покаже „Windows защити компютъра ви“ – изберете „Повече информация“ → „Изпълни въпреки това“.</p>";
+      var macP = "<p>Mac: отворете файла и плъзнете Тед в Applications. Първия път: десен клик върху програмата → „Open“ (на macOS 15 и по-нови: System Settings → Privacy &amp; Security → „Open Anyway“). На Mac програмата е бяла с червени елементи.</p>";
+      html += '<div class="nda-sec"><h4>💻 Тед за компютър – пълна версия</h4><p>Отделна програма за Windows и Mac. Влизате със същия имейл или телефон и парола като в CRM и работите със същите клиенти, имоти, договори и документи според вашите права.</p>' +
+        (isMac ? macA + macP + winA : isWin ? winA + winP + macA : "<p><b>Програмата е за компютър (Windows или Mac).</b> Отворете CRM на компютъра и изберете ⚙ → „Пълна версия“, за да я изтеглите.</p>" + winA + macA) + "</div>";
     } else {
       html += '<div class="nda-sec"><h4>Диктовка</h4><p>Микрофонът в чата и във всяко поле за бележка разпознава дословно на български.</p>' + sw("dictAuto", "Изпращай гласовия въпрос веднага", "иначе първо виждате текста и го пращате вие") + "</div>" +
         '<div class="nda-sec"><h4>Бележки</h4><p>Във всяка графа за бележка/описание в CRM има микрофон – докоснете, говорете, докоснете пак; текстът се добавя при курсора.</p></div>';
