@@ -41,7 +41,17 @@ export function webPreferences({ preload, packaged }) {
 }
 
 // state: {get(), set(patch)} holding {bounds, maximized, compact}.
-export function createMainWindow({ BrowserWindow, screen, Menu, state, preload, url, packaged, log }) {
+// 0.1.8 · Mac: an application menu is what makes ⌘C / ⌘V / ⌘X / ⌘A / ⌘Z and ⌘Q work in a text field there, so a Mac gets
+// the standard roles only – no reload, view-source or developer tools (Windows keeps no menu at all, main.js).
+export function macMenuTemplate(name) {
+  return [
+    { label: name, submenu: [{ role: "about" }, { type: "separator" }, { role: "hide" }, { role: "hideOthers" }, { role: "unhide" }, { type: "separator" }, { role: "quit" }] },
+    { role: "editMenu" },
+    { role: "windowMenu" },
+  ];
+}
+
+export function createMainWindow({ BrowserWindow, screen, Menu, state, preload, url, packaged, log, platform = process.platform }) {
   const saved = state.get();
   let normal = usableBounds(saved.bounds, screen.getAllDisplays()); // bounds of the full-size layout
   let maximized = !!saved.maximized;
@@ -57,10 +67,13 @@ export function createMainWindow({ BrowserWindow, screen, Menu, state, preload, 
     minHeight: MIN_SIZE.height,
     show: false,
     title: TITLE,
-    backgroundColor: OVERLAY.color,
+    // 0.1.8: a Mac is white with red elements (src/styles/mac.css): no burgundy flash before the page paints, and the
+    // red/yellow/green buttons sit centred in the 36 px title bar on its left (the page leaves them room).
+    backgroundColor: platform === "darwin" ? "#ffffff" : OVERLAY.color,
     autoHideMenuBar: true,
     titleBarStyle: "hidden",
     titleBarOverlay: OVERLAY,
+    ...(platform === "darwin" ? { trafficLightPosition: { x: 14, y: 12 } } : {}),
     webPreferences: webPreferences({ preload, packaged }),
   });
   if (!normal) normal = compact ? null : win.getBounds();

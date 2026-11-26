@@ -3,6 +3,7 @@ import { ted } from "../bridge.js";
 import avatar from "../assets/avatar.webp";
 import logo from "../assets/logo.png";
 import { CRM_URL } from "../lib/consts.js";
+import { OS } from "../lib/os.js";
 
 // Sign-in with the CRM account. The password lives only in this field until it is handed to MAIN once.
 export default function Login({ onLogin, notice }) {
@@ -45,7 +46,7 @@ export default function Login({ onLogin, notice }) {
           <input id="lg-pw" className="inp" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" disabled={busy} maxLength={200} /></div>
         {error ? <div className="err" role="alert">⚠️ {error}</div> : null}
         <button className="b wine login-btn" type="submit" disabled={busy}>{busy ? <><i className="spin" />Влизане…</> : "Вход"}</button>
-        <p className="login-note">Паролата не се пази на този компютър. Сесията се запазва шифровано за вашия профил в Windows, ако Windows го позволява. Забравена парола се възстановява от <button type="button" className="lnk" onClick={() => Promise.resolve(ted.app.openExternal(CRM_URL)).catch(() => {})}>входа в сайта</button>.</p>
+        <p className="login-note">Паролата не се пази на този компютър. Сесията се запазва шифровано за вашия профил в {OS}, ако {OS} го позволява. Забравена парола се възстановява от <button type="button" className="lnk" onClick={() => Promise.resolve(ted.app.openExternal(CRM_URL)).catch(() => {})}>входа в сайта</button>.</p>
       </form>
     </div>
   );

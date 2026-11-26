@@ -141,7 +141,8 @@ describe("packaging and CI for updates", () => {
   it("the workflow checks latest.yml against the installer and ships it with the artifact and the release", () => {
     expect(workflow).toContain("dist-installer/latest.yml");
     expect(workflow).toMatch(/openssl dgst -sha512 -binary/);
-    expect(workflow).toMatch(/assets=\("Ted-Setup-\$\{version\}-x64\.exe" "Ted-Setup-x64\.exe" "SHA256SUMS\.txt" "latest\.yml"\)/);
+    // 0.1.8: the Mac disk image travels in the same release (no update feed for it – latest.yml stays Windows-only).
+    expect(workflow).toMatch(/assets=\("Ted-Setup-\$\{version\}-x64\.exe" "Ted-Setup-x64\.exe" "Ted-Mac-\$\{version\}-universal\.dmg" "Ted-Mac\.dmg" "SHA256SUMS\.txt" "latest\.yml"\)/);
     expect(workflow).toMatch(/apps\/ted-desktop\/dist-installer\/latest\.yml/);
   });
 });

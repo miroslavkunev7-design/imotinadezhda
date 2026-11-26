@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Icon from "../Icon.jsx";
 import { ted } from "../../bridge.js";
+import { kb } from "../../lib/os.js";
 
 // open_in_chatgpt (docs/CONTRACT.md §9.6): pictures, video (Sora) and other work that OpenAI does not give to external
 // programs are made in the employee's own ChatGPT. The card shows the exact prompt (editable, copyable).
@@ -56,7 +57,7 @@ export default function OpenInChatGptCard({ handoff, onToast, onPanel }) {
     if (!c || !c.ok) { setBusy(false); toast("Не успях да копирам заявката."); return; }
     r = await panel({ bare: true });
     setBusy(false);
-    toast(r && r.ok ? "Заявката е копирана и ChatGPT е отворен в панела – поставете я там с Ctrl+V." : "Заявката е копирана, но ChatGPT не можа да се отвори.");
+    toast(r && r.ok ? "Заявката е копирана и ChatGPT е отворен в панела – поставете я там с " + kb("Ctrl+V") + "." : "Заявката е копирана, но ChatGPT не можа да се отвори.");
   }
   // „Отвори в браузъра“ – the 0.1.5 way, kept as a secondary link.
   async function browser() {
@@ -73,7 +74,7 @@ export default function OpenInChatGptCard({ handoff, onToast, onPanel }) {
     if (!c || !c.ok) { setBusy(false); toast("Не успях да копирам заявката."); return; }
     try { r = await ted.realgpt.openInChatGpt({ bare: true }); } catch { r = null; }
     setBusy(false);
-    toast(r && r.ok ? "Заявката е копирана и ChatGPT е отворен в браузъра – поставете я там с Ctrl+V." : "Заявката е копирана, но ChatGPT не можа да се отвори.");
+    toast(r && r.ok ? "Заявката е копирана и ChatGPT е отворен в браузъра – поставете я там с " + kb("Ctrl+V") + "." : "Заявката е копирана, но ChatGPT не можа да се отвори.");
   }
   async function copy() {
     if (empty) return;

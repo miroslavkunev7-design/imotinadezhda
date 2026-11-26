@@ -31,7 +31,7 @@ import { createScheduled } from "./scheduled.js";
 import { createUpdater } from "./updater.js";
 import { APP_URL, CSP, META_CSP, SCHEME, registerAppProtocol } from "./protocol.js";
 import { disableSpellChecker, installSecurity } from "./security.js";
-import { createBubbleWindow, createMainWindow, TITLE } from "./window.js";
+import { createBubbleWindow, createMainWindow, TITLE, macMenuTemplate } from "./window.js";
 import { BUBBLE_URL, createBubbleController, registerBubbleIpc } from "./bubble.js";
 import { chromeUserAgent, createChatGptPanel } from "./chatgpt-panel.js";
 import { createAppApi, registerIpc } from "./ipc.js";
@@ -124,7 +124,9 @@ function start() {
     log.info("app.start", { version: app.getVersion(), packaged: app.isPackaged, platform: process.platform });
 
     // No reload / view-source / devtools accelerators in the installed program.
-    if (app.isPackaged) Menu.setApplicationMenu(null);
+    // A Mac needs the standard Edit/Window menu for ⌘C/⌘V/⌘Q (window.js: macMenuTemplate – roles only, no devtools).
+    if (process.platform === "darwin") Menu.setApplicationMenu(Menu.buildFromTemplate(macMenuTemplate("Тед")));
+    else if (app.isPackaged) Menu.setApplicationMenu(null);
 
     const dev = devServerUrl();
     const devOrigin = dev ? dev.origin : null;

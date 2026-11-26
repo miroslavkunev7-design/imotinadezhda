@@ -2,6 +2,7 @@ import React from "react";
 import Icon from "../Icon.jsx";
 import ColorIcon from "../ColorIcon.jsx";
 import logo from "../../assets/logo.png";
+import { kb } from "../../lib/os.js";
 
 // Rows shared by the desktop sidebar and the phone drawer (ChatGPT desktop order: Проекти, Планирани, Библиотека,
 // Плъгини, Агенти). `view` ids of App.jsx. `icon` names a full-colour art of ColorIcon.jsx (0.1.5).
@@ -64,13 +65,13 @@ export default function Sidebar(p) {
       <div className="side-top side-head">
         <div className="logo-tile sm"><img src={logo} alt="Имоти Надежда" /></div>
         <b className="side-name">Тед</b>
-        <button className="ibtn" onClick={onSearch} aria-label="Търсене в чатовете" title="Търсене (Ctrl K)" data-testid="side-search-ic"><ColorIcon n="search" /></button>
-        <button className="ibtn collapse-btn" onClick={() => setMini(!S.mini)} aria-label={S.mini ? "Отвори лентата" : "Затвори лентата"} title="Ctrl+Shift+S" data-testid="side-toggle"><Icon n="sidebar" /></button>
+        <button className="ibtn" onClick={onSearch} aria-label="Търсене в чатовете" title={kb("Търсене (Ctrl K)")} data-testid="side-search-ic"><ColorIcon n="search" /></button>
+        <button className="ibtn collapse-btn" onClick={() => setMini(!S.mini)} aria-label={S.mini ? "Отвори лентата" : "Затвори лентата"} title={kb("Ctrl+Shift+S")} data-testid="side-toggle"><Icon n="sidebar" /></button>
         {drawer ? <button className="ibtn" onClick={() => setDrawer(false)} aria-label="Затвори"><Icon n="x" /></button> : null}
       </div>
       <nav className="side-nav">
-        <button className={"nav n-new" + (view === "chat" && !active ? " on" : "")} onClick={onNew} data-testid="side-new" title="Нов чат"><ColorIcon n="newchat" /><span>Нов чат</span><kbd>Ctrl ⇧ O</kbd></button>
-        <button className="nav n-search" onClick={onSearch} data-testid="side-search" title="Търсене в чатовете"><ColorIcon n="search" /><span>Търсене в чатовете</span><kbd>Ctrl K</kbd></button>
+        <button className={"nav n-new" + (view === "chat" && !active ? " on" : "")} onClick={onNew} data-testid="side-new" title="Нов чат"><ColorIcon n="newchat" /><span>Нов чат</span><kbd>{kb("Ctrl ⇧ O")}</kbd></button>
+        <button className="nav n-search" onClick={onSearch} data-testid="side-search" title="Търсене в чатовете"><ColorIcon n="search" /><span>Търсене в чатовете</span><kbd>{kb("Ctrl K")}</kbd></button>
       </nav>
       <div className="side-scroll">
         <nav className="side-nav flat">

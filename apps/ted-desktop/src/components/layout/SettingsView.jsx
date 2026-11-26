@@ -6,6 +6,7 @@ import { BROWSE_DEF, EFFORTS, NOTIFY_DEF, README_URL, RG_LIMITS, ROLES, SESSION_
 import { fmtDate, fmtSize, initials } from "../../lib/format.js";
 import { openCrm } from "../Cards.jsx";
 import { PluginList } from "./PluginsPage.jsx";
+import { IS_MAC, OS, PRODUCT, kb } from "../../lib/os.js";
 
 // Settings in the order of the ChatGPT app (refs 08–12). Every 0.1.2 pane keeps its data-pane key; new ones are added.
 export const SET_GROUPS = [
@@ -18,9 +19,9 @@ export const SET_GROUPS = [
 ];
 const ROWS = SET_GROUPS.flatMap((g) => g.rows);
 const rowName = (k) => (ROWS.find((r) => r[0] === k) || [k, "", k])[2];
-export const SHORTCUTS = [["Нов чат", "Ctrl + Shift + O"], ["Търсене в чатовете", "Ctrl + K"], ["Скрий/покажи лентата", "Ctrl + Shift + S"], ["Копирай последния отговор", "Ctrl + Shift + C"],
+export const SHORTCUTS = ([["Нов чат", "Ctrl + Shift + O"], ["Търсене в чатовете", "Ctrl + K"], ["Скрий/покажи лентата", "Ctrl + Shift + S"], ["Копирай последния отговор", "Ctrl + Shift + C"],
   ["Към полето за писане", "Shift + Esc"], ["Бърз прозорец", "Ctrl + Shift + Space"], ["Балонче (свий Тед в балонче)", "Ctrl + Shift + B"],
-  ["От малкия чат към балончето", "Esc"], ["Помощ", "Ctrl + /"], ["Нов ред", "Shift + Enter"]];
+  ["От малкия чат към балончето", "Esc"], ["Помощ", "Ctrl + /"], ["Нов ред", "Shift + Enter"]]).map(([a, b]) => [a, kb(b)]);
 const KIND = { fact: "запомнен факт", message: "от разговор", summary: "резюме" };
 // A bridge call that never rejects: an IPC failure becomes an ordinary error result.
 const call = async (fn) => { try { return await fn(); } catch { return { ok: false, error: "Вътрешна грешка в програмата." }; } };
@@ -117,7 +118,7 @@ function UpdatesBlock({ upd, act }) {
   if (!upd) return <div className="upd-box" data-testid="updates"><div className="sec-h">Обновления</div><div className="empty"><i className="spin" /> Проверявам състоянието…</div></div>;
   const v = upd.available && upd.available.version;
   const text = {
-    disabled: "Автоматичното обновяване работи само в инсталираната програма за Windows.",
+    disabled: IS_MAC ? "На Mac програмата не се обновява сама: новата версия (Ted-Mac.dmg) се тегли от страницата на версиите в GitHub и се слага върху старата." : "Автоматичното обновяване работи само в инсталираната програма за Windows.",
     idle: "Още не е проверявано.",
     checking: "Проверявам за нова версия…",
     none: "Имате последната версия.",
@@ -157,7 +158,7 @@ function AboutPane({ onConn }) {
     setCheck(r && r.ok ? { status: "ok", text: "Сървърът на Тед отговори за " + (Date.now() - t0) + " ms · " + (Array.isArray(r.models) ? r.models.length : 0) + " модела." } : { status: "bad", text: (r && r.error) || "Няма връзка със сървъра." });
   }
   return <>
-    <H k="about" lead="Тед за Windows – програмата на „Имоти Надежда“. Работи със същия сървър и права като Тед в сайта." />
+    <H k="about" lead={PRODUCT + " – програмата на „Имоти Надежда“. Работи със същия сървър и права като Тед в сайта."} />
     <dl className="kv about-kv"><dt>Версия</dt><dd data-testid="app-version">{info ? info.version : "…"}</dd><dt>Издание</dt><dd>{info ? (info.packaged ? "инсталирана програма" : "версия за разработка") : "…"}</dd></dl>
     <Opt title="Проверка на връзката" sub="Заявка за списъка с модели към сървъра на Тед"><button className="b" onClick={verify} disabled={check && check.status === "loading"}>{check && check.status === "loading" ? <i className="spin" /> : <Icon n="refresh" />}Провери</button></Opt>
     {check && check.status === "ok" ? <div className="verify" data-testid="conn-ok"><Icon n="check" /><span>{check.text}</span></div> : null}
@@ -212,7 +213,7 @@ function StoragePane({ toast }) {
     )}
     <Opt title="Изчисти библиотеката" sub="Изтрива всички файлове от Библиотеката (след потвърждение). Чатовете остават."><button className="b" onClick={clearLib}><Icon n="trash" />Изчисти</button></Opt>
     <Opt title="Изчисти временните файлове" sub="Копията, отворени с „Отвори“, в папката за временни файлове"><button className="b" onClick={clearTemp}><Icon n="trash" />Изчисти</button></Opt>
-    <div className="info">Чатовете и Библиотеката са шифровани за вашия потребител в Windows. Изтриването тук не променя CRM и паметта на Тед на сървъра.</div>
+    <div className="info">Чатовете и Библиотеката са шифровани за вашия потребител в {OS}. Изтриването тук не променя CRM и паметта на Тед на сървъра.</div>
   </>;
 }
 
@@ -296,7 +297,7 @@ export default function SettingsView(p) {
       {tab === "general" && <>
         <H k="general" lead="Как изглежда и се държи програмата." />
         <Opt title="Език" sub="Езикът на програмата"><span className="meta">Български</span></Opt>
-        <Opt title="Стартирай с Windows" sub="Тед се отваря при влизане в Windows"><Sw id="sw-boot" on={!!boot} dis={boot === null} set={setLaunch} /></Opt>
+        <Opt title={"Стартирай с " + OS} sub={"Тед се отваря при влизане в " + OS}><Sw id="sw-boot" on={!!boot} dis={boot === null} set={setLaunch} /></Opt>
         <Opt title="Компактен прозорец" sub="Тесен прозорец с подредба като на телефон"><Sw id="sw-compact" on={!!S.compact} set={setCompact} /></Opt>
         <Opt title="По-едри букви"><Sw id="sw-big" on={S.big} set={(v) => set("big", v)} /></Opt>
         <Opt title="Enter изпраща" sub="Shift + Enter за нов ред"><Sw id="sw-enter" on={S.enterSend} set={(v) => set("enterSend", v)} /></Opt>
@@ -305,7 +306,7 @@ export default function SettingsView(p) {
       </>}
       {tab === "notify" && <>
         <H k="notify" lead="Кога програмата да ви известява." />
-        <Opt title="Планирани задачи" sub="Известие на Windows, когато дойде време за напомняне или задача (задачите се изпълняват и без него)"><Sw id="sw-n-sched" on={notify.scheduled} set={(v) => patch({ notify: { ...notify, scheduled: v } })} /></Opt>
+        <Opt title="Планирани задачи" sub={"Известие на " + OS + ", когато дойде време за напомняне или задача (задачите се изпълняват и без него)"}><Sw id="sw-n-sched" on={notify.scheduled} set={(v) => patch({ notify: { ...notify, scheduled: v } })} /></Opt>
         <Opt title="Нова версия" sub="Лента в прозореца, когато новата версия е изтеглена и готова"><Sw id="sw-n-upd" on={notify.updates} set={(v) => patch({ notify: { ...notify, updates: v } })} /></Opt>
       </>}
       {tab === "voice" && <>
@@ -322,14 +323,14 @@ export default function SettingsView(p) {
       {tab === "dict" && <>
         <H k="dict" lead="Гласовите съобщения се превръщат в текст." />
         <Opt title="Изпращай гласовия въпрос веднага" sub="Без преглед на разпознатия текст"><Sw id="sw-ds" on={S.dictSend} set={(v) => set("dictSend", v)} /></Opt>
-        <div className="info"><b>Бележки.</b> Микрофонът се включва само когато натиснете бутона и докато записвате. Записът (до 2 минути) се изпраща към сървъра на Тед за разпознаване (Google Gemini – друг изкуствен интелект; с Real GPT програмата пита първо). Ако Windows не разрешава микрофона, програмата го казва.</div>
+        <div className="info"><b>Бележки.</b> Микрофонът се включва само когато натиснете бутона и докато записвате. Записът (до 2 минути) се изпраща към сървъра на Тед за разпознаване (Google Gemini – друг изкуствен интелект; с Real GPT програмата пита първо). Ако {OS} не разрешава микрофона, програмата го казва.</div>
       </>}
       {tab === "safety" && <>
         <H k="safety" lead="Какво Тед прави сам и за какво пита." />
         <ul className="set-ul">
           <li><b>Сам:</b> търси и чете (CRM, интернет, вашите файлове), смята, пише текстове и документи; Тед (сървър) прави и снимки в папка „Тед“, а Real GPT подготвя заявка за снимка или видео, която вие отваряте в ChatGPT.</li>
           <li><b>С карта „Разреши“:</b> всяка промяна в CRM – клиент, имот, събитие, бележка, файл към клиент или имот, памет.</li>
-          <li><b>С прозорец на Windows:</b> изтриване, смяна на статус, публикуване и изпращане на имейл.</li>
+          <li><b>С прозорец на {OS}:</b> изтриване, смяна на статус, публикуване и изпращане на имейл.</li>
           <li><b>С цена (само Тед на сървъра):</b> AI видеото показва двигателя, дължината и приблизителната цена преди старт.</li>
         </ul>
         <div className="sec-h mt">Real GPT</div>
@@ -338,10 +339,10 @@ export default function SettingsView(p) {
       </>}
       {tab === "security" && <>
         <H k="security" lead="Входът на този компютър." />
-        <dl className="kv"><dt>Сесия в CRM</dt><dd>{remembered === false ? "само до затваряне на програмата" : "запазена шифровано за вашия потребител в Windows"}</dd><dt>ChatGPT</dt><dd>{rg.connected ? "свързан · " + (rg.email || "акаунт") : "не е свързан"}</dd></dl>
+        <dl className="kv"><dt>Сесия в CRM</dt><dd>{remembered === false ? "само до затваряне на програмата" : "запазена шифровано за вашия потребител в " + OS}</dd><dt>ChatGPT</dt><dd>{rg.connected ? "свързан · " + (rg.email || "акаунт") : "не е свързан"}</dd></dl>
         {remembered === false ? <div className="err" role="note">🔐 {SESSION_NOTE}</div> : null}
         <div className="hrow mt"><button className="b wine" onClick={signOutAll}><Icon n="logout" />Изход от CRM и ChatGPT на този компютър</button></div>
-        <div className="info">Паролата не се пази никъде. Токените за CRM и ChatGPT са шифровани със защитата на Windows и никога не стигат до прозореца на програмата.</div>
+        <div className="info">Паролата не се пази никъде. Токените за CRM и ChatGPT са шифровани със защитата на {OS} и никога не стигат до прозореца на програмата.</div>
       </>}
       {tab === "browser" && <BrowserPane S={S} patch={patch} toast={toast} />}
       {tab === "storage" && <StoragePane toast={toast} />}
@@ -364,7 +365,7 @@ export default function SettingsView(p) {
       </>}
       {tab === "helpc" && <>
         <H k="helpc" lead="Ръководството и клавишните комбинации." />
-        <Opt title="Ръководство на Тед за Windows" sub="README в GitHub – инсталиране, възможности, ограничения"><button className="b" onClick={() => Promise.resolve(ted.app.openExternal(README_URL)).catch(() => {})}><Icon n="external" />Отвори</button></Opt>
+        <Opt title={"Ръководство на " + PRODUCT} sub="README в GitHub – инсталиране, възможности, ограничения"><button className="b" onClick={() => Promise.resolve(ted.app.openExternal(README_URL)).catch(() => {})}><Icon n="external" />Отвори</button></Opt>
         <Opt title="CRM на сайта" sub="Отваря се в браузъра"><button className="b" onClick={openCrm}><Icon n="external" />Отвори</button></Opt>
         <div className="sec-h mt">Клавишни комбинации</div>
         <dl className="kv">{SHORTCUTS.map(([a, b]) => <React.Fragment key={a}><dt>{a}</dt><dd>{b}</dd></React.Fragment>)}</dl>
@@ -373,7 +374,7 @@ export default function SettingsView(p) {
         <H k="privacy" lead="Какво пази програмата и с кого говори." />
         <ul className="set-ul">
           <li><b>Паролата</b> се изпраща само към входа на imotinadezhda.bg и не се записва никъде.</li>
-          <li><b>Сесиите</b> за CRM и ChatGPT са шифровани със защитата на Windows за вашия потребител.</li>
+          <li><b>Сесиите</b> за CRM и ChatGPT са шифровани със защитата на {OS} за вашия потребител.</li>
           <li><b>Чатовете и Библиотеката</b> са шифровани на този компютър и разделени по профил.</li>
           <li><b>Мрежа:</b> imotinadezhda.bg и услугата за вход на сайта; при Real GPT – OpenAI (auth.openai.com, api.openai.com); интернетът на Real GPT – без пароли и бисквитки; обновленията – само от GitHub.</li>
           <li><b>Логове:</b> само технически събития – без текста на съобщенията, файловете и токените.</li>

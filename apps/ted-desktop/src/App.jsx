@@ -45,6 +45,7 @@ import ProjectFolder, { SaveToCrmModal } from "./components/layout/ProjectFolder
 import { createMiniGuard } from "./bubble/gesture.js";
 import { clipFile, localImageHandoff, serverImageHandoff } from "./lib/panel.js";
 import avatar from "./assets/avatar.webp";
+import { PRODUCT, kb } from "./lib/os.js";
 
 const STOP_NOTE = "Спряно изчакването. Ако Тед вече е започнал действие на сървъра, то може да бъде довършено – проверете в CRM.";
 const MAYBE_NOTE = "Възможно е действието вече да е изпълнено на сървъра. Проверете в CRM, преди да опитате отново.";
@@ -143,11 +144,11 @@ function Shell({ phone, conn, onQuick, onBubble, children }) {
     <div className={"shell tedwin" + (phone ? " phone" : "") + (mini ? " mini" : "")} data-win={mode}>
       {mini ? <MiniBar /> : (
         <div className="winbar" aria-label="Прозорец на програмата">
-          <img src={avatar} alt="" /><b>Тед</b><span className="wb-sub">Имоти Надежда · Тед за Windows</span>
+          <img src={avatar} alt="" /><b>Тед</b><span className="wb-sub">Имоти Надежда · {PRODUCT}</span>
           <span className={"wb-st " + conn} data-testid="conn"><i />{CONN_TEXT[conn]}</span>
-          {onQuick ? <button className="wbtn wq" aria-label="Бърз прозорец" title="Бърз прозорец (Ctrl + Shift + Space)" onClick={onQuick}>⚡</button> : null}
+          {onQuick ? <button className="wbtn wq" aria-label="Бърз прозорец" title={kb("Бърз прозорец (Ctrl + Shift + Space)")} onClick={onQuick}>⚡</button> : null}
           {/* 0.1.6: right next to the Windows caption buttons (minimise / maximise / close). */}
-          {onBubble ? <button className="wbtn wbub" data-testid="bubble-btn" aria-label="Балонче – свий Тед в балонче" title="Балонче – свий Тед в балонче (Ctrl + Shift + B)" onClick={onBubble}><Icon n="bubble" /><span className="wbub-t">Балонче</span></button> : null}
+          {onBubble ? <button className="wbtn wbub" data-testid="bubble-btn" aria-label="Балонче – свий Тед в балонче" title={kb("Балонче – свий Тед в балонче (Ctrl + Shift + B)")} onClick={onBubble}><Icon n="bubble" /><span className="wbub-t">Балонче</span></button> : null}
         </div>
       )}
       {children}
@@ -1598,7 +1599,7 @@ function App({ user, remembered, onLogout }) {
         {winMode === "mini" ? null : <It ci="monitor" title={S.compact ? "Пълен прозорец" : "Компактен прозорец"} sub="тесен прозорец с подредба като на телефон" onClick={toggleCompact} />}
         {winMode === "mini"
           ? <It ci="monitor" title="Нормален прозорец" sub="програмата се връща както беше" onClick={() => { closeAll(); toNormal(); }} />
-          : <It ci="bubble" title="Балонче" sub="свий Тед в балонче на края на екрана · Ctrl + Shift + B" onClick={() => { closeAll(); setDrawer(false); toBubble(); }} />}
+          : <It ci="bubble" title="Балонче" sub={kb("свий Тед в балонче на края на екрана · Ctrl + Shift + B")} onClick={() => { closeAll(); setDrawer(false); toBubble(); }} />}
         <div className="sep" />
         <It ci="logout" title="Изход" onClick={() => { closeAll(); onLogout(); }} />
       </Pop>
@@ -1750,7 +1751,7 @@ function App({ user, remembered, onLogout }) {
           <div className="quick-back" onMouseDown={(e) => { if (e.target === e.currentTarget) setQuick(false); }}>
             <div className="quick" role="dialog" aria-label="Бърз прозорец"><img src={avatar} alt="" />
               <input id="quick-in" autoFocus placeholder="Попитай Тед…  Enter изпраща · Esc затваря" maxLength={8000} onKeyDown={(e) => { if (e.key === "Escape") setQuick(false); if (e.key === "Enter" && e.target.value.trim()) { const v = e.target.value; setQuick(false); send(v, { fresh: true }); } }} />
-              <kbd>Ctrl + Shift + Space</kbd></div>
+              <kbd>{kb("Ctrl + Shift + Space")}</kbd></div>
           </div>
         ) : null}
         {lb ? (

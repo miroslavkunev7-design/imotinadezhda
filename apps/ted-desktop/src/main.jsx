@@ -1,10 +1,12 @@
+import { PRODUCT } from "./lib/os.js"; // first: sets html.os-mac before anything is drawn
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./styles/style.css";
 import "./styles/desktop.css";
 import "./styles/layout.css";
 import "./styles/agent.css";
-import "./styles/premium.css"; // 0.1.5: premium palette, menus, settings, typography and speed – always last
+import "./styles/premium.css"; // 0.1.5: premium palette, menus, settings, typography and speed
+import "./styles/mac.css"; // 0.1.8: white with red elements, only under html.os-mac – after everything else
 import { initBridge } from "./bridge.js";
 import App from "./App.jsx";
 
@@ -26,7 +28,7 @@ class Guard extends React.Component {
 function Frame({ children }) {
   return (
     <div className="shell">
-      <div className="winbar"><b>Тед</b><span className="wb-sub">Имоти Надежда · Тед за Windows</span></div>
+      <div className="winbar"><b>Тед</b><span className="wb-sub">Имоти Надежда · {PRODUCT}</span></div>
       <div className="login">{children}</div>
     </div>
   );
@@ -36,6 +38,6 @@ const root = createRoot(document.getElementById("root"));
 initBridge().then(
   (bridge) => root.render(bridge
     ? <Guard><App /></Guard>
-    : <Frame><p className="no-bridge">Този екран работи само вътре в програмата „Тед за Windows“.</p></Frame>),
+    : <Frame><p className="no-bridge">Този екран работи само вътре в програмата „{PRODUCT}“.</p></Frame>),
   () => root.render(<Frame><p className="no-bridge">Програмата не успя да стартира интерфейса.</p></Frame>),
 );

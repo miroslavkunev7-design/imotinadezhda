@@ -1,4 +1,4 @@
-# electron-builder 26 configuration for "Тед за Windows".
+# electron-builder 26 configuration for "Тед за Windows" and (0.1.8) "Тед за Mac".
 # Built only by the GitHub Actions workflow (.github/workflows/ted-desktop.yml) on windows-latest:
 #   npm run dist:win  ->  dist-installer/Ted-Setup-<version>-x64.exe (+ win-unpacked/, SHA256SUMS.txt)
 # Every option name was checked against node_modules/app-builder-lib/scheme.json (26.18.0).
@@ -53,6 +53,36 @@ win:
   icon: build/icon.png # 512x512 PNG; converted to .ico for the program and the installer
   artifactName: "Ted-Setup-${version}-x64.${ext}"
   requestedExecutionLevel: asInvoker
+
+# 0.1.8 · Тед за Mac: one disk image for every MacBook – Intel and Apple Silicon (universal) – from macOS 13 Ventura
+# (Electron 44+ needs Ventura) up to the newest macOS. Built on a macOS runner: npm run dist:mac.
+# No Apple Developer certificate: the app is signed ad hoc ("-"), which Apple Silicon needs to start it at all; the
+# first start goes through right click → Open (or System Settings → Privacy & Security → Open Anyway). Ad hoc signing
+# with hardened runtime would reject Electron's own pre-signed frameworks, so hardenedRuntime is off.
+mac:
+  target:
+    - target: dmg
+      arch:
+        - universal
+  icon: build/icon.icns
+  category: public.app-category.productivity
+  artifactName: "Ted-Mac-${version}-universal.${ext}"
+  minimumSystemVersion: "13.0"
+  identity: "-"
+  hardenedRuntime: false
+  gatekeeperAssess: false
+  notarize: false
+  darkModeSupport: false
+  extendInfo:
+    # Voice messages: macOS asks once for the microphone and shows this sentence.
+    NSMicrophoneUsageDescription: "Тед използва микрофона само докато записвате гласово съобщение."
+    CFBundleDisplayName: "Тед"
+
+dmg:
+  title: "Тед ${version}"
+  artifactName: "Ted-Mac-${version}-universal.${ext}"
+  # No automatic updates on a Mac (they need an Apple certificate), so no update info next to the image.
+  writeUpdateInfo: false
 
 nsis:
   # Assisted per-user installer: no administrator rights, default folder under

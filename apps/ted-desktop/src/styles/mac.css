@@ -1,0 +1,87 @@
+/* 0.1.8 · Тед за Mac – „бяло с червени елементи“ (собственикът: на MacBook да не е червено с бели елементи,
+   а бяло с червени елементи, пак същия дизайн).
+   Същото разположение, шрифтове, стъкло и сияния като на Windows; разменени са само цветовете:
+   фонът (рамка, странична лента, горна лента, работна площ) е бял/слонова кост, а бутоните, иконите, активните
+   редове, заглавията и рамките са винено-червени. Всичко е под html.os-mac (src/lib/os.js) – Windows не се променя. */
+html.os-mac{
+  --m-bg:#ffffff;--m-bg-2:#fbf7f3;--m-bg-3:#f6eee8;
+  --m-wine:#7a1023;--m-wine-2:#9a0f3b;--m-ruby:#c4123f;--m-ink:#3b0d18;--m-muted:#7b5b55;
+  --m-line:rgba(154,15,59,.16);--m-line-2:rgba(154,15,59,.32);
+  --m-jewel:linear-gradient(180deg,#d61f50 0%,#9a0f3b 52%,#6a0b25 100%);
+  --m-title:linear-gradient(180deg,#b8163f 0%,#8a0f30 55%,#5c0a20 100%);
+  /* токените на темата: светлите надписи стават винени */
+  --on-wine:var(--m-ink);--title:var(--m-wine);--gold-ink:var(--m-wine);--label:var(--m-wine-2);--muted:var(--m-muted);--ph:#9a7a72;
+  --gold-text:var(--m-title);
+  color-scheme:light;
+}
+html.os-mac body{background:var(--m-bg)}
+
+/* ---------- рамка и лента на прозореца (на Mac бутоните за затваряне са вляво) ---------- */
+html.os-mac .shell,html.os-mac .shell.tedwin{background:radial-gradient(55% 45% at 0 0,rgba(214,31,80,.06),transparent 70%),linear-gradient(180deg,#ffffff,#fbf7f3)!important;color:var(--m-ink)}
+html.os-mac .winbar{background:linear-gradient(180deg,#ffffff,#fcf8f5)!important;color:var(--m-wine);border-bottom:1px solid var(--m-line);box-shadow:none!important;
+  padding-left:max(82px,env(titlebar-area-x,82px));padding-right:12px}
+html.os-mac .winbar b{color:var(--m-wine)!important;-webkit-text-fill-color:var(--m-wine)}
+html.os-mac .winbar .wb-sub{color:var(--m-muted)!important}
+html.os-mac .winbar .wb-st{background:#fff!important;color:var(--m-wine)!important;border-color:var(--m-line-2)!important}
+html.os-mac .winbar .wbtn{color:var(--m-wine)!important}
+html.os-mac .winbar .wbtn:hover{background:rgba(154,15,59,.07)!important}
+
+/* ---------- странична лента ---------- */
+html.os-mac .side{background:linear-gradient(180deg,#ffffff 0%,#fdf9f6 60%,#faf3ee 100%)!important;color:var(--m-ink)!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.os-mac .side:before{display:none}
+html.os-mac .side:after{background:linear-gradient(180deg,rgba(214,31,80,.0),rgba(214,31,80,.35) 30%,rgba(154,15,59,.25) 70%,rgba(214,31,80,0))!important;box-shadow:none!important}
+html.os-mac .side .nav,html.os-mac .side .nav span,html.os-mac .side .row,html.os-mac .side .row .t,html.os-mac .side .me,html.os-mac .side .me-txt,html.os-mac .side .me-txt b{color:var(--m-ink)!important}
+html.os-mac .side .me-txt small,html.os-mac .side kbd,html.os-mac .side .grp-day,html.os-mac .side .empty,html.os-mac .side .side-empty{color:var(--m-muted)!important}
+html.os-mac .side kbd{background:#fff!important;border-color:var(--m-line)!important}
+html.os-mac .side .sec,html.os-mac .side .sec-t,html.os-mac .side .row .all-b{color:var(--m-wine-2)!important}
+html.os-mac .side .ibtn,html.os-mac .side-head .ibtn{color:var(--m-wine-2)!important}
+html.os-mac .side-name{background:var(--m-title)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;filter:none!important}
+html.os-mac .side .nav:hover,html.os-mac .side .row:hover{background:rgba(154,15,59,.06)!important}
+html.os-mac .side-list.sub{border-left-color:var(--m-line-2)!important}
+/* активният чат/ред: червено с бели букви (обратното на Windows) */
+html.os-mac .side .row.on{background:var(--m-jewel)!important;border-color:transparent!important;box-shadow:0 4px 12px -4px rgba(154,15,59,.55)!important}
+html.os-mac .side .row.on,html.os-mac .side .row.on .t,html.os-mac .side .row.on button{color:#fff!important}
+/* „Нов чат“ с рамка */
+html.os-mac .side .nav.n-new{background:#fff!important;border:1.5px solid var(--m-line-2)!important;box-shadow:0 2px 8px -4px rgba(154,15,59,.35)!important;color:var(--m-wine)!important}
+html.os-mac .side .nav.n-new span{color:var(--m-wine)!important}
+html.os-mac .side .me{background:#fff!important;border:1px solid var(--m-line)!important;box-shadow:0 2px 10px -6px rgba(154,15,59,.35)!important}
+html.os-mac .logo-tile{border-color:var(--m-line-2)!important;box-shadow:0 2px 8px -4px rgba(154,15,59,.3)!important}
+
+/* ---------- работна площ: снимката на къщата под бял воал ---------- */
+html.os-mac .main{background:linear-gradient(0deg,rgba(255,255,255,.97) 0%,rgba(255,255,255,.9) 30%,rgba(255,252,250,.8) 60%,rgba(255,250,247,.74) 100%),url('../assets/house.webp') center 30%/cover no-repeat,#fff!important}
+html.os-mac .center{background:radial-gradient(70% 38% at 50% 108%,rgba(214,31,80,.08),transparent 70%)!important}
+html.os-mac .top,html.os-mac header.top{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.86))!important;color:var(--m-wine)!important;border-bottom:1px solid var(--m-line)!important;box-shadow:none!important}
+html.os-mac .top .ibtn,html.os-mac .top button{color:var(--m-wine)}
+html.os-mac .mtitle,html.os-mac .mtitle span,html.os-mac .top-model span{background:var(--m-title)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;filter:none!important;text-shadow:none!important}
+html.os-mac .mtitle svg,html.os-mac .top-model svg{color:var(--m-wine)!important}
+/* Чат / Работа */
+html.os-mac .seg,html.os-mac .mode-seg{background:#fff!important;border:1.5px solid var(--m-line-2)!important;box-shadow:inset 0 1px 2px rgba(154,15,59,.08)!important}
+html.os-mac .seg button{color:var(--m-wine)!important}
+html.os-mac .seg button.on{background:var(--m-jewel)!important;color:#fff!important;box-shadow:0 3px 10px -3px rgba(154,15,59,.6)!important;text-shadow:none!important}
+html.os-mac .top .tmp,html.os-mac .top .tmp span{color:var(--m-wine)!important}
+
+/* ---------- начален екран ---------- */
+html.os-mac .home h1{background:var(--m-title)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;text-shadow:none!important;filter:drop-shadow(0 1px 1px rgba(255,255,255,.9))!important}
+html.os-mac .disc,html.os-mac .home .disc{color:var(--m-muted)!important;text-shadow:none!important}
+
+/* ---------- съобщения ---------- */
+html.os-mac .msg.u .bub{background:var(--m-jewel) padding-box,linear-gradient(160deg,#ffd6e0,#e3124b 45%,#ffc2d1) border-box!important;color:#fff!important}
+html.os-mac .msg.u .bub::selection,html.os-mac .msg.u .bub ::selection{background:rgba(255,255,255,.35)}
+
+/* ---------- полето за писане и бутоните под него ---------- */
+html.os-mac .compose{border-color:var(--m-line-2)!important;box-shadow:0 10px 30px -14px rgba(154,15,59,.35),0 0 0 1px rgba(154,15,59,.1)!important}
+
+/* ---------- вход ---------- */
+html.os-mac .login{background:linear-gradient(0deg,rgba(255,255,255,.97) 0%,rgba(255,255,255,.9) 30%,rgba(255,252,250,.8) 60%,rgba(255,250,247,.74) 100%),url('../assets/house.webp') center 30%/cover no-repeat,#fff!important}
+
+/* ---------- телефонно (тясно) оформление ---------- */
+html.os-mac .top.ph{background:linear-gradient(180deg,#ffffff,#fcf8f5)!important;color:var(--m-wine)!important}
+@media (max-width:899px){html.os-mac .side{background:linear-gradient(180deg,#ffffff,#faf3ee)!important}}
+
+/* скролбарове */
+html.os-mac .side-scroll{scrollbar-color:rgba(154,15,59,.35) transparent}
+
+/* ---------- 2: детайли – без син ореол около червеното балонче; рамките на бутоните и хапчетата са червени ---------- */
+html.os-mac .msg.u .bub{box-shadow:0 8px 20px -8px rgba(154,15,59,.55),0 1px 0 rgba(255,255,255,.4) inset!important}
+html.os-mac .home .chip,html.os-mac .chips button,html.os-mac .sugg button,html.os-mac .cpill,html.os-mac .tag,html.os-mac .act-tag,html.os-mac .mode-tag,html.os-mac .meta-pill{border-color:rgba(154,15,59,.28)!important}
+html.os-mac .cg-col,html.os-mac .col.cg-col{border-color:rgba(154,15,59,.2)!important;box-shadow:0 18px 40px -20px rgba(154,15,59,.35),0 0 0 1px rgba(154,15,59,.08)!important}
