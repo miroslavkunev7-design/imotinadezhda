@@ -1210,6 +1210,81 @@
       (menu._open === "n8n" ? '<div class="nda-agl">' + N8N_MODELS.map(function (m) { return '<button type="button" role="option" data-nm="' + m[0] + '" class="' + (skill === n8nSkill && n8nModelId() === m[0] ? "on" : "") + '">' + esc(m[1]) + "<small>" + esc(m[2]) + "</small></button>"; }).join("") + "</div>" : "") +
       '<div class="nda-agn">горе – лимит, долу – изразходвани</div>' + (rest ? '<div class="g">Умения</div>' + rest : "");
   }
+  /* 27.11 – Messenger · Instagram · WhatsApp на агенцията: обли балончета отстрани в CRM.
+     Клик → истинското приложение в малък облен прозорец до CRM (влизате веднъж с профила на агенцията, браузърът го помни);
+     на телефон → истинското приложение. Броят на новите съобщения идва в NDSocial.badge(id, n). */
+  var SOC_PAGE = "1447196405137713";
+  var SOCIAL = [
+    { id: "messenger", name: "Messenger", url: "https://business.facebook.com/latest/inbox/messenger?asset_id=" + SOC_PAGE, phone: "https://business.facebook.com/latest/inbox/messenger?asset_id=" + SOC_PAGE,
+      svg: '<svg viewBox="0 0 48 48"><defs><linearGradient id="ndsm" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0866ff"/><stop offset=".6" stop-color="#a033ff"/><stop offset="1" stop-color="#ff5c87"/></linearGradient></defs><path fill="url(#ndsm)" d="M24 4C12.7 4 4 12.3 4 23.5c0 5.9 2.4 11 6.4 14.5.3.3.5.7.5 1.2l.1 3.6c0 1.1 1.2 1.9 2.3 1.4l4-1.8c.3-.2.7-.2 1.1-.1 1.8.5 3.7.8 5.7.8 11.3 0 20-8.3 20-19.5S35.3 4 24 4z"/><path fill="#fff" d="m12 29.1 5.9-9.3c.9-1.5 2.9-1.8 4.3-.8l4.7 3.5c.4.3 1 .3 1.4 0l6.3-4.8c.8-.6 1.9.4 1.4 1.3l-5.9 9.3c-.9 1.5-2.9 1.8-4.3.8l-4.7-3.5c-.4-.3-1-.3-1.4 0l-6.3 4.8c-.8.6-1.9-.4-1.4-1.3z"/></svg>' },
+    { id: "instagram", name: "Instagram", url: "https://www.instagram.com/direct/inbox/", phone: "https://www.instagram.com/direct/inbox/",
+      svg: '<svg viewBox="0 0 48 48"><defs><radialGradient id="ndsi" cx=".3" cy="1.05" r="1.25"><stop offset="0" stop-color="#ffd776"/><stop offset=".25" stop-color="#f3a554"/><stop offset=".45" stop-color="#e14f6f"/><stop offset=".75" stop-color="#b52f9c"/><stop offset="1" stop-color="#5a4bd6"/></radialGradient></defs><rect x="4" y="4" width="40" height="40" rx="12" fill="url(#ndsi)"/><rect x="12" y="12" width="24" height="24" rx="7.5" fill="none" stroke="#fff" stroke-width="3"/><circle cx="24" cy="24" r="5.6" fill="none" stroke="#fff" stroke-width="3"/><circle cx="31.4" cy="16.6" r="1.9" fill="#fff"/></svg>' },
+    { id: "whatsapp", name: "WhatsApp", url: "https://web.whatsapp.com/", phone: "https://wa.me/",
+      svg: '<svg viewBox="0 0 48 48"><path fill="#25d366" d="M24 4C13 4 4 12.9 4 23.9c0 3.7 1 7.2 2.9 10.2L4.1 44l10.2-2.7c2.9 1.6 6.2 2.5 9.7 2.5 11 0 20-8.9 20-19.9S35 4 24 4z"/><path fill="#fff" d="M34.2 29.1c-.5-.3-3-1.5-3.5-1.6-.5-.2-.8-.3-1.1.2-.3.5-1.2 1.6-1.5 1.9-.3.3-.6.4-1 .1-.5-.3-2.1-.8-4-2.5-1.5-1.3-2.5-2.9-2.8-3.4-.3-.5 0-.8.2-1 .2-.2.5-.6.7-.9.2-.3.3-.5.5-.9.2-.3.1-.7 0-.9-.1-.3-1.1-2.7-1.5-3.7-.4-1-.8-.8-1.1-.8h-.9c-.3 0-.9.1-1.3.6-.5.5-1.7 1.7-1.7 4.1s1.8 4.8 2 5.1c.2.3 3.5 5.4 8.5 7.6 1.2.5 2.1.8 2.8 1 1.2.4 2.3.3 3.1.2.9-.1 3-1.2 3.4-2.4.4-1.2.4-2.2.3-2.4-.2-.2-.5-.3-1-.5z"/></svg>' }
+  ];
+  function socialBubbles() {
+    if (document.querySelector(".nds-soc")) return;
+    var st = document.createElement("style");
+    st.textContent =
+      ".nds-soc{position:fixed;right:14px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:2147482990;display:flex;flex-direction:column-reverse;align-items:center;gap:12px}" +
+      ".nds-soc .nds-l{display:flex;flex-direction:column;gap:12px;transform-origin:50% 100%;transition:opacity .2s,transform .2s}" +
+      ".nds-soc:not(.open) .nds-l{opacity:0;transform:translateY(12px) scale(.8);pointer-events:none;visibility:hidden}" +
+      ".nds-soc .nds-m{background:radial-gradient(circle at 36% 30%,#fffbea 0%,#fff3c4 16%,#f6cf6c 50%,#e0a63a 78%,#c98a22 100%)!important;color:#7a0f22}" +
+      ".nds-soc .nds-m svg{width:28px;height:28px;filter:none}.nds-soc.open .nds-m{box-shadow:inset 0 2px 4px rgba(255,255,255,.8),0 0 0 2px #f6d68c,0 0 0 4px #7a0f22,0 0 30px rgba(255,200,120,.95),0 10px 22px rgba(40,4,12,.5)}" +
+      "html.rail .nds-soc{right:18px;bottom:24px}" +
+      ".nds-soc button{position:relative;width:54px;height:54px;border-radius:50%;border:0;padding:0;cursor:pointer;display:grid;place-items:center;" +
+      "background:radial-gradient(circle at 36% 30%,rgba(255,255,255,.98) 0%,rgba(255,247,236,.95) 55%,rgba(250,230,205,.92) 100%);" +
+      "box-shadow:inset 0 2px 4px rgba(255,255,255,.9),inset 0 -5px 10px rgba(180,120,40,.18),0 0 0 2px #f6d68c,0 0 0 4px rgba(122,15,34,.55),0 0 22px rgba(255,200,120,.75),0 10px 20px rgba(40,4,12,.45);" +
+      "transition:transform .18s,box-shadow .25s;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}" +
+      ".nds-soc button:hover{transform:translateY(-2px) scale(1.06);box-shadow:inset 0 2px 4px rgba(255,255,255,.9),0 0 0 2px #f6d68c,0 0 0 4px rgba(122,15,34,.7),0 0 30px rgba(255,200,120,.95),0 12px 24px rgba(40,4,12,.5)}" +
+      ".nds-soc button:active{transform:scale(.94)}.nds-soc svg{width:32px;height:32px;filter:drop-shadow(0 1px 2px rgba(40,0,10,.3))}" +
+      ".nds-soc .n{position:absolute;right:-5px;top:-5px;min-width:22px;height:22px;padding:0 6px;box-sizing:border-box;border-radius:11px;display:grid;place-items:center;font:700 12px/1 Arial,sans-serif;color:#fff;background:linear-gradient(135deg,#d9213f,#7a0f22);box-shadow:0 0 0 2px #fff3dc,0 0 12px rgba(217,33,63,.7)}" +
+      ".nds-soc .tip{position:absolute;right:66px;top:50%;transform:translateY(-50%);white-space:nowrap;padding:7px 12px;border-radius:14px;font:700 13px/1 Arial,sans-serif;color:#fff3dc;background:linear-gradient(135deg,#a3213a,#540516);box-shadow:inset 0 0 0 1.5px #e6bf5b,0 0 14px rgba(230,191,91,.45);opacity:0;pointer-events:none;transition:opacity .2s}" +
+      ".nds-soc button:hover .tip{opacity:1}" +
+      ".nda-win:not([hidden])~.nds-soc{display:none}" +
+      "@media (max-width:700px){.nds-soc,.nds-soc .nds-l{gap:10px}.nds-soc{right:16px}.nds-soc button{width:46px;height:46px}.nds-soc svg{width:27px;height:27px}.nds-soc .nds-m svg{width:24px;height:24px}.nds-soc .tip{display:none}}";
+    document.head.appendChild(st);
+    var box = document.createElement("div"); box.className = "nds-soc"; box.setAttribute("aria-label", "Чатове на агенцията");
+    box.innerHTML = '<button type="button" class="nds-m" aria-expanded="false" aria-label="Чатове на агенцията" title="Чатове: Messenger · Instagram · WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg><span class="tip">Чатове</span></button>' +
+      '<div class="nds-l">' + SOCIAL.map(function (s) { return '<button type="button" data-soc="' + s.id + '" aria-label="' + s.name + ' на агенцията" title="' + s.name + '">' + s.svg + '<span class="tip">' + s.name + "</span></button>"; }).join("") + "</div>";
+    document.body.appendChild(box);
+    var main = box.querySelector(".nds-m");
+    function toggle(on) { box.classList.toggle("open", on); main.setAttribute("aria-expanded", String(on)); }
+    document.addEventListener("click", function (e) { if (box.classList.contains("open") && !box.contains(e.target)) toggle(false); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") toggle(false); });
+    box.addEventListener("click", function (e) {
+      if (e.target.closest(".nds-m")) { toggle(!box.classList.contains("open")); return; }
+      var b = e.target.closest("[data-soc]"); if (!b) return; toggle(false);
+      var s = SOCIAL.filter(function (x) { return x.id === b.getAttribute("data-soc"); })[0]; if (!s) return;
+      NDSocial.badge(s.id, 0);
+      var phone = innerWidth < 700 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent), w = null;
+      try {
+        if (phone) w = window.open(s.phone, "_blank");
+        else {
+          var sw = screen.availWidth || innerWidth, sh = screen.availHeight || innerHeight, W = Math.min(460, sw - 40), H = Math.min(820, sh - 60);
+          w = window.open(s.url, "nd-soc-" + s.id, "popup=yes,width=" + W + ",height=" + H + ",left=" + ((screen.availLeft || 0) + sw - W - 96) + ",top=" + ((screen.availTop || 0) + Math.max(10, Math.round((sh - H) / 2))));
+        }
+        if (w) { try { w.focus(); } catch (x) {} }
+      } catch (x) {}
+      if (!w) location.href = phone ? s.phone : s.url;
+    });
+  }
+  var NDSocial = window.NDSocial = {
+    badge: function (id, n) {
+      var b = document.querySelector('.nds-soc [data-soc="' + id + '"]'); if (!b) return;
+      var c = b.querySelector(".n"); n = +n || 0;
+      if (!n) { if (c) c.remove(); NDSocial.total(); return; }
+      if (!c) { c = document.createElement("span"); c.className = "n"; b.appendChild(c); }
+      c.textContent = n > 99 ? "99+" : String(n);
+      NDSocial.total();
+    },
+    total: function () {
+      var m = document.querySelector(".nds-soc .nds-m"); if (!m) return; var t = 0;
+      [].forEach.call(document.querySelectorAll(".nds-soc .nds-l .n"), function (x) { t += parseInt(x.textContent, 10) || 0; });
+      var c = m.querySelector(".n"); if (!t) { if (c) c.remove(); return; }
+      if (!c) { c = document.createElement("span"); c.className = "n"; m.appendChild(c); } c.textContent = t > 99 ? "99+" : String(t);
+    }
+  };
   function boot() {
     if (booted) return; booted = true;
     var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -1221,6 +1296,7 @@
       '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div><div class="nda-set" hidden></div>';
     if(inCrmPath()) { win.classList.add('nd-lux');var lux=document.createElement('link');lux.rel='stylesheet';lux.href='/mobile/crm/ted-lux.css?v=3';lux.onload=fitChatViewport;document.head.appendChild(lux);var online=document.createElement('span');online.className='ted-online';online.innerHTML='<i></i>На линия';win.querySelector('.nda-t').insertBefore(online,win.querySelector('.nda-skill')); }
     document.body.appendChild(fab); document.body.appendChild(win);
+    if (inCrmPath()) socialBubbles();
     list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot"); if (inCrmPath()) setTimeout(function () { agentStats(); }, 1500);
     if (inCrmPath()) watchChat();
     list.addEventListener("click", fileClick);
