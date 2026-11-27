@@ -1243,6 +1243,8 @@
       if (!open) { clearInterval(socWatch); socWatch = 0; if (socTedWasOpen && win && win.hidden) { win.hidden = false; fab.hidden = true; try { fitChatViewport(); } catch (x) {} } socTedWasOpen = false; }
     }, 600);
   }
+  /* всяко копие на иконите има свои id на преливките – иначе скритият прозорец на Тед „изяжда“ цветовете на балончето */
+  function socSvg(s, sfx) { return s.svg.replace(/id="(nds[a-z0-9]*)"/g, 'id="$1' + sfx + '"').replace(/url\(#(nds[a-z0-9]*)\)/g, "url(#$1" + sfx + ")"); }
   function socOpen(id) {
     var s = SOCIAL.filter(function (x) { return x.id === id; })[0]; if (!s) return;
     NDSocial.badge(s.id, 0);
@@ -1272,7 +1274,7 @@
   }
   /* кръгчетата горе в панела на Тед – до избора на агент */
   function socHead() {
-    return '<div class="nda-soc" role="group" aria-label="Чатове на агенцията">' + SOCIAL.map(function (s) { return '<button type="button" data-soc="' + s.id + '" title="' + s.name + '" aria-label="' + s.name + ' на агенцията">' + s.svg + "</button>"; }).join("") + "</div>";
+    return '<div class="nda-soc" role="group" aria-label="Чатове на агенцията">' + SOCIAL.map(function (s) { return '<button type="button" data-soc="' + s.id + '" title="' + s.name + '" aria-label="' + s.name + ' на агенцията">' + socSvg(s, "h") + "</button>"; }).join("") + "</div>";
   }
   function socialBubbles() {
     if (document.querySelector(".nds-soc")) return;
@@ -1303,7 +1305,7 @@
     document.head.appendChild(st);
     var box = document.createElement("div"); box.className = "nds-soc"; box.setAttribute("aria-label", "Чатове на агенцията");
     box.innerHTML = '<button type="button" class="nds-m" aria-expanded="false" aria-label="Чатове на агенцията" title="Чатове: Messenger · Instagram · WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></svg><span class="tip">Чатове</span></button>' +
-      '<div class="nds-l">' + SOCIAL.map(function (s) { return '<button type="button" data-soc="' + s.id + '" aria-label="' + s.name + ' на агенцията" title="' + s.name + '">' + s.svg + '<span class="tip">' + s.name + "</span></button>"; }).join("") + "</div>";
+      '<div class="nds-l">' + SOCIAL.map(function (s) { return '<button type="button" data-soc="' + s.id + '" aria-label="' + s.name + ' на агенцията" title="' + s.name + '">' + socSvg(s, "b") + '<span class="tip">' + s.name + "</span></button>"; }).join("") + "</div>";
     document.body.appendChild(box);
     var main = box.querySelector(".nds-m");
     function toggle(on) { box.classList.toggle("open", on); main.setAttribute("aria-expanded", String(on)); }
@@ -1314,6 +1316,14 @@
       var b = e.target.closest("[data-soc]"); if (!b) return; toggle(false);
       socOpen(b.getAttribute("data-soc"));
     });
+    /* на всеки телефон и таблет балончето стои над бутона на Тед, никога върху него */
+    function place() {
+      var r = fab && !fab.hidden && fab.getBoundingClientRect(), bottom = "";
+      if (r && r.width && r.height && r.bottom > innerHeight * 0.45 && r.right > innerWidth - 140) bottom = Math.round(innerHeight - r.top + 12) + "px";
+      if (box.style.bottom !== bottom) box.style.bottom = bottom;
+    }
+    place(); addEventListener("resize", place); addEventListener("orientationchange", function () { setTimeout(place, 300); });
+    [300, 1200, 3000].forEach(function (t) { setTimeout(place, t); }); setInterval(place, 2000);
   }
   var NDSocial = window.NDSocial = {
     badge: function (id, n) {
