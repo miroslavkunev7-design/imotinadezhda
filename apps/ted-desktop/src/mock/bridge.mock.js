@@ -319,6 +319,12 @@ export function createMockBridge() {
     email: null, listings: null, video: null, uiPanel: null, durationMs: 0, ...extra,
   });
 
+  /* ======================= „Чатове“ (§24, 0.1.9) – a fake card, no network ======================= */
+  const socSubs = new Set();
+  const soc = { open: false, site: null, visible: false, signedIn: new Set(), unread: { messenger: 0, instagram: 0, whatsapp: Math.max(0, Number(params.get("social")) || 0) } };
+  const emitSoc = () => emit(socSubs, { open: soc.open, site: soc.site, visible: soc.visible, loading: false, error: null, blocked: null, unread: { ...soc.unread }, signedIn: [...soc.signedIn] });
+  setTimeout(emitSoc, 50);
+
   /* ======================= „ChatGPT панел“ (§23, 0.1.7) – a fake panel, no network ======================= */
   const panelSubs = new Set();
   const panel = { open: false, url: null, prompt: "", bounds: null, visible: false, loading: false, clip: params.get("clip") === "big" ? "big" : params.get("clip") === "1", el: null, sent: false, blocked: null };
@@ -1459,6 +1465,15 @@ export function createMockBridge() {
         return { ok: true, name: "Снимка от ChatGPT 2026-11-18 10.30.png", mime: "image/png", size: bytes.length, width: 640, height: 400, data };
       },
       onState: (cb) => sub(panelSubs, cb),
+    },
+    // 0.1.9 „Чатове“ (§24): a FAKE card (no network); ?social=<n> – that many unread on WhatsApp.
+    social: {
+      open: async (args) => { if (!args || !["messenger", "instagram", "whatsapp"].includes(args.site)) return { ok: false, code: "invalid" }; soc.open = true; soc.site = args.site; soc.signedIn.add(args.site); emitSoc(); return { ok: true }; },
+      setBounds: async (rect) => { soc.visible = !!(rect && rect.visible && rect.width > 40); emitSoc(); return { ok: true }; },
+      reload: async () => (soc.open ? { ok: true } : { ok: false, code: "closed" }),
+      openInBrowser: async () => ({ ok: true }),
+      close: async () => { soc.open = false; soc.visible = false; emitSoc(); return { ok: true }; },
+      onState: (cb) => sub(socSubs, cb),
     },
     // 0.1.6 „Балонче“ (§22): the window modes, as MAIN answers them.
     window: {

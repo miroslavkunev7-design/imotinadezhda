@@ -16,13 +16,13 @@ describe("window.ted surface", () => {
   it("CONTRACT.md §2 + §8 + §22 + §23 list exactly the surface the smoke test checks", () => {
     const contract = read("docs/CONTRACT.md");
     const section = (n) => contract.split(new RegExp(`^## ${n}\\.`, "m"))[1].split(/^## \d+\./m)[0];
-    const block = section(2) + section(8) + section(22) + section(23);
+    const block = section(2) + section(8) + section(22) + section(23) + section(24);
     const found = {};
     const add = (g, fn) => { found[g] = found[g] || []; if (!found[g].includes(fn)) found[g].push(fn); };
     for (const m of block.matchAll(/^ted\.(\w+)\.(\w+)\(/gm)) add(m[1], m[2]);
     // §8.10, §22 and §23 name the new subscriptions: "Subscriptions in preload: `realgpt.onEvent`, `video.onEvent`, …".
     const subs = [...block.matchAll(/Subscriptions in preload:([\s\S]*?)(\n\n|$)/g)];
-    expect(subs).toHaveLength(3);
+    expect(subs).toHaveLength(4);
     for (const sub of subs) for (const m of sub[1].matchAll(/`(\w+)\.(\w+)`/g)) add(m[1], m[2]);
     expect(sortedSurface(found)).toEqual(sortedSurface(TED_SURFACE));
   });
@@ -115,10 +115,12 @@ describe("window.ted surface", () => {
       };
       const listed22 = subsOf(22);
       const listed23 = subsOf(23);
+      const listed24 = subsOf(24);
+      expect(listed24).toEqual(["ted:social.state"]);
       expect(listed22).toEqual(["ted:window.mode"]);
       expect(listed23).toEqual(["ted:chatgpt.state"]);
       // 0.1.2 (§2) had auth.changed and realgpt.delta; §8.10 lists the 0.1.3 ones, §22 the 0.1.6 one, §23 the 0.1.7 one.
-      expect([...listed, ...listed22, ...listed23, "ted:auth.changed", "ted:realgpt.delta"].sort()).toEqual(subscribed);
+      expect([...listed, ...listed22, ...listed23, ...listed24, "ted:auth.changed", "ted:realgpt.delta"].sort()).toEqual(subscribed);
       expect(SUBS.map(([g, fn]) => `${g}.${fn}`).sort()).toEqual(
         Object.entries(TED_SURFACE).flatMap(([g, fns]) => fns.filter((fn) => /^on[A-Z]/.test(fn)).map((fn) => `${g}.${fn}`)).sort());
     });
@@ -151,7 +153,7 @@ describe("window.ted surface", () => {
 });
 
 // Every subscription of the surface (on* functions).
-const SUBS = [["auth", "onChange"], ["realgpt", "onDelta"], ["realgpt", "onEvent"], ["video", "onEvent"], ["library", "onChange"], ["scheduled", "onDue"], ["updates", "onChange"], ["window", "onMode"], ["chatgpt", "onState"]];
+const SUBS = [["auth", "onChange"], ["realgpt", "onDelta"], ["realgpt", "onEvent"], ["video", "onEvent"], ["library", "onChange"], ["scheduled", "onDue"], ["updates", "onChange"], ["window", "onMode"], ["chatgpt", "onState"], ["social", "onState"]];
 
 // 0.1.6 „Балонче“ (§22): the bubble window has its own preload and channels, documented in the contract.
 describe("bubble window bridge", () => {
@@ -266,7 +268,7 @@ describe("ChatGPT panel seams", () => {
   });
 
   it("main.js hands the panel to security.js as a delegate, detaches it on a CRM user change, hides it in the bubble, checks it in the smoke run", () => {
-    expect(main).toMatch(/delegate: \{ owns: \(contents\) => !!panel && panel\.owns\(contents\), harden: \(contents\) => panel\.harden\(contents\) \}/);
+    expect(main).toMatch(/delegate: \{ owns: \(contents\) => \(!!panel && panel\.owns\(contents\)\) \|\| \(!!social && social\.owns\(contents\)\), harden: \(contents\) => \(panel && panel\.owns\(contents\) \? panel\.harden\(contents\) : social\.harden\(contents\)\) \}/);
     expect(main).toMatch(/onUserChange = \(\) => \{\s*\n\s*if \(panel\) panel\.detach\(\);/);
     expect(main).toMatch(/panel\.setWindowMode\(mode\)/);
     expect(main).toMatch(/panelMade: \(\) => panel\.created\(\)/);

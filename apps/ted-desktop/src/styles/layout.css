@@ -333,3 +333,42 @@ svg.ci{width:20px;height:20px;flex:none;display:block;overflow:visible}
   .cgp-h .b{padding:5px 10px}
   .cgp-foot{font-size:12px;padding:6px 10px}
 }
+
+/* ---------- 0.1.9 „Чатове“ (src/components/SocialPanel.jsx, CONTRACT §24) ----------
+   Three round glass buttons next to the model picker (Messenger, Instagram, WhatsApp) with the site's own unread number;
+   the card is rounded with a gold glow, and the native view has rounded corners of its own (MAIN, setBorderRadius). */
+.soc-dots{display:flex;align-items:center;gap:8px;margin-left:10px;flex:none}
+.soc-dot{position:relative;width:38px;height:38px;border-radius:50%;border:0;padding:0;display:grid;place-items:center;cursor:pointer;
+  background:radial-gradient(circle at 36% 30%,#fff 0%,#fff7ec 55%,#f8e3c8 100%);
+  box-shadow:inset 0 2px 3px rgba(255,255,255,.9),inset 0 -4px 8px rgba(180,120,40,.18),0 0 0 1.5px #f1c37f,0 0 0 3px rgba(122,15,34,.45),0 0 14px rgba(255,200,120,.55),0 6px 12px -6px rgba(40,4,12,.55);
+  transition:transform .15s,box-shadow .2s}
+.soc-dot:hover{transform:translateY(-1px) scale(1.06);box-shadow:inset 0 2px 3px rgba(255,255,255,.9),0 0 0 1.5px #f6d68c,0 0 0 3px rgba(122,15,34,.7),0 0 20px rgba(255,200,120,.9),0 8px 14px -6px rgba(40,4,12,.6)}
+.soc-dot.on{box-shadow:inset 0 2px 3px rgba(255,255,255,.9),0 0 0 2px #f6d68c,0 0 0 4.5px #7a0f22,0 0 22px rgba(255,200,120,.95)}
+.soc-dot svg{width:24px;height:24px;filter:drop-shadow(0 1px 1.5px rgba(40,0,10,.3))}
+.soc-dot .n{position:absolute;right:-6px;top:-6px;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;display:grid;place-items:center;
+  font:700 11px/1 var(--f-ui,Arial);color:#fff;background:linear-gradient(135deg,#d9213f,#7a0f22);box-shadow:0 0 0 2px #fff3dc,0 0 10px rgba(217,33,63,.7)}
+.soc-dots.sm{gap:6px;margin:0 4px}
+.soc-dots.sm .soc-dot{width:32px;height:32px}
+.soc-dots.sm .soc-dot svg{width:20px;height:20px}
+.top.ph .soc-dots{margin-left:6px;gap:6px}
+.top.ph .soc-dot{width:32px;height:32px}
+.top.ph .soc-dot svg{width:20px;height:20px}
+.socp{width:min(46%,640px);flex:none;display:flex;flex-direction:column;min-height:0;position:relative;color:var(--ink);container-type:inline-size;
+  margin:10px 12px 12px 4px;border-radius:24px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,251,246,.97),rgba(247,230,211,.96));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 0 0 1.5px rgba(255,214,130,.95),0 0 0 3.5px rgba(122,15,34,.35),0 0 28px rgba(255,200,120,.45),0 22px 40px -18px rgba(8,0,4,.7)}
+.socp-h{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #e3b25e88}
+.socp-ttl{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;line-height:1.2;overflow:hidden}
+.socp-ttl b{font:700 17px var(--f-title);color:#650c27;white-space:nowrap}
+.socp-ttl small{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.socp-h .ibtn{color:var(--ink);width:34px;height:34px}
+.socp-h .ibtn:hover{background:#f6e2c4}
+.socp-view{flex:1;min-height:0;position:relative;margin:8px;border-radius:18px;background:#fffdf9;box-shadow:inset 0 0 0 1px #e3b25e66}
+.socp-logo svg{width:52px;height:52px}
+@container (max-width:460px){.socp-ttl small{display:none}}
+@media (max-width:899px){
+  .socp{position:fixed;inset:0;top:36px;z-index:70;width:auto;margin:6px;border-radius:20px}
+  .socp-h{gap:6px;padding:8px 10px}
+}
+.soc-dots.sm .soc-dot .n{top:-3px;right:-3px;min-width:17px;height:17px;font-size:10px}
+@media (max-width:1180px){.top.cg .soc-dots{gap:4px;margin-left:4px}.top.cg .soc-dot{width:28px;height:28px}.top.cg .soc-dot svg{width:18px;height:18px}.top.cg .soc-dot .n{min-width:16px;height:16px;font-size:9.5px;top:-4px;right:-4px}}

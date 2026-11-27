@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Icon from "../Icon.jsx";
 import { MODES } from "../../lib/consts.js";
 
@@ -32,11 +32,26 @@ export function ModeToggle({ mode, setMode, cls }) {
 
 // ChatGPT desktop top bar: [sidebar] [model ▾] ······ [Чат | Работа] ······ [⏳ Временен] […] [план]. Phone: burger,
 // model, ⏳, new chat, „…“ (Чат | Работа sits in the model menu, as in the ChatGPT phone app).
-export default function TopBar({ phone, mini, chat, view, temp, setTemp, modelLabel, onModel, modelOpen, mode, setMode, rgOn, manageUsage, onMenu, onExpand, onNewChat, onChatMenu }) {
+// 0.1.9 „Чатове“: at ≤ 1180 px the three round buttons move to the right side, so the model's name stays readable.
+const SOC_RIGHT = "(max-width:1180px)";
+function useSocRight() {
+  const [m, setM] = useState(() => { try { return window.matchMedia(SOC_RIGHT).matches; } catch { return false; } });
+  useEffect(() => {
+    let mq; try { mq = window.matchMedia(SOC_RIGHT); } catch { return undefined; }
+    const f = () => setM(mq.matches); f();
+    mq.addEventListener("change", f);
+    return () => mq.removeEventListener("change", f);
+  }, []);
+  return m;
+}
+
+export default function TopBar({ phone, mini, chat, view, temp, setTemp, modelLabel, onModel, modelOpen, mode, setMode, rgOn, manageUsage, onMenu, onExpand, onNewChat, onChatMenu, social }) {
+  const socRight = useSocRight();
   if (phone) return (
     <header className="top ph">
       <button className="ibtn burger" onClick={onMenu} aria-label="Меню"><Icon n="menu" /></button>
       <button className="mtitle" onClick={onModel} aria-haspopup="menu" aria-expanded={!!modelOpen} data-testid="model-btn">{chat && chat.temporary ? "⏳ " : ""}<span>{modelLabel}</span><Icon n="chev" cls="sm16" /></button>
+      {social || null}
       <span className="spacer" />
       {!chat && view === "chat" ? <button className={"ibtn tmp-i" + (temp ? " on" : "")} onClick={() => setTemp(!temp)} aria-label="Временен чат" aria-pressed={temp} title={TEMP_TITLE}>⏳</button> : null}
       <button className="ibtn" onClick={onNewChat} aria-label="Нов чат"><Icon n="newchat" /></button>
@@ -50,11 +65,13 @@ export default function TopBar({ phone, mini, chat, view, temp, setTemp, modelLa
         {/* No sidebar toggle here: the collapsed sidebar (rail) shows its own, ChatGPT has only one. */}
         {/* Narrow windows drop the „Real GPT · “ prefix so the model itself stays readable (the full name is the title). */}
         <button className="mtitle top-model" onClick={onModel} aria-haspopup="menu" aria-expanded={!!modelOpen} data-testid="model-btn" title={modelLabel}>{chat && chat.temporary ? "⏳ " : ""}<span>{String(modelLabel).startsWith("Real GPT · ") ? <><i className="ml-pfx">Real GPT · </i>{String(modelLabel).slice(11)}</> : modelLabel}</span><Icon n="chev" cls="sm16" /></button>
+        {social && !socRight ? social : null}
       </div>
       <ModeToggle mode={mode} setMode={setMode} />
       <div className="top-r">
         {chat && chat.temporary ? <span className="tmp-tag">⏳ Временен чат</span> : null}
         {!chat && view === "chat" ? <button className={"tmp" + (temp ? " on" : "")} onClick={() => setTemp(!temp)} title={TEMP_TITLE} aria-pressed={temp}>⏳<span>Временен</span></button> : null}
+        {social && socRight ? social : null}
         {chat ? <button className="ibtn" onClick={onChatMenu} aria-label="Опции на разговора"><Icon n="dots" /></button> : null}
         <button className="ibtn newc" onClick={onNewChat} aria-label="Нов чат"><Icon n="newchat" /></button>
         {rgOn ? <span className="rg-ind" data-testid="rg-ind">Използва вашия ChatGPT план<button className="lnk" onClick={manageUsage}>Управление на лимита</button></span> : null}

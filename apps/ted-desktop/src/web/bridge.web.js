@@ -261,5 +261,21 @@ export function createWebBridge() {
       clipboardImage: async () => ({ ok: false, error: DESKTOP_ONLY }),
       onState: noop,
     },
+    /* „Чатове“: в браузъра Messenger / Instagram / WhatsApp не могат да се покажат вътре – отварят се в малък прозорец до Тед */
+    social: {
+      open: async (args = {}) => {
+        const u = { messenger: "https://business.facebook.com/latest/inbox/all?asset_id=1447196405137713", instagram: "https://www.instagram.com/direct/inbox/", whatsapp: "https://web.whatsapp.com/" }[args.site];
+        if (!u) return { ok: false, error: "Непознат чат." };
+        let w = null;
+        try { const sw = screen.availWidth || innerWidth, sh = screen.availHeight || innerHeight, W = Math.min(460, sw - 40), H = Math.min(820, sh - 60);
+          w = window.open(u, "nd-soc-" + args.site, "popup=yes,width=" + W + ",height=" + H + ",left=" + ((screen.availLeft || 0) + sw - W - 96) + ",top=" + ((screen.availTop || 0) + Math.max(10, Math.round((sh - H) / 2)))); } catch { w = null; }
+        return { ok: false, code: "external", opened: !!w, error: w ? "" : "Разрешете изскачащите прозорци за този сайт." };
+      },
+      setBounds: async () => ({ ok: true }),
+      reload: async () => ({ ok: true }),
+      openInBrowser: async () => ({ ok: true }),
+      close: async () => ({ ok: true }),
+      onState: noop,
+    },
   };
 }

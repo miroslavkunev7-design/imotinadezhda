@@ -1798,3 +1798,47 @@ the fixed shape of sign-in windows, a blank pop-up with spoofing features + docu
 away, the cap of two, a third-party frame's pop-ups and download, scripted vs clicked links, the note's button, refused and
 allowed downloads with the dialog's title, the client hints against `navigator.userAgentData` and Accept-Language against
 `navigator.languages`.
+
+## 24. „Чатове“ – the agency's real Messenger, Instagram and WhatsApp inside Ted (0.1.9)
+
+Why: the owner wants the agency's real chats (the Facebook page „Недвижими Имоти • Надежда •“ – its Meta Business Suite
+inbox, the Instagram profile's Direct messages and WhatsApp Web) inside Ted, in a rounded card, with the number of new
+messages on round buttons next to the model picker. Version after this work: `0.1.9`.
+
+**Layout (renderer, `src/components/SocialPanel.jsx`, styles in `layout.css`)**: `SocialDots` – three round glass buttons
+(`soc-messenger`, `soc-instagram`, `soc-whatsapp`) in the top bar right of the model picker (phone header too), each with
+the site's own unread number; a click opens the card for that site, the same button again closes it. The card
+(`social-panel`) lies in `.body` like the ChatGPT panel, rounded (24 px) with a gold glow; header: the site's name, the three
+buttons (switch), ↻ (`social-reload`), „Отвори в браузъра“ (`social-browser`), × (`social-close`; „Назад“ `social-back`
+in the narrow layout ≤ 899 px, where the card takes the content area); a note row when MAIN refused an address or a
+download (`social-blocked`); the placeholder `.socp-view` (`social-view`). The ChatGPT panel and the card exclude each
+other; Canvas stays mounted but hidden. Not in the bubble or the mini chat (§22).
+
+**MAIN (`electron/social-panel.js`)**: one `WebContentsView` per site, made only on the employee's first click, in a
+persistent partition per site AND CRM user (`persist:social-<site>-<sha256(user)[0..16]>`), the ChatGPT panel's hardened
+preferences (no preload, sandbox, contextIsolation, no Node, no webview) plus `backgroundThrottling:false`, rounded corners
+(`setBorderRadius`, 18 px), the Chrome user agent and client hints of §23. Top-level pages only on the site's own domains and
+their subdomains (messenger: `facebook.com`, `messenger.com`, `fb.com`; instagram: `instagram.com`, `facebook.com`;
+whatsapp: `whatsapp.com`); frames any https; another https page goes to the system browser only after the employee's own
+click (else the note with „Отвори в браузъра“); pop-ups of the site's domains as child windows of a fixed shape (at most 2).
+Permissions: the site's notifications, its copy button and the microphone (audio only, voice messages) – nothing else.
+Downloads only from the site's CDN domains, after a click, through the save dialog, Mark-of-the-Web on Windows. Ted never
+reads the pages: MAIN only takes the number the site puts in front of its tab title („(3) WhatsApp“) for the badges and the
+taskbar/Dock badge. After × the views stay loaded in the background (the number keeps coming); a CRM sign-in/sign-out
+destroys them (`detach`); the window modes hide them (`setWindowMode`). security.js gets it as a second delegate.
+
+```
+ted.social.open({site:"messenger"|"instagram"|"whatsapp"}) -> {ok:true} | {ok:false, code, error}
+ted.social.setBounds({x, y, width, height, visible})        -> {ok:true} | {ok:false, code:"invalid"}
+ted.social.reload()                                         -> {ok:true} | {ok:false, code}
+ted.social.openInBrowser({blocked:true}?)                   -> {ok:true} | {ok:false, error}
+ted.social.close()                                          -> {ok:true}   // the card closes; the pages stay loaded
+ted.social.onState(cb(SocialState))                         -> unsubscribe // push ted:social.state
+SocialState = {open, site, visible, loading, error, blocked, unread:{messenger, instagram, whatsapp}, signedIn:[site]}
+```
+
+Subscriptions in preload: `social.onState` (channel `ted:social.state`).
+
+IPC (`ipc.js`): `ted:social.open` accepts only `{site}` with one of the three names (MAIN knows each address itself);
+`setBounds` and `openInBrowser` as §23. Without a controller every channel answers `unavailable`. The web build (Chrome)
+cannot show these sites inside a page: `open` opens a small window next to Ted and answers `{ok:false, code:"external"}`.

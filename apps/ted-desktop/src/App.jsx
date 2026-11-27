@@ -7,6 +7,7 @@ import { ActionsCard, EmailCard, ListingCards, PanelCard, SkillPanel, openCrm } 
 import Login from "./components/Login.jsx";
 import Canvas from "./components/Canvas.jsx";
 import ChatGptPanel, { usePanelNarrow } from "./components/ChatGptPanel.jsx";
+import SocialPanel, { SocialDots } from "./components/SocialPanel.jsx";
 import VoiceMode from "./components/VoiceMode.jsx";
 import RealGptConnect from "./components/RealGptConnect.jsx";
 import { AttachProp, DocsModal, propFile } from "./components/Attach.jsx";
@@ -427,6 +428,10 @@ function App({ user, remembered, onLogout }) {
   const [cgp, setCgp] = useState(false);
   const [cgpSt, setCgpSt] = useState({ open: false, visible: false, loading: false, host: null, error: null, blocked: null });
   const [cgpAdding, setCgpAdding] = useState(false);
+  // 0.1.9 „Чатове“ (§24): the agency's real Messenger / Instagram / WhatsApp in a rounded card; socSt from MAIN.
+  const [soc, setSoc] = useState(false);
+  const [socSt, setSocSt] = useState({ open: false, site: null, visible: false, loading: false, error: null, blocked: null, unread: {} });
+  const socRef = useRef(soc); socRef.current = soc;
   const cgpRect = useRef(null); // the placeholder's last rectangle (the toast moves into the chat column meanwhile)
   const phone = usePhone();
   // 0.1.7: the ChatGPT panel's narrow layout (≤ 899 px, its CSS breakpoint) – it then covers the whole content area.
@@ -549,6 +554,7 @@ function App({ user, remembered, onLogout }) {
     offs.push(ted.video.onEvent((job) => { if (job && job.id) setVideoJobs((j) => ({ ...j, [job.id]: job })); }));
     offs.push(ted.scheduled.onDue((d) => live.current.onDue(d)));
     offs.push(ted.chatgpt.onState((st) => { if (st && typeof st === "object") { setCgpSt(st); if (st.open === false && cgpRef.current) setCgp(false); } }));
+    offs.push(ted.social.onState((st) => { if (st && typeof st === "object") { setSocSt(st); if (st.open === false && socRef.current) setSoc(false); } }));
     Promise.resolve(ted.updates.state()).then((u) => { if (u && typeof u === "object") setUpd(u); }).catch(() => {});
     offs.push(ted.updates.onChange((u) => { if (u && typeof u === "object") { setUpd(u); if (u.status === "ready") setUpdHidden(false); } }));
     return () => { offs.forEach((un) => { if (typeof un === "function") un(); }); };
@@ -799,6 +805,7 @@ function App({ user, remembered, onLogout }) {
   async function openPanel(args) {
     let r; try { r = await ted.chatgpt.open(args || {}); } catch { r = { ok: false, error: "Панелът ChatGPT не можа да се отвори." }; }
     if (r && r.ok) {
+      if (socRef.current) closeSocial();
       closeAll(); setDrawer(false); setCgp(true);
       if (live.current.winMode === "mini") toNormal(); // no panel in the mini chat: the normal window shows it (§22)
     }
@@ -807,6 +814,21 @@ function App({ user, remembered, onLogout }) {
   function closePanel() {
     setCgp(false);
     Promise.resolve(ted.chatgpt.close()).catch(() => {});
+  }
+  /* ---- „Чатове“ (0.1.9, §24): the round buttons open the real Messenger / Instagram / WhatsApp in a rounded card ---- */
+  async function openSocial(site) {
+    if (socRef.current && socSt.site === site) { closeSocial(); return; } // the same button again closes the card
+    let r; try { r = await ted.social.open({ site }); } catch { r = { ok: false, error: "Чатът не можа да се отвори." }; }
+    if (r && r.ok) {
+      if (cgpRef.current) closePanel();
+      closeAll(); setDrawer(false); setSoc(true);
+      if (live.current.winMode === "mini") toNormal();
+    } else if (r && r.code === "external") { if (r.error) toast(r.error); }
+    else toast((r && r.error) || "Чатът не можа да се отвори.");
+  }
+  function closeSocial() {
+    setSoc(false);
+    Promise.resolve(ted.social.close()).catch(() => {});
   }
   // „📋 Добави снимката в чата“: MAIN reads the clipboard's picture (only now) and it is attached like a picked file.
   async function addPanelImage() {
@@ -1409,10 +1431,11 @@ function App({ user, remembered, onLogout }) {
 
   // Чат | Работа: on a page (Проекти, Библиотека…) the toggle opens that mode's start screen, as in ChatGPT.
   const setModeHome = (m) => { set("mode", m); if (view !== "chat") newChat(); };
+  const socDots = <SocialDots unread={socSt.unread} active={soc && winMode === "normal" && !cgp ? socSt.site : null} onSite={openSocial} />;
   const Top = (
     <TopBar phone={phone} mini={S.mini} chat={chat} view={view} temp={temp} setTemp={setTemp} modelLabel={modelLabel} modelOpen={pop && pop.id === "model"} onModel={(e) => openPop("model", e)}
       mode={S.mode} setMode={setModeHome} rgOn={rgOn} manageUsage={manageUsage} onMenu={() => setDrawer(true)} onExpand={() => set("mini", false)}
-      onNewChat={() => newChat()} onChatMenu={(e) => chat && openPop("chat-" + chat.id, e, chat)} />
+      onNewChat={() => newChat()} onChatMenu={(e) => chat && openPop("chat-" + chat.id, e, chat)} social={socDots} />
   );
 
   const fillExample = (ex) => { closeAll(); setInput(ex); focusComposer(); };
@@ -1714,6 +1737,7 @@ function App({ user, remembered, onLogout }) {
   const notify = { ...NOTIFY_DEF, ...(S.notify && typeof S.notify === "object" ? S.notify : {}) };
   // The ChatGPT panel: never in the bubble or the mini chat (§22) – it comes back with the normal window.
   const cgpShown = cgp && winMode === "normal";
+  const socShown = soc && winMode === "normal" && !cgpShown;
   // A toast is centred in the chat column while the panel's native view takes the right side (it would cover it).
   const cr = cgpShown && !cgpNarrow ? cgpRect.current : null;
   const toastAt = cr && cr.visible && cr.x > 200 ? { left: Math.round(cr.x / 2) + "px", maxWidth: Math.max(160, cr.x - 32) + "px" } : undefined;
@@ -1732,7 +1756,8 @@ function App({ user, remembered, onLogout }) {
               {view === "chat" && (chat || phone) ? composerEl(false) : null}
             </div>
             {/* While the ChatGPT panel is on screen the Canvas stays mounted but hidden (its unsaved typing is kept). */}
-            {canvas ? <div className="cv-slot" style={{ display: cgpShown ? "none" : "contents" }}><Canvas key={canvas.uid || "cv"} draft={canvasDraft} cv={canvas} setCv={setCanvas} toast={toast} copy={copy} onExport={exportCanvas} /></div> : null}
+            {canvas ? <div className="cv-slot" style={{ display: cgpShown || socShown ? "none" : "contents" }}><Canvas key={canvas.uid || "cv"} draft={canvasDraft} cv={canvas} setCv={setCanvas} toast={toast} copy={copy} onExport={exportCanvas} /></div> : null}
+            {socShown ? <SocialPanel phone={cgpNarrow} st={socSt} onSite={openSocial} onClose={closeSocial} toast={toast} /> : null}
             {cgpShown ? <ChatGptPanel phone={cgpNarrow} st={cgpSt} onClose={closePanel} onAddImage={addPanelImage} adding={cgpAdding} onRect={(b) => { cgpRect.current = b; }} toast={toast} notice={cgpNarrow ? toastMsg : null} /> : null}
           </div>
         </main>

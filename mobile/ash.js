@@ -57,7 +57,7 @@
     ".nda-x:hover{transform:rotate(90deg);box-shadow:inset 0 -2px 4px rgba(150,85,10,.25),inset 0 1px 2px #fff,0 0 18px rgba(255,214,150,.9)}.nda-gear:hover{box-shadow:inset 0 1px 1px rgba(255,255,255,.3),0 0 18px rgba(243,207,134,.8)}" +
     ".nda-menu{position:absolute;left:72px;top:80px;z-index:3;min-width:260px;max-width:calc(100% - 84px);padding:8px;border-radius:20px;border:1.5px solid transparent;background:linear-gradient(180deg,rgba(255,252,247,.97),rgba(251,238,224,.96)) padding-box,linear-gradient(140deg,#ffe9a3,#e3b25e 40%,#a12139) border-box;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 0 22px rgba(227,178,94,.5),0 18px 36px -10px rgba(40,4,12,.45);animation:ndaPop .22s ease-out}" +
     ".nda-menu[hidden]{display:none}.nda-menu .g{font:700 12px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#8a6a3a;padding:8px 12px 4px;text-transform:uppercase;letter-spacing:.04em}.nda-menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:12px;background:transparent;color:#4e0912;font:700 16px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;cursor:pointer}" +
-    ".nda-menu button small{display:block;font-weight:400;font-size:12.5px;color:#6b4a40;margin-top:2px}.nda-menu button:hover,.nda-case-i:hover{background:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(227,178,94,.45)}.nda-menu button.on{background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1px rgba(227,178,94,.7),0 0 10px rgba(255,214,150,.6)}/* 3-те агента: заглавие + лимит/изразходвани (горе лимит, черта, долу изразходвани) */.nda-menu .nda-ag{display:flex;align-items:center;gap:10px;margin:3px 0;border:1.5px solid transparent;background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(251,238,224,.7)) padding-box,linear-gradient(140deg,#ffe9a3,#e3b25e 45%,rgba(161,33,57,.55)) border-box;box-shadow:0 0 12px rgba(255,214,150,.35)}.nda-menu .nda-ag .t{flex:1;min-width:0}.nda-menu .nda-ag.on{background:linear-gradient(180deg,#fffdf9,#fbefe5) padding-box,linear-gradient(140deg,#ffe9a3,#e3b25e 40%,#a12139) border-box;box-shadow:0 0 16px rgba(255,214,150,.75)}.nda-menu .nda-ag .cv{display:inline-flex;width:18px;height:18px;color:#8a6a3a;transition:transform .2s}.nda-menu .nda-ag .cv svg{width:18px;height:18px}.nda-menu .nda-ag.open .cv{transform:rotate(180deg)}.nda-frac{display:inline-flex;flex-direction:column;align-items:center;min-width:46px;padding:3px 7px;border-radius:10px;background:rgba(255,255,255,.75);box-shadow:inset 0 0 0 1px rgba(227,178,94,.55),0 0 8px rgba(255,214,150,.45);font:800 14px/1.05 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#4e0912;font-variant-numeric:tabular-nums}.nda-frac i{display:block;width:100%;height:1.5px;margin:2px 0;background:linear-gradient(90deg,transparent,#a12139,transparent)}.nda-frac b:last-child{color:#a12139}.nda-frac.off{opacity:.55}.nda-frac.full b:last-child{color:#c0392b}.nda-menu .nda-agl{margin:0 0 4px 14px;padding-left:8px;border-left:2px solid rgba(227,178,94,.55)}.nda-menu .nda-agl button{padding:8px 10px;font-size:15px}.nda-menu .nda-agn{padding:2px 12px 6px;font:400 11.5px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#8a6a3a;text-align:right}" +
+    ".nda-menu button small{display:block;font-weight:400;font-size:12.5px;color:#6b4a40;margin-top:2px}.nda-menu button:hover,.nda-case-i:hover{background:rgba(255,255,255,.72);box-shadow:inset 0 0 0 1px rgba(227,178,94,.45)}.nda-menu button.on{background:linear-gradient(180deg,#fffdf9,#fbefe5);box-shadow:0 0 0 1px rgba(227,178,94,.7),0 0 10px rgba(255,214,150,.6)}/* 3-те агента: заглавие + лимит/изразходвани (горе лимит, черта, долу изразходвани) */.nda-menu .nda-ag{display:flex;align-items:center;gap:10px;margin:3px 0;border:1.5px solid transparent;background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(251,238,224,.7)) padding-box,linear-gradient(140deg,#ffe9a3,#e3b25e 45%,rgba(161,33,57,.55)) border-box;box-shadow:0 0 12px rgba(255,214,150,.35)}.nda-menu .nda-ag .t{flex:1;min-width:0}.nda-menu .nda-ag.on{background:linear-gradient(180deg,#fffdf9,#fbefe5) padding-box,linear-gradient(140deg,#ffe9a3,#e3b25e 40%,#a12139) border-box;box-shadow:0 0 16px rgba(255,214,150,.75)}.nda-menu .nda-ag .cv{display:inline-flex;width:18px;height:18px;color:#8a6a3a;transition:transform .2s}.nda-menu .nda-ag .cv svg{width:18px;height:18px}.nda-menu .nda-ag.open .cv{transform:rotate(180deg)}.nda-frac{display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:0 3px;min-width:58px;padding:4px 8px;border-radius:10px;background:rgba(255,255,255,.75);box-shadow:inset 0 0 0 1px rgba(227,178,94,.55),0 0 8px rgba(255,214,150,.45);font:800 14px/1.05 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#4e0912;font-variant-numeric:tabular-nums}.nda-frac i{font-style:normal;color:#b0894f;font-weight:700}.nda-frac b:first-child{color:#a12139}.nda-frac em{flex-basis:100%;text-align:center;font:700 10.5px/1.2 Arial,sans-serif;font-style:normal;color:#c0392b;letter-spacing:.02em}.nda-frac.full{background:rgba(255,232,232,.9);box-shadow:inset 0 0 0 1.5px rgba(192,57,43,.6),0 0 10px rgba(192,57,43,.35)}.nda-frac.off{opacity:.55}.nda-frac.full b{color:#c0392b}.nda-menu .nda-agl{margin:0 0 4px 14px;padding-left:8px;border-left:2px solid rgba(227,178,94,.55)}.nda-menu .nda-agl button{padding:8px 10px;font-size:15px}.nda-menu .nda-agn{padding:2px 12px 6px;font:400 11.5px 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#8a6a3a;text-align:right}" +
     ".nda-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 18px;display:flex;flex-direction:column;gap:12px;background:radial-gradient(80% 45% at 0% 0%,rgba(243,207,134,.16),rgba(243,207,134,0) 70%),radial-gradient(70% 40% at 100% 100%,rgba(161,33,57,.07),rgba(161,33,57,0) 70%);scrollbar-width:thin;scrollbar-color:rgba(201,138,34,.55) transparent}" +
     ".nda-list::-webkit-scrollbar,.nda-sb::-webkit-scrollbar,.nda-case-pop::-webkit-scrollbar{width:8px}.nda-list::-webkit-scrollbar-thumb,.nda-sb::-webkit-scrollbar-thumb,.nda-case-pop::-webkit-scrollbar-thumb{border-radius:8px;border:2px solid transparent;background:linear-gradient(180deg,#f3cf86,#c98a22) padding-box}.nda-sb,.nda-case-pop{scrollbar-width:thin;scrollbar-color:rgba(201,138,34,.55) transparent}" +
     ".nda-m{position:relative;max-width:86%;padding:11px 14px;border-radius:20px;font:400 15px/1.45 'Roboto Condensed','Roboto Condensed Local',Arial,sans-serif;color:#3a0c12;white-space:pre-line;word-wrap:break-word;animation:ndaMsg .38s cubic-bezier(.2,.8,.2,1)}" +
@@ -534,10 +534,12 @@
     var c = agentSb(); if (!c) return;
     Promise.resolve(c.rpc("nd_agent_use", { p_agent: k })).then(function (r) { if (r && r.data && r.data.free) { AGS = r.data; agentPaint(); } }, function () {});
   }
+  /* 27.11: „изразходвани / лимит“ – 120 / 500; изчерпаният лимит се вижда като 500 / 500 · изчерпан (червено) */
   function agentFrac(k) {
-    var a = AGS && AGS[k]; if (!a) return '<span class="nda-frac off" title="Лимит / изразходвани"><b>…</b><i></i><b>…</b></span>';
-    var used = (+a.used || 0) + (AGP[k] || 0), lim = +a.limit > 0 ? String(a.limit) : "∞", per = a.per === "day" ? "днес" : "този месец", full = +a.limit > 0 && used >= +a.limit;
-    return '<span class="nda-frac' + (full ? " full" : "") + '" title="Лимит: ' + (+a.limit > 0 ? a.limit + (a.per === "day" ? " на ден" : " на месец") : "без лимит") + " · изразходвани " + per + ": " + used + '"><b>' + lim + "</b><i></i><b>" + used + "</b></span>";
+    var a = AGS && AGS[k]; if (!a) return '<span class="nda-frac off" title="Изразходвани / лимит"><b>…</b><i>/</i><b>…</b></span>';
+    var used = (+a.used || 0) + (AGP[k] || 0), L = +a.limit > 0 ? +a.limit : 0, full = L > 0 && used >= L, shown = L > 0 ? Math.min(used, L) : used;
+    var per = a.per === "day" ? "днес" : "този месец";
+    return '<span class="nda-frac' + (full ? " full" : "") + '" title="Изразходвани ' + per + ": " + used + (L ? " от " + L + (a.per === "day" ? " на ден" : " на месец") + (full ? " – лимитът е изчерпан" : " – остават " + (L - used)) : " · без лимит") + '"><b>' + shown + "</b><i>/</i><b>" + (L ? L : "∞") + "</b>" + (full ? "<em>изчерпан</em>" : "") + "</span>";
   }
   function freeModels() { return (models || []).filter(function (m) { return m.id !== "n8n" && /^(gemini|openrouter|ollama)$/.test(m.provider); }); }
   function shortName(m) { var n = String((m && m.name) || ""), x = /\(([^)]+)\)\s*$/.exec(n); return x ? x[1] : n.replace(/\s*[–-].*$/, ""); }
@@ -1208,7 +1210,7 @@
       head("chatgpt", "Real ChatGPT", "вашият ChatGPT акаунт · chatgpt.com", skill === gptSkill, false) +
       head("n8n", "Агенти n8n", skill === n8nSkill ? esc(n8nModelName()) : N8N_MODELS.length + " модела · инструментите в n8n", skill === n8nSkill, true) +
       (menu._open === "n8n" ? '<div class="nda-agl">' + N8N_MODELS.map(function (m) { return '<button type="button" role="option" data-nm="' + m[0] + '" class="' + (skill === n8nSkill && n8nModelId() === m[0] ? "on" : "") + '">' + esc(m[1]) + "<small>" + esc(m[2]) + "</small></button>"; }).join("") + "</div>" : "") +
-      '<div class="nda-agn">горе – лимит, долу – изразходвани</div>' + (rest ? '<div class="g">Умения</div>' + rest : "");
+      '<div class="nda-agn">изразходвани / лимит – брои се на живо</div>' + (rest ? '<div class="g">Умения</div>' + rest : "");
   }
   /* 27.11 – Messenger · Instagram · WhatsApp на агенцията: обли балончета отстрани в CRM.
      Клик → истинското приложение в малък облен прозорец до CRM (влизате веднъж с профила на агенцията, браузърът го помни);
@@ -1222,6 +1224,24 @@
     { id: "whatsapp", name: "WhatsApp", url: "https://web.whatsapp.com/", phone: "https://wa.me/",
       svg: '<svg viewBox="0 0 48 48"><path fill="#25d366" d="M24 4C13 4 4 12.9 4 23.9c0 3.7 1 7.2 2.9 10.2L4.1 44l10.2-2.7c2.9 1.6 6.2 2.5 9.7 2.5 11 0 20-8.9 20-19.9S35 4 24 4z"/><path fill="#fff" d="M34.2 29.1c-.5-.3-3-1.5-3.5-1.6-.5-.2-.8-.3-1.1.2-.3.5-1.2 1.6-1.5 1.9-.3.3-.6.4-1 .1-.5-.3-2.1-.8-4-2.5-1.5-1.3-2.5-2.9-2.8-3.4-.3-.5 0-.8.2-1 .2-.2.5-.6.7-.9.2-.3.3-.5.5-.9.2-.3.1-.7 0-.9-.1-.3-1.1-2.7-1.5-3.7-.4-1-.8-.8-1.1-.8h-.9c-.3 0-.9.1-1.3.6-.5.5-1.7 1.7-1.7 4.1s1.8 4.8 2 5.1c.2.3 3.5 5.4 8.5 7.6 1.2.5 2.1.8 2.8 1 1.2.4 2.3.3 3.1.2.9-.1 3-1.2 3.4-2.4.4-1.2.4-2.2.3-2.4-.2-.2-.5-.3-1-.5z"/></svg>' }
   ];
+  function socOpen(id) {
+    var s = SOCIAL.filter(function (x) { return x.id === id; })[0]; if (!s) return;
+    NDSocial.badge(s.id, 0);
+    var phone = innerWidth < 700 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent), w = null;
+    try {
+      if (phone) w = window.open(s.phone, "_blank");
+      else {
+        var sw = screen.availWidth || innerWidth, sh = screen.availHeight || innerHeight, W = Math.min(460, sw - 40), H = Math.min(820, sh - 60);
+        w = window.open(s.url, "nd-soc-" + s.id, "popup=yes,width=" + W + ",height=" + H + ",left=" + ((screen.availLeft || 0) + sw - W - 96) + ",top=" + ((screen.availTop || 0) + Math.max(10, Math.round((sh - H) / 2))));
+      }
+      if (w) { try { w.focus(); } catch (x) {} }
+    } catch (x) {}
+    if (!w) location.href = phone ? s.phone : s.url;
+  }
+  /* кръгчетата горе в панела на Тед – до избора на агент */
+  function socHead() {
+    return '<div class="nda-soc" role="group" aria-label="Чатове на агенцията">' + SOCIAL.map(function (s) { return '<button type="button" data-soc="' + s.id + '" title="' + s.name + '" aria-label="' + s.name + ' на агенцията">' + s.svg + "</button>"; }).join("") + "</div>";
+  }
   function socialBubbles() {
     if (document.querySelector(".nds-soc")) return;
     var st = document.createElement("style");
@@ -1242,6 +1262,11 @@
       ".nds-soc .tip{position:absolute;right:66px;top:50%;transform:translateY(-50%);white-space:nowrap;padding:7px 12px;border-radius:14px;font:700 13px/1 Arial,sans-serif;color:#fff3dc;background:linear-gradient(135deg,#a3213a,#540516);box-shadow:inset 0 0 0 1.5px #e6bf5b,0 0 14px rgba(230,191,91,.45);opacity:0;pointer-events:none;transition:opacity .2s}" +
       ".nds-soc button:hover .tip{opacity:1}" +
       ".nda-win:not([hidden])~.nds-soc{display:none}" +
+      ".nda-h .nda-soc{position:absolute;right:20px;bottom:16px;z-index:3;display:flex;align-items:center;gap:7px;margin:0}" +
+      ".nda-soc button{position:relative;width:30px;height:30px;border-radius:50%;border:0;padding:0;cursor:pointer;display:grid;place-items:center;background:radial-gradient(circle at 36% 30%,#fff 0%,#fff7ec 55%,#f8e3c8 100%);box-shadow:inset 0 2px 3px rgba(255,255,255,.9),0 0 0 1.5px #f1c37f,0 0 0 3px rgba(122,15,34,.45),0 0 12px rgba(255,200,120,.6);transition:transform .15s}" +
+      ".nda-soc button:hover{transform:scale(1.08)}.nda-soc svg{width:19px;height:19px}" +
+      ".nda-soc .n{position:absolute;right:-5px;top:-5px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:8px;display:grid;place-items:center;font:700 10px/1 Arial,sans-serif;color:#fff;background:linear-gradient(135deg,#d9213f,#7a0f22);box-shadow:0 0 0 1.5px #fff3dc}" +
+      "@media (max-width:420px){.nda-h .nda-soc{right:14px;bottom:12px;gap:6px}}" +
       "@media (max-width:700px){.nds-soc,.nds-soc .nds-l{gap:10px}.nds-soc{right:16px}.nds-soc button{width:46px;height:46px}.nds-soc svg{width:27px;height:27px}.nds-soc .nds-m svg{width:24px;height:24px}.nds-soc .tip{display:none}}";
     document.head.appendChild(st);
     var box = document.createElement("div"); box.className = "nds-soc"; box.setAttribute("aria-label", "Чатове на агенцията");
@@ -1255,27 +1280,18 @@
     box.addEventListener("click", function (e) {
       if (e.target.closest(".nds-m")) { toggle(!box.classList.contains("open")); return; }
       var b = e.target.closest("[data-soc]"); if (!b) return; toggle(false);
-      var s = SOCIAL.filter(function (x) { return x.id === b.getAttribute("data-soc"); })[0]; if (!s) return;
-      NDSocial.badge(s.id, 0);
-      var phone = innerWidth < 700 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent), w = null;
-      try {
-        if (phone) w = window.open(s.phone, "_blank");
-        else {
-          var sw = screen.availWidth || innerWidth, sh = screen.availHeight || innerHeight, W = Math.min(460, sw - 40), H = Math.min(820, sh - 60);
-          w = window.open(s.url, "nd-soc-" + s.id, "popup=yes,width=" + W + ",height=" + H + ",left=" + ((screen.availLeft || 0) + sw - W - 96) + ",top=" + ((screen.availTop || 0) + Math.max(10, Math.round((sh - H) / 2))));
-        }
-        if (w) { try { w.focus(); } catch (x) {} }
-      } catch (x) {}
-      if (!w) location.href = phone ? s.phone : s.url;
+      socOpen(b.getAttribute("data-soc"));
     });
   }
   var NDSocial = window.NDSocial = {
     badge: function (id, n) {
-      var b = document.querySelector('.nds-soc [data-soc="' + id + '"]'); if (!b) return;
-      var c = b.querySelector(".n"); n = +n || 0;
-      if (!n) { if (c) c.remove(); NDSocial.total(); return; }
-      if (!c) { c = document.createElement("span"); c.className = "n"; b.appendChild(c); }
-      c.textContent = n > 99 ? "99+" : String(n);
+      n = +n || 0;
+      [].forEach.call(document.querySelectorAll('.nds-soc [data-soc="' + id + '"],.nda-soc [data-soc="' + id + '"]'), function (b) {
+        var c = b.querySelector(".n");
+        if (!n) { if (c) c.remove(); return; }
+        if (!c) { c = document.createElement("span"); c.className = "n"; b.appendChild(c); }
+        c.textContent = n > 99 ? "99+" : String(n);
+      });
       NDSocial.total();
     },
     total: function () {
@@ -1296,7 +1312,14 @@
       '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div><div class="nda-set" hidden></div>';
     if(inCrmPath()) { win.classList.add('nd-lux');var lux=document.createElement('link');lux.rel='stylesheet';lux.href='/mobile/crm/ted-lux.css?v=3';lux.onload=fitChatViewport;document.head.appendChild(lux);var online=document.createElement('span');online.className='ted-online';online.innerHTML='<i></i>На линия';win.querySelector('.nda-t').insertBefore(online,win.querySelector('.nda-skill')); }
     document.body.appendChild(fab); document.body.appendChild(win);
-    if (inCrmPath()) socialBubbles();
+    if (inCrmPath()) {
+      socialBubbles();
+      var hd = win.querySelector(".nda-h"), gearB = hd && hd.querySelector(".nda-gear");
+      if (hd && gearB && !hd.querySelector(".nda-soc")) {
+        gearB.insertAdjacentHTML("beforebegin", socHead());
+        hd.querySelector(".nda-soc").addEventListener("click", function (e) { var b = e.target.closest("[data-soc]"); if (b) { e.stopPropagation(); socOpen(b.getAttribute("data-soc")); } });
+      }
+    }
     list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot"); if (inCrmPath()) setTimeout(function () { agentStats(); }, 1500);
     if (inCrmPath()) watchChat();
     list.addEventListener("click", fileClick);

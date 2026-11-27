@@ -34,6 +34,7 @@ import { disableSpellChecker, installSecurity } from "./security.js";
 import { createBubbleWindow, createMainWindow, TITLE, macMenuTemplate } from "./window.js";
 import { BUBBLE_URL, createBubbleController, registerBubbleIpc } from "./bubble.js";
 import { chromeUserAgent, createChatGptPanel } from "./chatgpt-panel.js";
+import { createSocialPanel } from "./social-panel.js";
 import { createAppApi, registerIpc } from "./ipc.js";
 import { SMOKE_TIMEOUT_MS, guardRendererRequests, parseSmokeArgs, prepareSmoke, recordingShell, removeSmokeProfile, runSmoke, writeSmokeReport } from "./smoke.js";
 
@@ -93,6 +94,7 @@ function start() {
   let ui = null; // { win, setCompact } once the window exists
   let bubble = null; // „Балонче“ controller (electron/bubble.js) once the window exists
   let panel = null; // „ChatGPT панел“ controller (electron/chatgpt-panel.js, 0.1.7)
+  let social = null; // „Чатове“ – Messenger / Instagram / WhatsApp of the agency (electron/social-panel.js, 0.1.9)
   const currentWindow = () => (ui && !ui.win.isDestroyed() ? ui.win : null);
   const push = (channel, payload) => {
     const win = currentWindow();
@@ -243,7 +245,7 @@ function start() {
     // The ChatGPT panel's own partition (0.1.7) gets the panel's rules instead of the app's (app://ted only).
     const security = installSecurity({
       app, session: electronSession.defaultSession, shell, log, devOrigin,
-      delegate: { owns: (contents) => !!panel && panel.owns(contents), harden: (contents) => panel.harden(contents) },
+      delegate: { owns: (contents) => (!!panel && panel.owns(contents)) || (!!social && social.owns(contents)), harden: (contents) => (panel && panel.owns(contents) ? panel.harden(contents) : social.harden(contents)) },
     });
     // „ChatGPT панел“ (0.1.7, docs/CONTRACT.md §23): chatgpt.com in a view of the main window, in a persistent partition
     // of its own per CRM user, a normal Chrome user agent, no preload, nothing of the app's IPC, files or tokens.
@@ -254,6 +256,17 @@ function start() {
       locale: app.getLocale(), platform: process.platform, packaged: app.isPackaged, documentsDir: () => app.getPath("documents"), log,
       emit: (state) => push("ted:chatgpt.state", state),
       onShortcut: (name) => { if (name === "bubble" && bubble) bubble.toBubble(); },
+    });
+    // „Чатове“ (0.1.9, docs/CONTRACT.md §24): the agency's real Messenger / Instagram / WhatsApp Web in a rounded card,
+    // each in a persistent partition of its own per CRM user, with the same rules as the ChatGPT panel.
+    social = createSocialPanel({
+      WebContentsView, BrowserWindow, fromPartition: (name) => electronSession.fromPartition(name), getWindow: currentWindow,
+      windowFor: (contents) => { try { return BrowserWindow.fromWebContents(contents) || currentWindow(); } catch { return currentWindow(); } },
+      Menu, clipboard, openExternal: security.openExternal, owner: crmUserId, userAgent: chromeUserAgent(app.userAgentFallback),
+      locale: app.getLocale(), platform: process.platform, packaged: app.isPackaged, documentsDir: () => app.getPath("documents"), log,
+      emit: (state) => push("ted:social.state", state),
+      onShortcut: (name) => { if (name === "bubble" && bubble) bubble.toBubble(); },
+      onUnread: (n) => { try { if (process.platform === "darwin" && app.dock) app.dock.setBadge(n ? String(n) : ""); else app.setBadgeCount(n); } catch { /* not supported */ } },
     });
     realgpt = createRealGpt({
       http, secureStore, log,
@@ -277,6 +290,7 @@ function start() {
     // Files, videos and scheduled tasks belong to the signed-in CRM user, like the chats and Real GPT.
     onUserChange = () => {
       if (panel) panel.detach(); // this employee's ChatGPT page leaves the window
+      if (social) social.detach(); // and his Messenger / Instagram / WhatsApp
       imageProvenance.clear();
       files.detach();
       video.detach();
@@ -308,7 +322,7 @@ function start() {
       if (channel === "ted:realgpt.approve") { bubble.decided(); return null; } // „!“ off: the employee decided
       return channel === "ted:api.chat" || channel === "ted:realgpt.send" ? bubble.track() : null;
     };
-    registerIpc({ ipcMain, isTrusted: security.isApp, isMainSender, observe, log, appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance, windowApi, chatgptPanel: panel });
+    registerIpc({ ipcMain, isTrusted: security.isApp, isMainSender, observe, log, appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance, windowApi, chatgptPanel: panel, socialPanel: social });
 
     registerAppProtocol({ protocol, root: path.join(app.getAppPath(), "dist") });
     session.init();
@@ -326,7 +340,7 @@ function start() {
       makeBubbleWindow: () => createBubbleWindow({ BrowserWindow, preload: path.join(here, "preload-bubble.cjs"), url: bubbleUrl, packaged: app.isPackaged, log, platform: process.platform }),
       popupMenu: (win, items) => Menu.buildFromTemplate(items).popup({ window: win }),
       quit: () => app.quit(),
-      onMode: (mode) => { if (panel) panel.setWindowMode(mode); push("ted:window.mode", { mode }); }, // no ChatGPT panel in the bubble / mini chat
+      onMode: (mode) => { if (panel) panel.setWindowMode(mode); if (social) social.setWindowMode(mode); push("ted:window.mode", { mode }); }, // no ChatGPT panel in the bubble / mini chat
     });
     registerBubbleIpc({ ipcMain, controller: bubble, isBubbleUrl: (u) => u === bubbleUrl, log });
     if (!smoke) {

@@ -1,7 +1,7 @@
 {
   "name": "ted-desktop",
   "productName": "Ted Imoti Nadezhda",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Ted - the AI assistant of Imoti Nadezhda as a desktop program for Windows and Mac",
   "license": "MIT",
   "private": true,

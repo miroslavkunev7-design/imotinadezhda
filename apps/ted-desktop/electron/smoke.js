@@ -33,6 +33,7 @@ export const TED_SURFACE = {
   updates: ["state", "check", "setAuto", "download", "install", "onChange"],
   window: ["bubble", "miniChat", "restore", "state", "onMode"], // 0.1.6 „Балонче“ (§22)
   chatgpt: ["open", "setBounds", "reload", "openInBrowser", "close", "clipboardImage", "onState"], // 0.1.7 „ChatGPT панел“ (§23)
+  social: ["open", "setBounds", "reload", "openInBrowser", "close", "onState"], // 0.1.9 „Чатове“ (§24)
 };
 
 // null when the program runs normally.

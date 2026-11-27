@@ -184,13 +184,18 @@ const winResult = (r) => ({ ok: !!(r && r.ok), mode: r && MODES.includes(r.mode)
 // „ChatGPT панел“ (0.1.7, electron/chatgpt-panel.js, docs/CONTRACT.md §23). Without a controller (unit tests) nothing opens.
 const NO_PANEL_ERR = { ok: false, code: "unavailable", error: "Панелът ChatGPT не е наличен." };
 const NO_PANEL = { open: () => NO_PANEL_ERR, setBounds: () => ({ ok: false, code: "unavailable" }), reload: () => NO_PANEL_ERR, openInBrowser: () => NO_PANEL_ERR, close: () => ({ ok: true }), clipboardImage: () => NO_PANEL_ERR };
+// „Чатове“ (0.1.9, electron/social-panel.js, docs/CONTRACT.md §24): Messenger / Instagram / WhatsApp of the agency.
+const SOCIAL = ["messenger", "instagram", "whatsapp"];
+const NO_SOCIAL_ERR = { ok: false, code: "unavailable", error: "Чатовете не са налични." };
+const NO_SOCIAL = { open: () => NO_SOCIAL_ERR, setBounds: () => ({ ok: false, code: "unavailable" }), reload: () => NO_SOCIAL_ERR, openInBrowser: () => NO_SOCIAL_ERR, close: () => ({ ok: true }) };
 const panelResult = (r) => (r && r.ok ? { ok: true } : { ok: false, code: String((r && r.code) || "error"), ...(r && r.error ? { error: String(r.error) } : {}) });
 
-export function createHandlers({ appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance, windowApi, chatgptPanel }) {
+export function createHandlers({ appApi, session, assistant, tools, email, voice, settings, chats, realgpt, confirm, files, video, scheduled, updater, browser, pages, projects, imageProvenance, windowApi, chatgptPanel, socialPanel }) {
   // Pictures MAIN itself handed to the window (browse/provenance.js); without one nothing loads without a click.
   const imgProv = imageProvenance || createImageProvenance();
   const win = windowApi || NO_WINDOW;
   const panel = chatgptPanel || NO_PANEL;
+  const social = socialPanel || NO_SOCIAL;
   const chatInvalid = (error) => ({ ok: false, error, code: "invalid", maybeExecuted: false });
   // {ok:true, result} | {ok:false, error} for the dedicated write channels.
   const written = (r) => (r.ok ? { ok: true, result: r.result } : { ok: false, error: r.error, ...(r.maybeExecuted ? { maybeExecuted: true } : {}) });
@@ -522,6 +527,24 @@ export function createHandlers({ appApi, session, assistant, tools, email, voice
       if (!(r.data instanceof ArrayBuffer) || !r.data.byteLength || r.data.byteLength > 8 * MB) return { ok: false, code: "too_large", error: "Снимката е празна или по-голяма от 8 MB." };
       return { ok: true, name: String(r.name || "Снимка от ChatGPT.png").slice(0, 120), mime: "image/png", size: r.data.byteLength, width: Number(r.width) || 0, height: Number(r.height) || 0, data: r.data };
     },
+
+    // ---- social (§24, 0.1.9): the agency's real Messenger / Instagram / WhatsApp Web in a rounded card ----
+    // open: only on the employee's click on a round button; {site} is one of the three, MAIN knows each address itself.
+    "ted:social.open": async (args) => {
+      if (!isObj(args) || Object.keys(args).some((k) => k !== "site") || !SOCIAL.includes(args.site)) return bad();
+      return panelResult(await social.open({ site: args.site }));
+    },
+    "ted:social.setBounds": (rect) => {
+      if (!isObj(rect) || size(rect) > 512) return bad();
+      const r = social.setBounds({ x: rect.x, y: rect.y, width: rect.width, height: rect.height, visible: rect.visible });
+      return r && r.ok ? { ok: true } : bad();
+    },
+    "ted:social.reload": async () => panelResult(await social.reload()),
+    "ted:social.openInBrowser": async (args) => {
+      if (args != null && (!isObj(args) || Object.keys(args).some((k) => k !== "blocked") || (args.blocked != null && typeof args.blocked !== "boolean"))) return bad();
+      return panelResult(await social.openInBrowser(args && args.blocked === true ? { blocked: true } : undefined));
+    },
+    "ted:social.close": async () => panelResult(await social.close()),
   };
 }
 

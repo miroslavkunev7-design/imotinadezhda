@@ -142,4 +142,12 @@ contextBridge.exposeInMainWorld("ted", {
     clipboardImage: () => invoke("ted:chatgpt.clipboardImage"),
     onState: (callback) => subscribe("ted:chatgpt.state", callback),
   },
+  social: {
+    open: (args) => invoke("ted:social.open", args),
+    setBounds: (rect) => invoke("ted:social.setBounds", rect),
+    reload: () => invoke("ted:social.reload"),
+    openInBrowser: (args) => invoke("ted:social.openInBrowser", args),
+    close: () => invoke("ted:social.close"),
+    onState: (callback) => subscribe("ted:social.state", callback),
+  },
 });

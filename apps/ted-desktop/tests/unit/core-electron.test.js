@@ -40,11 +40,13 @@ const SURFACE = {
   updates: ["state", "check", "setAuto", "download", "install", "onChange"],
   window: ["bubble", "miniChat", "restore", "state", "onMode"],
   chatgpt: ["open", "setBounds", "reload", "openInBrowser", "close", "clipboardImage", "onState"],
+  social: ["open", "setBounds", "reload", "openInBrowser", "close", "onState"],
 };
 const SUBSCRIPTIONS = {
   "auth.onChange": "ted:auth.changed", "realgpt.onDelta": "ted:realgpt.delta", "realgpt.onEvent": "ted:realgpt.event",
   "video.onEvent": "ted:video.event", "library.onChange": "ted:library.changed", "scheduled.onDue": "ted:scheduled.due",
   "updates.onChange": "ted:updates.changed", "window.onMode": "ted:window.mode", "chatgpt.onState": "ted:chatgpt.state",
+  "social.onState": "ted:social.state",
 };
 
 // Records calls into fake services; individual tests override what they need.
@@ -165,7 +167,7 @@ describe("ipc registration", () => {
 
   it("registers one handler per channel, all named ted:<group>.<fn>", () => {
     const { handlers, channels } = register();
-    expect(channels).toHaveLength(77); // 86 window.ted functions minus the 9 subscriptions (0.1.5: + browse.image, + 4 projects; 0.1.6: + 4 window; 0.1.7: + 6 chatgpt)
+    expect(channels).toHaveLength(82); // 92 window.ted functions minus the 10 subscriptions (0.1.5: + browse.image, + 4 projects; 0.1.6: + 4 window; 0.1.7: + 6 chatgpt; 0.1.9: + 5 social)
     expect([...handlers.keys()]).toEqual(channels);
     for (const c of channels) expect(c).toMatch(/^ted:[a-z]+\.[A-Za-z]+$/);
   });
