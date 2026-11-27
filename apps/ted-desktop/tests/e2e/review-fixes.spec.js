@@ -113,6 +113,8 @@ test("Чат | Работа on a page opens that mode's start screen; arrow keys
   await expect(page.locator(".home h1")).toHaveText("Върху какво ще работим?");
   const chat = toggle.getByRole("tab", { name: "Чат" });
   await expect(chat).toHaveAttribute("aria-controls", "main-area");
+  // The new start screen puts the keyboard into the composer 30 ms later (App.jsx focusComposer) – let it land first.
+  await expect.poll(() => page.evaluate(() => (document.activeElement && document.activeElement.id) || "")).toBe("composer");
   await chat.focus();
   // document.activeElement, not toBeFocused(): with parallel CI workers the page itself may not have window focus,
   // which Playwright reports as "inactive" although the right tab holds the focus.
