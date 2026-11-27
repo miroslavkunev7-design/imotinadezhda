@@ -264,7 +264,7 @@ export function createWebBridge() {
     /* „Чатове“: в браузъра Messenger / Instagram / WhatsApp не могат да се покажат вътре – отварят се в малък прозорец до Тед */
     social: {
       open: async (args = {}) => {
-        const u = { messenger: "https://business.facebook.com/latest/inbox/all?asset_id=1447196405137713", instagram: "https://www.instagram.com/direct/inbox/", whatsapp: "https://web.whatsapp.com/" }[args.site];
+        const u = { messenger: "https://business.facebook.com/latest/inbox/all/", instagram: "https://www.instagram.com/direct/inbox/", whatsapp: "https://web.whatsapp.com/" }[args.site];
         if (!u) return { ok: false, error: "Непознат чат." };
         let w = null;
         try { const sw = screen.availWidth || innerWidth, sh = screen.availHeight || innerHeight, W = Math.min(460, sw - 40), H = Math.min(820, sh - 60);

@@ -1217,22 +1217,54 @@
      на телефон → истинското приложение. Броят на новите съобщения идва в NDSocial.badge(id, n). */
   var SOC_PAGE = "1447196405137713";
   var SOCIAL = [
-    { id: "messenger", name: "Messenger", url: "https://business.facebook.com/latest/inbox/messenger?asset_id=" + SOC_PAGE, phone: "https://business.facebook.com/latest/inbox/messenger?asset_id=" + SOC_PAGE,
+    { id: "messenger", name: "Messenger", url: "https://business.facebook.com/latest/inbox/all/", phone: "https://business.facebook.com/latest/inbox/all/",
       svg: '<svg viewBox="0 0 48 48"><defs><linearGradient id="ndsm" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0866ff"/><stop offset=".6" stop-color="#a033ff"/><stop offset="1" stop-color="#ff5c87"/></linearGradient></defs><path fill="url(#ndsm)" d="M24 4C12.7 4 4 12.3 4 23.5c0 5.9 2.4 11 6.4 14.5.3.3.5.7.5 1.2l.1 3.6c0 1.1 1.2 1.9 2.3 1.4l4-1.8c.3-.2.7-.2 1.1-.1 1.8.5 3.7.8 5.7.8 11.3 0 20-8.3 20-19.5S35.3 4 24 4z"/><path fill="#fff" d="m12 29.1 5.9-9.3c.9-1.5 2.9-1.8 4.3-.8l4.7 3.5c.4.3 1 .3 1.4 0l6.3-4.8c.8-.6 1.9.4 1.4 1.3l-5.9 9.3c-.9 1.5-2.9 1.8-4.3.8l-4.7-3.5c-.4-.3-1-.3-1.4 0l-6.3 4.8c-.8.6-1.9-.4-1.4-1.3z"/></svg>' },
     { id: "instagram", name: "Instagram", url: "https://www.instagram.com/direct/inbox/", phone: "https://www.instagram.com/direct/inbox/",
       svg: '<svg viewBox="0 0 48 48"><defs><radialGradient id="ndsi" cx=".3" cy="1.05" r="1.25"><stop offset="0" stop-color="#ffd776"/><stop offset=".25" stop-color="#f3a554"/><stop offset=".45" stop-color="#e14f6f"/><stop offset=".75" stop-color="#b52f9c"/><stop offset="1" stop-color="#5a4bd6"/></radialGradient></defs><rect x="4" y="4" width="40" height="40" rx="12" fill="url(#ndsi)"/><rect x="12" y="12" width="24" height="24" rx="7.5" fill="none" stroke="#fff" stroke-width="3"/><circle cx="24" cy="24" r="5.6" fill="none" stroke="#fff" stroke-width="3"/><circle cx="31.4" cy="16.6" r="1.9" fill="#fff"/></svg>' },
-    { id: "whatsapp", name: "WhatsApp", url: "https://web.whatsapp.com/", phone: "https://wa.me/",
+    { id: "whatsapp", name: "WhatsApp", url: "https://web.whatsapp.com/", phone: "whatsapp://",
       svg: '<svg viewBox="0 0 48 48"><path fill="#25d366" d="M24 4C13 4 4 12.9 4 23.9c0 3.7 1 7.2 2.9 10.2L4.1 44l10.2-2.7c2.9 1.6 6.2 2.5 9.7 2.5 11 0 20-8.9 20-19.9S35 4 24 4z"/><path fill="#fff" d="M34.2 29.1c-.5-.3-3-1.5-3.5-1.6-.5-.2-.8-.3-1.1.2-.3.5-1.2 1.6-1.5 1.9-.3.3-.6.4-1 .1-.5-.3-2.1-.8-4-2.5-1.5-1.3-2.5-2.9-2.8-3.4-.3-.5 0-.8.2-1 .2-.2.5-.6.7-.9.2-.3.3-.5.5-.9.2-.3.1-.7 0-.9-.1-.3-1.1-2.7-1.5-3.7-.4-1-.8-.8-1.1-.8h-.9c-.3 0-.9.1-1.3.6-.5.5-1.7 1.7-1.7 4.1s1.8 4.8 2 5.1c.2.3 3.5 5.4 8.5 7.6 1.2.5 2.1.8 2.8 1 1.2.4 2.3.3 3.1.2.9-.1 3-1.2 3.4-2.4.4-1.2.4-2.2.3-2.4-.2-.2-.5-.3-1-.5z"/></svg>' }
   ];
+  /* истинското приложение се отваря точно на мястото и в размера на прозореца на Тед;
+     Тед се скрива, докато е отворено, и се връща сам, щом го затворите */
+  var socWin = {}, socWatch = 0, socTedWasOpen = false;
+  function tedRect() {
+    if (!win) return null;
+    var was = win.hidden, r;
+    if (was) { win.style.visibility = "hidden"; win.hidden = false; }
+    r = win.getBoundingClientRect();
+    if (was) { win.hidden = true; win.style.visibility = ""; }
+    return r && r.width > 40 && r.height > 80 ? r : null;
+  }
+  function socWatchStart() {
+    if (socWatch) return;
+    socWatch = setInterval(function () {
+      var open = false;
+      for (var k in socWin) { try { if (socWin[k] && !socWin[k].closed) open = true; else socWin[k] = null; } catch (x) { socWin[k] = null; } }
+      if (!open) { clearInterval(socWatch); socWatch = 0; if (socTedWasOpen && win && win.hidden) { win.hidden = false; fab.hidden = true; try { fitChatViewport(); } catch (x) {} } socTedWasOpen = false; }
+    }, 600);
+  }
   function socOpen(id) {
     var s = SOCIAL.filter(function (x) { return x.id === id; })[0]; if (!s) return;
     NDSocial.badge(s.id, 0);
     var phone = innerWidth < 700 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent), w = null;
     try {
+      if (phone && /^whatsapp:/.test(s.phone)) { location.href = s.phone; return; }
       if (phone) w = window.open(s.phone, "_blank");
       else {
-        var sw = screen.availWidth || innerWidth, sh = screen.availHeight || innerHeight, W = Math.min(460, sw - 40), H = Math.min(820, sh - 60);
-        w = window.open(s.url, "nd-soc-" + s.id, "popup=yes,width=" + W + ",height=" + H + ",left=" + ((screen.availLeft || 0) + sw - W - 96) + ",top=" + ((screen.availTop || 0) + Math.max(10, Math.round((sh - H) / 2))));
+        var cur = socWin[s.id]; try { if (cur && !cur.closed) { cur.focus(); return; } } catch (x) {}
+        var r = tedRect(), ax = screen.availLeft || 0, ay = screen.availTop || 0, sw = screen.availWidth || innerWidth, sh = screen.availHeight || innerHeight;
+        var bx = (screenX || screenLeft || 0) + Math.max(0, (outerWidth - innerWidth) / 2), by = (screenY || screenTop || 0) + Math.max(0, outerHeight - innerHeight - Math.max(0, (outerWidth - innerWidth) / 2));
+        var CH = 62, W, H, L, T;
+        if (r) { W = Math.round(r.width); H = Math.round(r.height) - CH; L = Math.round(bx + r.left); T = Math.round(by + r.top); }
+        else { W = 420; H = Math.min(760, sh - 120); L = ax + sw - W - 40; T = ay + Math.max(10, Math.round((sh - H - CH) / 2)); }
+        W = Math.max(380, Math.min(W, sw - 20)); H = Math.max(480, Math.min(H, sh - CH - 10));
+        L = Math.max(ax, Math.min(L, ax + sw - W)); T = Math.max(ay, Math.min(T, ay + sh - H - CH));
+        w = window.open(s.url, "nd-soc-" + s.id, "popup=yes,width=" + W + ",height=" + H + ",left=" + L + ",top=" + T);
+        if (w) {
+          socWin[s.id] = w;
+          if (win && !win.hidden) { socTedWasOpen = true; win.hidden = true; fab.hidden = false; }
+          socWatchStart();
+        }
       }
       if (w) { try { w.focus(); } catch (x) {} }
     } catch (x) {}

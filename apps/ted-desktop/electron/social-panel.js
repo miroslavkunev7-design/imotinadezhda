@@ -24,7 +24,7 @@ import { MOTW, RUNNABLE as APP_RUNNABLE } from "./files.js";
 
 export const SOCIAL_PAGE_ID = "1447196405137713"; // the Facebook page „Недвижими Имоти • Надежда •“
 export const SOCIAL_SITES = {
-  messenger: { label: "Messenger", home: "https://business.facebook.com/latest/inbox/all?asset_id=" + SOCIAL_PAGE_ID, domains: ["facebook.com", "messenger.com", "fb.com"] },
+  messenger: { label: "Messenger", home: "https://business.facebook.com/latest/inbox/all/", domains: ["facebook.com", "messenger.com", "fb.com"] },
   instagram: { label: "Instagram", home: "https://www.instagram.com/direct/inbox/", domains: ["instagram.com", "facebook.com"] },
   whatsapp: { label: "WhatsApp", home: "https://web.whatsapp.com/", domains: ["whatsapp.com"] },
 };
