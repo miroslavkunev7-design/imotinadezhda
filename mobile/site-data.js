@@ -49,7 +49,7 @@
   window.__ND_READY = rpc("nd_public_listings2").catch(function () { return rpc("nd_public_listings"); }).then(function (rows) {
     rows = (rows || []).map(function (r) { return r && r.nd_public_listings2 ? r.nd_public_listings2 : r; });
     var paths = [];
-    rows.forEach(function (r) { (r.pics || []).forEach(function (p) { paths.push(p); }); });
+    rows.forEach(function (r) { (r.pics || []).forEach(function (p) { paths.push(p); }); var ap = r.agent && r.agent.photo; if (ap && /^brokers\//.test(ap) && paths.indexOf(ap) < 0) paths.push(ap); });
     return sign(paths).then(function (m) {
       var P = window.NDPlaces;
       window.__ND_LISTINGS = rows.map(function (r) {
@@ -60,7 +60,7 @@
         var fresh = Date.now() - new Date(r.updated_at) < 7 * 864e5;
         return { id: String(r.id), code: r.code, name: r.title, title: r.title, price: Number(r.price) || 0, area: Number(r.area) || 0,
           rooms: Math.max(0, Number(r.rooms) || 0), beds: Math.max(0, Number(r.beds) || 0), baths: Math.max(0, Number(r.baths) || 0), img: cover, gallery: gal, badge: fresh ? "НОВО" : "",
-          city: L.city, town: L.town, townKind: L.townKind, loc: L.loc, region: r.region || "", place: r.place || "", num: r.num || null, floor: r.floor || "", build: r.build || "", year: r.year || null, expo: r.expo || "", heat: r.heat || "", parking: r.parking || "", elevator: !!r.elevator, act: r.act || "", features: r.features || "", tour: r.tour || "", hood: L.hood, type: r.type || "", deal: r.deal || "sale", cond: r.cond || "", desc: r.descr || "", agent: r.agent || null };
+          city: L.city, town: L.town, townKind: L.townKind, loc: L.loc, region: r.region || "", place: r.place || "", num: r.num || null, floor: r.floor || "", build: r.build || "", year: r.year || null, expo: r.expo || "", heat: r.heat || "", parking: r.parking || "", elevator: !!r.elevator, act: r.act || "", features: r.features || "", tour: r.tour || "", hood: L.hood, type: r.type || "", deal: r.deal || "sale", cond: r.cond || "", desc: r.descr || "", agent: r.agent ? Object.assign({}, r.agent, { photoUrl: (r.agent.photo && m[r.agent.photo]) || (/^https?:\/\//.test(r.agent.photo || "") ? r.agent.photo : "") }) : null };
       });
     });
   }).catch(function () { window.__ND_LISTINGS = []; });

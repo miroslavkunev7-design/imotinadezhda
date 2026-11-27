@@ -844,7 +844,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     <button class="abs ctrl bell nb" aria-label="Известия" data-msg="Известия"><svg class="i"><use href="#bell"/></svg><b>1</b></button>
     <button class="abs ctrl search" aria-label="Търсене" data-focus="b-q"><svg class="i"><use href="#search"/></svg></button>
     <button class="abs ctrl gear" aria-label="Настройки" data-msg="Настройки"><svg class="i"><use href="#settings"/></svg></button>
-    <button class="abs avatar" aria-label="Моят профил" data-msg="Моят профил"><img src="assets/avatar.jpg" alt=""></button>
+    <button class="abs avatar" aria-label="Моят профил" data-msg="Моят профил"><img src="assets/avatar-blank.svg" alt=""></button>
     <h1 class="abs hero-title b-title" style="top:224px"><svg class="i"><use href="#users"/></svg>Брокери</h1>
     <p class="abs hero-sub" style="top:290px;font-size:27px;line-height:1.4">Нашият екип от професионалисти<br>в сферата на недвижимите имоти</p>
     <div class="abs hero-line" style="top:370px;width:450px"></div>
@@ -997,6 +997,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
 })();
 </script>
 <script src="crm-data.js"></script>
+<script src="crm-me.js"></script>
 <script src="crm-ui.js"></script>
 <script src="crm-doclists.js"></script>
 <script src="crm-global.js"></script>
@@ -1093,7 +1094,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     var s=sort.value;list.sort(function(a,b){return s==='name'?a.name.localeCompare(b.name,'bg'):s==='deals'?b.deals-a.deals:b.rating-a.rating||b.reviews-a.reviews});
     $('bgrid').innerHTML=list.length?list.map(function(b){
       return '<article class="bk'+(b.active?'':' off')+'" tabindex="0" data-id="'+b.id+'" aria-label="Карта на брокер '+esc(b.name)+'">'+
-        '<span class="pt" style="background-image:url('+img(b.thumb||b.photo||'avatar.jpg')+')"></span>'+
+        '<span class="pt" style="background-image:url('+img(b.thumb&&b.thumb!=='avatar.jpg'?b.thumb:b.photo&&b.photo!=='avatar.jpg'?b.photo:'avatar-blank.svg')+')"></span>'+
         '<h3 class="nm">'+esc(b.name)+'</h3><p class="ti">'+esc(b.title||b.pos||b.role||'Брокер')+'</p>'+
         '<p class="rt">'+stars(b.rating)+b.rating.toFixed(1)+' ('+b.reviews+')</p>'+
         '<div class="tags">'+(b.sales?'<span class="tg">'+ic('house')+'Продажби</span>':'')+(b.rent?'<span class="tg">'+ic('key-round')+'Наеми</span>':'')+'</div>'+
@@ -1133,7 +1134,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
     var d=draft;
     $('bm-name').textContent=d.name;$('bm-title').textContent=d.title||d.pos||d.role||'Брокер';
     $('bm-rate').innerHTML=stars(d.rating)+d.rating.toFixed(1)+' ('+d.reviews+')';
-    $('bm-photo').src=d.photoURL||img(d.photo||d.thumb||'avatar.jpg');$('bm-photo').onerror=function(){this.onerror=null;this.src=img('avatar.jpg')};$('bm-photo').alt=d.name;
+    $('bm-photo').src=d.photoURL||img(d.photo&&d.photo!=='avatar.jpg'?d.photo:d.thumb&&d.thumb!=='avatar.jpg'?d.thumb:'avatar-blank.svg');$('bm-photo').onerror=function(){this.onerror=null;this.src=img('avatar-blank.svg')};$('bm-photo').alt=d.name;
     var tel=$('bm-tel');tel.href='tel:'+d.phone.replace(/\s/g,'');tel.querySelector('span').textContent=d.phone;
     var m=$('bm-mail');m.href='mailto:'+d.email;m.querySelector('span').textContent=d.email;$('bm-office-t').textContent='Офис '+d.office;
     $('bm-status').value=d.active?'Активен':'Неактивен';$('bm-stat-t').textContent=$('bm-status').value;$('bm-statw').classList.toggle('off',!d.active);
@@ -1252,7 +1253,7 @@ html.desk .bm-right .bsec:first-child,html.desk .bpair .bsec{margin-top:12px}
         U.fld({id:'nb-cat',label:'Направление',icon:'tag',type:'select',value:'both',options:[['both','Продажби и наеми'],['sales','Продажби'],['rent','Наеми']]}),{lw:130}),
       validate:function(g){var m=g('nb-mail');if(m&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))return 'Проверете имейла.'},
       onSave:function(g){var b={id:ND.newId(),name:g('nb-name'),title:g('nb-title')||g('nb-role'),role:g('nb-role'),pos:g('nb-role'),phone:g('nb-phone'),email:g('nb-mail'),office:g('nb-office'),
-          photo:'avatar.jpg',thumb:'avatar.jpg',rating:5,reviews:0,sales:g('nb-cat')!=='rent',rent:g('nb-cat')!=='sales',active:true,perms:[],restr:[],clients:[],deals:0,listings:0};
+          photo:'avatar-blank.svg',thumb:'avatar-blank.svg',rating:5,reviews:0,sales:g('nb-cat')!=='rent',rent:g('nb-cat')!=='sales',active:true,perms:[],restr:[],clients:[],deals:0,listings:0};
         brokers.push(b);return ND.sync('brokers',brokers).then(function(){render();say('Брокерът е добавен');setTimeout(function(){openB(b.id)},260)})}});
   });
   ND.busy(1);
