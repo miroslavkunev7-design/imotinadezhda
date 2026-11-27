@@ -143,3 +143,6 @@ svg.i.sm19{width:19px;height:19px}
 
 /* The dialog takes the keyboard focus when it opens (see Modal in ui.jsx); it must not draw a focus ring. */
 .modal:focus { outline: none; }
+/* уеб версията (Chrome): няма балонче; лентата отгоре следва бутоните на прозореца само когато Chrome ги покаже в нея */
+html.ted-web [data-testid="bubble-btn"]{display:none}
+html.ted-web .winbar{padding-left:max(12px,env(titlebar-area-x,12px));padding-right:max(12px,calc(100vw - env(titlebar-area-x,0px) - env(titlebar-area-width,100vw) + 8px))}

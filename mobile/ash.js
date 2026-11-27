@@ -188,6 +188,7 @@
   var setTab = "voice";
   var PC_SETUP_URL = "https://github.com/miroslavkunev7-design/imotinadezhda/releases/latest/download/Ted-Setup-x64.exe";
   var MAC_SETUP_URL = "https://github.com/miroslavkunev7-design/imotinadezhda/releases/latest/download/Ted-Mac.dmg"; /* 0.1.8: Тед за Mac */
+  var TED_WEB_URL = "/mobile/ted/"; /* пълната версия в браузъра – Chrome я инсталира като програма (Mac и Windows) */
   function renderSettings() {
     var sb = win.querySelector(".nda-set"), PROV = { gemini: "Google", openai: "OpenAI", anthropic: "Anthropic", openrouter: "OpenRouter", ollama: "Ollama", n8n: "n8n" };
     var TABS = [["voice", "Глас", I.spk], ["model", "Модел", "🧠"], ["chat", "Чат", "💬"], ["dict", "Диктовка", "🎤"]];
@@ -219,10 +220,12 @@
       var ua = navigator.userAgent, isWin = /Windows/i.test(ua), isMac = /Macintosh|Mac OS X/i.test(ua) && !(navigator.maxTouchPoints > 1);
       var winA = '<a class="nda-opt nda-pc" href="' + PC_SETUP_URL + '" target="_blank" rel="noopener"><span class="d">Инсталирай за Windows<small>Ted-Setup-x64.exe · Windows 10/11</small></span><em>.exe</em></a>';
       var macA = '<a class="nda-opt nda-pc" href="' + MAC_SETUP_URL + '" target="_blank" rel="noopener"><span class="d">Инсталирай за Mac<small>Ted-Mac.dmg · Intel и Apple Silicon · macOS 13 Ventura и по-нови</small></span><em>.dmg</em></a>';
+      var webA = '<a class="nda-opt nda-pc" href="' + TED_WEB_URL + '" target="ted-web" rel="noopener"><span class="d">Отвори Тед в Google Chrome<small>пълната версия – после „Инсталирай“ в Chrome и е програма на компютъра (Mac и Windows)</small></span><em>Chrome</em></a>';
+      var webP = "<p><b>Инсталиране от Chrome:</b> в отворения Тед натиснете иконата за инсталиране вдясно в адресната лента (монитор със стрелка) → „Инсталиране“. Или меню ⋮ → „Предаване, запазване и споделяне“ → „Инсталиране на страницата като приложение…“. Тед се появява в Applications / Launchpad (на Mac) или в менюто Старт (на Windows), бял с червени елементи на Mac. Влизате със същия телефон или имейл и парола като в CRM.</p>";
       var winP = "<p>При първо стартиране Windows може да покаже „Windows защити компютъра ви“ – изберете „Повече информация“ → „Изпълни въпреки това“.</p>";
       var macP = "<p>Mac: отворете файла и плъзнете Ted Imoti Nadezhda в Applications (не я пускайте от прозореца на диска). Първия път Mac казва „Apple cannot check it for malicious software“ – натиснете OK, после в Applications десен клик върху програмата → „Open“ → „Open“. Ако пак не тръгва: System Settings → Privacy &amp; Security → „Open Anyway“. После се отваря нормално. На Mac програмата е бяла с червени елементи.</p>";
       html += '<div class="nda-sec"><h4>💻 Тед за компютър – пълна версия</h4><p>Отделна програма за Windows и Mac. Влизате със същия имейл или телефон и парола като в CRM и работите със същите клиенти, имоти, договори и документи според вашите права.</p>' +
-        (isMac ? macA + macP + winA : isWin ? winA + winP + macA : "<p><b>Програмата е за компютър (Windows или Mac).</b> Отворете CRM на компютъра и изберете ⚙ → „Пълна версия“, за да я изтеглите.</p>" + winA + macA) + "</div>";
+        (isMac ? webA + webP + '<p style="opacity:.8">Или като отделен файл (ако Mac позволи):</p>' + macA + macP : isWin ? winA + winP + webA + webP : "<p><b>Програмата е за компютър (Windows или Mac).</b> Отворете CRM на компютъра и изберете ⚙ → „Пълна версия“, за да я изтеглите.</p>" + webA + winA + macA) + "</div>";
     } else {
       html += '<div class="nda-sec"><h4>Диктовка</h4><p>Микрофонът в чата и във всяко поле за бележка разпознава дословно на български.</p>' + sw("dictAuto", "Изпращай гласовия въпрос веднага", "иначе първо виждате текста и го пращате вие") + "</div>" +
         '<div class="nda-sec"><h4>Бележки</h4><p>Във всяка графа за бележка/описание в CRM има микрофон – докоснете, говорете, докоснете пак; текстът се добавя при курсора.</p></div>';
@@ -232,7 +235,10 @@
     sb.onclick = function (e) {
       var t;
       if (e.target.closest("[data-sx]")) { sb.hidden = true; win.querySelector(".nda-gear").classList.remove("on"); return; }
-      if ((t = e.target.closest("[data-st]"))) { setTab = t.getAttribute("data-st"); renderSettings(); return; }
+      if ((t = e.target.closest("[data-st]"))) { setTab = t.getAttribute("data-st");
+        /* „Пълна версия“ на Mac: отваря Тед в Google Chrome – оттам се инсталира като програма */
+        if (setTab === "pc" && /Macintosh|Mac OS X/i.test(navigator.userAgent) && !(navigator.maxTouchPoints > 1)) { try { window.open(TED_WEB_URL, "ted-web"); } catch (x) {} }
+        renderSettings(); return; }
       if ((t = e.target.closest("[data-play]"))) { e.stopPropagation(); previewVoice(t.getAttribute("data-play"), t); return; }
       if ((t = e.target.closest("[data-voice]"))) { prefs.voice = t.getAttribute("data-voice"); savePrefs(); renderSettings(); return; }
       if ((t = e.target.closest("[data-style]"))) { prefs.style = t.getAttribute("data-style"); savePrefs(); renderSettings(); return; }
@@ -512,9 +518,11 @@
       .then(function (j) { clearTimeout(timer); return j; });
   }
   function ask(history, extra) {
-    var p = modelId === "n8n" || (skill && skill.id === "n8n") ? askN8n(history, extra) : askSite(history, extra);
-    /* лимит / изразходвани: всяка изпълнена задача се брои на агента, който е отговорил (n8n или безплатните) */
-    return p.then(function (j) { if (j && j.ok && inCrmPath()) agentUse(j.model === "n8n" ? "n8n" : "free"); return j; });
+    var viaN8n = modelId === "n8n" || (skill && skill.id === "n8n"), p = viaN8n ? askN8n(history, extra) : askSite(history, extra);
+    /* лимит / изразходвани – на живо: задачата се отчита веднага при изпращане; след отговора сървърът потвърждава
+       (брои се на агента, който реално е отговорил – n8n или безплатните); при грешка се връща точното число */
+    if (inCrmPath()) agentBump(viaN8n ? "n8n" : "free");
+    return p.then(function (j) { if (inCrmPath()) { agentDone(viaN8n ? "n8n" : "free"); if (j && j.ok) agentUse(j.model === "n8n" ? "n8n" : "free"); else agentStats().then(agentPaint); } return j; });
   }
   /* ---- агентите в CRM: „Безплатни агенти“, „Real ChatGPT“, „Агенти n8n“ – лимит / изразходвани (nd_agent_stats / nd_agent_use) ---- */
   var AGS = null;
@@ -523,14 +531,18 @@
     var c = agentSb(); if (!c) return Promise.resolve(AGS);
     return Promise.resolve(c.rpc("nd_agent_stats")).then(function (r) { if (r && r.data && typeof r.data === "object" && r.data.free) AGS = r.data; return AGS; }, function () { return AGS; });
   }
+  function agentPaint() { if (menu && !menu.hidden) renderMenu(); var sl = win && win.querySelector(".nda-skill span"); if (sl && skill) sl.textContent = skillLabel(skill); }
+  var AGP = { free: 0, n8n: 0, chatgpt: 0 }; /* изпратени задачи, които още чакат отговор – показват се веднага */
+  function agentBump(k) { AGP[k] = (AGP[k] || 0) + 1; agentPaint(); }
+  function agentDone(k) { AGP[k] = Math.max(0, (AGP[k] || 0) - 1); }
   function agentUse(k) {
     var c = agentSb(); if (!c) return;
-    Promise.resolve(c.rpc("nd_agent_use", { p_agent: k })).then(function (r) { if (r && r.data && r.data.free) { AGS = r.data; if (menu && !menu.hidden) renderMenu(); } }, function () {});
+    Promise.resolve(c.rpc("nd_agent_use", { p_agent: k })).then(function (r) { if (r && r.data && r.data.free) { AGS = r.data; agentPaint(); } }, function () {});
   }
   function agentFrac(k) {
     var a = AGS && AGS[k]; if (!a) return '<span class="nda-frac off" title="Лимит / изразходвани"><b>…</b><i></i><b>…</b></span>';
-    var lim = +a.limit > 0 ? String(a.limit) : "∞", per = a.per === "day" ? "днес" : "този месец", full = +a.limit > 0 && +a.used >= +a.limit;
-    return '<span class="nda-frac' + (full ? " full" : "") + '" title="Лимит: ' + (+a.limit > 0 ? a.limit + (a.per === "day" ? " на ден" : " на месец") : "без лимит") + " · изразходвани " + per + ": " + a.used + '"><b>' + lim + "</b><i></i><b>" + (+a.used || 0) + "</b></span>";
+    var used = (+a.used || 0) + (AGP[k] || 0), lim = +a.limit > 0 ? String(a.limit) : "∞", per = a.per === "day" ? "днес" : "този месец", full = +a.limit > 0 && used >= +a.limit;
+    return '<span class="nda-frac' + (full ? " full" : "") + '" title="Лимит: ' + (+a.limit > 0 ? a.limit + (a.per === "day" ? " на ден" : " на месец") : "без лимит") + " · изразходвани " + per + ": " + used + '"><b>' + lim + "</b><i></i><b>" + used + "</b></span>";
   }
   function freeModels() { return (models || []).filter(function (m) { return m.id !== "n8n" && /^(gemini|openrouter|ollama)$/.test(m.provider); }); }
   function shortName(m) { var n = String((m && m.name) || ""), x = /\(([^)]+)\)\s*$/.exec(n); return x ? x[1] : n.replace(/\s*[–-].*$/, ""); }
@@ -958,7 +970,7 @@
           var gf = files; ta.value = ""; ta.style.height = ""; files = []; showFiles();
           api.add("u", fmt(text || "Прикачени файлове") + (gf.length ? "\n📎 " + gf.map(function (f) { return esc(f.name); }).join(", ") : ""));
           if (!text) { var g0 = openGpt(""); api.add("a", "Файловете се прикачват направо в ChatGPT (кламерът там). " + (g0.ok ? "Отворих chatgpt.com." : '<a class="nda-dl" href="https://chatgpt.com/" target="_blank" rel="noopener">🔗 Отвори ChatGPT</a>')); return; }
-          var g = openGpt(text); agentUse("chatgpt");
+          var g = openGpt(text); agentBump("chatgpt"); agentDone("chatgpt"); agentUse("chatgpt");
           api.add("a", (g.ok ? (g.long ? "Заявката е дълга – копирах я. Отворих ChatGPT: поставете я там (Ctrl+V / ⌘V)." : "Отворих Real ChatGPT със заявката – отговорът е там.") : "Браузърът спря прозореца.") +
             (gf.length ? "\nФайловете прикачете в ChatGPT (кламерът там)." : "") + '\n<a class="nda-dl" href="' + esc(g.url) + '" target="_blank" rel="noopener">🔗 Отвори в ChatGPT</a>');
           return;
@@ -1190,7 +1202,7 @@
     if (!inCrm) { menu.innerHTML = skills.map(item).join(""); return; }
     /* в CRM: само 3 агента – „Безплатни агенти“ ▾, „Real ChatGPT“, „Агенти n8n“ ▾ – всеки с лимит / изразходвани; отдолу умения (AI Видео на имот…) */
     var rest = skills.map(item).join(""), cm = curModel(), fm = freeModels();
-    if (!menu._open) menu._open = skill === n8nSkill ? "n8n" : skill === gptSkill ? "" : "free";
+    if (menu._open == null) menu._open = skill === n8nSkill ? "n8n" : skill === gptSkill ? "" : "free";
     var head = function (k, title, sub, on, drop) { return '<button type="button" class="nda-ag' + (on ? " on" : "") + (drop && menu._open === k ? " open" : "") + '" data-ag="' + k + '"' + (drop ? ' aria-expanded="' + (menu._open === k) + '"' : ' role="option"') + '><span class="t">' + title + "<small>" + sub + "</small></span>" + agentFrac(k) + (drop ? '<span class="cv">' + I.chev + "</span>" : "") + "</button>"; };
     var freeList = (fm.length ? fm : [{ id: "", name: "Тед – личен безплатен агент (Gemini Flash Lite)", note: "клиенти, имоти, календар, качване" }]).map(function (m) {
       var on = skill === chatSkill && ((cm && cm.id === m.id) || (!cm && !m.id));
@@ -1214,13 +1226,13 @@
       '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div><div class="nda-set" hidden></div>';
     if(inCrmPath()) { win.classList.add('nd-lux');var lux=document.createElement('link');lux.rel='stylesheet';lux.href='/mobile/crm/ted-lux.css?v=3';lux.onload=fitChatViewport;document.head.appendChild(lux);var online=document.createElement('span');online.className='ted-online';online.innerHTML='<i></i>На линия';win.querySelector('.nda-t').insertBefore(online,win.querySelector('.nda-skill')); }
     document.body.appendChild(fab); document.body.appendChild(win);
-    list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot");
+    list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot"); if (inCrmPath()) setTimeout(function () { agentStats(); }, 1500);
     if (inCrmPath()) watchChat();
     list.addEventListener("click", fileClick);
     list.addEventListener('click',function(e){if(!e.target.matches('.ted-chat-img'))return;var view=document.createElement('div');view.className='ted-image-view';var img=document.createElement('img');img.src=e.target.src;img.alt=e.target.alt;var close=document.createElement('button');close.type='button';close.className='nda-x';close.setAttribute('aria-label','Затвори снимката');close.textContent='×';close.onclick=function(){view.remove();};view.appendChild(img);view.appendChild(close);win.appendChild(view);});
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && win && !win.hidden) { var vw = win.querySelector(".nda-view,.ted-panel,.ted-image-view"); if (vw) { vw.remove();e.stopImmediatePropagation(); } } });
     var sk = win.querySelector(".nda-skill"), gear = win.querySelector(".nda-gear"), setBox = win.querySelector(".nda-set");
-    sk.onclick = function (e) { e.stopPropagation(); menu._open = ""; renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden));
+    sk.onclick = function (e) { e.stopPropagation(); menu._open = null; renderMenu(); menu.hidden = !menu.hidden; sk.setAttribute("aria-expanded", String(!menu.hidden));
       if (!menu.hidden && inCrmPath()) Promise.all([loadModels(), agentStats()]).then(function () { if (!menu.hidden) renderMenu(); }); };
     menu.onclick = function (e) {
       var ag = e.target.closest("[data-ag]"), fmb = e.target.closest("[data-fm]");
@@ -1229,6 +1241,9 @@
         menu._open = menu._open === k ? "" : k; renderMenu(); return; }
       if (fmb) { menu.hidden = true; prefs.crmEngine = "site"; setModel(fmb.getAttribute("data-fm"), true); if (skill !== chatSkill) setSkill(chatSkill); else win.querySelector(".nda-skill span").textContent = skillLabel(skill); return; }
       if (e.target.closest("[data-cs]")) { menu.hidden = true; prefs.crmEngine = "site"; savePrefs(); if (skill !== chatSkill) setSkill(chatSkill); return; } var nm = e.target.closest("[data-nm]"); if (nm) { menu.hidden = true; pickN8nModel(nm.getAttribute("data-nm")); return; } var b = e.target.closest("[data-i]"); if (!b) return; menu.hidden = true; setSkill(skills[+b.getAttribute("data-i")]); };
+    /* менюто на агентите се прибира при клик извън него (и извън прозореца на Тед) и с Escape */
+    document.addEventListener("click", function (e) { if (menu && !menu.hidden && !menu.contains(e.target) && !sk.contains(e.target)) { menu.hidden = true; sk.setAttribute("aria-expanded", "false"); } });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && menu && !menu.hidden) { menu.hidden = true; sk.setAttribute("aria-expanded", "false"); sk.focus(); } });
     win.addEventListener("click", function (e) {
       if (!menu.hidden && !menu.contains(e.target) && !sk.contains(e.target)) menu.hidden = true;
       var pop = foot.querySelector(".nda-case-pop"); if (pop && !pop.hidden && !pop.contains(e.target) && !e.target.closest(".nda-case-btn,.att")) pop.hidden = true;

@@ -1244,6 +1244,12 @@ html.desk .ewin .mscroll{overflow:hidden}
   ].map(function(r,i){return {id:'d'+i,type:r[0],title:r[1],date:day(r[2]),from:r[3],to:r[4],client:r[5],prop:r[6],desc:r[7],extra:''}});
   var events=[];
   function persist(){if(window.ND)ND.sync('events',events).catch(function(){})}
+  /* отметката на задачата: изпълнена ↔ неизпълнена (пази се в събитието като done) */
+  function toggleDone(b){if(!b)return;var ev=events.filter(function(x){return x.id===b.dataset.id})[0];if(!ev)return;
+    ev.done=!ev.done;if(ev.done)ev.doneAt=new Date().toISOString();else delete ev.doneAt;
+    b.classList.toggle('done',ev.done);var c=b.querySelector('.kchk');c.textContent=ev.done?'✅':'';c.setAttribute('aria-checked',String(ev.done));
+    c.setAttribute('aria-label',ev.done?'Изпълнена – отбележи като неизпълнена':'Отбележи като изпълнена');c.title=ev.done?'Изпълнена':'Отбележи като изпълнена';persist()}
+  document.addEventListener('keydown',function(e){var c=e.target&&e.target.closest&&e.target.closest('.kchk');if(c&&(e.key===' '||e.key==='Enter')){e.preventDefault();e.stopPropagation();toggleDone(c.closest('.kev'))}},true);
 
   /* ---------- scaling ---------- */
   var top=document.querySelector('.ktop'),photo=top.querySelector('.photo'),ctrls=[].slice.call(top.querySelectorAll('.ctrl,.avatar')),
@@ -1293,9 +1299,11 @@ html.desk .ewin .mscroll{overflow:hidden}
       var di=dates.map(iso).indexOf(e.date);if(di<0)return;
       var hr=Math.max(8,Math.min(18,Math.floor(mins(e.from)/60)));
       var cell=g.querySelector('.kg-c[data-date="'+e.date+'"][data-h="'+pad(hr)+':00"]');if(!cell)return;
-      var ty=typeOf(e.type),b=document.createElement('button');b.type='button';b.className='kev mk-'+(ty.mk||'teal');b.dataset.id=e.id;b.dataset.type=e.type;
+      var ty=typeOf(e.type),b=document.createElement('button');b.type='button';b.className='kev mk-'+(ty.mk||'teal')+(e.done?' done':'');b.dataset.id=e.id;b.dataset.type=e.type;
       b.title=e.from+'–'+e.to+' · '+e.title;b.setAttribute('aria-label',DAYS[di]+' '+e.from+'–'+e.to+': '+e.title);
-      b.innerHTML=EMO(ty)+'<span class="kt"><b>'+esc(e.title)+'</b><small>'+esc(e.from+' – '+e.to)+(e.client?' · '+esc(e.client):'')+'</small></span>';
+      b.innerHTML=EMO(ty)+'<span class="kt"><b>'+esc(e.title)+'</b><small>'+esc(e.from+' – '+e.to)+(e.client?' · '+esc(e.client):'')+'</small></span>'+
+        /* отметка „изпълнена“ накрая: ✅ и задрасканата задача */
+        '<span class="kchk" role="checkbox" tabindex="0" aria-checked="'+(e.done?'true':'false')+'" aria-label="'+(e.done?'Изпълнена – отбележи като неизпълнена':'Отбележи като изпълнена')+'" title="'+(e.done?'Изпълнена':'Отбележи като изпълнена')+'">'+(e.done?'✅':'')+'</span>';
       cell.appendChild(b)});
     upcoming();
   }
@@ -1328,6 +1336,7 @@ html.desk .ewin .mscroll{overflow:hidden}
     setTimeout(function(){if(fl.parentNode){fl.remove();flipping=false}},1400);
   });
   $('k-grid').addEventListener('click',function(e){
+    var ck=e.target.closest('.kchk');if(ck){e.stopPropagation();toggleDone(ck.closest('.kev'));return}
     var b=e.target.closest('.kev');if(b){openE(b.dataset.id,null,b);return}
     var c=e.target.closest('.kg-c');if(c)openE(null,{date:c.dataset.date,from:c.dataset.h},c)});
 

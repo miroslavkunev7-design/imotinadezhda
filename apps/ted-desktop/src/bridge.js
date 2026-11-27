@@ -5,6 +5,14 @@
 export let ted = typeof window !== "undefined" ? window.ted : undefined;
 
 export async function initBridge() {
+  if (import.meta.env.MODE === "web") {
+    // Уеб версията (imotinadezhda.bg/mobile/ted/, инсталира се от Chrome): същият интерфейс през сайта.
+    if (!ted) {
+      const web = await import("./web/bridge.web.js");
+      ted = web.createWebBridge();
+      if (typeof document !== "undefined") document.documentElement.classList.add("ted-web");
+    }
+  }
   if (import.meta.env.MODE === "mock") {
     if (!ted) {
       const mock = await import("./mock/bridge.mock.js");

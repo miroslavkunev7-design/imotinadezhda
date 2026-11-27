@@ -126,3 +126,13 @@ html:not(.desk) .kg-h{flex-direction:column;gap:2px;font-size:19px;letter-spacin
 html:not(.desk) .kg-h:not(.c0)::before{display:none}
 html:not(.desk) .kg-h small{font-size:17px}
 html:not(.desk) .kgrid{grid-template-rows:60px repeat(11,minmax(var(--rh,30px),auto))!important}
+/* отметка „изпълнена“ накрая на задачата: празно квадратче → ✅ (по-голямо, но в графата) и задраскан текст */
+html .kev .kchk{flex:none;align-self:center;display:grid;place-items:center;width:26px;height:26px;margin-left:auto;border-radius:7px;
+  background:rgba(255,255,255,.75);box-shadow:inset 0 0 0 2px rgba(122,18,38,.55),0 0 6px rgba(255,214,150,.5);font-size:22px;line-height:1;cursor:pointer;
+  font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+html .kev .kchk:hover{box-shadow:inset 0 0 0 2px #7a1226,0 0 10px rgba(246,212,142,.9)}
+html .kev .kchk:focus-visible{outline:2px solid #e6bf5b;outline-offset:2px}
+html .kev.done .kchk{background:none;box-shadow:none;font-size:26px}
+html .kev.done .kt b,html .kev.done .kt small{text-decoration:line-through;text-decoration-thickness:2.5px;text-decoration-color:#7a1226}
+html .kev.done .kt{opacity:.75}
+html.desk .kev .kchk{width:30px;height:30px;font-size:24px}html.desk .kev.done .kchk{font-size:30px}

@@ -24,7 +24,9 @@ const MSG = {
 export function decodeJwt(token) {
   try {
     const part = String(token).split(".")[1];
-    const claims = JSON.parse(Buffer.from(part, "base64url").toString("utf8"));
+    const json = typeof Buffer !== "undefined" ? Buffer.from(part, "base64url").toString("utf8")
+      : decodeURIComponent(escape(atob(part.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((part.length + 3) % 4)))); // уеб версията (браузър)
+    const claims = JSON.parse(json);
     return claims && typeof claims === "object" ? claims : null;
   } catch { return null; }
 }

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Defence in depth: the same policy (plus frame-ancestors) is sent as a response header by app://ted/ (electron/protocol.js META_CSP); vite.config.mjs fails the build if they differ. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https:; font-src 'self'; media-src 'self' data: blob:; connect-src 'self' https://hyvwfsmjbaynozceookv.supabase.co https:; frame-src 'none'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Тед – Имоти Надежда</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#7a1226" />
+    <link rel="icon" href="icons/ted-192.png" />
+    <link rel="apple-touch-icon" href="icons/ted-192.png" />
+    <script src="register-sw.js" defer></script>
+    <script type="module" crossorigin src="./assets/index-CE4yWaY4.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-ub-VBd2B.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
