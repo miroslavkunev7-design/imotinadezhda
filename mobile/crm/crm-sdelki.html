@@ -954,6 +954,12 @@ html.desk .fwin .mscroll{overflow:hidden}
 <symbol id="armchair" viewBox="0 0 24 24"> <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"/> <path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z"/> <path d="M5 18v2"/> <path d="M19 18v2"/></symbol>
 <symbol id="link" viewBox="0 0 24 24"> <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/> <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
 <symbol id="globe" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10"/> <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/> <path d="M2 12h20"/></symbol>
+<symbol id="copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+<symbol id="rotate-cw" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></symbol>
+<symbol id="file-down" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></symbol>
+<symbol id="sheet" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M3 15h18M9 9v12M15 9v12"/></symbol>
+<symbol id="bookmark-plus" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/><path d="M12 7v6M9 10h6"/></symbol>
+<symbol id="table-2" viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></symbol>
 <symbol id="funnel" viewBox="0 0 24 24"> <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
   </defs>
 </svg>
@@ -995,8 +1001,11 @@ html.desk .fwin .mscroll{overflow:hidden}
         <label class="v3-sel"><svg class="i"><use href="#contact-round"/></svg><span class="v3-sl"><small>Брокер</small><b class="val">Всички</b></span><svg class="i chev"><use href="#chev-d"/></svg><select id="v3-broker" aria-label="Брокер"></select></label>
         <label class="v3-sel"><svg class="i"><use href="#landmark"/></svg><span class="v3-sl"><small>Плащане</small><b class="val">Всички</b></span><svg class="i chev"><use href="#chev-d"/></svg><select id="v3-pay" aria-label="Плащане"></select></label>
         <label class="v3-sel"><svg class="i"><use href="#arrow-up-down"/></svg><span class="v3-sl"><small>Подредба</small><b class="val">Най-нови</b></span><svg class="i chev"><use href="#chev-d"/></svg><select id="v3-sort" aria-label="Подредба"></select></label>
+        <div class="v3-view" id="v3-view" role="group" aria-label="Изглед"><button type="button" data-view="cards" aria-pressed="true"><svg class="i"><use href="#layout-grid"/></svg><span>Карти</span></button><button type="button" data-view="table" aria-pressed="false"><svg class="i"><use href="#table-2"/></svg><span>Таблица</span></button></div>
       </div>
     </div>
+    <div class="v4-tbl" id="v4-tbl" hidden></div>
+    <div class="v4-card" id="v4-card" hidden></div>
     <div class="dhost" id="dhost"></div>
   </div>
 </div>
@@ -1051,6 +1060,7 @@ html.desk .fwin .mscroll{overflow:hidden}
 <script src="crm-assistant.js"></script>
 <script src="crm-collect.js"></script>
 <script src="crm-video.js"></script>
+<script src="crm-sdelki-v4.js"></script>
 <script>
 (function(){
   'use strict';
@@ -1098,7 +1108,7 @@ html.desk .fwin .mscroll{overflow:hidden}
      • картите: чип за етапа, страни и имот, плочки цена / комисионна / капаро / следващ срок (червено при просрочие);
      • формата „Нова сделка“ се отваря само от „Нова сделка“ или молива и се затваря при запис / отказ;
        полетата са подредени: Страни → Сделка → Финанси → Комисионна → Срокове и нотариус → Особени обстоятелства. */
-  var v3map={},v3obs=null,v3raf=0,v3busy=false,v3after=null;
+  var v3props=[],v3map={},v3obs=null,v3raf=0,v3busy=false,v3after=null;
   var V3F={stage:'',kind:'',broker:'',pay:'',sort:'new'};
   var V3STG=[['','Всички'],['Нова','Нова'],['Оглед','Оглед'],['Оферта','Оферта'],['Предварителен договор','Предварителен договор'],['Нотариус','Нотариус'],['Приключена','Приключени'],['Отказана','Отказани']];
   var V3KIND=['Продажба','Покупка','Наем','Отдаване под наем','Замяна','Лизинг'],V3PAY=['Кеш','Банков кредит','Кеш + кредит','Лизинг','Замяна'];
@@ -1114,6 +1124,18 @@ html.desk .fwin .mscroll{overflow:hidden}
   function v3today(){var t=new Date();return t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2)}
   function v3closed(st){return /Приключ|Отказ/i.test(String(st||''))}
   function v3cls(st){st=String(st||'');return /Приключ|Продаден/i.test(st)?'sold':/Предварителен|Нотариус|Капаро|Резерв|Депозит/i.test(st)?'gold':/^Нова|Чернова|Отказ/i.test(st)?'grey':'wine'}
+  /* 27.11: комисионна на сделка – купувач + продавач/горница; без цена се смята от кредита; невалиден % (>100) не се брои */
+  function v3n(v){v=Number(v);return isFinite(v)?v:0}
+  function v3com(d){
+    d=d||{};var P=v3n(d.amount)||v3n(d.loan),cb=d.comm_buyer_pct,sm=d.comm_seller_mode||'pct',sv=d.comm_seller_val;
+    if(cb==null&&sv==null&&d.commission_pct){if(/Продавача|Наемодателя/.test(d.comm_from||''))sv=d.commission_pct;else cb=d.commission_pct}
+    cb=v3n(cb);sv=v3n(sv);if(cb>100)cb=0;
+    var b=P*cb/100,s=sm==='sqm'?sv*v3n(d.area):sm==='eur'?sv:(sv>100?0:P*sv/100);
+    var net=b+s;if(!net&&v3n(d.comm_total))net=v3n(d.comm_total);
+    var k=1+v3n(d.vat)/100,gross=net*k,pb=d.paid_buyer,ps=d.paid_seller;
+    var paid=(pb==null&&ps==null)?Math.min(v3n(d.paid),gross):Math.min(v3n(pb),b*k)+Math.min(v3n(ps),s*k);
+    return {price:P,buyer:b,seller:s,net:net,vat:gross-net,gross:gross,paid:paid,left:Math.max(0,gross-paid),mode:sm,cb:cb}
+  }
   function v3chip(st){return '<span class="v3-chip '+v3cls(st)+'"><i></i>'+v3esc(st||'—')+'</span>'}
   function v3spec(icon,val,lab,cls){return '<div class="v3-spec'+(cls?' '+cls:'')+'"><span class="si">'+v3ic(icon)+'</span><div><b'+(val?'':' class="emp"')+'>'+v3esc(val||'—')+'</b><span>'+v3esc(lab)+'</span></div></div>'}
   /* следващата стъпка: най-близкият бъдещ срок (нотариус / краен срок); при отминал срок – червено */
@@ -1131,7 +1153,7 @@ html.desk .fwin .mscroll{overflow:hidden}
   function v3watch(){
     var D=window.ND;if(!D||D._v3)return;D._v3=1;
     var L=D.load,P=D.put,X=D.del;
-    D.load=function(k){var r=L.apply(this,arguments);if(k==='deals')r.then(function(l){l.forEach(function(x){v3map[x.id]=x});v3go()}).catch(function(){});return r};
+    D.load=function(k){var r=L.apply(this,arguments);if(k==='properties')r.then(function(l){v3props=l||[];if(window.NDDealsAPI)window.NDDealsAPI.props=v3props;v3go()}).catch(function(){});if(k==='deals')r.then(function(l){l.forEach(function(x){v3map[x.id]=x});v3go()}).catch(function(){});return r};
     D.put=function(k){var r=P.apply(this,arguments);if(k==='deals')r.then(function(x){if(x&&x.id)v3map[x.id]=x;v3close(false);v3go()}).catch(function(){});return r};
     D.del=function(k,id){var r=X.apply(this,arguments);if(k==='deals')r.then(function(){delete v3map[id];v3go()}).catch(function(){});return r};
     v3obs=new MutationObserver(v3go);v3obs.observe($('dhost'),{childList:true,subtree:true});
@@ -1198,17 +1220,23 @@ html.desk .fwin .mscroll{overflow:hidden}
     else if(none)none.remove();
     var filt=V3F.stage||V3F.kind||V3F.broker||V3F.pay||q;
     $('v3-cnt').textContent='('+(filt?vis+' от '+all.length:all.length)+')';
-    v3kpi(all);
+    var vl=v3rows().filter(function(r){return r.style.display!=='none'}).map(v3deal).filter(Boolean);
+    v3kpi(vl,all);
+    if(window.NDDeals4)window.NDDeals4.render(vl,all);
   }
   /* --- обобщение от всички сделки --- */
-  function v3kpi(all){
-    var U=v3U(),act=all.filter(function(d){return !v3closed(d.stage)}),t=v3today();
-    var com=act.reduce(function(a,d){return a+(U.commTotal?U.commTotal(d):0)},0);
-    var dep=all.filter(function(d){return !/Отказ/i.test(d.stage||'')}).reduce(function(a,d){return a+(Number(d.deposit)||0)},0);
-    var nx=null;act.forEach(function(d){[['Нотариус',d.d_notary],['Краен срок',d.deadline]].forEach(function(x){if(x[1]&&x[1]>=t&&(!nx||x[1]<nx.date))nx={date:x[1],lab:x[0],title:d.title||''}})});
-    $('v3-kpi').innerHTML=v3spec('handshake',String(act.length),'Активни сделки')+v3spec('coins',v3m(com),'Очаквана комисионна')+v3spec('circle-dollar-sign',v3m(dep),'Получено капаро')+
-      (nx?'<div class="v3-spec v3-nx"><span class="si">'+v3ic('calendar-check')+'</span><div><b>'+v3esc(v3d(nx.date))+'</b><span>Следващ срок</span><small>'+v3esc(nx.lab+' · '+nx.title)+'</small></div></div>'
-        :v3spec('calendar-check','Няма','Следващ срок'));
+  function v3kpi(list,all){
+    var act=list.filter(function(d){return !v3closed(d.stage)}),t=v3today(),tot=0,left=0,got=0,dep=0,nd=0,nx=null,late=null;
+    act.forEach(function(d){var c=v3com(d);tot+=c.gross;left+=c.left;got+=c.paid});
+    list.forEach(function(d){if(/Отказ/i.test(d.stage||''))return;var v=v3n(d.deposit);if(v){dep+=v;nd++}});
+    act.forEach(function(d){[['Оглед',d.d_view],['Предварителен договор',d.d_pre],['Нотариус',d.d_notary],['Краен срок',d.deadline]].forEach(function(x){if(!x[1])return;
+      var o={date:x[1],lab:x[0],title:d.title||''};if(x[1]>=t){if(!nx||x[1]<nx.date)nx=o}else if(!late||x[1]<late.date)late=o})});
+    var box=function(icon,val,lab,sub,cls){return '<div class="v3-spec'+(cls?' '+cls:'')+'"><span class="si">'+v3ic(icon)+'</span><div><b>'+v3esc(val)+'</b><span>'+v3esc(lab)+'</span>'+(sub?'<small>'+v3esc(sub)+'</small>':'')+'</div></div>'};
+    var cl=list.length-act.length,dl=late||nx;
+    $('v3-kpi').innerHTML=box('handshake',String(act.length),'Активни сделки',(list.length!==all.length?'от '+list.length+' по филтъра':'от '+all.length+' общо')+(cl?' · '+cl+' приключени/отказани':''))+
+      box('coins',v3m(left),'Очаквана комисионна',got?'общо '+v3m(tot)+' · взети '+v3m(got):'общо по активните сделки')+
+      box('circle-dollar-sign',v3m(dep),'Получено капаро',nd?'по '+nd+(nd===1?' сделка':' сделки'):'няма въведено капаро')+
+      (dl?box(late?'clock':'calendar-check',v3d(dl.date),late?'Просрочен срок':'Следващ срок',dl.lab+' · '+dl.title,'v3-nx next '+(late?'late':'')):box('calendar-check','Няма','Следващ срок','няма предстоящи дати'));
   }
   /* --- картите и формата --- */
   function v3dress(){
@@ -1223,8 +1251,8 @@ html.desk .fwin .mscroll{overflow:hidden}
         var ln=document.createElement('div');ln.className='v3-line';ln.innerHTML=v3chip(d.stage)+'<em>'+v3esc(d.kind||'Сделка')+(d.broker?' · '+v3esc(d.broker):'')+'</em>';tx.appendChild(ln);
         var pt=document.createElement('div');pt.className='v3-parties';
         pt.innerHTML=pv('user',/наем/i.test(d.kind||'')?'Наемател':'Купувач',d.client)+pv('user-round',/наем/i.test(d.kind||'')?'Наемодател':'Продавач',d.seller)+pv('house','Имот',d.property);tx.appendChild(pt)}
-      var nx=v3next(d),ct=U.commTotal?U.commTotal(d):0,sp=document.createElement('div');sp.className='v3-specs';
-      sp.innerHTML=v3spec('coins',d.amount?v3m(d.amount):'','Цена')+v3spec('handshake',ct?v3m(ct):'','Комисионна')+v3spec('circle-dollar-sign',d.deposit?v3m(d.deposit):'','Капаро')+
+      var nx=v3next(d),ct=v3com(d).net,sp=document.createElement('div');sp.className='v3-specs';
+      sp.innerHTML=(d.amount||!d.loan?v3spec('coins',d.amount?v3m(d.amount):'','Цена'):v3spec('landmark',v3m(d.loan),'Кредит'))+v3spec('handshake',ct?v3m(ct):'','Комисионна')+v3spec('circle-dollar-sign',d.deposit?v3m(d.deposit):'','Капаро')+
         (nx?v3spec(nx.cls==='late'?'clock':'calendar-check',v3d(nx.date),nx.lab,'next '+nx.cls):v3spec('calendar-check','','Срок'));
       r.appendChild(sp);
     });
@@ -1246,6 +1274,12 @@ html.desk .fwin .mscroll{overflow:hidden}
         if(mode==='edit')v3open();
       }
     }
+    /* 27.11: „Редакция на сделка“ – един цял блок, разделите са секции вътре в него */
+    if(body&&body.querySelector('.v3-g-deal')&&!body.querySelector('.v3-blk')){
+      var blk=document.createElement('div');blk.className='wide v3-blk';blk.style.setProperty('--ph','url('+v3img(V3G['Сделка'])+')');
+      var fh0=body.querySelector('.v3-fh');body.insertBefore(blk,fh0||body.firstChild);if(fh0)blk.appendChild(fh0);
+      [].slice.call(body.querySelectorAll('.ndg')).forEach(function(g,i){blk.appendChild(g);g.classList.toggle('v3-l',i%2===0)});
+    }
     if(body){
       var stg=body.querySelector('#s-stage');
       if(stg&&!stg._v3){stg._v3=1;var ef=stg.closest('.ef'),c=document.createElement('span');c.className='v3-stw';ef.appendChild(c);
@@ -1256,6 +1290,8 @@ html.desk .fwin .mscroll{overflow:hidden}
     if(v3busy&&host.querySelector('#s-title')){v3busy=false;var cb=v3after;v3after=null;if(cb)cb()}
     v3apply();
   }
+  window.NDDealsAPI={props:v3props,map:v3map,com:v3com,next:v3next,chip:v3chip,cls:v3cls,closed:v3closed,img:v3img,ph:V3PH,money:v3m,date:v3d,esc:v3esc,ic:v3ic,reinit:v3reinit,
+    edit:function(id){var b=document.querySelector('#g-deals button[data-ed="'+id+'"]');if(b)b.click()},refresh:function(){v3apply()}};
   start();
   $('o-new').addEventListener('click',function(){v3new(function(){var t=document.getElementById('s-title');if(t){t.scrollIntoView({behavior:'smooth',block:'center'});t.focus()}})});
   $('o-q').addEventListener('input',v3apply);
