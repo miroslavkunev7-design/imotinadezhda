@@ -85,6 +85,7 @@ export const CONFIRM = new Set([
 export const AUTO_EXTRA = new Set([
   "email.preview", "documents.inspect", "contacts.resolve", "audit.recent", "nc.help", "projects.list", "projects.get",
   "units.list", "units.get", "models.get", "tour.get", "jobs.result", "memory.search", "documents.download_link",
+  "visits.stats", "deals.finance", "mail.read", "agents.usage", // 0.1.10: reads without a marker word in the name
 ]);
 // Files made into Ted's own folder „Тед“ without a CRM target; none of them runs an AI (files.to_pdf only without
 // `group_by_type`). images.generate and documents.translate ran Gemini/AI Gateway – they are SERVER_AI now.

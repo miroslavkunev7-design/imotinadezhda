@@ -23,8 +23,8 @@ describe("tools allowlist", () => {
     const s = fakeSession(() => reply(200, { ok: true, result: {} }));
     const tools = createTools({ session: s });
     const others = KNOWN_TOOLS.filter((n) => !READ_ONLY.includes(n));
-    expect(KNOWN_TOOLS).toHaveLength(108);
-    expect(others).toHaveLength(108 - READ_ONLY.length);
+    expect(KNOWN_TOOLS).toHaveLength(115);
+    expect(others).toHaveLength(115 - READ_ONLY.length);
     for (const name of [...others, "email.send", "clients.delete", "memory.forget", "cases.create", "", "CLIENTS.SEARCH", "clients.search ", "constructor", "__proto__", null, undefined, 5, {}]) {
       const out = await tools.read(name, { confirm: true });
       expect(out, String(name)).toMatchObject({ ok: false, code: "forbidden" });

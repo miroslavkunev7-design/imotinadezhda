@@ -11,6 +11,7 @@ const TABLE = {
     "collected.list", "contacts.resolve", "email.preview", "memory.search", "cases.list",
     "cases.get", "audit.recent", "nc.help", "projects.list", "projects.get", "units.list", "units.get", "jobs.result",
     "interior.get_scene", "tour.get", "tour.get_authorized_asset", "cad.inspect", "models.get",
+    "visits.stats", "deals.finance", "mail.list", "mail.read", "chats.list", "agents.usage",
   ],
   generate: ["images.download", "documents.merge", "documents.split", "documents.create_pdf", "files.to_pdf"],
   approval: [
@@ -21,6 +22,7 @@ const TABLE = {
     "projects.create_draft", "projects.update", "buildings.upsert", "floors.upsert", "units.upsert",
     "jobs.cancel", "interior.geometry_save", "interior.geometry_verify", "interior.style_save", "interior.prepare",
     "interior.validate", "tour.render", "tour.report", "tour.edit", "tour.validate", "tours.request", "models.request",
+    "calendar.done",
   ],
   confirm: [
     "clients.delete", "calendar.delete", "properties.set_status", "units.set_status", "projects.mark_reviewed", "projects.publish",
@@ -36,10 +38,10 @@ const TABLE = {
 };
 
 describe("gate table", () => {
-  it("covers all 108 server tools exactly once", () => {
+  it("covers all 115 server tools exactly once", () => {
     const all = Object.values(TABLE).flat();
-    expect(all).toHaveLength(108);
-    expect(new Set(all).size).toBe(108);
+    expect(all).toHaveLength(115);
+    expect(new Set(all).size).toBe(115);
     expect([...all].sort()).toEqual([...STAFF_TOOLS].sort());
   });
 
@@ -128,7 +130,7 @@ describe("no other AI in Real GPT", () => {
     expect([...SERVER_AI.keys()].sort()).toEqual([...TABLE.ai, "video.create"].sort());
     const offered = crmTools(null).map((t) => t.name);
     for (const name of SERVER_AI.keys()) expect(offered, name).not.toContain(name);
-    expect(offered).toHaveLength(108 - TABLE.never.length - TABLE.ai.length);
+    expect(offered).toHaveLength(115 - TABLE.never.length - TABLE.ai.length);
     // Plain data tools stay: property upload, photos to a property, PDFs, contracts, e-mail draft.
     expect(offered).toEqual(expect.arrayContaining(["properties.create", "properties.update", "files.attach", "files.to_pdf", "documents.merge", "documents.split", "contracts.generate", "email.preview", "documents.inspect"]));
   });

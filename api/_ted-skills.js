@@ -675,7 +675,7 @@ const tools = {
     description: "За клиент: намира банковите извлечения (предпочита преводите, ако prefer_translations), проверява периодите им, подрежда ги по месеци за последните N месеца и ги обединява в един PDF. Връща файла и липсващите месеци. Не измисля документи.",
     input: schema({ client_id: S("string"), client_name: S("string", { max: 120 }), months: S("number", { min: 1, max: 36, default: 12 }), prefer_translations: S("boolean", { default: true }), title: S("string", { max: 120 }) }),
     run: async (ctx, i) => {
-      const c = await clientOf(ctx, i.client_id, i.client_name); if (!c) throw new ToolError("Посочете клиент");
+      const c = await clientOf(ctx, i.client_id, i.client_name); /* без клиент: образец с празни места за попълване (записва се в „Тед“) */
       const docs = (await rows(ctx, "documents", (q) => q.eq("client_id", c.id))).filter((d) => /pdf|image/i.test(d.mime || "") || /\.(pdf|jpe?g|png)$/i.test(d.name || ""));
       if (!docs.length) throw new ToolError("Клиентът няма качени документи");
       const found = [];
@@ -758,6 +758,112 @@ const tools = {
       const q = (i.text || "").toLocaleLowerCase("bg");
       const all = (await rows(ctx, "collected")).filter((x) => x.kind !== "settings" && (!i.kind || x.kind === i.kind) && (!q || [x.title, x.city, x.hood, x.phone, x.text, x.source].join(" ").toLocaleLowerCase("bg").includes(q)));
       return { count: all.length, items: all.slice(0, 40).map((x) => ({ id: x.id, kind: x.kind, title: x.title, price: x.price, city: x.city, hood: x.hood, phone: x.phone, name: x.name, source: x.source, link: x.link, at: x.collected_at, archived: !!x.archived })) };
+    }
+  },
+  /* ---------- 27.11: нови умения – посещения, финанси по сделки, отметка на задача, поща, чатове, лимити ---------- */
+  "visits.stats": {
+    description: "Посещения на публичния сайт (без брокерите): общо, днес, последните 7 дни и кои имоти се гледат най-много (код, заглавие, брой). Ползвай при „колко хора влязоха в сайта“, „кой имот се гледа“.",
+    input: schema({ top: S("number", { min: 1, max: 30, default: 10 }) }),
+    run: async (ctx, i) => {
+      const { data, error } = await ctx.sb.rpc("nd_visit_stats"); if (error) throw new ToolError(error.message);
+      const st = data || {}, props = st.props || {}, week = st.props_week || {};
+      const ids = Object.keys(props).sort((a, b) => props[b] - props[a]).slice(0, i.top || 10);
+      let map = {};
+      if (ids.length) { const r = await ctx.sb.from("nd_properties").select("id,data").in("id", ids); (r.data || []).forEach((x) => { map[x.id] = x.data || {}; }); }
+      return { site_total: st.total || 0, site_today: st.today || 0, site_week: st.week || 0,
+        top_properties: ids.map((id) => ({ id, code: (map[id] && map[id].code) || null, title: (map[id] && map[id].title) || null, views: props[id], views_week: week[id] || 0 })),
+        note: "Броят само посетители на сайта; посещенията на брокерите не се броят." };
+    }
+  },
+  "deals.finance": {
+    description: "Финанси по сделките (като таблицата и „Карта на сделка“ в CRM): за всяка сделка – цена, комисионна от купувача, горница/от продавача, общ приход, удръжки (дял на консултант, ДДС, добавени графи), нетна печалба, взето/остава, етап. Плюс общо: активни сделки, очаквани приходи, получено капаро, нетно. Филтри: id, stage, text, include_closed.",
+    input: schema({ id: S("string"), stage: S("string", { max: 40 }), text: S("string", { max: 120 }), include_closed: S("boolean") }),
+    run: async (ctx, i) => {
+      const n = (v) => { v = Number(v); return isFinite(v) ? v : 0; }, r2 = (v) => Math.round(v * 100) / 100;
+      const q = (i.text || "").toLocaleLowerCase("bg");
+      const all = (await rows(ctx, "deals")).filter((d) => (!i.id || d.id === i.id) && (!i.stage || d.stage === i.stage) && (!q || [d.title, d.client, d.seller, d.property, d.broker].join(" ").toLocaleLowerCase("bg").includes(q)));
+      const closed = (st) => /Приключ|Отказ/i.test(st || "");
+      const list = all.filter((d) => i.id || i.include_closed || !closed(d.stage));
+      const calc = (d) => {
+        const P = n(d.amount) || n(d.loan); let cb = n(d.comm_buyer_pct); if (cb > 100) cb = 0;
+        const sm = d.comm_seller_mode || "pct", sv = n(d.comm_seller_val), x = d.dyn || {}, ov = x.ov || {}, rws = x.rows || {};
+        const o = (k, def) => (ov[k] != null && ov[k] !== "" ? n(ov[k]) : def);
+        const b = o("a_client", P * cb / 100), s = o("a_markup", sm === "sqm" ? sv * n(d.area) : sm === "eur" ? sv : (sv > 100 ? 0 : P * sv / 100));
+        let inc = b + s, ded = Math.abs(o("a_cons", 0));
+        (rws.a || []).forEach((r) => { const v = Math.abs(n(r.v)); if (r.s < 0) ded += v; else inc += v; });
+        if (!inc && n(d.comm_total)) inc = n(d.comm_total);
+        const vat = (b + s) * n(d.vat) / 100; ded += vat;
+        const gross = (b + s) * (1 + n(d.vat) / 100), paid = d.paid_buyer == null && d.paid_seller == null ? n(d.paid) : n(d.paid_buyer) + n(d.paid_seller);
+        return { id: d.id, title: d.title || "", stage: d.stage || "", kind: d.kind || "", client: d.client || null, property: d.property || null, price: P || null, loan: n(d.loan) || null,
+          commission_buyer: r2(b), commission_buyer_pct: cb || null, seller_part: r2(s), seller_mode: sm, income: r2(inc), deductions: r2(ded), vat: r2(vat), net_profit: r2(inc - ded),
+          paid: r2(paid), remaining: r2(Math.max(0, gross - paid)), deposit: n(d.deposit) || null, notary: d.d_notary || null, deadline: d.deadline || null };
+      };
+      const out = list.map(calc), act = out.filter((x) => !closed(x.stage));
+      const sum = (arr, k) => r2(arr.reduce((a, x) => a + n(x[k]), 0));
+      return { count: out.length, totals: { active: act.length, expected_income: sum(act, "income"), expected_remaining: sum(act, "remaining"), deductions: sum(act, "deductions"), net_profit: sum(act, "net_profit"), received: sum(act, "paid"),
+        deposits: r2(all.filter((d) => !/Отказ/i.test(d.stage || "")).reduce((a, d) => a + n(d.deposit), 0)) }, deals: out.slice(0, 40) };
+    }
+  },
+  "calendar.done": {
+    description: "Отбелязва задача/събитие от календара като изпълнено ✅ (done=true) или го връща като неизпълнено (done=false) – като отметката в планера. id от calendar.list.",
+    input: schema({ id: S("string", { required: true }), done: S("boolean", { default: true }) }),
+    run: async (ctx, i) => {
+      const ev = await ctx.sb.from("nd_events").select("id,data").eq("id", i.id).maybeSingle(); if (ev.error || !ev.data) throw new ToolError("Няма събитие " + i.id, 404);
+      const done = i.done !== false, data = Object.assign({}, ev.data.data, { done, doneAt: done ? new Date().toISOString() : null });
+      const u = await ctx.sb.from("nd_events").update({ data }).eq("id", i.id).select("id").maybeSingle(); if (u.error) throw new ToolError(u.error.message);
+      if (!u.data) throw new ToolError("Нямате права да промените тази задача (личен календар на друг брокер).", 403);
+      return { id: i.id, title: data.title || "", date: data.date || null, done };
+    }
+  },
+  "mail.list": {
+    description: "Пощата в CRM (входящи и изпратени писма): от кого, тема, дата, прочетено ли е, прикачени файлове. Филтри: folder (in|sent), unread (само непрочетени), text (търсене в тема/подател/текст), limit.",
+    input: schema({ folder: S("string", { enum: ["in", "sent"] }), unread: S("boolean"), text: S("string", { max: 120 }), limit: S("number", { min: 1, max: 50, default: 20 }) }),
+    run: async (ctx, i) => {
+      const { data, error } = await ctx.sb.from("nd_mail").select("id,data,created_at").order("created_at", { ascending: false }).limit(500); if (error) throw new ToolError(error.message);
+      const q = (i.text || "").toLocaleLowerCase("bg");
+      const all = (data || []).map((r) => Object.assign({ id: r.id, created_at: r.created_at }, r.data || {}))
+        .filter((m) => (!i.folder || (m.folder || "in") === i.folder) && (!i.unread || !m.read) && (!q || [m.subject, m.from, m.from_name, m.to, m.text].join(" ").toLocaleLowerCase("bg").includes(q)));
+      return { count: all.length, unread: all.filter((m) => !m.read && (m.folder || "in") === "in").length,
+        mails: all.slice(0, i.limit || 20).map((m) => ({ id: m.id, folder: m.folder || "in", from: m.from_name ? m.from_name + " <" + m.from + ">" : m.from || null, to: m.to || null, subject: m.subject || "(без тема)", at: m.at || m.created_at, read: !!m.read, attachments: Array.isArray(m.attachments) ? m.attachments.length : 0, preview: String(m.text || "").replace(/\s+/g, " ").slice(0, 160) })) };
+    }
+  },
+  "mail.read": {
+    description: "Чете едно писмо от пощата в CRM по id (от mail.list): подател, получател, тема, дата, целият текст (до ~6000 знака) и прикачените файлове. mark_read=true го отбелязва като прочетено.",
+    input: schema({ id: S("string", { required: true }), mark_read: S("boolean") }),
+    run: async (ctx, i) => {
+      const r = await ctx.sb.from("nd_mail").select("id,data,created_at").eq("id", i.id).maybeSingle(); if (r.error || !r.data) throw new ToolError("Няма писмо " + i.id, 404);
+      const m = r.data.data || {};
+      if (i.mark_read && !m.read) await ctx.sb.from("nd_mail").update({ data: Object.assign({}, m, { read: true }) }).eq("id", i.id);
+      const text = String(m.text || String(m.html || "").replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/gi, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ")).replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+      return { id: i.id, folder: m.folder || "in", from: m.from_name ? m.from_name + " <" + m.from + ">" : m.from || null, to: m.to || null, cc: m.cc || null, subject: m.subject || "(без тема)", at: m.at || r.data.created_at,
+        text: text.slice(0, 6000), truncated: text.length > 6000, attachments: (Array.isArray(m.attachments) ? m.attachments : []).map((a) => ({ name: a.name || a.filename || "файл", size: a.size || null, path: a.path || null })) };
+    }
+  },
+  "chats.list": {
+    description: "Разговорите от Messenger / Instagram / WhatsApp, записани в CRM Чат: канал, име, телефон, последно съобщение, кога, непрочетени. chat_id + messages=true връща и последните съобщения. Бележка: новите съобщения идват автоматично само докато връзката с Meta работи.",
+    input: schema({ platform: S("string", { max: 20 }), chat_id: S("string"), messages: S("boolean"), limit: S("number", { min: 1, max: 50, default: 20 }) }),
+    run: async (ctx, i) => {
+      let q = ctx.sb.from("nd_chats").select("id,data,platform,last_at").order("last_at", { ascending: false, nullsFirst: false }).limit(200);
+      if (i.chat_id) q = q.eq("id", i.chat_id); if (i.platform) q = q.eq("platform", i.platform);
+      const { data, error } = await q; if (error) throw new ToolError(error.message);
+      const chats = (data || []).map((r) => ({ id: r.id, platform: r.platform || (r.data && r.data.platform) || null, name: r.data && r.data.name || null, phone: r.data && r.data.phone || null, client: r.data && r.data.client || null,
+        last_text: r.data && String(r.data.last_text || "").slice(0, 200), last_at: r.last_at || (r.data && r.data.last_at) || null, last_from: r.data && r.data.last_dir === "out" ? "агенцията" : "клиента", unread: (r.data && r.data.unread) || 0 })).slice(0, i.limit || 20);
+      let messages;
+      if (i.chat_id && i.messages) {
+        const m = await ctx.sb.from("nd_chat_msgs").select("id,data,at").eq("chat_id", i.chat_id).order("at", { ascending: false }).limit(40); if (m.error) throw new ToolError(m.error.message);
+        messages = (m.data || []).reverse().map((x) => ({ at: x.at, from: x.data && x.data.dir === "out" ? "агенцията" : "клиента", text: x.data && x.data.text || "", attachments: x.data && Array.isArray(x.data.attachments) ? x.data.attachments.length : 0 }));
+      }
+      return { count: chats.length, unread_total: chats.reduce((a, c) => a + (c.unread || 0), 0), chats, ...(messages ? { messages } : {}) };
+    }
+  },
+  "agents.usage": {
+    description: "Лимитите на агентите в чата на Тед (Безплатни агенти, Real ChatGPT, Агенти n8n): изразходвани / лимит за деня или месеца, колко остават и дали лимитът е изчерпан.",
+    input: schema({}),
+    run: async (ctx) => {
+      const { data, error } = await ctx.sb.rpc("nd_agent_stats"); if (error) throw new ToolError(error.message);
+      const names = { free: "Безплатни агенти (Тед · Gemini)", chatgpt: "Real ChatGPT", n8n: "Агенти n8n" };
+      return { agents: Object.keys(data || {}).map((k) => { const a = data[k] || {}, lim = Number(a.limit) || 0, used = Number(a.used) || 0;
+        return { agent: k, name: names[k] || k, used, limit: lim || null, per: a.per === "day" ? "ден" : "месец", remaining: lim ? Math.max(0, lim - used) : null, exhausted: !!lim && used >= lim, shown: lim ? Math.min(used, lim) + " / " + lim : used + " / ∞" }; }) };
     }
   },
   /* ---------- Компании и служители (nd_companies) ---------- */
@@ -938,19 +1044,19 @@ const tools = {
     input: schema({ kind: S("string", { required: true, enum: ["pre", "rent", "rent-mgmt", "exclusive", "broker-seller", "broker-buyer", "deposit", "deposit-rent", "viewing", "viewing-rent", "power"] }), client_id: S("string"), client_name: S("string", { max: 120 }), property_id: S("string"), property_code: S("string", { max: 30 }), seller_client_id: S("string"), fields: S("object", { default: {} }) }),
     run: async (ctx, i) => {
       const CT = require("../mobile/crm/crm-contracts.js");
-      const c = await clientOf(ctx, i.client_id, i.client_name); if (!c) throw new ToolError("Посочете клиент");
+      const c = await clientOf(ctx, i.client_id, i.client_name); /* без клиент: образец с празни места за попълване (записва се в „Тед“) */
       let p = null;
       if (i.property_id) p = await row(ctx, "properties", i.property_id); else if (i.property_code) { const all = await rows(ctx, "properties"); p = all.filter((x) => String(x.code || "").toLowerCase() === i.property_code.toLowerCase())[0] || null; if (!p) throw new ToolError("Няма имот с код " + i.property_code, 404); }
       const s = i.seller_client_id ? await row(ctx, "clients", i.seller_client_id) : null;
       const f = Object.assign({ date: new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Sofia" }), place: "гр. Шумен", commission: /^viewing-rent$/.test(i.kind) ? 50 : 3, copies: 3 }, i.fields || {});
-      const r = CT.render(i.kind, f, c, s, p);
+      const r = CT.render(i.kind, f, c || {}, s, p);
       const blocks = htmlToBlocks(r.html);
       const buf = await textPdf(blocks, { footer: "Недвижими Имоти Надежда · " + r.title }), name = safeName(r.title) + ".pdf", path0 = artPath(c, name);
       await upload(ctx, path0, buf, "application/pdf");
       const missing = (r.html.match(/[…]{3,}|\.{6,}/g) || []).length, pages = (await loadPdf(buf)).getPageCount();
       const art = await registerArtifact(ctx, c, name, path0, buf.length, "application/pdf", "Договори", "Тед изготви: " + r.title);
       /* регистър на договорите (nd_contracts): връзка договор ↔ клиент ↔ имот */
-      await put(ctx, "contracts", { kind: i.kind, title: r.title, client_id: c.id, client: c.name || "", seller_id: s ? s.id : "", seller: s ? s.name || "" : (p && p.client) || "", prop_id: p ? p.id : "", prop_code: p ? p.code || "" : "", prop: p ? p.title || "" : "", date: f.date, pages, fields: i.fields || {}, path: path0, document_id: art.document_id, at: new Date().toISOString(), by: "ted" }).catch(() => null);
+      await put(ctx, "contracts", { kind: i.kind, title: r.title, client_id: c ? c.id : "", client: c ? c.name || "" : "", seller_id: s ? s.id : "", seller: s ? s.name || "" : (p && p.client) || "", prop_id: p ? p.id : "", prop_code: p ? p.code || "" : "", prop: p ? p.title || "" : "", date: f.date, pages, fields: i.fields || {}, path: path0, document_id: art.document_id, at: new Date().toISOString(), by: "ted" }).catch(() => null);
       return Object.assign({ kind: i.kind, title: r.title, pages, blanks_to_fill: missing, note: "Образец за преглед от служител/адвокат, не е подписан документ." }, art);
     }
   },

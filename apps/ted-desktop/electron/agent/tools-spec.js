@@ -28,6 +28,8 @@ export const STAFF_TOOLS = [
   "interior.get_scene", "interior.validate", "interior.approve", "tour.render", "tour.report", "tour.edit", "tour.validate",
   "tour.publish", "tour.unpublish", "tour.get", "tour.get_authorized_asset", "tours.request", "cad.inspect", "models.request",
   "models.publish", "models.unpublish", "models.get",
+  // 0.1.10 (27.11): new server skills – visits, deal finances, the done tick, the CRM mailbox, chats, agent limits.
+  "visits.stats", "deals.finance", "calendar.done", "mail.list", "mail.read", "chats.list", "agents.usage",
 ];
 const STAFF = new Set(STAFF_TOOLS);
 

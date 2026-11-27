@@ -110,6 +110,13 @@ export const TOOL_LABELS = {
   "models.publish": "Публикуване на 3D модел",
   "models.unpublish": "Сваляне на 3D модел",
   "models.get": "Версии на 3D модел",
+  "visits.stats": "Посещения на сайта",
+  "deals.finance": "Финанси по сделките",
+  "calendar.done": "Отметка „изпълнена“",
+  "mail.list": "Пощата в CRM",
+  "mail.read": "Четене на писмо",
+  "chats.list": "Чатове (Messenger / Instagram / WhatsApp)",
+  "agents.usage": "Лимити на агентите",
 };
 
 export const KNOWN_TOOLS = Object.keys(TOOL_LABELS);

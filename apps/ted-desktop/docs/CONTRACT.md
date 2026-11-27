@@ -811,7 +811,7 @@ token. No other AI is called and nothing switches to another AI by itself. The T
    `buildings/floors/units.*`, `imports.apply`, `jobs.result/cancel`, `interior.*`, `tour.*`, `tours.request`,
    `cad.inspect`, `models.*` (the CAD/3D worker is a GitHub Actions converter, panoramas are rendered by the admin's
    browser – no AI model).
-2. **Three layers**: (a) `crmTools()` never offers a SERVER_AI tool (95 of 108 remain); (b) `classify()` returns
+2. **Three layers**: (a) `crmTools()` never offers a SERVER_AI tool (102 of 115 remain); (b) `classify()` returns
    `"ai"` and `runCrm` answers `{ok:false, error:AI_REFUSED, instead}` for any spelling of those names (case,
    whitespace, invisible characters, `_`/`-`/`/` instead of the dot, `ted.` prefix) before anything else;
    (c) `main.js` hands the agent `guardTools(tools)`, whose `call()` refuses the same names and AI switches with
@@ -1283,7 +1283,7 @@ names; no network.
 ## 18. Tests
 
 - MAIN (vitest, no network): request shape snapshots (namespace tools, echoed items, no forbidden keys), the three
-  corrective resends, gate table over all 108 manifest names (auto / auto-generate / approval / confirm / never),
+  corrective resends, gate table over all 115 manifest names (auto / auto-generate / approval / confirm / never),
   `confirm` stripping and injection only after the dialog, 412 and 400-confirm retry, caps per mode, upload request
   shape, SSRF table (private/loopback/link-local/IPv6/mapped/single-label/blocked host/ports/redirect to private), DDG
   parser + rate-limit page fixtures, read_page charset (windows-1251 fixture) + phones/emails/prices, create→read round
