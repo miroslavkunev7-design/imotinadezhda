@@ -522,3 +522,42 @@ html.desk .v4-tr{grid-template-columns:86px 112px minmax(0,1.6fr) minmax(0,1fr) 
 .v4-f select{padding-right:50px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237b1020' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 16px center/26px no-repeat,linear-gradient(180deg,#fff,#fff8f0)!important}
 .v4-f input[type=date]::-webkit-calendar-picker-indicator{opacity:.75;width:26px;height:26px;cursor:pointer}
 #dhost #nd-fwin .v3-blk .ndg-h{right:28px}
+
+/* ============================================================
+   7) 27.11 – ПРЕЛЯТИ СНИМКИ във всички нови блокове, секции и карти
+   ============================================================ */
+/* „Редакция на сделка“: всяка секция в блока – своята снимка, преливаща отдясно */
+#dhost #nd-fwin .v3-blk .ndg{position:relative;isolation:isolate;overflow:hidden}
+#dhost #nd-fwin .v3-blk .ndg-img{display:block!important;z-index:-1;width:34%;opacity:.92!important;-webkit-mask-image:linear-gradient(270deg,#000 30%,rgba(0,0,0,.55) 62%,transparent 100%),linear-gradient(180deg,#000 55%,transparent 100%)!important;
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(270deg,#000 30%,rgba(0,0,0,.55) 62%,transparent 100%)!important}
+#dhost #nd-fwin .v3-blk .ndg .el{text-shadow:0 0 6px #fff8f0,0 0 3px #fff,0 0 1px #fff!important}
+/* общ модел: снимка вдясно, преливаща към крема */
+:is(.v4-tw,.v4-dyn,.v4-step,.v4-docs,.v4-s,.v4-col,.v4-tot,.v3-view){position:relative;isolation:isolate;overflow:hidden}
+:is(.v4-tw,.v4-dyn,.v4-step,.v4-docs,.v4-s,.v4-col,.v4-tot)::before{content:"";position:absolute;right:0;top:0;bottom:0;width:42%;z-index:-1;pointer-events:none;
+  background:var(--v4ph) center/cover no-repeat;filter:saturate(1.1) contrast(1.04);-webkit-mask-image:linear-gradient(270deg,#000 30%,rgba(0,0,0,.6) 64%,transparent 100%);mask-image:linear-gradient(270deg,#000 30%,rgba(0,0,0,.6) 64%,transparent 100%)}
+.v4-tw{--v4ph:url(assets/nd/ph13.jpg)}
+.v4-tw::before{bottom:auto;height:220px;width:46%;-webkit-mask-image:linear-gradient(270deg,#000 20%,transparent 100%),linear-gradient(180deg,#000 30%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(270deg,#000 20%,transparent 100%)}
+html:not(.desk) .v4-tw::before{height:170px}
+.v4-dyn{--v4ph:url(assets/nd/ph09.jpg)}
+.v4-dyn::before{bottom:auto;height:150px;width:50%}
+.v4-step{--v4ph:url(assets/card-viewings.jpg)}
+.v4-step::before{width:44%}
+.v4-docs{--v4ph:url(assets/nd/ph06.jpg)}
+.v4-s{--v4ph:url(assets/nd/ph16.jpg)}
+.v4-s.neg{--v4ph:url(assets/nd/ph04.jpg)}
+.v4-s::before{width:55%;opacity:.95}
+.v4-s.big{--v4ph:url(assets/hero-villa.jpg)}
+.v4-s.big::before{width:60%;opacity:.55;mix-blend-mode:luminosity}
+.v4-col.c-a{--v4ph:url(assets/nd/ph18.jpg)}
+.v4-col.c-o{--v4ph:url(assets/nd/ph12.jpg)}
+.v4-col.c-c{--v4ph:url(assets/card-clients.jpg)}
+.v4-col::before{width:52%;opacity:.5}
+.v4-tot{--v4ph:url(assets/hero-villa.jpg)}
+.v4-tot::before{width:50%;opacity:.42;mix-blend-mode:luminosity}
+/* текстът върху снимката – тъмен с бял ореол (като в картите на сделките) */
+:is(.v4-dyn,.v4-step,.v4-docs)>h4,.v4-th span,.v4-s span,.v4-s b,.v4-s small,.v4-r span,.v4-r b,.v4-chd b,.v4-ol button span,.v4-f small,.v4-stg small{text-shadow:var(--v3halo)}
+.v4-s.big span,.v4-s.big b{text-shadow:none}
+.v4-s.big b{filter:drop-shadow(0 0 8px rgba(246,200,110,.45))}
+.v4-tw>.v4-tr:not(.v4-th){background:linear-gradient(90deg,rgba(255,252,247,.9) 0%,rgba(255,250,244,.82) 60%,rgba(255,250,244,.7) 100%)}
+.v4-tw>.v4-tr:not(.v4-th):hover{background:rgba(255,236,206,.88)}
+html.desk .v4-th{background:linear-gradient(90deg,rgba(255,240,222,.95) 0%,rgba(250,228,204,.85) 55%,rgba(250,228,204,.35) 100%)}

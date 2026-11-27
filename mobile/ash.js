@@ -188,7 +188,6 @@
   var setTab = "voice";
   var PC_SETUP_URL = "https://github.com/miroslavkunev7-design/imotinadezhda/releases/latest/download/Ted-Setup-x64.exe";
   var MAC_SETUP_URL = "https://github.com/miroslavkunev7-design/imotinadezhda/releases/latest/download/Ted-Mac.dmg"; /* 0.1.8: Тед за Mac */
-  var TED_WEB_URL = "/mobile/ted/"; /* пълната версия в браузъра – Chrome я инсталира като програма (Mac и Windows) */
   function renderSettings() {
     var sb = win.querySelector(".nda-set"), PROV = { gemini: "Google", openai: "OpenAI", anthropic: "Anthropic", openrouter: "OpenRouter", ollama: "Ollama", n8n: "n8n" };
     var TABS = [["voice", "Глас", I.spk], ["model", "Модел", "🧠"], ["chat", "Чат", "💬"], ["dict", "Диктовка", "🎤"]];
@@ -220,12 +219,11 @@
       var ua = navigator.userAgent, isWin = /Windows/i.test(ua), isMac = /Macintosh|Mac OS X/i.test(ua) && !(navigator.maxTouchPoints > 1);
       var winA = '<a class="nda-opt nda-pc" href="' + PC_SETUP_URL + '" target="_blank" rel="noopener"><span class="d">Инсталирай за Windows<small>Ted-Setup-x64.exe · Windows 10/11</small></span><em>.exe</em></a>';
       var macA = '<a class="nda-opt nda-pc" href="' + MAC_SETUP_URL + '" target="_blank" rel="noopener"><span class="d">Инсталирай за Mac<small>Ted-Mac.dmg · Intel и Apple Silicon · macOS 13 Ventura и по-нови</small></span><em>.dmg</em></a>';
-      var webA = '<a class="nda-opt nda-pc" href="' + TED_WEB_URL + '" target="ted-web" rel="noopener"><span class="d">Отвори Тед в Google Chrome<small>пълната версия – после „Инсталирай“ в Chrome и е програма на компютъра (Mac и Windows)</small></span><em>Chrome</em></a>';
-      var webP = "<p><b>Инсталиране от Chrome:</b> в отворения Тед натиснете иконата за инсталиране вдясно в адресната лента (монитор със стрелка) → „Инсталиране“. Или меню ⋮ → „Предаване, запазване и споделяне“ → „Инсталиране на страницата като приложение…“. Тед се появява в Applications / Launchpad (на Mac) или в менюто Старт (на Windows), бял с червени елементи на Mac. Влизате със същия телефон или имейл и парола като в CRM.</p>";
       var winP = "<p>При първо стартиране Windows може да покаже „Windows защити компютъра ви“ – изберете „Повече информация“ → „Изпълни въпреки това“.</p>";
-      var macP = "<p>Mac: отворете файла и плъзнете Ted Imoti Nadezhda в Applications (не я пускайте от прозореца на диска). Първия път Mac казва „Apple cannot check it for malicious software“ – натиснете OK, после в Applications десен клик върху програмата → „Open“ → „Open“. Ако пак не тръгва: System Settings → Privacy &amp; Security → „Open Anyway“. После се отваря нормално. На Mac програмата е бяла с червени елементи.</p>";
-      html += '<div class="nda-sec"><h4>💻 Тед за компютър – пълна версия</h4><p>Отделна програма за Windows и Mac. Влизате със същия имейл или телефон и парола като в CRM и работите със същите клиенти, имоти, договори и документи според вашите права.</p>' +
-        (isMac ? webA + webP + '<p style="opacity:.8">Или като отделен файл (ако Mac позволи):</p>' + macA + macP : isWin ? winA + winP + webA + webP : "<p><b>Програмата е за компютър (Windows или Mac).</b> Отворете CRM на компютъра и изберете ⚙ → „Пълна версия“, за да я изтеглите.</p>" + webA + winA + macA) + "</div>";
+      var macP = "<p><b>Mac – първо пускане:</b> отворете Ted-Mac.dmg и плъзнете Ted Imoti Nadezhda в Applications (не я пускайте от прозореца на диска). Отворете я от Applications – Mac казва „Apple cannot check it…“ → натиснете Done / OK. После  → System Settings → Privacy &amp; Security → най-долу при „Ted Imoti Nadezhda was blocked“ натиснете „Open Anyway“ → паролата на Mac → „Open“. Само веднъж – после се отваря нормално, с вградения ChatGPT (вашия акаунт) вътре в програмата, както на Windows.</p>" +
+        "<p style=\"opacity:.85\">Ако „Open Anyway“ не се появи: Terminal → <code>xattr -dr com.apple.quarantine \"/Applications/Ted Imoti Nadezhda.app\"</code> → Enter, после отворете програмата.</p>";
+      html += '<div class="nda-sec"><h4>💻 Тед за компютър – пълна версия</h4><p>Отделна програма за Windows и Mac. Влизате със същия имейл или телефон и парола като в CRM и работите със същите клиенти, имоти, договори и документи според вашите права. ChatGPT (вашият акаунт) се свързва вътре в програмата – без отделен прозорец.</p>' +
+        (isMac ? macA + macP + winA : isWin ? winA + winP + macA : "<p><b>Програмата е за компютър (Windows или Mac).</b> Отворете CRM на компютъра и изберете ⚙ → „Пълна версия“, за да я изтеглите.</p>" + winA + macA) + "</div>";
     } else {
       html += '<div class="nda-sec"><h4>Диктовка</h4><p>Микрофонът в чата и във всяко поле за бележка разпознава дословно на български.</p>' + sw("dictAuto", "Изпращай гласовия въпрос веднага", "иначе първо виждате текста и го пращате вие") + "</div>" +
         '<div class="nda-sec"><h4>Бележки</h4><p>Във всяка графа за бележка/описание в CRM има микрофон – докоснете, говорете, докоснете пак; текстът се добавя при курсора.</p></div>';
@@ -235,10 +233,7 @@
     sb.onclick = function (e) {
       var t;
       if (e.target.closest("[data-sx]")) { sb.hidden = true; win.querySelector(".nda-gear").classList.remove("on"); return; }
-      if ((t = e.target.closest("[data-st]"))) { setTab = t.getAttribute("data-st");
-        /* „Пълна версия“ на Mac: отваря Тед в Google Chrome – оттам се инсталира като програма */
-        if (setTab === "pc" && /Macintosh|Mac OS X/i.test(navigator.userAgent) && !(navigator.maxTouchPoints > 1)) { try { window.open(TED_WEB_URL, "ted-web"); } catch (x) {} }
-        renderSettings(); return; }
+      if ((t = e.target.closest("[data-st]"))) { setTab = t.getAttribute("data-st"); renderSettings(); return; }
       if ((t = e.target.closest("[data-play]"))) { e.stopPropagation(); previewVoice(t.getAttribute("data-play"), t); return; }
       if ((t = e.target.closest("[data-voice]"))) { prefs.voice = t.getAttribute("data-voice"); savePrefs(); renderSettings(); return; }
       if ((t = e.target.closest("[data-style]"))) { prefs.style = t.getAttribute("data-style"); savePrefs(); renderSettings(); return; }
