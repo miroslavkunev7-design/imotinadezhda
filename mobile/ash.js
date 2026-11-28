@@ -1354,14 +1354,6 @@
       '<button type="button" class="nda-x" aria-label="Затвори">' + I.x + '</button><div class="nda-menu" role="listbox" hidden></div></header><div class="nda-list" aria-live="polite"></div><div class="nda-foot"></div><div class="nda-set" hidden></div>';
     if(inCrmPath()) { win.classList.add('nd-lux');var lux=document.createElement('link');lux.rel='stylesheet';lux.href='/mobile/crm/ted-lux.css?v=3';lux.onload=fitChatViewport;document.head.appendChild(lux);var online=document.createElement('span');online.className='ted-online';online.innerHTML='<i></i>На линия';win.querySelector('.nda-t').insertBefore(online,win.querySelector('.nda-skill')); }
     document.body.appendChild(fab); document.body.appendChild(win);
-    if (inCrmPath()) {
-      socialBubbles();
-      var hd = win.querySelector(".nda-h"), gearB = hd && hd.querySelector(".nda-gear");
-      if (hd && gearB && !hd.querySelector(".nda-soc")) {
-        gearB.insertAdjacentHTML("beforebegin", socHead());
-        hd.querySelector(".nda-soc").addEventListener("click", function (e) { var b = e.target.closest("[data-soc]"); if (b) { e.stopPropagation(); socOpen(b.getAttribute("data-soc")); } });
-      }
-    }
     list = win.querySelector(".nda-list"); menu = win.querySelector(".nda-menu"); foot = win.querySelector(".nda-foot"); if (inCrmPath()) setTimeout(function () { agentStats(); }, 1500);
     if (inCrmPath()) watchChat();
     list.addEventListener("click", fileClick);

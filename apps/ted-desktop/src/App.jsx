@@ -1431,7 +1431,8 @@ function App({ user, remembered, onLogout }) {
 
   // Чат | Работа: on a page (Проекти, Библиотека…) the toggle opens that mode's start screen, as in ChatGPT.
   const setModeHome = (m) => { set("mode", m); if (view !== "chat") newChat(); };
-  const socDots = <SocialDots unread={socSt.unread} active={soc && winMode === "normal" && !cgp ? socSt.site : null} onSite={openSocial} />;
+  // Уеб версията на сайта е без кръгчетата Messenger/Instagram/WhatsApp (браузърът не ги показва вътре); остават само в програмата.
+  const socDots = import.meta.env.MODE === "web" ? null : <SocialDots unread={socSt.unread} active={soc && winMode === "normal" && !cgp ? socSt.site : null} onSite={openSocial} />;
   const Top = (
     <TopBar phone={phone} mini={S.mini} chat={chat} view={view} temp={temp} setTemp={setTemp} modelLabel={modelLabel} modelOpen={pop && pop.id === "model"} onModel={(e) => openPop("model", e)}
       mode={S.mode} setMode={setModeHome} rgOn={rgOn} manageUsage={manageUsage} onMenu={() => setDrawer(true)} onExpand={() => set("mini", false)}
